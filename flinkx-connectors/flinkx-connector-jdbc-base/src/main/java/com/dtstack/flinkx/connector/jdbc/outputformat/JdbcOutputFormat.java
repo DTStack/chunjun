@@ -59,7 +59,7 @@ import java.util.Objects;
  *
  * @author huyifan.zju@163.com
  */
-public abstract class JdbcOutputFormat extends BaseRichOutputFormat {
+public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
 
