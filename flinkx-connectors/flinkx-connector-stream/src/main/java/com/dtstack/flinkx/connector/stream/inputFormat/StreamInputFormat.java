@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.stream.inputFormat;
 
+import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
@@ -26,6 +28,9 @@ import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.util.MockDataUtil;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import org.apache.commons.collections.CollectionUtils;
+
+import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.LogicalType;
 
 /**
  * @Company: www.dtstack.com
@@ -80,5 +85,12 @@ public class StreamInputFormat extends BaseRichInputFormat {
 
     public void setStreamConf(StreamConf streamConf) {
         this.streamConf = streamConf;
+    }
+
+    // TODO 和 StreamSource重复了，看看如何删减
+    @Override
+    public LogicalType getLogicalType() {
+        DataType dataType = TableUtil.getDataType(streamConf.getColumn());
+        return dataType.getLogicalType();
     }
 }

@@ -89,8 +89,8 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
-        //todo 这里需要被overwrite，传入实际插件的OutputFormat
-        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(new JdbcOutputFormat());
+        //TODO 这里需要被overwrite，传入实际插件的OutputFormat
+        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(getOutputFormat());
 
         String[] fieldNames = tableSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
@@ -112,6 +112,10 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()));
     }
+
+    protected JdbcOutputFormat getOutputFormat() {
+        throw new RuntimeException("no support");
+    };
 
     @Override
     public DynamicTableSink copy() {

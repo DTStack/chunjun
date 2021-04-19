@@ -19,6 +19,7 @@ package com.dtstack.flinkx;
 
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobExecutionResult;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -63,6 +64,9 @@ import com.dtstack.flinkx.util.TableUtil;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
+
+import org.apache.flink.table.types.logical.LogicalType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,7 +138,20 @@ public class Main {
             }
 
             BaseDataSink dataWriter = DataSinkFactory.getDataSink(config);
-            DataStreamSink<RowData> dataStreamSink = dataWriter.writeData(dataStream);
+
+            DataStream casted;
+            LogicalType sourceTypes = dataReader.getLogicalType();
+            LogicalType targetTypes = dataWriter.getLogicalType();
+            if (sourceTypes!= null && targetTypes != null) {
+                CastFunction cast = new CastFunction(sourceTypes, targetTypes);
+                cast.init();
+                casted = dataStream.map(cast);
+            } else {
+                casted = dataStream;
+            }
+
+            // TODO 添加转换算子或者转换函数
+            DataStreamSink<RowData> dataStreamSink = dataWriter.writeData(casted);
             if(speed.getWriterChannel() > 0){
                 dataStreamSink.setParallelism(speed.getWriterChannel());
             }

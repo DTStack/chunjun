@@ -27,9 +27,8 @@ import org.apache.flink.api.common.io.FinalizeOnMaster;
 import org.apache.flink.api.common.io.InitializeOnMaster;
 import org.apache.flink.api.common.io.RichOutputFormat;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
-import org.apache.flink.table.api.TableColumn;
-import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
@@ -46,13 +45,13 @@ import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -127,8 +126,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     /** 是否开启了checkpoint */
     protected boolean checkpointEnabled;
 
-    /** 虽然开启cp，是否采用定时器让下游数据可见。false：是，true：只要数据条数或者超时即可见 */
-    protected boolean commitEnabled;
+    /** 虽然开启cp，是否采用定时器和一定条数让下游数据可见。EXACTLY_ONCE：否。AT_LEAST_ONCE：只要数据条数或者超时即可见 */
+    protected String checkpointMode;
 
     /** 子任务数量 */
     protected int numTasks;
@@ -198,10 +197,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.checkpointEnabled = context.isCheckpointingEnabled();
 
         ExecutionConfig executionConfig = context.getExecutionConfig();
-        commitEnabled = Boolean.parseBoolean(executionConfig
+        checkpointMode = executionConfig
                 .getGlobalJobParameters()
                 .toMap()
-                .get("sql.checkpoint.commitEnabled"));
+                .getOrDefault("sql.checkpoint.mode",CheckpointingMode.EXACTLY_ONCE.toString());
 
         this.numTasks = numTasks;
 
@@ -599,4 +598,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     public void setRowConverter(AbstractRowConverter rowConverter) {
         this.rowConverter = rowConverter;
     }
+
+    public abstract LogicalType getLogicalType() throws SQLException;
 }

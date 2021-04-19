@@ -19,8 +19,15 @@
 package com.dtstack.flinkx.connector.mysql.table;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.mysql.MySQLDialect;
+
+import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.connector.sink.DynamicTableSink;
+import org.apache.flink.table.factories.FactoryUtil;
+import org.apache.flink.table.utils.TableSchemaUtils;
 
 /**
  * @program: flinkx
@@ -40,5 +47,27 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     protected JdbcDialect getDialect() {
         return new MySQLDialect();
+    }
+
+    @Override
+    public DynamicTableSink createDynamicTableSink(Context context) {
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
+        // 1.所有的requiredOptions和optionalOptions参数
+        final ReadableConfig config = helper.getOptions();
+
+        // 2.参数校验
+        helper.validate();
+        validateConfigOptions(config);
+        JdbcDialect jdbcDialect = getDialect();
+
+        // 3.封装参数
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+
+        return new MysqlDynamicTableSink(
+                getConnectionConf(helper.getOptions(), physicalSchema),
+                jdbcDialect,
+                physicalSchema);
     }
 }

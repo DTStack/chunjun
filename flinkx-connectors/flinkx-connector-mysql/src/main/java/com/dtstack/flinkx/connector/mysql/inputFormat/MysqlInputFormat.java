@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.mysql.inputFormat;
 
+import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
 
@@ -29,6 +30,7 @@ import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormat;
 
+import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -83,11 +85,16 @@ public class MysqlInputFormat extends JdbcInputFormat {
         for (int i = 0; i < len; i++) {
             String val = fieldConfs.get(i).getValue();
             if (val != null) {
-                finalRowData.setField(i, val);
+                finalRowData.setField(i, StringData.fromString(val));
             } else {
                 finalRowData.setField(i, rawRowData.getField(i));
             }
         }
         return finalRowData;
+    }
+
+    @Override
+    public LogicalType getLogicalType() throws SQLException {
+        return super.getLogicalType(MysqlTypeConverter::apply);
     }
 }

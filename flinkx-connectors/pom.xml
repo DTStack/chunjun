@@ -3,9 +3,9 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>flinkx-all</artifactId>
+        <artifactId>flinkx-parent</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
-        <version>1.6</version>
+        <version>1.12-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-core</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>

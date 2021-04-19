@@ -31,6 +31,10 @@ import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
+import org.apache.flink.table.types.logical.LogicalType;
+
+import java.sql.SQLException;
+
 /**
  * Date: 2021/04/07
  * Company: www.dtstack.com
@@ -54,5 +58,11 @@ public class StreamSink extends BaseDataSink {
         DataType dataType = TableUtil.getDataType(streamSinkConf.getColumn());
         builder.setConverter(new DataStructureConverterWrapper(DataStructureConverters.getConverter(dataType)));
         return createOutput(dataSet, builder.finish());
+    }
+
+    @Override
+    public LogicalType getLogicalType() {
+        DataType dataType = TableUtil.getDataType(streamSinkConf.getColumn());
+        return dataType.getLogicalType();
     }
 }

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>flinkx-kingbase</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
-        <version>1.6</version>
+        <version>1.12-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,13 +14,13 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-rdb-reader</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kingbase-core</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

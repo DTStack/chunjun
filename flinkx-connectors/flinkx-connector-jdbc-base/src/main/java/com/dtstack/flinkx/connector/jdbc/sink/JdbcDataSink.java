@@ -17,6 +17,10 @@
  */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
+
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
@@ -32,6 +36,9 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.apache.flink.table.types.logical.LogicalType;
+
+import java.sql.SQLException;
 import java.util.Properties;
 
 /**
@@ -63,6 +70,16 @@ public abstract class JdbcDataSink extends BaseDataSink {
         builder.setJdbcDialect(JdbcDialect);
         builder.setBatchSize(jdbcConf.getBatchSize());
         return createOutput(dataSet, builder.finish());
+    }
+
+    @Override
+    public LogicalType getLogicalType() throws SQLException {
+        JdbcOutputFormatBuilder builder = getBuilder();
+        builder.setJdbcConf(jdbcConf);
+        builder.setJdbcDialect(JdbcDialect);
+        builder.setBatchSize(jdbcConf.getBatchSize());
+        BaseRichOutputFormat format = builder.finish();
+        return format.getLogicalType();
     }
 
     /**

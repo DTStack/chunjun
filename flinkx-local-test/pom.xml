@@ -3,20 +3,20 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>flinkx-all</artifactId>
+        <artifactId>flinkx-parent</artifactId>
         <groupId>com.dtstack.flinkx</groupId>
-        <version>1.6</version>
+        <version>1.12-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-test</artifactId>
-	<name>FlinkX : Test</name>
+    <artifactId>flinkx-local-test</artifactId>
+	<name>FlinkX : Local : Test</name>
 
     <dependencies>
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-mysql</artifactId>
-			<version>1.6</version>
+			<version>1.12-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -74,25 +74,25 @@
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-core</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-connector-kafka</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-connector-stream</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-connector-mysql</artifactId>
-            <version>1.6</version>
+            <version>1.12-SNAPSHOT</version>
         </dependency>
 
     </dependencies>

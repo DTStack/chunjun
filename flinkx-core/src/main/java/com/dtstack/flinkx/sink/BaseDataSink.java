@@ -23,6 +23,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FieldConf;
@@ -35,6 +36,7 @@ import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
@@ -100,4 +102,6 @@ public abstract class BaseDataSink {
         SpeedConf speed = this.syncConf.getSpeed();
         flinkxCommonConf.setParallelism(speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
     }
+
+    public abstract LogicalType getLogicalType() throws SQLException;
 }

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.launcher;
+package com.dtstack.flinkx.client;
 
 import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.options.Options;

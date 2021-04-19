@@ -17,9 +17,14 @@
  */
 package com.dtstack.flinkx.connector.jdbc.outputformat;
 
+import com.dtstack.flinkx.RawTypeConverter;
+import com.dtstack.flinkx.util.TableTypeUtils;
+
 import org.apache.flink.connector.jdbc.statement.FieldNamedPreparedStatement;
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.types.Row;
 
 import com.dtstack.flinkx.conf.FieldConf;
@@ -42,6 +47,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -57,7 +64,7 @@ import java.util.Objects;
  *
  * @author huyifan.zju@163.com
  */
-public class JdbcOutputFormat extends BaseRichOutputFormat {
+public abstract class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
 
@@ -95,7 +102,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
 
-            Pair<List<String>, List<String>> pair = JdbcUtil.getTableFullColumns(getTableName(), dbConn);
+            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(getTableName(), dbConn);
             fullColumn = pair.getLeft();
             fullColumnType = pair.getRight();
 
@@ -140,6 +147,16 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         }
     }
 
+    public LogicalType getLogicalType(RawTypeConverter rawTypeConverter) throws SQLException {
+        // TODO 从元数据中获取数据类型，如果获取不到元数据信息应该从用户JSON配置中获取
+        try (Connection conn = getConnection()) {
+            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(getTableName(), conn);
+            List<String> rawFieldNames =  pair.getLeft();
+            List<String> rawFieldTypes = pair.getRight();
+            return TableTypeUtils.createRowType(rawFieldNames, rawFieldTypes, rawTypeConverter);
+        }
+    }
+
     @Override
     protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
         int index = 0;
@@ -168,7 +185,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             }
             fieldNamedPreparedStatement.executeBatch();
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
-            if (checkpointEnabled && !commitEnabled) {
+            if (checkpointEnabled && CheckpointingMode.EXACTLY_ONCE
+                    .name()
+                    .equalsIgnoreCase(checkpointMode)) {
                 rowsOfCurrentTransaction += rows.size();
             } else {
                 //手动提交事务

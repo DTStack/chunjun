@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.launcher.util;
+package com.dtstack.flinkx.client.util;
 
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClient;
@@ -28,8 +28,8 @@ import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.flink.yarn.configuration.YarnLogConfigUtil;
 
-import com.dtstack.flinkx.launcher.YarnConfLoader;
-import com.dtstack.flinkx.launcher.perJob.FlinkPerJobUtil;
+import com.dtstack.flinkx.client.YarnConfLoader;
+import com.dtstack.flinkx.client.perJob.FlinkPerJobUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;

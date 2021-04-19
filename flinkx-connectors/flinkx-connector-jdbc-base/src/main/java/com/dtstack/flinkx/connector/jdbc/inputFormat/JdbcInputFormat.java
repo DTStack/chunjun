@@ -19,7 +19,10 @@
 package com.dtstack.flinkx.connector.jdbc.inputFormat;
 
 
+import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
+
+import com.dtstack.flinkx.util.TableTypeUtils;
 
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
@@ -45,6 +48,7 @@ import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.table.data.StringData;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -76,7 +80,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author huyifan.zju@163.com
  */
-public class JdbcInputFormat extends BaseRichInputFormat {
+public abstract class JdbcInputFormat extends BaseRichInputFormat {
     public static final long serialVersionUID = 1L;
     protected static final int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
     protected static int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
@@ -138,6 +142,30 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         columnTypeList = JdbcUtil.analyzeColumnType(resultSet, jdbcConf.getColumn());
 
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
+    }
+
+    // TODO 可以和OutputFormat统一，根据表名获取元数据信息。
+    public LogicalType getLogicalType(RawTypeConverter rawTypeConverter) throws SQLException {
+        // TODO 从元数据中获取数据类型，如果获取不到元数据信息应该从用户JSON配置中获取
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement(resultSetType, resultSetConcurrency)) {
+            jdbcConf.setQuerySql(buildQuerySql(null));
+            conn.setAutoCommit(false);
+            stmt.setFetchSize(jdbcConf.getFetchSize());
+            stmt.setQueryTimeout(jdbcConf.getQueryTimeOut());
+            ResultSet rs = stmt.executeQuery(jdbcConf.getQuerySql());
+            ResultSetMetaData rd = rs.getMetaData();
+             List<String> rawFieldTypes = new ArrayList<>();
+             List<String> rawFieldNames = new ArrayList<>();
+            for (int i = 0; i < rd.getColumnCount(); ++i) {
+                String rawType = rd.getColumnTypeName(i + 1);
+                String rawName = rd.getColumnName(i + 1);
+                rawFieldNames.add(rawName);
+                rawFieldTypes.add(rawType);
+            }
+            return TableTypeUtils.createRowType(rawFieldNames, rawFieldTypes, rawTypeConverter);
+        }
+        // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
     }
 
     protected void analyzeMetaData() {

@@ -37,10 +37,14 @@ import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.ByteRateLimiter;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
+import org.apache.flink.table.types.logical.LogicalType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -348,4 +352,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     public void setConfig(FlinkxCommonConf config) {
         this.config = config;
     }
+
+    public abstract LogicalType getLogicalType() throws SQLException;
 }
