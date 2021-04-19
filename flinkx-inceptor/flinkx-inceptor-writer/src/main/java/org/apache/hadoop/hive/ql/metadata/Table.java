@@ -274,7 +274,7 @@ public class Table implements Serializable {
         if (this.inputFormatClass == null)
             try {
 //                String className = this.tTable.getSd().getInputFormat();
-                String className = "shade.inceptorwriter.org.apache.hadoop.hive.ql.io.orc.OrcInputFormat";
+                String className = "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat";
                 if (className == null) {
                     if (getStorageHandler() == null)
                         return null;
@@ -296,7 +296,7 @@ public class Table implements Serializable {
             try {
                 Class<?> c;
                 //String className = this.tTable.getSd().getOutputFormat();
-                String className = "shade.inceptorwriter.org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
+                String className = "org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
                 if (className == null) {
                     if (getStorageHandler() == null)
                         return null;

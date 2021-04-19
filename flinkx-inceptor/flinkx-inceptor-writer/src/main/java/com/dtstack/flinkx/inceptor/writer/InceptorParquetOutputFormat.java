@@ -57,7 +57,7 @@ import java.util.Map;
  * <p>
  * Company: www.dtstack.com
  *
- * @author jiangbo
+ * @author shifang@dtstack.com
  */
 public class InceptorParquetOutputFormat extends BaseInceptorOutputFormat {
 

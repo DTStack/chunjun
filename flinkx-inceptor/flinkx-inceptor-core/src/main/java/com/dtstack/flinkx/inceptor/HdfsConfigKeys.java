@@ -72,4 +72,8 @@ public class HdfsConfigKeys {
 
     public static final String KEY_SCHEMA = "schema";
 
+    public static final String KEY_METADATA_STORE = "hive.metastore.uris";
+
+    public static final String KEY_THRIFT_HEAD = "thrift:";
+
 }

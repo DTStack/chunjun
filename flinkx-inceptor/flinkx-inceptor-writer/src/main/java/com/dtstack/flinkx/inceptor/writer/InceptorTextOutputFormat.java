@@ -44,7 +44,7 @@ import java.util.Map;
  * <p>
  * Company: www.dtstack.com
  *
- * @author huyifan.zju@163.com
+ * @author shifang@dtstack.com
  */
 public class InceptorTextOutputFormat extends BaseInceptorOutputFormat {
 

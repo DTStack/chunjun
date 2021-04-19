@@ -44,7 +44,7 @@ import static com.dtstack.flinkx.inceptor.HdfsUtil.HADOOP_USER_NAME;
  * <p>
  * Company: www.dtstack.com
  *
- * @author huyifan.zju@163.com
+ * @author shifang@dtstack.com
  */
 public abstract class BaseInceptorOutputFormat extends BaseFileOutputFormat {
 
@@ -241,6 +241,9 @@ public abstract class BaseInceptorOutputFormat extends BaseFileOutputFormat {
         }
     }
 
+    /**
+     * 比较用户需要写入的字段和完整字段的区别，并且标记字段的在row中的index，未写入的字段index = -1
+     */
     private void initColIndices() {
         if (fullColumnNames == null || fullColumnNames.size() == 0) {
             fullColumnNames = columnNames;
@@ -251,7 +254,9 @@ public abstract class BaseInceptorOutputFormat extends BaseFileOutputFormat {
         }
 
         colIndices = new int[fullColumnNames.size()];
+        // i 完整字段集合字段的index
         for (int i = 0; i < fullColumnNames.size(); ++i) {
+            // j 用户写入的字段的index,代表row中字段的index
             int j = 0;
             for (; j < columnNames.size(); ++j) {
                 if (fullColumnNames.get(i).equalsIgnoreCase(columnNames.get(j))) {
