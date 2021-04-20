@@ -29,7 +29,7 @@ import org.apache.flink.util.Preconditions;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
-import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.conf.FlinkXConf;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
@@ -48,19 +48,19 @@ import java.util.List;
  */
 public abstract class BaseDataSink {
 
-    protected SyncConf syncConf;
+    protected FlinkXConf flinkXConf;
     protected TypeInformation<RowData> typeInformation;
 
     @SuppressWarnings("unchecked")
-    public BaseDataSink(SyncConf syncConf) {
+    public BaseDataSink(FlinkXConf flinkXConf) {
         //脏数据记录reader中的字段信息
-        List<FieldConf> fieldList = syncConf.getWriter().getFieldList();
+        List<FieldConf> fieldList = flinkXConf.getWriter().getFieldList();
         if(CollectionUtils.isNotEmpty(fieldList)){
-            syncConf.getDirty().setReaderColumnNameList(syncConf.getWriter().getFieldNameList());
+            flinkXConf.getDirty().setReaderColumnNameList(flinkXConf.getWriter().getFieldNameList());
         }
-        this.syncConf = syncConf;
+        this.flinkXConf = flinkXConf;
 
-        if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
+        if(flinkXConf.getTransformer() == null || StringUtils.isBlank(flinkXConf.getTransformer().getTransformSql())){
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
         }else{
             typeInformation = TableUtil.getTypeInformation(fieldList);
@@ -97,9 +97,9 @@ public abstract class BaseDataSink {
      * @param flinkxCommonConf
      */
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf){
-        PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
-        flinkxCommonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
-        SpeedConf speed = this.syncConf.getSpeed();
+        PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.flinkXConf);
+        flinkxCommonConf.setCheckFormat(this.flinkXConf.getWriter().getBooleanVal("check", true));
+        SpeedConf speed = this.flinkXConf.getSpeed();
         flinkxCommonConf.setParallelism(speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
     }
 

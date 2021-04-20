@@ -43,7 +43,7 @@ import org.apache.flink.table.factories.FactoryUtil;
 
 import com.dtstack.flinkx.conf.RestartConf;
 import com.dtstack.flinkx.conf.SpeedConf;
-import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.conf.FlinkXConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
@@ -101,7 +101,7 @@ public class Main {
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
 
         // 解析jobPath指定的任务配置文件
-        SyncConf config = parseFlinkxConf(job, options);
+        FlinkXConf config = parseFlinkxConf(job, options);
 
         StreamExecutionEnvironment env = createStreamExecutionEnvironment(options);
         configStreamExecutionEnvironment(env, options, config, confProperties);
@@ -174,10 +174,10 @@ public class Main {
      * @param options
      * @return
      */
-    public static SyncConf parseFlinkxConf(String job, Options options){
-        SyncConf config = null;
+    public static FlinkXConf parseFlinkxConf(String job, Options options){
+        FlinkXConf config = null;
         try {
-            config = SyncConf.parseJob(job);
+            config = FlinkXConf.parseJob(job);
 
             if(StringUtils.isNotEmpty(options.getPluginRoot())) {
                 config.setPluginRoot(options.getPluginRoot());
@@ -238,7 +238,7 @@ public class Main {
      * @param config FlinkxConf
      * @param properties confProperties
      */
-    private static void configStreamExecutionEnvironment(StreamExecutionEnvironment env, Options options, SyncConf config, Properties properties) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
+    private static void configStreamExecutionEnvironment(StreamExecutionEnvironment env, Options options, FlinkXConf config, Properties properties) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
         configRestartStrategy(env, config, properties);
         configCheckpoint(env, properties);
         configEnvironment(env, properties);
@@ -278,7 +278,7 @@ public class Main {
          * @param config
          * @param properties
          */
-    private static void configRestartStrategy(StreamExecutionEnvironment env, SyncConf config, Properties properties){
+    private static void configRestartStrategy(StreamExecutionEnvironment env, FlinkXConf config, Properties properties){
         if(config != null){
             RestartConf restart = config.getRestart();
             if (ConfigConstant.STRATEGY_FIXED_DELAY.equalsIgnoreCase(restart.getStrategy())) {

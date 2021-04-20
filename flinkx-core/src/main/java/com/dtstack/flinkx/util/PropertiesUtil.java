@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
-import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.conf.FlinkXConf;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
 
@@ -66,19 +66,19 @@ public class PropertiesUtil {
     /**
      * 初始化FlinkxCommonConf
      * @param flinkxCommonConf
-     * @param syncConf
+     * @param flinkXConf
      */
-    public static void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf, SyncConf syncConf){
-        flinkxCommonConf.setBytes(syncConf.getSpeed().getBytes());
-        flinkxCommonConf.setRecord(syncConf.getErrorLimit().getRecord());
-        flinkxCommonConf.setPercentage(syncConf.getErrorLimit().getPercentage());
-        flinkxCommonConf.setLogger(syncConf.getLog().isLogger());
-        flinkxCommonConf.setLogLevel(syncConf.getLog().getLevel());
-        flinkxCommonConf.setLogPath(syncConf.getLog().getPath());
-        flinkxCommonConf.setLogPattern(syncConf.getLog().getPattern());
-        flinkxCommonConf.setDirtyDataPath(syncConf.getDirty().getPath());
-        flinkxCommonConf.setDirtyDataHadoopConf(syncConf.getDirty().getHadoopConfig());
-        flinkxCommonConf.setFieldNameList(syncConf.getDirty().getReaderColumnNameList());
+    public static void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf, FlinkXConf flinkXConf){
+        flinkxCommonConf.setBytes(flinkXConf.getSpeed().getBytes());
+        flinkxCommonConf.setRecord(flinkXConf.getErrorLimit().getRecord());
+        flinkxCommonConf.setPercentage(flinkXConf.getErrorLimit().getPercentage());
+        flinkxCommonConf.setLogger(flinkXConf.getLog().isLogger());
+        flinkxCommonConf.setLogLevel(flinkXConf.getLog().getLevel());
+        flinkxCommonConf.setLogPath(flinkXConf.getLog().getPath());
+        flinkxCommonConf.setLogPattern(flinkXConf.getLog().getPattern());
+        flinkxCommonConf.setDirtyDataPath(flinkXConf.getDirty().getPath());
+        flinkxCommonConf.setDirtyDataHadoopConf(flinkXConf.getDirty().getHadoopConfig());
+        flinkxCommonConf.setFieldNameList(flinkXConf.getDirty().getReaderColumnNameList());
 
     }
 }

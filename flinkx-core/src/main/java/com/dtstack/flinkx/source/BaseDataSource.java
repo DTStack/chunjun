@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.source;
 
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -31,7 +29,7 @@ import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
-import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.conf.FlinkXConf;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
@@ -49,17 +47,17 @@ import java.util.Collections;
 public abstract class BaseDataSource {
 
     protected StreamExecutionEnvironment env;
-    protected SyncConf syncConf;
+    protected FlinkXConf flinkXConf;
     protected TypeInformation<RowData> typeInformation;
 
-    protected BaseDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
+    protected BaseDataSource(FlinkXConf flinkXConf, StreamExecutionEnvironment env) {
         this.env = env;
-        this.syncConf = syncConf;
+        this.flinkXConf = flinkXConf;
 
-        if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
+        if(flinkXConf.getTransformer() == null || StringUtils.isBlank(flinkXConf.getTransformer().getTransformSql())){
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
         }else{
-            typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList());
+            typeInformation = TableUtil.getTypeInformation(flinkXConf.getReader().getFieldList());
         }
     }
 
@@ -93,9 +91,9 @@ public abstract class BaseDataSource {
      * @param flinkxCommonConf
      */
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf){
-        PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
-        flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
-        SpeedConf speed = this.syncConf.getSpeed();
+        PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.flinkXConf);
+        flinkxCommonConf.setCheckFormat(this.flinkXConf.getReader().getBooleanVal("check", true));
+        SpeedConf speed = this.flinkXConf.getSpeed();
         flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
 

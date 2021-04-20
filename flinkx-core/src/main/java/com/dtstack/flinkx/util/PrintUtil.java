@@ -22,7 +22,7 @@ package com.dtstack.flinkx.util;
 import org.apache.flink.api.common.JobExecutionResult;
 
 import com.dtstack.flinkx.conf.JobConf;
-import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.conf.FlinkXConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
@@ -72,7 +72,7 @@ public class PrintUtil {
     /**
      * 打印job配置信息
      */
-    public static void printJobConfig(SyncConf config){
+    public static void printJobConfig(FlinkXConf config){
 
         //深拷贝对象
         JobConf job = JsonUtil.toObject(JsonUtil.toJson(config.getJob()), JobConf.class);

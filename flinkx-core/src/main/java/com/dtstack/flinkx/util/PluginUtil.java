@@ -22,7 +22,7 @@ package com.dtstack.flinkx.util;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.factories.FactoryUtil;
 
-import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.conf.FlinkXConf;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import org.apache.commons.collections.CollectionUtils;
@@ -200,7 +200,7 @@ public class PluginUtil {
         return sb.toString();
     }
 
-    public static void registerPluginUrlToCachedFile(SyncConf config, StreamExecutionEnvironment env) {
+    public static void registerPluginUrlToCachedFile(FlinkXConf config, StreamExecutionEnvironment env) {
         Set<URL> urlSet = new HashSet<>();
         Set<URL> coreUrlList = getJarFileDirPath("", config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> sourceUrlList = getJarFileDirPath(config.getReader().getName(), config.getPluginRoot(), config.getRemotePluginPath());

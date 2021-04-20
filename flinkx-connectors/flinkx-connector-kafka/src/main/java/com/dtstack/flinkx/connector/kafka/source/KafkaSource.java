@@ -22,7 +22,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.conf.FlinkXConf;
 import com.dtstack.flinkx.connector.kafka.adapter.StartupModeAdapter;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
@@ -48,7 +48,7 @@ public class KafkaSource extends BaseDataSource {
 
     protected KafkaConf kafkaConf;
 
-    public KafkaSource(SyncConf config, StreamExecutionEnvironment env) {
+    public KafkaSource(FlinkXConf config, StreamExecutionEnvironment env) {
         super(config, env);
         Gson gson = new GsonBuilder().registerTypeAdapter(StartupMode.class, new StartupModeAdapter()).create();
         GsonUtil.setTypeAdapter(gson);
@@ -81,7 +81,7 @@ public class KafkaSource extends BaseDataSource {
                 break;
         }
         consumer.setCommitOffsetsOnCheckpoints(kafkaConf.getGroupId() != null);
-        return createInput(consumer, syncConf.getReader().getName());
+        return createInput(consumer, flinkXConf.getReader().getName());
     }
 
     // TODO kafka 还不知道咋实现

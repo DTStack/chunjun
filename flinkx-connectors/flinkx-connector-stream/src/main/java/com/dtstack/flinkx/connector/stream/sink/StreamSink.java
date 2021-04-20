@@ -24,7 +24,7 @@ import org.apache.flink.table.data.conversion.DataStructureConverters;
 import org.apache.flink.table.runtime.connector.sink.DataStructureConverterWrapper;
 import org.apache.flink.table.types.DataType;
 
-import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.conf.FlinkXConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
 import com.dtstack.flinkx.sink.BaseDataSink;
@@ -32,8 +32,6 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.table.types.logical.LogicalType;
-
-import java.sql.SQLException;
 
 /**
  * Date: 2021/04/07
@@ -44,7 +42,7 @@ import java.sql.SQLException;
 public class StreamSink extends BaseDataSink {
     private StreamSinkConf streamSinkConf;
 
-    public StreamSink(SyncConf config) {
+    public StreamSink(FlinkXConf config) {
         super(config);
         streamSinkConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getWriter().getParameter()), StreamSinkConf.class);
         streamSinkConf.setColumn(config.getWriter().getFieldList());
