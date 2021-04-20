@@ -143,8 +143,23 @@ public class LogMinerConnection {
             oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
             isOracle10 = oracleVersion == 10;
 
-            if (isOracle10) {
-                //oracle10开启logMiner之前 需要设置会话级别的日期格式 否则sql语句会含有todate函数 而不是todate函数计算后的值
+            //修改session级别的 NLS_DATE_FORMAT 值为 "YYYY-MM-DD HH24:MI:SS"，否则在解析日志时 redolog出现 TO_DATE('18-APR-21', 'DD-MON-RR')
+            boolean isAlterDateFormat = false;
+            try {
+                try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_QUERY_NLS_DATE_FORMAT)) {
+                    try (ResultSet resultSet = preparedStatement.executeQuery(SqlUtil.SQL_QUERY_NLS_DATE_FORMAT)) {
+                        while (resultSet.next()) {
+                            String nlsDateFormat = resultSet.getString(1);
+                            isAlterDateFormat = !nlsDateFormat.equalsIgnoreCase("YYYY-MM-DD HH24:MI:SS");
+                            LOG.info("nlsDateFormat {}, isAlterDateFormat {}", nlsDateFormat, isAlterDateFormat);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LOG.info("query nlsDateFormat failed ,exception is {}", ExceptionUtil.getErrorMessage(e));
+            }
+
+            if (isAlterDateFormat) {
                 try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT)) {
                     preparedStatement.execute();
                 }
