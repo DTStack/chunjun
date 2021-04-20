@@ -19,7 +19,6 @@ package com.dtstack.flinkx;
 
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobExecutionResult;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -356,10 +355,10 @@ public class Main {
      * @return
      */
     private static void configCheckpoint(StreamExecutionEnvironment env, Properties properties) throws IOException {
-        Optional<Boolean> checkpointingEnabled = StreamEnvConfigManagerUtil.isCheckpointingEnabled(properties);
-        if (checkpointingEnabled.get()) {
+        Optional<Boolean> checkpointEnabled = StreamEnvConfigManagerUtil.isCheckpointEnabled(properties);
+        if (checkpointEnabled.get()) {
             StreamEnvConfigManagerUtil.getCheckpointInterval(properties).ifPresent(env::enableCheckpointing);
-            StreamEnvConfigManagerUtil.getCheckpointingMode(properties).ifPresent(env.getCheckpointConfig()::setCheckpointingMode);
+            StreamEnvConfigManagerUtil.getCheckpointMode(properties).ifPresent(env.getCheckpointConfig()::setCheckpointingMode);
             StreamEnvConfigManagerUtil.getCheckpointTimeout(properties).ifPresent(env.getCheckpointConfig()::setCheckpointTimeout);
             StreamEnvConfigManagerUtil.getMaxConcurrentCheckpoints(properties).ifPresent(env.getCheckpointConfig()::setMaxConcurrentCheckpoints);
             StreamEnvConfigManagerUtil.getCheckpointCleanup(properties).ifPresent(env.getCheckpointConfig()::enableExternalizedCheckpoints);

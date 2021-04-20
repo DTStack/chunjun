@@ -137,10 +137,10 @@ public final class StreamEnvConfigManagerUtil {
         }
 
         // checkpoint config
-        Optional<Boolean> checkpointingEnabled = isCheckpointingEnabled(confProperties);
-        if (checkpointingEnabled.get()) {
+        Optional<Boolean> checkpointEnabled = isCheckpointEnabled(confProperties);
+        if (checkpointEnabled.get()) {
             getCheckpointInterval(confProperties).ifPresent(streamEnv::enableCheckpointing);
-            getCheckpointingMode(confProperties).ifPresent(streamEnv.getCheckpointConfig()::setCheckpointingMode);
+            getCheckpointMode(confProperties).ifPresent(streamEnv.getCheckpointConfig()::setCheckpointingMode);
             getCheckpointTimeout(confProperties).ifPresent(streamEnv.getCheckpointConfig()::setCheckpointTimeout);
             getMaxConcurrentCheckpoints(confProperties).ifPresent(streamEnv.getCheckpointConfig()::setMaxConcurrentCheckpoints);
             getCheckpointCleanup(confProperties).ifPresent(streamEnv.getCheckpointConfig()::enableExternalizedCheckpoints);
@@ -247,7 +247,7 @@ public final class StreamEnvConfigManagerUtil {
         return characteristic;
     }
 
-    public static Optional<Boolean> isCheckpointingEnabled(Properties properties) {
+    public static Optional<Boolean> isCheckpointEnabled(Properties properties) {
         boolean checkpointEnabled = !(properties.getProperty(ConfigConstant.SQL_CHECKPOINT_INTERVAL_KEY) == null
                 && properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY) == null);
         return Optional.of(checkpointEnabled);
@@ -269,7 +269,7 @@ public final class StreamEnvConfigManagerUtil {
         return Optional.of(checkpointInterval);
     }
 
-    public static Optional<CheckpointingMode> getCheckpointingMode(Properties properties) {
+    public static Optional<CheckpointingMode> getCheckpointMode(Properties properties) {
         String checkpointingModeStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_MODE_KEY);
         CheckpointingMode checkpointingMode = null;
         if (!StringUtils.isEmpty(checkpointingModeStr)) {
