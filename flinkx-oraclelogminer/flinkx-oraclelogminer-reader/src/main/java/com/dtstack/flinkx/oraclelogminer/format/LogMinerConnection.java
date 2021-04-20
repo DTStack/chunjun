@@ -490,7 +490,7 @@ public class LogMinerConnection {
 
                 String hexStr = new String(Hex.encodeHex(redo.getBytes("GBK")));
 
-                if(hexStr.contains("3f2c") || hexStr.contains("3f20616e64")){
+                if(hexStr.contains("3f2c") || hexStr.contains("3f20616e64") || hexStr.contains("3f207768657265")){
                     LOG.info("current scn is: {},\noriginal redo sql is: {},\nhex redo string is: {}", scn, redo, hexStr);
                     if("INSERT".equalsIgnoreCase(operation)){
                         //insert into values('','','',) value后可能存在中文乱码
@@ -501,6 +501,8 @@ public class LogMinerConnection {
                         //delete from where "" = '' and "" = '' where后可能存在中文乱码
                         //?空格and -> '空格and
                         hexStr = hexStr.replace("3f20616e64", "2720616e64");
+                        // ? where 改为 ' where
+                        hexStr = hexStr.replace("3f207768657265", "27207768657265");
                     }
                     sqlLog = new String(Hex.decodeHex(hexStr.toCharArray()), "GBK");
                     LOG.info("final redo sql is: {}", sqlLog);
