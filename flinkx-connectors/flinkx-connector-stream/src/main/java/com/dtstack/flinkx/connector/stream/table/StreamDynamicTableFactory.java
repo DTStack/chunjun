@@ -32,7 +32,7 @@ import com.dtstack.flinkx.connector.stream.conf.StreamLookupConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.sink.StreamDynamicTableSink;
 import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
-import com.dtstack.flinkx.constants.LookupConstant;
+import com.dtstack.flinkx.lookup.constants.LookUpConstants;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -61,7 +61,7 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> optionalOptions = new HashSet<>();
-        optionalOptions.add(LookupConstant.CACHE);
+        optionalOptions.add(LookUpConstants.LOOKUP_CACHE_TYPE);
         return optionalOptions;
     }
 
@@ -105,7 +105,7 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
         StreamLookupConf lookupConf = (StreamLookupConf) StreamLookupConf
                 .build()
                 .setTableName(context.getObjectIdentifier().getObjectName())
-                .setCache(config.get(LookupConstant.CACHE))
+                .setCache(config.get(LookUpConstants.LOOKUP_CACHE_TYPE))
                 .setCacheSize(1000L)
                 .setPeriod(3600 * 1000L);
         TableSchema physicalSchema =
