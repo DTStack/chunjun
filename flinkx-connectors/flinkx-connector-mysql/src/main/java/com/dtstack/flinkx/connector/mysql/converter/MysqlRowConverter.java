@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.mysql;
+package com.dtstack.flinkx.connector.mysql.converter;
 
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import org.apache.flink.table.data.DecimalData;
@@ -42,8 +42,8 @@ import java.time.LocalTime;
  * @author: wuren
  * @create: 2021/03/29
  **/
-public class MySQLRowConverter extends AbstractJdbcRowConverter {
-    public MySQLRowConverter(RowType rowType) {
+public class MysqlRowConverter extends AbstractJdbcRowConverter {
+    public MysqlRowConverter(RowType rowType) {
         super(rowType);
     }
 

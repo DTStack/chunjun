@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.mysql;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
+import com.dtstack.flinkx.connector.mysql.converter.MysqlRowConverter;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.table.types.logical.RowType;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
  * @author: wuren
  * @create: 2021/03/17
  **/
-public class MySQLDialect implements JdbcDialect {
+public class MysqlDialect implements JdbcDialect {
 
     @Override
     public String dialectName() {
@@ -48,7 +49,7 @@ public class MySQLDialect implements JdbcDialect {
 
     @Override
     public AbstractJdbcRowConverter getRowConverter(RowType rowType) {
-        return new MySQLRowConverter(rowType);
+        return new MysqlRowConverter(rowType);
     }
 
     @Override
