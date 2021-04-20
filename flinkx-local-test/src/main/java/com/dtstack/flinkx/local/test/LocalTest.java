@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +45,11 @@ public class LocalTest {
 //        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream_mysql.json";
 //        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch.sql";
         // 不要删，注释就行。
-        String jobPath = "/Users/chuixue/Desktop/tmp/sqlFile.sql";
+        String userDir = System.getProperty("user.dir");
+        System.out.println(userDir);
+        String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
+        String flinkxPluginPath = userDir + "/syncplugins";
+
 //        String jobPath = "/Users/chuixue/Desktop/tmp/demoflinkx/stream2Mysql.json";
 //        String jobPath = "/Users/luna/src/dtstack/tomb/flinkx12/read_format_mysql.json";
         // 任务配置参数
@@ -70,13 +75,9 @@ public class LocalTest {
             argsList.add("-jobName");
             argsList.add("flinkStreamSQLLocalTest");
             argsList.add("-pluginRoot");
-//            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
-            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
-//            argsList.add("/Users/luna/src/dtstack/flinkx/syncplugins");
+            argsList.add(flinkxPluginPath);
             argsList.add("-remotePluginPath");
-//            argsList.add("/Users/tudou/IdeaProjects/dt-center-flinkx/syncplugins");
-            argsList.add("/Users/chuixue/dtstack/workspace/flinkx/syncplugins");
-//            argsList.add("/Users/luna/src/dtstack/flinkx/syncplugins");
+            argsList.add(flinkxPluginPath);
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
             argsList.add("-confProp");
