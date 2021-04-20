@@ -485,32 +485,40 @@ public class LogMinerConnection {
             }
 
             //oracle10中文编码且字符串大于4000，LogMiner可能出现中文乱码导致SQL解析异常
-            if(hasMultiSql && isOracle10 && isGBK){
+            if (hasMultiSql && isOracle10 && isGBK) {
                 String redo = sqlRedo.toString();
-
                 String hexStr = new String(Hex.encodeHex(redo.getBytes("GBK")));
-
-                if(hexStr.contains("3f2c") || hexStr.contains("3f20616e64") || hexStr.contains("3f207768657265")){
+                boolean hasChange = false;
+                if ("INSERT".equalsIgnoreCase(operation) && hexStr.contains("3f2c")) {
                     LOG.info("current scn is: {},\noriginal redo sql is: {},\nhex redo string is: {}", scn, redo, hexStr);
-                    if("INSERT".equalsIgnoreCase(operation)){
-                        //insert into values('','','',) value后可能存在中文乱码
-                        //?, -> ',
-                        hexStr = hexStr.replace("3f2c", "272c");
-                    }else{
+                    hasChange = true;
+                    hexStr = hexStr.replace("3f2c", "272c");
+                }
+                if (!"INSERT".equalsIgnoreCase(operation)) {
+                    if (hexStr.contains("3f20616e64")) {
+                        LOG.info("current scn is: {},\noriginal redo sql is: {},\nhex redo string is: {}", scn, redo, hexStr);
+                        hasChange = true;
                         //update set "" = '' and "" = '' where "" = '' and "" = '' where后可能存在中文乱码
                         //delete from where "" = '' and "" = '' where后可能存在中文乱码
                         //?空格and -> '空格and
                         hexStr = hexStr.replace("3f20616e64", "2720616e64");
+                    }
+
+                    if (hexStr.contains("3f207768657265")) {
+                        LOG.info("current scn is: {},\noriginal redo sql is: {},\nhex redo string is: {}", scn, redo, hexStr);
+                        hasChange = true;
                         // ? where 改为 ' where
                         hexStr = hexStr.replace("3f207768657265", "27207768657265");
                     }
+                }
+
+                if(hasChange){
                     sqlLog = new String(Hex.decodeHex(hexStr.toCharArray()), "GBK");
                     LOG.info("final redo sql is: {}", sqlLog);
                 }else{
-                    sqlLog = new String(Hex.decodeHex(hexStr.toCharArray()), "GBK");
+                    sqlLog = sqlRedo.toString();
                 }
-
-            }else{
+            } else {
                 sqlLog = sqlRedo.toString();
             }
 
