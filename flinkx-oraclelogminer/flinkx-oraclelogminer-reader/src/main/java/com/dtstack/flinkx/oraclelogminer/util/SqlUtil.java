@@ -266,6 +266,9 @@ public class SqlUtil {
 
     public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') > FIRST_TIME union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO' and name is not null)";
 
+    //查询会话级别 NLS_DATE_FORMAT 参数值
+    public final static String SQL_QUERY_NLS_DATE_FORMAT="select VALUE from nls_session_parameters where parameter = 'NLS_DATE_FORMAT'";
+
     //修改当前会话的date日期格式
     public final static String SQL_ALTER_DATE_FORMAT ="ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'";
 
