@@ -142,18 +142,16 @@ public class LogParser {
         });
     }
 
-    public QueueData parse(QueueData pair, boolean isOracle10) throws JSQLParserException {
+    public QueueData parse(QueueData pair) throws JSQLParserException {
         Map<String, Object> logData = pair.getData();
         String schema = MapUtils.getString(logData, "schema");
         String tableName = MapUtils.getString(logData, "tableName");
         String operation = MapUtils.getString(logData, "operation");
         String sqlLog = MapUtils.getString(logData, "sqlLog");
+        LOG.debug("before alter sqlLog, sqlLog = {}",sqlLog);
         String sqlRedo = sqlLog.replace("IS NULL", "= NULL");
-        //只有oracle10需要进行toDate toTimestamp转换
-        LOG.debug("before parse toDate/toTimestamp sqlRedo = {}",sqlRedo);
-        if (isOracle10) {
-            sqlRedo = parseToTimeStamp(parseToDate(sqlRedo));
-        }
+        sqlRedo = parseToTimeStamp(parseToDate(sqlRedo));
+
         Timestamp timestamp = (Timestamp)MapUtils.getObject(logData, "opTime");
 
         Map<String,Object> message = new LinkedHashMap<>();
