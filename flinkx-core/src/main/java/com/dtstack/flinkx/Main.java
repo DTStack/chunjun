@@ -142,6 +142,7 @@ public class Main {
             DataStream casted;
             LogicalType sourceTypes = dataReader.getLogicalType();
             LogicalType targetTypes = dataWriter.getLogicalType();
+            // 任意一端拿不到类型则不启动转换函数
             if (sourceTypes!= null && targetTypes != null) {
                 CastFunction cast = new CastFunction(sourceTypes, targetTypes);
                 cast.init();
