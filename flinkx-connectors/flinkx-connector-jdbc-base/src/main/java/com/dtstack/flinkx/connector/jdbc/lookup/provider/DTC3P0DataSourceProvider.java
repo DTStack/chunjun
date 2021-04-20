@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.provider;
+package com.dtstack.flinkx.connector.jdbc.lookup.provider;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import io.vertx.core.json.JsonObject;

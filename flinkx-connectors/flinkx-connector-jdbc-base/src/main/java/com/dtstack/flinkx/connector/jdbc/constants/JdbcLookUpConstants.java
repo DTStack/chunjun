@@ -88,7 +88,7 @@ public class JdbcLookUpConstants extends LookUpConstants {
             ConfigOptions.key("DT_PROVIDER_CLASS")
                     .stringType()
                     .defaultValue(
-                            "com.dtstack.flinkx.connector.jdbc.provider.DTC3P0DataSourceProvider")
+                            "com.dtstack.flinkx.connector.jdbc.lookup.provider.DTC3P0DataSourceProvider")
                     .withDescription(" lookup ");
 
     public static final ConfigOption<String> PREFERRED_TEST_QUERY_SQL =
