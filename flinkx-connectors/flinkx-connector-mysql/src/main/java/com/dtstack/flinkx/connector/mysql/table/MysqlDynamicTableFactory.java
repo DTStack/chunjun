@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.mysql.table;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
-import com.dtstack.flinkx.connector.mysql.MySQLDialect;
+import com.dtstack.flinkx.connector.mysql.MysqlDialect;
 
 /**
  * @program: flinkx
@@ -39,6 +39,6 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
     @Override
     protected JdbcDialect getDialect() {
-        return new MySQLDialect();
+        return new MysqlDialect();
     }
 }

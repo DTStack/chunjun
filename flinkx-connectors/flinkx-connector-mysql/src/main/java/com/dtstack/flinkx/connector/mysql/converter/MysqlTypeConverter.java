@@ -13,12 +13,18 @@ import java.util.Locale;
  **/
 public class MysqlTypeConverter {
 
-    // MySQL支持的数据类型: com.mysql.jdbc.MysqlDefs
-    // com.mysql.jdbc.ResultSetImpl.getObject(int)
-    //TODO 仔细梳理每个数据库支持的数据类型
-
-    public static DataType apply(String type) throws SQLException  {
-
+    /**
+     * 将mysql数据库中的类型，转换成flink的DataType类型
+     * MySQL支持的数据类型: com.mysql.jdbc.MysqlDefs
+     * com.mysql.jdbc.ResultSetImpl.getObject(int)
+     *
+     * @param type
+     *
+     * @return
+     *
+     * @throws SQLException
+     */
+    public static DataType apply(String type) throws SQLException {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
                 return DataTypes.BOOLEAN();
