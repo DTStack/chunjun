@@ -454,7 +454,7 @@ public class InceptorOrcOutputFormat extends BaseInceptorOutputFormat {
                     try {
                         connection.commitTransaction();
                     } catch (Exception e) {
-
+                        throw new RuntimeException("commit error",e);
                     } finally {
                         connection.close();
                         connection = null;

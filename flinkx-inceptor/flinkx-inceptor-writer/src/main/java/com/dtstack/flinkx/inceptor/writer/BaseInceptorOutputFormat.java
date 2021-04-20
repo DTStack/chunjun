@@ -231,9 +231,6 @@ public abstract class BaseInceptorOutputFormat extends BaseFileOutputFormat {
             currentUser = hadoopUser.toString();
         }
         conf = FileSystemUtil.getConfiguration(hadoopConfig, defaultFs);
-        if (isTransaction) {
-            return;
-        }
         try {
             fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFs, currentUser);
         } catch (Exception e) {
