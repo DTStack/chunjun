@@ -37,6 +37,8 @@ import org.apache.commons.lang.StringUtils;
  * @author tudou
  */
 public class Options {
+    @OptionRequired(description = "job type:sql or sync")
+    private String jobType;
 
     @OptionRequired(description = "Running mode")
     private String mode = ClusterMode.local.name();
@@ -291,5 +293,13 @@ public class Options {
 
     public void setConnectorLoadMode(String connectorLoadMode) {
         this.connectorLoadMode = connectorLoadMode;
+    }
+
+    public String getJobType() {
+        return jobType;
+    }
+
+    public void setJobType(String jobType) {
+        this.jobType = jobType;
     }
 }

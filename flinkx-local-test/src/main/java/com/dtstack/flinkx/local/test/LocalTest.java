@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -40,33 +39,33 @@ public class LocalTest {
 
     public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         Properties confProperties = new Properties();
-//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/stream_mysql.json";
-//        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/merge/scratch.sql";
-        // 不要删，注释就行。
         String userDir = System.getProperty("user.dir");
         System.out.println(userDir);
+
         String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
         String flinkxPluginPath = userDir + "/syncplugins";
 
-//        String jobPath = "/Users/chuixue/Desktop/tmp/demoflinkx/stream2Mysql.json";
-//        String jobPath = "/Users/luna/src/dtstack/tomb/flinkx12/read_format_mysql.json";
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");
         argsList.add("local");
         String content = readFile(jobPath);
-        if(StringUtils.endsWith(jobPath, "json")){
+        if (StringUtils.endsWith(jobPath, "json")) {
+            argsList.add("-jobType");
+            argsList.add("sync");
             argsList.add("-job");
             argsList.add(content);
             argsList.add("-flinkconf");
             argsList.add(System.getProperty("user.dir") + "/flinkconf/");
-//            argsList.add("-pluginRoot");
-//            argsList.add("/Users/luna/src/dtstack/flinkx/syncplugins");
+            argsList.add("-pluginRoot");
+            argsList.add(flinkxPluginPath);
             argsList.add("-confProp");
             argsList.add(GsonUtil.GSON.toJson(confProperties));
-        }else if(StringUtils.endsWith(jobPath, "sql")){
+        } else if (StringUtils.endsWith(jobPath, "sql")) {
+            argsList.add("-jobType");
+            argsList.add("sql");
             argsList.add("-connectorLoadMode");
             argsList.add("classloader");
 //            argsList.add("spi");
@@ -88,9 +87,7 @@ public class LocalTest {
 //            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
         }
 
-        // Main.main(argsList.toArray(new String[0]));
         Main.main(argsList.toArray(new String[0]));
-
     }
 
     private static String readFile(String sqlPath) {
