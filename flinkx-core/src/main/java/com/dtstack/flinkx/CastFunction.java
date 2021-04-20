@@ -61,7 +61,7 @@ public class CastFunction extends RichMapFunction<RowData, RowData> {
         LogicalTypeRoot targetTypeRoot = targetType.getTypeRoot();
         // TODO 这个地方可能需要改成枚举， 一次匹配 Source 和 Target两种类型，inspired by flink
         if (targetTypeRoot.equals(LogicalTypeRoot.BIGINT)) {
-            return sourceType.accept(new CastBigIntLogicalTypeVisitor());
+            return sourceType.accept(new CastToBigIntLogicalTypeVisitor());
         } else {
             throw new Exception("Unsupported cast from to");
         }

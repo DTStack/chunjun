@@ -36,7 +36,7 @@ import org.apache.flink.table.types.logical.ZonedTimestampType;
  * @author: wuren
  * @create: 2021/04/19
  **/
-public class CastBigIntLogicalTypeVisitor implements LogicalTypeVisitor<Casting> {
+public class CastToBigIntLogicalTypeVisitor implements LogicalTypeVisitor<Casting> {
 
     @Override
     public Casting visit(CharType charType) {
