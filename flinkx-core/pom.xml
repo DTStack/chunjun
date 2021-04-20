@@ -420,15 +420,16 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <delete dir = "${basedir}/../syncplugins"/>
-                                <copy todir="${basedir}/../syncplugins/">
-                                    <fileset dir="target/">
-                                        <include name="${artifactId}-${project.version}.jar" />
-                                    </fileset>
-                                </copy>
-                                <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../syncplugins/${artifactId}-${project.version}.jar"
-                                      tofile="${basedir}/../syncplugins/flinkx-${git.branch}.jar" />
+                                <copy todir="${basedir}/../flinkxplugins/"
+									  file="${basedir}/target/${artifactId}-${project.version}.jar"/>
+                                <move file="${basedir}/../flinkxplugins/${artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../flinkxplugins/${artifactId}-${git.branch}.jar" />
+								<delete>
+									<fileset dir="${basedir}/../flinkxplugins/"
+											 includes="${artifactId}-*.jar"
+											 excludes="${artifactId}-${git.branch}.jar"/>
+								</delete>
+
                             </tasks>
                         </configuration>
                     </execution>

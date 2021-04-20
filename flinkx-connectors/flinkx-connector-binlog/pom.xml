@@ -148,14 +148,15 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../syncplugins/binlog">
-									<fileset dir="target/">
-										<include name="${artifactId}-${project.version}.jar"/>
-									</fileset>
-								</copy>
-								<!--suppress UnresolvedMavenProperty -->
-								<move file="${basedir}/../../syncplugins/binlog/${artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../syncplugins/binlog/${artifactId}-${git.branch}.jar"/>
+								<copy todir="${basedir}/../../flinkxplugins/binlog"
+									  file="${basedir}/target/${artifactId}-${project.version}.jar"/>
+								<move file="${basedir}/../../flinkxplugins/binlog/${artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../flinkxplugins/binlog/${artifactId}-${git.branch}.jar"/>
+								<delete>
+									<fileset dir="${basedir}/../../flinkxplugins/binlog/"
+											 includes="${artifactId}-*.jar"
+											 excludes="${artifactId}-${git.branch}.jar"/>
+								</delete>
 							</tasks>
 						</configuration>
 					</execution>

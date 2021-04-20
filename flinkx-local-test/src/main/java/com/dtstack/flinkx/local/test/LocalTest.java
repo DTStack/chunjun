@@ -45,7 +45,7 @@ public class LocalTest {
         System.out.println(userDir);
 
         String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
-        String flinkxPluginPath = userDir + "/syncplugins";
+        String flinkxPluginPath = userDir + "/flinkxplugins";
 
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
