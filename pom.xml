@@ -6,7 +6,7 @@
 
     <groupId>com.dtstack.flinkx</groupId>
     <artifactId>flinkx-parent</artifactId>
-	<name>FlinkX : </name>
+	<name>FlinkX</name>
     <packaging>pom</packaging>
     <version>1.12-SNAPSHOT</version>
 
