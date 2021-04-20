@@ -70,7 +70,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         return ChangelogMode.newBuilder()
                 .addContainedKind(RowKind.INSERT)
                 .addContainedKind(RowKind.DELETE)
-                .addContainedKind(RowKind.UPDATE_BEFORE)
                 .addContainedKind(RowKind.UPDATE_AFTER)
                 .build();
     }
