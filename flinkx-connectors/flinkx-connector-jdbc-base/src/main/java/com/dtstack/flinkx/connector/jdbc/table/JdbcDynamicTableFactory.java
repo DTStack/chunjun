@@ -55,6 +55,7 @@ import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_BUFFER_FLUSH_INTERVAL;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_MAX_RETRIES;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_PARALLELISM;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_AUTO_COMMIT;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_FETCH_SIZE;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_PARTITION_COLUMN;
@@ -69,6 +70,7 @@ import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_CACHE_T
 import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_ERRORLIMIT;
 import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_MAX_RETRIES;
+import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_PARALLELISM;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
@@ -146,6 +148,7 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         jdbcConf.setAllReplace(conf.getAllReplace());
         jdbcConf.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
         jdbcConf.setFlushIntervalMills(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
+        jdbcConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
 
         List<String> keyFields =
                 schema.getPrimaryKey()
@@ -168,7 +171,8 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
                 .setMaxRetryTimes(readableConfig.get(LOOKUP_MAX_RETRIES))
                 .setErrorLimit(readableConfig.get(LOOKUP_ERRORLIMIT))
                 .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE))
-                .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT));
+                .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT))
+                .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
 
     @Override
@@ -184,20 +188,29 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         Set<ConfigOption<?>> optionalOptions = new HashSet<>();
         optionalOptions.add(USERNAME);
         optionalOptions.add(PASSWORD);
+
         optionalOptions.add(SCAN_PARTITION_COLUMN);
         optionalOptions.add(SCAN_PARTITION_LOWER_BOUND);
         optionalOptions.add(SCAN_PARTITION_UPPER_BOUND);
         optionalOptions.add(SCAN_PARTITION_NUM);
         optionalOptions.add(SCAN_FETCH_SIZE);
         optionalOptions.add(SCAN_AUTO_COMMIT);
+
+        optionalOptions.add(LOOKUP_CACHE_PERIOD);
         optionalOptions.add(LOOKUP_CACHE_MAX_ROWS);
         optionalOptions.add(LOOKUP_CACHE_TTL);
-        optionalOptions.add(LOOKUP_MAX_RETRIES);
         optionalOptions.add(LOOKUP_CACHE_TYPE);
+        optionalOptions.add(LOOKUP_MAX_RETRIES);
+        optionalOptions.add(LOOKUP_ERRORLIMIT);
+        optionalOptions.add(LOOKUP_FETCH_SIZE);
+        optionalOptions.add(LOOKUP_ASYNCTIMEOUT);
+        optionalOptions.add(LOOKUP_PARALLELISM);
+
         optionalOptions.add(SINK_BUFFER_FLUSH_MAX_ROWS);
         optionalOptions.add(SINK_BUFFER_FLUSH_INTERVAL);
         optionalOptions.add(SINK_MAX_RETRIES);
         optionalOptions.add(SINK_ALLREPLACE);
+        optionalOptions.add(SINK_PARALLELISM);
         return optionalOptions;
     }
 

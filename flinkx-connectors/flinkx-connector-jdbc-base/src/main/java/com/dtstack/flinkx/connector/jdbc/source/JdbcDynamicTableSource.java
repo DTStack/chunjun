@@ -1,23 +1,21 @@
 package com.dtstack.flinkx.connector.jdbc.source;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-
-import org.apache.flink.table.api.TableSchema;
-import org.apache.flink.table.connector.source.AsyncTableFunctionProvider;
-import org.apache.flink.table.connector.source.DynamicTableSource;
-import org.apache.flink.table.connector.source.LookupTableSource;
-import org.apache.flink.table.connector.source.TableFunctionProvider;
-import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.utils.TableSchemaUtils;
-import org.apache.flink.util.Preconditions;
-
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
+
+import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.connector.source.DynamicTableSource;
+import org.apache.flink.table.connector.source.LookupTableSource;
+import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.utils.TableSchemaUtils;
+import org.apache.flink.util.Preconditions;
 
 import java.util.Objects;
 
@@ -57,23 +55,23 @@ public class JdbcDynamicTableSource
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return AsyncTableFunctionProvider.of(new JdbcLruTableFunction(
+            return ParallelAsyncTableFunctionProvider.of(new JdbcLruTableFunction(
                     jdbcConf,
                     jdbcDialect,
                     lookupConf,
                     physicalSchema.getFieldNames(),
                     keyNames,
                     rowType
-            ));
+            ), lookupConf.getParallelism());
         }
-        return TableFunctionProvider.of(new JdbcAllTableFunction(
+        return ParallelTableFunctionProvider.of(new JdbcAllTableFunction(
                 jdbcConf,
                 jdbcDialect,
                 lookupConf,
                 physicalSchema.getFieldNames(),
                 keyNames,
                 rowType
-        ));
+        ), lookupConf.getParallelism());
     }
 
     @Override

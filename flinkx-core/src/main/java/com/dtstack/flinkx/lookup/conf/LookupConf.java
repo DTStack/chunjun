@@ -46,6 +46,8 @@ public class LookupConf implements Serializable {
     protected int fetchSize = 1000;
     /** 异步超时时长 */
     protected int asyncTimeout = 10000;
+    /** 维表并行度 */
+    protected int parallelism = 1;
 
     public String getTableName() {
         return tableName;
@@ -128,13 +130,22 @@ public class LookupConf implements Serializable {
         return this;
     }
 
+    public int getParallelism() {
+        return parallelism;
+    }
+
+    public LookupConf setParallelism(int parallelism) {
+        this.parallelism = parallelism;
+        return this;
+    }
+
     public static LookupConf build() {
         return new LookupConf();
     }
 
     @Override
     public String toString() {
-        return "LookupOptions{" +
+        return "LookupConf{" +
                 "tableName='" + tableName + '\'' +
                 ", period=" + period +
                 ", cacheSize=" + cacheSize +
@@ -144,6 +155,7 @@ public class LookupConf implements Serializable {
                 ", errorLimit=" + errorLimit +
                 ", fetchSize=" + fetchSize +
                 ", asyncTimeout=" + asyncTimeout +
+                ", parallelism=" + parallelism +
                 '}';
     }
 }

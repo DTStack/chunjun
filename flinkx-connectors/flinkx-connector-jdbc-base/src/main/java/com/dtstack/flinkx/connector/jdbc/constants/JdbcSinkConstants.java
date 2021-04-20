@@ -55,4 +55,10 @@ public class JdbcSinkConstants {
                     .booleanType()
                     .defaultValue(true)
                     .withDescription("the max retry times if writing records to database failed.");
+
+    public static final ConfigOption<Integer> SINK_PARALLELISM =
+            ConfigOptions.key("sink.parallelism")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription("sink.parallelism.");
 }

@@ -80,4 +80,10 @@ public class LookUpConstants {
                     .intType()
                     .defaultValue(10000)
                     .withDescription("asyncTimeout.");
+
+    public static final ConfigOption<Integer> LOOKUP_PARALLELISM =
+            ConfigOptions.key("lookup.parallelism")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription("lookup.parallelism.");
 }

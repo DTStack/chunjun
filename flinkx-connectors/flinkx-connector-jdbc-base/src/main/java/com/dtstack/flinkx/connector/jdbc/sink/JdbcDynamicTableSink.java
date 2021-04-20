@@ -18,6 +18,14 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.enums.EWriteMode;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -27,14 +35,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.CollectionUtil;
-
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.enums.EWriteMode;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +78,7 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
     private void validatePrimaryKey(ChangelogMode requestedMode) {
         checkState(
                 ChangelogMode.insertOnly().equals(requestedMode)
-                        || CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey()),
+                        || !CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey()),
                 "please declare primary key for sink table when query contains update/delete record.");
     }
 
@@ -110,7 +110,8 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
         builder.setFlushIntervalMillse(jdbcConf.getFlushIntervalMills());
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()));
+        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()),
+                jdbcConf.getParallelism());
     }
 
     @Override

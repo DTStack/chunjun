@@ -91,6 +91,9 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private long flushIntervalMills;
     /** upsert 写数据库时，是否null覆盖原来的值 */
     private boolean allReplace = false;
+    /** 源表和结果表并行度 */
+    private int parallelism = 1;
+
 
     public String getTable() {
         return connection.get(0).getTable().get(0);
@@ -383,5 +386,15 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
 
     public void setFlushIntervalMills(long flushIntervalMills) {
         this.flushIntervalMills = flushIntervalMills;
+    }
+
+    @Override
+    public int getParallelism() {
+        return parallelism;
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        this.parallelism = parallelism;
     }
 }
