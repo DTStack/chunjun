@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.sink;
 
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
-import com.dtstack.flinkx.conf.FlinkXConf;
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.util.PluginUtil;
 
@@ -37,7 +37,7 @@ public class DataSinkFactory {
 
     private DataSinkFactory() {}
 
-    public static BaseDataSink getDataSink(FlinkXConf config) {
+    public static BaseDataSink getDataSink(SyncConf config) {
         try {
             String pluginName = config.getJob().getContent().get(0).getWriter().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.sink);
@@ -45,7 +45,7 @@ public class DataSinkFactory {
 
             return ClassLoaderManager.newInstance(urlList, cl -> {
                 Class<?> clazz = cl.loadClass(pluginClassName);
-                Constructor constructor = clazz.getConstructor(FlinkXConf.class);
+                Constructor constructor = clazz.getConstructor(SyncConf.class);
                 return (BaseDataSink)constructor.newInstance(config);
             });
         } catch (Exception e) {

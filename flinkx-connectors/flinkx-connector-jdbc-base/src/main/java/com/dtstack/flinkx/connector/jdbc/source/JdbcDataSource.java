@@ -25,7 +25,7 @@ import org.apache.flink.table.types.logical.LogicalType;
 
 import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.conf.FlinkXConf;
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
@@ -54,16 +54,16 @@ public abstract class JdbcDataSource extends BaseDataSource {
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
-    public JdbcDataSource(FlinkXConf flinkXConf, StreamExecutionEnvironment env) {
-        super(flinkXConf, env);
+    public JdbcDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
+        super(syncConf, env);
         Gson gson = new GsonBuilder().registerTypeAdapter(ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf")).create();
         GsonUtil.setTypeAdapter(gson);
-        jdbcConf = gson.fromJson(gson.toJson(flinkXConf.getReader().getParameter()), JdbcConf.class);
-        jdbcConf.setColumn(flinkXConf.getReader().getFieldList());
+        jdbcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConf.class);
+        jdbcConf.setColumn(syncConf.getReader().getFieldList());
 
-        Properties properties = flinkXConf.getWriter().getProperties("properties", null);
+        Properties properties = syncConf.getWriter().getProperties("properties", null);
         jdbcConf.setProperties(properties);
-        String name = flinkXConf.getRestore().getRestoreColumnName();
+        String name = syncConf.getRestore().getRestoreColumnName();
         if(StringUtils.isNotBlank(name)){
             FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), name);
             if(fieldConf != null){

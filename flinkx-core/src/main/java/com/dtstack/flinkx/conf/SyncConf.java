@@ -33,7 +33,7 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class FlinkXConf implements Serializable {
+public class SyncConf implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** FlinkX job */
@@ -49,8 +49,8 @@ public class FlinkXConf implements Serializable {
      * @param jobJson job json字符串
      * @return FlinkxJobConfig
      */
-    public static FlinkXConf parseJob(String jobJson){
-        FlinkXConf config = GsonUtil.GSON.fromJson(jobJson, FlinkXConf.class);
+    public static SyncConf parseJob(String jobJson){
+        SyncConf config = GsonUtil.GSON.fromJson(jobJson, SyncConf.class);
         checkJob(config);
         return config;
     }
@@ -59,7 +59,7 @@ public class FlinkXConf implements Serializable {
      * 校验Job配置
      * @param config FlinkxJobConfig
      */
-    private static void checkJob(FlinkXConf config) {
+    private static void checkJob(SyncConf config) {
         List<ContentConf> content = config.getJob().getContent();
 
         Preconditions.checkNotNull(content, "[content] in the task script is empty, please check the task script configuration.");

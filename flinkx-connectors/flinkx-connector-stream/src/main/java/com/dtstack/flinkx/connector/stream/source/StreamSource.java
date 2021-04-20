@@ -24,7 +24,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.conf.FlinkXConf;
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.inputFormat.StreamInputFormatBuilder;
 import com.dtstack.flinkx.source.BaseDataSource;
@@ -42,7 +42,7 @@ import org.apache.flink.table.types.logical.LogicalType;
 public class StreamSource extends BaseDataSource {
     private StreamConf streamConf;
 
-    public StreamSource(FlinkXConf config, StreamExecutionEnvironment env) {
+    public StreamSource(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
         streamConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getReader().getParameter()), StreamConf.class);
         super.initFlinkxCommonConf(streamConf);

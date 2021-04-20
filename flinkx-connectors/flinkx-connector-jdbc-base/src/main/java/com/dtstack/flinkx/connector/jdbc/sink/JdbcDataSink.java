@@ -23,7 +23,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 
 import com.dtstack.flinkx.RawTypeConverter;
-import com.dtstack.flinkx.conf.FlinkXConf;
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
@@ -48,13 +48,13 @@ public abstract class JdbcDataSink extends BaseDataSink {
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
-    public JdbcDataSink(FlinkXConf flinkXConf) {
-        super(flinkXConf);
+    public JdbcDataSink(SyncConf syncConf) {
+        super(syncConf);
         Gson gson = new GsonBuilder().registerTypeAdapter(ConnectionConf.class, new ConnectionAdapter("SinkConnectionConf")).create();
         GsonUtil.setTypeAdapter(gson);
-        jdbcConf = gson.fromJson(gson.toJson(flinkXConf.getWriter().getParameter()), JdbcConf.class);
-        jdbcConf.setColumn(flinkXConf.getWriter().getFieldList());
-        Properties properties = flinkXConf.getWriter().getProperties("properties", null);
+        jdbcConf = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), JdbcConf.class);
+        jdbcConf.setColumn(syncConf.getWriter().getFieldList());
+        Properties properties = syncConf.getWriter().getProperties("properties", null);
         jdbcConf.setProperties(properties);
         super.initFlinkxCommonConf(jdbcConf);
     }
