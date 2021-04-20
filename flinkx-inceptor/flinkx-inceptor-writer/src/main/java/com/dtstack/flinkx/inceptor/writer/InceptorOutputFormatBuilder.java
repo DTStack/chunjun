@@ -43,8 +43,14 @@ public class InceptorOutputFormatBuilder extends FileOutputFormatBuilder {
 
     public InceptorOutputFormatBuilder(String type) {
         switch (type.toUpperCase()) {
+            case "TEXT":
+                format = new InceptorTextOutputFormat();
+                break;
             case "ORC":
                 format = new InceptorOrcOutputFormat();
+                break;
+            case "PARQUET":
+                format = new InceptorParquetOutputFormat();
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported HDFS file type: " + type);

@@ -199,6 +199,7 @@ public class InceptorTextOutputFormat extends BaseInceptorOutputFormat {
                     sb.append(HiveDecimal.create(new BigDecimal(rowData)));
                     break;
                 case STRING:
+                case VARCHAR2:
                 case VARCHAR:
                 case CHAR:
                     if (column instanceof Timestamp) {
