@@ -25,15 +25,17 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.Map;
 
+import static com.dtstack.flinkx.inceptor.HdfsConfigKeys.KEY_METADATA_STORE;
 import static com.dtstack.flinkx.inceptor.HdfsConfigKeys.KEY_SCHEMA;
 import static com.dtstack.flinkx.inceptor.HdfsConfigKeys.KEY_TABLE;
+import static com.dtstack.flinkx.inceptor.HdfsConfigKeys.KEY_THRIFT_HEAD;
 
 /**
  * The builder class of HdfsOutputFormat
  * <p>
  * Company: www.dtstack.com
  *
- * @author huyifan.zju@163.com
+ * @author shifang@dtstack.com
  */
 public class InceptorOutputFormatBuilder extends FileOutputFormatBuilder {
 
@@ -41,8 +43,14 @@ public class InceptorOutputFormatBuilder extends FileOutputFormatBuilder {
 
     public InceptorOutputFormatBuilder(String type) {
         switch (type.toUpperCase()) {
+            case "TEXT":
+                format = new InceptorTextOutputFormat();
+                break;
             case "ORC":
                 format = new InceptorOrcOutputFormat();
+                break;
+            case "PARQUET":
+                format = new InceptorParquetOutputFormat();
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported HDFS file type: " + type);
@@ -102,12 +110,19 @@ public class InceptorOutputFormatBuilder extends FileOutputFormatBuilder {
         if (format.isTransaction) {
             String table = (String) format.hadoopConfig.getOrDefault(KEY_TABLE, "");
             if (StringUtils.isBlank(table)) {
-                errorMessage.append("table param is must");
+                errorMessage.append("table param is must \n");
             }
             String schema = (String) format.hadoopConfig.getOrDefault(KEY_SCHEMA, "");
             if (StringUtils.isBlank(schema)) {
-                errorMessage.append("schema param is must");
+                errorMessage.append("schema param is must \n");
             }
+            String metaStore = (String) format.hadoopConfig.getOrDefault(KEY_METADATA_STORE, "");
+            if (StringUtils.isBlank(metaStore)) {
+                errorMessage.append("metaStore param is must \n");
+            } else if (!metaStore.startsWith(KEY_THRIFT_HEAD)) {
+                errorMessage.append("metaStore param should start with thrift:// \n");
+            }
+
             format.setRestoreState(null);
         }
         if ((format.getPath() == null || format.getPath().length() == 0) && (!format.isTransaction)) {

@@ -44,7 +44,7 @@ import java.util.Map;
  * <p>
  * Company: www.dtstack.com
  *
- * @author huyifan.zju@163.com
+ * @author shifang@dtstack.com
  */
 public class InceptorTextOutputFormat extends BaseInceptorOutputFormat {
 
@@ -199,6 +199,7 @@ public class InceptorTextOutputFormat extends BaseInceptorOutputFormat {
                     sb.append(HiveDecimal.create(new BigDecimal(rowData)));
                     break;
                 case STRING:
+                case VARCHAR2:
                 case VARCHAR:
                 case CHAR:
                     if (column instanceof Timestamp) {

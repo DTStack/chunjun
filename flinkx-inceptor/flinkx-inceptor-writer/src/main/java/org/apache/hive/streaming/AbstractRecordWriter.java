@@ -154,7 +154,7 @@ public abstract class AbstractRecordWriter implements RecordWriter {
         }
         this.fullyQualifiedTableName = table.getDbName()+"."+table.getTableName();
 //        String outFormatName = this.table.getSd().getOutputFormat();
-        String outFormatName ="shade.inceptorwriter.org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
+        String outFormatName ="org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
         try {
             this.acidOutputFormat = (AcidOutputFormat<?, ?>) ReflectionUtils
                     .newInstance(JavaUtils.loadClass(outFormatName), conf);

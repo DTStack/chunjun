@@ -76,13 +76,15 @@ import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.inceptor.HdfsConfigKeys.COLUMN_FIELD_DELIMITER;
+import static com.dtstack.flinkx.inceptor.HdfsConfigKeys.KEY_SCHEMA;
+import static com.dtstack.flinkx.inceptor.HdfsConfigKeys.KEY_TABLE;
 
 /**
  * The subclass of HdfsOutputFormat writing orc files
  * <p>
  * Company: www.dtstack.com
  *
- * @author huyifan.zju@163.com
+ * @author shifang@dtstack.com
  */
 public class InceptorOrcOutputFormat extends BaseInceptorOutputFormat {
     private RecordWriter recordWriter;
@@ -136,8 +138,8 @@ public class InceptorOrcOutputFormat extends BaseInceptorOutputFormat {
     protected void openSource() throws IOException {
         super.openSource();
         if (isTransaction) {
-            table = String.valueOf(hadoopConfig.get("table"));
-            schema = String.valueOf(hadoopConfig.get("schema"));
+            table = String.valueOf(hadoopConfig.get(KEY_TABLE));
+            schema = String.valueOf(hadoopConfig.get(KEY_SCHEMA));
             ugi.doAs(new PrivilegedAction<Void>() {
                 public Void run() {
                     try {
@@ -452,7 +454,7 @@ public class InceptorOrcOutputFormat extends BaseInceptorOutputFormat {
                     try {
                         connection.commitTransaction();
                     } catch (Exception e) {
-
+                        throw new RuntimeException("commit error",e);
                     } finally {
                         connection.close();
                         connection = null;

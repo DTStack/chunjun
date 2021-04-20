@@ -59,7 +59,7 @@ import static com.dtstack.flinkx.inceptor.HdfsConfigKeys.KEY_WRITE_MODE;
  * <p>
  * Company: www.dtstack.com
  *
- * @author huyifan.zju@163.com
+ * @author shifang@dtstack.com
  */
 public class InceptorWriter extends BaseDataWriter {
 
