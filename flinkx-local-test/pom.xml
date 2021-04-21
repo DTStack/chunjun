@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>flinkx-parent</artifactId>
-        <groupId>com.dtstack.flinkx</groupId>
-        <version>1.12-SNAPSHOT</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>flinkx-parent</artifactId>
+		<groupId>com.dtstack.flinkx</groupId>
+		<version>1.12-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-local-test</artifactId>
+	<artifactId>flinkx-local-test</artifactId>
 	<name>FlinkX : Local : Test</name>
 
-    <dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.30</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-core</artifactId>
@@ -26,75 +32,69 @@
 		</dependency>
 
 		<dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.1.7</version>
-        </dependency>
+			<artifactId>hadoop-mapreduce-client-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-cli</artifactId>
+					<groupId>commons-cli</groupId>
+				</exclusion>
+			</exclusions>
+			<groupId>org.apache.hadoop</groupId>
+			<version>${hadoop.version}</version>
+		</dependency>
 
-        <dependency>
-            <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-cli</artifactId>
-                    <groupId>commons-cli</groupId>
-                </exclusion>
-            </exclusions>
-            <groupId>org.apache.hadoop</groupId>
-            <version>${hadoop.version}</version>
-        </dependency>
+		<dependency>
+			<artifactId>hadoop-common</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>gson</artifactId>
+					<groupId>com.google.code.gson</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-cli</artifactId>
+					<groupId>commons-cli</groupId>
+				</exclusion>
+			</exclusions>
+			<groupId>org.apache.hadoop</groupId>
+			<version>${hadoop.version}</version>
+		</dependency>
 
-        <dependency>
-            <artifactId>hadoop-common</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>gson</artifactId>
-                    <groupId>com.google.code.gson</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>commons-cli</artifactId>
-                    <groupId>commons-cli</groupId>
-                </exclusion>
-            </exclusions>
-            <groupId>org.apache.hadoop</groupId>
-            <version>${hadoop.version}</version>
-        </dependency>
+		<dependency>
+			<artifactId>hadoop-hdfs</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-cli</artifactId>
+					<groupId>commons-cli</groupId>
+				</exclusion>
+			</exclusions>
+			<groupId>org.apache.hadoop</groupId>
+			<version>${hadoop.version}</version>
+		</dependency>
 
-        <dependency>
-            <artifactId>hadoop-hdfs</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-cli</artifactId>
-                    <groupId>commons-cli</groupId>
-                </exclusion>
-            </exclusions>
-            <groupId>org.apache.hadoop</groupId>
-            <version>${hadoop.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-metrics-core</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
 
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-metrics-core</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-kafka</artifactId>
+			<version>1.12-SNAPSHOT</version>
+		</dependency>
 
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-connector-kafka</artifactId>
-            <version>1.12-SNAPSHOT</version>
-        </dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-stream</artifactId>
+			<version>1.12-SNAPSHOT</version>
+		</dependency>
 
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-connector-stream</artifactId>
-            <version>1.12-SNAPSHOT</version>
-        </dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-mysql</artifactId>
+			<version>1.12-SNAPSHOT</version>
+		</dependency>
 
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-connector-mysql</artifactId>
-            <version>1.12-SNAPSHOT</version>
-        </dependency>
-
-    </dependencies>
+	</dependencies>
 
 </project>
