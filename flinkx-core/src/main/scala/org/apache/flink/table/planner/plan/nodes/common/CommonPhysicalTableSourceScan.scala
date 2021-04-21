@@ -39,6 +39,8 @@ import scala.collection.JavaConverters._
 
 /**
  * Base physical RelNode to read data from an external source defined by a [[ScanTableSource]].
+ *
+ * DTStack add customized parallelism.
  */
 abstract class CommonPhysicalTableSourceScan(
                                               cluster: RelOptCluster,
@@ -72,9 +74,9 @@ abstract class CommonPhysicalTableSourceScan(
     val outRowType = FlinkTypeFactory.toLogicalRowType(tableSourceTable.getRowType)
     val outTypeInfo = InternalTypeInfo.of(outRowType)
 
-    // DTStack fixed customized parallelism start
+    // DTStack fixed customized parallelism start.
     val transformation = runtimeProvider match {
-    // DTStack fixed customized parallelism end
+    // DTStack fixed customized parallelism end.
       case provider: SourceFunctionProvider =>
         val sourceFunction = provider.createSourceFunction()
         env
@@ -91,20 +93,20 @@ abstract class CommonPhysicalTableSourceScan(
         provider.produceDataStream(env).getTransformation
     }
 
-    // DTStack fixed customized parallelism start
+    // DTStack fixed customized parallelism start.
     if (runtimeProvider.isInstanceOf[ParallelismProvider]) {
       val parallelismOptional = runtimeProvider.asInstanceOf[ParallelismProvider].getParallelism
       if (parallelismOptional.isPresent) {
         val parallelismPassedIn = parallelismOptional.get().intValue()
         if (parallelismPassedIn <= 0) {
-          throw new TableException(s"Table: ${tableSourceTable.tableIdentifier} configured sink parallelism: " +
+          throw new TableException(s"Table: ${tableSourceTable.tableIdentifier} configured scan parallelism: " +
             s"$parallelismPassedIn should not be less than zero or equal to zero")
         }
         transformation.setParallelism(parallelismPassedIn)
       }
     }
     transformation
-    // DTStack fixed customized parallelism end
+    // DTStack fixed customized parallelism end.
   }
 
   /**

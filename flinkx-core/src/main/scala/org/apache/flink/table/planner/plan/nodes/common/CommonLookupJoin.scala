@@ -112,6 +112,8 @@ import scala.collection.mutable
  *
  * @param input  input rel node
  * @param calcOnTemporalTable  the calc (projection&filter) after table scan before joining
+ *
+ * DTStack add customized parallelism.
  */
 abstract class CommonLookupJoin(
                                  cluster: RelOptCluster,
@@ -429,7 +431,7 @@ abstract class CommonLookupJoin(
       SimpleOperatorFactory.of(new ProcessOperator(processFunc))
     }
 
-    // DTStack fixed customized parallelism start
+    // DTStack fixed customized parallelism start.
     lazy val parallelism = {
       temporalTable match {
         case t: TableSourceTable => {
@@ -442,7 +444,7 @@ abstract class CommonLookupJoin(
             if (parallelismOptional.isPresent) {
               val parallelismPassedIn = parallelismOptional.get().intValue()
               if (parallelismPassedIn <= 0) {
-                throw new TableException(s"Table: ${tableIdentifier} configured sink parallelism: " +
+                throw new TableException(s"Table: ${tableIdentifier} configured lookup parallelism: " +
                   s"$parallelismPassedIn should not be less than zero or equal to zero")
               }
               parallelismPassedIn
@@ -468,7 +470,7 @@ abstract class CommonLookupJoin(
       operatorFactory,
       InternalTypeInfo.of(resultRowType),
       finalParallelism)
-    // DTStack fixed customized parallelism end
+    // DTStack fixed customized parallelism end.
   }
 
   private def rowTypeEquals(expected: TypeInformation[_], actual: TypeInformation[_]): Boolean = {
