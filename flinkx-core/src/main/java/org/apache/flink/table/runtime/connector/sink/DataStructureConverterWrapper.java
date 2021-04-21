@@ -27,6 +27,8 @@ import javax.annotation.Nullable;
 /**
  * Implementation of {@link DynamicTableSink.DataStructureConverter}.
  *
+ * TODO 待删除，look at com.dtstack.flinkx.connector.stream.sink.StreamSink#writeData(org.apache.flink.streaming.api.datastream.DataStream)
+ *
  * <p>It wraps the internal {@link DataStructureConverter}.
  */
 @Internal
