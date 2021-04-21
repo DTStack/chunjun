@@ -24,7 +24,11 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumerBase;
+import org.apache.flink.streaming.connectors.kafka.config.StartupMode;
+import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
+import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkKafkaPartitioner;
 import org.apache.flink.streaming.connectors.kafka.table.KafkaOptions;
+import org.apache.flink.streaming.connectors.kafka.table.KafkaSinkSemantic;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.catalog.CatalogTable;
 import org.apache.flink.table.catalog.ObjectIdentifier;
@@ -42,29 +46,49 @@ import org.apache.flink.table.factories.SerializationFormatFactory;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.RowKind;
 
+import javax.annotation.Nullable;
+
 import java.time.Duration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.KEY_FIELDS;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.KEY_FIELDS_PREFIX;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.KEY_FORMAT;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.PROPERTIES_PREFIX;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.PROPS_BOOTSTRAP_SERVERS;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.PROPS_GROUP_ID;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.SCAN_STARTUP_MODE;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.SCAN_STARTUP_SPECIFIC_OFFSETS;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.SCAN_STARTUP_TIMESTAMP_MILLIS;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.SCAN_TOPIC_PARTITION_DISCOVERY;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.SINK_PARTITIONER;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.SINK_SEMANTIC;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.TOPIC;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.TOPIC_PATTERN;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.VALUE_FIELDS_INCLUDE;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.VALUE_FORMAT;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.createKeyFormatProjection;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.createValueFormatProjection;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.getFlinkKafkaPartitioner;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.getKafkaProperties;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.getSinkSemantic;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.getStartupOptions;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.validateTableSinkOptions;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.validateTableSourceOptions;
+import static org.apache.flink.table.factories.FactoryUtil.SINK_PARALLELISM;
 
 /**
  * @author chuixue
  * @create 2021-04-06 19:29
  * @description
  **/
-public class KafkaDynamicTableFactory extends org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicTableFactory
-        implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     public static final String IDENTIFIER = "kafka-x";
 
@@ -75,13 +99,30 @@ public class KafkaDynamicTableFactory extends org.apache.flink.streaming.connect
 
     @Override
     public Set<ConfigOption<?>> requiredOptions() {
-        Set<ConfigOption<?>> options = super.requiredOptions();
+        final Set<ConfigOption<?>> options = new HashSet<>();
+        options.add(PROPS_BOOTSTRAP_SERVERS);
         return options;
     }
 
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
-        Set<ConfigOption<?>> options = super.optionalOptions();
+        final Set<ConfigOption<?>> options = new HashSet<>();
+        options.add(FactoryUtil.FORMAT);
+        options.add(KEY_FORMAT);
+        options.add(KEY_FIELDS);
+        options.add(KEY_FIELDS_PREFIX);
+        options.add(VALUE_FORMAT);
+        options.add(VALUE_FIELDS_INCLUDE);
+        options.add(TOPIC);
+        options.add(TOPIC_PATTERN);
+        options.add(PROPS_GROUP_ID);
+        options.add(SCAN_STARTUP_MODE);
+        options.add(SCAN_STARTUP_SPECIFIC_OFFSETS);
+        options.add(SCAN_TOPIC_PARTITION_DISCOVERY);
+        options.add(SCAN_STARTUP_TIMESTAMP_MILLIS);
+        options.add(SINK_PARTITIONER);
+        options.add(SINK_SEMANTIC);
+        options.add(SINK_PARALLELISM);
         return options;
     }
 
@@ -97,13 +138,10 @@ public class KafkaDynamicTableFactory extends org.apache.flink.streaming.connect
         final DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat =
                 getValueDecodingFormat(helper);
 
-        // 验证所有选项除了 PROPERTIES_PREFIX 开头的选项
         helper.validateExcept(PROPERTIES_PREFIX);
 
-        // Source独有的校验
         validateTableSourceOptions(tableOptions);
 
-        // 校验主键，如果format只有INSERT就要报错。
         validatePKConstraints(
                 context.getObjectIdentifier(), context.getCatalogTable(), valueDecodingFormat);
 
@@ -144,11 +182,52 @@ public class KafkaDynamicTableFactory extends org.apache.flink.streaming.connect
                 startupOptions.startupTimestampMillis);
     }
 
-    /**
-     * copy from flink source
-     * @param helper
-     * @return
-     */
+    @Override
+    public DynamicTableSink createDynamicTableSink(Context context) {
+        final FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
+
+        final ReadableConfig tableOptions = helper.getOptions();
+
+        final Optional<EncodingFormat<SerializationSchema<RowData>>> keyEncodingFormat =
+                getKeyEncodingFormat(helper);
+
+        final EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat =
+                getValueEncodingFormat(helper);
+
+        helper.validateExcept(PROPERTIES_PREFIX);
+
+        validateTableSinkOptions(tableOptions);
+
+        validatePKConstraints(
+                context.getObjectIdentifier(), context.getCatalogTable(), valueEncodingFormat);
+
+        final DataType physicalDataType =
+                context.getCatalogTable().getSchema().toPhysicalRowDataType();
+
+        final int[] keyProjection = createKeyFormatProjection(tableOptions, physicalDataType);
+
+        final int[] valueProjection = createValueFormatProjection(tableOptions, physicalDataType);
+
+        final String keyPrefix = tableOptions.getOptional(KEY_FIELDS_PREFIX).orElse(null);
+
+        final Integer parallelism = tableOptions.getOptional(SINK_PARALLELISM).orElse(null);
+
+        return createKafkaTableSink(
+                physicalDataType,
+                keyEncodingFormat.orElse(null),
+                valueEncodingFormat,
+                keyProjection,
+                valueProjection,
+                keyPrefix,
+                tableOptions.get(TOPIC).get(0),
+                getKafkaProperties(context.getCatalogTable().getOptions()),
+                getFlinkKafkaPartitioner(tableOptions, context.getClassLoader()).orElse(null),
+                getSinkSemantic(tableOptions),
+                parallelism);
+    }
+
+    // --------------------------------------------------------------------------------------------
+
     private static Optional<DecodingFormat<DeserializationSchema<RowData>>> getKeyDecodingFormat(
             FactoryUtil.TableFactoryHelper helper) {
         final Optional<DecodingFormat<DeserializationSchema<RowData>>> keyDecodingFormat =
@@ -221,8 +300,61 @@ public class KafkaDynamicTableFactory extends org.apache.flink.streaming.connect
         }
     }
 
-    @Override
-    public DynamicTableSink createDynamicTableSink(Context context) {
-        return null;
+    // --------------------------------------------------------------------------------------------
+
+    protected KafkaDynamicSource createKafkaTableSource(
+            DataType physicalDataType,
+            @Nullable DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat,
+            DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat,
+            int[] keyProjection,
+            int[] valueProjection,
+            @Nullable String keyPrefix,
+            @Nullable List<String> topics,
+            @Nullable Pattern topicPattern,
+            Properties properties,
+            StartupMode startupMode,
+            Map<KafkaTopicPartition, Long> specificStartupOffsets,
+            long startupTimestampMillis) {
+        return new KafkaDynamicSource(
+                physicalDataType,
+                keyDecodingFormat,
+                valueDecodingFormat,
+                keyProjection,
+                valueProjection,
+                keyPrefix,
+                topics,
+                topicPattern,
+                properties,
+                startupMode,
+                specificStartupOffsets,
+                startupTimestampMillis,
+                false);
+    }
+
+    protected KafkaDynamicSink createKafkaTableSink(
+            DataType physicalDataType,
+            @Nullable EncodingFormat<SerializationSchema<RowData>> keyEncodingFormat,
+            EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat,
+            int[] keyProjection,
+            int[] valueProjection,
+            @Nullable String keyPrefix,
+            String topic,
+            Properties properties,
+            FlinkKafkaPartitioner<RowData> partitioner,
+            KafkaSinkSemantic semantic,
+            Integer parallelism) {
+        return new KafkaDynamicSink(
+                physicalDataType,
+                keyEncodingFormat,
+                valueEncodingFormat,
+                keyProjection,
+                valueProjection,
+                keyPrefix,
+                topic,
+                properties,
+                partitioner,
+                semantic,
+                false,
+                parallelism);
     }
 }

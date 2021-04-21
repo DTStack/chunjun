@@ -1,29 +1,39 @@
 package com.dtstack.flinkx.connector.kafka.table;
 
+
+import com.dtstack.flinkx.metrics.MetricConstant;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.metrics.Counter;
+import org.apache.flink.metrics.Meter;
+import org.apache.flink.metrics.MeterView;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
+import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
+import org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicSource;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.DeserializationException;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @program: flinkx
- * @author: wuren
- * @create: 2021/03/17
- **/
+/** A specific {@link KafkaSerializationSchema} for {@link KafkaDynamicSource}. */
 class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<RowData> {
 
     private static final long serialVersionUID = 1L;
+
+    private static final Logger LOG = LoggerFactory.getLogger(DynamicKafkaDeserializationSchema.class);
 
     private final @Nullable
     DeserializationSchema<RowData> keyDeserialization;
@@ -32,13 +42,31 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     private final boolean hasMetadata;
 
-    private final BufferingCollector keyCollector;
+    private final DynamicKafkaDeserializationSchema.BufferingCollector keyCollector;
 
-    private final OutputProjectionCollector outputCollector;
+    private final DynamicKafkaDeserializationSchema.OutputProjectionCollector outputCollector;
 
     private final TypeInformation<RowData> producedTypeInfo;
 
     private final boolean upsertMode;
+
+    private static int dataPrintFrequency = 1000;
+
+    protected transient Counter dirtyDataCounter;
+
+    /** tps ransactions Per Second */
+    protected transient Counter numInRecord;
+
+    protected transient Meter numInRate;
+
+    /** rps Record Per Second: deserialize data and out record num */
+    protected transient Counter numInResolveRecord;
+
+    protected transient Meter numInResolveRate;
+
+    protected transient Counter numInBytes;
+
+    protected transient Meter numInBytesRate;
 
     DynamicKafkaDeserializationSchema(
             int physicalArity,
@@ -47,7 +75,7 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             DeserializationSchema<RowData> valueDeserialization,
             int[] valueProjection,
             boolean hasMetadata,
-            MetadataConverter[] metadataConverters,
+            DynamicKafkaDeserializationSchema.MetadataConverter[] metadataConverters,
             TypeInformation<RowData> producedTypeInfo,
             boolean upsertMode) {
         if (upsertMode) {
@@ -58,9 +86,9 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         this.keyDeserialization = keyDeserialization;
         this.valueDeserialization = valueDeserialization;
         this.hasMetadata = hasMetadata;
-        this.keyCollector = new BufferingCollector();
+        this.keyCollector = new DynamicKafkaDeserializationSchema.BufferingCollector();
         this.outputCollector =
-                new OutputProjectionCollector(
+                new DynamicKafkaDeserializationSchema.OutputProjectionCollector(
                         physicalArity,
                         keyProjection,
                         valueProjection,
@@ -76,6 +104,30 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             keyDeserialization.open(context);
         }
         valueDeserialization.open(context);
+        initMetric(context);
+    }
+
+    public void initMetric(DeserializationSchema.InitializationContext context) {
+        dirtyDataCounter = context.getMetricGroup().counter(MetricConstant.DT_DIRTY_DATA_COUNTER);
+
+        numInRecord = context.getMetricGroup().counter(MetricConstant.DT_NUM_RECORDS_IN_COUNTER);
+        numInRate = context
+                .getMetricGroup()
+                .meter(MetricConstant.DT_NUM_RECORDS_IN_RATE, new MeterView(numInRecord, 20));
+
+        numInBytes = context.getMetricGroup().counter(MetricConstant.DT_NUM_BYTES_IN_COUNTER);
+        numInBytesRate = context
+                .getMetricGroup()
+                .meter(MetricConstant.DT_NUM_BYTES_IN_RATE, new MeterView(numInBytes, 20));
+
+        numInResolveRecord = context
+                .getMetricGroup()
+                .counter(MetricConstant.DT_NUM_RECORDS_RESOVED_IN_COUNTER);
+        numInResolveRate = context
+                .getMetricGroup()
+                .meter(
+                        MetricConstant.DT_NUM_RECORDS_RESOVED_IN_RATE,
+                        new MeterView(numInResolveRecord, 20));
     }
 
     @Override
@@ -91,29 +143,46 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
     @Override
     public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector)
             throws Exception {
-        // shortcut in case no output projection is required,
-        // also not for a cartesian product with the keys
-        if (keyDeserialization == null && !hasMetadata) {
-            valueDeserialization.deserialize(record.value(), collector);
-            return;
-        }
+        try {
+            if (numInRecord.getCount() % dataPrintFrequency == 0) {
+                LOG.info("receive source data:" + new String(record.value(), "UTF-8"));
+            }
+            numInRecord.inc();
+            numInBytes.inc(record.value().length);
 
-        // buffer key(s)
-        if (keyDeserialization != null) {
-            keyDeserialization.deserialize(record.key(), keyCollector);
-        }
+            // shortcut in case no output projection is required,
+            // also not for a cartesian product with the keys
+            if (keyDeserialization == null && !hasMetadata) {
+                valueDeserialization.deserialize(record.value(), collector);
+                numInResolveRecord.inc();
+                return;
+            }
 
-        // project output while emitting values
-        outputCollector.inputRecord = record;
-        outputCollector.physicalKeyRows = keyCollector.buffer;
-        outputCollector.outputCollector = collector;
-        if (record.value() == null && upsertMode) {
-            // collect tombstone messages in upsert mode by hand
-            outputCollector.collect(null);
-        } else {
-            valueDeserialization.deserialize(record.value(), outputCollector);
+            // buffer key(s)
+            if (keyDeserialization != null) {
+                keyDeserialization.deserialize(record.key(), keyCollector);
+            }
+
+            // project output while emitting values
+            outputCollector.inputRecord = record;
+            outputCollector.physicalKeyRows = keyCollector.buffer;
+            outputCollector.outputCollector = collector;
+            if (record.value() == null && upsertMode) {
+                // collect tombstone messages in upsert mode by hand
+                outputCollector.collect(null);
+            } else {
+                valueDeserialization.deserialize(record.value(), outputCollector);
+                numInResolveRecord.inc();
+            }
+            keyCollector.buffer.clear();
+        } catch (Exception e) {
+            //add metric of dirty data
+            if (dirtyDataCounter.getCount() % dataPrintFrequency == 0) {
+                LOG.info("dirtyData: " + new String(record.value(), "UTF-8"));
+                LOG.error("data parse error", e);
+            }
+            dirtyDataCounter.inc();
         }
-        keyCollector.buffer.clear();
     }
 
     @Override
@@ -172,7 +241,7 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
         private final int[] valueProjection;
 
-        private final MetadataConverter[] metadataConverters;
+        private final DynamicKafkaDeserializationSchema.MetadataConverter[] metadataConverters;
 
         private final boolean upsertMode;
 
@@ -186,7 +255,7 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
                 int physicalArity,
                 int[] keyProjection,
                 int[] valueProjection,
-                MetadataConverter[] metadataConverters,
+                DynamicKafkaDeserializationSchema.MetadataConverter[] metadataConverters,
                 boolean upsertMode) {
             this.physicalArity = physicalArity;
             this.keyProjection = keyProjection;
