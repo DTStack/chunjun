@@ -51,6 +51,8 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
+ * 改动内容：在convertSqlValue方法中，对Time、Date、Timestamp类型直接返回，不强转为string
+ * 改动原因：在vertx获取异步查询数据的时候将Time、Date、Timestamp转换为string，导致类型转换问题
  */
 public final class JDBCStatementHelper {
 

@@ -91,10 +91,6 @@ public class PluginUtil {
 
         File dirFile = new File(pluginDir);
 
-        if (pluginDir.contains("null")) {
-            return urlList.toArray(new URL[0]);
-        }
-
         if (!dirFile.exists() || !dirFile.isDirectory()) {
             throw new RuntimeException("plugin path:" + pluginDir + "is not exist.");
         }
@@ -106,7 +102,7 @@ public class PluginUtil {
 
         for (File file : files) {
             URL pluginJarUrl = file.toURI().toURL();
-            // format只加载一个jar
+            // 同种类型的format只加载一个jar
             if (pluginDir.endsWith(FactoryUtil.FORMATS.key())) {
                 if (file.getName().contains(factoryIdentifier)) {
                     urlList.add(pluginJarUrl);

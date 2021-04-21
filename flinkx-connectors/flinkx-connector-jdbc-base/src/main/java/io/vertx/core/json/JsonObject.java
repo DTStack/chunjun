@@ -45,6 +45,8 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
  * Please see the documentation for more information.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * 改动内容：在checkAndCopy法中，对Time、Date、Timestamp类型直接返回，不强转为string
+ * 改动原因：在vertx获取异步查询数据的时候将Time、Date、Timestamp转换为string，导致类型转换问题
  */
 public class JsonObject implements Iterable<Map.Entry<String, Object>>, ClusterSerializable, Shareable {
 

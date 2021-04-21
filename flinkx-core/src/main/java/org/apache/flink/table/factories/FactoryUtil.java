@@ -65,6 +65,8 @@ import java.util.stream.Collectors;
 
 /**
  * Utility for working with {@link Factory}s.
+ * 改动内容：增加方法loadFactories，增加变量pluginPath、env、connectorLoadMode、classPathSet
+ * 改动原因：flink原生加载插件的方式是使用spi，不符合我们需求。在原来基础上增加通过classloader指定jar加载插件
  */
 @PublicEvolving
 public final class FactoryUtil {
@@ -532,21 +534,21 @@ public final class FactoryUtil {
     /**
      * 通过classloader方式加载 Factory
      * @param classLoader
-     * @param jarDircetoySuffix
+     * @param jarDirectorySuffix
      * @param factoryIdentifier 用来区分是否是format，插件不会使用该参数
      * @param fullClassName
      * @return
      */
     private static List<Factory> loadFactories(
             ClassLoader classLoader,
-            String jarDircetoySuffix,
+            String jarDirectorySuffix,
             String factoryIdentifier,
             String fullClassName) {
         try {
             final List<Factory> result = new LinkedList<>();
 
             // 1.通过factoryIdentifier查找jar路径
-            String pluginJarPath = PluginUtil.getJarFileDirPath(jarDircetoySuffix, pluginPath);
+            String pluginJarPath = PluginUtil.getJarFileDirPath(jarDirectorySuffix, pluginPath);
             URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath, factoryIdentifier);
 
             // 2.反射创建对象

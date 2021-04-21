@@ -32,7 +32,12 @@ import java.net.URLClassLoader;
 import java.util.Enumeration;
 import java.util.function.Consumer;
 
-/** Gives the URLClassLoader a nicer name for debugging purposes. */
+/**
+ * Gives the URLClassLoader a nicer name for debugging purposes.
+ * 改动内容：将SafetyNetWrapperClassLoader内部类的访问权限从private改为public
+ * 改动原因：为了在FactoryUtil类中反射获取到SafetyNetWrapperClassLoader，将插件jar设置到该classloader中，则可反射加载
+ *
+ */
 public class FlinkUserCodeClassLoaders {
 
     private FlinkUserCodeClassLoaders() {}
