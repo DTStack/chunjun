@@ -99,7 +99,9 @@ public class KuduUtil {
 
             List<String> columnNames = new ArrayList<>(columns.size());
             for (MetaColumn column : columns) {
-                columnNames.add(column.getName());
+               if(column.getValue() == null){
+                   columnNames.add(column.getName());
+               }
             }
 
             KuduScanToken.KuduScanTokenBuilder builder = client.newScanTokenBuilder(kuduTable)
