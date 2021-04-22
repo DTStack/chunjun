@@ -44,6 +44,12 @@ public class ConfigConstant {
     public static final String STRATEGY_FAILURE_RATE = "failureRate";
     public static final String STRATEGY_NO_RESTART = "NoRestart";
 
+    public static final String STRATEGY_STRATEGY = "strategy";
+    public static final String STRATEGY_RESTARTATTEMPTS = "restartAttempts";
+    public static final String STRATEGY_DELAYINTERVAL = "delayInterval";
+    public static final String STRATEGY_FAILURERATE = "failureRate";
+    public static final String STRATEGY_FAILUREINTERVAL = "failureInterval";
+
     //FlinkX log pattern
     public static final String DEFAULT_LOG4J_PATTERN = "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n";
     public static final String DEFAULT_LOGBACK_PATTERN = "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{60} %X{sourceThread} - %msg%n";

@@ -54,6 +54,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_STRATEGY;
+
 /**
  * 流执行环境相关配置
  * Date: 2019/11/22
@@ -214,7 +216,12 @@ public final class StreamEnvConfigManagerUtil {
     }
 
     public static Optional<Boolean> isRestore(Properties properties) {
-        String restoreEnable = properties.getProperty(ConfigConstant.RESTOREENABLE, "true");
+        String restoreEnable;
+        if (properties.getProperty(STRATEGY_STRATEGY) != null) {
+            restoreEnable = properties.getProperty(ConfigConstant.RESTOREENABLE, "false");
+        } else {
+            restoreEnable = properties.getProperty(ConfigConstant.RESTOREENABLE, "true");
+        }
         return Optional.of(Boolean.valueOf(restoreEnable));
     }
 
@@ -224,7 +231,7 @@ public final class StreamEnvConfigManagerUtil {
     }
 
     public static Optional<Integer> getFailureInterval(Properties properties) {
-        String failureInterval = properties.getProperty(ConfigConstant.FAILUREINTERVAL, "6");
+        String failureInterval = properties.getProperty(ConfigConstant.FAILUREINTERVAL, "360");
         return Optional.of(Integer.valueOf(failureInterval));
     }
 

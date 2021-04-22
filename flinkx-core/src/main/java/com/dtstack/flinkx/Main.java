@@ -57,6 +57,7 @@ import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.sink.DataSinkFactory;
 import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.source.DataSourceFactory;
+import com.dtstack.flinkx.util.MathUtil;
 import com.dtstack.flinkx.util.PluginUtil;
 import com.dtstack.flinkx.util.PrintUtil;
 import com.dtstack.flinkx.util.PropertiesUtil;
@@ -80,6 +81,12 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_DELAYINTERVAL;
+import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_FAILUREINTERVAL;
+import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_FAILURERATE;
+import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_RESTARTATTEMPTS;
+import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_STRATEGY;
+
 /**
  * The main class entry
  * <p>
@@ -99,26 +106,24 @@ public class Main {
         Options options = new OptionParser(args).getOptions();
         String job = URLDecoder.decode(options.getJob(), Charsets.UTF_8.name());
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
-        
-        // 解析jobPath指定的任务配置文件
-        SyncConf config = null;
-        if(EJobType.SYNC.name().equalsIgnoreCase(options.getJobType())){
-            config = parseFlinkxConf(job, options);
-        }
 
         StreamExecutionEnvironment env = createStreamExecutionEnvironment(options);
-        configStreamExecutionEnvironment(env, options, config, confProperties);
-
         StreamTableEnvironment tableEnv = createStreamTableEnvironment(env);
         configStreamExecutionEnvironment(tableEnv, confProperties, options.getJobName());
 
         switch (EJobType.getByName(options.getJobType())) {
             case SQL:
+                configStreamExecutionEnvironment(env, options, null, confProperties);
                 List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
                 StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
                 statementSet.execute();
                 break;
+
             case SYNC:
+                SyncConf config = parseFlinkxConf(job, options);
+                buildStrategy(confProperties, config);
+                configStreamExecutionEnvironment(env, options, config, confProperties);
+
                 SpeedConf speed = config.getSpeed();
                 BaseDataSource dataReader = DataSourceFactory.getDataSource(config, env);
                 DataStream<RowData> sourceDataStream = dataReader.readData();
@@ -135,13 +140,26 @@ public class Main {
                     String fieldNames = String.join(",", config.getReader().getFieldNameList());
                     List<Expression> expressionList = ExpressionParser.parseExpressionList(
                             fieldNames);
-                    Table sourceTable = tableEnv.fromDataStream(sourceDataStream, expressionList.toArray(new Expression[0]));
-                    tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
+                    Table sourceTable = tableEnv.fromDataStream(
+                            sourceDataStream,
+                            expressionList.toArray(new Expression[0]));
+                    tableEnv.createTemporaryView(
+                            config.getReader().getTable().getTableName(),
+                            sourceTable);
 
-                    Table adaptTable = tableEnv.sqlQuery(config.getJob().getTransformer().getTransformSql());
-                    TypeInformation<RowData> typeInformation = TableUtil.getTypeInformation(adaptTable.getSchema().getFieldDataTypes(), adaptTable.getSchema().getFieldNames());
-                    dataStream = tableEnv.toRetractStream(adaptTable, typeInformation).map(f -> f.f1);
-                    tableEnv.createTemporaryView(config.getWriter().getTable().getTableName(), dataStream);
+                    Table adaptTable = tableEnv.sqlQuery(config
+                            .getJob()
+                            .getTransformer()
+                            .getTransformSql());
+                    TypeInformation<RowData> typeInformation = TableUtil.getTypeInformation(
+                            adaptTable.getSchema().getFieldDataTypes(),
+                            adaptTable.getSchema().getFieldNames());
+                    dataStream = tableEnv
+                            .toRetractStream(adaptTable, typeInformation)
+                            .map(f -> f.f1);
+                    tableEnv.createTemporaryView(
+                            config.getWriter().getTable().getTableName(),
+                            dataStream);
                 } else {
                     dataStream = sourceDataStream;
                 }
@@ -180,6 +198,29 @@ public class Main {
         }
 
         LOG.info("program {} execution success", options.getJobName());
+    }
+
+    /**
+     * 将配置文件中的任务重启策略设置到Properties中
+     *
+     * @param confProperties
+     * @param config
+     */
+    private static void buildStrategy(Properties confProperties, SyncConf config) {
+        RestartConf restart = config.getRestart();
+        confProperties.setProperty(STRATEGY_STRATEGY, restart.getStrategy());
+        confProperties.setProperty(
+                STRATEGY_RESTARTATTEMPTS,
+                String.valueOf(restart.getRestartAttempts()));
+        confProperties.setProperty(
+                STRATEGY_DELAYINTERVAL,
+                String.valueOf(restart.getDelayInterval()));
+        confProperties.setProperty(
+                STRATEGY_FAILURERATE,
+                String.valueOf(restart.getFailureRate()));
+        confProperties.setProperty(
+                STRATEGY_FAILUREINTERVAL,
+                String.valueOf(restart.getFailureInterval()));
     }
 
     /**
@@ -260,7 +301,7 @@ public class Main {
             Options options,
             SyncConf config,
             Properties properties) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
-        configRestartStrategy(env, config, properties);
+        configRestartStrategy(env, properties);
         configCheckpoint(env, properties);
         configEnvironment(env, properties);
         if (config != null) {
@@ -302,48 +343,44 @@ public class Main {
         StreamEnvConfigManagerUtil.streamTableEnvironmentName(tableEnv, jobName);
     }
 
-
     /**
      * flink任务设置重试策略
      *
      * @param env
-     * @param config
      * @param properties
      */
     private static void configRestartStrategy(
             StreamExecutionEnvironment env,
-            SyncConf config,
             Properties properties) {
-        if (config != null) {
-            RestartConf restart = config.getRestart();
-            if (ConfigConstant.STRATEGY_FIXED_DELAY.equalsIgnoreCase(restart.getStrategy())) {
-                env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
-                        restart.getRestartAttempts(),
-                        Time.of(restart.getDelayInterval(), TimeUnit.SECONDS)
-                ));
-            } else if (ConfigConstant.STRATEGY_FAILURE_RATE.equalsIgnoreCase(restart.getStrategy())) {
-                env.setRestartStrategy(RestartStrategies.failureRateRestart(
-                        restart.getFailureRate(),
-                        Time.of(restart.getFailureInterval(), TimeUnit.SECONDS),
-                        Time.of(restart.getDelayInterval(), TimeUnit.SECONDS)
-                ));
-            } else {
-                env.setRestartStrategy(RestartStrategies.noRestart());
-            }
+        if (ConfigConstant.STRATEGY_FIXED_DELAY.equalsIgnoreCase(properties.getProperty(
+                STRATEGY_STRATEGY))) {
+            env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
+                    MathUtil.getIntegerVal(properties.getProperty(STRATEGY_RESTARTATTEMPTS)),
+                    Time.of(
+                            MathUtil.getLongVal(properties.getProperty(STRATEGY_DELAYINTERVAL)),
+                            TimeUnit.SECONDS)
+            ));
+        } else if (ConfigConstant.STRATEGY_FAILURE_RATE.equalsIgnoreCase(properties.getProperty(
+                STRATEGY_STRATEGY)) || StreamEnvConfigManagerUtil.isRestore(properties).get()) {
+            env.setRestartStrategy(RestartStrategies.failureRateRestart(
+                    MathUtil.getIntegerVal(
+                            properties.getProperty(STRATEGY_FAILURERATE),
+                            ConfigConstant.FAILUEE_RATE),
+                    Time.of(
+                            MathUtil.getLongVal(
+                                    properties.getProperty(STRATEGY_FAILUREINTERVAL),
+                                    StreamEnvConfigManagerUtil
+                                            .getFailureInterval(properties)
+                                            .get()),
+                            TimeUnit.SECONDS),
+                    Time.of(
+                            MathUtil.getLongVal(
+                                    properties.getProperty(STRATEGY_DELAYINTERVAL),
+                                    StreamEnvConfigManagerUtil.getDelayInterval(properties).get()),
+                            TimeUnit.SECONDS)
+            ));
         } else {
-            if (StreamEnvConfigManagerUtil.isRestore(properties).get()) {
-                env.setRestartStrategy(RestartStrategies.failureRateRestart(
-                        ConfigConstant.FAILUEE_RATE,
-                        Time.of(
-                                StreamEnvConfigManagerUtil.getFailureInterval(properties).get(),
-                                TimeUnit.MINUTES),
-                        Time.of(
-                                StreamEnvConfigManagerUtil.getDelayInterval(properties).get(),
-                                TimeUnit.SECONDS)
-                ));
-            } else {
-                env.setRestartStrategy(RestartStrategies.noRestart());
-            }
+            env.setRestartStrategy(RestartStrategies.noRestart());
         }
     }
 
