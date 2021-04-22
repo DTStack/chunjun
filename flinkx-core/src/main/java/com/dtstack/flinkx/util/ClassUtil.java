@@ -87,15 +87,18 @@ public class ClassUtil {
 
             case "smallint":
             case "smallintunsigned":
+            case "smallserial":
             case "tinyint":
             case "tinyintunsigned":
             case "mediumint":
             case "mediumintunsigned":
             case "integer":
             case "int":
+            case "serial":
                 return Integer.class;
 
             case "blob":
+            case "bytea":
                 return Byte.class;
 
             case "bigint":
@@ -104,12 +107,18 @@ public class ClassUtil {
             case "bigintunsigned":
             case "long":
             case "id":
+            case "bigserial":
+            case "oid":
+            case "double precision":
                 return Long.class;
 
             case "varchar":
             case "char":
             case "text":
             case "string":
+            case "character_varying":
+            case "character":
+            case "name":
                 return String.class;
 
             case "real":
@@ -134,6 +143,8 @@ public class ClassUtil {
 
             case "decimal":
             case "decimalunsigned":
+            case "money":
+            case "numeric":
                 return BigDecimal.class;
             default:
                 break;
