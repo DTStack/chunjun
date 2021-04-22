@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.pgwal.listener;
 
+import com.alibaba.druid.sql.dialect.postgresql.parser.PGSQLStatementParser;
 import com.dtstack.flinkx.pgwal.PgDecoder;
 import com.dtstack.flinkx.pgwal.PgWalUtil;
 import com.dtstack.flinkx.pgwal.Table;
@@ -58,6 +59,7 @@ public class PgWalListener implements Runnable {
     private PgDecoder decoder;
 
     private SnowflakeIdWorker idWorker;
+    private String publicationName;
 
     public PgWalListener(PgWalInputFormat format) {
         this.format = format;
@@ -68,6 +70,7 @@ public class PgWalListener implements Runnable {
             cat.add(type.toLowerCase());
         }
         this.pavingData = format.isPavingData();
+        this.publicationName = format.getPublicationName();
         idWorker = new SnowflakeIdWorker(1, 1);
     }
 
@@ -80,7 +83,7 @@ public class PgWalListener implements Runnable {
                 //协议版本。当前仅支持版本1
                 .withSlotOption("proto_version", "1")
                 //逗号分隔的要订阅的发布名称列表（接收更改）。 单个发布名称被视为标准对象名称，并可根据需要引用
-                .withSlotOption("publication_names", PgWalUtil.PUBLICATION_NAME)
+                .withSlotOption("publication_names", publicationName)
                 .withStatusInterval(format.getStatusInterval(), TimeUnit.MILLISECONDS);
         long lsn = format.getStartLsn();
         if(lsn != 0){
@@ -102,7 +105,15 @@ public class PgWalListener implements Runnable {
                 if (buffer == null) {
                     continue;
                 }
-                Table table = decoder.decode(buffer);
+                Table table = decoder.decode(buffer);//table.getSchema() = "public" and table.getTable() == "dts_ddl_command" : if table.newData[3] = "CREATE TABLE" ; if tag = "DROP TABLE";;; content = table.newData[0]
+                if(isSystemInfoMatch(table)) {
+                    PGSQLStatementParser parser = new PGSQLStatementParser((String) table.getNewData()[0]);
+//                    parser.
+                    return;
+                }
+                if(format.getFormatState() != null) {
+                    format.getFormatState().setState(table.getCurrentLsn());
+                }
                 if(StringUtils.isBlank(table.getId())){
                     continue;
                 }
@@ -147,5 +158,9 @@ public class PgWalListener implements Runnable {
             format.processEvent(Collections.singletonMap("e", errorMessage));
 
         }
+    }
+
+    private boolean isSystemInfoMatch(Table table) {
+        return "public".equals(table.getSchema()) && "dts_ddl_command".equals(table.getTable());
     }
 }

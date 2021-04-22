@@ -86,6 +86,10 @@ public class PgWalInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.temporary = temporary;
     }
 
+    public void setPublicationName(String publicationName) {
+        format.setPublicationName(publicationName);
+    }
+
     @Override
     protected void checkFormat() {
         if (StringUtils.isBlank(format.username)) {

@@ -48,6 +48,7 @@ public class PgwalReader extends BaseDataReader {
     private String slotName;
     private boolean allowCreateSlot;
     private boolean temporary;
+    private String publicationName;
 
     @SuppressWarnings("unchecked")
     public PgwalReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -65,6 +66,7 @@ public class PgwalReader extends BaseDataReader {
         slotName = readerConfig.getParameter().getStringVal(PgWalConfigKeys.KEY_SLOT_NAME);
         allowCreateSlot = readerConfig.getParameter().getBooleanVal(PgWalConfigKeys.KEY_ALLOW_CREATE_SLOT, true);
         temporary = readerConfig.getParameter().getBooleanVal(PgWalConfigKeys.KEY_TEMPORARY, true);
+        publicationName = readerConfig.getParameter().getStringVal(PgWalConfigKeys.KEY_PUBLICATION_NAME);
     }
 
     @Override
@@ -84,6 +86,7 @@ public class PgwalReader extends BaseDataReader {
         builder.setAllowCreateSlot(allowCreateSlot);
         builder.setTemporary(temporary);
         builder.setDataTransferConfig(dataTransferConfig);
+        builder.setPublicationName(publicationName);
         return createInput(builder.finish(), "pgwalreader");
     }
 }

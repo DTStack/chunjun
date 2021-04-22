@@ -57,6 +57,7 @@ public class PgWalInputFormat extends BaseRichInputFormat {
     protected String slotName;
     protected boolean allowCreateSlot;
     protected boolean temporary;
+    private String publicationName;
 
     private PgConnection conn;
     private volatile long startLsn;
@@ -80,11 +81,16 @@ public class PgWalInputFormat extends BaseRichInputFormat {
         }
         LOG.info("PgWalInputFormat openInternal split number:{} start...", inputSplit.getSplitNumber());
         try {
-            conn = PgWalUtil.getConnection(url, username, password);
+            conn = PgWalUtil.getConnection(url, username, password);//TODO password is null
             if(StringUtils.isBlank(slotName)){
                 slotName = PgWalUtil.SLOT_PRE + jobId;
             }
-            PgRelicationSlot availableSlot = PgWalUtil.checkPostgres(conn, allowCreateSlot, slotName, tableList);
+            if(StringUtils.isEmpty(publicationName)) {
+                publicationName = PgWalUtil.PUBLICATION_NAME;
+                LOG.info("provide the default publication name : {}" , publicationName);
+            }
+            PgWalUtil.checkPublicationName(conn, publicationName);
+            PgRelicationSlot availableSlot = PgWalUtil.checkPostgres(conn, allowCreateSlot, slotName, tableList, publicationName);
             if(availableSlot == null){
                 PgWalUtil.createSlot(conn, slotName, temporary);
             }
@@ -198,5 +204,13 @@ public class PgWalInputFormat extends BaseRichInputFormat {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public String getPublicationName() {
+        return publicationName;
+    }
+
+    public void setPublicationName(String publicationName) {
+        this.publicationName = publicationName;
     }
 }

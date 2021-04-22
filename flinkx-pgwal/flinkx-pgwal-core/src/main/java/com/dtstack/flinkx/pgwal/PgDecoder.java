@@ -125,10 +125,20 @@ public class PgDecoder {
                 //Byte1('D') 将消息标识为删除消息
                 table = decodeDelete(buffer);
                 break;
+            case ORIGIN:
+                    table = decodeOrigin(buffer);
+                break;
             default:
                 break;
         }
         table.setType(type);
+        return table;
+    }
+
+    private Table decodeOrigin(ByteBuffer buffer) {
+        Table table = new Table();
+        long lsn = buffer.getLong();
+        String beginNameByte= readString(buffer);
         return table;
     }
 
@@ -138,16 +148,16 @@ public class PgDecoder {
         //Int64 提交事务的时间戳。自PostgreSQL纪元（2000-01-01）以来的数值是微秒数
         Instant plus = PG_EPOCH.plus(buffer.getLong(), ChronoUnit.MICROS);
         //Int32 事务的Xid
-        int anInt = buffer.getInt();
+        int xid = buffer.getInt();
         currentLsn = lsn;
         ts = plus.toEpochMilli();
-        LOG.trace("handleBeginMessage result = { lsn = {}, plus = {}, anInt = {}}", lsn, plus, anInt);
+        LOG.trace("handleBeginMessage result = { lsn = {}, plus = {}, xid = {}}", lsn, plus, xid);
     }
 
     private void handleCommitMessage(ByteBuffer buffer) {
         if(LOG.isTraceEnabled()){
             //Int8 标志；目前未使用（必须为0）
-            int flags = buffer.get();
+            int flags = buffer.get();//default 0
             //Int64 提交的LSN
             long lsn = buffer.getLong();
             //Int64 事务的结束LSN

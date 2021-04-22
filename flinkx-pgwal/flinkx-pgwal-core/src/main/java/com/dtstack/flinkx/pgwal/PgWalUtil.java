@@ -54,14 +54,15 @@ public class PgWalUtil {
     public static final String CREATE_PUBLICATION = "CREATE PUBLICATION %s FOR ALL TABLES;";
     public static final String QUERY_TYPES = "SELECT t.oid AS oid, t.typname AS name FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON (t.typnamespace = n.oid) WHERE n.nspname != 'pg_toast' AND t.typcategory <> 'A';";
     private static final Logger LOG = LoggerFactory.getLogger(PgWalUtil.class);
+    private static final String PUBLICATION_NAME_CHECK = "select oid from pg_publication where pubname = '%s';";
 
-    public static PgRelicationSlot checkPostgres(PgConnection conn, boolean allowCreateSlot, String slotName, List<String> tableList) throws Exception{
+    public static PgRelicationSlot checkPostgres(PgConnection conn, boolean allowCreateSlot, String slotName, List<String> tableList, String publicationName) throws Exception{
         ResultSet resultSet;
         PgRelicationSlot availableSlot = null;
 
         //1. check postgres version
         // this Judge maybe not need?
-        if (!conn.haveMinimumServerVersion(ServerVersion.v10)){
+        if (!conn.haveMinimumServerVersion(ServerVersion.v10)){ // 9.4 provided the earliest support
             String version = conn.getDBVersionNumber();
             LOG.error("postgres version must > 10, current = [{}]", version);
             throw new UnsupportedOperationException("postgres version must >= 10, current = " + version);
@@ -139,12 +140,12 @@ public class PgWalUtil {
         }
 
         //5.check publication
-        resultSet = conn.execSQLQuery(String.format(QUERY_PUBLICATION, PUBLICATION_NAME));
+        resultSet = conn.execSQLQuery(String.format(QUERY_PUBLICATION, publicationName));
         if(resultSet.next()) {
             long count = resultSet.getLong(1);
             if (count == 0L) {
                 LOG.warn("no publication named [{}] existed, flinkx will create one", PUBLICATION_NAME);
-                conn.createStatement().execute(String.format(CREATE_PUBLICATION, PUBLICATION_NAME));
+                conn.createStatement().execute(String.format(CREATE_PUBLICATION, publicationName));
             }
         }
 
@@ -215,7 +216,7 @@ public class PgWalUtil {
         //postgres version must > 10
         PGProperty.ASSUME_MIN_SERVER_VERSION.set(props, "10");
         synchronized (ClassUtil.LOCK_STR) {
-            DriverManager.setLoginTimeout(10);
+            DriverManager.setLoginTimeout(10); // 1000 * 10 ms
             // telnet
             TelnetUtil.telnet(url);
             dbConn = DriverManager.getConnection(url, props);
@@ -261,4 +262,14 @@ public class PgWalUtil {
         }
     }
 
+    public static void checkPublicationName(PgConnection conn, String publicationName) throws SQLException {
+        ResultSet resultSet = conn.execSQLQuery(String.format(PUBLICATION_NAME_CHECK, publicationName));
+       if(resultSet.next()) {
+           //hit
+           resultSet.getString("oid");
+           return;
+       }
+
+       throw new UnsupportedOperationException("Publication name : "  + publicationName + " cannot be found. [Please check the publication setting]");
+    }
 }

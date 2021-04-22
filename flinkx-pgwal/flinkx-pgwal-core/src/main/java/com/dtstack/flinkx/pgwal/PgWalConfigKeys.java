@@ -48,4 +48,6 @@ public class PgWalConfigKeys {
     public final static String KEY_ALLOW_CREATE_SLOT = "allowCreateSlot";
 
     public final static String KEY_TEMPORARY = "temporary";
+
+    public final static String KEY_PUBLICATION_NAME = "publicationName";
 }
