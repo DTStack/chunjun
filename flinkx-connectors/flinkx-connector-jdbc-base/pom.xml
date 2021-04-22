@@ -13,8 +13,6 @@
 	<name>FlinkX : Connectors : JDBC</name>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
 		<vertx.version>3.9.4</vertx.version>
 	</properties>
 
