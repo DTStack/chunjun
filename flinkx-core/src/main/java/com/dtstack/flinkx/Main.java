@@ -113,86 +113,120 @@ public class Main {
 
         switch (EJobType.getByName(options.getJobType())) {
             case SQL:
-                configStreamExecutionEnvironment(env, options, null, confProperties);
-                List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
-                StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
-                statementSet.execute();
+                exeSqlJob(env, tableEnv, job, options, confProperties);
                 break;
 
             case SYNC:
-                SyncConf config = parseFlinkxConf(job, options);
-                buildRestartStrategy(confProperties, config);
-                configStreamExecutionEnvironment(env, options, config, confProperties);
-
-                BaseDataSource dataReader = DataSourceFactory.getDataSource(config, env);
-                DataStream<RowData> sourceDataStream = dataReader.readData();
-
-                SpeedConf speed = config.getSpeed();
-                if (speed.getReaderChannel() > 0) {
-                    sourceDataStream = ((DataStreamSource<RowData>) sourceDataStream).setParallelism(speed.getReaderChannel());
-                }
-
-                DataStream<RowData> dataStream;
-                boolean transformer = config.getTransformer() != null
-                                && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
-
-                if (transformer) {
-                    String fieldNames = String.join(",", config.getReader().getFieldNameList());
-                    List<Expression> expressionList = ExpressionParser.parseExpressionList(fieldNames);
-                    Table sourceTable = tableEnv.fromDataStream(sourceDataStream, expressionList.toArray(new Expression[0]));
-                    tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
-
-                    Table adaptTable = tableEnv.sqlQuery(config
-                            .getJob()
-                            .getTransformer()
-                            .getTransformSql());
-                    TypeInformation<RowData> typeInformation = TableUtil.getTypeInformation(
-                            adaptTable.getSchema().getFieldDataTypes(),
-                            adaptTable.getSchema().getFieldNames());
-                    dataStream = tableEnv
-                            .toRetractStream(adaptTable, typeInformation)
-                            .map(f -> f.f1);
-                    tableEnv.createTemporaryView(
-                            config.getWriter().getTable().getTableName(),
-                            dataStream);
-                } else {
-                    dataStream = sourceDataStream;
-                }
-
-                if (speed.isRebalance()) {
-                    dataStream = dataStream.rebalance();
-                }
-
-                BaseDataSink dataWriter = DataSinkFactory.getDataSink(config);
-
-                DataStream casted;
-                LogicalType sourceTypes = dataReader.getLogicalType();
-                LogicalType targetTypes = dataWriter.getLogicalType();
-                // 任意一端拿不到类型则不启动转换函数
-                if (sourceTypes != null && targetTypes != null) {
-                    CastFunction cast = new CastFunction(sourceTypes, targetTypes);
-                    cast.init();
-                    casted = dataStream.map(cast);
-                } else {
-                    casted = dataStream;
-                }
-
-                // TODO 添加转换算子或者转换函数
-                DataStreamSink<RowData> dataStreamSink = dataWriter.writeData(casted);
-                if (speed.getWriterChannel() > 0) {
-                    dataStreamSink.setParallelism(speed.getWriterChannel());
-                }
-
-                JobExecutionResult result = env.execute(options.getJobName());
-                if (env instanceof MyLocalStreamEnvironment) {
-                    PrintUtil.printResult(result);
-                }
+                exeSyncJob(env, tableEnv, job, options, confProperties);
                 break;
             default:
                 throw new RuntimeException("just support sql or sync jobType !!!");
         }
 
         LOG.info("program {} execution success", options.getJobName());
+    }
+
+    /**
+     * 执行sql 类型任务
+     * @param env
+     * @param tableEnv
+     * @param job
+     * @param options
+     * @param confProperties
+     * @throws Exception
+     */
+    private static void exeSqlJob(StreamExecutionEnvironment env,
+                                  StreamTableEnvironment tableEnv,
+                                  String job,
+                                  Options options,
+                                  Properties confProperties) throws Exception {
+        configStreamExecutionEnvironment(env, options, null, confProperties);
+        List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
+        StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
+        statementSet.execute();
+    }
+
+    /**
+     * 执行 数据同步类型任务
+     * @param env
+     * @param tableEnv
+     * @param job
+     * @param options
+     * @param confProperties
+     * @throws Exception
+     */
+    private static void exeSyncJob(StreamExecutionEnvironment env,
+                                   StreamTableEnvironment tableEnv,
+                                   String job,
+                                   Options options,
+                                   Properties confProperties) throws Exception {
+        SyncConf config = parseFlinkxConf(job, options);
+        buildRestartStrategy(confProperties, config);
+        configStreamExecutionEnvironment(env, options, config, confProperties);
+
+        BaseDataSource dataReader = DataSourceFactory.getDataSource(config, env);
+        DataStream<RowData> sourceDataStream = dataReader.readData();
+
+        SpeedConf speed = config.getSpeed();
+        if (speed.getReaderChannel() > 0) {
+            sourceDataStream = ((DataStreamSource<RowData>) sourceDataStream).setParallelism(speed.getReaderChannel());
+        }
+
+        DataStream<RowData> dataStream;
+        boolean transformer = config.getTransformer() != null
+                && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
+
+        if (transformer) {
+            String fieldNames = String.join(",", config.getReader().getFieldNameList());
+            List<Expression> expressionList = ExpressionParser.parseExpressionList(fieldNames);
+            Table sourceTable = tableEnv.fromDataStream(sourceDataStream, expressionList.toArray(new Expression[0]));
+            tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
+
+            Table adaptTable = tableEnv.sqlQuery(config
+                    .getJob()
+                    .getTransformer()
+                    .getTransformSql());
+            TypeInformation<RowData> typeInformation = TableUtil.getTypeInformation(
+                    adaptTable.getSchema().getFieldDataTypes(),
+                    adaptTable.getSchema().getFieldNames());
+            dataStream = tableEnv
+                    .toRetractStream(adaptTable, typeInformation)
+                    .map(f -> f.f1);
+            tableEnv.createTemporaryView(
+                    config.getWriter().getTable().getTableName(),
+                    dataStream);
+        } else {
+            dataStream = sourceDataStream;
+        }
+
+        if (speed.isRebalance()) {
+            dataStream = dataStream.rebalance();
+        }
+
+        BaseDataSink dataWriter = DataSinkFactory.getDataSink(config);
+
+        DataStream casted;
+        LogicalType sourceTypes = dataReader.getLogicalType();
+        LogicalType targetTypes = dataWriter.getLogicalType();
+        // 任意一端拿不到类型则不启动转换函数
+        if (sourceTypes != null && targetTypes != null) {
+            CastFunction cast = new CastFunction(sourceTypes, targetTypes);
+            cast.init();
+            casted = dataStream.map(cast);
+        } else {
+            casted = dataStream;
+        }
+
+        // TODO 添加转换算子或者转换函数
+        DataStreamSink<RowData> dataStreamSink = dataWriter.writeData(casted);
+        if (speed.getWriterChannel() > 0) {
+            dataStreamSink.setParallelism(speed.getWriterChannel());
+        }
+
+        JobExecutionResult result = env.execute(options.getJobName());
+        if (env instanceof MyLocalStreamEnvironment) {
+            PrintUtil.printResult(result);
+        }
     }
 
     /**
