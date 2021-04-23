@@ -40,6 +40,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.expressions.Expression;
 import org.apache.flink.table.expressions.ExpressionParser;
 import org.apache.flink.table.factories.FactoryUtil;
+`import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
 
 import com.dtstack.flinkx.conf.RestartConf;
@@ -177,24 +178,7 @@ public class Main {
                 && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
 
         if (transformer) {
-            String fieldNames = String.join(",", config.getReader().getFieldNameList());
-            List<Expression> expressionList = ExpressionParser.parseExpressionList(fieldNames);
-            Table sourceTable = tableEnv.fromDataStream(sourceDataStream, expressionList.toArray(new Expression[0]));
-            tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
-
-            Table adaptTable = tableEnv.sqlQuery(config
-                    .getJob()
-                    .getTransformer()
-                    .getTransformSql());
-            TypeInformation<RowData> typeInformation = TableUtil.getTypeInformation(
-                    adaptTable.getSchema().getFieldDataTypes(),
-                    adaptTable.getSchema().getFieldNames());
-            dataStream = tableEnv
-                    .toRetractStream(adaptTable, typeInformation)
-                    .map(f -> f.f1);
-            tableEnv.createTemporaryView(
-                    config.getWriter().getTable().getTableName(),
-                    dataStream);
+            dataStream = syncStreamToTable(tableEnv, config, sourceDataStream);
         } else {
             dataStream = sourceDataStream;
         }
@@ -227,6 +211,37 @@ public class Main {
         if (env instanceof MyLocalStreamEnvironment) {
             PrintUtil.printResult(result);
         }
+    }
+
+    /**
+     * 将数据同步Stream 注册成table
+     * @param tableEnv
+     * @param config
+     * @param sourceDataStream
+     * @return
+     */
+    private static DataStream<RowData> syncStreamToTable(StreamTableEnvironment tableEnv,
+                                          SyncConf config,
+                                          DataStream<RowData> sourceDataStream){
+        String fieldNames = String.join(",", config.getReader().getFieldNameList());
+        List<Expression> expressionList = ExpressionParser.parseExpressionList(fieldNames);
+        Table sourceTable = tableEnv.fromDataStream(sourceDataStream, expressionList.toArray(new Expression[0]));
+        tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
+
+        String transformSql = config.getJob().getTransformer().getTransformSql();
+        Table adaptTable = tableEnv.sqlQuery(transformSql);
+
+        DataType[] tableDataTypes = adaptTable.getSchema().getFieldDataTypes();
+        String[] tableFieldNames = adaptTable.getSchema().getFieldNames();
+        TypeInformation<RowData> typeInformation = TableUtil.getTypeInformation(tableDataTypes, tableFieldNames);
+        DataStream<RowData> dataStream = tableEnv
+                .toRetractStream(adaptTable, typeInformation)
+                .map(f -> f.f1);
+        tableEnv.createTemporaryView(
+                config.getWriter().getTable().getTableName(),
+                dataStream);
+
+        return dataStream;
     }
 
     /**
