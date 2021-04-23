@@ -121,31 +121,26 @@ public class Main {
 
             case SYNC:
                 SyncConf config = parseFlinkxConf(job, options);
-                buildStrategy(confProperties, config);
+                buildRestartStrategy(confProperties, config);
                 configStreamExecutionEnvironment(env, options, config, confProperties);
 
-                SpeedConf speed = config.getSpeed();
                 BaseDataSource dataReader = DataSourceFactory.getDataSource(config, env);
                 DataStream<RowData> sourceDataStream = dataReader.readData();
+
+                SpeedConf speed = config.getSpeed();
                 if (speed.getReaderChannel() > 0) {
-                    sourceDataStream = ((DataStreamSource<RowData>) sourceDataStream).setParallelism(
-                            speed.getReaderChannel());
+                    sourceDataStream = ((DataStreamSource<RowData>) sourceDataStream).setParallelism(speed.getReaderChannel());
                 }
+
                 DataStream<RowData> dataStream;
-                boolean transformer =
-                        config.getTransformer() != null && StringUtils.isNotBlank(config
-                                .getTransformer()
-                                .getTransformSql());
+                boolean transformer = config.getTransformer() != null
+                                && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
+
                 if (transformer) {
                     String fieldNames = String.join(",", config.getReader().getFieldNameList());
-                    List<Expression> expressionList = ExpressionParser.parseExpressionList(
-                            fieldNames);
-                    Table sourceTable = tableEnv.fromDataStream(
-                            sourceDataStream,
-                            expressionList.toArray(new Expression[0]));
-                    tableEnv.createTemporaryView(
-                            config.getReader().getTable().getTableName(),
-                            sourceTable);
+                    List<Expression> expressionList = ExpressionParser.parseExpressionList(fieldNames);
+                    Table sourceTable = tableEnv.fromDataStream(sourceDataStream, expressionList.toArray(new Expression[0]));
+                    tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
 
                     Table adaptTable = tableEnv.sqlQuery(config
                             .getJob()
@@ -206,21 +201,13 @@ public class Main {
      * @param confProperties
      * @param config
      */
-    private static void buildStrategy(Properties confProperties, SyncConf config) {
+    private static void buildRestartStrategy(Properties confProperties, SyncConf config) {
         RestartConf restart = config.getRestart();
         confProperties.setProperty(STRATEGY_STRATEGY, restart.getStrategy());
-        confProperties.setProperty(
-                STRATEGY_RESTARTATTEMPTS,
-                String.valueOf(restart.getRestartAttempts()));
-        confProperties.setProperty(
-                STRATEGY_DELAYINTERVAL,
-                String.valueOf(restart.getDelayInterval()));
-        confProperties.setProperty(
-                STRATEGY_FAILURERATE,
-                String.valueOf(restart.getFailureRate()));
-        confProperties.setProperty(
-                STRATEGY_FAILUREINTERVAL,
-                String.valueOf(restart.getFailureInterval()));
+        confProperties.setProperty(STRATEGY_RESTARTATTEMPTS, String.valueOf(restart.getRestartAttempts()));
+        confProperties.setProperty(STRATEGY_DELAYINTERVAL, String.valueOf(restart.getDelayInterval()));
+        confProperties.setProperty(STRATEGY_FAILURERATE, String.valueOf(restart.getFailureRate()));
+        confProperties.setProperty(STRATEGY_FAILUREINTERVAL, String.valueOf(restart.getFailureInterval()));
     }
 
     /**

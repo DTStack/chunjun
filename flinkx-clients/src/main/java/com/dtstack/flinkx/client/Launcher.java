@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.client;
 
+import com.dtstack.flinkx.Main;
+
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.PackagedProgram;
@@ -91,7 +93,7 @@ public class Launcher {
 
         switch (ClusterMode.getByName(launcherOptions.getMode())) {
             case local:
-                com.dtstack.flinkx.Main.main(argList.toArray(new String[0]));
+                Main.main(argList.toArray(new String[0]));
                 break;
             case standalone:
             case yarn:
