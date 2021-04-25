@@ -18,22 +18,27 @@
 
 package com.dtstack.flinkx.connector.stream.source;
 
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
-import org.apache.flink.table.connector.source.AsyncTableFunctionProvider;
 import org.apache.flink.table.connector.source.DynamicTableSource;
-import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
-import org.apache.flink.table.connector.source.TableFunctionProvider;
-import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.utils.TableSchemaUtils;
-import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamLookupConf;
-import com.dtstack.flinkx.connector.stream.lookup.StreamAllLookupFunctionAll;
-import com.dtstack.flinkx.connector.stream.lookup.StreamLruLookupFunction;
-import com.dtstack.flinkx.enums.CacheType;
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.connector.stream.converter.StreamConverter;
+import com.dtstack.flinkx.connector.stream.inputFormat.StreamInputFormatBuilder;
+import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author chuixue
@@ -41,72 +46,63 @@ import com.dtstack.flinkx.enums.CacheType;
  * @description
  **/
 
-public class StreamDynamicTableSource implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
+public class StreamDynamicTableSource implements ScanTableSource {
 
-    private TableSchema physicalSchema;
-    private StreamLookupConf lookupOptions;
+    private final DataGenerator<?>[] fieldGenerators;
+    private final TableSchema schema;
+    private final Long numberOfRows;
 
-    public StreamDynamicTableSource(StreamLookupConf lookupOptions, TableSchema physicalSchema) {
-        this.lookupOptions = lookupOptions;
-        this.physicalSchema = physicalSchema;
+    public StreamDynamicTableSource(
+            DataGenerator<?>[] fieldGenerators,
+            TableSchema schema,
+            Long numberOfRows) {
+        this.fieldGenerators = fieldGenerators;
+        this.schema = schema;
+        this.numberOfRows = numberOfRows;
     }
 
     @Override
-    public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
+    public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
+        final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
-        String[] keyNames = new String[context.getKeys().length];
-        for (int i = 0; i < keyNames.length; i++) {
-            int[] innerKeyArr = context.getKeys()[i];
-            Preconditions.checkArgument(
-                    innerKeyArr.length == 1, "JDBC only support non-nested look up keys");
-            keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
-        }
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
+        StreamConf streamConf = new StreamConf();
 
-        if (lookupOptions.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return AsyncTableFunctionProvider.of(new StreamLruLookupFunction(
-                    lookupOptions,
-                    physicalSchema.getFieldNames(),
-                    physicalSchema.getFieldDataTypes(),
-                    keyNames
-            ));
-        }
-        return TableFunctionProvider.of(new StreamAllLookupFunctionAll(
-                lookupOptions,
-                physicalSchema.getFieldNames(),
-                keyNames));
+        List<FieldConf> fieldConfList = Arrays
+                .stream(schema.getFieldNames())
+                .map(e -> {
+                    FieldConf fieldConf = new FieldConf();
+                    fieldConf.setName(e);
+                    return fieldConf;
+                }).collect(Collectors.toList());
+        List<Long> sliceRecordCount = new ArrayList<>();
+        sliceRecordCount.add(numberOfRows);
+
+        StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
+        builder.setAbstractRowConverter(new StreamConverter(rowType));
+        builder.setFieldGenerators(fieldGenerators);
+        streamConf.setColumn(fieldConfList);
+        streamConf.setSliceRecordCount(sliceRecordCount);
+        builder.setStreamConf(streamConf);
+
+        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+    }
+
+    @Override
+    public DynamicTableSource copy() {
+        return new StreamDynamicTableSource(
+                this.fieldGenerators,
+                this.schema,
+                this.numberOfRows);
+    }
+
+    @Override
+    public String asSummaryString() {
+        return "StreamDynamicTableSource:";
     }
 
     @Override
     public ChangelogMode getChangelogMode() {
         return ChangelogMode.insertOnly();
-    }
-
-    @Override
-    public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
-        // 如果sql没有source ,则此处不需要实现即可，目前sql只有kafka source(scan)
-        return null;
-    }
-
-    @Override
-    public DynamicTableSource copy() {
-        return new StreamDynamicTableSource(this.lookupOptions, this.physicalSchema);
-    }
-
-    @Override
-    public String asSummaryString() {
-        return "StreamDynamicTableSink:";
-    }
-
-    @Override
-    public boolean supportsNestedProjection() {
-        // 谓词下推开关
-        return false;
-    }
-
-    @Override
-    public void applyProjection(int[][] projectedFields) {
-        // 下推字段，需要拼接到维表查询数据的语句中
-        this.physicalSchema = TableSchemaUtils.projectSchema(physicalSchema, projectedFields);
     }
 }

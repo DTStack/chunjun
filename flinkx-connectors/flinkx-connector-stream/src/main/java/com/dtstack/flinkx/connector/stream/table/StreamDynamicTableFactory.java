@@ -19,26 +19,34 @@
 package com.dtstack.flinkx.connector.stream.table;
 
 import org.apache.flink.configuration.ConfigOption;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
+import org.apache.flink.table.factories.datagen.DataGeneratorContainer;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamLookupConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.sink.StreamDynamicTableSink;
 import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
-import com.dtstack.flinkx.lookup.constants.LookUpConstants;
+import com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.NUMBER_OF_ROWS;
 import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.PRINT_IDENTIFIER;
 import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.STANDARD_ERROR;
+import static com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil.FIELDS;
+import static com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil.KIND;
+import static com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil.RANDOM;
+import static org.apache.flink.configuration.ConfigOptions.key;
 
 /**
  * @author chuixue
@@ -60,9 +68,9 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
 
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
-        Set<ConfigOption<?>> optionalOptions = new HashSet<>();
-        optionalOptions.add(LookUpConstants.LOOKUP_CACHE_TYPE);
-        return optionalOptions;
+        Set<ConfigOption<?>> options = new HashSet<>();
+        options.add(NUMBER_OF_ROWS);
+        return options;
     }
 
     @Override
@@ -73,7 +81,6 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
 
         // 2.参数校验
         helper.validate();
-        validateConfigOptions(config);
 
         // 3.封装参数
         StreamSinkConf sinkConf = StreamSinkConf
@@ -92,34 +99,21 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
-        final FactoryUtil.TableFactoryHelper helper =
-                FactoryUtil.createTableFactoryHelper(this, context);
-        // 1.所有的requiredOptions和optionalOptions参数
-        final ReadableConfig config = helper.getOptions();
+        Configuration options = new Configuration();
+        context.getCatalogTable().getOptions().forEach(options::setString);
 
-        // 2.参数校验
-        helper.validate();
-        validateConfigOptions(config);
+        TableSchema schema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        DataGenerator<?>[] fieldGenerators = new DataGenerator[schema.getFieldCount()];
 
-        // 3.封装参数
-        StreamLookupConf lookupConf = (StreamLookupConf) StreamLookupConf
-                .build()
-                .setTableName(context.getObjectIdentifier().getObjectName())
-                .setCache(config.get(LookUpConstants.LOOKUP_CACHE_TYPE))
-                .setCacheSize(1000L)
-                .setPeriod(3600 * 1000L);
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        for (int i = 0; i < fieldGenerators.length; i++) {
+            String name = schema.getFieldNames()[i];
+            DataType type = schema.getFieldDataTypes()[i];
 
-        return new StreamDynamicTableSource(lookupConf, physicalSchema);
-    }
+            ConfigOption<String> kind = key(FIELDS + "." + name + "." + KIND).stringType().defaultValue(RANDOM);
+            DataGeneratorContainer container = DataGeneratorUtil.createContainer(name, type, options.get(kind), options);
+            fieldGenerators[i] = container.getGenerator();
+        }
 
-    /**
-     * 参数校验，如：必填参数不能空、格式必须对，可选参数如果填了格式必须对、大小范围不能越界等
-     *
-     * @param config
-     */
-    private void validateConfigOptions(ReadableConfig config) {
-        // 抽出一个工具类，和BaseRichInputFormatBuilder中的finish都是校验参数
+        return new StreamDynamicTableSource(fieldGenerators, schema, options.get(NUMBER_OF_ROWS));
     }
 }
