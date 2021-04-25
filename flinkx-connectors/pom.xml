@@ -15,7 +15,6 @@
 
     <modules>
         <module>flinkx-connector-kafka</module>
-        <module>flinkx-connector-print</module>
         <module>flinkx-connector-stream</module>
 		<module>flinkx-connector-jdbc-base</module>
 		<module>flinkx-connector-mysql</module>
