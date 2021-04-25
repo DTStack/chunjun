@@ -7,5 +7,6 @@ build:
     - sh ci/sonar_notify.sh
   only:
     - 1.10_test_4.2.x
+    - test_1.10_4.2.x_1445_stream
   tags:
     - dt-insight-engine
