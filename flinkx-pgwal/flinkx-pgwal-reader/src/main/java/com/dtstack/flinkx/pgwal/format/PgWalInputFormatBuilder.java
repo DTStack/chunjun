@@ -114,4 +114,16 @@ public class PgWalInputFormatBuilder extends BaseRichInputFormatBuilder {
             throw new IllegalArgumentException("slotName can not be null if allowCreateSlot is false");
         }
     }
+
+    public void setConnectionTimeoutSecond(int connectionTimeoutSecond) {
+        format.setConnectionTimeoutSecond(connectionTimeoutSecond);
+    }
+
+    public void setSocketTimeoutSecond(int socketTimeoutSecond) {
+        format.setSocketTimeoutSecond(socketTimeoutSecond);
+    }
+
+    public void setLoginTimeoutSecond(int loginTimeoutSecond) {
+        format.setLoginTimeoutSecond(loginTimeoutSecond);
+    }
 }

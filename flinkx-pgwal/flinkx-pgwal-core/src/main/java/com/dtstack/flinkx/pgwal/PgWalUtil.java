@@ -49,6 +49,12 @@ public class PgWalUtil {
     public static final String QUERY_MAX_SLOT = "SHOW max_replication_slots;";
     public static final String QUERY_SLOT = "SELECT * FROM pg_replication_slots where slot_name = '%s';";
     public static final String QUERY_TABLE_REPLICA_IDENTITY = "SELECT relreplident FROM pg_catalog.pg_class c LEFT JOIN pg_catalog.pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='%s' and c.relname='%s';";
+    /**
+     * DEFAULT（非系统表的默认值）记录主键的列的旧值（如果有）。
+     * USING INDEX记录命名索引覆盖的列的旧值，该值必须是唯一的，不局部的，不可延迟的，并且仅包括标记为的列NOT NULL。
+     * FULL记录行中所有列的旧值。
+     * NOTHING不记录有关旧行的信息。（这是系统表的默认值。）在所有情况下，除非该行的新旧版本中至少要记录的列之一不同，否则不会记录任何旧值。
+     */
     public static final String UPDATE_REPLICA_IDENTITY = "ALTER TABLE %s REPLICA IDENTITY FULL;";
     public static final String QUERY_PUBLICATION = "SELECT COUNT(1) FROM pg_publication WHERE pubname = '%s';";
     public static final String CREATE_PUBLICATION = "CREATE PUBLICATION %s FOR ALL TABLES;";
@@ -135,7 +141,7 @@ public class PgWalUtil {
                 }
             }
             if(!needCreate) {
-                conn.createStatement().execute(String.format(UPDATE_REPLICA_IDENTITY, table));
+                conn.createStatement().execute(String.format(UPDATE_REPLICA_IDENTITY, table));//TODO 优化点
             }
         }
 
@@ -202,10 +208,12 @@ public class PgWalUtil {
      * @param url       url
      * @param username  账号
      * @param password  密码
+     * @param connectionTimeoutSecond
+     * @param socketTimeoutSecond
      * @return
      * @throws SQLException
      */
-    public static PgConnection getConnection(String url, String username, String password) throws SQLException {
+    public static PgConnection getConnection(String url, String username, String password, int connectionTimeoutSecond, int loginTimeoutSecond, int socketTimeoutSecond) throws SQLException {
         Connection dbConn;
         ClassUtil.forName(PgWalUtil.DRIVER, PgWalUtil.class.getClassLoader());
         Properties props = new Properties();
@@ -215,10 +223,10 @@ public class PgWalUtil {
         PGProperty.PREFER_QUERY_MODE.set(props, "simple");
         //postgres version must > 10
         PGProperty.ASSUME_MIN_SERVER_VERSION.set(props, "10");
+        PgWalUtil.setConnectionTimeout(connectionTimeoutSecond, socketTimeoutSecond,loginTimeoutSecond, props);
         synchronized (ClassUtil.LOCK_STR) {
-            DriverManager.setLoginTimeout(10); // 1000 * 10 ms
             // telnet
-            TelnetUtil.telnet(url);
+            TelnetUtil.telnet(socketTimeoutSecond, url);
             dbConn = DriverManager.getConnection(url, props);
         }
 
@@ -271,5 +279,22 @@ public class PgWalUtil {
        }
 
        throw new UnsupportedOperationException("Publication name : "  + publicationName + " cannot be found. [Please check the publication setting]");
+    }
+
+    public static void setConnectionTimeout(int connectionTimeoutSecond, int socketTimeoutSecond, int loginTimeoutSecond, Properties props) {
+        if(connectionTimeoutSecond <= 0) {
+            connectionTimeoutSecond = 10;
+        }
+        if(socketTimeoutSecond <= 0) {
+            socketTimeoutSecond = 10;
+        }
+        if(loginTimeoutSecond <= 0) {
+            loginTimeoutSecond = 10;
+        }
+        PGProperty.CONNECT_TIMEOUT.set(props, connectionTimeoutSecond);
+        PGProperty.SOCKET_TIMEOUT.set(props, socketTimeoutSecond);
+        LOG.info("socket time out setting : " +
+                "connection timeout {} second, socket timeout {} second, login timeout {} second",
+                connectionTimeoutSecond, socketTimeoutSecond, loginTimeoutSecond);
     }
 }

@@ -49,6 +49,9 @@ public class PgwalReader extends BaseDataReader {
     private boolean allowCreateSlot;
     private boolean temporary;
     private String publicationName;
+    private int connectionTimeoutSecond;
+    private int socketTimeoutSecond;
+    private int loginTimeoutSecond;
 
     @SuppressWarnings("unchecked")
     public PgwalReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -87,6 +90,9 @@ public class PgwalReader extends BaseDataReader {
         builder.setTemporary(temporary);
         builder.setDataTransferConfig(dataTransferConfig);
         builder.setPublicationName(publicationName);
+        builder.setConnectionTimeoutSecond(connectionTimeoutSecond);
+        builder.setSocketTimeoutSecond(socketTimeoutSecond);
+        builder.setLoginTimeoutSecond(loginTimeoutSecond);
         return createInput(builder.finish(), "pgwalreader");
     }
 }

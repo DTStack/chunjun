@@ -65,6 +65,9 @@ public class PgWalInputFormat extends BaseRichInputFormat {
     private transient BlockingQueue<Map<String, Object>> queue;
     private transient ExecutorService executor;
     private volatile boolean running = false;
+    private int connectionTimeoutSecond;
+    private int socketTimeoutSecond;
+    private int loginTimeoutSecond;
 
     @Override
     public void openInputFormat() throws IOException{
@@ -81,7 +84,7 @@ public class PgWalInputFormat extends BaseRichInputFormat {
         }
         LOG.info("PgWalInputFormat openInternal split number:{} start...", inputSplit.getSplitNumber());
         try {
-            conn = PgWalUtil.getConnection(url, username, password);//TODO password is null
+            conn = PgWalUtil.getConnection(url, username, password, connectionTimeoutSecond, socketTimeoutSecond, loginTimeoutSecond);//TODO password is null
             if(StringUtils.isBlank(slotName)){
                 slotName = PgWalUtil.SLOT_PRE + jobId;
             }
@@ -212,5 +215,17 @@ public class PgWalInputFormat extends BaseRichInputFormat {
 
     public void setPublicationName(String publicationName) {
         this.publicationName = publicationName;
+    }
+
+    public void setConnectionTimeoutSecond(int connectionTimeoutSecond) {
+        this.connectionTimeoutSecond = connectionTimeoutSecond;
+    }
+
+    public void setSocketTimeoutSecond(int socketTimeoutSecond) {
+        this.socketTimeoutSecond = socketTimeoutSecond;
+    }
+
+    public void setLoginTimeoutSecond(int loginTimeoutSecond) {
+        this.loginTimeoutSecond = loginTimeoutSecond;
     }
 }
