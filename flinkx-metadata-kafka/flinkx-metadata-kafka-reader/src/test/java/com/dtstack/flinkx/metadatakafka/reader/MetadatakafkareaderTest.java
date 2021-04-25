@@ -24,8 +24,7 @@ public class MetadatakafkareaderTest {
     public void metadatakafkareaderTest(){
         DataTransferConfig config = PowerMockito.mock(DataTransferConfig.class);
         StreamExecutionEnvironment env = PowerMockito.mock(StreamExecutionEnvironment.class);
-        PowerMockito.suppress(PowerMockito.constructor(MetadatakafkaReader.class));
-        MetadatakafkaReader reader = new MetadatakafkaReader(config, env);
+        PowerMockito.when(new MetadatakafkaReader(config, env)).thenCallRealMethod();
     }
 
 }

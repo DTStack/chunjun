@@ -55,12 +55,6 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
      */
     private Map<String, String> consumerSettings;
 
-    /**
-     * kerberos 验证参数
-     */
-    private Map<String, Object> kerberosConfig;
-
-
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
@@ -70,7 +64,7 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
         }
         topicList = ((MetadatakafkaInputSplit)inputSplit).getTopicList();
         if (CollectionUtils.isEmpty(topicList)){
-            topicList = KafkaUtil.getTopicListFromBroker(consumerSettings, kerberosConfig);
+            topicList = KafkaUtil.getTopicListFromBroker(consumerSettings);
         }
         iterator = topicList.iterator();
     }
@@ -108,7 +102,7 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
     public MetadatakafkaEntity queryMetadata(String topic){
         MetadatakafkaEntity entity = new MetadatakafkaEntity();
         entity.setTopicName(topic);
-        Map<String, Integer> countAndReplicas = KafkaUtil.getTopicPartitionCountAndReplicas(consumerSettings, kerberosConfig, topic);
+        Map<String, Integer> countAndReplicas = KafkaUtil.getTopicPartitionCountAndReplicas(consumerSettings, topic);
         entity.setPartitions(countAndReplicas.get(KEY_PARTITIONS));
         entity.setReplicationFactor(countAndReplicas.get(KEY_REPLICAS));
 
@@ -116,12 +110,12 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
         sdf.applyPattern("yyyy-MM-dd HH:mm:ss");
         entity.setTimeStamp(sdf.format(new Date()));
 
-        List<String> groups = KafkaUtil.listConsumerGroup(consumerSettings, kerberosConfig, topic);
+        List<String> groups = KafkaUtil.listConsumerGroup(consumerSettings, topic);
         List<GroupInfo> groupInfos = new ArrayList<>();
         if(CollectionUtils.isNotEmpty(groups)){
             for (String group: groups){
                 GroupInfo groupInfo = new GroupInfo();
-                List<KafkaConsumerInfo> infos = KafkaUtil.getGroupInfoByGroupId(consumerSettings, kerberosConfig, group, topic);
+                List<KafkaConsumerInfo> infos = KafkaUtil.getGroupInfoByGroupId(consumerSettings, group, topic);
                 groupInfo.setGroupId(group);
                 groupInfo.setTopic(topic);
                 groupInfo.setPartitionInfo(infos);
@@ -129,7 +123,7 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
             }
         }else{
             GroupInfo groupInfo = new GroupInfo();
-            List<KafkaConsumerInfo> infos = KafkaUtil.getGroupInfoByGroupId(consumerSettings, kerberosConfig, "", topic);
+            List<KafkaConsumerInfo> infos = KafkaUtil.getGroupInfoByGroupId(consumerSettings, "", topic);
             groupInfo.setTopic(topic);
             groupInfo.setPartitionInfo(infos);
             groupInfos.add(groupInfo);
@@ -150,7 +144,4 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
         return consumerSettings;
     }
 
-    public void setKerberosConfig(Map<String, Object> kerberosConfig) {
-        this.kerberosConfig = kerberosConfig;
-    }
 }

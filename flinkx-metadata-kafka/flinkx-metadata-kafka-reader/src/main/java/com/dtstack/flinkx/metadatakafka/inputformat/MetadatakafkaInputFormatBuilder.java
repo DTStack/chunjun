@@ -26,10 +26,6 @@ public class MetadatakafkaInputFormatBuilder extends BaseRichInputFormatBuilder 
         this.format.setConsumerSettings(consumerSettings);
     }
 
-    public void setKerberosConfig(Map<String, Object> kerberosConfig){
-        this.format.setKerberosConfig(kerberosConfig);
-    }
-
     public void setTopicList(List<String> topics){
         this.format.setTopicList(topics);
     }

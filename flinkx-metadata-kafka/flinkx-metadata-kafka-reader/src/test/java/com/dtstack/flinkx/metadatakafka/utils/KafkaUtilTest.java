@@ -31,47 +31,37 @@ public class KafkaUtilTest {
     public void getTopicListFromBrokerTest(){
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
-        Map<String, Object> kerberosConfig = new HashMap<>();
-        PowerMockito.when(KafkaUtil.getTopicListFromBroker(consumerSettings, kerberosConfig)).thenCallRealMethod();
+        PowerMockito.when(KafkaUtil.getTopicListFromBroker(consumerSettings)).thenCallRealMethod();
     }
 
     @Test
     public void getTopicPartitionCountAndReplicasTest(){
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
-        Map<String, Object> kerberosConfig = new HashMap<>();
         String topic = "kafka10";
-        PowerMockito.when(KafkaUtil.getTopicPartitionCountAndReplicas(consumerSettings, kerberosConfig, topic)).thenCallRealMethod();
+        PowerMockito.when(KafkaUtil.getTopicPartitionCountAndReplicas(consumerSettings, topic)).thenCallRealMethod();
     }
 
     @Test
     public void listConsumerGroupTest(){
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
-        Map<String, Object> kerberosConfig = new HashMap<>();
         String topic = "kafka10";
-        PowerMockito.when(KafkaUtil.listConsumerGroup(consumerSettings, kerberosConfig, topic)).thenCallRealMethod();
+        PowerMockito.when(KafkaUtil.listConsumerGroup(consumerSettings, topic)).thenCallRealMethod();
     }
 
     @Test
     public void getGroupInfoByGroupIdTest(){
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
-        Map<String, Object> kerberosConfig = new HashMap<>();
-        String groupId = "default";
         String topic = "kafka10";
-        PowerMockito.when(KafkaUtil.getGroupInfoByGroupId(consumerSettings, kerberosConfig, groupId, topic)).thenCallRealMethod();
+        PowerMockito.when(KafkaUtil.getGroupInfoByGroupId(consumerSettings, "", topic)).thenCallRealMethod();
     }
 
     @Test
     public void initProperties(){
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
-        Map<String, Object> kerberosConfig = new HashMap<>();
-        kerberosConfig.put("sasl.kerberos.service.name", "kafka");
-        kerberosConfig.put("java.security.krb5.conf", "D:/Temp");
-        kerberosConfig.put("kafka.kerberos.keytab", "D:/Temp");
-        kerberosConfig.put("kafka.kerberos.principal", "kafka/flinkx@DTSTACK.COM");
-        PowerMockito.when(KafkaUtil.initProperties(consumerSettings, kerberosConfig)).thenCallRealMethod();
+        PowerMockito.when(KafkaUtil.initProperties(consumerSettings)).thenCallRealMethod();
     }
 }
