@@ -73,6 +73,7 @@
         <module>flinkx-metadata-phoenix5</module>
         <module>flinkx-metadata-hbase</module>
         <module>flinkx-metadata-vertica</module>
+        <module>flinkx-metadata-kafka</module>
         <module>flinkx-socket</module>
     </modules>
 

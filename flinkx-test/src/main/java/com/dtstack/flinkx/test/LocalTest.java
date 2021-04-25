@@ -59,6 +59,7 @@ import com.dtstack.flinkx.kudu.reader.KuduReader;
 import com.dtstack.flinkx.kudu.writer.KuduWriter;
 import com.dtstack.flinkx.metadatahbase.reader.MetadatahbaseReader;
 import com.dtstack.flinkx.metadatahive2.reader.Metadatahive2Reader;
+import com.dtstack.flinkx.metadatakafka.reader.MetadatakafkaReader;
 import com.dtstack.flinkx.metadatamysql.reader.MetadatamysqlReader;
 import com.dtstack.flinkx.metadataoracle.reader.MetadataoracleReader;
 import com.dtstack.flinkx.metadatasqlserver.reader.MetadatasqlserverReader;
@@ -242,6 +243,7 @@ public class LocalTest {
             case PluginNameConstrant.METADATASQLSERVER_READER : reader = new MetadatasqlserverReader(config, env); break;
             case PluginNameConstrant.METADATAHBASE_READER : reader = new MetadatahbaseReader(config, env); break;
             case PluginNameConstrant.METADATAVERTICA_READER : reader = new MetadataverticaReader(config, env); break;
+            case PluginNameConstrant.METADATAKAFKA_READER : reader = new MetadatakafkaReader(config, env); break;
 //            case PluginNameConstrant.METADATAES6_READER : reader = new Metadataes6Reader(config, env); break;
 //            case PluginNameConstrant.METADATAPGSQL_READER : reader =new MetadataPostsqlReader(config,env); break;
             case PluginNameConstrant.GREENPLUM_READER : reader = new GreenplumReader(config, env); break;
