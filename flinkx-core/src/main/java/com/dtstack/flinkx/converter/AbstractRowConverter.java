@@ -59,6 +59,13 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
         }
     }
 
+    public AbstractRowConverter() {
+        rowType = null;
+        toInternalConverters = null;
+        toExternalConverters = null;
+        fieldTypes = null;
+    }
+
     /**
      * Create a nullable runtime {@link DeserializationConverter} from given {@link LogicalType}.
      */

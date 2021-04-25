@@ -43,8 +43,13 @@ import java.time.LocalTime;
  * @create: 2021/03/29
  **/
 public class MysqlRowConverter extends AbstractJdbcRowConverter {
+
     public MysqlRowConverter(RowType rowType) {
         super(rowType);
+    }
+
+    public MysqlRowConverter() {
+        super();
     }
 
     @Override

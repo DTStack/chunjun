@@ -17,36 +17,24 @@
  */
 package com.dtstack.flinkx.connector.mysql.outputFormat;
 
-import com.dtstack.flinkx.util.TableTypeUtils;
-
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 
 /**
- * Date: 2021/04/13
- * Company: www.dtstack.com
+ * Date: 2021/04/13 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class MysqlOutputFormat extends JdbcOutputFormat {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(MysqlOutputFormat.class);
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
-        try {
-            LogicalType rowType = TableTypeUtils.createRowType(column, columnType, MysqlTypeConverter::apply);
-            setRowConverter(jdbcDialect.getRowConverter((RowType) rowType));
-        } catch (SQLException e) {
-            LOG.error("", e);
-        }
+        setRowConverter(jdbcDialect.getRowConverter(null));
     }
 }

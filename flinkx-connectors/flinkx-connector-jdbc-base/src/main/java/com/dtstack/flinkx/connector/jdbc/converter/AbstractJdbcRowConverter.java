@@ -19,24 +19,30 @@
 package com.dtstack.flinkx.connector.jdbc.converter;
 
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import io.vertx.core.json.JsonArray;
+
 import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.utils.TypeConversions;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import io.vertx.core.json.JsonArray;
-
 import java.sql.ResultSet;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
-public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement> {
+public abstract class AbstractJdbcRowConverter
+        extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement> {
 
     public AbstractJdbcRowConverter(RowType rowType) {
         super(rowType);
+    }
+
+    public AbstractJdbcRowConverter() {
+        super();
     }
 
     @Override
@@ -61,8 +67,7 @@ public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<Resu
 
     @Override
     public FieldNamedPreparedStatement toExternalWithType(
-            RowData rowData,
-            FieldNamedPreparedStatement statement) throws Exception {
+            RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, statement);
         }
@@ -71,10 +76,11 @@ public abstract class AbstractJdbcRowConverter extends AbstractRowConverter<Resu
 
     @Override
     protected FieldNamedPreparedStatement toExternalWithoutType(
-            GenericRowData genericRowData,
-            FieldNamedPreparedStatement statement) throws Exception {
+            GenericRowData genericRowData, FieldNamedPreparedStatement statement) throws Exception {
         for (int pos = 0; pos < genericRowData.getArity(); pos++) {
-            statement.setObject(pos, genericRowData.getField(pos));
+            Object field = genericRowData.getField(pos);
+            Object val = field instanceof StringData ? field.toString() : field;
+            statement.setObject(pos, val);
         }
         return statement;
     }

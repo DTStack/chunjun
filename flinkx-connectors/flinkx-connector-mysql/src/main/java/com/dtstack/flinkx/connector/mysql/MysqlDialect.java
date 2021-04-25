@@ -49,7 +49,11 @@ public class MysqlDialect implements JdbcDialect {
 
     @Override
     public AbstractJdbcRowConverter getRowConverter(RowType rowType) {
-        return new MysqlRowConverter(rowType);
+        if (rowType != null) {
+            return new MysqlRowConverter(rowType);
+        } else {
+            return new MysqlRowConverter();
+        }
     }
 
     @Override
