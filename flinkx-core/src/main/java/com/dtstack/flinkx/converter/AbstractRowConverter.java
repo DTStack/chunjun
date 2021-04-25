@@ -37,7 +37,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/10
- **/
+ */
 public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements Serializable {
 
     protected final RowType rowType;
@@ -60,8 +60,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
     }
 
     /**
-     * Create a nullable runtime {@link DeserializationConverter} from given {@link
-     * LogicalType}.
+     * Create a nullable runtime {@link DeserializationConverter} from given {@link LogicalType}.
      */
     protected DeserializationConverter createNullableInternalConverter(LogicalType type) {
         return wrapIntoNullableInternalConverter(createInternalConverter(type));
@@ -99,14 +98,12 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
      * Convert data retrieved from Flink internal RowData to Object or byte[] etc.
      *
      * @param rowData The given internal {@link RowData}.
-     *
      * @return The filled statement.
      */
     /**
      * Convert data retrieved from Flink internal RowData to Object or byte[] etc.
      *
      * @param rowData The given internal {@link RowData}.
-     *
      * @return The filled statement.
      */
     public SinkT toExternal(RowData rowData, SinkT output) throws Exception {
@@ -119,8 +116,8 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
         } else {
             // 没有LogicType还不是GenricRowData。则报错
             throw new RuntimeException(
-                    "Sink connector do not serialize data, " +
-                            "since data integration job writer don't set data type");
+                    "Sink connector do not serialize data, "
+                            + "since data integration job writer don't set data type");
         }
     }
 
@@ -129,19 +126,16 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
      *
      * @param rowData
      * @param output
-     *
      * @return
      */
-    protected abstract SinkT toExternalWithoutType(
-            GenericRowData rowData,
-            SinkT output) throws Exception;
+    protected abstract SinkT toExternalWithoutType(GenericRowData rowData, SinkT output)
+            throws Exception;
 
     /**
      * BinaryRowData
      *
      * @param rowData
      * @param output
-     *
      * @return
      */
     protected abstract SinkT toExternalWithType(RowData rowData, SinkT output) throws Exception;
@@ -163,19 +157,17 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
     }
 
     /**
-     * 先调用这个
+     * 将外部数据库类型转换为flink内部类型
      *
      * @param type
-     *
      * @return
      */
     protected abstract DeserializationConverter createInternalConverter(LogicalType type);
 
     /**
-     * 先调用这个
+     * 将flink内部的数据类型转换为外部数据库系统类型
      *
      * @param type
-     *
      * @return
      */
     protected abstract SerializationConverter createExternalConverter(LogicalType type);

@@ -20,6 +20,8 @@ package com.dtstack.flinkx.connector.stream.outputFormat;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
@@ -38,19 +40,9 @@ public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = format = new StreamOutputFormat();
     }
 
-    public StreamOutputFormatBuilder setStreamSinkConf(StreamSinkConf streamSinkConf) {
+    public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
         super.setConfig(streamSinkConf);
         format.setStreamSinkConf(streamSinkConf);
-        return this;
-    }
-
-    public StreamOutputFormatBuilder setConverter(DynamicTableSink.DataStructureConverter converter) {
-        format.setConverter(converter);
-        return this;
-    }
-
-    public static StreamOutputFormatBuilder builder() {
-        return new StreamOutputFormatBuilder();
     }
 
     @Override

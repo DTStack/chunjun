@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.inputformat;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,10 @@ public abstract class BaseRichInputFormatBuilder {
 
     public void setConfig(FlinkxCommonConf config) {
         format.setConfig(config);
+    }
+
+    public void setAbstractRowConverter(AbstractRowConverter rowConverter) {
+        format.setRowConverter(rowConverter);
     }
 
     /**

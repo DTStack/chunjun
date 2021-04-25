@@ -42,10 +42,6 @@ public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setStreamConf(streamConf);
     }
 
-    public void setAbstractRowConverter(AbstractRowConverter rowConverter) {
-        format.setRowConverter(rowConverter);
-    }
-
     public void setFieldGenerators(DataGenerator<?>[] fieldGenerators) {
         format.setFieldGenerators(fieldGenerators);
     }

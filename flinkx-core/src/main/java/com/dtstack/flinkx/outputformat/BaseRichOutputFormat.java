@@ -583,16 +583,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.config = config;
     }
 
-    public long getFlushIntervalMills() {
-        return flushIntervalMills;
-    }
-
     public void setFlushIntervalMills(long flushIntervalMills) {
         this.flushIntervalMills = flushIntervalMills;
-    }
-
-    public AbstractRowConverter getRowConverter() {
-        return rowConverter;
     }
 
     public void setRowConverter(AbstractRowConverter rowConverter) {

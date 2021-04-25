@@ -20,6 +20,7 @@ package com.dtstack.flinkx.outputformat;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,11 +44,15 @@ public abstract class BaseRichOutputFormatBuilder {
     }
 
     public void setFlushIntervalMillse(long flushIntervalMills) {
-        format.flushIntervalMills = flushIntervalMills;
+        format.setFlushIntervalMills(flushIntervalMills);
     }
 
     public void setBatchSize(int batchSize) {
         format.batchSize = batchSize;
+    }
+
+    public void setConverter(AbstractRowConverter converter) {
+        format.setRowConverter(converter);
     }
 
     protected void notSupportBatchWrite(String writerName) {

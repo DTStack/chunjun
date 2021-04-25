@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.stream.sink;
 
+import com.dtstack.flinkx.connector.stream.converter.StreamConverter;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.api.TableSchema;
@@ -29,6 +30,8 @@ import org.apache.flink.table.types.DataType;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
+
+import org.apache.flink.table.types.logical.RowType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -59,6 +62,7 @@ public class StreamDynamicTableSink implements DynamicTableSink {
 
     @Override
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
+        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
         // 一些其他参数的封装,如果有
         sinkConf.setPrint(true);
@@ -73,10 +77,9 @@ public class StreamDynamicTableSink implements DynamicTableSink {
                         Collectors.toList());
         sinkConf.setColumn(fieldList);
 
-        StreamOutputFormatBuilder builder = StreamOutputFormatBuilder
-                .builder()
-                .setStreamSinkConf(sinkConf)
-                .setConverter(context.createDataStructureConverter(type));
+        StreamOutputFormatBuilder builder =new StreamOutputFormatBuilder();
+        builder.setStreamSinkConf(sinkConf);
+        builder.setConverter(new StreamConverter(rowType));
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), 1);
     }

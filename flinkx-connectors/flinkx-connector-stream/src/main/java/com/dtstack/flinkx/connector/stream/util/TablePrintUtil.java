@@ -1,6 +1,6 @@
 package com.dtstack.flinkx.connector.stream.util;
 
-import org.apache.flink.types.Row;
+import org.apache.flink.table.data.GenericRowData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,7 +135,7 @@ public class TablePrintUtil {
      * 打印数据表格
      * @param row
      */
-    public static void printTable(Row row, String[] fieldNames) {
+    public static void printTable(GenericRowData row, String[] fieldNames) {
         List<String[]> data = new ArrayList<>(2);
         boolean emptyFieldNames = false;
         if(fieldNames == null){

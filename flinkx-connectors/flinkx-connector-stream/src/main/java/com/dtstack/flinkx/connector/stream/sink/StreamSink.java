@@ -20,13 +20,13 @@ package com.dtstack.flinkx.connector.stream.sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.conversion.DataStructureConverters;
-import org.apache.flink.table.runtime.connector.sink.DataStructureConverterWrapper;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
+import com.dtstack.flinkx.connector.stream.converter.StreamConverter;
 import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
 import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -52,9 +52,8 @@ public class StreamSink extends BaseDataSink {
     public DataStreamSink<RowData> writeData(DataStream<RowData> dataSet) {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
         builder.setStreamSinkConf(streamSinkConf);
-        DataType dataType = TableUtil.getDataType(streamSinkConf.getColumn());
-        //TODO 这里的Converter需要修改成stream插件中的Converter，并且删除core中的org.apache.flink.table.runtime.connector.sink.DataStructureConverterWrapper类
-        builder.setConverter(new DataStructureConverterWrapper(DataStructureConverters.getConverter(dataType)));
+        final RowType rowType = (RowType) TableUtil.getDataType(streamSinkConf.getColumn()).getLogicalType();
+        builder.setConverter(new StreamConverter(rowType));
         return createOutput(dataSet, builder.finish());
     }
 }

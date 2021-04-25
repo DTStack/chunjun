@@ -18,12 +18,6 @@
 
 package com.dtstack.flinkx.connector.stream.outputFormat;
 
-import org.apache.flink.table.connector.sink.DynamicTableSink;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.binary.BinaryRowData;
-import org.apache.flink.types.Row;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.util.TablePrintUtil;
@@ -31,22 +25,21 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.collections.CollectionUtils;
 
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import java.util.List;
 
 /**
  * OutputFormat for stream writer
  *
- * @author jiangbo
- * @Company: www.dtstack.com
- *         具体的跟外部系统的交互逻辑
+ * @author jiangbo @Company: www.dtstack.com 具体的跟外部系统的交互逻辑
  */
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
     // streamSinkConf属性
     private StreamSinkConf streamSinkConf;
-    // 该类内部自己的需要的变量
-    private DynamicTableSink.DataStructureConverter converter;
-    private Row lastRow;
+    private GenericRowData lastRow;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
@@ -55,19 +48,17 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(RowData rowData) {
-        Row row = new Row(rowData.getArity());
-        if(rowData instanceof BinaryRowData){
-            row = (Row)converter.toExternal(rowData);
-        }else if(rowData instanceof GenericRowData){
-            GenericRowData data = (GenericRowData) rowData;
-            for (int i = 0; i < data.getArity(); i++) {
-                row.setField(i, data.getField(i));
+        try {
+            GenericRowData genericRowData = new GenericRowData(rowData.getArity());
+            GenericRowData row = (GenericRowData) rowConverter.toExternal(rowData, genericRowData);
+
+            if (streamSinkConf.getPrint()) {
+                TablePrintUtil.printTable(row, getFieldNames());
             }
+            lastRow = row;
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
         }
-        if (streamSinkConf.getPrint()) {
-            TablePrintUtil.printTable(row, getFieldNames());
-        }
-        lastRow = row;
     }
 
     @Override
@@ -78,17 +69,17 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public FormatState getFormatState() throws Exception{
+    public FormatState getFormatState() throws Exception {
         if (lastRow != null) {
             TablePrintUtil.printTable(lastRow, getFieldNames());
         }
         return super.getFormatState();
     }
 
-    public String[] getFieldNames(){
+    public String[] getFieldNames() {
         String[] fieldNames = null;
         List<FieldConf> fieldConfList = streamSinkConf.getColumn();
-        if(CollectionUtils.isNotEmpty(fieldConfList)){
+        if (CollectionUtils.isNotEmpty(fieldConfList)) {
             fieldNames = fieldConfList.stream().map(FieldConf::getName).toArray(String[]::new);
         }
         return fieldNames;
@@ -106,9 +97,5 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
 
     public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
         this.streamSinkConf = streamSinkConf;
-    }
-
-    public void setConverter(DynamicTableSink.DataStructureConverter converter) {
-        this.converter = converter;
     }
 }
