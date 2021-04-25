@@ -15,26 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.connector.mysql.outputFormat;
 
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
 
 /**
  * Date: 2021/04/13 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class MysqlOutputFormat extends JdbcOutputFormat {
-
-    protected static final Logger LOG = LoggerFactory.getLogger(MysqlOutputFormat.class);
-
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) {
-        super.openInternal(taskNumber, numTasks);
-        setRowConverter(jdbcDialect.getRowConverter(null));
-    }
-}
+public class MysqlOutputFormat extends JdbcOutputFormat {}

@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
@@ -31,25 +27,41 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.TableTypeUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * Date: 2021/04/13
- * Company: www.dtstack.com
+ * Date: 2021/04/13 Company: www.dtstack.com
  *
  * @author tudou
  */
 public abstract class JdbcDataSink extends BaseDataSink {
+
+    protected static final Logger LOG = LoggerFactory.getLogger(JdbcDataSink.class);
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
     public JdbcDataSink(SyncConf syncConf) {
         super(syncConf);
-        Gson gson = new GsonBuilder().registerTypeAdapter(ConnectionConf.class, new ConnectionAdapter("SinkConnectionConf")).create();
+        Gson gson =
+                new GsonBuilder()
+                        .registerTypeAdapter(
+                                ConnectionConf.class, new ConnectionAdapter("SinkConnectionConf"))
+                        .create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), JdbcConf.class);
         jdbcConf.setColumn(syncConf.getWriter().getFieldList());
@@ -64,6 +76,17 @@ public abstract class JdbcDataSink extends BaseDataSink {
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
         builder.setBatchSize(jdbcConf.getBatchSize());
+        if (syncConf.getTransformer() != null) {
+            try {
+                LogicalType rowType =
+                        TableTypeUtils.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
+                builder.setRowConverter(jdbcDialect.getRowConverter((RowType) rowType));
+            } catch (SQLException e) {
+                LOG.error("", e);
+            }
+        } else {
+            builder.setRowConverter(jdbcDialect.getRowConverter(null));
+        }
         return createOutput(dataSet, builder.finish());
     }
 
@@ -76,6 +99,7 @@ public abstract class JdbcDataSink extends BaseDataSink {
 
     /**
      * 获取JDBC插件的具体outputFormatBuilder
+     *
      * @return JdbcOutputFormatBuilder
      */
     protected abstract JdbcOutputFormatBuilder getBuilder();

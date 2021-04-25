@@ -26,8 +26,7 @@ import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
 import com.dtstack.flinkx.connector.mysql.outputFormat.MysqlOutputFormat;
 
 /**
- * Date: 2021/04/13
- * Company: www.dtstack.com
+ * Date: 2021/04/13 Company: www.dtstack.com
  *
  * @author tudou
  */
