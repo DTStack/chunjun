@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.stream.converter;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -25,6 +27,7 @@ import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.io.Serializable;
@@ -43,64 +46,41 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * @create 2021-04-10 11:39
  * @description 数据类型转换器
  **/
-public class StreamConverter {
-
-    protected final RowType rowType;
-    protected final StreamDeserializationConverter[] toInternalConverters;
-    protected final LogicalType[] fieldTypes;
+public class StreamConverter extends AbstractRowConverter {
 
     public StreamConverter(RowType rowType) {
-        this.rowType = checkNotNull(rowType);
-        this.fieldTypes =
-                rowType.getFields().stream()
-                        .map(RowType.RowField::getType)
-                        .toArray(LogicalType[]::new);
-        this.toInternalConverters = new StreamDeserializationConverter[rowType.getFieldCount()];
-        for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] = createNullableInternalConverter(rowType.getTypeAt(i));
-        }
+        super(rowType);
     }
 
-    public RowData toInternal(ResultSet resultSet) throws SQLException {
-        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
-        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
-            Object field = resultSet.getObject(pos + 1);
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
-        }
-        return genericRowData;
+    @Override
+    protected SerializationConverter wrapIntoNullableExternalConverter(
+            SerializationConverter serializationConverter,
+            LogicalType type) {
+        return null;
     }
 
-    /** Runtime converter to convert JDBC field to {@link RowData} type object. */
-    @FunctionalInterface
-    interface StreamDeserializationConverter extends Serializable {
-        /**
-         * Convert a jdbc field object of {@link ResultSet} to the internal data structure object.
-         *
-         * @param jdbcField
-         */
-        Object deserialize(Object jdbcField) throws SQLException;
+    @Override
+    public RowData toInternal(Object input) throws Exception {
+        return null;
     }
 
-    /**
-     * Create a nullable runtime {@link StreamDeserializationConverter} from given {@link
-     * LogicalType}.
-     */
-    protected StreamDeserializationConverter createNullableInternalConverter(LogicalType type) {
-        return wrapIntoNullableInternalConverter(createInternalConverter(type));
+    @Override
+    public RowData toInternalLookup(Object input) throws Exception {
+        return null;
     }
 
-    protected StreamDeserializationConverter wrapIntoNullableInternalConverter(
-            StreamDeserializationConverter streamDeserializationConverter) {
-        return val -> {
-            if (val == null) {
-                return null;
-            } else {
-                return streamDeserializationConverter.deserialize(val);
-            }
-        };
+    @Override
+    protected Object toExternalWithoutType(GenericRowData rowData, Object output) throws Exception {
+        return null;
     }
 
-    protected StreamDeserializationConverter createInternalConverter(LogicalType type) {
+    @Override
+    protected Object toExternalWithType(RowData rowData, Object output) throws Exception {
+        return null;
+    }
+
+    @Override
+    protected DeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case NULL:
                 return val -> null;
@@ -153,5 +133,10 @@ public class StreamConverter {
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
+    }
+
+    @Override
+    protected SerializationConverter createExternalConverter(LogicalType type) {
+        return null;
     }
 }

@@ -18,12 +18,15 @@
 
 package com.dtstack.flinkx.connector.stream.inputFormat;
 
+import com.dtstack.flinkx.conf.FieldConf;
+
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.connector.stream.util.MockDataUtil;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -32,7 +35,6 @@ import org.apache.commons.collections.CollectionUtils;
  * @author jiangbo
  */
 public class StreamInputFormat extends BaseRichInputFormat {
-
     protected static final long serialVersionUID = 1L;
 
     protected StreamConf streamConf;
@@ -40,9 +42,21 @@ public class StreamInputFormat extends BaseRichInputFormat {
     private long recordRead = 0;
     private long channelRecordNum;
 
+    private DataGenerator<?>[] fieldGenerators;
+
     @Override
     public void openInternal(InputSplit inputSplit) {
-        if(CollectionUtils.isNotEmpty(streamConf.getSliceRecordCount()) && streamConf.getSliceRecordCount().size() > inputSplit.getSplitNumber()){
+        try {
+            FieldConf[] fieldNames = streamConf.getColumn().toArray(new FieldConf[0]);
+            for (int i = 0; i < fieldGenerators.length; i++) {
+                fieldGenerators[i].open(fieldNames[i].getName(), functionInitializationContext, context);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (CollectionUtils.isNotEmpty(streamConf.getSliceRecordCount())
+                && streamConf.getSliceRecordCount().size() > inputSplit.getSplitNumber()) {
             channelRecordNum = streamConf.getSliceRecordCount().get(inputSplit.getSplitNumber());
         }
 
@@ -51,7 +65,11 @@ public class StreamInputFormat extends BaseRichInputFormat {
 
     @Override
     public RowData nextRecordInternal(RowData rowData) {
-        return MockDataUtil.getMockRow(streamConf.getColumn());
+        GenericRowData row = new GenericRowData(streamConf.getColumn().size());
+        for (int i = 0; i < fieldGenerators.length; i++) {
+            row.setField(i, fieldGenerators[i].next());
+        }
+        return row;
     }
 
     @Override
@@ -80,5 +98,9 @@ public class StreamInputFormat extends BaseRichInputFormat {
 
     public void setStreamConf(StreamConf streamConf) {
         this.streamConf = streamConf;
+    }
+
+    public void setFieldGenerators(DataGenerator<?>[] fieldGenerators) {
+        this.fieldGenerators = fieldGenerators;
     }
 }

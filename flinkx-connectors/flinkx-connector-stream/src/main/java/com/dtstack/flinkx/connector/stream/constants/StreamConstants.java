@@ -42,4 +42,10 @@ public class StreamConstants {
                     .withDescription(
                             "True, if the format should print to standard error instead of standard out.");
 
+    public static final ConfigOption<Long> NUMBER_OF_ROWS =
+            key("number-of-rows")
+                    .longType()
+                    .defaultValue(100L)
+                    .withDescription(
+                            "Total number of rows to emit. By default, the source is unbounded.");
 }

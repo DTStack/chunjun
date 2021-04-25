@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.inputformat;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -25,6 +27,7 @@ import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
+import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
 
@@ -85,6 +88,12 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
     /** 环境上下文 */
     protected StreamingRuntimeContext context;
+
+    /** 数据类型转换器 */
+    protected AbstractRowConverter rowConverter;
+
+    /** 状态恢复 */
+    protected FunctionInitializationContext functionInitializationContext;
 
     /**
      * 有子类实现，打开数据连接
@@ -348,5 +357,13 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
     public void setConfig(FlinkxCommonConf config) {
         this.config = config;
+    }
+
+    public void setRowConverter(AbstractRowConverter rowConverter) {
+        this.rowConverter = rowConverter;
+    }
+
+    public void setFunctionInitializationContext(FunctionInitializationContext functionInitializationContext) {
+        this.functionInitializationContext = functionInitializationContext;
     }
 }
