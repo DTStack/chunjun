@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.connector.jdbc.sink;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
 
 import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.SyncConf;
@@ -29,7 +29,6 @@ import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
@@ -62,19 +61,10 @@ public abstract class JdbcDataSink extends BaseDataSink {
     @Override
     public DataStreamSink<RowData> writeData(DataStream<RowData> dataSet) {
         JdbcOutputFormatBuilder builder = getBuilder();
-
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
         builder.setBatchSize(jdbcConf.getBatchSize());
         return createOutput(dataSet, builder.finish());
-    }
-
-    @Override
-    public LogicalType getLogicalType() {
-        return JdbcUtil.getLogicalTypeFromJdbcMetaData(
-                jdbcConf,
-                jdbcDialect,
-                getRawTypeConverter());
     }
 
     /**

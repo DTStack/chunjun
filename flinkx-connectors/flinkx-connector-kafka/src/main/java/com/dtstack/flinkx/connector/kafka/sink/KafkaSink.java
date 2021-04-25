@@ -59,11 +59,4 @@ public class KafkaSink extends BaseDataSink {
 
         return null;
     }
-
-    // TODO Kafka还不知道咋实现
-    @Override
-    public LogicalType getLogicalType() throws SQLException {
-        return null;
-    };
-
 }

@@ -96,6 +96,4 @@ public abstract class BaseDataSource {
         SpeedConf speed = this.syncConf.getSpeed();
         flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
-
-    public abstract LogicalType getLogicalType() throws SQLException;
 }

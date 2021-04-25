@@ -57,10 +57,4 @@ public class StreamSink extends BaseDataSink {
         builder.setConverter(new DataStructureConverterWrapper(DataStructureConverters.getConverter(dataType)));
         return createOutput(dataSet, builder.finish());
     }
-
-    @Override
-    public LogicalType getLogicalType() {
-        DataType dataType = TableUtil.getDataType(streamSinkConf.getColumn());
-        return dataType.getLogicalType();
-    }
 }

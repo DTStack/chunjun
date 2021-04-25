@@ -21,7 +21,6 @@ package com.dtstack.flinkx.connector.jdbc.source;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
 
 import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
@@ -31,7 +30,6 @@ import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormatBuilder;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
@@ -46,7 +44,8 @@ import java.util.Properties;
 /**
  * The Reader plugin for any database that can be connected via JDBC.
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public abstract class JdbcDataSource extends BaseDataSource {
@@ -56,7 +55,11 @@ public abstract class JdbcDataSource extends BaseDataSource {
 
     public JdbcDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
-        Gson gson = new GsonBuilder().registerTypeAdapter(ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf")).create();
+        Gson gson =
+                new GsonBuilder()
+                        .registerTypeAdapter(
+                                ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf"))
+                        .create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConf.class);
         jdbcConf.setColumn(syncConf.getReader().getFieldList());
@@ -64,13 +67,13 @@ public abstract class JdbcDataSource extends BaseDataSource {
         Properties properties = syncConf.getWriter().getProperties("properties", null);
         jdbcConf.setProperties(properties);
         String name = syncConf.getRestore().getRestoreColumnName();
-        if(StringUtils.isNotBlank(name)){
+        if (StringUtils.isNotBlank(name)) {
             FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), name);
-            if(fieldConf != null){
+            if (fieldConf != null) {
                 jdbcConf.setRestoreColumn(name);
                 jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
                 jdbcConf.setRestoreColumnType(fieldConf.getType());
-            }else{
+            } else {
                 throw new IllegalArgumentException("unknown restore column name: " + name);
             }
         }
@@ -95,14 +98,6 @@ public abstract class JdbcDataSource extends BaseDataSource {
         return createInput(builder.finish());
     }
 
-    @Override
-    public LogicalType getLogicalType() {
-        return JdbcUtil.getLogicalTypeFromJdbcMetaData(
-                jdbcConf,
-                jdbcDialect,
-                getRawTypeConverter());
-    }
-
     /**
      * 具体数据库类型的映射器
      *
@@ -112,30 +107,33 @@ public abstract class JdbcDataSource extends BaseDataSource {
 
     /**
      * 获取JDBC插件的具体inputFormatBuilder
+     *
      * @return JdbcInputFormatBuilder
      */
     protected abstract JdbcInputFormatBuilder getBuilder();
 
     /**
      * 初始化增量或间隔轮询任务配置
+     *
      * @param jdbcConf jdbcConf
      */
-    private void initIncrementConfig(JdbcConf jdbcConf){
+    private void initIncrementConfig(JdbcConf jdbcConf) {
         String increColumn = jdbcConf.getIncreColumn();
 
-        //增量字段不为空，表示任务为增量或间隔轮询任务
-        if (StringUtils.isNotBlank(increColumn)){
+        // 增量字段不为空，表示任务为增量或间隔轮询任务
+        if (StringUtils.isNotBlank(increColumn)) {
             List<FieldConf> fieldConfList = jdbcConf.getColumn();
             String type = null;
             String name = null;
             int index = -1;
 
-            //纯数字则表示增量字段在column中的顺序位置
-            if(NumberUtils.isNumber(increColumn)){
+            // 纯数字则表示增量字段在column中的顺序位置
+            if (NumberUtils.isNumber(increColumn)) {
                 int idx = Integer.parseInt(increColumn);
-                if(idx > fieldConfList.size() - 1){
+                if (idx > fieldConfList.size() - 1) {
                     throw new RuntimeException(
-                            String.format("config error : incrementColumn must less than column.size() when increColumn is number, column = %s, size = %s, increColumn = %s",
+                            String.format(
+                                    "config error : incrementColumn must less than column.size() when increColumn is number, column = %s, size = %s, increColumn = %s",
                                     GsonUtil.GSON.toJson(fieldConfList),
                                     fieldConfList.size(),
                                     increColumn));
@@ -146,7 +144,7 @@ public abstract class JdbcDataSource extends BaseDataSource {
                 index = fieldColumn.getIndex();
             } else {
                 for (FieldConf field : fieldConfList) {
-                    if(Objects.equals(increColumn, field.getName())){
+                    if (Objects.equals(increColumn, field.getName())) {
                         type = field.getType();
                         name = field.getName();
                         index = field.getIndex();
@@ -154,11 +152,11 @@ public abstract class JdbcDataSource extends BaseDataSource {
                     }
                 }
             }
-            if (type == null || name == null){
+            if (type == null || name == null) {
                 throw new IllegalArgumentException(
-                        String.format("config error : increColumn's name or type is null, column = %s, increColumn = %s",
-                                GsonUtil.GSON.toJson(fieldConfList),
-                                increColumn));
+                        String.format(
+                                "config error : increColumn's name or type is null, column = %s, increColumn = %s",
+                                GsonUtil.GSON.toJson(fieldConfList), increColumn));
             }
 
             jdbcConf.setIncrement(true);

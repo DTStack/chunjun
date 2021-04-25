@@ -83,11 +83,4 @@ public class StreamSource extends BaseDataSource {
 
         return createInput(builder.finish());
     }
-
-    // TODO Stream是否抽象一个LogicalTypeFactory类
-    @Override
-    public LogicalType getLogicalType() {
-        DataType dataType = TableUtil.getDataType(streamConf.getColumn());
-        return dataType.getLogicalType();
-    }
 }

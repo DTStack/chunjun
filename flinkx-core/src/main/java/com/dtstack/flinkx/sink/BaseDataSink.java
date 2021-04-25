@@ -102,6 +102,4 @@ public abstract class BaseDataSink {
         SpeedConf speed = this.syncConf.getSpeed();
         flinkxCommonConf.setParallelism(speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
     }
-
-    public abstract LogicalType getLogicalType() throws SQLException;
 }
