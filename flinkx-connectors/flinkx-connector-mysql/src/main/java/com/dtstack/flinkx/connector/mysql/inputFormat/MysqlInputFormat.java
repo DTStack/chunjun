@@ -18,20 +18,17 @@
 
 package com.dtstack.flinkx.connector.mysql.inputFormat;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
-
-import com.dtstack.flinkx.util.TableTypeUtils;
-
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
-
-import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormat;
-
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormat;
+import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
+import com.dtstack.flinkx.util.TableUtil;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -49,7 +46,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
         try {
-            LogicalType rowType = TableTypeUtils.createRowType(rawFieldNames, rawFieldTypes, MysqlTypeConverter::apply);
+            LogicalType rowType = TableUtil.createRowType(rawFieldNames, rawFieldTypes, MysqlTypeConverter::apply);
             setRowConverter(jdbcDialect.getRowConverter((RowType) rowType));
         } catch (SQLException e) {
             LOG.error("", e);

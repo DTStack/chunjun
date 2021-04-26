@@ -19,18 +19,17 @@
 package com.dtstack.flinkx.connector.jdbc.inputFormat;
 
 
-import com.dtstack.flinkx.RawTypeConverter;
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
-
-import com.dtstack.flinkx.util.TableTypeUtils;
-
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.StringData;
+import org.apache.flink.table.types.logical.LogicalType;
 
+import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.splits.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -45,11 +44,8 @@ import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.table.data.StringData;
-import org.apache.flink.table.types.logical.LogicalType;
-
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -162,7 +158,7 @@ public abstract class JdbcInputFormat extends BaseRichInputFormat {
                 rawFieldNames.add(rawName);
                 rawFieldTypes.add(rawType);
             }
-            return TableTypeUtils.createRowType(rawFieldNames, rawFieldTypes, rawTypeConverter);
+            return TableUtil.createRowType(rawFieldNames, rawFieldTypes, rawTypeConverter);
         }
         // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
     }

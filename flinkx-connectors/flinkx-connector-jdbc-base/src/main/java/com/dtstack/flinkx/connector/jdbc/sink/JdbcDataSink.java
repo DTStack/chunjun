@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
@@ -27,16 +33,9 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.util.GsonUtil;
-import com.dtstack.flinkx.util.TableTypeUtils;
+import com.dtstack.flinkx.util.TableUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +78,7 @@ public abstract class JdbcDataSink extends BaseDataSink {
         if (syncConf.getTransformer() != null) {
             try {
                 LogicalType rowType =
-                        TableTypeUtils.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
+                        TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
                 builder.setRowConverter(jdbcDialect.getRowConverter((RowType) rowType));
             } catch (SQLException e) {
                 LOG.error("", e);

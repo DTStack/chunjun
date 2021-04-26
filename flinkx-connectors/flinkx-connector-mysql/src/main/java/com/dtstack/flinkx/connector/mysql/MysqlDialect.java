@@ -18,13 +18,13 @@
 
 package com.dtstack.flinkx.connector.mysql;
 
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.mysql.converter.MysqlRowConverter;
 import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.table.types.logical.RowType;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 
 import java.util.Arrays;
 import java.util.Optional;

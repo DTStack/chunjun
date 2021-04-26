@@ -17,12 +17,10 @@
  */
 package com.dtstack.flinkx.connector.jdbc.util;
 
-import com.dtstack.flinkx.RawTypeConverter;
-import com.dtstack.flinkx.util.TableTypeUtils;
-
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.CollectionUtil;
 
+import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
@@ -30,6 +28,7 @@ import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
+import com.dtstack.flinkx.util.TableUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -395,7 +394,7 @@ public class JdbcUtil {
             Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getTable(), conn);
             List<String> rawFieldNames =  pair.getLeft();
             List<String> rawFieldTypes = pair.getRight();
-            return TableTypeUtils.createRowType(rawFieldNames, rawFieldTypes, converter);
+            return TableUtil.createRowType(rawFieldNames, rawFieldTypes, converter);
         } catch (SQLException throwables) {
             throw new RuntimeException(throwables);
         }
