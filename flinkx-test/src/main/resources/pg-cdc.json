@@ -5,11 +5,11 @@
         "parameter" : {
           "username" : "dtstack_rep",
           "password" : "abc123",
-            "url" : "jdbc:postgresql://172.16.101.246:5432/postgres?useUnicode=true&characterEncoding=utf8",
+          "url" : "jdbc:postgresql://172.16.101.246:5432/postgres?useUnicode=true&characterEncoding=utf8",
           "databaseName" : "postgres",
           "cat" : "update,insert,delete",
           "tableList" : [
-            "public.data"
+            "public.large_user"
           ],
           "statusInterval" : 10000,
           "lsn" : 0,
@@ -38,7 +38,7 @@
       },
       "restore": {
         "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
+        "isRestore": true,
         "isStream" : true,
         "restoreColumnName": "",
         "restoreColumnIndex": 0
