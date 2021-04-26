@@ -143,9 +143,26 @@ public class KafkaBaseOutputFormat extends BaseRichOutputFormat {
      */
     public String generateKey(Map event) {
         List<String> values = new ArrayList<>(keySet.size());
-        keySet.forEach(rule -> {
-            values.add(event.getOrDefault(rule, "").toString());
-        });
+        //1.数据源为mysqlbinlog或者oraclelogminer数据未拍平 2.event.size == 1 && event.containsKey("message")
+        if(event.size() == 1 && event.containsKey("message")){
+            Map<String, Object> map;
+            Object obj = event.get("message");
+            if (obj instanceof Map){
+                map = (Map<String, Object>) obj;
+                keySet.forEach(rule -> {
+                    values.add(map.getOrDefault(rule, "").toString());
+                });
+            }else{
+                //单条数据，并且partitionKey为message的特殊情况
+                keySet.forEach(rule -> {
+                    values.add(event.getOrDefault(rule, "").toString());
+                });
+            }
+        }else{
+            keySet.forEach(rule -> {
+                values.add(event.getOrDefault(rule, "").toString());
+            });
+        }
         List<String> collect = values.stream()
                 .filter(value -> StringUtils.isNotEmpty(value))
                 .collect(Collectors.toList());
