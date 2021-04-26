@@ -10,6 +10,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Company：www.dtstack.com
@@ -31,31 +32,35 @@ public class KafkaUtilTest {
     public void getTopicListFromBrokerTest() throws Exception{
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
-        PowerMockito.when(KafkaUtil.getTopicListFromBroker(consumerSettings)).thenCallRealMethod();
+        Properties properties = KafkaUtil.initProperties(consumerSettings);
+        PowerMockito.when(KafkaUtil.getTopicListFromBroker(properties)).thenCallRealMethod();
     }
 
     @Test
     public void getTopicPartitionCountAndReplicasTest() throws Exception{
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
+        Properties properties = KafkaUtil.initProperties(consumerSettings);
         String topic = "kafka10";
-        PowerMockito.when(KafkaUtil.getTopicPartitionCountAndReplicas(consumerSettings, topic)).thenCallRealMethod();
+        PowerMockito.when(KafkaUtil.getTopicPartitionCountAndReplicas(properties, topic)).thenCallRealMethod();
     }
 
     @Test
     public void listConsumerGroupTest() throws Exception{
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
+        Properties properties = KafkaUtil.initProperties(consumerSettings);
         String topic = "kafka10";
-        PowerMockito.when(KafkaUtil.listConsumerGroup(consumerSettings, topic)).thenCallRealMethod();
+        PowerMockito.when(KafkaUtil.listConsumerGroup(properties, topic)).thenCallRealMethod();
     }
 
     @Test
     public void getGroupInfoByGroupIdTest() throws Exception{
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
+        Properties properties = KafkaUtil.initProperties(consumerSettings);
         String topic = "kafka10";
-        PowerMockito.when(KafkaUtil.getGroupInfoByGroupId(consumerSettings, "", topic)).thenCallRealMethod();
+        PowerMockito.when(KafkaUtil.getGroupInfoByGroupId(properties, "", topic)).thenCallRealMethod();
     }
 
     @Test

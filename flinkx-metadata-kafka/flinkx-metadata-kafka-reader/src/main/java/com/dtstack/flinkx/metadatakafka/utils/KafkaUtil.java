@@ -39,10 +39,9 @@ public class KafkaUtil {
      *
      * @return topic list
      */
-    public static List<String> getTopicListFromBroker(Map<String, String> consumerSettings) throws Exception {
-        Properties props = initProperties(consumerSettings);
+    public static List<String> getTopicListFromBroker(Properties properties) throws Exception {
         List<String> results = Lists.newArrayList();
-        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
             Map<String, List<PartitionInfo>> topics = consumer.listTopics();
             if (topics != null) {
                 results.addAll(topics.keySet());
@@ -58,9 +57,8 @@ public class KafkaUtil {
      *
      * @return 分区数和副本数
      */
-    public static Map<String, Integer> getTopicPartitionCountAndReplicas(Map<String, String> consumerSettings, String topic) throws Exception {
-        Properties props = initProperties(consumerSettings);
-        Properties clientProp = removeExtraParam(props);
+    public static Map<String, Integer> getTopicPartitionCountAndReplicas(Properties properties, String topic) throws Exception {
+        Properties clientProp = removeExtraParam(properties);
         AdminClient client = AdminClient.create(clientProp);
         //存放结果
         Map<String, Integer> countAndReplicas = new HashMap<>();
@@ -88,10 +86,9 @@ public class KafkaUtil {
      * 获取 kafka 消费者组列表
      *
      */
-    public static List<String> listConsumerGroup(Map<String, String> consumerSettings, String topic) throws Exception {
+    public static List<String> listConsumerGroup(Properties properties, String topic) throws Exception {
         List<String> consumerGroups =  Lists.newArrayList();
-        Properties props = initProperties(consumerSettings);
-        Properties clientProp = removeExtraParam(props);
+        Properties clientProp = removeExtraParam(properties);
         // 获取kafka client
         kafka.admin.AdminClient adminClient = kafka.admin.AdminClient.create(clientProp);
         try {
@@ -131,13 +128,12 @@ public class KafkaUtil {
     /**
      * 获取 kafka 消费者组详细信息
      */
-    public static List<KafkaConsumerInfo> getGroupInfoByGroupId(Map<String, String> consumerSettings, String groupId, String srcTopic) throws Exception {
+    public static List<KafkaConsumerInfo> getGroupInfoByGroupId(Properties properties, String groupId, String srcTopic) throws Exception {
         List<KafkaConsumerInfo> result = Lists.newArrayList();
-        Properties props = initProperties(consumerSettings);
-        Properties clientProp = removeExtraParam(props);
+        Properties clientProp = removeExtraParam(properties);
         // 获取kafka client
         kafka.admin.AdminClient adminClient = kafka.admin.AdminClient.create(clientProp);
-        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)){
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)){
 
             if (StringUtils.isNotBlank(groupId)) {
                 kafka.admin.AdminClient.ConsumerGroupSummary groupSummary = adminClient.describeConsumerGroup(groupId, 5000L);
@@ -220,7 +216,7 @@ public class KafkaUtil {
     /**
      * 初始化kafka配置参数
      */
-    public synchronized static Properties initProperties(Map<String, String> consumerSettings) {
+    public static Properties initProperties(Map<String, String> consumerSettings) {
         LOG.info("Initialize Kafka configuration information, consumerSettings : {}", consumerSettings);
         Properties props = new Properties();
         props.putAll(consumerSettings);

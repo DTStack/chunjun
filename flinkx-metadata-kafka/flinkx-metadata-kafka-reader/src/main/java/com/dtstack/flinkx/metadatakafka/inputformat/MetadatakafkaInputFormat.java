@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Company：www.dtstack.com
@@ -53,11 +54,17 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
      */
     private Map<String, String> consumerSettings;
 
+    /**
+     * kafka properties
+     */
+    private Properties properties;
+
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit : {} ", inputSplit);
         topicList = ((MetadatakafkaInputSplit)inputSplit).getTopicList();
+        properties = KafkaUtil.initProperties(consumerSettings);
         doOpenInternal();
         iterator = topicList.iterator();
     }
@@ -65,7 +72,7 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
     public void doOpenInternal() {
         if (CollectionUtils.isEmpty(topicList)){
             try {
-                topicList = KafkaUtil.getTopicListFromBroker(consumerSettings);
+                topicList = KafkaUtil.getTopicListFromBroker(properties);
             } catch (Exception e) {
                 LOG.error("failed to query topic list,bootstrap.servers = {} ",consumerSettings.get(KEY_BOOTSTRAP_SERVERS));
                 throw new RuntimeException(e);
@@ -113,7 +120,7 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
     public MetadatakafkaEntity queryMetadata(String topic) throws Exception {
         MetadatakafkaEntity entity = new MetadatakafkaEntity();
         entity.setTopicName(topic);
-        Map<String, Integer> countAndReplicas = KafkaUtil.getTopicPartitionCountAndReplicas(consumerSettings, topic);
+        Map<String, Integer> countAndReplicas = KafkaUtil.getTopicPartitionCountAndReplicas(properties, topic);
         entity.setPartitions(countAndReplicas.get(KEY_PARTITIONS));
         entity.setReplicationFactor(countAndReplicas.get(KEY_REPLICAS));
 
@@ -121,12 +128,12 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
         sdf.applyPattern("yyyy-MM-dd HH:mm:ss");
         entity.setTimeStamp(sdf.format(new Date()));
 
-        List<String> groups = KafkaUtil.listConsumerGroup(consumerSettings, topic);
+        List<String> groups = KafkaUtil.listConsumerGroup(properties, topic);
         List<GroupInfo> groupInfos = new ArrayList<>();
         if(CollectionUtils.isNotEmpty(groups)){
             for (String group: groups){
                 GroupInfo groupInfo = new GroupInfo();
-                List<KafkaConsumerInfo> infos = KafkaUtil.getGroupInfoByGroupId(consumerSettings, group, topic);
+                List<KafkaConsumerInfo> infos = KafkaUtil.getGroupInfoByGroupId(properties, group, topic);
                 groupInfo.setGroupId(group);
                 groupInfo.setTopic(topic);
                 groupInfo.setPartitionInfo(infos);
@@ -134,7 +141,7 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
             }
         }else{
             GroupInfo groupInfo = new GroupInfo();
-            List<KafkaConsumerInfo> infos = KafkaUtil.getGroupInfoByGroupId(consumerSettings, "", topic);
+            List<KafkaConsumerInfo> infos = KafkaUtil.getGroupInfoByGroupId(properties, "", topic);
             groupInfo.setTopic(topic);
             groupInfo.setPartitionInfo(infos);
             groupInfos.add(groupInfo);
