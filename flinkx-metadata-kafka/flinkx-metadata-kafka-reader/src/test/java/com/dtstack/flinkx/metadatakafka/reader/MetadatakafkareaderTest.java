@@ -2,12 +2,12 @@ package com.dtstack.flinkx.metadatakafka.reader;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.sun.tools.javac.util.Assert;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -22,11 +22,15 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest(MetadatakafkaReader.class)
 public class MetadatakafkareaderTest {
 
-    private String job;
+    private String rightJob;
+    private String errorJob;
+    private MetadatakafkaReader reader;
+    private DataTransferConfig errorConfig;
+    private StreamExecutionEnvironment env;
 
     @Before
     public void setup(){
-         job = "{\n" +
+         rightJob = "{\n" +
                  "  \"job\": {\n" +
                  "    \"content\": [{\n" +
                  "        \"reader\":{\n" +
@@ -58,17 +62,56 @@ public class MetadatakafkareaderTest {
                  "  }\n" +
                  "}";
 
+         errorJob = "{\n" +
+                 "  \"job\": {\n" +
+                 "    \"content\": [{\n" +
+                 "        \"reader\":{\n" +
+                 "          \"parameter\": {\n" +
+                 "             \"topicList\" : {},\n" +
+                 "             \"consumerSettings\" : {\n" +
+                 "\t\t       \"bootstrap.servers\": \"172.16.100.109:9092\"\n" +
+                 "              }\n" +
+                 "            },\n" +
+                 "             \"name\": \"metadatakafkareader\"\n" +
+                 "\t\t},\n" +
+                 "\t\t\"writer\":{\n" +
+                 "        \"parameter\" : {\n" +
+                 "          \"print\": true\n" +
+                 "        },\n" +
+                 "        \"name\" : \"streamwriter\"\n" +
+                 "      }\n" +
+                 "      \n" +
+                 "    }],\n" +
+                 "    \"setting\": {\n" +
+                 "      \"errorLimit\": {\n" +
+                 "        \"record\": 100\n" +
+                 "      },\n" +
+                 "      \"speed\": {\n" +
+                 "        \"bytes\": 1048576,\n" +
+                 "        \"channel\": 2\n" +
+                 "      }\n" +
+                 "    }\n" +
+                 "  }\n" +
+                 "}";
 
-
-    }
-
-    @Test
-    public void metadatakafkareaderTest(){
         Configuration conf = new Configuration();
         conf.setString("akka.ask.timeout", "180 s");
         conf.setString("web.timeout", String.valueOf(100000));
         MyLocalStreamEnvironment env = new MyLocalStreamEnvironment(conf);
-        PowerMockito.when(new MetadatakafkaReader(DataTransferConfig.parse(job), env)).thenCallRealMethod();
+        errorConfig = DataTransferConfig.parse(errorJob);
+        reader = new MetadatakafkaReader(DataTransferConfig.parse(rightJob), env);
+
+    }
+
+    @Test(expected = ClassCastException.class)
+    public void testConstruct() {
+        new MetadatakafkaReader(errorConfig, env);
+    }
+
+
+    @Test
+    public void metadatakafkareaderTest(){
+        Assert.checkNonNull(reader.readData());
     }
 
 }
