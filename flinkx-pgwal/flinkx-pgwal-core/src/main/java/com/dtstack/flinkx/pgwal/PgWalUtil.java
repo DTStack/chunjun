@@ -226,7 +226,7 @@ public class PgWalUtil {
         PgWalUtil.setConnectionTimeout(connectionTimeoutSecond, socketTimeoutSecond,loginTimeoutSecond, props);
         synchronized (ClassUtil.LOCK_STR) {
             // telnet
-            TelnetUtil.telnet(socketTimeoutSecond, url);
+            TelnetUtil.telnet(socketTimeoutSecond * 1000, url);
             dbConn = DriverManager.getConnection(url, props);
         }
 
