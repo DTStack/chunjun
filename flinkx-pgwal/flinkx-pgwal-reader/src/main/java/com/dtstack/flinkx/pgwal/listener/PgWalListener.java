@@ -111,8 +111,8 @@ public class PgWalListener implements Runnable {
 //                    parser.
                     return;
                 }
-                if(format.getFormatState() != null) {
-                    format.getFormatState().setState(table.getCurrentLsn());
+                if(format.getFormatState() != null && table.getCurrentLsn() != 0) {
+                    format.setStartLsn(table.getCurrentLsn());
                 }
                 if(StringUtils.isBlank(table.getId())){
                     continue;

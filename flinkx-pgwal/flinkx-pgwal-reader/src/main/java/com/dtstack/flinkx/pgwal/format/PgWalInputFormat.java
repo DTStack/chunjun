@@ -252,4 +252,8 @@ public class PgWalInputFormat extends BaseRichInputFormat {
     public void setCat(String cat) {
         this.cat = cat;
     }
+
+    public void setStartLsn(long currentLsn) {
+        this.startLsn = currentLsn;
+    }
 }
