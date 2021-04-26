@@ -61,12 +61,9 @@ public abstract class BaseDataSink {
 
         if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
-        }else{
+        } else {
             typeInformation = TableUtil.getTypeInformation(fieldList);
-            SpeedConf speed = syncConf.getSpeed();
-            if(speed.getReaderChannel() > 1 || (speed.getChannel() > 1 && speed.getReaderChannel() != 1)){
-                useAbstractBaseColumn = false;
-            }
+            useAbstractBaseColumn = false;
         }
     }
 

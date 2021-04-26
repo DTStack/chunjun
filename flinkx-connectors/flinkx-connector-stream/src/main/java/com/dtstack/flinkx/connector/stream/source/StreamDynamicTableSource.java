@@ -36,7 +36,6 @@ import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunc
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,23 +65,31 @@ public class StreamDynamicTableSource implements ScanTableSource {
         final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
-        StreamConf streamConf = new StreamConf();
-
-        List<FieldConf> fieldConfList = Arrays
-                .stream(schema.getFieldNames())
-                .map(e -> {
-                    FieldConf fieldConf = new FieldConf();
-                    fieldConf.setName(e);
-                    return fieldConf;
-                }).collect(Collectors.toList());
+        List<FieldConf> fieldConfList = schema.getTableColumns().stream()
+                .map(
+                        e -> {
+                            FieldConf fieldConf = new FieldConf();
+                            fieldConf.setName(e.getName());
+                            String name = e.getType().getConversionClass().getName();
+                            String[] fieldType = name.split("\\.");
+                            String type = fieldType[fieldType.length-1];
+                            fieldConf.setType(type);
+                            return fieldConf;
+                        })
+                .collect(Collectors.toList());
         List<Long> sliceRecordCount = new ArrayList<>();
         sliceRecordCount.add(numberOfRows);
 
-        StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
-        builder.setAbstractRowConverter(new StreamBaseConverter(rowType));
-        builder.setFieldGenerators(fieldGenerators);
-        streamConf.setColumn(fieldConfList);
+        StreamConf streamConf = new StreamConf();
         streamConf.setSliceRecordCount(sliceRecordCount);
+        streamConf.setColumn(fieldConfList);
+
+        StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
+        StreamBaseConverter streamBaseConverter = new StreamBaseConverter(rowType);
+        streamBaseConverter.setFieldNames(schema.getFieldNames());
+        streamBaseConverter.setFieldGenerators(fieldGenerators);
+
+        builder.setAbstractRowConverter(streamBaseConverter);
         builder.setStreamConf(streamConf);
 
         return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);

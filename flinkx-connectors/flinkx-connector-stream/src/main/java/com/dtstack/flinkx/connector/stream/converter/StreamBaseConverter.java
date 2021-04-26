@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.stream.converter;
 
+import org.apache.flink.runtime.state.FunctionInitializationContext;
+import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
+import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -46,11 +49,24 @@ import java.time.LocalTime;
  */
 public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, RowData> {
 
+    private DataGenerator<?>[] fieldGenerators;
+    private String[] fieldNames;
+
     public StreamBaseConverter(RowType rowType) {
         super(rowType);
     }
 
     public StreamBaseConverter() {}
+
+    public void openFieldGenerators(StreamingRuntimeContext context, FunctionInitializationContext functionInitializationContext){
+        try {
+            for (int i = 0; i < fieldGenerators.length; i++) {
+                fieldGenerators[i].open(fieldNames[i], functionInitializationContext, context);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     protected SerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(
@@ -68,7 +84,11 @@ public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, 
 
     @Override
     public RowData toInternal(RowData input) throws Exception {
-        return null;
+        GenericRowData row = new GenericRowData(fieldNames.length);
+        for (int i = 0; i < fieldGenerators.length; i++) {
+            row.setField(i, fieldGenerators[i].next());
+        }
+        return row;
     }
 
     @Override
@@ -93,6 +113,7 @@ public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, 
         return output;
     }
 
+    @Override
     public RowData toExternal(RowData rowData, RowData output) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, output);
@@ -215,5 +236,13 @@ public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, 
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
+    }
+
+    public void setFieldGenerators(DataGenerator<?>[] fieldGenerators) {
+        this.fieldGenerators = fieldGenerators;
+    }
+
+    public void setFieldNames(String[] fieldNames) {
+        this.fieldNames = fieldNames;
     }
 }

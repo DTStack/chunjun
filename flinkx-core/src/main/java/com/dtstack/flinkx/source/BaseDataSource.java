@@ -57,10 +57,7 @@ public abstract class BaseDataSource {
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
         }else{
             typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList());
-            SpeedConf speed = syncConf.getSpeed();
-            if(speed.getReaderChannel() > 1 || (speed.getChannel() > 1 && speed.getReaderChannel() != 1)){
-                useAbstractBaseColumn = false;
-            }
+            useAbstractBaseColumn = false;
         }
     }
 
