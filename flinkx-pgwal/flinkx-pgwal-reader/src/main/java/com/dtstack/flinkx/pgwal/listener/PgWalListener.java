@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.pgwal.listener;
 
-import com.alibaba.druid.sql.dialect.postgresql.parser.PGSQLStatementParser;
+//import com.alibaba.druid.sql.dialect.postgresql.parser.PGSQLStatementParser;
 import com.dtstack.flinkx.pgwal.PgDecoder;
 import com.dtstack.flinkx.pgwal.PgWalUtil;
 import com.dtstack.flinkx.pgwal.Table;
@@ -107,7 +107,7 @@ public class PgWalListener implements Runnable {
                 }
                 Table table = decoder.decode(buffer);//table.getSchema() = "public" and table.getTable() == "dts_ddl_command" : if table.newData[3] = "CREATE TABLE" ; if tag = "DROP TABLE";;; content = table.newData[0]
                 if(isSystemInfoMatch(table)) {
-                    PGSQLStatementParser parser = new PGSQLStatementParser((String) table.getNewData()[0]);
+//                    PGSQLStatementParser parser = new PGSQLStatementParser((String) table.getNewData()[0]);
 //                    parser.
                     return;
                 }
