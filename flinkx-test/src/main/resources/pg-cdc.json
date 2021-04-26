@@ -9,7 +9,7 @@
           "databaseName" : "postgres",
           "cat" : "update,insert,delete",
           "tableList" : [
-            "public.large_user"
+            "public.large_user", "public.large_user_12222313"
           ],
           "statusInterval" : 10000,
           "lsn" : 0,

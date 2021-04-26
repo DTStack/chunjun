@@ -301,6 +301,8 @@ public abstract class BaseRichInputFormat extends RichInputFormat<Row, InputSpli
             }
         }
 
+         formatState.setJobId(jobId);
+
         return internalRow;
     }
 
