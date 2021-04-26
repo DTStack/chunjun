@@ -13,7 +13,7 @@
         <module>flinkx-core</module>
 
         <module>flinkx-launcher</module>
-<!--        <module>flinkx-test</module>-->
+        <!--        <module>flinkx-test</module>-->
         <module>flinkx-stream</module>
 
         <!--******离线******-->
@@ -37,7 +37,7 @@
         <module>flinkx-ftp</module>
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
-<!--        <module>flinkx-phoenix</module>-->
+        <!--        <module>flinkx-phoenix</module>-->
         <module>flinkx-phoenix5</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
@@ -240,39 +240,6 @@
                         <dirty>-dirty</dirty>
                         <forceLongFormat>false</forceLongFormat>
                     </gitDescribe>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <version>3.0</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>remove</goal>
-                            <goal>format</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <quiet>true</quiet>
-                    <!--HEADER文件-->
-                    <!--                    <header>${main.user.dir}/HEADER</header>-->
-                    <excludes>
-                        <exclude>**/*.properties</exclude>
-                        <exclude>*.sh</exclude>
-                        <exclude>*.yml</exclude>
-                        <exclude>.editorconfig</exclude>
-                        <exclude>.gitignore</exclude>
-                        <exclude>**/*.md</exclude>
-                        <exclude>**/*.xml</exclude>
-                        <exclude>**/*.json</exclude>
-                    </excludes>
-                    <strictCheck>true</strictCheck>
-                    <mapping>
-                        <java>SLASHSTAR_STYLE</java>
-                    </mapping>
                 </configuration>
             </plugin>
         </plugins>
