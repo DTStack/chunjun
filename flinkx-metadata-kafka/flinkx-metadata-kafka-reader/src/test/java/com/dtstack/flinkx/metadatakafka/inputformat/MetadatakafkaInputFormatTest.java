@@ -21,7 +21,7 @@ import java.util.Map;
 public class MetadatakafkaInputFormatTest {
 
     @Test
-    public void testQueryMetadata() throws IllegalAccessException {
+    public void testQueryMetadata() throws Exception {
         MetadatakafkaInputFormat inputFormat = PowerMockito.mock(MetadatakafkaInputFormat.class);
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");

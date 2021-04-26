@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.collection.JavaConversions;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +39,7 @@ public class KafkaUtil {
      *
      * @return topic list
      */
-    public static List<String> getTopicListFromBroker(Map<String, String> consumerSettings) {
+    public static List<String> getTopicListFromBroker(Map<String, String> consumerSettings) throws Exception {
         Properties props = initProperties(consumerSettings);
         List<String> results = Lists.newArrayList();
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
@@ -49,7 +48,7 @@ public class KafkaUtil {
                 results.addAll(topics.keySet());
             }
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+           throw new Exception(e);
         }
         return results;
     }
@@ -59,7 +58,7 @@ public class KafkaUtil {
      *
      * @return 分区数和副本数
      */
-    public static Map<String, Integer> getTopicPartitionCountAndReplicas(Map<String, String> consumerSettings, String topic){
+    public static Map<String, Integer> getTopicPartitionCountAndReplicas(Map<String, String> consumerSettings, String topic) throws Exception {
         Properties props = initProperties(consumerSettings);
         Properties clientProp = removeExtraParam(props);
         AdminClient client = AdminClient.create(clientProp);
@@ -74,7 +73,8 @@ public class KafkaUtil {
             partitions = topicDescription.get().partitions().size();
             replicas = topicDescription.get().partitions().iterator().next().replicas().size();
         } catch (Exception e) {
-            LOG.error("getTopicPartitionCountAndReplicas error:{}", e.getMessage(), e);
+            LOG.error("get topic partition count and replicas error:{}", e.getMessage(), e);
+            throw new Exception(e);
         } finally {
             client.close();
         }
@@ -88,8 +88,8 @@ public class KafkaUtil {
      * 获取 kafka 消费者组列表
      *
      */
-    public static List<String> listConsumerGroup(Map<String, String> consumerSettings, String topic) {
-        List<String> consumerGroups = new ArrayList<>();
+    public static List<String> listConsumerGroup(Map<String, String> consumerSettings, String topic) throws Exception {
+        List<String> consumerGroups =  Lists.newArrayList();
         Properties props = initProperties(consumerSettings);
         Properties clientProp = removeExtraParam(props);
         // 获取kafka client
@@ -119,19 +119,19 @@ public class KafkaUtil {
             }
             return consumerGroupsByTopic;
         } catch (Exception e){
-            LOG.error("listConsumerGroup error:{}", e.getMessage(), e);
+            LOG.error("get consumer group list error:{}", e.getMessage(), e);
+            throw new Exception(e);
         } finally {
             if (Objects.nonNull(adminClient)) {
                 adminClient.close();
             }
         }
-        return Lists.newArrayList();
     }
 
     /**
      * 获取 kafka 消费者组详细信息
      */
-    public static List<KafkaConsumerInfo> getGroupInfoByGroupId(Map<String, String> consumerSettings, String groupId, String srcTopic) {
+    public static List<KafkaConsumerInfo> getGroupInfoByGroupId(Map<String, String> consumerSettings, String groupId, String srcTopic) throws Exception {
         List<KafkaConsumerInfo> result = Lists.newArrayList();
         Properties props = initProperties(consumerSettings);
         Properties clientProp = removeExtraParam(props);
@@ -206,7 +206,8 @@ public class KafkaUtil {
                 result.add(kafkaConsumerInfo);
             }
         } catch (Exception e) {
-            LOG.error("getGroupInfoByGroupId error:{}", e.getMessage(), e);
+            LOG.error("query groupInfo by groupId error:{}", e.getMessage(), e);
+            throw new Exception(e);
         } finally {
             if (Objects.nonNull(adminClient)) {
                 adminClient.close();

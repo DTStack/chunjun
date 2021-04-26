@@ -6,10 +6,8 @@ import com.dtstack.flinkx.metadatakafka.entity.GroupInfo;
 import com.dtstack.flinkx.metadatakafka.entity.KafkaConsumerInfo;
 import com.dtstack.flinkx.metadatakafka.entity.MetadatakafkaEntity;
 import com.dtstack.flinkx.metadatakafka.utils.KafkaUtil;
-import com.dtstack.flinkx.util.GsonUtil;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -59,14 +57,20 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit : {} ", inputSplit);
-        if (StringUtils.isEmpty(consumerSettings.get(KEY_BOOTSTRAP_SERVERS))) {
-            throw new IllegalArgumentException("bootstrap.servers can not be empty");
-        }
         topicList = ((MetadatakafkaInputSplit)inputSplit).getTopicList();
-        if (CollectionUtils.isEmpty(topicList)){
-            topicList = KafkaUtil.getTopicListFromBroker(consumerSettings);
-        }
+        doOpenInternal();
         iterator = topicList.iterator();
+    }
+
+    public void doOpenInternal() {
+        if (CollectionUtils.isEmpty(topicList)){
+            try {
+                topicList = KafkaUtil.getTopicListFromBroker(consumerSettings);
+            } catch (Exception e) {
+                LOG.error("failed to query topic list,bootstrap.servers = {} ",consumerSettings.get(KEY_BOOTSTRAP_SERVERS));
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override
@@ -80,8 +84,15 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
         String currentTopic = iterator.next();
-        MetadatakafkaEntity metadatakafkaEntity = queryMetadata(currentTopic);
-        return Row.of(GsonUtil.GSON.toJson(metadatakafkaEntity));
+        MetadatakafkaEntity metadatakafkaEntity = new MetadatakafkaEntity();
+        try {
+            metadatakafkaEntity = queryMetadata(currentTopic);
+            metadatakafkaEntity.setQuerySuccess(true);
+        } catch (Exception e) {
+            metadatakafkaEntity.setQuerySuccess(false);
+            metadatakafkaEntity.setErrorMsg("Caused by: " + e.getCause().getClass() + ":" + e.getCause().getMessage());
+        }
+        return Row.of(metadatakafkaEntity);
     }
 
     @Override
@@ -99,7 +110,7 @@ public class MetadatakafkaInputFormat extends BaseRichInputFormat {
      * @param topic topic
      * @return kafak元数据实体类
      */
-    public MetadatakafkaEntity queryMetadata(String topic){
+    public MetadatakafkaEntity queryMetadata(String topic) throws Exception {
         MetadatakafkaEntity entity = new MetadatakafkaEntity();
         entity.setTopicName(topic);
         Map<String, Integer> countAndReplicas = KafkaUtil.getTopicPartitionCountAndReplicas(consumerSettings, topic);

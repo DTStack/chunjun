@@ -28,14 +28,14 @@ public class KafkaUtilTest {
     }
 
     @Test
-    public void getTopicListFromBrokerTest(){
+    public void getTopicListFromBrokerTest() throws Exception{
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
         PowerMockito.when(KafkaUtil.getTopicListFromBroker(consumerSettings)).thenCallRealMethod();
     }
 
     @Test
-    public void getTopicPartitionCountAndReplicasTest(){
+    public void getTopicPartitionCountAndReplicasTest() throws Exception{
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
         String topic = "kafka10";
@@ -43,7 +43,7 @@ public class KafkaUtilTest {
     }
 
     @Test
-    public void listConsumerGroupTest(){
+    public void listConsumerGroupTest() throws Exception{
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
         String topic = "kafka10";
@@ -51,7 +51,7 @@ public class KafkaUtilTest {
     }
 
     @Test
-    public void getGroupInfoByGroupIdTest(){
+    public void getGroupInfoByGroupIdTest() throws Exception{
         Map<String, String> consumerSettings = new HashMap<>();
         consumerSettings.put("bootstrap.servers", "flinkx1:9092");
         String topic = "kafka10";

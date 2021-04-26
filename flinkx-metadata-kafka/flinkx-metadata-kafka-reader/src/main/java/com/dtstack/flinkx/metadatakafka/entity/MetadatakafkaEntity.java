@@ -36,6 +36,16 @@ public class MetadatakafkaEntity implements Serializable {
      */
     private List<GroupInfo> groupInfo;
 
+    /**
+     * 是否查询成功
+     */
+    private boolean querySuccess;
+
+    /**
+     * 错误信息
+     */
+    private String  errorMsg;
+
     public String getTopicName() {
         return topicName;
     }
@@ -76,6 +86,22 @@ public class MetadatakafkaEntity implements Serializable {
         this.groupInfo = groupInfo;
     }
 
+    public boolean isQuerySuccess() {
+        return querySuccess;
+    }
+
+    public void setQuerySuccess(boolean querySuccess) {
+        this.querySuccess = querySuccess;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
+    }
+
     @Override
     public String toString() {
         return "MetadatakafkaEntity{" +
@@ -84,6 +110,8 @@ public class MetadatakafkaEntity implements Serializable {
                 ", replicationFactor=" + replicationFactor +
                 ", timeStamp='" + timeStamp + '\'' +
                 ", groupInfo=" + groupInfo +
+                ", querySuccess=" + querySuccess +
+                ", errorMsg='" + errorMsg + '\'' +
                 '}';
     }
 }
