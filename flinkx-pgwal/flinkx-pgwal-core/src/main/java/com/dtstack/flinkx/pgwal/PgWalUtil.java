@@ -293,6 +293,7 @@ public class PgWalUtil {
         }
         PGProperty.CONNECT_TIMEOUT.set(props, connectionTimeoutSecond);
         PGProperty.SOCKET_TIMEOUT.set(props, socketTimeoutSecond);
+        PGProperty.LOGIN_TIMEOUT.set(props, loginTimeoutSecond);
         LOG.info("socket time out setting : " +
                 "connection timeout {} second, socket timeout {} second, login timeout {} second",
                 connectionTimeoutSecond, socketTimeoutSecond, loginTimeoutSecond);
