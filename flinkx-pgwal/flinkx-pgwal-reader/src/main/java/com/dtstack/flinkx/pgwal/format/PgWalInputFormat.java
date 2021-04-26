@@ -228,4 +228,28 @@ public class PgWalInputFormat extends BaseRichInputFormat {
     public void setLoginTimeoutSecond(int loginTimeoutSecond) {
         this.loginTimeoutSecond = loginTimeoutSecond;
     }
+
+    public int getConnectionTimeoutSecond() {
+        return connectionTimeoutSecond;
+    }
+
+    public int getSocketTimeoutSecond() {
+        return socketTimeoutSecond;
+    }
+
+    public int getLoginTimeoutSecond() {
+        return loginTimeoutSecond;
+    }
+
+    public void setConnection(PgConnection connection) {
+        this.conn = connection;
+    }
+
+    public void setTableList(List<String> tableList) {
+        this.tableList = tableList;
+    }
+
+    public void setCat(String cat) {
+        this.cat = cat;
+    }
 }

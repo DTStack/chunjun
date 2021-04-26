@@ -22,6 +22,7 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,6 +34,7 @@ import java.util.List;
 public class PgWalInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     protected PgWalInputFormat format;
+    private int fo;
 
     public PgWalInputFormatBuilder() {
         super.format = this.format = new PgWalInputFormat();
@@ -125,5 +127,69 @@ public class PgWalInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     public void setLoginTimeoutSecond(int loginTimeoutSecond) {
         format.setLoginTimeoutSecond(loginTimeoutSecond);
+    }
+
+    public String getUsername() {
+        return format.username;
+    }
+
+    public String getPassword() {
+        return format.password;
+    }
+
+    public String getUrl() {
+        return format.url;
+    }
+
+    public String getDatabaseName() {
+        return format.databaseName;
+    }
+
+    public boolean isPavingData() {
+        return format.pavingData;
+    }
+
+    public List<String> getTableList() {
+        return format.tableList;
+    }
+
+    public String getCat() {
+        return format.cat;
+    }
+
+    public int getStatusInterval() {
+        return format.statusInterval;
+    }
+
+    public long getLsn() {
+        return format.lsn;
+    }
+
+    public boolean isAllowCreateSlot() {
+        return format.allowCreateSlot;
+    }
+
+    public String getSlotName() {
+        return format.slotName;
+    }
+
+    public boolean isTemporary() {
+        return format.temporary;
+    }
+
+    public String getPublicationName() {
+        return format.getPublicationName();
+    }
+
+    public int getConnectionTimeoutSecond() {
+        return format.getConnectionTimeoutSecond();
+    }
+
+    public int getSocketTimeoutSecond() {
+        return format.getSocketTimeoutSecond();
+    }
+
+    public int getLoginTimeoutSecond() {
+        return format.getLoginTimeoutSecond();
     }
 }

@@ -70,6 +70,10 @@ public class PgwalReader extends BaseDataReader {
         allowCreateSlot = readerConfig.getParameter().getBooleanVal(PgWalConfigKeys.KEY_ALLOW_CREATE_SLOT, true);
         temporary = readerConfig.getParameter().getBooleanVal(PgWalConfigKeys.KEY_TEMPORARY, true);
         publicationName = readerConfig.getParameter().getStringVal(PgWalConfigKeys.KEY_PUBLICATION_NAME);
+        this.connectionTimeoutSecond = readerConfig.getParameter().getIntVal(PgWalConfigKeys.KEY_CONNECTION_TIMEOUT_SECOND, 10);
+        this.socketTimeoutSecond = readerConfig.getParameter().getIntVal(PgWalConfigKeys.KEY_SOCKET_TIMEOUT_SECOND, 10);
+        this.loginTimeoutSecond = readerConfig.getParameter().getIntVal(PgWalConfigKeys.KEY_LOGIN_TIMEOUT_SECOND, 10);
+
     }
 
     @Override

@@ -33,6 +33,7 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
+import org.apache.flink.api.common.io.RichInputFormat;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
@@ -42,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +65,7 @@ import static com.dtstack.flinkx.constants.ConfigConstant.KEY_WRITER;
  *
  * @author jiangbo
  */
-public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io.RichInputFormat<Row, InputSplit> {
+public abstract class BaseRichInputFormat extends RichInputFormat<Row, InputSplit> {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
@@ -426,4 +428,5 @@ public abstract class BaseRichInputFormat extends org.apache.flink.api.common.io
     public DataTransferConfig getDataTransferConfig() {
         return dataTransferConfig;
     }
+
 }
