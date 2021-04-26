@@ -141,7 +141,7 @@ public class PgWalUtil {
                 }
             }
             if(!needCreate) {
-                conn.createStatement().execute(String.format(UPDATE_REPLICA_IDENTITY, table));//TODO 优化点
+                conn.createStatement().execute(String.format(UPDATE_REPLICA_IDENTITY, table));
             }
         }
 

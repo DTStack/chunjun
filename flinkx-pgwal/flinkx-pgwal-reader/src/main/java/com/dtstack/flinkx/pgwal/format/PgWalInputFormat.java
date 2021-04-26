@@ -84,7 +84,7 @@ public class PgWalInputFormat extends BaseRichInputFormat {
         }
         LOG.info("PgWalInputFormat openInternal split number:{} start...", inputSplit.getSplitNumber());
         try {
-            conn = PgWalUtil.getConnection(url, username, password, connectionTimeoutSecond, socketTimeoutSecond, loginTimeoutSecond);//TODO password is null
+            conn = PgWalUtil.getConnection(url, username, password, connectionTimeoutSecond, socketTimeoutSecond, loginTimeoutSecond);
             if(StringUtils.isBlank(slotName)){
                 slotName = PgWalUtil.SLOT_PRE + jobId;
             }
