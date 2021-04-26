@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.inputformat;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -33,6 +31,7 @@ import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
@@ -40,7 +39,6 @@ import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.ByteRateLimiter;
 import com.dtstack.flinkx.util.ExceptionUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

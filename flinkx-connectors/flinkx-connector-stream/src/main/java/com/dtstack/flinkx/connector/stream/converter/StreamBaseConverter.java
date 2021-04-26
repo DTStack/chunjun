@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.connector.stream.converter;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -30,6 +28,8 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
+
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -44,11 +44,13 @@ import java.time.LocalTime;
  * @create 2021-04-10 11:39
  * @description 数据类型转换器
  */
-public class StreamConverter extends AbstractRowConverter<RowData, RowData, RowData> {
+public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, RowData> {
 
-    public StreamConverter(RowType rowType) {
+    public StreamBaseConverter(RowType rowType) {
         super(rowType);
     }
+
+    public StreamBaseConverter() {}
 
     @Override
     protected SerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(
@@ -85,6 +87,13 @@ public class StreamConverter extends AbstractRowConverter<RowData, RowData, RowD
 
     @Override
     protected RowData toExternalWithType(RowData rowData, RowData output) throws Exception {
+        for (int index = 0; index < rowData.getArity(); index++) {
+            toExternalConverters[index].serialize(rowData, index, output);
+        }
+        return output;
+    }
+
+    public RowData toExternal(RowData rowData, RowData output) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, output);
         }

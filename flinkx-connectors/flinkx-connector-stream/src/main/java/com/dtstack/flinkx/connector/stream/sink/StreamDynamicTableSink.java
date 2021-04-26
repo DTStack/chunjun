@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.stream.sink;
 
-import com.dtstack.flinkx.connector.stream.converter.StreamConverter;
+import com.dtstack.flinkx.connector.stream.converter.StreamBaseConverter;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.api.TableSchema;
@@ -79,7 +79,7 @@ public class StreamDynamicTableSink implements DynamicTableSink {
 
         StreamOutputFormatBuilder builder =new StreamOutputFormatBuilder();
         builder.setStreamSinkConf(sinkConf);
-        builder.setConverter(new StreamConverter(rowType));
+        builder.setConverter(new StreamBaseConverter(rowType));
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), 1);
     }

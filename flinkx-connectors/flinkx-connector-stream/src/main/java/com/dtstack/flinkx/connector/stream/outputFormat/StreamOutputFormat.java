@@ -18,15 +18,15 @@
 
 package com.dtstack.flinkx.connector.stream.outputFormat;
 
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.util.TablePrintUtil;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.collections.CollectionUtils;
-
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
 
 import java.util.List;
 
@@ -51,7 +51,6 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         try {
             GenericRowData genericRowData = new GenericRowData(rowData.getArity());
             GenericRowData row = (GenericRowData) rowConverter.toExternal(rowData, genericRowData);
-
             if (streamSinkConf.getPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames());
             }

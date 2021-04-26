@@ -44,7 +44,7 @@ public class LocalTest {
         String userDir = System.getProperty("user.dir");
         System.out.println(userDir);
 
-        String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
+        String jobPath = "/Users/tudou/Library/Application Support/JetBrains/IntelliJIdea2021.1/scratches/merge/stream.json";
         String flinkxPluginPath = userDir + "/syncplugins";
 
         // 任务配置参数
@@ -59,8 +59,8 @@ public class LocalTest {
             argsList.add(content);
             argsList.add("-flinkconf");
             argsList.add(System.getProperty("user.dir") + "/flinkconf/");
-            argsList.add("-pluginRoot");
-            argsList.add(flinkxPluginPath);
+//            argsList.add("-pluginRoot");
+//            argsList.add(flinkxPluginPath);
             argsList.add("-confProp");
             argsList.add(GsonUtil.GSON.toJson(confProperties));
         } else if (StringUtils.endsWith(jobPath, "sql")) {

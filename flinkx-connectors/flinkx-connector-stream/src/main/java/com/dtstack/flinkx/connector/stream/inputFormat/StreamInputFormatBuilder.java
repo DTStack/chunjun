@@ -18,12 +18,11 @@
 
 package com.dtstack.flinkx.connector.stream.inputFormat;
 
+import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
+
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import org.apache.commons.collections.CollectionUtils;
-
-import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
 
 /**
  * @Company: www.dtstack.com
@@ -31,7 +30,7 @@ import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
  */
 public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
 
-    private StreamInputFormat format;
+    private final StreamInputFormat format;
 
     public StreamInputFormatBuilder() {
         super.format = format = new StreamInputFormat();

@@ -41,8 +41,8 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements Serializable {
 
     protected final RowType rowType;
-    protected final DeserializationConverter[] toInternalConverters;
-    protected final SerializationConverter[] toExternalConverters;
+    protected DeserializationConverter[] toInternalConverters;
+    protected SerializationConverter[] toExternalConverters;
     protected final LogicalType[] fieldTypes;
 
     public AbstractRowConverter(RowType rowType) {
