@@ -18,7 +18,6 @@ import java.util.Map;
  * @author shitou
  * @date 2021/4/25 11:50
  */
-@RunWith(PowerMockRunner.class)
 public class MetadatakafkaInputFormatTest {
 
     @Test
