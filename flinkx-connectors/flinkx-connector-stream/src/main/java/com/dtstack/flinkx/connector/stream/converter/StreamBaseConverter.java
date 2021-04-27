@@ -33,11 +33,13 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Time;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
+
+import static java.time.temporal.ChronoField.MILLI_OF_DAY;
 
 /**
  * @author chuixue
@@ -125,19 +127,35 @@ public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, 
                 // Converter for small type that casts value to int and then return short value,
                 // since
                 // JDBC 1.0 use int type for small values.
-                return val -> val instanceof Integer ? JMockData.mock(int.class).shortValue() : JMockData.mock(int.class);
+                return val ->
+                        val instanceof Integer
+                                ? JMockData.mock(int.class).shortValue()
+                                : JMockData.mock(int.class);
             case INTEGER:
                 return val -> JMockData.mock(int.class);
             case BIGINT:
                 return val -> JMockData.mock(Long.class);
             case DECIMAL:
-                return val -> DecimalData.fromBigDecimal(JMockData.mock(BigDecimal.class),1,1);
+                final int precision = ((DecimalType) type).getPrecision();
+                final int scale = ((DecimalType) type).getScale();
+                // using decimal(20, 0) to support db type bigint unsigned, user should define
+                // decimal(20, 0) in SQL,
+                // but other precision like decimal(30, 0) can work too from lenient consideration.
+                return val ->
+                        val instanceof BigInteger
+                                ? DecimalData.fromBigDecimal(
+                                        new BigDecimal(JMockData.mock(BigInteger.class), 0),
+                                        precision,
+                                        scale)
+                                : DecimalData.fromBigDecimal(
+                                        JMockData.mock(BigDecimal.class), precision, scale);
             case DATE:
-                return val -> JMockData.mock(Date.class);
+                return val -> (int) LocalDate.now().toEpochDay();
             case TIME_WITHOUT_TIME_ZONE:
+                return val -> LocalTime.now().get(MILLI_OF_DAY);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> TimestampData.fromTimestamp(JMockData.mock(Timestamp.class));
+                return val -> TimestampData.fromEpochMillis(System.currentTimeMillis());
             case CHAR:
             case VARCHAR:
                 return val -> StringData.fromString(JMockData.mock(String.class));
