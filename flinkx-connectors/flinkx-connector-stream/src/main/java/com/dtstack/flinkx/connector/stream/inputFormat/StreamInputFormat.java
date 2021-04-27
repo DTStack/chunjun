@@ -23,8 +23,6 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.connector.stream.converter.StreamBaseConverter;
-import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -55,11 +53,6 @@ public class StreamInputFormat extends BaseRichInputFormat {
         if (CollectionUtils.isNotEmpty(streamConf.getSliceRecordCount())
                 && streamConf.getSliceRecordCount().size() > inputSplit.getSplitNumber()) {
             channelRecordNum = streamConf.getSliceRecordCount().get(inputSplit.getSplitNumber());
-        }
-
-        if (!(rowConverter instanceof StreamColumnConverter)) {
-            ((StreamBaseConverter) rowConverter)
-                    .openFieldGenerators(context, functionInitializationContext);
         }
 
         LOG.info("The record number of channel:[{}] is [{}]", inputSplit.getSplitNumber(), channelRecordNum);

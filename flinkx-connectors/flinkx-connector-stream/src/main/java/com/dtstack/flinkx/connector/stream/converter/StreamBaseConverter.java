@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.stream.converter;
 
-import org.apache.flink.runtime.state.FunctionInitializationContext;
-import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
-import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -33,9 +30,9 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -49,24 +46,11 @@ import java.time.LocalTime;
  */
 public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, RowData> {
 
-    private DataGenerator<?>[] fieldGenerators;
-    private String[] fieldNames;
-
     public StreamBaseConverter(RowType rowType) {
         super(rowType);
     }
 
     public StreamBaseConverter() {}
-
-    public void openFieldGenerators(StreamingRuntimeContext context, FunctionInitializationContext functionInitializationContext){
-        try {
-            for (int i = 0; i < fieldGenerators.length; i++) {
-                fieldGenerators[i].open(fieldNames[i], functionInitializationContext, context);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @Override
     protected SerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(
@@ -84,9 +68,9 @@ public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, 
 
     @Override
     public RowData toInternal(RowData input) throws Exception {
-        GenericRowData row = new GenericRowData(fieldNames.length);
-        for (int i = 0; i < fieldGenerators.length; i++) {
-            row.setField(i, fieldGenerators[i].next());
+        GenericRowData row = new GenericRowData(input.getArity());
+        for (int i = 0; i < input.getArity(); i++) {
+            row.setField(i, toInternalConverters[i].deserialize(input));
         }
         return row;
     }
@@ -127,46 +111,39 @@ public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, 
             case NULL:
                 return val -> null;
             case BOOLEAN:
+                return val -> JMockData.mock(boolean.class);
             case FLOAT:
+                return val -> JMockData.mock(float.class);
             case DOUBLE:
+                return val -> JMockData.mock(double.class);
             case INTERVAL_YEAR_MONTH:
             case INTERVAL_DAY_TIME:
-                return val -> val;
+                return val -> JMockData.mock(Time.class);
             case TINYINT:
-                return val -> ((Integer) val).byteValue();
+                return val -> JMockData.mock(int.class).byteValue();
             case SMALLINT:
                 // Converter for small type that casts value to int and then return short value,
                 // since
                 // JDBC 1.0 use int type for small values.
-                return val -> val instanceof Integer ? ((Integer) val).shortValue() : val;
+                return val -> val instanceof Integer ? JMockData.mock(int.class).shortValue() : JMockData.mock(int.class);
             case INTEGER:
-                return val -> val;
+                return val -> JMockData.mock(int.class);
             case BIGINT:
-                return val -> val;
+                return val -> JMockData.mock(Long.class);
             case DECIMAL:
-                final int precision = ((DecimalType) type).getPrecision();
-                final int scale = ((DecimalType) type).getScale();
-                // using decimal(20, 0) to support db type bigint unsigned, user should define
-                // decimal(20, 0) in SQL,
-                // but other precision like decimal(30, 0) can work too from lenient consideration.
-                return val ->
-                        val instanceof BigInteger
-                                ? DecimalData.fromBigDecimal(
-                                        new BigDecimal((BigInteger) val, 0), precision, scale)
-                                : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
+                return val -> DecimalData.fromBigDecimal(JMockData.mock(BigDecimal.class),1,1);
             case DATE:
-                return val -> (int) (((Date) val).toLocalDate().toEpochDay());
+                return val -> JMockData.mock(Date.class);
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) (((Time) val).toLocalTime().toNanoOfDay() / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> TimestampData.fromTimestamp((Timestamp) val);
+                return val -> TimestampData.fromTimestamp(JMockData.mock(Timestamp.class));
             case CHAR:
             case VARCHAR:
-                return val -> StringData.fromString((String) val);
+                return val -> StringData.fromString(JMockData.mock(String.class));
             case BINARY:
             case VARBINARY:
-                return val -> (byte[]) val;
+                return val -> JMockData.mock(byte[].class);
             case ARRAY:
             case ROW:
             case MAP:
@@ -236,13 +213,5 @@ public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, 
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
-    }
-
-    public void setFieldGenerators(DataGenerator<?>[] fieldGenerators) {
-        this.fieldGenerators = fieldGenerators;
-    }
-
-    public void setFieldNames(String[] fieldNames) {
-        this.fieldNames = fieldNames;
     }
 }

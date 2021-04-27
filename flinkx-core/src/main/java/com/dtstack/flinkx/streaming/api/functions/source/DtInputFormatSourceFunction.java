@@ -17,9 +17,6 @@
 
 package com.dtstack.flinkx.streaming.api.functions.source;
 
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -40,6 +37,10 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,7 +97,6 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
             if(formatStateMap != null){
                 ((BaseRichInputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
             }
-            ((BaseRichInputFormat) format).setFunctionInitializationContext(functionInitializationContext);
         }
 
 		format.configure(parameters);

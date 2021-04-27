@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.stream.source;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -47,15 +46,12 @@ import java.util.stream.Collectors;
 
 public class StreamDynamicTableSource implements ScanTableSource {
 
-    private final DataGenerator<?>[] fieldGenerators;
     private final TableSchema schema;
     private final Long numberOfRows;
 
     public StreamDynamicTableSource(
-            DataGenerator<?>[] fieldGenerators,
             TableSchema schema,
             Long numberOfRows) {
-        this.fieldGenerators = fieldGenerators;
         this.schema = schema;
         this.numberOfRows = numberOfRows;
     }
@@ -85,11 +81,7 @@ public class StreamDynamicTableSource implements ScanTableSource {
         streamConf.setColumn(fieldConfList);
 
         StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
-        StreamBaseConverter streamBaseConverter = new StreamBaseConverter(rowType);
-        streamBaseConverter.setFieldNames(schema.getFieldNames());
-        streamBaseConverter.setFieldGenerators(fieldGenerators);
-
-        builder.setAbstractRowConverter(streamBaseConverter);
+        builder.setAbstractRowConverter(new StreamBaseConverter(rowType));
         builder.setStreamConf(streamConf);
 
         return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
@@ -98,7 +90,6 @@ public class StreamDynamicTableSource implements ScanTableSource {
     @Override
     public DynamicTableSource copy() {
         return new StreamDynamicTableSource(
-                this.fieldGenerators,
                 this.schema,
                 this.numberOfRows);
     }

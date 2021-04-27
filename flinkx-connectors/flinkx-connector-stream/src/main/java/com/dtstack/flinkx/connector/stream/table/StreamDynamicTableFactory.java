@@ -21,21 +21,17 @@ package com.dtstack.flinkx.connector.stream.table;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.factories.datagen.DataGeneratorContainer;
-import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.sink.StreamDynamicTableSink;
 import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
-import com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -43,10 +39,6 @@ import java.util.Set;
 import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.NUMBER_OF_ROWS;
 import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.PRINT_IDENTIFIER;
 import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.STANDARD_ERROR;
-import static com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil.FIELDS;
-import static com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil.KIND;
-import static com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil.RANDOM;
-import static org.apache.flink.configuration.ConfigOptions.key;
 
 /**
  * @author chuixue
@@ -101,19 +93,7 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
     public DynamicTableSource createDynamicTableSource(Context context) {
         Configuration options = new Configuration();
         context.getCatalogTable().getOptions().forEach(options::setString);
-
         TableSchema schema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        DataGenerator<?>[] fieldGenerators = new DataGenerator[schema.getFieldCount()];
-
-        for (int i = 0; i < fieldGenerators.length; i++) {
-            String name = schema.getFieldNames()[i];
-            DataType type = schema.getFieldDataTypes()[i];
-
-            ConfigOption<String> kind = key(FIELDS + "." + name + "." + KIND).stringType().defaultValue(RANDOM);
-            DataGeneratorContainer container = DataGeneratorUtil.createContainer(name, type, options.get(kind), options);
-            fieldGenerators[i] = container.getGenerator();
-        }
-
-        return new StreamDynamicTableSource(fieldGenerators, schema, options.get(NUMBER_OF_ROWS));
+        return new StreamDynamicTableSource(schema, options.get(NUMBER_OF_ROWS));
     }
 }

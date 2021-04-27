@@ -18,14 +18,10 @@
 
 package com.dtstack.flinkx.connector.stream.source;
 
-import org.apache.flink.configuration.ConfigOption;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.factories.datagen.DataGeneratorContainer;
-import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
@@ -33,19 +29,13 @@ import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.converter.StreamBaseConverter;
 import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.flinkx.connector.stream.inputFormat.StreamInputFormatBuilder;
-import com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.source.BaseDataSource;
-import com.dtstack.flinkx.util.DataTypeUtil;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.TableUtil;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil.FIELDS;
-import static com.dtstack.flinkx.connector.stream.util.DataGeneratorUtil.KIND;
-import static org.apache.flink.configuration.ConfigOptions.key;
 
 /**
  * Date: 2021/04/07
@@ -75,28 +65,8 @@ public class StreamSource extends BaseDataSource {
                     .collect(Collectors.toList());
             rowConverter = new StreamColumnConverter(typeList);
         } else {
-            List<FieldConf> column = streamConf.getColumn();
-            Class<?>[] fieldClasses = column.stream().map(FieldConf::getFieldClass).toArray(Class[]::new);
-            DataType[] dataTypes = DataTypeUtil.getFieldTypes(Arrays.asList(fieldClasses));
-            String[] fieldNames = column.stream().map(FieldConf::getName).toArray(String[]::new);
-
-
-            Configuration options = new Configuration();
-            DataGenerator<?>[] fieldGenerators = new DataGenerator[dataTypes.length];
-            for (int i = 0; i < dataTypes.length; i++) {
-                String name = streamConf.getColumn().get(i).getName();
-                ConfigOption<String> kind =
-                        key(FIELDS + "." + name + "." + KIND)
-                                .stringType()
-                                .defaultValue(DataGeneratorUtil.RANDOM);
-                DataGeneratorContainer container =
-                        DataGeneratorUtil.createContainer(
-                                name, dataTypes[i], options.get(kind), options);
-                fieldGenerators[i] = container.getGenerator();
-            }
-            rowConverter = new StreamBaseConverter();
-            ((StreamBaseConverter)rowConverter).setFieldGenerators(fieldGenerators);
-            ((StreamBaseConverter)rowConverter).setFieldNames(fieldNames);
+            final RowType rowType = (RowType) TableUtil.getDataType(streamConf.getColumn()).getLogicalType();
+            rowConverter = new StreamBaseConverter(rowType);
         }
 
         builder.setAbstractRowConverter(rowConverter);
