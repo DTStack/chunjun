@@ -106,27 +106,27 @@ public final class ColumnRowData implements RowData {
 
     @Override
     public short getShort(int pos) {
-        return this.fields.get(pos).asBigDecimal().shortValue();
+        return this.fields.get(pos).asShort();
     }
 
     @Override
     public int getInt(int pos) {
-        return this.fields.get(pos).asBigDecimal().intValue();
+        return this.fields.get(pos).asInt();
     }
 
     @Override
     public long getLong(int pos) {
-        return this.fields.get(pos).asBigDecimal().longValue();
+        return this.fields.get(pos).asLong();
     }
 
     @Override
     public float getFloat(int pos) {
-        return this.fields.get(pos).asBigDecimal().floatValue();
+        return this.fields.get(pos).asFloat();
     }
 
     @Override
     public double getDouble(int pos) {
-        return this.fields.get(pos).asBigDecimal().doubleValue();
+        return this.fields.get(pos).asDouble();
     }
 
     @Override
@@ -152,7 +152,7 @@ public final class ColumnRowData implements RowData {
 
     @Override
     public byte[] getBinary(int pos) {
-        return new byte[0];
+        return this.fields.get(pos).asBinary();
     }
 
     @Override
