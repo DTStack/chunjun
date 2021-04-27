@@ -10,11 +10,8 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.s3.S3Util;
 import com.dtstack.flinkx.s3.S3Config;
-import com.dtstack.flinkx.util.RangeSplitUtil;
 import com.dtstack.flinkx.util.StringUtil;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +20,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author jier@dtstack.com
@@ -41,12 +36,13 @@ public class S3InputFormat extends BaseRichInputFormat {
     private Iterator<String> splits;
 
     private transient AmazonS3 amazonS3;
-    private transient LineOffsetBufferedReader br;
-    private transient String line;
+
     private transient String currentObject;
     private transient Map<String, Long> offsetMap;
 
-//    private int count = 0;
+    private transient CsvReaderUtil csvReaderUtil = null;
+
+    private int count = 0;
 
 
     @Override
@@ -96,12 +92,11 @@ public class S3InputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected Row nextRecordInternal(Row row) {
-        /*LOG.info("this count is {}", count);
-        if (count == 100) {
+    protected Row nextRecordInternal(Row row) throws IOException {
+        if (count > 2000) {
             System.out.println(1 / 0);
-        }*/
-        String[] fields = line.split(s3Config.getFieldDelimiter());
+        }
+        String[] fields = csvReaderUtil.getValues();
         if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
             row = new Row(fields.length);
             for (int i = 0; i < fields.length; i++) {
@@ -130,22 +125,18 @@ public class S3InputFormat extends BaseRichInputFormat {
             }
         }
         if (restoreConfig.isRestore()) {
-            offsetMap.replace(currentObject, br.getOffset());
+            offsetMap.replace(currentObject, csvReaderUtil.getNextOffset());
         }
-        /*count++;
-        try {
-            TimeUnit.MILLISECONDS.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
+        count++;
         return row;
     }
 
+
     @Override
     protected void closeInternal() throws IOException {
-        if (br != null) {
-            br.close();
-            br = null;
+        if (csvReaderUtil != null) {
+            csvReaderUtil.close();
+            csvReaderUtil = null;
         }
     }
 
@@ -156,7 +147,7 @@ public class S3InputFormat extends BaseRichInputFormat {
 
     public boolean reachedEndWithoutCheckState() throws IOException {
         //br 为空，说明需要读新文件
-        if (br == null) {
+        if (csvReaderUtil == null) {
             if (splits.hasNext()) {
                 //若还有新文件，则读新文件
                 currentObject = splits.next();
@@ -168,19 +159,19 @@ public class S3InputFormat extends BaseRichInputFormat {
                     rangeObjectRequest.setRange(offset);
                     S3Object o = amazonS3.getObject(rangeObjectRequest);
                     S3ObjectInputStream s3is = o.getObjectContent();
-                    br = new LineOffsetBufferedReader(new InputStreamReader(
-                            s3is, s3Config.getEncoding()), offset);
+                    csvReaderUtil = new CsvReaderUtil(new InputStreamReader(
+                            s3is, s3Config.getEncoding()), s3Config.getFieldDelimiter(), offset);
                     offsetMap.put(currentObject, offset);
-                }else {
+                } else {
                     //没读过该文件，或者读过但偏移量为0
                     S3Object o = amazonS3.getObject(rangeObjectRequest);
                     S3ObjectInputStream s3is = o.getObjectContent();
-                    br = new LineOffsetBufferedReader(new InputStreamReader(
-                            s3is, s3Config.getEncoding()));
-                    if(s3Config.isFirstLineHeader()){
-                        br.readLine();
-                        offsetMap.put(currentObject, br.getOffset());
+                    csvReaderUtil = new CsvReaderUtil(new InputStreamReader(
+                            s3is, s3Config.getEncoding()), s3Config.getFieldDelimiter());
+                    if (s3Config.isFirstLineHeader()) {
+                        csvReaderUtil.readHeaders();
                     }
+                    offsetMap.put(currentObject, csvReaderUtil.getNextOffset());
                 }
             } else {
                 //若没有新文件，则读完所有文件
@@ -188,14 +179,13 @@ public class S3InputFormat extends BaseRichInputFormat {
             }
         }
         //br不为空且正在读文件且 splits 还有下一个文件
-        line = br.readLine();
-        if (line != null) {
+        if (csvReaderUtil.readRecord()) {
             //还没读取完本次读取的文件
             return false;
         } else {
             //读取完本次读取的文件，关闭 br 并置空
-            br.close();
-            br = null;
+            csvReaderUtil.close();
+            csvReaderUtil = null;
             offsetMap.replace(currentObject, -1L);
             //尝试去读新文件
             return reachedEndWithoutCheckState();

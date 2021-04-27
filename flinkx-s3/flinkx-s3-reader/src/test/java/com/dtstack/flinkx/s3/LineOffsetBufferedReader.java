@@ -1,12 +1,9 @@
-package com.dtstack.flinkx.s3.format;
+package com.dtstack.flinkx.s3;
 
 import java.io.IOException;
 import java.io.Reader;
 
-/**
- * Implementation of a {@link RequestIndexer} that buffers {@link ActionRequest ActionRequests}
- * before re-sending them to the Elasticsearch cluster upon request.
- */
+
 public class LineOffsetBufferedReader extends Reader {
     private Reader in;
 
@@ -60,22 +57,75 @@ public class LineOffsetBufferedReader extends Reader {
     }
 
     public int read() throws IOException {
-        throw new IOException("reset() not supported");
+        synchronized (lock) {
+            ensureOpen();
+            for (;;) {
+                if (nextChar >= nChars) {
+                    fill();
+                    if (nextChar >= nChars)
+                        return -1;
+                }
+                if (skipLF) {
+                    skipLF = false;
+                    if (cb[nextChar] == '\n') {
+                        nextChar++;
+                        continue;
+                    }
+                }
+                return cb[nextChar++];
+            }
+        }
     }
 
 
     public int read(char cbuf[], int off, int len) throws IOException {
-        throw new IOException("read(char cbuf[], int off, int len)) not supported");
+        synchronized (lock) {
+            ensureOpen();
+            if ((off < 0) || (off > cbuf.length) || (len < 0) ||
+                    ((off + len) > cbuf.length) || ((off + len) < 0)) {
+                throw new IndexOutOfBoundsException();
+            } else if (len == 0) {
+                return 0;
+            }
+
+            int n = read1(cbuf, off, len);
+            if (n <= 0) return n;
+            while ((n < len) && in.ready()) {
+                int n1 = read1(cbuf, off + n, len - n);
+                if (n1 <= 0) break;
+                n += n1;
+            }
+            return n;
+        }
     }
 
-    /**
-     * Process the incoming element to produce multiple {@link ActionRequest ActionsRequests}.
-     * The produced requests should be added to the provided {@link RequestIndexer}.
-     *
-     * @param element incoming element to process
-     * @param ctx     runtime context containing information about the sink instance
-     * @param indexer request indexer that {@code ActionRequest} should be added to
-     */
+    private int read1(char[] cbuf, int off, int len) throws IOException {
+        if (nextChar >= nChars) {
+            /* If the requested length is at least as large as the buffer, and
+               if there is no mark/reset activity, and if line feeds are not
+               being skipped, do not bother to copy the characters into the
+               local buffer.  In this way buffered streams will cascade
+               harmlessly. */
+            fill();
+        }
+        if (nextChar >= nChars) return -1;
+        if (skipLF) {
+            skipLF = false;
+            if (cb[nextChar] == '\n') {
+                nextChar++;
+                if (nextChar >= nChars)
+                    fill();
+                if (nextChar >= nChars)
+                    return -1;
+            }
+        }
+        int n = Math.min(len, nChars - nextChar);
+        System.arraycopy(cb, nextChar, cbuf, off, n);
+        nextChar += n;
+        return n;
+    }
+
+
     String readLine(boolean ignoreLF) throws IOException {
         StringBuilder s = null;
         int startChar;

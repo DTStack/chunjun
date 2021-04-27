@@ -40,7 +40,7 @@ public class S3Config implements Serializable {
 
     private List<String> object;
 
-    private String fieldDelimiter = ",";
+    private char fieldDelimiter = ',';
 
     private String encoding = "UTF-8";
 
@@ -86,11 +86,11 @@ public class S3Config implements Serializable {
         this.object = object;
     }
 
-    public String getFieldDelimiter() {
+    public char getFieldDelimiter() {
         return fieldDelimiter;
     }
 
-    public void setFieldDelimiter(String fieldDelimiter) {
+    public void setFieldDelimiter(char fieldDelimiter) {
         this.fieldDelimiter = fieldDelimiter;
     }
 

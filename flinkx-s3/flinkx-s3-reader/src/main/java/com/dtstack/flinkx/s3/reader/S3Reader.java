@@ -37,11 +37,6 @@ public class S3Reader extends BaseDataReader{
         }
 
 
-        if(!",".equals(s3Config.getFieldDelimiter())){
-            String fieldDelimiter = StringUtil.convertRegularExpr(s3Config.getFieldDelimiter());
-            s3Config.setFieldDelimiter(fieldDelimiter);
-        }
-
         List columns = readerConfig.getParameter().getColumn();
         metaColumns = MetaColumn.getMetaColumns(columns, false);
     }

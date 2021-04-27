@@ -14,7 +14,7 @@
               {
                 "name": "id",
                 "index": 0,
-                "type": "string"
+                "type": "int"
               },
               {
                 "name": "value1",
@@ -47,7 +47,7 @@
               }
             ],
             "postSql": [],
-            "batchSize": 0,
+            "batchSize": 100,
             "writeMode": "insert",
             "column": [
               {
@@ -76,10 +76,11 @@
         "record": 100
       },
       "restore": {
-        "maxRowNumForCheckpoint": 0,
+        "maxRowNumForCheckpoint": 100,
+        "isStream" : true,
         "isRestore": true,
         "restoreColumnName" : "id",
-        "restoreColumnIndex" : 0
+        "restoreColumnIndex" : 1
       },
       "log": {
         "isLogger": false,
