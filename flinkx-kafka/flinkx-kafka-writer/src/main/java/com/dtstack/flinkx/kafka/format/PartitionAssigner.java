@@ -38,7 +38,7 @@ public class PartitionAssigner implements Partitioner {
             return 0;
         }
         Integer partitionCountForTopic = cluster.partitionCountForTopic(topic);
-        return Math.abs(key.toString().hashCode() % partitionCountForTopic);
+        return index(key, partitionCountForTopic);
     }
 
     @Override
@@ -49,5 +49,17 @@ public class PartitionAssigner implements Partitioner {
     @Override
     public void configure(Map<String, ?> map) {
 
+    }
+
+    /**
+     * 根据key做分区策略
+     * @param key key
+     * @param partition 分区数
+     * @return
+     */
+    public int index(Object key, Integer partition){
+        int hash = key.hashCode();
+        hash = hash ^ (hash >>> 16);
+        return hash & (partition - 1);
     }
 }
