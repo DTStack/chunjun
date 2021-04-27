@@ -332,6 +332,11 @@ public class LogMinerConnection {
         }
     }
 
+    /**
+     * 根据rollback的信息 找出对应的dml语句
+     * @param recordLog
+     * @param sql
+     */
     public void queryDataForDeleteRollback(RecordLog recordLog, String sql) {
         try {
             closeStmt();

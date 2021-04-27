@@ -256,7 +256,7 @@ public class SqlUtil {
 
 
 
-    /** 查找delete的rollback语句对应的insert语句  存在一个事务里rowid相同的 所以需要子查询过滤掉scn相同rowid相同的语句*/
+    /** 查找delete的rollback语句对应的insert语句  存在一个事务里rowid相同的其他语句 所以需要子查询过滤掉scn相同rowid相同的语句(这是一对rollback和DML)*/
     public static String queryDataForRollback =
             "SELECT\n" +
             "    scn,\n" +
