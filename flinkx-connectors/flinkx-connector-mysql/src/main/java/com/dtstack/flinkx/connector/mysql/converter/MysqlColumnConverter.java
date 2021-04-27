@@ -24,9 +24,9 @@ import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
+import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 
-import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Locale;
@@ -42,24 +42,42 @@ public class MysqlColumnConverter extends MysqlRowConverter {
         super.toInternalConverters = new DeserializationConverter[typeList.size()];
         super.toExternalConverters = new SerializationConverter[typeList.size()];
         for (int i = 0; i < typeList.size(); i++) {
-            toInternalConverters[i] = createInternalConverter(typeList.get(i));
+            toInternalConverters[i] = createInternalConverter(typeList.get(i), i + 1);
             toExternalConverters[i] = createExternalConverter(typeList.get(i));
         }
     }
 
-    protected DeserializationConverter<Object> createInternalConverter(String type) {
+    protected DeserializationConverter<ResultSet> createInternalConverter(String type, int index) {
         switch (type.toLowerCase(Locale.ENGLISH)) {
+            case "bit":
+                return val -> new BooleanColumn(val.getBoolean(index));
+            case "tinyint":
+                return val -> new BigDecimalColumn(val.getByte(index));
+            case "smallint":
+            case "mediumint":
             case "int":
+            case "int24":
             case "integer":
-                return val -> {
-                    BigDecimal bigDecimal = new BigDecimal(val+"");
-                    return new BigDecimalColumn(bigDecimal);
-                };
+                return val -> new BigDecimalColumn(val.getInt(index));
+            case "double":
+                return val -> new BigDecimalColumn(val.getDouble(index));
+            case "float":
+                return val -> new BigDecimalColumn(val.getFloat(index));
+            case "long":
+                return val -> new BigDecimalColumn(val.getLong(index));
+            case "decimal":
+            case "numeric":
+                return val -> new BigDecimalColumn(val.getBigDecimal(index));
+            case "char":
+            case "varchar":
+                return val -> new StringColumn(val.getString(index));
+            case "DATE":
+            case "TIME":
+            case "YEAR":
+            case "TIMESTAMP":
+            case "DATETIME":
             default:
-                return val -> {
-                    String string = "xxx";
-                    return new StringColumn(string);
-                };
+                return val -> new StringColumn(val.toString());
         }
     }
 
@@ -70,7 +88,8 @@ public class MysqlColumnConverter extends MysqlRowConverter {
             case "integer":
                 return (val, index, statement) -> statement.setInt(index, val.getInt(index));
             default:
-                return (val, index, statement) -> statement.setObject(index, val.getString(index).toString());
+                return (val, index, statement) ->
+                        statement.setObject(index, val.getString(index).toString());
         }
     }
 
@@ -78,8 +97,7 @@ public class MysqlColumnConverter extends MysqlRowConverter {
     public RowData toInternal(ResultSet resultSet) throws Exception {
         ColumnRowData data = new ColumnRowData(toInternalConverters.length);
         for (int i = 0; i < toInternalConverters.length; i++) {
-            Object field = resultSet.getObject(i + 1);
-            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
+            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(resultSet));
         }
         return data;
     }

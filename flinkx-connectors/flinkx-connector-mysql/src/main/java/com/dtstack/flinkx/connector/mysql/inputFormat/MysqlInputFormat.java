@@ -19,19 +19,11 @@
 package com.dtstack.flinkx.connector.mysql.inputFormat;
 
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.StringData;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormat;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
- * Date: 2021/04/12
- * Company: www.dtstack.com
+ * Date: 2021/04/12 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -41,41 +33,5 @@ public class MysqlInputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
         setRowConverter(jdbcDialect.getRowConverter(columnTypeList));
-    }
-
-    @Override
-    public RowData nextRecordInternal(RowData rowData) throws IOException {
-        if (!hasNext) {
-            return null;
-        }
-
-        try {
-            // TODO 如果没常量可以不调用
-            RowData rawRowData = rowConverter.toInternal(resultSet);
-            // GenericRowData finalRowData = loadConstantData(rawRowData);
-            return super.nextRecordInternal(rawRowData);
-        }catch (Exception e) {
-            throw new IOException("Couldn't read data - " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 填充常量
-     * @param rawRowData
-     * @return
-     */
-    protected GenericRowData loadConstantData(GenericRowData rawRowData) {
-        int len = finalFieldTypes.size();
-        List<FieldConf> fieldConfs = jdbcConf.getColumn();
-        GenericRowData finalRowData = new GenericRowData(len);
-        for (int i = 0; i < len; i++) {
-            String val = fieldConfs.get(i).getValue();
-            if (val != null) {
-                finalRowData.setField(i, StringData.fromString(val));
-            } else {
-                finalRowData.setField(i, rawRowData.getField(i));
-            }
-        }
-        return finalRowData;
     }
 }

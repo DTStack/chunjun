@@ -22,10 +22,7 @@ package com.dtstack.flinkx.connector.jdbc.inputFormat;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.StringData;
-import org.apache.flink.table.types.logical.LogicalType;
 
-import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
@@ -33,6 +30,8 @@ import com.dtstack.flinkx.connector.jdbc.splits.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metrics.BigIntegerAccmulator;
@@ -43,7 +42,6 @@ import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.StringUtil;
-import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -137,32 +135,7 @@ public abstract class JdbcInputFormat extends BaseRichInputFormat {
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
     }
 
-    // TODO 可以和OutputFormat统一，根据表名获取元数据信息。
-    public LogicalType getLogicalType(RawTypeConverter rawTypeConverter) throws SQLException {
-        // TODO 从元数据中获取数据类型，如果获取不到元数据信息应该从用户JSON配置中获取
-        try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement(resultSetType, resultSetConcurrency)) {
-            jdbcConf.setQuerySql(buildQuerySql(null));
-            conn.setAutoCommit(false);
-            stmt.setFetchSize(jdbcConf.getFetchSize());
-            stmt.setQueryTimeout(jdbcConf.getQueryTimeOut());
-            ResultSet rs = stmt.executeQuery(jdbcConf.getQuerySql());
-            ResultSetMetaData rd = rs.getMetaData();
-             List<String> rawFieldTypes = new ArrayList<>();
-             List<String> rawFieldNames = new ArrayList<>();
-            for (int i = 0; i < rd.getColumnCount(); ++i) {
-                String rawType = rd.getColumnTypeName(i + 1);
-                String rawName = rd.getColumnName(i + 1);
-                rawFieldNames.add(rawName);
-                rawFieldTypes.add(rawType);
-            }
-            return TableUtil.createRowType(rawFieldNames, rawFieldTypes, rawTypeConverter);
-        }
-        // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
-    }
-
     protected void analyzeMetaData() {
-
         try {
             ResultSetMetaData rd = resultSet.getMetaData();
             Map<String, String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
@@ -250,28 +223,14 @@ public abstract class JdbcInputFormat extends BaseRichInputFormat {
 
     @Override
     public RowData nextRecordInternal(RowData rowData) throws IOException {
+        if (!hasNext) {
+            return null;
+        }
         try {
             // todo 抽到DB2插件里面
 //            updateColumnCount();
-            // List<FieldConf> metaColumns = jdbcConf.getColumn();
-            // if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
-            //     for (int i = 0; i < columnCount; i++) {
-            //         Object val;
-            //         if (metaColumns.get(i).getValue() != null) {
-            //             val = metaColumns.get(i).getValue();
-            //         } else {
-            //             val = ((GenericRowData) rowData).getField(i);
-            //         }
-            //         // TODO 改成StringData类型才能判断
-            //         if (val instanceof StringData) {
-            //             val = StringUtil.string2col(
-            //                     val.toString(),
-            //                     metaColumns.get(i).getType(),
-            //                     metaColumns.get(i).getTimeFormat());
-            //             ((GenericRowData) rowData).setField(i, val);
-            //         }
-            //     }
-            // }
+            RowData rawRowData = rowConverter.toInternal(resultSet);
+            RowData finalRowData = loadConstantData(rawRowData);
 
             boolean isUpdateLocation =
                     jdbcConf.isPolling() || (jdbcConf.isIncrement() && !jdbcConf.isUseMaxFunc());
@@ -295,8 +254,8 @@ public abstract class JdbcInputFormat extends BaseRichInputFormat {
             }
 
             hasNext = resultSet.next();
-            lastRow = rowData;
-            return rowData;
+            lastRow = finalRowData;
+            return finalRowData;
         } catch (SQLException se) {
             throw new IOException("Couldn't read data - " + se.getMessage(), se);
         } catch (Exception npe) {
@@ -932,6 +891,33 @@ public abstract class JdbcInputFormat extends BaseRichInputFormat {
                 columnCount = columnCount - 1;
             }
         }
+    }
+
+    /**
+     * 填充常量 { "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
+     *
+     * @param rawRowData
+     * @return
+     */
+    protected RowData loadConstantData(RowData rawRowData) {
+        int len = finalFieldTypes.size();
+        List<FieldConf> fieldConfs = jdbcConf.getColumn();
+        ColumnRowData finalRowData = new ColumnRowData(len);
+        for (int i = 0; i < len; i++) {
+            String val = fieldConfs.get(i).getValue();
+            // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
+            if (val != null) {
+                String value =
+                        StringUtil.string2col(
+                                val,
+                                fieldConfs.get(i).getType(),
+                                fieldConfs.get(i).getTimeFormat()).toString();
+                finalRowData.addField(new StringColumn(value));
+            } else {
+                finalRowData.addField(((ColumnRowData) rawRowData).getField(i));
+            }
+        }
+        return finalRowData;
     }
 
     public JdbcConf getJdbcConf() {

@@ -36,6 +36,22 @@ public class BigDecimalColumn extends AbstractBaseColumn {
         super(data);
     }
 
+    public BigDecimalColumn(int data) {
+        super(data);
+    }
+
+    public BigDecimalColumn(double data) {
+        super(data);
+    }
+
+    public BigDecimalColumn(float data) {
+        super(data);
+    }
+
+    public BigDecimalColumn(long data) {
+        super(data);
+    }
+
     @Override
     public int getByteSize(Object data) {
         return null == data ? 0 : data.toString().getBytes(StandardCharsets.UTF_8).length;
