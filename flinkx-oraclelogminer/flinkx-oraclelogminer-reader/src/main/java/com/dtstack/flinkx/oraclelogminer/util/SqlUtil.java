@@ -156,10 +156,14 @@ public class SqlUtil {
 //            "    commit_scn,\n" +
             "    timestamp,\n" +
             "    operation,\n" +
+            "    operation_code,\n" +
             "    seg_owner,\n" +
             "    table_name,\n" +
             "    sql_redo,\n" +
+            "    sql_undo,\n" +
+            "    xidsqn,\n" +
             "    row_id,\n" +
+            "    rollback,\n" +
             "    csf\n" +
             "FROM\n" +
             "    v$logmnr_contents\n" +
@@ -249,6 +253,29 @@ public class SqlUtil {
             "  SYS.DBMS_LOGMNR.start_logmnr(       options =>          SYS.DBMS_LOGMNR.skip_corruption        + SYS.DBMS_LOGMNR.no_sql_delimiter        + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n"+
             "  + SYS.DBMS_LOGMNR.dict_from_online_catalog    );\n"+
             "   end;";
+
+
+
+    /** 查找delete的rollback语句对应的insert语句  存在一个事务里rowid相同的 所以需要子查询过滤掉scn相同rowid相同的语句*/
+    public static String queryDataForRollback =
+            "SELECT\n" +
+            "    scn,\n" +
+            "    sql_redo,\n" +
+            "    sql_undo,\n" +
+            "    csf  \n" +
+            "FROM\n" +
+            "   v$logmnr_contents a \n"+
+            "where \n"+
+                "scn <=?  and row_id=? and table_name = ?  and rollback =? and OPERATION_CODE =? \n"+
+                "and scn not in (select scn from  v$logmnr_contents where row_id =  ? and scn !=?  group by scn HAVING count(scn) >1 and sum(rollback)>0) \n";
+
+    //查找加载到logminer的日志文件
+    public final static String SQL_QUERY_ADDED_LOG = "select filename ,thread_id ,low_scn,next_scn,type,filesize,status from  V$LOGMNR_LOGS ";
+
+    //移除logminer加载的日志文件
+    public final static String SQL_REMOVE_ADDED_LOG = "SYS.DBMS_LOGMNR.add_logfile(LogFileName=>?, Options=>dbms_logmnr.removefile) ";
+
+
 
     public final static String SQL_STOP_LOG_MINER = "BEGIN SYS.DBMS_LOGMNR.END_LOGMNR; end;";
 

@@ -34,6 +34,9 @@ public class LogFile {
 
     private Long thread;
 
+    /** 日志文件状态 https://docs.oracle.com/cd/B12037_01/server.101/b10755/dynviews_1132.htm  V$LOGMNR_LOGS里的status */
+    private int status;
+
     /** 文件大小  **/
     private Long bytes;
 
@@ -75,6 +78,14 @@ public class LogFile {
 
     public void setBytes(Long bytes) {
         this.bytes = bytes;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 
     @Override
