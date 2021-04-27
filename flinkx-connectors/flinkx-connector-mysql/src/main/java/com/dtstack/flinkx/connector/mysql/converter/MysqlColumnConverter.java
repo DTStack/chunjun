@@ -18,14 +18,13 @@
 
 package com.dtstack.flinkx.connector.mysql.converter;
 
-import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.element.ColumnRowData;
-
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.element.BigDecimalColumn;
-import com.dtstack.flinkx.element.StringColumn;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.BigDecimalColumn;
+import com.dtstack.flinkx.element.column.StringColumn;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;

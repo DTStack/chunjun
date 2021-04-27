@@ -15,8 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.element;
+package com.dtstack.flinkx.element.column;
 
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -33,11 +34,11 @@ import java.util.Date;
  *
  * @author tudou
  */
-public class StringColumn extends AbstractBaseColumn{
+public class StringColumn extends AbstractBaseColumn {
 
     private SimpleDateFormat formatter;
 
-    public StringColumn(Object data) {
+    public StringColumn(String data) {
         super(data);
     }
 
@@ -56,7 +57,6 @@ public class StringColumn extends AbstractBaseColumn{
         if (null == data) {
             return null;
         }
-
         return (String) data;
     }
 
@@ -86,17 +86,16 @@ public class StringColumn extends AbstractBaseColumn{
             }
             return DateUtil.columnToDate(this.asString(), formatter);
         } catch (Exception e) {
-            throw new RuntimeException(String.format("String[\"%s\"]不能转为Date.", this.asString()));
+            throw new RuntimeException(String.format("String[\"%s\"]can not cast to Date.", this.asString()));
         }
     }
 
     @Override
     public byte[] asBytes() {
-        try {
-            return this.asString().getBytes();
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("String[\"%s\"]不能转为Bytes.", this.asString()));
+        if (null == data) {
+            return null;
         }
+        return ((String) data).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
@@ -120,7 +119,7 @@ public class StringColumn extends AbstractBaseColumn{
             return false;
         }
 
-        throw new RuntimeException(String.format("String[\"%s\"]不能转为Bool.", this.asString()));
+        throw new RuntimeException(String.format("String[\"%s\"] can not cast to Boolean.", this.asString()));
     }
 
     @Override
@@ -134,14 +133,14 @@ public class StringColumn extends AbstractBaseColumn{
         try {
             return new BigDecimal(this.asString());
         } catch (Exception e) {
-            throw new RuntimeException(String.format("String [\"%s\"] 不能转为BigDecimal.", this.asString()));
+            throw new RuntimeException(String.format("String [\"%s\"]can not cast to BigDecimal.", this.asString()));
         }
     }
 
     @Override
     public Timestamp asTimestamp() {
         //todo
-        throw new UnsupportedOperationException(String.format("String [\"%s\"] 不能转为[Timestamp]类型", this.asString()));
+        throw new UnsupportedOperationException(String.format("String [\"%s\"]can not cast to Timestamp", this.asString()));
     }
 
     private void validateDoubleSpecific(final String data) {

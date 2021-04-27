@@ -26,6 +26,8 @@ import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.types.RowKind;
 
+import com.dtstack.flinkx.enums.OperationType;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,10 @@ public final class ColumnRowData implements RowData {
     private final List<AbstractBaseColumn> fields;
 
     private RowKind kind;
+    private String database;
+    private String schema;
+    private String table;
+    private OperationType operationType;
 
     public ColumnRowData(RowKind kind, int arity) {
         this.fields = new ArrayList<>(arity);
@@ -162,5 +168,29 @@ public final class ColumnRowData implements RowData {
     @Override
     public RowData getRow(int pos, int numFields) {
         return null;
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
+    }
+
+    public String getTable() {
+        return table;
+    }
+
+    public void setTable(String table) {
+        this.table = table;
     }
 }

@@ -21,9 +21,9 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.element.BigDecimalColumn;
+import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.StringColumn;
+import com.dtstack.flinkx.element.column.StringColumn;
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;

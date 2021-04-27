@@ -40,17 +40,43 @@ public abstract class AbstractBaseColumn implements Serializable {
 
     public abstract int getByteSize(Object data);
 
-    public abstract String asString();
-
-    public abstract Date asDate();
+    public abstract Boolean asBoolean();
 
     public abstract byte[] asBytes();
 
-    public abstract Boolean asBoolean();
+    public abstract String asString();
 
     public abstract BigDecimal asBigDecimal();
 
     public abstract Timestamp asTimestamp();
+
+    public short asShort(){
+        return this.asBigDecimal().shortValue();
+    }
+
+    public int asInt() {
+        return this.asBigDecimal().intValue();
+    }
+
+    public long asLong() {
+        return this.asBigDecimal().longValue();
+    }
+
+    public float asFloat() {
+        return this.asBigDecimal().floatValue();
+    }
+
+    public double asDouble(){
+        return this.asBigDecimal().doubleValue();
+    }
+
+    public Date asDate() {
+        return new Date(this.asTimestamp().getTime());
+    }
+
+    public byte[] asBinary() {
+        return this.asBytes();
+    }
 
     public Object getData() {
         return data;
