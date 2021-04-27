@@ -344,7 +344,9 @@ public abstract class BaseRichOutputFormat extends org.apache.flink.api.common.i
             if(!restoreConfig.isRestore() || isStreamButNoWriteCheckpoint()){
                 numWriteCounter.add(1);
                 snapshotWriteCounter.add(1);
-                formatState.setJobId(jobId);
+                if(formatState != null) {
+                    formatState.setJobId(jobId);
+                }
             }
         } catch(WriteRecordException e) {
             saveErrorData(row, e);
