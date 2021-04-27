@@ -708,9 +708,9 @@ public class LogMinerConnection {
                     }
                 }
 
-                if(undoLog.length() == 0){
-                    //没有查找到对应的insert语句 会加delete where rowid=xxx 语句作为redoLog
-                    LOG.warn("没有查找到undoLog");
+                if(undoLog.length() != 0){
+                    //没有查找到对应的insert语句 会将delete where rowid=xxx 语句作为redoLog
+                    LOG.warn("has not found undoLog for scn {}",scn);
                 }else{
                     sqlRedo = undoLog;
                 }
@@ -724,13 +724,15 @@ public class LogMinerConnection {
                 while (isSqlNotEnd) {
                     logMinerData.next();
                     //redoLog 实际上不需要发生切割  但是sqlUndo发生了切割，导致redolog值为null
-                    if (Objects.nonNull(logMinerData.getString(KEY_SQL_REDO))) {
-                        sqlRedo.append(logMinerData.getString(KEY_SQL_REDO));
-                    }
-                    if (Objects.nonNull(logMinerData.getString(KEY_SQL_UNDO))) {
-                        sqlUndo.append(logMinerData.getString(KEY_SQL_UNDO));
+                    String sqlRedoValue = logMinerData.getString(KEY_SQL_REDO);
+                    if (Objects.nonNull(sqlRedoValue)) {
+                        sqlRedo.append(sqlRedoValue);
                     }
 
+                    String sqlUndoValue = logMinerData.getString(KEY_SQL_UNDO);
+                    if (Objects.nonNull(sqlUndoValue)) {
+                        sqlUndo.append(sqlUndoValue);
+                    }
                     isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
                 }
             }
@@ -787,7 +789,7 @@ public class LogMinerConnection {
             result = new QueueData(scn, data);
 
             //解析的数据放入缓存
-            putCache(new RecordLog(scn, sqlUndo.toString(), sqlLog, xidSqn, rowId, operationCode,hasMultiSql,tableName));
+            putCache(new RecordLog(scn, sqlUndo.toString(), sqlLog, xidSqn, rowId, operationCode, hasMultiSql, tableName));
             return true;
         }
 
