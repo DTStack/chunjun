@@ -24,8 +24,10 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
-import com.dtstack.flinkx.connector.stream.converter.StreamConverter;
+import com.dtstack.flinkx.connector.stream.converter.StreamBaseConverter;
+import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.sink.BaseDataSink;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
@@ -37,7 +39,7 @@ import com.dtstack.flinkx.util.TableUtil;
  * @author tudou
  */
 public class StreamSink extends BaseDataSink {
-    private StreamSinkConf streamSinkConf;
+    private final StreamSinkConf streamSinkConf;
 
     public StreamSink(SyncConf config) {
         super(config);
@@ -50,8 +52,15 @@ public class StreamSink extends BaseDataSink {
     public DataStreamSink<RowData> writeData(DataStream<RowData> dataSet) {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
         builder.setStreamSinkConf(streamSinkConf);
-        final RowType rowType = (RowType) TableUtil.getDataType(streamSinkConf.getColumn()).getLogicalType();
-        builder.setConverter(new StreamConverter(rowType));
+        AbstractRowConverter converter;
+        if(useAbstractBaseColumn){
+            converter = new StreamColumnConverter();
+        }else{
+            final RowType rowType = (RowType) TableUtil.getDataType(streamSinkConf.getColumn()).getLogicalType();
+            converter = new StreamBaseConverter(rowType);
+        }
+
+        builder.setConverter(converter);
         return createOutput(dataSet, builder.finish());
     }
 }

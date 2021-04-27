@@ -24,7 +24,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
@@ -35,7 +34,6 @@ import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import java.sql.SQLException;
 import java.util.Collections;
 
 /**
@@ -49,6 +47,7 @@ public abstract class BaseDataSource {
     protected StreamExecutionEnvironment env;
     protected SyncConf syncConf;
     protected TypeInformation<RowData> typeInformation;
+    protected boolean useAbstractBaseColumn = true;
 
     protected BaseDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
         this.env = env;
@@ -58,6 +57,7 @@ public abstract class BaseDataSource {
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
         }else{
             typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList());
+            useAbstractBaseColumn = false;
         }
     }
 

@@ -48,6 +48,7 @@ public abstract class BaseDataSink {
 
     protected SyncConf syncConf;
     protected TypeInformation<RowData> typeInformation;
+    protected boolean useAbstractBaseColumn = true;
 
     @SuppressWarnings("unchecked")
     public BaseDataSink(SyncConf syncConf) {
@@ -60,8 +61,9 @@ public abstract class BaseDataSink {
 
         if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
-        }else{
+        } else {
             typeInformation = TableUtil.getTypeInformation(fieldList);
+            useAbstractBaseColumn = false;
         }
     }
 

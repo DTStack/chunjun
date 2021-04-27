@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.stream.source;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.streaming.api.functions.source.datagen.DataGenerator;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -30,13 +29,12 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.connector.stream.converter.StreamConverter;
+import com.dtstack.flinkx.connector.stream.converter.StreamBaseConverter;
 import com.dtstack.flinkx.connector.stream.inputFormat.StreamInputFormatBuilder;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,15 +46,12 @@ import java.util.stream.Collectors;
 
 public class StreamDynamicTableSource implements ScanTableSource {
 
-    private final DataGenerator<?>[] fieldGenerators;
     private final TableSchema schema;
     private final Long numberOfRows;
 
     public StreamDynamicTableSource(
-            DataGenerator<?>[] fieldGenerators,
             TableSchema schema,
             Long numberOfRows) {
-        this.fieldGenerators = fieldGenerators;
         this.schema = schema;
         this.numberOfRows = numberOfRows;
     }
@@ -66,23 +61,27 @@ public class StreamDynamicTableSource implements ScanTableSource {
         final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
-        StreamConf streamConf = new StreamConf();
-
-        List<FieldConf> fieldConfList = Arrays
-                .stream(schema.getFieldNames())
-                .map(e -> {
-                    FieldConf fieldConf = new FieldConf();
-                    fieldConf.setName(e);
-                    return fieldConf;
-                }).collect(Collectors.toList());
+        List<FieldConf> fieldConfList = schema.getTableColumns().stream()
+                .map(
+                        e -> {
+                            FieldConf fieldConf = new FieldConf();
+                            fieldConf.setName(e.getName());
+                            String name = e.getType().getConversionClass().getName();
+                            String[] fieldType = name.split("\\.");
+                            String type = fieldType[fieldType.length-1];
+                            fieldConf.setType(type);
+                            return fieldConf;
+                        })
+                .collect(Collectors.toList());
         List<Long> sliceRecordCount = new ArrayList<>();
         sliceRecordCount.add(numberOfRows);
 
-        StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
-        builder.setAbstractRowConverter(new StreamConverter(rowType));
-        builder.setFieldGenerators(fieldGenerators);
-        streamConf.setColumn(fieldConfList);
+        StreamConf streamConf = new StreamConf();
         streamConf.setSliceRecordCount(sliceRecordCount);
+        streamConf.setColumn(fieldConfList);
+
+        StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
+        builder.setAbstractRowConverter(new StreamBaseConverter(rowType));
         builder.setStreamConf(streamConf);
 
         return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
@@ -91,7 +90,6 @@ public class StreamDynamicTableSource implements ScanTableSource {
     @Override
     public DynamicTableSource copy() {
         return new StreamDynamicTableSource(
-                this.fieldGenerators,
                 this.schema,
                 this.numberOfRows);
     }
