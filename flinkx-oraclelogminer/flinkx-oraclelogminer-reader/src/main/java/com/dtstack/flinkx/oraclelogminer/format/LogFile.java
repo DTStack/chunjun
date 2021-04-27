@@ -37,6 +37,8 @@ public class LogFile {
     /** 日志文件状态 https://docs.oracle.com/cd/B12037_01/server.101/b10755/dynviews_1132.htm  V$LOGMNR_LOGS里的status */
     private int status;
 
+    private String type;
+
     /** 文件大小  **/
     private Long bytes;
 
@@ -88,6 +90,14 @@ public class LogFile {
         this.status = status;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         return "LogFile{" +
@@ -96,6 +106,7 @@ public class LogFile {
                 ", nextChange=" + nextChange +
                 ", thread=" + thread +
                 ", bytes=" + bytes +
+                ", type=" + type +
                 '}';
     }
 

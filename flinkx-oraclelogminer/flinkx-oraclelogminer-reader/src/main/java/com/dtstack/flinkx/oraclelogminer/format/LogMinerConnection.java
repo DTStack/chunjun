@@ -72,6 +72,7 @@ public class LogMinerConnection {
     public static final String KEY_GRANTED_ROLE = "GRANTED_ROLE";
 
     public static final String DBA_ROLE = "DBA";
+    public static final String LOG_TYPE_ARCHIVED = "ARCHIVED";
     public static final String EXECUTE_CATALOG_ROLE = "EXECUTE_CATALOG_ROLE";
 
     public static final int ORACLE_11_VERSION = 11;
@@ -139,7 +140,7 @@ public class LogMinerConnection {
     /**缓存的结构为  xidsqn(事务id)+rowId,scn**/
     Cache<String, LinkedHashMap<BigDecimal, RecordLog>> insertRecordCache = CacheBuilder.newBuilder()
             .maximumSize(1000)
-            .expireAfterWrite(30, TimeUnit.MINUTES)
+            .expireAfterWrite(20, TimeUnit.MINUTES)
             .build();
     /**
      * minScn 和maxScn 其实保证了此范围内的数据一定都加载到了logminer中
@@ -641,7 +642,7 @@ public class LogMinerConnection {
     /**
      * 获取logminer加载的日志文件
      */
-    private  List<LogFile> queryAddedLogFiles(){
+    private List<LogFile> queryAddedLogFiles() throws SQLException {
         List<LogFile> logFileLists = new ArrayList<>();
         try(PreparedStatement statement = connection.prepareStatement(SqlUtil.SQL_QUERY_ADDED_LOG)) {
            try(ResultSet rs = statement.executeQuery()) {
@@ -657,8 +658,6 @@ public class LogMinerConnection {
                }
                LOG.info("The log file loaded by logminer has changed, new log group = {}", GsonUtil.GSON.toJson(logFileLists));
            }
-        } catch (Exception e) {
-            LOG.warn("Failed to find log file loaded by logminer" + ExceptionUtil.getErrorMessage(e));
         }
         return logFileLists;
     }
@@ -708,7 +707,7 @@ public class LogMinerConnection {
                     }
                 }
 
-                if(undoLog.length() != 0){
+                if(undoLog.length() == 0){
                     //没有查找到对应的insert语句 会将delete where rowid=xxx 语句作为redoLog
                     LOG.warn("has not found undoLog for scn {}",scn);
                 }else{
@@ -956,6 +955,7 @@ public class LogMinerConnection {
 
     /**
      * 从缓存的insert语句里找到rollback语句对应的DML语句
+     * 如果查找到 需要删除对应的缓存信息
      * @param key xidSqn+rowid
      * @param scn scn of rollback
      * @return insert Log
@@ -968,11 +968,18 @@ public class LogMinerConnection {
         //根据scn号查找 如果scn号相同 则取此对应的DML语句
         RecordLog recordLog = recordMap.get(scn);
         if (Objects.isNull(recordLog)) {
-            //如果scn相同的DML语句没有 则取同一个事务里rowId相同的
+            //如果scn相同的DML语句没有 则取同一个事务里rowId相同的最后一个
             Iterator<Map.Entry<BigDecimal, RecordLog>> iterator = recordMap.entrySet().iterator();
-            if (iterator.hasNext()) {
-                recordLog =  iterator.next().getValue();
+            Map.Entry<BigDecimal, RecordLog> tail = null;
+            while (iterator.hasNext()) {
+                tail = iterator.next();
             }
+             if(Objects.nonNull(tail)){
+                 recordLog = tail.getValue();
+                 recordMap.remove(tail.getKey());
+             }
+        } else {
+            recordMap.remove(scn);
         }
         LOG.info("query a insert sql for rollback in cache,rollback scn is {}",scn);
         return recordLog;
@@ -991,8 +998,8 @@ public class LogMinerConnection {
             queryDataForRollbackConnection.connect();
         }
 
-        //不需要每次拉起一个新的queryDataForRollbackConnection  只需要移除加载的日志文件即可 status为4的 其实是logminer提示缺少日志文件 https://docs.oracle.com/cd/B12037_01/server.101/b10755/dynviews_1132.htm
-        List<LogFile> files = queryAddedLogFiles().stream().filter(i -> i.getStatus() != 4).collect(Collectors.toList());
+        //不需要每次拉起一个新的queryDataForRollbackConnection  只需要移除加载的日志文件即可 (status为4的 其实是logminer提示缺少日志文件) https://docs.oracle.com/cd/B12037_01/server.101/b10755/dynviews_1132.htm
+        List<LogFile> files = queryDataForRollbackConnection.queryAddedLogFiles().stream().filter(i -> i.getStatus() != 4).collect(Collectors.toList());
         if(CollectionUtils.isNotEmpty(files)){
             for (LogFile file : files) {
                 try{
@@ -1004,16 +1011,18 @@ public class LogMinerConnection {
             }
         }
 
+        //查找出当前加载归档日志文件里的最小scn  递归查找此scn之前的文件
+        List<LogFile> logFiles = queryAddedLogFiles().stream().filter(i->i.getStatus() != 4 && i.getType().equalsIgnoreCase(LOG_TYPE_ARCHIVED)).collect(Collectors.toList());
 
-        //查找出当前加载日志文件里的最小scn  递归查找此scn之前的文件
-        List<LogFile> logFiles = queryAddedLogFiles().stream().sorted(Comparator.comparing(LogFile::getFirstChange)).collect(Collectors.toList());
         //默认每次往前查询4000个scn
-        BigDecimal startScn = rollbackRecord.getScn().subtract(new BigDecimal(4000));
-        BigDecimal endScn = rollbackRecord.getScn();
-        //nextChange-firstChange 为一个文件包含多少的scn，将其*2 代表加载此scn之前2个文件
+        BigDecimal step = new BigDecimal(4000);
         if (CollectionUtils.isNotEmpty(logFiles)) {
-            startScn = logFiles.get(0).getFirstChange().subtract((logFiles.get(0).getNextChange().subtract( logFiles.get(0).getFirstChange())).multiply(new BigDecimal(2)));
+            //nextChange-firstChange 为一个文件包含多少的scn，将其*2 代表加载此scn之前2个文件
+            step = logFiles.get(0).getNextChange().subtract(logFiles.get(0).getFirstChange()).multiply(new BigDecimal(2));
         }
+
+        BigDecimal startScn = rollbackRecord.getScn().subtract(step);
+        BigDecimal endScn = rollbackRecord.getScn();
 
         for (int i = 0; i < 10; i++) {
             queryDataForRollbackConnection.startOrUpdateLogminer(startScn, endScn);
@@ -1027,7 +1036,7 @@ public class LogMinerConnection {
                 }
             }
             endScn = startScn;
-            startScn = logFiles.get(0).getFirstChange().subtract((logFiles.get(0).getNextChange().subtract(logFiles.get(0).getFirstChange())).multiply(new BigDecimal(2)));
+            startScn = startScn.subtract(step);
         }
         return null;
     }
