@@ -25,4 +25,10 @@ import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
  *
  * @author tudou
  */
-public class MysqlOutputFormat extends JdbcOutputFormat {}
+public class MysqlOutputFormat extends JdbcOutputFormat {
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) {
+        super.openInternal(taskNumber, numTasks);
+        setRowConverter(jdbcDialect.getRowConverter(columnType));
+    }
+}

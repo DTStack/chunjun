@@ -21,10 +21,7 @@ package com.dtstack.flinkx.connector.jdbc.sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
@@ -33,13 +30,11 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
-import com.dtstack.flinkx.util.TableUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.util.Properties;
 
 /**
@@ -75,26 +70,8 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
         builder.setBatchSize(jdbcConf.getBatchSize());
-        if (syncConf.getTransformer() != null) {
-            try {
-                LogicalType rowType =
-                        TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
-                builder.setRowConverter(jdbcDialect.getRowConverter((RowType) rowType));
-            } catch (SQLException e) {
-                LOG.error("", e);
-            }
-        } else {
-            builder.setRowConverter(jdbcDialect.getRowConverter(null));
-        }
         return createOutput(dataSet, builder.finish());
     }
-
-    /**
-     * 具体数据库类型的映射器
-     *
-     * @return
-     */
-    public abstract RawTypeConverter getRawTypeConverter();
 
     /**
      * 获取JDBC插件的具体outputFormatBuilder

@@ -22,16 +22,11 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormat;
-import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
-import com.dtstack.flinkx.util.TableUtil;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -45,12 +40,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
-        try {
-            LogicalType rowType = TableUtil.createRowType(rawFieldNames, rawFieldTypes, MysqlTypeConverter::apply);
-            setRowConverter(jdbcDialect.getRowConverter((RowType) rowType));
-        } catch (SQLException e) {
-            LOG.error("", e);
-        }
+        setRowConverter(jdbcDialect.getRowConverter(columnTypeList));
     }
 
     @Override
@@ -61,9 +51,9 @@ public class MysqlInputFormat extends JdbcInputFormat {
 
         try {
             // TODO 如果没常量可以不调用
-            GenericRowData rawRowData = (GenericRowData) jdbcRowConverter.toInternal(resultSet);
-            GenericRowData finalRowData = loadConstantData(rawRowData);
-            return super.nextRecordInternal(finalRowData);
+            RowData rawRowData = rowConverter.toInternal(resultSet);
+            // GenericRowData finalRowData = loadConstantData(rawRowData);
+            return super.nextRecordInternal(rawRowData);
         }catch (Exception e) {
             throw new IOException("Couldn't read data - " + e.getMessage(), e);
         }

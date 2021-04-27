@@ -26,6 +26,7 @@ import org.apache.flink.table.types.logical.RowType;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -58,6 +59,13 @@ public interface JdbcDialect extends Serializable {
      * @return a row converter for the database
      */
     AbstractJdbcRowConverter getRowConverter(RowType rowType);
+
+    /**
+     * ColumnConverter
+     *
+     * @return a row converter for the database
+     */
+    AbstractJdbcRowConverter getRowConverter(List<String> typeList);
 
     /**
      * Check if this dialect instance support a specific data type in table schema.

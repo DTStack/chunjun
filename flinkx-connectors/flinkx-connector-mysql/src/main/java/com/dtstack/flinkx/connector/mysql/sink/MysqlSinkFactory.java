@@ -17,12 +17,10 @@
  */
 package com.dtstack.flinkx.connector.mysql.sink;
 
-import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.mysql.MysqlDialect;
-import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
 import com.dtstack.flinkx.connector.mysql.outputFormat.MysqlOutputFormat;
 
 /**
@@ -35,11 +33,6 @@ public class MysqlSinkFactory extends JdbcSinkFactory {
     public MysqlSinkFactory(SyncConf syncConf) {
         super(syncConf);
         super.jdbcDialect = new MysqlDialect();
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return MysqlTypeConverter::apply;
     }
 
     @Override

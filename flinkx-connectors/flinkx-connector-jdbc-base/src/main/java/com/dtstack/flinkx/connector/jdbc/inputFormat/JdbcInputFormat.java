@@ -29,7 +29,6 @@ import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.splits.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -83,7 +82,6 @@ public abstract class JdbcInputFormat extends BaseRichInputFormat {
     protected JdbcConf jdbcConf;
     protected int numPartitions = 1;
     protected JdbcDialect jdbcDialect;
-    protected AbstractJdbcRowConverter jdbcRowConverter;
 
     protected transient Connection dbConn;
     protected transient Statement statement;
@@ -255,25 +253,25 @@ public abstract class JdbcInputFormat extends BaseRichInputFormat {
         try {
             // todo 抽到DB2插件里面
 //            updateColumnCount();
-            List<FieldConf> metaColumns = jdbcConf.getColumn();
-            if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
-                for (int i = 0; i < columnCount; i++) {
-                    Object val;
-                    if (metaColumns.get(i).getValue() != null) {
-                        val = metaColumns.get(i).getValue();
-                    } else {
-                        val = ((GenericRowData) rowData).getField(i);
-                    }
-                    // TODO 改成StringData类型才能判断
-                    if (val instanceof StringData) {
-                        val = StringUtil.string2col(
-                                val.toString(),
-                                metaColumns.get(i).getType(),
-                                metaColumns.get(i).getTimeFormat());
-                        ((GenericRowData) rowData).setField(i, val);
-                    }
-                }
-            }
+            // List<FieldConf> metaColumns = jdbcConf.getColumn();
+            // if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
+            //     for (int i = 0; i < columnCount; i++) {
+            //         Object val;
+            //         if (metaColumns.get(i).getValue() != null) {
+            //             val = metaColumns.get(i).getValue();
+            //         } else {
+            //             val = ((GenericRowData) rowData).getField(i);
+            //         }
+            //         // TODO 改成StringData类型才能判断
+            //         if (val instanceof StringData) {
+            //             val = StringUtil.string2col(
+            //                     val.toString(),
+            //                     metaColumns.get(i).getType(),
+            //                     metaColumns.get(i).getTimeFormat());
+            //             ((GenericRowData) rowData).setField(i, val);
+            //         }
+            //     }
+            // }
 
             boolean isUpdateLocation =
                     jdbcConf.isPolling() || (jdbcConf.isIncrement() && !jdbcConf.isUseMaxFunc());
@@ -958,9 +956,5 @@ public abstract class JdbcInputFormat extends BaseRichInputFormat {
 
     public void setJdbcDialect(JdbcDialect jdbcDialect) {
         this.jdbcDialect = jdbcDialect;
-    }
-
-    public void setRowConverter(AbstractJdbcRowConverter jdbcRowConverter) {
-        this.jdbcRowConverter = jdbcRowConverter;
     }
 }

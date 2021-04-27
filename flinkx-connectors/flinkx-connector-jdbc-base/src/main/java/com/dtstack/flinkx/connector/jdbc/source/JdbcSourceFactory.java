@@ -22,7 +22,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
@@ -97,13 +96,6 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
         return createInput(builder.finish());
     }
-
-    /**
-     * 具体数据库类型的映射器
-     *
-     * @return
-     */
-    public abstract RawTypeConverter getRawTypeConverter();
 
     /**
      * 获取JDBC插件的具体inputFormatBuilder
