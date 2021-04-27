@@ -79,12 +79,38 @@
   - 默认值：true
 
 
-
 - **temporary**
   - 描述：复制槽是否为临时性的，true：是；false：否
   - 必选：否
   - 默认值：true
 
+
+- **publicationName**
+  - 描述：发布名称
+  - 必选：否
+  - 默认值：dtstack_flinkx
+  
+
+
+- **connectionTimeoutSecond**
+  - 描述：socket连接超时
+  - 必选：否
+  - 默认值：10s
+  
+
+
+- **socketTimeoutSecond**
+  - 描述：socket 超时时间
+  - 必选：否
+  - 默认值：10s
+
+
+
+- **loginTimeoutSecond**
+  - 描述：数据建立链接等待时间
+  - 必选：否
+  - 默认值：10s
+  
 
 
 - **pavingData**

@@ -13,7 +13,7 @@
         <module>flinkx-core</module>
 
         <module>flinkx-launcher</module>
-<!--        <module>flinkx-test</module>-->
+        <!--        <module>flinkx-test</module>-->
         <module>flinkx-stream</module>
 
         <!--******离线******-->
@@ -37,7 +37,7 @@
         <module>flinkx-ftp</module>
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
-<!--        <module>flinkx-phoenix</module>-->
+        <!--        <module>flinkx-phoenix</module>-->
         <module>flinkx-phoenix5</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
@@ -262,5 +262,13 @@
             </plugin>
         </plugins>
     </reporting>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
 </project>

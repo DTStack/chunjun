@@ -48,4 +48,9 @@ public class PgWalConfigKeys {
     public final static String KEY_ALLOW_CREATE_SLOT = "allowCreateSlot";
 
     public final static String KEY_TEMPORARY = "temporary";
+
+    public final static String KEY_PUBLICATION_NAME = "publicationName";
+    public final static String KEY_CONNECTION_TIMEOUT_SECOND = "connectionTimeoutSecond";
+    public final static String KEY_SOCKET_TIMEOUT_SECOND = "socketTimeoutSecond";
+    public final static String KEY_LOGIN_TIMEOUT_SECOND = "loginTimeoutSecond";
 }

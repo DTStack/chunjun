@@ -28,7 +28,11 @@ import org.postgresql.replication.fluent.logical.ChainedLogicalCreateSlotBuilder
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.DriverManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,19 +53,26 @@ public class PgWalUtil {
     public static final String QUERY_MAX_SLOT = "SHOW max_replication_slots;";
     public static final String QUERY_SLOT = "SELECT * FROM pg_replication_slots where slot_name = '%s';";
     public static final String QUERY_TABLE_REPLICA_IDENTITY = "SELECT relreplident FROM pg_catalog.pg_class c LEFT JOIN pg_catalog.pg_namespace n ON c.relnamespace=n.oid WHERE n.nspname='%s' and c.relname='%s';";
+    /**
+     * DEFAULT（非系统表的默认值）记录主键的列的旧值（如果有）。
+     * USING INDEX记录命名索引覆盖的列的旧值，该值必须是唯一的，不局部的，不可延迟的，并且仅包括标记为的列NOT NULL。
+     * FULL记录行中所有列的旧值。
+     * NOTHING不记录有关旧行的信息。（这是系统表的默认值。）在所有情况下，除非该行的新旧版本中至少要记录的列之一不同，否则不会记录任何旧值。
+     */
     public static final String UPDATE_REPLICA_IDENTITY = "ALTER TABLE %s REPLICA IDENTITY FULL;";
     public static final String QUERY_PUBLICATION = "SELECT COUNT(1) FROM pg_publication WHERE pubname = '%s';";
     public static final String CREATE_PUBLICATION = "CREATE PUBLICATION %s FOR ALL TABLES;";
     public static final String QUERY_TYPES = "SELECT t.oid AS oid, t.typname AS name FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON (t.typnamespace = n.oid) WHERE n.nspname != 'pg_toast' AND t.typcategory <> 'A';";
     private static final Logger LOG = LoggerFactory.getLogger(PgWalUtil.class);
+    private static final String PUBLICATION_NAME_CHECK = "select oid from pg_publication where pubname = '%s';";
 
-    public static PgRelicationSlot checkPostgres(PgConnection conn, boolean allowCreateSlot, String slotName, List<String> tableList) throws Exception{
+    public static PgRelicationSlot checkPostgres(PgConnection conn, boolean allowCreateSlot, String slotName, List<String> tableList, String publicationName) throws Exception{
         ResultSet resultSet;
         PgRelicationSlot availableSlot = null;
 
         //1. check postgres version
         // this Judge maybe not need?
-        if (!conn.haveMinimumServerVersion(ServerVersion.v10)){
+        if (!conn.haveMinimumServerVersion(ServerVersion.v10)){ // 9.4 provided the earliest support
             String version = conn.getDBVersionNumber();
             LOG.error("postgres version must > 10, current = [{}]", version);
             throw new UnsupportedOperationException("postgres version must >= 10, current = " + version);
@@ -139,12 +150,12 @@ public class PgWalUtil {
         }
 
         //5.check publication
-        resultSet = conn.execSQLQuery(String.format(QUERY_PUBLICATION, PUBLICATION_NAME));
+        resultSet = conn.execSQLQuery(String.format(QUERY_PUBLICATION, publicationName));
         if(resultSet.next()) {
             long count = resultSet.getLong(1);
             if (count == 0L) {
                 LOG.warn("no publication named [{}] existed, flinkx will create one", PUBLICATION_NAME);
-                conn.createStatement().execute(String.format(CREATE_PUBLICATION, PUBLICATION_NAME));
+                conn.createStatement().execute(String.format(CREATE_PUBLICATION, publicationName));
             }
         }
 
@@ -201,10 +212,12 @@ public class PgWalUtil {
      * @param url       url
      * @param username  账号
      * @param password  密码
+     * @param connectionTimeoutSecond
+     * @param socketTimeoutSecond
      * @return
      * @throws SQLException
      */
-    public static PgConnection getConnection(String url, String username, String password) throws SQLException {
+    public static PgConnection getConnection(String url, String username, String password, int connectionTimeoutSecond, int loginTimeoutSecond, int socketTimeoutSecond) throws SQLException {
         Connection dbConn;
         ClassUtil.forName(PgWalUtil.DRIVER, PgWalUtil.class.getClassLoader());
         Properties props = new Properties();
@@ -214,10 +227,10 @@ public class PgWalUtil {
         PGProperty.PREFER_QUERY_MODE.set(props, "simple");
         //postgres version must > 10
         PGProperty.ASSUME_MIN_SERVER_VERSION.set(props, "10");
+        PgWalUtil.setConnectionTimeout(connectionTimeoutSecond, socketTimeoutSecond,loginTimeoutSecond, props);
         synchronized (ClassUtil.LOCK_STR) {
-            DriverManager.setLoginTimeout(10);
             // telnet
-            TelnetUtil.telnet(url);
+            TelnetUtil.telnet(socketTimeoutSecond * 1000, url);
             dbConn = DriverManager.getConnection(url, props);
         }
 
@@ -261,4 +274,32 @@ public class PgWalUtil {
         }
     }
 
+    public static void checkPublicationName(PgConnection conn, String publicationName) throws SQLException {
+        ResultSet resultSet = conn.execSQLQuery(String.format(PUBLICATION_NAME_CHECK, publicationName));
+       if(resultSet.next()) {
+           //hit
+           resultSet.getString("oid");
+           return;
+       }
+
+       throw new UnsupportedOperationException("Publication name : "  + publicationName + " cannot be found. [Please check the publication setting]");
+    }
+
+    public static void setConnectionTimeout(int connectionTimeoutSecond, int socketTimeoutSecond, int loginTimeoutSecond, Properties props) {
+        if(connectionTimeoutSecond <= 0) {
+            connectionTimeoutSecond = 10;
+        }
+        if(socketTimeoutSecond <= 0) {
+            socketTimeoutSecond = 10;
+        }
+        if(loginTimeoutSecond <= 0) {
+            loginTimeoutSecond = 10;
+        }
+        PGProperty.CONNECT_TIMEOUT.set(props, connectionTimeoutSecond);
+        PGProperty.SOCKET_TIMEOUT.set(props, socketTimeoutSecond);
+        PGProperty.LOGIN_TIMEOUT.set(props, loginTimeoutSecond);
+        LOG.info("socket time out setting : " +
+                "connection timeout {} second, socket timeout {} second, login timeout {} second",
+                connectionTimeoutSecond, socketTimeoutSecond, loginTimeoutSecond);
+    }
 }
