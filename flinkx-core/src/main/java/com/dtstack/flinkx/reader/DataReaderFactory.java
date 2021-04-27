@@ -24,6 +24,7 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import java.lang.reflect.Constructor;
 import java.net.URL;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -45,6 +46,10 @@ public class DataReaderFactory {
 
             return ClassLoaderManager.newInstance(urlList, cl -> {
                 Class<?> clazz = cl.loadClass(pluginClassName);
+                Constructor[] cs = clazz.getConstructors();
+                for (Constructor c : cs) {
+                    System.out.println(c);
+                }
                 Constructor constructor = clazz.getConstructor(DataTransferConfig.class, StreamExecutionEnvironment.class);
                 return (BaseDataReader)constructor.newInstance(config, env);
             });
@@ -53,3 +58,4 @@ public class DataReaderFactory {
         }
     }
 }
+

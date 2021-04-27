@@ -1,0 +1,92 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "accessKey": "test",
+            "secretKey": "test",
+            "endpoint": "http://127.0.0.1:9090",
+            "region": "us-west-2",
+            "bucket": "test",
+            "object": ["people_20210426001.csv"],
+            "column": [
+              {
+                "name": "id",
+                "index": 0,
+                "type": "string"
+              },
+              {
+                "name": "value1",
+                "index": 1,
+                "type": "string"
+              },
+              {
+                "name": "value2",
+                "index": 2,
+                "type": "string"
+              }
+            ],
+            "encoding": "UTF-8",
+            "fieldDelimiter": ",",
+            "isFirstLineHeader": true
+          },
+          "name": "s3reader"
+        },
+        "writer": {
+          "name": "mysqlwriter",
+          "parameter": {
+            "username": "root",
+            "password": "dtstack123456",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:mysql://localhost:3306/dtstack_data_sync?useSSL=false",
+                "table": [
+                  "people_bak_20210421"
+                ]
+              }
+            ],
+            "postSql": [],
+            "batchSize": 0,
+            "writeMode": "insert",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "varchar"
+              },
+              {
+                "name": "uuid",
+                "type": "varchar"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": true,
+        "restoreColumnName" : "id",
+        "restoreColumnIndex" : 0
+      },
+      "log": {
+        "isLogger": false,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

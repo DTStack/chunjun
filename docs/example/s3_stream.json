@@ -1,0 +1,71 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "accessKey": "test",
+            "secretKey": "test",
+            "endpoint": "http://127.0.0.1:9090",
+            "region": "us-west-2",
+            "bucket": "test",
+            "object": ["effect_tb.csv"],
+            "column": [
+              {
+                "name": "id",
+                "index": 0,
+                "type": "string"
+              },
+              {
+                "name": "value1",
+                "index": 1,
+                "type": "string"
+              },
+              {
+                "name": "value2",
+                "index": 2,
+                "type": "string"
+              },
+              {
+                "name": "value3",
+                "index": 3,
+                "type": "string"
+              }
+            ],
+            "encoding": "UTF-8",
+            "fieldDelimiter": ",",
+            "isFirstLineHeader": false
+          },
+          "name": "s3reader"
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": true,
+        "restoreColumnName" : "id",
+        "restoreColumnIndex" : 0
+      },
+      "log": {
+        "isLogger": false,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

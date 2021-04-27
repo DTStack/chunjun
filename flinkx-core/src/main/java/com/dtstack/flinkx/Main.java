@@ -137,7 +137,11 @@ public class Main {
                 ((MyLocalStreamEnvironment) env).setSettings(SavepointRestoreSettings.forPath(savepointPath));
             }
         }
-
+        /*env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
+                3, // 尝试重启的次数
+                Time.of(10, TimeUnit.SECONDS) // 延时
+        ));
+        env.enableCheckpointing(1000);*/
         JobExecutionResult result = env.execute(jobIdString);
         if(env instanceof MyLocalStreamEnvironment){
             ResultPrintUtil.printResult(result);
