@@ -301,8 +301,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<Row, InputSpli
             }
         }
 
-         formatState.setJobId(jobId);
-
         return internalRow;
     }
 
@@ -323,6 +321,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<Row, InputSpli
     public FormatState getFormatState() {
         if (formatState != null && numReadCounter != null && inputMetric!= null) {
             formatState.setMetric(inputMetric.getMetricCounters());
+            formatState.setJobId(jobId);
         }
         return formatState;
     }
