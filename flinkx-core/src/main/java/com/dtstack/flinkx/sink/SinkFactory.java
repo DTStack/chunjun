@@ -41,25 +41,27 @@ import java.util.List;
 /**
  * Abstract specification of Writer Plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
-public abstract class BaseDataSink {
+public abstract class SinkFactory {
 
     protected SyncConf syncConf;
     protected TypeInformation<RowData> typeInformation;
     protected boolean useAbstractBaseColumn = true;
 
     @SuppressWarnings("unchecked")
-    public BaseDataSink(SyncConf syncConf) {
-        //脏数据记录reader中的字段信息
+    public SinkFactory(SyncConf syncConf) {
+        // 脏数据记录reader中的字段信息
         List<FieldConf> fieldList = syncConf.getWriter().getFieldList();
-        if(CollectionUtils.isNotEmpty(fieldList)){
+        if (CollectionUtils.isNotEmpty(fieldList)) {
             syncConf.getDirty().setReaderColumnNameList(syncConf.getWriter().getFieldNameList());
         }
         this.syncConf = syncConf;
 
-        if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
+        if (syncConf.getTransformer() == null
+                || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
         } else {
             typeInformation = TableUtil.getTypeInformation(fieldList);
@@ -73,10 +75,11 @@ public abstract class BaseDataSink {
      * @param dataSet read data flow
      * @return write data flow
      */
-    public abstract DataStreamSink<RowData> writeData(DataStream<RowData> dataSet);
+    public abstract DataStreamSink<RowData> createSink(DataStream<RowData> dataSet);
 
     @SuppressWarnings("unchecked")
-    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat outputFormat, String sinkName) {
+    protected DataStreamSink<RowData> createOutput(
+            DataStream<RowData> dataSet, OutputFormat outputFormat, String sinkName) {
         Preconditions.checkNotNull(dataSet);
         Preconditions.checkNotNull(sinkName);
         Preconditions.checkNotNull(outputFormat);
@@ -88,18 +91,21 @@ public abstract class BaseDataSink {
         return dataStreamSink;
     }
 
-    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat outputFormat) {
+    protected DataStreamSink<RowData> createOutput(
+            DataStream<RowData> dataSet, OutputFormat outputFormat) {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
     /**
      * 初始化FlinkxCommonConf
+     *
      * @param flinkxCommonConf
      */
-    public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf){
+    public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf) {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
-        flinkxCommonConf.setParallelism(speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
+        flinkxCommonConf.setParallelism(
+                speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
     }
 }

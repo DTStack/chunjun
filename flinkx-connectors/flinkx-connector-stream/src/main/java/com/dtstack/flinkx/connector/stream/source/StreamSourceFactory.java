@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.stream.source;
 
+import com.dtstack.flinkx.source.SourceFactory;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
@@ -30,7 +32,6 @@ import com.dtstack.flinkx.connector.stream.converter.StreamBaseConverter;
 import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.flinkx.connector.stream.inputFormat.StreamInputFormatBuilder;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.source.BaseDataSource;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
@@ -43,10 +44,10 @@ import java.util.stream.Collectors;
  *
  * @author tudou
  */
-public class StreamSource extends BaseDataSource {
+public class StreamSourceFactory extends SourceFactory {
     private final StreamConf streamConf;
 
-    public StreamSource(SyncConf config, StreamExecutionEnvironment env) {
+    public StreamSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
         streamConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getReader().getParameter()), StreamConf.class);
         streamConf.setColumn(config.getReader().getFieldList());
@@ -54,7 +55,7 @@ public class StreamSource extends BaseDataSource {
     }
 
     @Override
-    public DataStream<RowData> readData() {
+    public DataStream<RowData> createSource() {
         StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
         builder.setStreamConf(streamConf);
         AbstractRowConverter rowConverter;

@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.mysql.sink;
 import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcDataSink;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.mysql.MysqlDialect;
 import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
 import com.dtstack.flinkx.connector.mysql.outputFormat.MysqlOutputFormat;
@@ -30,9 +30,9 @@ import com.dtstack.flinkx.connector.mysql.outputFormat.MysqlOutputFormat;
  *
  * @author tudou
  */
-public class MysqlSink extends JdbcDataSink {
+public class MysqlSinkFactory extends JdbcSinkFactory {
 
-    public MysqlSink(SyncConf syncConf) {
+    public MysqlSinkFactory(SyncConf syncConf) {
         super(syncConf);
         super.jdbcDialect = new MysqlDialect();
     }

@@ -22,7 +22,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import com.dtstack.flinkx.RawTypeConverter;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormatBuilder;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcDataSource;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.connector.mysql.MysqlDialect;
 import com.dtstack.flinkx.connector.mysql.converter.MysqlTypeConverter;
 import com.dtstack.flinkx.connector.mysql.inputFormat.MysqlInputFormat;
@@ -34,9 +34,9 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author tudou
  */
-public class MysqlSource extends JdbcDataSource {
+public class MysqlSourceFactory extends JdbcSourceFactory {
 
-    public MysqlSource(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public MysqlSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         super.jdbcDialect = new MysqlDialect();
         // 避免result.next阻塞

@@ -25,14 +25,11 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.kafka.adapter.StartupModeAdapter;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
-import com.dtstack.flinkx.sink.BaseDataSink;
+import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.apache.flink.table.types.logical.LogicalType;
-
-import java.sql.SQLException;
 import java.util.Properties;
 
 /**
@@ -41,10 +38,10 @@ import java.util.Properties;
  *
  * @author tudou
  */
-public class KafkaSink extends BaseDataSink {
+public class KafkaSinkFactory extends SinkFactory {
     protected KafkaConf kafkaConf;
 
-    public KafkaSink(SyncConf config) {
+    public KafkaSinkFactory(SyncConf config) {
         super(config);
         Gson gson = new GsonBuilder().registerTypeAdapter(StartupMode.class, new StartupModeAdapter()).create();
         GsonUtil.setTypeAdapter(gson);
@@ -52,7 +49,7 @@ public class KafkaSink extends BaseDataSink {
     }
 
     @Override
-    public DataStreamSink<RowData> writeData(DataStream<RowData> dataSet) {
+    public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         Properties props = new Properties();
         props.putAll(kafkaConf.getProducerSettings());
 //        FlinkKafkaProducer kafkaProducer = new FlinkKafkaProducer(kafkaConf.getTopic(), serializationMetricWrapper, props, Optional.of(new CustomerFlinkPartition<>()), KafkaUtil.getPartitionKeys(kafkaConf.getPartitionKeys()));

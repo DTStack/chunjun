@@ -28,7 +28,7 @@ import com.dtstack.flinkx.connector.stream.converter.StreamBaseConverter;
 import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.sink.BaseDataSink;
+import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
@@ -38,10 +38,10 @@ import com.dtstack.flinkx.util.TableUtil;
  *
  * @author tudou
  */
-public class StreamSink extends BaseDataSink {
+public class StreamSinkFactory extends SinkFactory {
     private final StreamSinkConf streamSinkConf;
 
-    public StreamSink(SyncConf config) {
+    public StreamSinkFactory(SyncConf config) {
         super(config);
         streamSinkConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getWriter().getParameter()), StreamSinkConf.class);
         streamSinkConf.setColumn(config.getWriter().getFieldList());
@@ -49,7 +49,7 @@ public class StreamSink extends BaseDataSink {
     }
 
     @Override
-    public DataStreamSink<RowData> writeData(DataStream<RowData> dataSet) {
+    public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
         builder.setStreamSinkConf(streamSinkConf);
         AbstractRowConverter converter;

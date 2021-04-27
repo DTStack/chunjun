@@ -30,7 +30,7 @@ import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormatBuilder;
-import com.dtstack.flinkx.source.BaseDataSource;
+import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -48,12 +48,12 @@ import java.util.Properties;
  *
  * @author huyifan.zju@163.com
  */
-public abstract class JdbcDataSource extends BaseDataSource {
+public abstract class JdbcSourceFactory extends SourceFactory {
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
-    public JdbcDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public JdbcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         Gson gson =
                 new GsonBuilder()
@@ -82,7 +82,7 @@ public abstract class JdbcDataSource extends BaseDataSource {
     }
 
     @Override
-    public DataStream<RowData> readData() {
+    public DataStream<RowData> createSource() {
         JdbcInputFormatBuilder builder = getBuilder();
 
         int fetchSize = jdbcConf.getFetchSize();

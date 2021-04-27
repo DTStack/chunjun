@@ -31,7 +31,7 @@ import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.sink.BaseDataSink;
+import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import com.google.gson.Gson;
@@ -47,14 +47,14 @@ import java.util.Properties;
  *
  * @author tudou
  */
-public abstract class JdbcDataSink extends BaseDataSink {
+public abstract class JdbcSinkFactory extends SinkFactory {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(JdbcDataSink.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(JdbcSinkFactory.class);
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
-    public JdbcDataSink(SyncConf syncConf) {
+    public JdbcSinkFactory(SyncConf syncConf) {
         super(syncConf);
         Gson gson =
                 new GsonBuilder()
@@ -70,7 +70,7 @@ public abstract class JdbcDataSink extends BaseDataSink {
     }
 
     @Override
-    public DataStreamSink<RowData> writeData(DataStream<RowData> dataSet) {
+    public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         JdbcOutputFormatBuilder builder = getBuilder();
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);

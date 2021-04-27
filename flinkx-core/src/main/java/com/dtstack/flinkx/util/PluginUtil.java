@@ -57,6 +57,7 @@ public class PluginUtil {
     public static final String SOURCE_SUFFIX = "source";
     public static final String WRITER_SUFFIX = "writer";
     public static final String SINK_SUFFIX = "sink";
+    public static final String GENERIC_SUFFIX = "Factory";
     private static final Logger LOG = LoggerFactory.getLogger(PluginUtil.class);
     private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connector.";
 
@@ -171,11 +172,11 @@ public class PluginUtil {
         switch (operatorType){
             case source:
                 String sourceName = pluginName.replace(READER_SUFFIX, SOURCE_SUFFIX);
-                pluginClassName = PACKAGE_PREFIX + camelize(sourceName, SOURCE_SUFFIX);
+                pluginClassName = PACKAGE_PREFIX + camelize(sourceName, SOURCE_SUFFIX) + GENERIC_SUFFIX;
                 break;
             case sink:
                 String sinkName = pluginName.replace(WRITER_SUFFIX, SINK_SUFFIX);
-                pluginClassName = PACKAGE_PREFIX + camelize(sinkName, SINK_SUFFIX);
+                pluginClassName = PACKAGE_PREFIX + camelize(sinkName, SINK_SUFFIX) + GENERIC_SUFFIX;
                 break;
             default:
                 throw new IllegalArgumentException("Plugin Name should end with reader, writer, current plugin name is: " + pluginName);

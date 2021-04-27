@@ -39,23 +39,25 @@ import java.util.Collections;
 /**
  * Abstract specification of Reader Plugin
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
-public abstract class BaseDataSource {
+public abstract class SourceFactory {
 
     protected StreamExecutionEnvironment env;
     protected SyncConf syncConf;
     protected TypeInformation<RowData> typeInformation;
     protected boolean useAbstractBaseColumn = true;
 
-    protected BaseDataSource(SyncConf syncConf, StreamExecutionEnvironment env) {
+    protected SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         this.env = env;
         this.syncConf = syncConf;
 
-        if(syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())){
+        if (syncConf.getTransformer() == null
+                || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
-        }else{
+        } else {
             typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList());
             useAbstractBaseColumn = false;
         }
@@ -66,18 +68,20 @@ public abstract class BaseDataSource {
      *
      * @return DataStream
      */
-    public abstract DataStream<RowData> readData();
+    public abstract DataStream<RowData> createSource();
 
     @SuppressWarnings("unchecked")
     protected DataStream<RowData> createInput(InputFormat inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
-//        TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
-        DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInformation);
+        //        TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
+        DtInputFormatSourceFunction function =
+                new DtInputFormatSourceFunction(inputFormat, typeInformation);
         return env.addSource(function, sourceName, typeInformation);
     }
 
-    protected DataStream<RowData> createInput(RichParallelSourceFunction<RowData> function, String sourceName) {
+    protected DataStream<RowData> createInput(
+            RichParallelSourceFunction<RowData> function, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         return env.addSource(function, sourceName, typeInformation);
     }
@@ -88,12 +92,14 @@ public abstract class BaseDataSource {
 
     /**
      * 初始化FlinkxCommonConf
+     *
      * @param flinkxCommonConf
      */
-    public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf){
+    public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf) {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
-        flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
+        flinkxCommonConf.setParallelism(
+                speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
 }

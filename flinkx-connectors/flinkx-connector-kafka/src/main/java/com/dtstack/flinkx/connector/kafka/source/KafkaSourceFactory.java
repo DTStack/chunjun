@@ -28,14 +28,11 @@ import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
 import com.dtstack.flinkx.connector.kafka.serialization.RowDeserializationSchema;
 import com.dtstack.flinkx.connector.kafka.util.KafkaUtil;
-import com.dtstack.flinkx.source.BaseDataSource;
+import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.apache.flink.table.types.logical.LogicalType;
-
-import java.sql.SQLException;
 import java.util.Properties;
 
 /**
@@ -44,11 +41,11 @@ import java.util.Properties;
  *
  * @author tudou
  */
-public class KafkaSource extends BaseDataSource {
+public class KafkaSourceFactory extends SourceFactory {
 
     protected KafkaConf kafkaConf;
 
-    public KafkaSource(SyncConf config, StreamExecutionEnvironment env) {
+    public KafkaSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
         Gson gson = new GsonBuilder().registerTypeAdapter(StartupMode.class, new StartupModeAdapter()).create();
         GsonUtil.setTypeAdapter(gson);
@@ -56,7 +53,7 @@ public class KafkaSource extends BaseDataSource {
     }
 
     @Override
-    public DataStream<RowData> readData() {
+    public DataStream<RowData> createSource() {
         Properties props = new Properties();
         props.put("group.id", kafkaConf.getGroupId());
         props.putAll(kafkaConf.getConsumerSettings());
