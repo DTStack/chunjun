@@ -28,7 +28,7 @@ import org.apache.flink.table.types.logical.RowType;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.connector.stream.converter.StreamBaseConverter;
+import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
 import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.flinkx.connector.stream.inputFormat.StreamInputFormatBuilder;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -67,7 +67,7 @@ public class StreamSourceFactory extends SourceFactory {
             rowConverter = new StreamColumnConverter(typeList);
         } else {
             final RowType rowType = (RowType) TableUtil.getDataType(streamConf.getColumn()).getLogicalType();
-            rowConverter = new StreamBaseConverter(rowType);
+            rowConverter = new StreamRowConverter(rowType);
         }
 
         builder.setAbstractRowConverter(rowConverter);

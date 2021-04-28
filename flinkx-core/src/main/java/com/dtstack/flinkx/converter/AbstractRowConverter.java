@@ -37,34 +37,30 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * @author: wuren
  * @create: 2021/04/10
  */
-public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements Serializable {
+public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implements Serializable {
 
-    protected final RowType rowType;
+    private static final long serialVersionUID = -8805351737120663386L;
+    protected RowType rowType;
     protected DeserializationConverter[] toInternalConverters;
     protected SerializationConverter[] toExternalConverters;
-    protected final LogicalType[] fieldTypes;
+    protected LogicalType[] fieldTypes;
+
+    public AbstractRowConverter() {
+    }
 
     public AbstractRowConverter(RowType rowType) {
+        this(rowType.getFieldCount());
         this.rowType = checkNotNull(rowType);
         this.fieldTypes =
                 rowType.getFields().stream()
                         .map(RowType.RowField::getType)
                         .toArray(LogicalType[]::new);
-        this.toInternalConverters = new DeserializationConverter[rowType.getFieldCount()];
-        this.toExternalConverters = new SerializationConverter[rowType.getFieldCount()];
-        for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(fieldTypes[i]), fieldTypes[i]);
-        }
     }
 
-    public AbstractRowConverter() {
-        rowType = null;
-        toInternalConverters = null;
-        toExternalConverters = null;
-        fieldTypes = null;
+    public AbstractRowConverter(int converterSize) {
+        this.toInternalConverters = new DeserializationConverter[converterSize];
+        this.toExternalConverters = new SerializationConverter[converterSize];
     }
-
 
     protected DeserializationConverter wrapIntoNullableInternalConverter(
             DeserializationConverter deserializationConverter) {
@@ -77,9 +73,8 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
         };
     }
 
-
     protected abstract SerializationConverter wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter, LogicalType type);
+            SerializationConverter serializationConverter, T type);
 
     /**
      * Convert data retrieved from {@link ResultSet} to internal {@link RowData}.
@@ -121,7 +116,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
      * @param type
      * @return
      */
-    protected abstract DeserializationConverter createInternalConverter(LogicalType type);
+    protected abstract DeserializationConverter createInternalConverter(T type);
 
     /**
      * 将flink内部的数据类型转换为外部数据库系统类型
@@ -129,5 +124,5 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT> implements S
      * @param type
      * @return
      */
-    protected abstract SerializationConverter createExternalConverter(LogicalType type);
+    protected abstract SerializationConverter createExternalConverter(T type);
 }
