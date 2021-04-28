@@ -35,6 +35,10 @@ public class TimestampColumn extends AbstractBaseColumn {
         super(data);
     }
 
+    public TimestampColumn(long data) {
+        super(new Timestamp(data));
+    }
+
     @Override
     public int getByteSize(Object data) {
         return null == data ? 0 : data.toString().getBytes(StandardCharsets.UTF_8).length;

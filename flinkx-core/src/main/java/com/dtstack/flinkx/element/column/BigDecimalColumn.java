@@ -37,19 +37,19 @@ public class BigDecimalColumn extends AbstractBaseColumn {
     }
 
     public BigDecimalColumn(int data) {
-        super(data);
+        super(new BigDecimal(data));
     }
 
     public BigDecimalColumn(double data) {
-        super(data);
+        super(new BigDecimal(data));
     }
 
     public BigDecimalColumn(float data) {
-        super(data);
+        super(new BigDecimal(data));
     }
 
     public BigDecimalColumn(long data) {
-        super(data);
+        super(new BigDecimal(data));
     }
 
     @Override

@@ -20,12 +20,11 @@ package com.dtstack.flinkx.connector.jdbc.converter;
 
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.element.ColumnRowData;
 import io.vertx.core.json.JsonArray;
-
 import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
@@ -66,7 +65,7 @@ public abstract class AbstractJdbcRowConverter
     }
 
     @Override
-    public FieldNamedPreparedStatement toExternalWithType(
+    public FieldNamedPreparedStatement toExternal(
             RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, statement);
@@ -74,15 +73,39 @@ public abstract class AbstractJdbcRowConverter
         return statement;
     }
 
-    @Override
-    protected FieldNamedPreparedStatement toExternalWithoutType(
-            GenericRowData genericRowData, FieldNamedPreparedStatement statement) throws Exception {
-        for (int pos = 0; pos < genericRowData.getArity(); pos++) {
-            Object field = genericRowData.getField(pos);
-            Object val = field instanceof StringData ? field.toString() : field;
-            statement.setObject(pos, val);
-        }
-        return statement;
+    /**
+     * 从jdbc中读取数据的converter
+     *
+     * @param deserializationConverter
+     * @param index
+     * @return
+     */
+    protected DeserializationConverter<ResultSet> wrapIntoNullableInternalConverter(
+            DeserializationConverter<ResultSet> deserializationConverter, int index) {
+        return val -> {
+            if (val.getObject(index) == null) {
+                return null;
+            } else {
+                return deserializationConverter.deserialize(val);
+            }
+        };
+    }
+
+    /**
+     * 往jdbc中写入数据的converter
+     *
+     * @param serializationConverter
+     * @return
+     */
+    protected SerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
+            SerializationConverter serializationConverter) {
+        return (val, index, statement) -> {
+            if (((ColumnRowData) val).getField(index) == null) {
+                statement.setObject(index, null);
+            } else {
+                serializationConverter.serialize(val, index, statement);
+            }
+        };
     }
 
     @Override

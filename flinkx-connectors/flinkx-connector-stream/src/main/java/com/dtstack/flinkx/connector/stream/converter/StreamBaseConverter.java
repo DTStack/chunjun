@@ -83,23 +83,6 @@ public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, 
     }
 
     @Override
-    protected RowData toExternalWithoutType(GenericRowData rowData, RowData output) {
-        GenericRowData outputRowData = (GenericRowData) output;
-        for (int pos = 0; pos < rowData.getArity(); pos++) {
-            outputRowData.setField(pos, rowData.getField(pos));
-        }
-        return outputRowData;
-    }
-
-    @Override
-    protected RowData toExternalWithType(RowData rowData, RowData output) throws Exception {
-        for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, output);
-        }
-        return output;
-    }
-
-    @Override
     public RowData toExternal(RowData rowData, RowData output) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, output);

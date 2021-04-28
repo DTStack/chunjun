@@ -34,6 +34,10 @@ public class BooleanColumn extends AbstractBaseColumn {
         super(data);
     }
 
+    public BooleanColumn(int data) {
+        super(new byte[data]);
+    }
+
     @Override
     public int getByteSize(Object data) {
         return null == data ? 0 : 1;
