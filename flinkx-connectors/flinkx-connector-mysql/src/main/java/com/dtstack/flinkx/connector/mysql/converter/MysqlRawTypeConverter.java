@@ -11,7 +11,7 @@ import java.util.Locale;
  * @author: wuren
  * @create: 2021/04/14
  **/
-public class MysqlTypeConverter {
+public class MysqlRawTypeConverter {
 
     /**
      * 将mysql数据库中的类型，转换成flink的DataType类型
