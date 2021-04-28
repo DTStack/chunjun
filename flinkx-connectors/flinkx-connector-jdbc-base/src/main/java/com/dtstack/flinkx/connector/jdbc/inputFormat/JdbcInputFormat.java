@@ -238,12 +238,12 @@ public abstract class JdbcInputFormat extends BaseRichInputFormat {
                 String location = null;
                 Object obj = resultSet.getObject(jdbcConf.getIncreColumn());
                 if (obj != null) {
-                    if ((obj instanceof java.util.Date
-                            || obj
-                            .getClass()
-                            .getSimpleName()
-                            .toUpperCase()
-                            .contains(ColumnType.TIMESTAMP.name()))) {
+                    boolean isTimestampType =
+                            obj.getClass()
+                                    .getSimpleName()
+                                    .toUpperCase()
+                                    .contains(ColumnType.TIMESTAMP.name());
+                    if (obj instanceof java.util.Date || isTimestampType) {
                         obj = resultSet.getTimestamp(jdbcConf.getIncreColumn()).getTime();
                     }
                     location = String.valueOf(obj);
