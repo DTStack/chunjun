@@ -31,7 +31,6 @@ import org.apache.flink.table.data.RowData;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
@@ -108,7 +107,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         initPrometheusReporter();
 
         startTime = System.currentTimeMillis();
-        DtLogger.config(config, jobId);
     }
 
     @Override
@@ -208,8 +206,8 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     }
 
     private void openByteRateLimiter(){
-        if (config.getBytes() > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, config.getBytes());
+        if (config.getSpeedBytes() > 0) {
+            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, config.getSpeedBytes());
             this.byteRateLimiter.start();
         }
     }

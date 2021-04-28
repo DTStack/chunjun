@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.conf;
 
-import com.dtstack.flinkx.constants.ConfigConstant;
-
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -34,19 +32,11 @@ public class FlinkxCommonConf implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 速率上限，0代表不限速 */
-    private long bytes = 0;
+    private long speedBytes = 0;
     /** 容忍的最大脏数据条数 */
-    private int record = 0;
+    private int errorRecord = 0;
     /** 容忍的最大脏数据比例，-1代表不校验比例 */
-    private int percentage = -1;
-    /** 是否开启FlinkX日志记录，默认不开启 */
-    private boolean isLogger = false;
-    /** 日志记录的日志级别 */
-    private String logLevel = "info";
-    /** 本地日志保存路径，路径不存在会自动创建 */
-    private String logPath = "/tmp/dtstack/flinkx/";
-    /** 日志格式，默认为log4j格式 */
-    private String logPattern = ConfigConstant.DEFAULT_LOG4J_PATTERN;
+    private int errorPercentage = -1;
     /** 脏数据文件的绝对路径，支持本地和hdfs */
     private String dirtyDataPath;
     /** hdfs时，Hadoop的配置 */
@@ -58,60 +48,28 @@ public class FlinkxCommonConf implements Serializable {
     /** 并行度 */
     private int parallelism = 1;
 
-    public long getBytes() {
-        return bytes;
+    public long getSpeedBytes() {
+        return speedBytes;
     }
 
-    public void setBytes(long bytes) {
-        this.bytes = bytes;
+    public void setSpeedBytes(long speedBytes) {
+        this.speedBytes = speedBytes;
     }
 
-    public int getRecord() {
-        return record;
+    public int getErrorRecord() {
+        return errorRecord;
     }
 
-    public void setRecord(int record) {
-        this.record = record;
+    public void setErrorRecord(int errorRecord) {
+        this.errorRecord = errorRecord;
     }
 
-    public int getPercentage() {
-        return percentage;
+    public int getErrorPercentage() {
+        return errorPercentage;
     }
 
-    public void setPercentage(int percentage) {
-        this.percentage = percentage;
-    }
-
-    public boolean isLogger() {
-        return isLogger;
-    }
-
-    public void setLogger(boolean logger) {
-        isLogger = logger;
-    }
-
-    public String getLogLevel() {
-        return logLevel;
-    }
-
-    public void setLogLevel(String logLevel) {
-        this.logLevel = logLevel;
-    }
-
-    public String getLogPath() {
-        return logPath;
-    }
-
-    public void setLogPath(String logPath) {
-        this.logPath = logPath;
-    }
-
-    public String getLogPattern() {
-        return logPattern;
-    }
-
-    public void setLogPattern(String logPattern) {
-        this.logPattern = logPattern;
+    public void setErrorPercentage(int errorPercentage) {
+        this.errorPercentage = errorPercentage;
     }
 
     public String getDirtyDataPath() {
@@ -157,13 +115,9 @@ public class FlinkxCommonConf implements Serializable {
     @Override
     public String toString() {
         return "FlinkxCommonConf{" +
-                "bytes=" + bytes +
-                ", record=" + record +
-                ", percentage=" + percentage +
-                ", isLogger=" + isLogger +
-                ", logLevel='" + logLevel + '\'' +
-                ", logPath='" + logPath + '\'' +
-                ", logPattern='" + logPattern + '\'' +
+                "bytes=" + speedBytes +
+                ", record=" + errorRecord +
+                ", percentage=" + errorPercentage +
                 ", dirtyDataPath='" + dirtyDataPath + '\'' +
                 ", dirtyDataHadoopConf=" + dirtyDataHadoopConf +
                 ", fieldNameList=" + fieldNameList +

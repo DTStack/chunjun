@@ -56,9 +56,7 @@ public class PropertiesUtil {
     public static Properties propertiesTrim(Properties confProperties) {
         Properties properties = new Properties();
         confProperties.forEach(
-                (k, v) -> {
-                    properties.put(k.toString().trim(), v.toString().trim());
-                }
+                (k, v) -> properties.put(k.toString().trim(), v.toString().trim())
         );
         return properties;
     }
@@ -69,16 +67,11 @@ public class PropertiesUtil {
      * @param syncConf
      */
     public static void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf, SyncConf syncConf){
-        flinkxCommonConf.setBytes(syncConf.getSpeed().getBytes());
-        flinkxCommonConf.setRecord(syncConf.getErrorLimit().getRecord());
-        flinkxCommonConf.setPercentage(syncConf.getErrorLimit().getPercentage());
-        flinkxCommonConf.setLogger(syncConf.getLog().isLogger());
-        flinkxCommonConf.setLogLevel(syncConf.getLog().getLevel());
-        flinkxCommonConf.setLogPath(syncConf.getLog().getPath());
-        flinkxCommonConf.setLogPattern(syncConf.getLog().getPattern());
+        flinkxCommonConf.setSpeedBytes(syncConf.getSpeed().getBytes());
+        flinkxCommonConf.setErrorRecord(syncConf.getErrorLimit().getRecord());
+        flinkxCommonConf.setErrorPercentage(syncConf.getErrorLimit().getPercentage());
         flinkxCommonConf.setDirtyDataPath(syncConf.getDirty().getPath());
         flinkxCommonConf.setDirtyDataHadoopConf(syncConf.getDirty().getHadoopConfig());
         flinkxCommonConf.setFieldNameList(syncConf.getDirty().getReaderColumnNameList());
-
     }
 }

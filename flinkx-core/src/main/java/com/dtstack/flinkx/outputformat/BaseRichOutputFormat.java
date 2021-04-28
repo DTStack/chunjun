@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.outputformat;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
@@ -33,9 +31,9 @@ import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.factory.DTThreadFactory;
-import com.dtstack.flinkx.log.DtLogger;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
@@ -44,7 +42,6 @@ import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -308,12 +305,12 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     }
 
     private void openErrorLimiter() {
-        if (config.getRecord() >= 0 || config.getPercentage() > 0) {
+        if (config.getErrorRecord() >= 0 || config.getErrorPercentage() > 0) {
             Double errorRatio = null;
-            if (config.getPercentage() > 0) {
-                errorRatio = (double) config.getPercentage();
+            if (config.getErrorPercentage() > 0) {
+                errorRatio = (double) config.getErrorPercentage();
             }
-            errorLimiter = new ErrorLimiter(accumulatorCollector, config.getRecord(), errorRatio);
+            errorLimiter = new ErrorLimiter(accumulatorCollector, config.getErrorRecord(), errorRatio);
         }
     }
 
@@ -349,7 +346,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             if (dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
                 LOG.error(e.getMessage());
             }
-            if (DtLogger.isEnableTrace()) {
+            if (LOG.isTraceEnabled()) {
                 LOG.trace(
                         "write error rowData, rowData = {}, e = {}",
                         rowData.toString(),
