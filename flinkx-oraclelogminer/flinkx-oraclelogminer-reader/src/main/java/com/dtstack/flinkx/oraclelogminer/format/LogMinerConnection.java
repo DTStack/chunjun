@@ -260,7 +260,7 @@ public class LogMinerConnection {
                 if (addedLogFiles.equals(newLogFiles)) {
                     return;
                 } else {
-                    LOG.info("Log group changed, new log group = {}", GsonUtil.GSON.toJson(newLogFiles));
+//                    LOG.info("Log group changed, new log group = {}", GsonUtil.GSON.toJson(newLogFiles));
                     addedLogFiles = newLogFiles;
 //                    startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_10 : SqlUtil.SQL_START_LOG_MINER;
                     startSql = null == maxScn ? SqlUtil.SQL_START_LOGMINER_NO_MAX_LIMIT : SqlUtil.SQL_START_LOGMINER_HAS_MAX_LIMIT;
@@ -282,7 +282,9 @@ public class LogMinerConnection {
 
             logMinerStartStmt.execute();
             logMinerStarted = true;
-            LOG.info("start logMiner successfully, startScn:{}, minScn:{}, maxScn:{}", startScn, minScn, maxScn);
+            //查找出加载到logminer里的日志文件
+            List<LogFile> logFiles = queryAddedLogFiles();
+            LOG.info("start logMiner successfully, startScn:{}, minScn:{}, maxScn:{}, Log group changed, new log group = {}", startScn, minScn, maxScn, GsonUtil.GSON.toJson(logFiles));
         } catch (SQLException e) {
             String message = String.format("start logMiner failed, offset:[%s], sql:[%s], e: %s", startScn, startSql, ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
@@ -347,11 +349,13 @@ public class LogMinerConnection {
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
             logMinerSelectStmt.setBigDecimal(1, recordLog.getScn());
             logMinerSelectStmt.setString(2, recordLog.getRowId());
-            logMinerSelectStmt.setString(3, recordLog.getTableName());
-            logMinerSelectStmt.setInt(4, 0);
-            logMinerSelectStmt.setInt(5, 1);
-            logMinerSelectStmt.setString(6, recordLog.getRowId());
-            logMinerSelectStmt.setBigDecimal(7, recordLog.getScn());
+            logMinerSelectStmt.setString(3, recordLog.getXidSqn());
+            logMinerSelectStmt.setString(4, recordLog.getTableName());
+            logMinerSelectStmt.setInt(5, 0);
+            logMinerSelectStmt.setInt(6, 1);
+            logMinerSelectStmt.setString(7, recordLog.getRowId());
+            logMinerSelectStmt.setString(8, recordLog.getXidSqn());
+            logMinerSelectStmt.setBigDecimal(9, recordLog.getScn());
 
             logMinerData = logMinerSelectStmt.executeQuery();
 
@@ -654,9 +658,9 @@ public class LogMinerConnection {
                    logFile.setThread(rs.getLong("thread_id"));
                    logFile.setBytes(rs.getLong("filesize"));
                    logFile.setStatus(rs.getInt("STATUS"));
+                   logFile.setType(rs.getString("TYPE"));
                    logFileLists.add(logFile);
                }
-               LOG.info("The log file loaded by logminer has changed, new log group = {}", GsonUtil.GSON.toJson(logFileLists));
            }
         }
         return logFileLists;
@@ -692,7 +696,7 @@ public class LogMinerConnection {
                 StringBuilder undoLog = new StringBuilder(1024);
 
                 //从缓存里查找rollback对应的insert语句
-                RecordLog recordLog = queryUndoLog(xidSqn + rowId, scn);
+                RecordLog recordLog = queryUndoLogFromCache(xidSqn + rowId, scn);
                 if(Objects.nonNull(recordLog)){
                     undoLog.append(recordLog.getSqlUndo());
                     hasMultiSql = recordLog.getHasMultiSql();
@@ -960,7 +964,7 @@ public class LogMinerConnection {
      * @param scn scn of rollback
      * @return insert Log
      */
-    public RecordLog queryUndoLog(String key, BigDecimal scn) {
+    public RecordLog queryUndoLogFromCache(String key, BigDecimal scn) {
         LinkedHashMap<BigDecimal, RecordLog> recordMap = insertRecordCache.getIfPresent(key);
         if (MapUtils.isEmpty(recordMap)) {
             return null;
@@ -992,9 +996,12 @@ public class LogMinerConnection {
      * @return insert语句
      */
     public RecordLog recursionQueryDataForRollback(RecordLog rollbackRecord) throws SQLException, UnsupportedEncodingException, DecoderException {
-        if(Objects.isNull(queryDataForRollbackConnection) ||
-                (Objects.isNull(queryDataForRollbackConnection.connection) || !queryDataForRollbackConnection.connection.isClosed())){
-            queryDataForRollbackConnection= new LogMinerConnection(logMinerConfig);
+        if (Objects.isNull(queryDataForRollbackConnection)) {
+            queryDataForRollbackConnection = new LogMinerConnection(logMinerConfig);
+        }
+
+        if (Objects.isNull(queryDataForRollbackConnection.connection) || queryDataForRollbackConnection.connection.isClosed()){
+            LOG.info("queryDataForRollbackConnection start connect");
             queryDataForRollbackConnection.connect();
         }
 
@@ -1004,7 +1011,7 @@ public class LogMinerConnection {
             for (LogFile file : files) {
                 try{
                     removeLogFile(file.getFileName());
-                }catch (Exception e){
+                }catch (SQLException e){
                     queryDataForRollbackConnection.disConnect();
                     queryDataForRollbackConnection.connect();
                 }
@@ -1027,13 +1034,12 @@ public class LogMinerConnection {
         for (int i = 0; i < 10; i++) {
             queryDataForRollbackConnection.startOrUpdateLogminer(startScn, endScn);
             queryDataForRollbackConnection.queryDataForDeleteRollback(rollbackRecord, SqlUtil.queryDataForRollback);
-            //while循环查找数据 会将insert日志加载到缓存里去
-            while (queryDataForRollbackConnection.hasNext()) {
-                //从缓存里
-                RecordLog insertLog = queryUndoLog(rollbackRecord.getXidSqn() + rollbackRecord.getRowId(), rollbackRecord.getScn());
-                if (Objects.nonNull(insertLog)) {
-                   return insertLog;
-                }
+            //while循环查找所有数据 并都加载到缓存里去
+            while (queryDataForRollbackConnection.hasNext()){}
+            //从缓存里取
+            RecordLog insertLog = queryDataForRollbackConnection.queryUndoLogFromCache(rollbackRecord.getXidSqn() + rollbackRecord.getRowId(), rollbackRecord.getScn());
+            if (Objects.nonNull(insertLog)) {
+                return insertLog;
             }
             endScn = startScn;
             startScn = startScn.subtract(step);

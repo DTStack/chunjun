@@ -191,7 +191,7 @@ public class SqlUtil {
             "            FROM \n"+
             "              v$log   l \n"+
             "           INNER JOIN v$logfile   f ON l.group# = f.group# \n"+
-            "           WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE' \n"+
+            "           WHERE (l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE' )\n"+
             "           AND first_change# <= start_scn \n"+
             "           UNION \n"+
             "           SELECT  \n"+
@@ -259,18 +259,28 @@ public class SqlUtil {
     /** 查找delete的rollback语句对应的insert语句  存在一个事务里rowid相同的其他语句 所以需要子查询过滤掉scn相同rowid相同的语句(这是一对rollback和DML)*/
     public static String queryDataForRollback =
             "SELECT\n" +
-            "    scn,\n" +
-            "    sql_redo,\n" +
-            "    sql_undo,\n" +
-            "    csf  \n" +
+                    "    scn,\n" +
+                    //oracle 10 没有该字段
+//            "    commit_scn,\n" +
+                    "    timestamp,\n" +
+                    "    operation,\n" +
+                    "    operation_code,\n" +
+                    "    seg_owner,\n" +
+                    "    table_name,\n" +
+                    "    sql_redo,\n" +
+                    "    sql_undo,\n" +
+                    "    xidsqn,\n" +
+                    "    row_id,\n" +
+                    "    rollback,\n" +
+                    "    csf\n" +
             "FROM\n" +
             "   v$logmnr_contents a \n"+
             "where \n"+
-                "scn <=?  and row_id=? and table_name = ?  and rollback =? and OPERATION_CODE =? \n"+
-                "and scn not in (select scn from  v$logmnr_contents where row_id =  ? and scn !=?  group by scn HAVING count(scn) >1 and sum(rollback)>0) \n";
+                "scn <=?  and row_id=?  and xidsqn = ? and table_name = ?  and rollback =? and OPERATION_CODE =? \n"+
+                "and scn not in (select scn from  v$logmnr_contents where row_id =  ?   and xidsqn = ?  and scn !=?  group by scn HAVING count(scn) >1 and sum(rollback)>0) \n";
 
     //查找加载到logminer的日志文件
-    public final static String SQL_QUERY_ADDED_LOG = "select filename ,thread_id ,low_scn,next_scn,type,filesize,status from  V$LOGMNR_LOGS ";
+    public final static String SQL_QUERY_ADDED_LOG = "select filename ,thread_id ,low_scn,next_scn,type,filesize,status,type from  V$LOGMNR_LOGS ";
 
     //移除logminer加载的日志文件
     public final static String SQL_REMOVE_ADDED_LOG = "SYS.DBMS_LOGMNR.add_logfile(LogFileName=>?, Options=>dbms_logmnr.removefile) ";
