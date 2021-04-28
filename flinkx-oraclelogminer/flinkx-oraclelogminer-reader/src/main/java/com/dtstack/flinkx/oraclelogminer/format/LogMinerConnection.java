@@ -220,7 +220,9 @@ public class LogMinerConnection {
         closeResources(logMinerData, logMinerSelectStmt, connection);
 
         //queryDataForRollbackConnection 也需要关闭资源
-        queryDataForRollbackConnection.disConnect();
+        if(Objects.nonNull(queryDataForRollbackConnection)){
+            queryDataForRollbackConnection.disConnect();
+        }
     }
 
     /**
