@@ -14,8 +14,8 @@ import java.util.Locale;
 public class MysqlRawTypeConverter {
 
     /**
-     * 将mysql数据库中的类型，转换成flink的DataType类型
-     * MySQL支持的数据类型: com.mysql.jdbc.MysqlDefs
+     * 将MySQL数据库中的类型，转换成flink的DataType类型。
+     * 转换关系参考 com.mysql.jdbc.MysqlDefs 类里面的信息。
      * com.mysql.jdbc.ResultSetImpl.getObject(int)
      *
      * @param type
@@ -49,14 +49,12 @@ public class MysqlRawTypeConverter {
                 return DataTypes.DOUBLE();
             case "CHAR":
             case "VARCHAR":
-                // TODO Flink还支持 DataTypes.VARCHAR(200)
                 return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();
             case "TIME":
                 return DataTypes.TIME();
             case "YEAR":
-                // TODO YEAR类型对应哪个DataType
                 return DataTypes.DATE();
             case "TIMESTAMP":
             case "DATETIME":
@@ -71,17 +69,17 @@ public class MysqlRawTypeConverter {
             case "MEDIUMTEXT":
             case "LONGTEXT":
                 return DataTypes.STRING();
-            // TODO ENUM、SET、GEOMETRY这三个得测试后才知道转成什么类型合适。
-            case "ENUM":
-            case "SET":
-            case "GEOMETRY":
-                return DataTypes.STRING();
             case "BINARY":
             case "VARBINARY":
                 // BYTES 底层调用的是VARBINARY最大长度
                 return DataTypes.BYTES();
             case "JSON":
                 return DataTypes.STRING();
+            case "ENUM":
+            case "SET":
+                return DataTypes.STRING();
+            case "GEOMETRY":
+                return DataTypes.BYTES();
 
             default:
                 throw new SQLException("不支持" + type + "类型");
