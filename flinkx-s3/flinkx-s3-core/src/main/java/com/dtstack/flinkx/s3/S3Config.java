@@ -25,8 +25,15 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * company www.dtstack.com
+ *
+ * @author jier
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class S3Config implements Serializable {
+
+    private static final long serialVersionUID = 9008329384464201903L;
 
     private String accessKey;
 

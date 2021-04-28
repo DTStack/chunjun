@@ -1,4 +1,4 @@
-# FTP Reader
+# S3 Reader
 
 <a name="lq07M"></a>
 ## 一、插件名称
@@ -6,7 +6,7 @@
 
 <a name="AsTTs"></a>
 ## 二、支持的数据源版本
-xxx
+aws s3
 
 
 <a name="j2xad"></a>
@@ -41,14 +41,14 @@ xxx
   - 默认值：无
 
 - **object**
-  - 描述：需要同步的对象
+  - 描述：需要同步的对象,支持正则表达式
   - 格式：
     - 单个对象
-      - [abc.xml]
-      - [abd]
+      - ["abc.xml"]
+      - ["abd"]
     - 多个对象
-      - [dir\\*]
-      - [abc.xml,dir\\*]
+      - ["dir/.+"]
+      - ["abc.xml","dir/.+\.xml"]
 
 - **column**
 
@@ -137,7 +137,8 @@ xxx
               }
             ],
             "encoding": "",
-            "fieldDelimiter": ""
+            "fieldDelimiter": ",",
+            "isFirstLineHeader": true
           },
           "name": "s3reader"
         },
@@ -314,7 +315,7 @@ xxx
             "secretKey": "",
             "region": "",
             "bucket": "",
-            "object": ["aaa/*","bbb/ccc.xml"],
+            "object": ["dir/.+\.xml","bbb/ccc.xml"],
             "column": [
               {
                 "index": 0,
@@ -368,5 +369,108 @@ xxx
   }
 }
 ```
+
+<a name="KxOTY"></a>
+#### 4、断点续传
+开启断点续传功能需要给 column 中的每个字段都加上 name，name 值可以为不重复的任意字符串。并配置 restore，
+restore 中 restoreColumnIndex 的值需选择 reader 中任意一个字段的 index，而 restoreColumnName 选取相应
+字段的 name 的值。实际上这几个字段只是为了开启断点续传的功能用的，内部是使用文件流的偏移量进行恢复的。
+```json
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "accessKey": "test",
+            "secretKey": "test",
+            "endpoint": "http://127.0.0.1:9090",
+            "region": "us-west-2",
+            "bucket": "test",
+            "object": ["people_20210426001.csv"],
+            "column": [
+              {
+                "name": "id",
+                "index": 0,
+                "type": "int"
+              },
+              {
+                "name": "value1",
+                "index": 1,
+                "type": "string"
+              },
+              {
+                "name": "value2",
+                "index": 2,
+                "type": "string"
+              }
+            ],
+            "encoding": "UTF-8",
+            "fieldDelimiter": ",",
+            "isFirstLineHeader": true
+          },
+          "name": "s3reader"
+        },
+        "writer": {
+          "name": "mysqlwriter",
+          "parameter": {
+            "username": "",
+            "password": "",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:mysql://localhost:3306/abc?useSSL=false",
+                "table": [
+                  "people_bak_20210421"
+                ]
+              }
+            ],
+            "postSql": [],
+            "batchSize": 100,
+            "writeMode": "insert",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "varchar"
+              },
+              {
+                "name": "uuid",
+                "type": "varchar"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 100,
+        "isStream" : true,
+        "isRestore": true,
+        "restoreColumnName" : "id",
+        "restoreColumnIndex" : 1
+      },
+      "log": {
+        "isLogger": false,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}
+```
+
+
 
 

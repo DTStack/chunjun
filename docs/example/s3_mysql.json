@@ -36,11 +36,11 @@
         "writer": {
           "name": "mysqlwriter",
           "parameter": {
-            "username": "root",
-            "password": "dtstack123456",
+            "username": "",
+            "password": "",
             "connection": [
               {
-                "jdbcUrl": "jdbc:mysql://localhost:3306/dtstack_data_sync?useSSL=false",
+                "jdbcUrl": "jdbc:mysql://localhost:3306/abc?useSSL=false",
                 "table": [
                   "people_bak_20210421"
                 ]

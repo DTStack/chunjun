@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dtstack.flinkx.s3.format;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -8,6 +26,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.s3.S3SimpleObject;
 import com.dtstack.flinkx.s3.S3Util;
 import com.dtstack.flinkx.s3.S3Config;
 import com.dtstack.flinkx.util.StringUtil;
@@ -22,13 +41,17 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author jier@dtstack.com
+ * company www.dtstack.com
+ *
+ * @author jier
  */
 public class S3InputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(S3InputFormat.class);
 
-    private List<String> objects = new ArrayList<>();
+    private static final long serialVersionUID = -3217513386563100062L;
+
+    private List<S3SimpleObject> objects = new ArrayList<>();
 
 
     private S3Config s3Config;
@@ -40,9 +63,7 @@ public class S3InputFormat extends BaseRichInputFormat {
     private transient String currentObject;
     private transient Map<String, Long> offsetMap;
 
-    private transient CsvReaderUtil csvReaderUtil = null;
-
-    private int count = 0;
+    private transient ReaderUtil readerUtil = null;
 
 
     @Override
@@ -56,7 +77,8 @@ public class S3InputFormat extends BaseRichInputFormat {
         S3InputSplit inputSplit = (S3InputSplit) split;
         List<String> splitsList = inputSplit.getSplits();
         LinkedList<String> result = new LinkedList<>();
-        if (formatState != null && formatState.getState() != null && formatState.getState() instanceof Map) {
+        if (restoreConfig.isRestore() && formatState != null
+                && formatState.getState() != null && formatState.getState() instanceof Map) {
             offsetMap = (Map) formatState.getState();
             for (int i = 0; i < splitsList.size(); i++) {
                 String object = splitsList.get(i);
@@ -69,7 +91,9 @@ public class S3InputFormat extends BaseRichInputFormat {
                 }
             }
         } else {
-            offsetMap = new ConcurrentHashMap<>(inputSplit.getSplits().size());
+            if (restoreConfig.isRestore()) {
+                offsetMap = new ConcurrentHashMap<>(inputSplit.getSplits().size());
+            }
             for (int i = 0; i < splitsList.size(); i++) {
                 String object = splitsList.get(i);
                 if (object.hashCode() % inputSplit.getTotalNumberOfSplits() == indexOfSubTask) {
@@ -84,19 +108,20 @@ public class S3InputFormat extends BaseRichInputFormat {
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
         //todo 使用动态规划划分切片，使每块切片的文件总大小近似相当，解决按照 hash 分配容易造成数据倾斜的问题。
 
+        List<String> keys = new ArrayList<>();
+        for (S3SimpleObject object : objects) {
+            keys.add(object.getKey());
+        }
         S3InputSplit[] splits = new S3InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            splits[i] = new S3InputSplit(indexOfSubTask, minNumSplits, objects);
+            splits[i] = new S3InputSplit(indexOfSubTask, minNumSplits, keys);
         }
         return splits;
     }
 
     @Override
     protected Row nextRecordInternal(Row row) throws IOException {
-        if (count > 2000) {
-            System.out.println(1 / 0);
-        }
-        String[] fields = csvReaderUtil.getValues();
+        String[] fields = readerUtil.getValues();
         if (metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())) {
             row = new Row(fields.length);
             for (int i = 0; i < fields.length; i++) {
@@ -125,18 +150,17 @@ public class S3InputFormat extends BaseRichInputFormat {
             }
         }
         if (restoreConfig.isRestore()) {
-            offsetMap.replace(currentObject, csvReaderUtil.getNextOffset());
+            offsetMap.replace(currentObject, readerUtil.getNextOffset());
         }
-        count++;
         return row;
     }
 
 
     @Override
     protected void closeInternal() throws IOException {
-        if (csvReaderUtil != null) {
-            csvReaderUtil.close();
-            csvReaderUtil = null;
+        if (readerUtil != null) {
+            readerUtil.close();
+            readerUtil = null;
         }
     }
 
@@ -147,31 +171,34 @@ public class S3InputFormat extends BaseRichInputFormat {
 
     public boolean reachedEndWithoutCheckState() throws IOException {
         //br 为空，说明需要读新文件
-        if (csvReaderUtil == null) {
+        if (readerUtil == null) {
             if (splits.hasNext()) {
                 //若还有新文件，则读新文件
                 currentObject = splits.next();
                 GetObjectRequest rangeObjectRequest = new GetObjectRequest(s3Config.getBucket(), currentObject);
 
-                if (offsetMap.containsKey(currentObject) && 0 < offsetMap.get(currentObject)) {
-                    //若已经读过该文件且还没读取完成，则继续读
-                    long offset = offsetMap.get(currentObject);
+                if (restoreConfig.isRestore() && offsetMap.containsKey(currentObject) && 0 <= offsetMap.get(currentObject)) {
+                    //若开启断点续传，已经读过该文件且还没读取完成，则继续读
+                    long offset = offsetMap.getOrDefault(currentObject, 0L);
                     rangeObjectRequest.setRange(offset);
                     S3Object o = amazonS3.getObject(rangeObjectRequest);
                     S3ObjectInputStream s3is = o.getObjectContent();
-                    csvReaderUtil = new CsvReaderUtil(new InputStreamReader(
+                    readerUtil = new ReaderUtil(new InputStreamReader(
                             s3is, s3Config.getEncoding()), s3Config.getFieldDelimiter(), offset);
                     offsetMap.put(currentObject, offset);
                 } else {
-                    //没读过该文件，或者读过但偏移量为0
+                    //未开启断点续传 或开启断点续传没读过
+                    //（不存在已读完的文件，若存在已读完的文件且开启了断点续传功能，则在openInternal方法中不会将其加入待处理文件）
                     S3Object o = amazonS3.getObject(rangeObjectRequest);
                     S3ObjectInputStream s3is = o.getObjectContent();
-                    csvReaderUtil = new CsvReaderUtil(new InputStreamReader(
+                    readerUtil = new ReaderUtil(new InputStreamReader(
                             s3is, s3Config.getEncoding()), s3Config.getFieldDelimiter());
                     if (s3Config.isFirstLineHeader()) {
-                        csvReaderUtil.readHeaders();
+                        readerUtil.readHeaders();
                     }
-                    offsetMap.put(currentObject, csvReaderUtil.getNextOffset());
+                    if (restoreConfig.isRestore()) {
+                        offsetMap.put(currentObject, readerUtil.getNextOffset());
+                    }
                 }
             } else {
                 //若没有新文件，则读完所有文件
@@ -179,14 +206,16 @@ public class S3InputFormat extends BaseRichInputFormat {
             }
         }
         //br不为空且正在读文件且 splits 还有下一个文件
-        if (csvReaderUtil.readRecord()) {
+        if (readerUtil.readRecord()) {
             //还没读取完本次读取的文件
             return false;
         } else {
             //读取完本次读取的文件，关闭 br 并置空
-            csvReaderUtil.close();
-            csvReaderUtil = null;
-            offsetMap.replace(currentObject, -1L);
+            readerUtil.close();
+            readerUtil = null;
+            if (restoreConfig.isRestore()) {
+                offsetMap.replace(currentObject, -1L);
+            }
             //尝试去读新文件
             return reachedEndWithoutCheckState();
         }
@@ -210,7 +239,7 @@ public class S3InputFormat extends BaseRichInputFormat {
         this.s3Config = s3Config;
     }
 
-    public void setObjects(List<String> objects) {
+    public void setObjects(List<S3SimpleObject> objects) {
         this.objects = objects;
     }
 
