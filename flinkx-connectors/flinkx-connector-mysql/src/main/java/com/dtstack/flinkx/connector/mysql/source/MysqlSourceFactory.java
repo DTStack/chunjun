@@ -23,7 +23,6 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.connector.mysql.MysqlDialect;
-import com.dtstack.flinkx.connector.mysql.inputFormat.MysqlInputFormat;
 import org.apache.commons.lang3.StringUtils;
 
 /**

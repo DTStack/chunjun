@@ -21,7 +21,6 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.mysql.MysqlDialect;
-import com.dtstack.flinkx.connector.mysql.outputFormat.MysqlOutputFormat;
 
 /**
  * Date: 2021/04/13 Company: www.dtstack.com
