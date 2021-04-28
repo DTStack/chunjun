@@ -52,6 +52,9 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
+    private static final int DEFAULT_FETCH_SIZE = 1;
+    private static final int DEFAULT_QUERY_TIMEOUT = 300;
+
     public JdbcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         Gson gson =
@@ -85,10 +88,10 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         JdbcInputFormatBuilder builder = getBuilder();
 
         int fetchSize = jdbcConf.getFetchSize();
-        jdbcConf.setFetchSize(fetchSize == 0 ? jdbcDialect.getFetchSize() : fetchSize);
+        jdbcConf.setFetchSize(fetchSize == 0 ? getDefaultFetchSize() : fetchSize);
 
         int queryTimeOut = jdbcConf.getQueryTimeOut();
-        jdbcConf.setQueryTimeOut(queryTimeOut == 0 ? jdbcDialect.getQueryTimeout() : queryTimeOut);
+        jdbcConf.setQueryTimeOut(queryTimeOut == 0 ? DEFAULT_QUERY_TIMEOUT : queryTimeOut);
 
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
@@ -155,5 +158,9 @@ public abstract class JdbcSourceFactory extends SourceFactory {
             jdbcConf.setIncreColumnType(type);
             jdbcConf.setIncreColumnIndex(index);
         }
+    }
+
+    protected int getDefaultFetchSize() {
+        return DEFAULT_FETCH_SIZE;
     }
 }
