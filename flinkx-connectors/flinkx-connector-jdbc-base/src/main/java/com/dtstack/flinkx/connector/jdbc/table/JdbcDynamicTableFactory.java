@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.jdbc.table;
 
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;

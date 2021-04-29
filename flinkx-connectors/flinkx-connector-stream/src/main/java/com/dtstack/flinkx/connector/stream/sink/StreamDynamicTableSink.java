@@ -29,7 +29,6 @@ import org.apache.flink.table.types.DataType;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
-import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
 
 import org.apache.flink.table.types.logical.RowType;
 

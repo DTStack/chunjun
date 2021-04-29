@@ -16,13 +16,11 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.table;
+package com.dtstack.flinkx.connector.jdbc.sink;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 

@@ -16,36 +16,33 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.stream.outputFormat;
+package com.dtstack.flinkx.connector.stream.source;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
-
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-
-import org.apache.flink.table.connector.sink.DynamicTableSink;
-
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import org.apache.commons.collections.CollectionUtils;
 
 /**
- * The builder of StreamOutputFormat
- *
- * @author jiangbo
  * @Company: www.dtstack.com
+ * @author jiangbo
  */
-public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
+public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
 
-    private StreamOutputFormat format;
+    private final StreamInputFormat format;
 
-    public StreamOutputFormatBuilder() {
-        super.format = format = new StreamOutputFormat();
+    public StreamInputFormatBuilder() {
+        super.format = format = new StreamInputFormat();
     }
 
-    public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
-        super.setConfig(streamSinkConf);
-        format.setStreamSinkConf(streamSinkConf);
+    public void setStreamConf(StreamConf streamConf) {
+        super.setConfig(streamConf);
+        format.setStreamConf(streamConf);
     }
 
     @Override
     protected void checkFormat() {
+        if (CollectionUtils.isEmpty(format.getStreamConf().getColumn())){
+            throw new IllegalArgumentException("columns can not be empty");
+        }
     }
 }

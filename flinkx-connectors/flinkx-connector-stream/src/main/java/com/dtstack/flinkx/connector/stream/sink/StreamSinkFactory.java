@@ -26,7 +26,6 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
 import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
-import com.dtstack.flinkx.connector.stream.outputFormat.StreamOutputFormatBuilder;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;

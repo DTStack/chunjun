@@ -16,33 +16,32 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.stream.inputFormat;
+package com.dtstack.flinkx.connector.stream.sink;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
-import org.apache.commons.collections.CollectionUtils;
+import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
+
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 
 /**
- * @Company: www.dtstack.com
+ * The builder of StreamOutputFormat
+ *
  * @author jiangbo
+ * @Company: www.dtstack.com
  */
-public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
+public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
-    private final StreamInputFormat format;
+    private StreamOutputFormat format;
 
-    public StreamInputFormatBuilder() {
-        super.format = format = new StreamInputFormat();
+    public StreamOutputFormatBuilder() {
+        super.format = format = new StreamOutputFormat();
     }
 
-    public void setStreamConf(StreamConf streamConf) {
-        super.setConfig(streamConf);
-        format.setStreamConf(streamConf);
+    public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
+        super.setConfig(streamSinkConf);
+        format.setStreamSinkConf(streamSinkConf);
     }
 
     @Override
     protected void checkFormat() {
-        if (CollectionUtils.isEmpty(format.getStreamConf().getColumn())){
-            throw new IllegalArgumentException("columns can not be empty");
-        }
     }
 }

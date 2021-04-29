@@ -16,15 +16,13 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.table;
+package com.dtstack.flinkx.connector.jdbc.source;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
