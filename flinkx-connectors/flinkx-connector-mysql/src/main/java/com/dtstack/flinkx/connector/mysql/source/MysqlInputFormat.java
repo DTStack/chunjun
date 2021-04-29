@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.mysql.source;
 
 import org.apache.flink.core.io.InputSplit;
 
-import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormat;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 
 /**
  * Date: 2021/04/12 Company: www.dtstack.com

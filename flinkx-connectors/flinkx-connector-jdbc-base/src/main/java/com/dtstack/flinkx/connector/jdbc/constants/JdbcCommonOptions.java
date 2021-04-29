@@ -26,7 +26,7 @@ import org.apache.flink.configuration.ConfigOptions;
  * @create 2021-04-10 16:22
  * @description
  **/
-public class JdbcCommonConstants {
+public class JdbcCommonOptions {
     public static final ConfigOption<String> URL =
             ConfigOptions.key("url")
                     .stringType()

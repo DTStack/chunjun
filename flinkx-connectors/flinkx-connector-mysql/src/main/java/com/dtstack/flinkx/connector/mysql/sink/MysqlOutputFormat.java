@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.mysql.sink;
 
-import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 
 /**
  * Date: 2021/04/13 Company: www.dtstack.com

@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.connector.mysql.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.mysql.MysqlDialect;
 

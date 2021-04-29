@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.mysql.source;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.connector.mysql.MysqlDialect;
 import org.apache.commons.lang3.StringUtils;

@@ -26,7 +26,7 @@ import org.apache.flink.configuration.ConfigOptions;
  * @create 2021-04-10 16:19
  * @description
  **/
-public class JdbcSourceConstants {
+public class JdbcSourceOptions {
     // read config options
     public static final ConfigOption<String> SCAN_PARTITION_COLUMN =
             ConfigOptions.key("scan.partition.column")
