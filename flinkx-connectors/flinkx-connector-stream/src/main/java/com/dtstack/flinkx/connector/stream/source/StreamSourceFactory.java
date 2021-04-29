@@ -70,7 +70,7 @@ public class StreamSourceFactory extends SourceFactory {
             rowConverter = new StreamRowConverter(rowType);
         }
 
-        builder.setAbstractRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter);
 
         return createInput(builder.finish());
     }

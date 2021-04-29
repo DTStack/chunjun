@@ -71,7 +71,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author huyifan.zju@163.com
  */
-public abstract class JdbcInputFormat extends BaseRichInputFormat {
+public class JdbcInputFormat extends BaseRichInputFormat {
     public static final long serialVersionUID = 1L;
     protected static final int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
     protected static int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
@@ -899,24 +899,7 @@ public abstract class JdbcInputFormat extends BaseRichInputFormat {
      * @return
      */
     protected RowData loadConstantData(RowData rawRowData) {
-        int len = finalFieldTypes.size();
-        List<FieldConf> fieldConfs = jdbcConf.getColumn();
-        ColumnRowData finalRowData = new ColumnRowData(len);
-        for (int i = 0; i < len; i++) {
-            String val = fieldConfs.get(i).getValue();
-            // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
-            if (val != null) {
-                String value =
-                        StringUtil.string2col(
-                                val,
-                                fieldConfs.get(i).getType(),
-                                fieldConfs.get(i).getTimeFormat()).toString();
-                finalRowData.addField(new StringColumn(value));
-            } else {
-                finalRowData.addField(((ColumnRowData) rawRowData).getField(i));
-            }
-        }
-        return finalRowData;
+        return rawRowData;
     }
 
     public JdbcConf getJdbcConf() {

@@ -40,7 +40,7 @@ public abstract class BaseRichInputFormatBuilder {
         format.setConfig(config);
     }
 
-    public void setAbstractRowConverter(AbstractRowConverter rowConverter) {
+    public void setRowConverter(AbstractRowConverter rowConverter) {
         format.setRowConverter(rowConverter);
     }
 

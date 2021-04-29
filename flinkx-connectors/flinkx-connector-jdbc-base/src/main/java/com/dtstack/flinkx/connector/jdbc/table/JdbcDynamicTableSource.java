@@ -18,31 +18,45 @@
 
 package com.dtstack.flinkx.connector.jdbc.table;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.conf.SourceConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
 
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
+import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /** A {@link DynamicTableSource} for JDBC. */
 public class JdbcDynamicTableSource
-        implements LookupTableSource, SupportsProjectionPushDown {
+        implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     protected final JdbcConf jdbcConf;
     protected final LookupConf lookupConf;
+    protected final SourceConnectionConf sourceConnectionConf;
     protected TableSchema physicalSchema;
     protected final String dialectName;
     protected final JdbcDialect jdbcDialect;
@@ -50,11 +64,13 @@ public class JdbcDynamicTableSource
     public JdbcDynamicTableSource(
             JdbcConf jdbcConf,
             LookupConf lookupConf,
+            SourceConnectionConf sourceConnectionConf,
             TableSchema physicalSchema,
             JdbcDialect jdbcDialect
     ) {
         this.jdbcConf = jdbcConf;
         this.lookupConf = lookupConf;
+        this.sourceConnectionConf = sourceConnectionConf;
         this.physicalSchema = physicalSchema;
         this.jdbcDialect = jdbcDialect;
         this.dialectName = jdbcDialect.dialectName();
@@ -93,6 +109,32 @@ public class JdbcDynamicTableSource
     }
 
     @Override
+    public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
+        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
+        TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
+
+        JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(new JdbcInputFormat());
+        String[] fieldNames = physicalSchema.getFieldNames();
+        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
+        for (String name : fieldNames) {
+            FieldConf field = new FieldConf();
+            field.setName(name);
+            columnList.add(field);
+        }
+        jdbcConf.setColumn(columnList);
+        builder.setJdbcDialect(jdbcDialect);
+        builder.setJdbcConf(jdbcConf);
+        builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
+
+        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, sourceConnectionConf.getParallelism());
+    }
+
+    @Override
+    public ChangelogMode getChangelogMode() {
+        return ChangelogMode.insertOnly();
+    }
+
+    @Override
     public boolean supportsNestedProjection() {
         // JDBC doesn't support nested projection
         return false;
@@ -108,6 +150,7 @@ public class JdbcDynamicTableSource
         return new JdbcDynamicTableSource(
                 jdbcConf,
                 lookupConf,
+                sourceConnectionConf,
                 physicalSchema,
                 jdbcDialect);
     }

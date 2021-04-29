@@ -33,6 +33,7 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
+import com.dtstack.flinkx.connector.jdbc.conf.SourceConnectionConf;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_M
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_PARALLELISM;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_AUTO_COMMIT;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_FETCH_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARALLELISM;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_COLUMN;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_LOWER_BOUND;
 import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_NUM;
@@ -75,8 +77,9 @@ import static org.apache.flink.util.Preconditions.checkState;
  * @author chuixue
  * @create 2021-04-10 12:54
  * @description
- **/
-abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+ */
+public abstract class JdbcDynamicTableFactory
+        implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
@@ -97,11 +100,10 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         return new JdbcDynamicTableSource(
                 getConnectionConf(helper.getOptions(), physicalSchema),
                 getJdbcLookupConf(
-                        helper.getOptions(),
-                        context.getObjectIdentifier().getObjectName()),
+                        helper.getOptions(), context.getObjectIdentifier().getObjectName()),
+                getSourceConnectionConf(helper.getOptions()),
                 physicalSchema,
-                jdbcDialect
-        );
+                jdbcDialect);
     }
 
     @Override
@@ -148,18 +150,14 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         jdbcConf.setFlushIntervalMills(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
         jdbcConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
 
-        List<String> keyFields =
-                schema.getPrimaryKey()
-                        .map(pk -> pk.getColumns())
-                        .orElse(null);
+        List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
         jdbcConf.setUpdateKey(keyFields);
 
         return jdbcConf;
     }
 
     protected LookupConf getJdbcLookupConf(ReadableConfig readableConfig, String tableName) {
-        return JdbcLookupConf
-                .build()
+        return JdbcLookupConf.build()
                 .setAsyncPoolSize(readableConfig.get(LOOKUP_ASYNCPOOLSIZE))
                 .setTableName(tableName)
                 .setPeriod(readableConfig.get(LOOKUP_CACHE_PERIOD))
@@ -171,6 +169,26 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
                 .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE))
                 .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT))
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
+    }
+
+    protected SourceConnectionConf getSourceConnectionConf(ReadableConfig readableConfig) {
+        SourceConnectionConf sourceConnectionConf = new SourceConnectionConf();
+
+        final Optional<String> partitionColumnName =
+                readableConfig.getOptional(SCAN_PARTITION_COLUMN);
+        if (partitionColumnName.isPresent()) {
+            sourceConnectionConf.setPartitionColumnName(partitionColumnName.get());
+            sourceConnectionConf.setPartitionLowerBound(
+                    readableConfig.get(SCAN_PARTITION_LOWER_BOUND));
+            sourceConnectionConf.setPartitionUpperBound(
+                    readableConfig.get(SCAN_PARTITION_UPPER_BOUND));
+            sourceConnectionConf.setNumPartitions(readableConfig.get(SCAN_PARTITION_NUM));
+        }
+        readableConfig.getOptional(SCAN_FETCH_SIZE).ifPresent(sourceConnectionConf::setFetchSize);
+        sourceConnectionConf.setAutoCommit(readableConfig.get(SCAN_AUTO_COMMIT));
+        sourceConnectionConf.setParallelism(readableConfig.get(SCAN_PARALLELISM));
+
+        return sourceConnectionConf;
     }
 
     @Override
@@ -187,6 +205,7 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         optionalOptions.add(USERNAME);
         optionalOptions.add(PASSWORD);
 
+        optionalOptions.add(SCAN_PARALLELISM);
         optionalOptions.add(SCAN_PARTITION_COLUMN);
         optionalOptions.add(SCAN_PARTITION_LOWER_BOUND);
         optionalOptions.add(SCAN_PARTITION_UPPER_BOUND);
@@ -217,15 +236,15 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         final Optional<JdbcDialect> dialect = Optional.of(getDialect());
         checkState(dialect.isPresent(), "Cannot handle such jdbc url: " + jdbcUrl);
 
-        checkAllOrNone(config, new ConfigOption[]{USERNAME, PASSWORD});
+        checkAllOrNone(config, new ConfigOption[] {USERNAME, PASSWORD});
 
         checkAllOrNone(
                 config,
-                new ConfigOption[]{
-                        SCAN_PARTITION_COLUMN,
-                        SCAN_PARTITION_NUM,
-                        SCAN_PARTITION_LOWER_BOUND,
-                        SCAN_PARTITION_UPPER_BOUND
+                new ConfigOption[] {
+                    SCAN_PARTITION_COLUMN,
+                    SCAN_PARTITION_NUM,
+                    SCAN_PARTITION_LOWER_BOUND,
+                    SCAN_PARTITION_UPPER_BOUND
                 });
 
         if (config.getOptional(SCAN_PARTITION_LOWER_BOUND).isPresent()
@@ -243,7 +262,7 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
             }
         }
 
-        checkAllOrNone(config, new ConfigOption[]{LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
+        checkAllOrNone(config, new ConfigOption[] {LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
 
         if (config.get(LOOKUP_MAX_RETRIES) < 0) {
             throw new IllegalArgumentException(

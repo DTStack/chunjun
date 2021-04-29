@@ -28,6 +28,11 @@ import org.apache.flink.configuration.ConfigOptions;
  **/
 public class JdbcSourceOptions {
     // read config options
+    public static final ConfigOption<Integer> SCAN_PARALLELISM =
+            ConfigOptions.key("scan.parallelism")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription("scan parallelism.");
     public static final ConfigOption<String> SCAN_PARTITION_COLUMN =
             ConfigOptions.key("scan.partition.column")
                     .stringType()
