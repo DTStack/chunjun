@@ -102,7 +102,7 @@ public abstract class JdbcDynamicTableFactory
         JdbcDialect jdbcDialect = getDialect();
 
         return new JdbcDynamicTableSource(
-                getConnectionConf(helper.getOptions(), physicalSchema),
+                getSourceConnectionConf(helper.getOptions()),
                 getJdbcLookupConf(
                         helper.getOptions(), context.getObjectIdentifier().getObjectName()),
                 physicalSchema,
@@ -126,36 +126,32 @@ public abstract class JdbcDynamicTableFactory
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
         return new JdbcDynamicTableSink(
-                getConnectionConf(helper.getOptions(), physicalSchema),
+                getSinkConnectionConf(helper.getOptions(), physicalSchema),
                 jdbcDialect,
                 physicalSchema);
     }
 
-    protected JdbcConf getConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
+    protected JdbcConf getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
         JdbcConf jdbcConf = new JdbcConf();
         SinkConnectionConf conf = new SinkConnectionConf();
+        jdbcConf.setConnection(Collections.singletonList(conf));
 
         conf.setJdbcUrl(readableConfig.get(URL));
-        List<String> tableNames = new ArrayList<>();
-        tableNames.add(readableConfig.get(TABLE_NAME));
-        conf.setTable(tableNames);
+        conf.setTable(Arrays.asList(readableConfig.get(TABLE_NAME)));
         conf.setSchema(readableConfig.get(SCHEMA));
 
-        readableConfig.getOptional(USERNAME).ifPresent(conf::setUsername);
-        readableConfig.getOptional(PASSWORD).ifPresent(conf::setPassword);
-        jdbcConf.setConnection(Collections.singletonList(conf));
-        jdbcConf.setUsername(conf.getUsername());
-        jdbcConf.setPassword(conf.getPassword());
+        jdbcConf.setUsername(readableConfig.get(USERNAME));
+        jdbcConf.setPassword(readableConfig.get(PASSWORD));
 
-        jdbcConf.setParallelism(readableConfig.get(SCAN_PARALLELISM));
-        jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE));
-        jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
-
-        jdbcConf.setAllReplace(readableConfig.get(SINK_ALLREPLACE));
+        jdbcConf.setAllReplace(conf.getAllReplace());
         jdbcConf.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
         jdbcConf.setFlushIntervalMills(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
         jdbcConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
-        List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
+
+        List<String> keyFields =
+                schema.getPrimaryKey()
+                        .map(pk -> pk.getColumns())
+                        .orElse(null);
         jdbcConf.setUpdateKey(keyFields);
 
         return jdbcConf;
@@ -176,29 +172,37 @@ public abstract class JdbcDynamicTableFactory
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
 
-    protected SourceConnectionConf getSourceConnectionConf(ReadableConfig readableConfig) {
+    protected JdbcConf getSourceConnectionConf(ReadableConfig readableConfig) {
         JdbcConf jdbcConf = new JdbcConf();
+        SourceConnectionConf conf = new SourceConnectionConf();
+        jdbcConf.setConnection(Collections.singletonList(conf));
+
+        conf.setJdbcUrl(Arrays.asList(readableConfig.get(URL)));
+        conf.setTable(Arrays.asList(readableConfig.get(TABLE_NAME)));
+        conf.setSchema(readableConfig.get(SCHEMA));
+
+        jdbcConf.setJdbcUrl(readableConfig.get(URL));
+        jdbcConf.setUsername(readableConfig.get(USERNAME));
+        jdbcConf.setPassword(readableConfig.get(PASSWORD));
+
         jdbcConf.setParallelism(readableConfig.get(SCAN_PARALLELISM));
         jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE));
         jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
 
-        SourceConnectionConf sourceConnectionConf = new SourceConnectionConf();
 
         final Optional<String> partitionColumnName =
                 readableConfig.getOptional(SCAN_PARTITION_COLUMN);
         if (partitionColumnName.isPresent()) {
-            sourceConnectionConf.setPartitionColumnName(partitionColumnName.get());
-            sourceConnectionConf.setPartitionLowerBound(
+            conf.setPartitionColumnName(partitionColumnName.get());
+            conf.setPartitionLowerBound(
                     readableConfig.get(SCAN_PARTITION_LOWER_BOUND));
-            sourceConnectionConf.setPartitionUpperBound(
+            conf.setPartitionUpperBound(
                     readableConfig.get(SCAN_PARTITION_UPPER_BOUND));
-            sourceConnectionConf.setNumPartitions(readableConfig.get(SCAN_PARTITION_NUM));
+            conf.setNumPartitions(readableConfig.get(SCAN_PARTITION_NUM));
         }
-        readableConfig.getOptional(SCAN_FETCH_SIZE).ifPresent(sourceConnectionConf::setFetchSize);
-        sourceConnectionConf.setAutoCommit(readableConfig.get(SCAN_AUTO_COMMIT));
-        sourceConnectionConf.setParallelism(readableConfig.get(SCAN_PARALLELISM));
+        conf.setAutoCommit(readableConfig.get(SCAN_AUTO_COMMIT));
 
-        return sourceConnectionConf;
+        return jdbcConf;
     }
 
     @Override
