@@ -44,7 +44,7 @@ public class LocalTest {
         String userDir = System.getProperty("user.dir");
         System.out.println(userDir);
 
-        String jobPath = "/Users/tudou/Library/Application Support/JetBrains/IntelliJIdea2021.1/scratches/merge/stream.json";
+        String jobPath = "/Users/tudou/Library/Application Support/JetBrains/IntelliJIdea2021.1/scratches/merge/binlog_stream.json";
         String flinkxPluginPath = userDir + "/syncplugins";
 
         // 任务配置参数

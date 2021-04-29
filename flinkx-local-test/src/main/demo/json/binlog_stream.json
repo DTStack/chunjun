@@ -1,0 +1,36 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "schema" : "tudou",
+          "username" : "root",
+          "password" : "root",
+          "cat" : "insert,delete,update",
+          "jdbcUrl" : "jdbc:mysql://kudu3:3308/tudou?useSSL=false",
+          "host" : "kudu3",
+          "port" : 3308,
+          "start" : {
+            "journalName": "mysql-bin.000001"
+          },
+          "table" : [  ],
+          "splitUpdate" : true,
+          "pavingData" : true
+        },
+        "name" : "binlogreader"
+      },
+      "writer" : {
+        "parameter" : {
+          "print" : true
+        },
+        "name" : "streamwriter"
+      }
+    } ],
+    "setting" : {
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.connector.binlog.table;
 
 /**
  * Date: 2021/04/27
@@ -23,31 +23,5 @@ package com.dtstack.flinkx.enums;
  *
  * @author tudou
  */
-public enum OperationType {
-    //----------------- DML -----------------
-    INSERT(0, "INSERT"),
-    UPDATE(1, "UPDATE"),
-    UPDATE_BEFORE(3, "UPDATE"),
-    UPDATE_AFTER(4, "UPDATE"),
-    DELETE(5, "DELETE"),
-    //----------------- DDL -----------------
-    CREATE(10, "CREATE"),
-    DROP(11, "DROP"),
-    ALTER(12, "ALTER");
-
-    private final int type;
-    private final String name;
-
-    OperationType(int type, String name) {
-        this.type = type;
-        this.name = name;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public String getName() {
-        return name;
-    }
+public class BinlogDynamicTableFactory {
 }

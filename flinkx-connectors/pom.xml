@@ -18,6 +18,9 @@
         <module>flinkx-connector-stream</module>
 		<module>flinkx-connector-jdbc-base</module>
 		<module>flinkx-connector-mysql</module>
+
+		<!--CDC-->
+		<module>flinkx-connector-binlog</module>
     </modules>
 
     <dependencies>

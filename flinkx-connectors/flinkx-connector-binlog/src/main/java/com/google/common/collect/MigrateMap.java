@@ -15,39 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.enums;
+package com.google.common.collect;
+
+import com.google.common.base.Function;
+
+import java.util.concurrent.ConcurrentMap;
 
 /**
- * Date: 2021/04/27
- * Company: www.dtstack.com
- *
- * @author tudou
+ * @author toutian
  */
-public enum OperationType {
-    //----------------- DML -----------------
-    INSERT(0, "INSERT"),
-    UPDATE(1, "UPDATE"),
-    UPDATE_BEFORE(3, "UPDATE"),
-    UPDATE_AFTER(4, "UPDATE"),
-    DELETE(5, "DELETE"),
-    //----------------- DDL -----------------
-    CREATE(10, "CREATE"),
-    DROP(11, "DROP"),
-    ALTER(12, "ALTER");
+public class MigrateMap {
 
-    private final int type;
-    private final String name;
-
-    OperationType(int type, String name) {
-        this.type = type;
-        this.name = name;
+    @SuppressWarnings("deprecation")
+    public static <K, V> ConcurrentMap<K, V> makeComputingMap(MapMaker maker, Function<? super K, ? extends V> computingFunction) {
+        return MapMakerHelper.makeComputingMap(maker, computingFunction);
     }
 
-    public int getType() {
-        return type;
+    @SuppressWarnings("deprecation")
+    public static <K, V> ConcurrentMap<K, V> makeComputingMap(Function<? super K, ? extends V> computingFunction) {
+        return MapMakerHelper.makeComputingMap(new MapMaker(), computingFunction);
     }
 
-    public String getName() {
-        return name;
-    }
 }

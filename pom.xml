@@ -17,7 +17,6 @@
         <module>flinkx-clients</module>
         <module>flinkx-local-test</module>
         <module>flinkx-formats</module>
-        <!--        <module>flinkx-stream</module>-->
 
 <!--        &lt;!&ndash;******离线******&ndash;&gt;-->
 <!--        <module>flinkx-rdb</module>-->

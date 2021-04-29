@@ -15,39 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.connector.binlog.listener;
+
+import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
+import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Date: 2021/04/27
- * Company: www.dtstack.com
- *
- * @author tudou
+ * @author toutian
  */
-public enum OperationType {
-    //----------------- DML -----------------
-    INSERT(0, "INSERT"),
-    UPDATE(1, "UPDATE"),
-    UPDATE_BEFORE(3, "UPDATE"),
-    UPDATE_AFTER(4, "UPDATE"),
-    DELETE(5, "DELETE"),
-    //----------------- DDL -----------------
-    CREATE(10, "CREATE"),
-    DROP(11, "DROP"),
-    ALTER(12, "ALTER");
+public class BinlogAlarmHandler extends AbstractCanalLifeCycle implements CanalAlarmHandler {
 
-    private final int type;
-    private final String name;
+    private static final Logger logger = LoggerFactory.getLogger(BinlogAlarmHandler.class);
+    private static final String BINARY_LOG_LOST = "Could not find first log file name in binary log index file";
 
-    OperationType(int type, String name) {
-        this.type = type;
-        this.name = name;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public String getName() {
-        return name;
+    @Override
+    public void sendAlarm(String destination, String msg) {
+        logger.error("destination:{}[{}]", destination, msg);
+        if (msg.contains(BINARY_LOG_LOST)){
+            System.exit(-1);
+        }
     }
 }
