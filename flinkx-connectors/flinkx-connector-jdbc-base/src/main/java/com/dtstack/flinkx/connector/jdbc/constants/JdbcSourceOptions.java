@@ -33,6 +33,11 @@ public class JdbcSourceOptions {
                     .intType()
                     .defaultValue(1)
                     .withDescription("scan parallelism.");
+    public static final ConfigOption<Integer> SCAN_QUERY_TIMEOUT =
+            ConfigOptions.key("scan.query-timeout")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription("scan parallelism.");
     public static final ConfigOption<String> SCAN_PARTITION_COLUMN =
             ConfigOptions.key("scan.partition.column")
                     .stringType()

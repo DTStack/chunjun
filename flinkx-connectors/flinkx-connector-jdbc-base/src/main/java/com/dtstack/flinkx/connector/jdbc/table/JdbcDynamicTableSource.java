@@ -21,7 +21,6 @@ package com.dtstack.flinkx.connector.jdbc.table;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.conf.SourceConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
@@ -56,7 +55,6 @@ public class JdbcDynamicTableSource
 
     protected final JdbcConf jdbcConf;
     protected final LookupConf lookupConf;
-    protected final SourceConnectionConf sourceConnectionConf;
     protected TableSchema physicalSchema;
     protected final String dialectName;
     protected final JdbcDialect jdbcDialect;
@@ -64,13 +62,10 @@ public class JdbcDynamicTableSource
     public JdbcDynamicTableSource(
             JdbcConf jdbcConf,
             LookupConf lookupConf,
-            SourceConnectionConf sourceConnectionConf,
             TableSchema physicalSchema,
-            JdbcDialect jdbcDialect
-    ) {
+            JdbcDialect jdbcDialect) {
         this.jdbcConf = jdbcConf;
         this.lookupConf = lookupConf;
-        this.sourceConnectionConf = sourceConnectionConf;
         this.physicalSchema = physicalSchema;
         this.jdbcDialect = jdbcDialect;
         this.dialectName = jdbcDialect.dialectName();
@@ -89,23 +84,25 @@ public class JdbcDynamicTableSource
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return ParallelAsyncTableFunctionProvider.of(new JdbcLruTableFunction(
-                    jdbcConf,
-                    jdbcDialect,
-                    lookupConf,
-                    physicalSchema.getFieldNames(),
-                    keyNames,
-                    rowType
-            ), lookupConf.getParallelism());
+            return ParallelAsyncTableFunctionProvider.of(
+                    new JdbcLruTableFunction(
+                            jdbcConf,
+                            jdbcDialect,
+                            lookupConf,
+                            physicalSchema.getFieldNames(),
+                            keyNames,
+                            rowType),
+                    lookupConf.getParallelism());
         }
-        return ParallelTableFunctionProvider.of(new JdbcAllTableFunction(
-                jdbcConf,
-                jdbcDialect,
-                lookupConf,
-                physicalSchema.getFieldNames(),
-                keyNames,
-                rowType
-        ), lookupConf.getParallelism());
+        return ParallelTableFunctionProvider.of(
+                new JdbcAllTableFunction(
+                        jdbcConf,
+                        jdbcDialect,
+                        lookupConf,
+                        physicalSchema.getFieldNames(),
+                        keyNames,
+                        rowType),
+                lookupConf.getParallelism());
     }
 
     @Override
@@ -126,7 +123,10 @@ public class JdbcDynamicTableSource
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
 
-        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, sourceConnectionConf.getParallelism());
+        return ParallelSourceFunctionProvider.of(
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                jdbcConf.getParallelism());
     }
 
     @Override
@@ -147,12 +147,7 @@ public class JdbcDynamicTableSource
 
     @Override
     public DynamicTableSource copy() {
-        return new JdbcDynamicTableSource(
-                jdbcConf,
-                lookupConf,
-                sourceConnectionConf,
-                physicalSchema,
-                jdbcDialect);
+        return new JdbcDynamicTableSource(jdbcConf, lookupConf, physicalSchema, jdbcDialect);
     }
 
     @Override
