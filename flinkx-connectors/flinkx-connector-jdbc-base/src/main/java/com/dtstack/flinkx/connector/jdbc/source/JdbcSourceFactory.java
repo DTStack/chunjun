@@ -28,7 +28,6 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
@@ -51,6 +50,9 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
+
+    private static final int DEFAULT_FETCH_SIZE = 1;
+    private static final int DEFAULT_QUERY_TIMEOUT = 300;
 
     public JdbcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
@@ -85,10 +87,10 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         JdbcInputFormatBuilder builder = getBuilder();
 
         int fetchSize = jdbcConf.getFetchSize();
-        jdbcConf.setFetchSize(fetchSize == 0 ? jdbcDialect.getFetchSize() : fetchSize);
+        jdbcConf.setFetchSize(fetchSize == 0 ? getDefaultFetchSize() : fetchSize);
 
         int queryTimeOut = jdbcConf.getQueryTimeOut();
-        jdbcConf.setQueryTimeOut(queryTimeOut == 0 ? jdbcDialect.getQueryTimeout() : queryTimeOut);
+        jdbcConf.setQueryTimeOut(queryTimeOut == 0 ? DEFAULT_QUERY_TIMEOUT : queryTimeOut);
 
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
@@ -155,5 +157,9 @@ public abstract class JdbcSourceFactory extends SourceFactory {
             jdbcConf.setIncreColumnType(type);
             jdbcConf.setIncreColumnIndex(index);
         }
+    }
+
+    protected int getDefaultFetchSize() {
+        return DEFAULT_FETCH_SIZE;
     }
 }

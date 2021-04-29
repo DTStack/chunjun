@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.jdbc.constants;
 
-import com.dtstack.flinkx.lookup.constants.LookUpConstants;
+import com.dtstack.flinkx.lookup.constants.LookupOptions;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -28,7 +28,7 @@ import org.apache.flink.configuration.ConfigOptions;
  * @create 2021-04-10 16:14
  * @description JdbcLookUp common
  **/
-public class JdbcLookUpConstants extends LookUpConstants {
+public class JdbcLookupOptions extends LookupOptions {
     // look up config options
     public static final ConfigOption<Integer> LOOKUP_ASYNCPOOLSIZE =
             ConfigOptions.key("lookup.asyncPoolSize")

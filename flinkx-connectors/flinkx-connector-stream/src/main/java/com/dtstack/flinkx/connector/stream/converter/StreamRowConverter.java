@@ -46,13 +46,21 @@ import static java.time.temporal.ChronoField.MILLI_OF_DAY;
  * @create 2021-04-10 11:39
  * @description 数据类型转换器
  */
-public class StreamBaseConverter extends AbstractRowConverter<RowData, RowData, RowData> {
+public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, RowData, LogicalType> {
 
-    public StreamBaseConverter(RowType rowType) {
+    private static final long serialVersionUID = -6831309858122276980L;
+
+    public StreamRowConverter(RowType rowType) {
         super(rowType);
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
+            toInternalConverters[i] =
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i)));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+        }
     }
-
-    public StreamBaseConverter() {}
 
     @Override
     protected SerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(

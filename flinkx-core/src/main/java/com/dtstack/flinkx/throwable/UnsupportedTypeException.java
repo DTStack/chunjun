@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,22 +16,21 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.mysql.inputFormat;
-
-import org.apache.flink.core.io.InputSplit;
-
-import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormat;
+package com.dtstack.flinkx.throwable;
 
 /**
- * Date: 2021/04/12 Company: www.dtstack.com
- *
- * @author tudou
+ * @author tiezhu
+ * @since 2021/4/28 3:45 下午
  */
-public class MysqlInputFormat extends JdbcInputFormat {
+public class UnsupportedTypeException extends FlinkxRuntimeException {
 
-    @Override
-    public void openInternal(InputSplit inputSplit) {
-        super.openInternal(inputSplit);
-        setRowConverter(jdbcDialect.getRowConverter(columnTypeList));
+    private static final long serialVersionUID = -1209345700603127945L;
+
+    public UnsupportedTypeException(Object type) {
+        super(String.format("Unsupported type: [%s]", type));
+    }
+
+    public UnsupportedTypeException(Object type, Object replace) {
+        super(String.format("Unsupported type: [%s]. Please use [%s] replace.", type, replace));
     }
 }

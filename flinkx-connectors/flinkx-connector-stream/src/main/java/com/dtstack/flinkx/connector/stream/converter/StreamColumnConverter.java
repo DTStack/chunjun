@@ -17,14 +17,15 @@
  */
 package com.dtstack.flinkx.connector.stream.converter;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.github.jsonzou.jmockdata.JMockData;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -32,25 +33,35 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Date: 2021/04/26
- * Company: www.dtstack.com
+ * Date: 2021/04/26 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class StreamColumnConverter extends StreamBaseConverter {
+public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData, RowData, String> {
+
+    private static final long serialVersionUID = 2780645964685625080L;
     private static final AtomicLong id = new AtomicLong(0L);
-//    private final List<String> typeList;
 
     public StreamColumnConverter(List<String> typeList) {
-        super.toInternalConverters = new DeserializationConverter[typeList.size()];
-//        this.typeList = typeList;
+        super(typeList.size());
         for (int i = 0; i < typeList.size(); i++) {
-            toInternalConverters[i] = createInternalConverter(typeList.get(i));
+            toInternalConverters[i] =
+                    wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(typeList.get(i)), typeList.get(i));
         }
     }
 
-    public StreamColumnConverter(){}
+    public StreamColumnConverter() {}
 
+    @Override
+    protected SerializationConverter<ColumnRowData> wrapIntoNullableExternalConverter(
+            SerializationConverter serializationConverter, String type) {
+        return (val, index, rowData) -> rowData.addField(((ColumnRowData) val).getField(index));
+    }
+
+    @Override
     protected DeserializationConverter createInternalConverter(String type) {
         switch (type.toLowerCase(Locale.ENGLISH)) {
             case "id":
@@ -73,13 +84,51 @@ public class StreamColumnConverter extends StreamBaseConverter {
     }
 
     @Override
+    protected SerializationConverter<ColumnRowData> createExternalConverter(String type) {
+        switch (type.toUpperCase(Locale.ENGLISH)) {
+            case "ID":
+            case "BIT":
+            case "TINYINT":
+            case "SMALLINT":
+            case "MEDIUMINT":
+            case "INT":
+            case "INT24":
+            case "INTEGER":
+            case "FLOAT":
+            case "DOUBLE":
+            case "REAL":
+            case "LONG":
+            case "BIGINT":
+            case "DECIMAL":
+            case "NUMERIC":
+            case "CHAR":
+            case "VARCHAR":
+            case "STRING":
+            case "DATE":
+            case "TIME":
+            case "TIMESTAMP":
+            case "DATETIME":
+                return (val, index, rowData) ->
+                        rowData.addField(((ColumnRowData) val).getField(index));
+            default:
+                return (val, index, rowData) ->
+                        rowData.addField(((ColumnRowData) val).getField(index));
+        }
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public RowData toInternal(RowData rowData) throws Exception {
         ColumnRowData data = new ColumnRowData(toInternalConverters.length);
         for (int i = 0; i < toInternalConverters.length; i++) {
-            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(null));
+            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(data));
         }
         return data;
+    }
+
+    @Override
+    public RowData toInternalLookup(RowData input) throws Exception {
+        return null;
     }
 
     @Override

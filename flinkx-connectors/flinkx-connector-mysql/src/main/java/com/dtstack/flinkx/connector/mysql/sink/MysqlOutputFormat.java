@@ -16,36 +16,19 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.stream.outputFormat;
+package com.dtstack.flinkx.connector.mysql.sink;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
-
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-
-import org.apache.flink.table.connector.sink.DynamicTableSink;
-
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 
 /**
- * The builder of StreamOutputFormat
+ * Date: 2021/04/13 Company: www.dtstack.com
  *
- * @author jiangbo
- * @Company: www.dtstack.com
+ * @author tudou
  */
-public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    private StreamOutputFormat format;
-
-    public StreamOutputFormatBuilder() {
-        super.format = format = new StreamOutputFormat();
-    }
-
-    public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
-        super.setConfig(streamSinkConf);
-        format.setStreamSinkConf(streamSinkConf);
-    }
-
+public class MysqlOutputFormat extends JdbcOutputFormat {
     @Override
-    protected void checkFormat() {
+    protected void openInternal(int taskNumber, int numTasks) {
+        super.openInternal(taskNumber, numTasks);
+        setRowConverter(jdbcDialect.getRowConverter(columnType));
     }
 }

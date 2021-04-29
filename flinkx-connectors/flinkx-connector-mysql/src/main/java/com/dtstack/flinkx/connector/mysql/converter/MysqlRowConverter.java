@@ -18,16 +18,19 @@
 
 package com.dtstack.flinkx.connector.mysql.converter;
 
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
+import org.apache.flink.table.types.utils.TypeConversions;
 
 import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -41,15 +44,39 @@ import java.time.LocalTime;
  * @program: luna-flink
  * @author: wuren
  * @create: 2021/03/29
- **/
-public class MysqlRowConverter extends AbstractJdbcRowConverter {
+ */
+public class MysqlRowConverter extends AbstractJdbcRowConverter<LogicalType> {
+
+    private static final long serialVersionUID = 9118895942384655251L;
 
     public MysqlRowConverter(RowType rowType) {
         super(rowType);
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
+            toInternalConverters[i] =
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i)));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+        }
     }
 
-    public MysqlRowConverter() {
-        super();
+    @Override
+    protected SerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
+            SerializationConverter serializationConverter, LogicalType type) {
+        final int sqlType =
+                JdbcTypeUtil.typeInformationToSqlType(
+                        TypeConversions.fromDataTypeToLegacyInfo(
+                                TypeConversions.fromLogicalToDataType(type)));
+        return (val, index, statement) -> {
+            if (val == null
+                    || val.isNullAt(index)
+                    || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
+                statement.setNull(index, sqlType);
+            } else {
+                serializationConverter.serialize(val, index, statement);
+            }
+        };
     }
 
     @Override
@@ -146,7 +173,7 @@ public class MysqlRowConverter extends AbstractJdbcRowConverter {
                 return val ->
                         val instanceof BigInteger
                                 ? DecimalData.fromBigDecimal(
-                                new BigDecimal((BigInteger) val, 0), precision, scale)
+                                        new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
                 return val -> (int) (((Date) val).toLocalDate().toEpochDay());

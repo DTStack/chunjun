@@ -20,27 +20,28 @@ package com.dtstack.flinkx.connector.mysql.source;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.inputFormat.JdbcInputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.connector.mysql.MysqlDialect;
-import com.dtstack.flinkx.connector.mysql.inputFormat.MysqlInputFormat;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Date: 2021/04/12
- * Company: www.dtstack.com
+ * Date: 2021/04/12 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class MysqlSourceFactory extends JdbcSourceFactory {
 
+    // 默认是Mysql流式拉取
+    private static final int DEFAULT_FETCH_SIZE = Integer.MIN_VALUE;
+
     public MysqlSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         super.jdbcDialect = new MysqlDialect();
         // 避免result.next阻塞
-        if(jdbcConf.isPolling()
+        if (jdbcConf.isPolling()
                 && StringUtils.isEmpty(jdbcConf.getStartLocation())
-                && jdbcConf.getFetchSize() == 0){
+                && jdbcConf.getFetchSize() == 0) {
             jdbcConf.setFetchSize(1000);
         }
     }
@@ -48,5 +49,10 @@ public class MysqlSourceFactory extends JdbcSourceFactory {
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new MysqlInputFormat());
+    }
+
+    @Override
+    protected int getDefaultFetchSize() {
+        return DEFAULT_FETCH_SIZE;
     }
 }

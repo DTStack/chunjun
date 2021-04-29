@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.splits;
+package com.dtstack.flinkx.connector.jdbc.source;
 
 import org.apache.flink.core.io.GenericInputSplit;
 

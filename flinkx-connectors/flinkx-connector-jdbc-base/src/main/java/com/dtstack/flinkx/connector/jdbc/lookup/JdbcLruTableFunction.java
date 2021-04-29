@@ -22,12 +22,12 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.enums.ECacheContentType;
-import com.dtstack.flinkx.exception.ExceptionTrace;
 import com.dtstack.flinkx.factory.DTThreadFactory;
 import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 import com.dtstack.flinkx.lookup.cache.CacheMissVal;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.throwable.NoRestartException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ThreadUtil;
 import com.google.common.collect.Lists;
@@ -39,7 +39,6 @@ import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
 
-import org.apache.flink.runtime.execution.SuppressRestartsException;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.logical.RowType;
@@ -62,15 +61,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_DB_CONN_POOL_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_IDLE_CONNECTION_TEST_PEROID;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_TEST_CONNECTION_ON_CHECKIN;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.DT_PROVIDER_CLASS;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.ERRORLOG_PRINTNUM;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.MAX_DB_CONN_POOL_SIZE_LIMIT;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.MAX_TASK_QUEUE_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.PREFERRED_TEST_QUERY_SQL;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.DEFAULT_DB_CONN_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.DEFAULT_IDLE_CONNECTION_TEST_PEROID;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.DEFAULT_TEST_CONNECTION_ON_CHECKIN;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.DT_PROVIDER_CLASS;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.ERRORLOG_PRINTNUM;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.MAX_DB_CONN_POOL_SIZE_LIMIT;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.MAX_TASK_QUEUE_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.PREFERRED_TEST_QUERY_SQL;
 
 /**
  * @author chuixue
@@ -277,25 +276,17 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
             Object... keys) {
         rdbSqlClient.getConnection(conn -> {
             try {
-                String errorMsg;
                 Integer retryMaxNum = lookupConf.getMaxRetryTimes();
                 int logPrintTime = retryMaxNum / ERRORLOG_PRINTNUM.defaultValue() == 0 ?
                         retryMaxNum : retryMaxNum / ERRORLOG_PRINTNUM.defaultValue();
                 if (conn.failed()) {
                     connectionStatus.set(false);
-                    errorMsg = ExceptionTrace.traceOriginalCause(conn.cause());
                     if (failCounter.getAndIncrement() % logPrintTime == 0) {
-                        LOG.error("getConnection error. cause by " + errorMsg);
+                        LOG.error("getConnection error. ", conn.cause());
                     }
                     LOG.error(String.format("retry ... current time [%s]", failCounter.get()));
                     if (failCounter.get() >= retryMaxNum) {
-                        future.completeExceptionally(
-                                new SuppressRestartsException(
-                                        new Throwable(
-                                                ExceptionTrace.traceOriginalCause(conn.cause())
-                                        )
-                                )
-                        );
+                        future.completeExceptionally(new NoRestartException(conn.cause()));
                         finishFlag.set(true);
                     }
                     return;
@@ -377,9 +368,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 // and close the connection
                 connection.close(done -> {
                     if (done.failed()) {
-                        LOG.error("sql connection close failed! " +
-                                ExceptionTrace.traceOriginalCause(done.cause())
-                        );
+                        LOG.error("sql connection close failed! ", done.cause());
                     }
                 });
             }

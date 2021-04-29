@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,27 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.connector.mysql.sink;
 
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.connector.mysql.MysqlDialect;
+package com.dtstack.flinkx.connector.stream.sink;
+
+import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
+
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 
 /**
- * Date: 2021/04/13 Company: www.dtstack.com
+ * The builder of StreamOutputFormat
  *
- * @author tudou
+ * @author jiangbo
+ * @Company: www.dtstack.com
  */
-public class MysqlSinkFactory extends JdbcSinkFactory {
+public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
-    public MysqlSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        super.jdbcDialect = new MysqlDialect();
+    private StreamOutputFormat format;
+
+    public StreamOutputFormatBuilder() {
+        super.format = format = new StreamOutputFormat();
+    }
+
+    public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
+        super.setConfig(streamSinkConf);
+        format.setStreamSinkConf(streamSinkConf);
     }
 
     @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new MysqlOutputFormat());
+    protected void checkFormat() {
     }
 }

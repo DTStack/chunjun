@@ -172,14 +172,4 @@ public class MysqlDialect implements JdbcDialect {
         }
         return sql.toString();
     }
-
-    @Override
-    public int getFetchSize() {
-        return Integer.MIN_VALUE;
-    }
-
-    @Override
-    public int getQueryTimeout() {
-        return 300;
-    }
 }

@@ -13,7 +13,9 @@
 	<name>FlinkX : Connectors : JDBC</name>
 
     <properties>
-		<vertx.version>3.9.4</vertx.version>
+		<!-- TODO 升级4.0？-->
+		<vertx.version>3.9.7</vertx.version>
+		<druid.version>1.2.5</druid.version>
 	</properties>
 
     <dependencies>
@@ -37,5 +39,10 @@
 			<version>${vertx.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid</artifactId>
+			<version>${druid.version}</version>
+		</dependency>
     </dependencies>
 </project>

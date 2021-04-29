@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,27 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.connector.mysql.sink;
 
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.connector.mysql.MysqlDialect;
+package com.dtstack.flinkx.throwable;
 
 /**
- * Date: 2021/04/13 Company: www.dtstack.com
- *
- * @author tudou
+ * @author tiezhu
+ * @since 2021/4/28 2:56 下午
  */
-public class MysqlSinkFactory extends JdbcSinkFactory {
+public class CastException extends FlinkxRuntimeException {
 
-    public MysqlSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        super.jdbcDialect = new MysqlDialect();
-    }
+    private static final long serialVersionUID = -9060426163742606365L;
 
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new MysqlOutputFormat());
+    public CastException(Class<?> before, Class<?> after) {
+        super(String.format("%s can not cast to %s", before.getName(), after.getName()));
     }
 }

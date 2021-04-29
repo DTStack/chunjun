@@ -27,7 +27,25 @@ import java.util.List;
  */
 public class SourceConnectionConf extends ConnectionConf{
 
+    private String query;
+    private String partitionColumnName;
+    private Long partitionLowerBound;
+    private Long partitionUpperBound;
+    private Integer numPartitions;
+    private Integer parallelism;
+
+    private int fetchSize;
+    private boolean autoCommit;
+
     protected List<String> jdbcUrl;
+
+    public Integer getParallelism() {
+        return parallelism;
+    }
+
+    public void setParallelism(Integer parallelism) {
+        this.parallelism = parallelism;
+    }
 
     @Override
     public String obtainJdbcUrl() {
@@ -47,14 +65,78 @@ public class SourceConnectionConf extends ConnectionConf{
         this.jdbcUrl = jdbcUrl;
     }
 
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
+    public String getPartitionColumnName() {
+        return partitionColumnName;
+    }
+
+    public void setPartitionColumnName(String partitionColumnName) {
+        this.partitionColumnName = partitionColumnName;
+    }
+
+    public Long getPartitionLowerBound() {
+        return partitionLowerBound;
+    }
+
+    public void setPartitionLowerBound(Long partitionLowerBound) {
+        this.partitionLowerBound = partitionLowerBound;
+    }
+
+    public Long getPartitionUpperBound() {
+        return partitionUpperBound;
+    }
+
+    public void setPartitionUpperBound(Long partitionUpperBound) {
+        this.partitionUpperBound = partitionUpperBound;
+    }
+
+    public Integer getNumPartitions() {
+        return numPartitions;
+    }
+
+    public void setNumPartitions(Integer numPartitions) {
+        this.numPartitions = numPartitions;
+    }
+
+    public int getFetchSize() {
+        return fetchSize;
+    }
+
+    public void setFetchSize(int fetchSize) {
+        this.fetchSize = fetchSize;
+    }
+
+    public boolean isAutoCommit() {
+        return autoCommit;
+    }
+
+    public void setAutoCommit(boolean autoCommit) {
+        this.autoCommit = autoCommit;
+    }
+
     @Override
     public String toString() {
         return "SourceConnectionConf{" +
-                "jdbcUrl=" + jdbcUrl +
-                ", table=" + table +
+                "table=" + table +
                 ", schema='" + schema + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
+                ", query='" + query + '\'' +
+                ", partitionColumnName='" + partitionColumnName + '\'' +
+                ", partitionLowerBound=" + partitionLowerBound +
+                ", partitionUpperBound=" + partitionUpperBound +
+                ", numPartitions=" + numPartitions +
+                ", parallelism=" + parallelism +
+                ", fetchSize=" + fetchSize +
+                ", autoCommit=" + autoCommit +
+                ", jdbcUrl=" + jdbcUrl +
                 '}';
     }
 }

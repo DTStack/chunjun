@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.jdbc.table;
 
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -33,8 +36,7 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
+import com.dtstack.flinkx.connector.jdbc.conf.SourceConnectionConf;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 import java.util.ArrayList;
@@ -45,40 +47,43 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.PASSWORD;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.SCHEMA;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.TABLE_NAME;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.URL;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonConstants.USERNAME;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookUpConstants.LOOKUP_ASYNCPOOLSIZE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_ALLREPLACE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_BUFFER_FLUSH_INTERVAL;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_BUFFER_FLUSH_MAX_ROWS;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_MAX_RETRIES;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkConstants.SINK_PARALLELISM;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_AUTO_COMMIT;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_FETCH_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_PARTITION_COLUMN;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_PARTITION_LOWER_BOUND;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_PARTITION_NUM;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceConstants.SCAN_PARTITION_UPPER_BOUND;
-import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_ASYNCTIMEOUT;
-import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_CACHE_MAX_ROWS;
-import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_CACHE_PERIOD;
-import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_CACHE_TTL;
-import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_CACHE_TYPE;
-import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_ERRORLIMIT;
-import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_FETCH_SIZE;
-import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_MAX_RETRIES;
-import static com.dtstack.flinkx.lookup.constants.LookUpConstants.LOOKUP_PARALLELISM;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonOptions.PASSWORD;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonOptions.SCHEMA;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonOptions.TABLE_NAME;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonOptions.URL;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonOptions.USERNAME;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.LOOKUP_ASYNCPOOLSIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_ALLREPLACE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_MAX_RETRIES;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_PARALLELISM;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_AUTO_COMMIT;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_FETCH_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARALLELISM;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_COLUMN;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_LOWER_BOUND;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_NUM;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_UPPER_BOUND;
+import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_QUERY_TIMEOUT;
+import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
+import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_PERIOD;
+import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_TTL;
+import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_TYPE;
+import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_FETCH_SIZE;
+import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_MAX_RETRIES;
+import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_PARALLELISM;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
  * @author chuixue
  * @create 2021-04-10 12:54
  * @description
- **/
-abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+ */
+public abstract class JdbcDynamicTableFactory
+        implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
@@ -97,13 +102,11 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         JdbcDialect jdbcDialect = getDialect();
 
         return new JdbcDynamicTableSource(
-                getConnectionConf(helper.getOptions(), physicalSchema),
+                getSourceConnectionConf(helper.getOptions()),
                 getJdbcLookupConf(
-                        helper.getOptions(),
-                        context.getObjectIdentifier().getObjectName()),
+                        helper.getOptions(), context.getObjectIdentifier().getObjectName()),
                 physicalSchema,
-                jdbcDialect
-        );
+                jdbcDialect);
     }
 
     @Override
@@ -123,27 +126,22 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
         return new JdbcDynamicTableSink(
-                getConnectionConf(helper.getOptions(), physicalSchema),
+                getSinkConnectionConf(helper.getOptions(), physicalSchema),
                 jdbcDialect,
                 physicalSchema);
     }
 
-    protected JdbcConf getConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
+    protected JdbcConf getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
         JdbcConf jdbcConf = new JdbcConf();
         SinkConnectionConf conf = new SinkConnectionConf();
+        jdbcConf.setConnection(Collections.singletonList(conf));
 
         conf.setJdbcUrl(readableConfig.get(URL));
-        List<String> tableNames = new ArrayList<>();
-        tableNames.add(readableConfig.get(TABLE_NAME));
-        conf.setTable(tableNames);
+        conf.setTable(Arrays.asList(readableConfig.get(TABLE_NAME)));
         conf.setSchema(readableConfig.get(SCHEMA));
-        conf.setAllReplace(readableConfig.get(SINK_ALLREPLACE));
 
-        readableConfig.getOptional(USERNAME).ifPresent(conf::setUsername);
-        readableConfig.getOptional(PASSWORD).ifPresent(conf::setPassword);
-        jdbcConf.setConnection(Collections.singletonList(conf));
-        jdbcConf.setUsername(conf.getUsername());
-        jdbcConf.setPassword(conf.getPassword());
+        jdbcConf.setUsername(readableConfig.get(USERNAME));
+        jdbcConf.setPassword(readableConfig.get(PASSWORD));
 
         jdbcConf.setAllReplace(conf.getAllReplace());
         jdbcConf.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
@@ -160,8 +158,7 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
     }
 
     protected LookupConf getJdbcLookupConf(ReadableConfig readableConfig, String tableName) {
-        return JdbcLookupConf
-                .build()
+        return JdbcLookupConf.build()
                 .setAsyncPoolSize(readableConfig.get(LOOKUP_ASYNCPOOLSIZE))
                 .setTableName(tableName)
                 .setPeriod(readableConfig.get(LOOKUP_CACHE_PERIOD))
@@ -173,6 +170,39 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
                 .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE))
                 .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT))
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
+    }
+
+    protected JdbcConf getSourceConnectionConf(ReadableConfig readableConfig) {
+        JdbcConf jdbcConf = new JdbcConf();
+        SourceConnectionConf conf = new SourceConnectionConf();
+        jdbcConf.setConnection(Collections.singletonList(conf));
+
+        conf.setJdbcUrl(Arrays.asList(readableConfig.get(URL)));
+        conf.setTable(Arrays.asList(readableConfig.get(TABLE_NAME)));
+        conf.setSchema(readableConfig.get(SCHEMA));
+
+        jdbcConf.setJdbcUrl(readableConfig.get(URL));
+        jdbcConf.setUsername(readableConfig.get(USERNAME));
+        jdbcConf.setPassword(readableConfig.get(PASSWORD));
+
+        jdbcConf.setParallelism(readableConfig.get(SCAN_PARALLELISM));
+        jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE));
+        jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
+
+
+        final Optional<String> partitionColumnName =
+                readableConfig.getOptional(SCAN_PARTITION_COLUMN);
+        if (partitionColumnName.isPresent()) {
+            conf.setPartitionColumnName(partitionColumnName.get());
+            conf.setPartitionLowerBound(
+                    readableConfig.get(SCAN_PARTITION_LOWER_BOUND));
+            conf.setPartitionUpperBound(
+                    readableConfig.get(SCAN_PARTITION_UPPER_BOUND));
+            conf.setNumPartitions(readableConfig.get(SCAN_PARTITION_NUM));
+        }
+        conf.setAutoCommit(readableConfig.get(SCAN_AUTO_COMMIT));
+
+        return jdbcConf;
     }
 
     @Override
@@ -189,6 +219,8 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         optionalOptions.add(USERNAME);
         optionalOptions.add(PASSWORD);
 
+        optionalOptions.add(SCAN_PARALLELISM);
+        optionalOptions.add(SCAN_QUERY_TIMEOUT);
         optionalOptions.add(SCAN_PARTITION_COLUMN);
         optionalOptions.add(SCAN_PARTITION_LOWER_BOUND);
         optionalOptions.add(SCAN_PARTITION_UPPER_BOUND);
@@ -219,15 +251,15 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
         final Optional<JdbcDialect> dialect = Optional.of(getDialect());
         checkState(dialect.isPresent(), "Cannot handle such jdbc url: " + jdbcUrl);
 
-        checkAllOrNone(config, new ConfigOption[]{USERNAME, PASSWORD});
+        checkAllOrNone(config, new ConfigOption[] {USERNAME, PASSWORD});
 
         checkAllOrNone(
                 config,
-                new ConfigOption[]{
-                        SCAN_PARTITION_COLUMN,
-                        SCAN_PARTITION_NUM,
-                        SCAN_PARTITION_LOWER_BOUND,
-                        SCAN_PARTITION_UPPER_BOUND
+                new ConfigOption[] {
+                    SCAN_PARTITION_COLUMN,
+                    SCAN_PARTITION_NUM,
+                    SCAN_PARTITION_LOWER_BOUND,
+                    SCAN_PARTITION_UPPER_BOUND
                 });
 
         if (config.getOptional(SCAN_PARTITION_LOWER_BOUND).isPresent()
@@ -245,7 +277,7 @@ abstract public class JdbcDynamicTableFactory implements DynamicTableSourceFacto
             }
         }
 
-        checkAllOrNone(config, new ConfigOption[]{LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
+        checkAllOrNone(config, new ConfigOption[] {LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
 
         if (config.get(LOOKUP_MAX_RETRIES) < 0) {
             throw new IllegalArgumentException(

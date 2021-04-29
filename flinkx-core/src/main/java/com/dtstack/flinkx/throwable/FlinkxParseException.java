@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,19 +16,26 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.mysql.outputFormat;
-
-import com.dtstack.flinkx.connector.jdbc.outputformat.JdbcOutputFormat;
+package com.dtstack.flinkx.throwable;
 
 /**
- * Date: 2021/04/13 Company: www.dtstack.com
- *
- * @author tudou
+ * @author tiezhu
+ * @since 2021/4/28 4:16 下午
  */
-public class MysqlOutputFormat extends JdbcOutputFormat {
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) {
-        super.openInternal(taskNumber, numTasks);
-        setRowConverter(jdbcDialect.getRowConverter(columnType));
+public class FlinkxParseException extends FlinkxRuntimeException {
+
+    private static final long serialVersionUID = 140340324748507369L;
+
+    public FlinkxParseException(String sql) {
+
+        super(String.format("Parse SQL fail! Current SQL : \n%s", sql));
+    }
+
+    public FlinkxParseException(Throwable cause) {
+        super(cause);
+    }
+
+    public FlinkxParseException(String sql, Throwable cause) {
+        super(String.format("Parse SQL fail! Current SQL : \n%s", sql), cause);
     }
 }

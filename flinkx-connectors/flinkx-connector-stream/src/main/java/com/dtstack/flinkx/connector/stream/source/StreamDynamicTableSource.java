@@ -29,8 +29,7 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.connector.stream.converter.StreamBaseConverter;
-import com.dtstack.flinkx.connector.stream.inputFormat.StreamInputFormatBuilder;
+import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
@@ -81,7 +80,7 @@ public class StreamDynamicTableSource implements ScanTableSource {
         streamConf.setColumn(fieldConfList);
 
         StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
-        builder.setAbstractRowConverter(new StreamBaseConverter(rowType));
+        builder.setRowConverter(new StreamRowConverter(rowType));
         builder.setStreamConf(streamConf);
 
         return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);

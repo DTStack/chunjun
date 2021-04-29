@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,27 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.connector.mysql.sink;
 
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.connector.mysql.MysqlDialect;
+package com.dtstack.flinkx.throwable;
+
+import org.apache.flink.runtime.throwable.ThrowableAnnotation;
+import org.apache.flink.runtime.throwable.ThrowableType;
 
 /**
- * Date: 2021/04/13 Company: www.dtstack.com
- *
- * @author tudou
+ * @author tiezhu
+ * @since 2021/4/28 2:24 下午
  */
-public class MysqlSinkFactory extends JdbcSinkFactory {
+@ThrowableAnnotation(ThrowableType.NonRecoverableError)
+public class NoRestartException extends FlinkxRuntimeException {
 
-    public MysqlSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        super.jdbcDialect = new MysqlDialect();
+    private static final long serialVersionUID = 8612872830721453715L;
+
+    public NoRestartException(String message) {
+        super(message);
     }
 
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new MysqlOutputFormat());
+    public NoRestartException(Throwable throwable) {
+        super(throwable);
+    }
+
+    public NoRestartException(String message, Throwable throwable) {
+        super(message, throwable);
     }
 }

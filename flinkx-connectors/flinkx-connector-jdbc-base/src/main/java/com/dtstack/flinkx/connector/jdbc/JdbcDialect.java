@@ -238,17 +238,4 @@ public interface JdbcDialect extends Serializable {
      * @return
      */
     String getSelectFromStatement(String schemaName, String tableName, String customSql, String[] selectFields, String where);
-    /**
-     * 获取fetchSize，用以指定一次读取数据条数
-     *
-     * @return fetchSize
-     */
-    int getFetchSize();
-
-    /**
-     * 获取查询超时时间
-     *
-     * @return 超时时间
-     */
-    int getQueryTimeout();
 }

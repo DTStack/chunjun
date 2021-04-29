@@ -18,30 +18,28 @@
 
 package com.dtstack.flinkx.connector.jdbc.converter;
 
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.element.ColumnRowData;
-import io.vertx.core.json.JsonArray;
-import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.types.utils.TypeConversions;
+
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import io.vertx.core.json.JsonArray;
 
 import java.sql.ResultSet;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
-public abstract class AbstractJdbcRowConverter
-        extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement> {
+public abstract class AbstractJdbcRowConverter<T>
+        extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, T> {
+
+    private static final long serialVersionUID = -3704861870612289508L;
 
     public AbstractJdbcRowConverter(RowType rowType) {
         super(rowType);
     }
 
-    public AbstractJdbcRowConverter() {
-        super();
+    public AbstractJdbcRowConverter(int converterSize) {
+        super(converterSize);
     }
 
     @Override
@@ -71,58 +69,5 @@ public abstract class AbstractJdbcRowConverter
             toExternalConverters[index].serialize(rowData, index, statement);
         }
         return statement;
-    }
-
-    /**
-     * 从jdbc中读取数据的converter
-     *
-     * @param deserializationConverter
-     * @param index
-     * @return
-     */
-    protected DeserializationConverter<ResultSet> wrapIntoNullableInternalConverter(
-            DeserializationConverter<ResultSet> deserializationConverter, int index) {
-        return val -> {
-            if (val.getObject(index) == null) {
-                return null;
-            } else {
-                return deserializationConverter.deserialize(val);
-            }
-        };
-    }
-
-    /**
-     * 往jdbc中写入数据的converter
-     *
-     * @param serializationConverter
-     * @return
-     */
-    protected SerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter) {
-        return (val, index, statement) -> {
-            if (((ColumnRowData) val).getField(index) == null) {
-                statement.setObject(index, null);
-            } else {
-                serializationConverter.serialize(val, index, statement);
-            }
-        };
-    }
-
-    @Override
-    protected SerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter, LogicalType type) {
-        final int sqlType =
-                JdbcTypeUtil.typeInformationToSqlType(
-                        TypeConversions.fromDataTypeToLegacyInfo(
-                                TypeConversions.fromLogicalToDataType(type)));
-        return (val, index, statement) -> {
-            if (val == null
-                    || val.isNullAt(index)
-                    || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
-                statement.setNull(index, sqlType);
-            } else {
-                serializationConverter.serialize(val, index, statement);
-            }
-        };
     }
 }

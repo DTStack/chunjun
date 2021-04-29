@@ -26,8 +26,18 @@ import org.apache.flink.configuration.ConfigOptions;
  * @create 2021-04-10 16:19
  * @description
  **/
-public class JdbcSourceConstants {
+public class JdbcSourceOptions {
     // read config options
+    public static final ConfigOption<Integer> SCAN_PARALLELISM =
+            ConfigOptions.key("scan.parallelism")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription("scan parallelism.");
+    public static final ConfigOption<Integer> SCAN_QUERY_TIMEOUT =
+            ConfigOptions.key("scan.query-timeout")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription("scan parallelism.");
     public static final ConfigOption<String> SCAN_PARTITION_COLUMN =
             ConfigOptions.key("scan.partition.column")
                     .stringType()

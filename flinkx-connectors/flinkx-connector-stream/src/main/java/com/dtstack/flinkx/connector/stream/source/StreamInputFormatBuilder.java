@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.stream.inputFormat;
+package com.dtstack.flinkx.connector.stream.source;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;

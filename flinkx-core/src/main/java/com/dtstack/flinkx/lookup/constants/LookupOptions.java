@@ -28,7 +28,7 @@ import com.dtstack.flinkx.enums.CacheType;
  * @create 2021-04-10 16:10
  * @description lookup common config
  **/
-public class LookUpConstants {
+public class LookupOptions {
     // look up config options
     public static final ConfigOption<Long> LOOKUP_CACHE_PERIOD =
             ConfigOptions.key("lookup.cache-period")

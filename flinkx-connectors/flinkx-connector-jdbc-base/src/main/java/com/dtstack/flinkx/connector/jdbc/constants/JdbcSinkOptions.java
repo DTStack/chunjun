@@ -26,7 +26,7 @@ import org.apache.flink.configuration.ConfigOptions;
  * @create 2021-04-10 16:19
  * @description
  **/
-public class JdbcSinkConstants {
+public class JdbcSinkOptions {
     // write config options
     public static final ConfigOption<Integer> SINK_BUFFER_FLUSH_MAX_ROWS =
             ConfigOptions.key("sink.buffer-flush.max-rows")
