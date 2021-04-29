@@ -29,8 +29,6 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metrics.BigIntegerAccmulator;
@@ -86,9 +84,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected transient ResultSet resultSet;
     protected boolean hasNext;
 
-    protected List<String> columnTypeList;
     protected int columnCount;
     protected RowData lastRow = null;
+
+    protected List<String> columnTypeList = new ArrayList<>();
+    protected List<String> columnNameList = new ArrayList<>();
+    protected List<String> fullColumnTypeList = new ArrayList<>();
+    protected List<String> fullColumnNameList = new ArrayList<>();
 
     protected StringAccumulator maxValueAccumulator;
     protected BigIntegerAccmulator endLocationAccumulator;
@@ -99,12 +101,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     //The hadoop config for metric
     protected Map<String, Object> hadoopConfig;
-
-    // TODO 与之前有的字段进行合并删除
-    protected List<String> finalFieldTypes = new ArrayList<>();
-    protected List<String> finalFieldNames = new ArrayList<>();
-    protected List<String> rawFieldTypes = new ArrayList<>();
-    protected List<String> rawFieldNames = new ArrayList<>();
 
     @Override
     public void openInternal(InputSplit inputSplit) {
@@ -127,9 +123,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         checkSize(columnCount, jdbcConf.getColumn());
 
-        // TODO 如下两个函数可以合成一个，要和土豆讨论下
         analyzeMetaData();
-        columnTypeList = JdbcUtil.analyzeColumnType(resultSet, jdbcConf.getColumn());
 
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
     }
@@ -142,23 +136,23 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 String rawType = rd.getColumnTypeName(i + 1);
                 String rawName = rd.getColumnName(i + 1);
                 nameTypeMap.put(rawName, rawType);
-                rawFieldNames.add(rawName);
-                rawFieldTypes.add(rawType);
+                fullColumnNameList.add(rawName);
+                fullColumnTypeList.add(rawType);
             }
 
             for (FieldConf metaColumn : jdbcConf.getColumn()) {
-                finalFieldNames.add(metaColumn.getName());
+                columnNameList.add(metaColumn.getName());
                 if (metaColumn.getValue() != null) {
-                    finalFieldTypes.add("VARCHAR");
+                    columnTypeList.add("VARCHAR");
                 } else {
-                    finalFieldTypes.add(nameTypeMap.get(metaColumn.getName()));
+                    columnTypeList.add(nameTypeMap.get(metaColumn.getName()));
                 }
             }
         } catch (SQLException e) {
             String message = String.format(
                     "error to analyzeSchema, resultSet = %s, finalFieldTypes = %s, e = %s",
                     resultSet,
-                    GsonUtil.GSON.toJson(finalFieldTypes),
+                    GsonUtil.GSON.toJson(columnTypeList),
                     ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
             throw new RuntimeException(message);

@@ -52,7 +52,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
      */
     @Override
     protected RowData loadConstantData(RowData rawRowData) {
-        int len = finalFieldTypes.size();
+        int len = columnTypeList.size();
         List<FieldConf> fieldConfs = jdbcConf.getColumn();
         ColumnRowData finalRowData = new ColumnRowData(len);
         for (int i = 0; i < len; i++) {
