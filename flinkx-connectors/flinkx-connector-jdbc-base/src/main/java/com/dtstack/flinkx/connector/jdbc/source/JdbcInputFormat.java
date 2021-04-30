@@ -19,6 +19,9 @@
 package com.dtstack.flinkx.connector.jdbc.source;
 
 
+import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.StringColumn;
+
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -893,7 +896,27 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @return
      */
     protected RowData loadConstantData(RowData rawRowData) {
-        return rawRowData;
+        if(!(rawRowData instanceof ColumnRowData)){
+            return rawRowData;
+        }
+        int len = columnTypeList.size();
+        List<FieldConf> fieldConfs = jdbcConf.getColumn();
+        ColumnRowData finalRowData = new ColumnRowData(len);
+        for (int i = 0; i < len; i++) {
+            String val = fieldConfs.get(i).getValue();
+            // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
+            if (val != null) {
+                String value =
+                        StringUtil.string2col(
+                                val,
+                                fieldConfs.get(i).getType(),
+                                fieldConfs.get(i).getTimeFormat()).toString();
+                finalRowData.addField(new StringColumn(value));
+            } else {
+                finalRowData.addField(((ColumnRowData) rawRowData).getField(i));
+            }
+        }
+        return finalRowData;
     }
 
     public JdbcConf getJdbcConf() {
