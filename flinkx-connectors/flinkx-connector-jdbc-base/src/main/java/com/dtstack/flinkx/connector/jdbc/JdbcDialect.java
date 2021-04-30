@@ -22,6 +22,8 @@ import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 
 import java.io.Serializable;
@@ -55,14 +57,18 @@ public interface JdbcDialect extends Serializable {
      * @param rowType the given row type
      * @return a row converter for the database
      */
-    AbstractRowConverter getRowConverter(RowType rowType);
+    default AbstractRowConverter getRowConverter(RowType rowType) {
+        return new JdbcRowConverter(rowType);
+    }
 
     /**
      * ColumnConverter
      *
      * @return a row converter for the database
      */
-    AbstractRowConverter getColumnConverter(RowType rowType);
+    default AbstractRowConverter getColumnConverter(RowType rowType) {
+        return new JdbcColumnConverter(rowType);
+    }
 
     /**
      * Check if this dialect instance support a specific data type in table schema.

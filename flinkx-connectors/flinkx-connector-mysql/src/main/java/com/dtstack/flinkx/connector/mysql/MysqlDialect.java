@@ -18,13 +18,8 @@
 
 package com.dtstack.flinkx.connector.mysql;
 
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcColumnConverter;
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -46,16 +41,6 @@ public class MysqlDialect implements JdbcDialect {
     @Override
     public boolean canHandle(String url) {
         return url.startsWith("jdbc:mysql:");
-    }
-
-    @Override
-    public AbstractRowConverter getRowConverter(RowType rowType) {
-        return new AbstractJdbcRowConverter(rowType);
-    }
-
-    @Override
-    public AbstractRowConverter getColumnConverter(RowType rowType) {
-        return new AbstractJdbcColumnConverter(rowType);
     }
 
     @Override

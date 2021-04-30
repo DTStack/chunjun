@@ -42,11 +42,11 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
-public class AbstractJdbcColumnConverter
+public class JdbcColumnConverter
         extends AbstractRowConverter<
                 ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
 
-    public AbstractJdbcColumnConverter(RowType rowType) {
+    public JdbcColumnConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters[i] =
