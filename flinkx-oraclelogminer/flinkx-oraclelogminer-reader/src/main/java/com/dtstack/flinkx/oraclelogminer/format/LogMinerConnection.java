@@ -81,8 +81,6 @@ public class LogMinerConnection {
     public boolean isGBK = false;
     boolean isOracle10;
 
-    public static final long MAX_SCN = 281474976710655L;
-
     public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
             "LOGMINING",
@@ -249,37 +247,26 @@ public class LogMinerConnection {
             if (logMinerConfig.getSupportAutoAddLog()) {
                 startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
-                //第一次加载或者已经没有归档日志加载 只有online日志加载 此时maxScn为空
+                //第一次加载,此时maxScn为空
                 if (null == maxScn) {
-                    if (null != minScn && startScn.compareTo(minScn) < 0) {
-                        maxScn = minScn;
-                    } else {
-                        maxScn = startScn;
-                    }
+                    maxScn = startScn;
                 }
 
                 List<LogFile> newLogFiles = queryLogFiles(maxScn);
                 if (addedLogFiles.equals(newLogFiles)) {
                     return;
                 } else {
-//                    LOG.info("Log group changed, new log group = {}", GsonUtil.GSON.toJson(newLogFiles));
                     addedLogFiles = newLogFiles;
-//                    startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_10 : SqlUtil.SQL_START_LOG_MINER;
-                    startSql = null == maxScn ? SqlUtil.SQL_START_LOGMINER_NO_MAX_LIMIT : SqlUtil.SQL_START_LOGMINER_HAS_MAX_LIMIT;
+                    startSql = SqlUtil.SQL_START_LOGMINER;
                 }
             }
 
-            closeStmt(logMinerStartStmt);
-
-            logMinerStartStmt = connection.prepareCall(startSql);
-            configStatement(logMinerStartStmt);
+            resetLogminerStmt(startSql);
             if (logMinerConfig.getSupportAutoAddLog()) {
                 logMinerStartStmt.setBigDecimal(1, startScn);
             } else {
                 logMinerStartStmt.setBigDecimal(1, minScn);
-                if (null != maxScn) {
-                    logMinerStartStmt.setBigDecimal(2, maxScn);
-                }
+                logMinerStartStmt.setBigDecimal(2, maxScn);
             }
 
             logMinerStartStmt.execute();
@@ -294,12 +281,8 @@ public class LogMinerConnection {
         }
     }
 
-
     public void startOrUpdateLogminer(BigDecimal startScn, BigDecimal endScn) throws SQLException {
-        closeStmt(logMinerStartStmt);
-
-        logMinerStartStmt = connection.prepareCall(SqlUtil.SQL_START_LOGMINER_HAS_MAX_LIMIT);
-        configStatement(logMinerStartStmt);
+        resetLogminerStmt(SqlUtil.SQL_START_LOGMINER);
 
         logMinerStartStmt.setBigDecimal(1, startScn);
         logMinerStartStmt.setBigDecimal(2, endScn);
@@ -316,17 +299,12 @@ public class LogMinerConnection {
      */
     public void queryData(BigDecimal startScn, String logMinerSelectSql) {
         try {
-            if (null != maxScn) {
-                logMinerSelectSql += "AND scn < ?";
-            }
             logMinerSelectStmt = connection.prepareStatement(logMinerSelectSql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             configStatement(logMinerSelectStmt);
 
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
             logMinerSelectStmt.setBigDecimal(1, startScn);
-            if (null != maxScn) {
-                logMinerSelectStmt.setBigDecimal(2, maxScn);
-            }
+            logMinerSelectStmt.setBigDecimal(2, maxScn);
             logMinerData = logMinerSelectStmt.executeQuery();
 
             LOG.debug("query Log miner data, offset:{}", startScn);
@@ -606,7 +584,7 @@ public class LogMinerConnection {
             if (CollectionUtils.isEmpty(tempList)) {
                 break;
             }
-            //找到最小的firstSCN和最小的nextSCN 需要排除掉线上日志
+            //找到最小的firstSCN和最小的nextSCN
             BigDecimal minFirstScn = tempList.stream().sorted(Comparator.comparing(LogFile::getFirstChange)).collect(Collectors.toList()).get(0).getFirstChange();
             BigDecimal minNextScn = tempList.stream().sorted(Comparator.comparing(LogFile::getNextChange)).collect(Collectors.toList()).get(0).getNextChange();
 
@@ -624,7 +602,8 @@ public class LogMinerConnection {
         }
         //如果最小的nextScn都是onlineNextChange，就代表加载所有的日志文件
         if (tempMinNextScn.equals(onlineNextChange)) {
-            tempMinNextScn = null;
+            //解决logminer偶尔丢失数据问题，读取online日志的时候，需要将endScn置为当前SCN
+            tempMinNextScn = getCurrentScn();
             logFiles = logFileLists;
         }
         maxScn = tempMinNextScn;
@@ -647,8 +626,8 @@ public class LogMinerConnection {
                    logFile.setNextChange(rs.getBigDecimal("next_scn"));
                    logFile.setThread(rs.getLong("thread_id"));
                    logFile.setBytes(rs.getLong("filesize"));
-                   logFile.setStatus(rs.getInt("STATUS"));
-                   logFile.setType(rs.getString("TYPE"));
+                   logFile.setStatus(rs.getInt("status"));
+                   logFile.setType(rs.getString("type"));
                    logFileLists.add(logFile);
                }
            }
@@ -995,19 +974,6 @@ public class LogMinerConnection {
             queryDataForRollbackConnection.connect();
         }
 
-        //不需要每次拉起一个新的queryDataForRollbackConnection  只需要移除加载的日志文件即可 (status为4的 其实是logminer提示缺少日志文件) https://docs.oracle.com/cd/B12037_01/server.101/b10755/dynviews_1132.htm
-        List<LogFile> files = queryDataForRollbackConnection.queryAddedLogFiles().stream().filter(i -> i.getStatus() != 4).collect(Collectors.toList());
-        if(CollectionUtils.isNotEmpty(files)){
-            for (LogFile file : files) {
-                try{
-                    removeLogFile(file.getFileName());
-                }catch (SQLException e){
-                    queryDataForRollbackConnection.disConnect();
-                    queryDataForRollbackConnection.connect();
-                }
-            }
-        }
-
         //查找出当前加载归档日志文件里的最小scn  递归查找此scn之前的文件
         List<LogFile> logFiles = queryAddedLogFiles().stream().filter(i->i.getStatus() != 4 && i.getType().equalsIgnoreCase(LOG_TYPE_ARCHIVED)).collect(Collectors.toList());
 
@@ -1037,11 +1003,15 @@ public class LogMinerConnection {
         return null;
     }
 
-    public void removeLogFile(String fileName) throws SQLException {
-        try(PreparedStatement statement = connection.prepareStatement(SqlUtil.SQL_REMOVE_ADDED_LOG)) {
-            statement.setString(1,fileName);
-            statement.execute();
-        }
+    /**
+     * 重置 启动logminer的statement
+     * @param startSql
+     * @throws SQLException
+     */
+    public void resetLogminerStmt(String startSql) throws SQLException {
+        closeStmt(logMinerStartStmt);
+        logMinerStartStmt = connection.prepareCall(startSql);
+        configStatement(logMinerStartStmt);
     }
 
     public enum ReadPosition {

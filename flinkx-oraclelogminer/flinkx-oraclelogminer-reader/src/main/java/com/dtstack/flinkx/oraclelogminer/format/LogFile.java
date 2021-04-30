@@ -37,6 +37,7 @@ public class LogFile {
     /** 日志文件状态 https://docs.oracle.com/cd/B12037_01/server.101/b10755/dynviews_1132.htm  V$LOGMNR_LOGS里的status */
     private int status;
 
+    //是归档日志 还是online日志
     private String type;
 
     /** 文件大小  **/
