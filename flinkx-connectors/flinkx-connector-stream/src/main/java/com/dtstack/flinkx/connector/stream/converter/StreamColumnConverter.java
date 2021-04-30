@@ -17,15 +17,17 @@
  */
 package com.dtstack.flinkx.connector.stream.converter;
 
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.github.jsonzou.jmockdata.JMockData;
-
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -56,13 +58,13 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
     public StreamColumnConverter() {}
 
     @Override
-    protected SerializationConverter<ColumnRowData> wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter, String type) {
+    protected ISerializationConverter<ColumnRowData> wrapIntoNullableExternalConverter(
+            ISerializationConverter serializationConverter, String type) {
         return (val, index, rowData) -> rowData.addField(((ColumnRowData) val).getField(index));
     }
 
     @Override
-    protected DeserializationConverter createInternalConverter(String type) {
+    protected IDeserializationConverter createInternalConverter(String type) {
         switch (type.toLowerCase(Locale.ENGLISH)) {
             case "id":
                 return val -> {
@@ -84,7 +86,7 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
     }
 
     @Override
-    protected SerializationConverter<ColumnRowData> createExternalConverter(String type) {
+    protected ISerializationConverter<ColumnRowData> createExternalConverter(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "ID":
             case "BIT":

@@ -26,6 +26,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
+import com.dtstack.flinkx.connector.binlog.converter.BinlogColumnConverter;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogAlarmHandler;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogEventSink;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogJournalValidator;
@@ -57,6 +58,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     private BinlogConf binlogConf;
     private volatile EntryPosition entryPosition;
     private List<String> categories = new ArrayList<>();
+    private BinlogColumnConverter rowConverter;
 
     private transient MysqlEventParser controller;
     private transient BinlogEventSink binlogEventSink;
@@ -112,10 +114,12 @@ public class BinlogInputFormat extends BaseRichInputFormat {
             }
             LOG.info("binlog FilterAfter:{},tableAfter: {}", binlogConf.getFilter(), binlogConf.getTable());
         }
+
+        rowConverter = new BinlogColumnConverter(binlogConf.isPavingData(), binlogConf.isSplitUpdate());
     }
 
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
+    protected void openInternal(InputSplit inputSplit) {
         if (inputSplit.getSplitNumber() != 0) {
             LOG.info("binlog openInternal split number:{} abort...", inputSplit.getSplitNumber());
             return;
@@ -243,5 +247,9 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
     public void setEntryPosition(EntryPosition entryPosition) {
         this.entryPosition = entryPosition;
+    }
+
+    public BinlogColumnConverter getRowConverter() {
+        return rowConverter;
     }
 }

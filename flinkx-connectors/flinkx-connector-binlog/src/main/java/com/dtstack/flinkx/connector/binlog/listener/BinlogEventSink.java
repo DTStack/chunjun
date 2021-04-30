@@ -18,19 +18,14 @@
 package com.dtstack.flinkx.connector.binlog.listener;
 
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.RowKind;
 
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
+import com.dtstack.flinkx.connector.binlog.BinlogEventRow;
+import com.dtstack.flinkx.connector.binlog.converter.BinlogColumnConverter;
 import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormat;
-import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.ErrorMsgRowData;
-import com.dtstack.flinkx.element.column.BigDecimalColumn;
-import com.dtstack.flinkx.element.column.MapColumn;
-import com.dtstack.flinkx.element.column.StringColumn;
-import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import org.apache.commons.collections.CollectionUtils;
@@ -38,12 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author toutian
@@ -57,6 +50,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     private final boolean pavingData;
     private final boolean splitUpdate;
     private final SnowflakeIdWorker idWorker;
+    private final BinlogColumnConverter rowConverter;
 
     public BinlogEventSink(BinlogInputFormat format) {
         this.format = format;
@@ -64,6 +58,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         this.splitUpdate = format.getBinlogConf().isSplitUpdate();
         this.queue = new LinkedBlockingDeque<>();
         this.idWorker = new SnowflakeIdWorker(1, 1);
+        this.rowConverter = format.getRowConverter();
     }
 
     @Override
@@ -100,109 +95,25 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
      * @param table table
      * @param executeTime   变更数据的执行时间
      */
-    private void processRowChange(CanalEntry.RowChange rowChange, String schema, String table, long executeTime)throws InterruptedException {
+    private void processRowChange(CanalEntry.RowChange rowChange, String schema, String table, long executeTime) {
         String eventType = rowChange.getEventType().toString();
         List<String> categories = format.getCategories();
         if(CollectionUtils.isNotEmpty(categories) && !categories.contains(eventType)) {
             return;
         }
 
-        for(CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-            int size;
-            if(pavingData){
-                //5: type, schema, table, ts, opTime
-                size = 5 + rowData.getAfterColumnsList().size() + rowData.getBeforeColumnsList().size();
-            }else{
-                //7: type, schema, table, ts, opTime, before, after
-                size = 7;
+        BinlogEventRow binlogEventRow = new BinlogEventRow(rowChange, schema, table, executeTime);
+        try {
+            LinkedList<RowData> rowDatalist = rowConverter.toInternal(binlogEventRow);
+            RowData rowData;
+            while ((rowData = rowDatalist.poll()) != null){
+                queue.put(rowData);
             }
-            ColumnRowData columnRowData = new ColumnRowData(size);
-            columnRowData.addField(new StringColumn(schema));
-            columnRowData.addHeader("schema");
-            columnRowData.addField(new StringColumn(table));
-            columnRowData.addHeader("table");
-            columnRowData.addField(new BigDecimalColumn(idWorker.nextId()));
-            columnRowData.addHeader("ts");
-            columnRowData.addField(new TimestampColumn(executeTime));
-            columnRowData.addHeader("opTime");
-
-            List<AbstractBaseColumn> beforeColumnList = new ArrayList<>(rowData.getBeforeColumnsList().size());
-            List<String> beforeHeaderList = new ArrayList<>(rowData.getBeforeColumnsList().size());
-            List<AbstractBaseColumn> afterColumnList = new ArrayList<>(rowData.getAfterColumnsList().size());
-            List<String> afterHeaderList = new ArrayList<>(rowData.getAfterColumnsList().size());
-
-            if (pavingData){
-                for (CanalEntry.Column column : rowData.getBeforeColumnsList()){
-                    if(!column.getIsNull()){
-                        beforeColumnList.add(new StringColumn(column.getValue()));
-                        beforeHeaderList.add("before_" + column.getName());
-                    }
-                }
-                for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
-                    if(!column.getIsNull()){
-                        afterColumnList.add(new StringColumn(column.getValue()));
-                        afterHeaderList.add("after_" + column.getName());
-                    }
-                }
-            } else {
-                beforeColumnList.add(new MapColumn(processColumnList(rowData.getBeforeColumnsList())));
-                beforeHeaderList.add("before");
-                afterColumnList.add(new MapColumn(processColumnList(rowData.getAfterColumnsList())));
-                afterHeaderList.add("after");
-            }
-
-            //update类型且要拆分
-            if (splitUpdate && CanalEntry.EventType.UPDATE == rowChange.getEventType()) {
-                ColumnRowData copy = columnRowData.copy();
-                copy.setRowKind(RowKind.UPDATE_BEFORE);
-                copy.addField(new StringColumn(RowKind.UPDATE_BEFORE.name()));
-                copy.addHeader("type");
-                copy.addAllField(beforeColumnList);
-                copy.addAllHeader(beforeHeaderList);
-                queue.put(copy);
-
-                columnRowData.setRowKind(RowKind.UPDATE_AFTER);
-                columnRowData.addField(new StringColumn(RowKind.UPDATE_AFTER.name()));
-                columnRowData.addHeader("type");
-            }else{
-                columnRowData.setRowKind(getRowKindByEventType(rowChange.getEventType()));
-                columnRowData.addField(new StringColumn(eventType));
-                columnRowData.addHeader("type");
-                columnRowData.addAllField(beforeColumnList);
-                columnRowData.addAllHeader(beforeHeaderList);
-            }
-            columnRowData.addAllField(afterColumnList);
-            columnRowData.addAllHeader(afterHeaderList);
-            queue.put(columnRowData);
+        }catch (Exception e){
+            LOG.error("{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
-    /**
-     * 解析CanalEntry中的Column，获取字段名及值
-     * @param columnList
-     * @return 字段名和值的map集合
-     */
-    private Map<String, Object> processColumnList(List<CanalEntry.Column> columnList) {
-        return columnList.stream()
-                .collect(Collectors.toMap(CanalEntry.Column::getName, CanalEntry.Column::getValue));
-    }
-
-    /**
-     * 根据eventType获取RowKind
-     * @param eventType
-     * @return
-     */
-    private RowKind getRowKindByEventType(CanalEntry.EventType eventType){
-        switch (eventType){
-            case INSERT:
-            case UPDATE:
-                return RowKind.INSERT;
-            case DELETE:
-                return RowKind.DELETE;
-            default:
-                throw new RuntimeException("unsupported eventType: " + eventType);
-        }
-    }
 
     /**
      * 从队列中获取RowData数据，对于异常情况需要把异常抛出并停止任务
@@ -231,7 +142,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         try {
             queue.put(rowData);
         } catch (InterruptedException e) {
-            LOG.error("takeRowDataFromQueue interrupted event:{} error:{}", rowData, ExceptionUtil.getErrorMessage(e));
+            LOG.error("processErrorMsgRowData interrupted event:{} error:{}", rowData, ExceptionUtil.getErrorMessage(e));
         }
     }
 
