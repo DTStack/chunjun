@@ -39,7 +39,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  */
 public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implements Serializable {
 
-    private static final long serialVersionUID = -8805351737120663386L;
+    private static final long serialVersionUID = 1L;
     protected RowType rowType;
     protected DeserializationConverter[] toInternalConverters;
     protected SerializationConverter[] toExternalConverters;

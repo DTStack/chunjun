@@ -16,18 +16,20 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.mysql.converter;
+package com.dtstack.flinkx.connector.jdbc.converter;
 
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+import io.vertx.core.json.JsonArray;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -39,16 +41,13 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * @author chuixue
- * @create 2021-04-27 11:46
- * @description
- */
-public class MysqlColumnConverter extends AbstractJdbcRowConverter<String> {
+/** Base class for all converters that convert between JDBC object and Flink internal object. */
+public class AbstractJdbcColumnConverter
+        extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, String> {
 
-    private static final long serialVersionUID = -4220475058412511171L;
+    private static final long serialVersionUID = 1L;
 
-    public MysqlColumnConverter(List<String> typeList) {
+    public AbstractJdbcColumnConverter(List<String> typeList) {
         super(typeList.size());
         for (int i = 0; i < typeList.size(); i++) {
             toInternalConverters[i] =
@@ -60,7 +59,48 @@ public class MysqlColumnConverter extends AbstractJdbcRowConverter<String> {
     }
 
     @Override
-    protected DeserializationConverter createInternalConverter(String type) {
+    protected SerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
+            SerializationConverter serializationConverter, String type) {
+        return (val, index, statement) -> {
+            if (((ColumnRowData) val).getField(index) == null) {
+                statement.setObject(index, null);
+            } else {
+                serializationConverter.serialize(val, index, statement);
+            }
+        };
+    }
+
+    @Override
+    public RowData toInternal(ResultSet resultSet) throws Exception {
+        ColumnRowData data = new ColumnRowData(toInternalConverters.length);
+        for (int i = 0; i < toInternalConverters.length; i++) {
+            Object field = resultSet.getObject(i + 1);
+            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
+        }
+        return data;
+    }
+
+    @Override
+    public RowData toInternalLookup(JsonArray jsonArray) throws Exception {
+        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
+        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
+            Object field = jsonArray.getValue(pos);
+            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
+        }
+        return genericRowData;
+    }
+
+    @Override
+    public FieldNamedPreparedStatement toExternal(
+            RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
+        for (int index = 0; index < rowData.getArity(); index++) {
+            toExternalConverters[index].serialize(rowData, index, statement);
+        }
+        return statement;
+    }
+
+    @Override
+    protected DeserializationConverter<Object> createInternalConverter(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
@@ -161,27 +201,5 @@ public class MysqlColumnConverter extends AbstractJdbcRowConverter<String> {
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
-    }
-
-    @Override
-    protected SerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter, String type) {
-        return (val, index, statement) -> {
-            if (((ColumnRowData) val).getField(index) == null) {
-                statement.setObject(index, null);
-            } else {
-                serializationConverter.serialize(val, index, statement);
-            }
-        };
-    }
-
-    @Override
-    public RowData toInternal(ResultSet resultSet) throws Exception {
-        ColumnRowData data = new ColumnRowData(toInternalConverters.length);
-        for (int i = 0; i < toInternalConverters.length; i++) {
-            Object field = resultSet.getObject(i + 1);
-            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
-        }
-        return data;
     }
 }

@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData, RowData, String> {
 
-    private static final long serialVersionUID = 2780645964685625080L;
+    private static final long serialVersionUID = 1L;
     private static final AtomicLong id = new AtomicLong(0L);
 
     public StreamColumnConverter(List<String> typeList) {

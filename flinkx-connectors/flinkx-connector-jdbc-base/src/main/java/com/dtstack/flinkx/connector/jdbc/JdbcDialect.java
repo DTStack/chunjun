@@ -18,11 +18,11 @@
 
 package com.dtstack.flinkx.connector.jdbc;
 
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
-
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -58,14 +58,14 @@ public interface JdbcDialect extends Serializable {
      *
      * @return a row converter for the database
      */
-    AbstractJdbcRowConverter getRowConverter(RowType rowType);
+    AbstractRowConverter getRowConverter(RowType rowType);
 
     /**
      * ColumnConverter
      *
      * @return a row converter for the database
      */
-    AbstractJdbcRowConverter getRowConverter(List<String> typeList);
+    AbstractRowConverter getRowConverter(List<String> typeList);
 
     /**
      * Check if this dialect instance support a specific data type in table schema.
