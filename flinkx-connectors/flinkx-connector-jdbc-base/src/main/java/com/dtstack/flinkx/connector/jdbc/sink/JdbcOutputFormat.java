@@ -71,6 +71,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected transient Connection dbConn;
     protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
+    // TODO 这几个名Source Sinke要对齐下，column、columnType、fullColumn、fullColumnType
     protected List<String> column;
     protected List<String> columnType;
     protected List<String> fullColumnType;

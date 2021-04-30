@@ -20,6 +20,8 @@ package com.dtstack.flinkx.connector.jdbc.converter;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -38,29 +40,27 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.Locale;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
 public class AbstractJdbcColumnConverter
-        extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, String> {
+        extends AbstractRowConverter<
+                ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
 
-    private static final long serialVersionUID = 1L;
-
-    public AbstractJdbcColumnConverter(List<String> typeList) {
-        super(typeList.size());
-        for (int i = 0; i < typeList.size(); i++) {
+    public AbstractJdbcColumnConverter(RowType rowType) {
+        super(rowType);
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters[i] =
-                    wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i)));
             toExternalConverters[i] =
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(typeList.get(i)), typeList.get(i));
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
         }
     }
 
     @Override
     protected SerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter, String type) {
+            SerializationConverter serializationConverter, LogicalType type) {
         return (val, index, statement) -> {
             if (((ColumnRowData) val).getField(index) == null) {
                 statement.setObject(index, null);
@@ -100,39 +100,33 @@ public class AbstractJdbcColumnConverter
     }
 
     @Override
-    protected DeserializationConverter<Object> createInternalConverter(String type) {
-        switch (type.toUpperCase(Locale.ENGLISH)) {
-            case "BIT":
+    protected DeserializationConverter<Object> createInternalConverter(LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
-            case "TINYINT":
+            case TINYINT:
                 return val -> new BigDecimalColumn(((Integer) val).byteValue());
-            case "SMALLINT":
-            case "MEDIUMINT":
-            case "INT":
-            case "INT24":
-            case "INTEGER":
+            case SMALLINT:
+            case INTEGER:
                 return val -> new BigDecimalColumn((Integer) val);
-            case "FLOAT":
-            case "DOUBLE":
-                return val -> new BigDecimalColumn((Double) val);
-            case "REAL":
+            case FLOAT:
                 return val -> new BigDecimalColumn((Float) val);
-            case "LONG":
-            case "BIGINT":
+            case DOUBLE:
+                return val -> new BigDecimalColumn((Double) val);
+            case BIGINT:
                 return val -> new BigDecimalColumn((Long) val);
-            case "DECIMAL":
-            case "NUMERIC":
+            case DECIMAL:
                 return val -> new BigDecimalColumn((BigDecimal) val);
-            case "CHAR":
-            case "VARCHAR":
+            case CHAR:
+            case VARCHAR:
                 return val -> new StringColumn((String) val);
-            case "DATE":
+            case DATE:
                 return val -> new BigDecimalColumn(((Date) val).toLocalDate().toEpochDay());
-            case "TIME":
+            case TIME_WITHOUT_TIME_ZONE:
                 return val ->
                         new BigDecimalColumn(((Time) val).toLocalTime().toNanoOfDay() / 1_000_000L);
-            case "TIMESTAMP":
-            case "DATETIME":
+            case TIMESTAMP_WITH_TIME_ZONE:
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn((Timestamp) val);
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
@@ -141,51 +135,46 @@ public class AbstractJdbcColumnConverter
 
     @Override
     protected SerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
-            String type) {
-        switch (type.toUpperCase(Locale.ENGLISH)) {
-            case "BIT":
+            LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case BOOLEAN:
                 return (val, index, statement) ->
                         statement.setBoolean(
                                 index, ((ColumnRowData) val).getField(index).asBoolean());
-            case "TINYINT":
+            case TINYINT:
                 return (val, index, statement) -> statement.setByte(index, val.getByte(index));
-            case "SMALLINT":
-            case "MEDIUMINT":
-            case "INT":
-            case "INT24":
-            case "INTEGER":
+            case SMALLINT:
+            case INTEGER:
                 return (val, index, statement) ->
                         statement.setInt(index, ((ColumnRowData) val).getField(index).asInt());
-            case "FLOAT":
-            case "DOUBLE":
+            case FLOAT:
+                return (val, index, statement) ->
+                        statement.setFloat(index, ((ColumnRowData) val).getField(index).asFloat());
+            case DOUBLE:
                 return (val, index, statement) ->
                         statement.setDouble(
                                 index, ((ColumnRowData) val).getField(index).asDouble());
-            case "REAL":
-                return (val, index, statement) ->
-                        statement.setFloat(index, ((ColumnRowData) val).getField(index).asFloat());
-            case "LONG":
-            case "BIGINT":
+
+            case BIGINT:
                 return (val, index, statement) ->
                         statement.setLong(index, ((ColumnRowData) val).getField(index).asLong());
-            case "DECIMAL":
-            case "NUMERIC":
+            case DECIMAL:
                 return (val, index, statement) ->
                         statement.setBigDecimal(
                                 index, ((ColumnRowData) val).getField(index).asBigDecimal());
-            case "CHAR":
-            case "VARCHAR":
+            case CHAR:
+            case VARCHAR:
                 return (val, index, statement) ->
                         statement.setString(
                                 index, ((ColumnRowData) val).getField(index).asString());
-            case "DATE":
+            case DATE:
                 return (val, index, statement) ->
                         statement.setDate(
                                 index,
                                 Date.valueOf(
                                         LocalDate.ofEpochDay(
                                                 ((ColumnRowData) val).getField(index).asInt())));
-            case "TIME":
+            case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTime(
                                 index,
@@ -193,8 +182,8 @@ public class AbstractJdbcColumnConverter
                                         LocalTime.ofNanoOfDay(
                                                 ((ColumnRowData) val).getField(index).asInt()
                                                         * 1_000_000L)));
-            case "TIMESTAMP":
-            case "DATETIME":
+            case TIMESTAMP_WITH_TIME_ZONE:
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTimestamp(
                                 index, ((ColumnRowData) val).getField(index).asTimestamp());

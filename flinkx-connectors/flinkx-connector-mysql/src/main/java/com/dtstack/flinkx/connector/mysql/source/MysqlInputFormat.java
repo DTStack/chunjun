@@ -19,8 +19,16 @@
 package com.dtstack.flinkx.connector.mysql.source;
 
 import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
+import com.dtstack.flinkx.connector.mysql.converter.MysqlRawTypeConverter;
+import com.dtstack.flinkx.util.TableUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.SQLException;
 
 /**
  * Date: 2021/04/12 Company: www.dtstack.com
@@ -29,9 +37,18 @@ import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
  */
 public class MysqlInputFormat extends JdbcInputFormat {
 
+    protected static final Logger LOG = LoggerFactory.getLogger(MysqlInputFormat.class);
+
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
-        setRowConverter(jdbcDialect.getRowConverter(columnTypeList));
+        try {
+            LogicalType rowType =
+                    TableUtil.createRowType(
+                            fullColumnNameList, fullColumnTypeList, MysqlRawTypeConverter::apply);
+            setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
+        } catch (SQLException e) {
+            LOG.error("", e);
+        }
     }
 }

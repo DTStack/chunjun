@@ -90,6 +90,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected int columnCount;
     protected RowData lastRow = null;
 
+    // TODO 这几个名Source Sinke要对齐下，columnTypeList、columnNameList、fullColumnTypeList、fullColumnNameList
     protected List<String> columnTypeList = new ArrayList<>();
     protected List<String> columnNameList = new ArrayList<>();
     protected List<String> fullColumnTypeList = new ArrayList<>();

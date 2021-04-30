@@ -28,7 +28,6 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,7 +35,7 @@ import java.util.stream.Collectors;
  * @program: flinkx
  * @author: wuren
  * @create: 2021/03/17
- **/
+ */
 public class MysqlDialect implements JdbcDialect {
 
     @Override
@@ -55,8 +54,8 @@ public class MysqlDialect implements JdbcDialect {
     }
 
     @Override
-    public AbstractRowConverter getRowConverter(List<String> typeList) {
-        return new AbstractJdbcColumnConverter(typeList);
+    public AbstractRowConverter getColumnConverter(RowType rowType) {
+        return new AbstractJdbcColumnConverter(rowType);
     }
 
     @Override
@@ -86,28 +85,42 @@ public class MysqlDialect implements JdbcDialect {
                             .map(f -> quoteIdentifier(f) + "=VALUES(" + quoteIdentifier(f) + ")")
                             .collect(Collectors.joining(", "));
         } else {
-            updateClause = Arrays
-                    .stream(fieldNames)
-                    .map(f -> quoteIdentifier(f) + "=IFNULL(VALUES(" + quoteIdentifier(f) + "),"
-                            + quoteIdentifier(f) + ")")
-                    .collect(Collectors.joining(", "));
+            updateClause =
+                    Arrays.stream(fieldNames)
+                            .map(
+                                    f ->
+                                            quoteIdentifier(f)
+                                                    + "=IFNULL(VALUES("
+                                                    + quoteIdentifier(f)
+                                                    + "),"
+                                                    + quoteIdentifier(f)
+                                                    + ")")
+                            .collect(Collectors.joining(", "));
         }
 
-        return Optional.of(getInsertIntoStatement(tableName, fieldNames)
-                + " ON DUPLICATE KEY UPDATE " + updateClause);
+        return Optional.of(
+                getInsertIntoStatement(tableName, fieldNames)
+                        + " ON DUPLICATE KEY UPDATE "
+                        + updateClause);
     }
 
     @Override
-    public Optional<String> getReplaceStatement(
-            String tableName, String[] fieldNames) {
-        String columns = Arrays.stream(fieldNames)
-                .map(this::quoteIdentifier)
-                .collect(Collectors.joining(", "));
-        String placeholders = Arrays.stream(fieldNames)
-                .map(f -> "?")
-                .collect(Collectors.joining(", "));
-        return Optional.of("REPLACE INTO " + quoteIdentifier(tableName) +
-                "(" + columns + ")" + " VALUES (" + placeholders + ")");
+    public Optional<String> getReplaceStatement(String tableName, String[] fieldNames) {
+        String columns =
+                Arrays.stream(fieldNames)
+                        .map(this::quoteIdentifier)
+                        .collect(Collectors.joining(", "));
+        String placeholders =
+                Arrays.stream(fieldNames).map(f -> "?").collect(Collectors.joining(", "));
+        return Optional.of(
+                "REPLACE INTO "
+                        + quoteIdentifier(tableName)
+                        + "("
+                        + columns
+                        + ")"
+                        + " VALUES ("
+                        + placeholders
+                        + ")");
     }
 
     @Override
@@ -151,23 +164,20 @@ public class MysqlDialect implements JdbcDialect {
                         .collect(Collectors.joining(", "));
         StringBuilder sql = new StringBuilder(128);
         sql.append("SELECT ");
-        if(StringUtils.isNotBlank(customSql)){
+        if (StringUtils.isNotBlank(customSql)) {
             sql.append("* FROM (")
                     .append(customSql)
                     .append(") ")
                     .append(JdbcUtil.TEMPORARY_TABLE_NAME);
-        }else{
-            sql.append(selectExpressions)
-                    .append(" FROM ");
-            if(StringUtils.isNotBlank(schemaName)){
-                sql.append(quoteIdentifier(schemaName))
-                    .append(" .");
+        } else {
+            sql.append(selectExpressions).append(" FROM ");
+            if (StringUtils.isNotBlank(schemaName)) {
+                sql.append(quoteIdentifier(schemaName)).append(" .");
             }
             sql.append(quoteIdentifier(tableName));
         }
-        if(StringUtils.isNotBlank(where)){
-            sql.append( " WHERE ")
-                    .append(where);
+        if (StringUtils.isNotBlank(where)) {
+            sql.append(" WHERE ").append(where);
         }
         return sql.toString();
     }
