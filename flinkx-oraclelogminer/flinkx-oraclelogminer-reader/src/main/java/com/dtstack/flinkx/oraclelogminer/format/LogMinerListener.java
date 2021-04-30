@@ -121,6 +121,9 @@ public class LogMinerListener implements Runnable {
                 } else {
                     logMinerConnection.closeStmt();
                     logMinerConnection.startOrUpdateLogMiner(positionManager.getPosition());
+                    LOG.info("start sleep.....................");
+                    Thread.sleep(1000*60*2);
+                    LOG.info("end sleep.....................");
                     logMinerConnection.queryData(positionManager.getPosition(), logMinerSelectSql);
                     LOG.debug("Update log and continue read:{}", positionManager.getPosition());
                 }
