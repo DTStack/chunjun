@@ -85,6 +85,7 @@ import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.get
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.getStartupOptions;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.validateTableSinkOptions;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.validateTableSourceOptions;
+import static org.apache.flink.table.factories.FactoryUtil.SCAN_PARALLELISM;
 import static org.apache.flink.table.factories.FactoryUtil.SINK_PARALLELISM;
 
 /**
@@ -120,6 +121,7 @@ public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, Dyna
         options.add(TOPIC);
         options.add(TOPIC_PATTERN);
         options.add(PROPS_GROUP_ID);
+        options.add(SCAN_PARALLELISM);
         options.add(SCAN_STARTUP_MODE);
         options.add(SCAN_STARTUP_SPECIFIC_OFFSETS);
         options.add(SCAN_TOPIC_PARTITION_DISCOVERY);
@@ -171,6 +173,8 @@ public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, Dyna
 
         final String keyPrefix = tableOptions.getOptional(KEY_FIELDS_PREFIX).orElse(null);
 
+        final Integer parallelism = tableOptions.getOptional(SCAN_PARALLELISM).orElse(null);
+
         return createKafkaTableSource(
                 physicalDataType,
                 keyDecodingFormat.orElse(null),
@@ -183,7 +187,8 @@ public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, Dyna
                 properties,
                 startupOptions.startupMode,
                 startupOptions.specificOffsets,
-                startupOptions.startupTimestampMillis);
+                startupOptions.startupTimestampMillis,
+                parallelism);
     }
 
     @Override
@@ -318,7 +323,8 @@ public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, Dyna
             Properties properties,
             StartupMode startupMode,
             Map<KafkaTopicPartition, Long> specificStartupOffsets,
-            long startupTimestampMillis) {
+            long startupTimestampMillis,
+            Integer parallelism) {
         return new KafkaDynamicSource(
                 physicalDataType,
                 keyDecodingFormat,
@@ -332,7 +338,8 @@ public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, Dyna
                 startupMode,
                 specificStartupOffsets,
                 startupTimestampMillis,
-                false);
+                false,
+                parallelism);
     }
 
     protected KafkaDynamicSink createKafkaTableSink(

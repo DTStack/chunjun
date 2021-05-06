@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.kafka.source;
 
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -139,6 +141,9 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
     /** Flag to determine source mode. In upsert mode, it will keep the tombstone message. * */
     protected final boolean upsertMode;
 
+    /** Parallelism of the physical Kafka producer. * */
+    protected final @Nullable Integer parallelism;
+
     public KafkaDynamicSource(
             DataType physicalDataType,
             @Nullable DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat,
@@ -152,7 +157,8 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
             StartupMode startupMode,
             Map<KafkaTopicPartition, Long> specificStartupOffsets,
             long startupTimestampMillis,
-            boolean upsertMode) {
+            boolean upsertMode,
+            @Nullable Integer parallelism) {
         // Format attributes
         this.physicalDataType =
                 Preconditions.checkNotNull(
@@ -185,6 +191,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
                         specificStartupOffsets, "Specific offsets must not be null.");
         this.startupTimestampMillis = startupTimestampMillis;
         this.upsertMode = upsertMode;
+        this.parallelism = parallelism;
     }
 
     @Override
@@ -206,7 +213,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
         final FlinkKafkaConsumer<RowData> kafkaConsumer =
                 createKafkaConsumer(keyDeserialization, valueDeserialization, producedTypeInfo);
 
-        return SourceFunctionProvider.of(kafkaConsumer, false);
+        return ParallelSourceFunctionProvider.of(kafkaConsumer, false, parallelism);
     }
 
     @Override
@@ -276,7 +283,8 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
                         startupMode,
                         specificStartupOffsets,
                         startupTimestampMillis,
-                        upsertMode);
+                        upsertMode,
+                        parallelism);
         copy.producedDataType = producedDataType;
         copy.metadataKeys = metadataKeys;
         copy.watermarkStrategy = watermarkStrategy;
