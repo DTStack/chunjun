@@ -46,7 +46,7 @@ public class FlinkxCommonConf implements Serializable {
     /** 是否校验format */
     private boolean checkFormat = true;
     /** 并行度 */
-    private int parallelism = 1;
+    private Integer parallelism = 1;
 
     public long getSpeedBytes() {
         return speedBytes;
@@ -104,11 +104,11 @@ public class FlinkxCommonConf implements Serializable {
         this.checkFormat = checkFormat;
     }
 
-    public int getParallelism() {
+    public Integer getParallelism() {
         return parallelism;
     }
 
-    public void setParallelism(int parallelism) {
+    public void setParallelism(Integer parallelism) {
         this.parallelism = parallelism;
     }
 

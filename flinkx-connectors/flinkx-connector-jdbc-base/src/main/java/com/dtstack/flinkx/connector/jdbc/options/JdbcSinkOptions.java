@@ -59,6 +59,6 @@ public class JdbcSinkOptions {
     public static final ConfigOption<Integer> SINK_PARALLELISM =
             ConfigOptions.key("sink.parallelism")
                     .intType()
-                    .defaultValue(1)
+                    .defaultValue(null)
                     .withDescription("sink.parallelism.");
 }

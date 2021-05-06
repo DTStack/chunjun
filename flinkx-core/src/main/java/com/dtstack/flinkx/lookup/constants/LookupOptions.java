@@ -84,6 +84,6 @@ public class LookupOptions {
     public static final ConfigOption<Integer> LOOKUP_PARALLELISM =
             ConfigOptions.key("lookup.parallelism")
                     .intType()
-                    .defaultValue(1)
+                    .defaultValue(null)
                     .withDescription("lookup.parallelism.");
 }

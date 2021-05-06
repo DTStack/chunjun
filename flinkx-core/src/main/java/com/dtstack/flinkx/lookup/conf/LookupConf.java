@@ -47,7 +47,7 @@ public class LookupConf implements Serializable {
     /** 异步超时时长 */
     protected int asyncTimeout = 10000;
     /** 维表并行度 */
-    protected int parallelism = 1;
+    protected Integer parallelism = 1;
 
     public String getTableName() {
         return tableName;
@@ -130,11 +130,11 @@ public class LookupConf implements Serializable {
         return this;
     }
 
-    public int getParallelism() {
+    public Integer getParallelism() {
         return parallelism;
     }
 
-    public LookupConf setParallelism(int parallelism) {
+    public LookupConf setParallelism(Integer parallelism) {
         this.parallelism = parallelism;
         return this;
     }

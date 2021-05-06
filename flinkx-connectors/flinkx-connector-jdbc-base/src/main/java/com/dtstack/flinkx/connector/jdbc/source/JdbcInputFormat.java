@@ -63,6 +63,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -505,7 +506,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         StringBuilder sql = new StringBuilder(128);
         sql.append(String.join(" AND ", whereList.toArray(new String[0])));
 
-        if (jdbcConf.getParallelism() > 1 && StringUtils.isNotBlank(jdbcConf.getSplitPk())) {
+        if ((Objects.nonNull(jdbcConf.getParallelism()) && jdbcConf.getParallelism() > 1)
+                && StringUtils.isNotBlank(jdbcConf.getSplitPk())) {
             sql.append(" ORDER BY ")
                     .append(jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()))
                     .append(" ASC");

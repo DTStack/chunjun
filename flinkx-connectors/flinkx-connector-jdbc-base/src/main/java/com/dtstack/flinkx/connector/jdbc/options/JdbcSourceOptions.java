@@ -51,7 +51,7 @@ public class JdbcSourceOptions {
     public static final ConfigOption<Integer> SCAN_PARALLELISM =
             ConfigOptions.key("scan.parallelism")
                     .intType()
-                    .defaultValue(1)
+                    .defaultValue(null)
                     .withDescription("scan parallelism.");
     public static final ConfigOption<Integer> SCAN_QUERY_TIMEOUT =
             ConfigOptions.key("scan.query-timeout")
