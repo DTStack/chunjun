@@ -36,9 +36,9 @@ import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.NUMBER_OF_ROWS;
-import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.PRINT_IDENTIFIER;
-import static com.dtstack.flinkx.connector.stream.constants.StreamConstants.STANDARD_ERROR;
+import static com.dtstack.flinkx.connector.stream.options.StreamOptions.NUMBER_OF_ROWS;
+import static com.dtstack.flinkx.connector.stream.options.StreamOptions.PRINT_IDENTIFIER;
+import static com.dtstack.flinkx.connector.stream.options.StreamOptions.STANDARD_ERROR;
 
 /**
  * @author chuixue

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.stream.constants;
+package com.dtstack.flinkx.connector.stream.options;
 
 import org.apache.flink.configuration.ConfigOption;
 
@@ -27,7 +27,7 @@ import static org.apache.flink.configuration.ConfigOptions.key;
  * @create 2021-04-09 10:19
  * @description 常量
  **/
-public class StreamConstants {
+public class StreamOptions {
     public static final ConfigOption<String> PRINT_IDENTIFIER =
             key("print-identifier")
                     .stringType()

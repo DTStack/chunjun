@@ -61,15 +61,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.DEFAULT_DB_CONN_POOL_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.DEFAULT_IDLE_CONNECTION_TEST_PEROID;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.DEFAULT_TEST_CONNECTION_ON_CHECKIN;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.DT_PROVIDER_CLASS;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.ERRORLOG_PRINTNUM;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.MAX_DB_CONN_POOL_SIZE_LIMIT;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.MAX_TASK_QUEUE_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.PREFERRED_TEST_QUERY_SQL;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DEFAULT_DB_CONN_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DEFAULT_IDLE_CONNECTION_TEST_PEROID;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DEFAULT_TEST_CONNECTION_ON_CHECKIN;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DT_PROVIDER_CLASS;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.ERRORLOG_PRINTNUM;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.MAX_DB_CONN_POOL_SIZE_LIMIT;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.MAX_TASK_QUEUE_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.PREFERRED_TEST_QUERY_SQL;
 
 /**
  * @author chuixue
