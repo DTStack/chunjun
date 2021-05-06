@@ -83,7 +83,7 @@ public class StreamDynamicTableSource implements ScanTableSource {
         builder.setRowConverter(new StreamRowConverter(rowType));
         builder.setStreamConf(streamConf);
 
-        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, null);
     }
 
     @Override

@@ -80,7 +80,7 @@ public class StreamDynamicTableSink implements DynamicTableSink {
         builder.setStreamSinkConf(sinkConf);
         builder.setConverter(new StreamRowConverter(rowType));
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), 1);
+        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), null);
     }
 
     @Override
