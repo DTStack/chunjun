@@ -24,8 +24,10 @@ import org.apache.flink.table.data.RowData;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.util.TablePrintUtil;
+import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
@@ -52,11 +54,11 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
             GenericRowData genericRowData = new GenericRowData(rowData.getArity());
             GenericRowData row = (GenericRowData) rowConverter.toExternal(rowData, genericRowData);
             if (streamSinkConf.getPrint()) {
-                TablePrintUtil.printTable(row, getFieldNames());
+                TablePrintUtil.printTable(row, getFieldNames(rowData));
             }
             lastRow = row;
         } catch (Exception e) {
-            LOG.error(e.getMessage());
+            LOG.error("row = {}, e = {}", rowData, ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -70,16 +72,21 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     @Override
     public FormatState getFormatState() throws Exception {
         if (lastRow != null) {
-            TablePrintUtil.printTable(lastRow, getFieldNames());
+            TablePrintUtil.printTable(lastRow, getFieldNames(lastRow));
         }
         return super.getFormatState();
     }
 
-    public String[] getFieldNames() {
+    public String[] getFieldNames(RowData rowData) {
         String[] fieldNames = null;
-        List<FieldConf> fieldConfList = streamSinkConf.getColumn();
-        if (CollectionUtils.isNotEmpty(fieldConfList)) {
-            fieldNames = fieldConfList.stream().map(FieldConf::getName).toArray(String[]::new);
+        if(rowData instanceof ColumnRowData){
+            fieldNames = ((ColumnRowData) rowData).getHeaders();
+        }
+        if(fieldNames == null){
+            List<FieldConf> fieldConfList = streamSinkConf.getColumn();
+            if (CollectionUtils.isNotEmpty(fieldConfList)) {
+                fieldNames = fieldConfList.stream().map(FieldConf::getName).toArray(String[]::new);
+            }
         }
         return fieldNames;
     }

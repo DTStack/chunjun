@@ -18,11 +18,13 @@
 package com.dtstack.flinkx.element.column;
 
 import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.util.JsonUtil;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Date: 2021/04/26
@@ -30,64 +32,50 @@ import java.util.Date;
  *
  * @author tudou
  */
-public class BigDecimalColumn extends AbstractBaseColumn {
+public class MapColumn extends AbstractBaseColumn {
 
-    public BigDecimalColumn(BigDecimal data) {
+    public MapColumn(Map<String, Object> data) {
         super(data);
-    }
-
-    public BigDecimalColumn(int data) {
-        super(new BigDecimal(data));
-    }
-
-    public BigDecimalColumn(double data) {
-        super(new BigDecimal(data));
-    }
-
-    public BigDecimalColumn(float data) {
-        super(new BigDecimal(data));
-    }
-
-    public BigDecimalColumn(long data) {
-        super(new BigDecimal(data));
-    }
-
-    public BigDecimalColumn(String data) {
-        super(new BigDecimal(data));
     }
 
     @Override
     public int getByteSize(Object data) {
-        return null == data ? 0 : data.toString().getBytes(StandardCharsets.UTF_8).length;
+        return null == data ? 0 : JsonUtil.toJson(data).getBytes(StandardCharsets.UTF_8).length;
     }
 
     @Override
     public String asString() {
-        return data.toString();
+        if (null == data) {
+            return null;
+        }
+        return JsonUtil.toJson(data);
     }
 
     @Override
     public Date asDate() {
-        return null;
+        throw new RuntimeException(String.format("Map[\"%s\"]can not cast to Date.", this.asString()));
     }
 
     @Override
     public byte[] asBytes() {
-        return new byte[0];
+        if (null == data) {
+            return null;
+        }
+        return JsonUtil.toJson(data).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
     public Boolean asBoolean() {
-        return null;
+        throw new RuntimeException(String.format("Map[\"%s\"] can not cast to Boolean.", this.asString()));
     }
 
     @Override
     public BigDecimal asBigDecimal() {
-        return (BigDecimal)data;
+        throw new RuntimeException(String.format("Map[\"%s\"]can not cast to BigDecimal.", this.asString()));
     }
 
     @Override
     public Timestamp asTimestamp() {
-        return null;
+        throw new RuntimeException(String.format("Map[\"%s\"]can not cast to Timestamp", this.asString()));
     }
 }

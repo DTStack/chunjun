@@ -25,6 +25,8 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
@@ -44,7 +46,7 @@ import java.time.LocalTime;
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
 public class JdbcColumnConverter
         extends AbstractRowConverter<
-                ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
+                        ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
 
     public JdbcColumnConverter(RowType rowType) {
         super(rowType);
@@ -59,8 +61,8 @@ public class JdbcColumnConverter
     }
 
     @Override
-    protected SerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter, LogicalType type) {
+    protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
+            ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, statement) -> {
             if (((ColumnRowData) val).getField(index) == null) {
                 statement.setObject(index, null);
@@ -100,7 +102,7 @@ public class JdbcColumnConverter
     }
 
     @Override
-    protected DeserializationConverter<Object> createInternalConverter(LogicalType type) {
+    protected IDeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
@@ -134,7 +136,7 @@ public class JdbcColumnConverter
     }
 
     @Override
-    protected SerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
+    protected ISerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
             LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:

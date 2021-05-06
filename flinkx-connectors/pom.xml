@@ -19,6 +19,9 @@
 		<module>flinkx-connector-jdbc-base</module>
 		<module>flinkx-connector-mysql</module>
         <module>flinkx-connector-hbase-base</module>
+
+		<!--CDC-->
+		<module>flinkx-connector-binlog</module>
     </modules>
 
     <dependencies>

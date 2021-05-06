@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author jiangbo
  */
 public abstract class BaseRichInputFormat extends RichInputFormat<RowData, InputSplit> {
+    protected static final long serialVersionUID = 1L;
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
@@ -78,7 +79,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
     private boolean inited = false;
 
-    private AtomicBoolean isClosed = new AtomicBoolean(false);
+    private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
     protected transient CustomPrometheusReporter customPrometheusReporter;
 
@@ -102,7 +103,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     }
 
     @Override
-    public void openInputFormat() {
+    public void openInputFormat() throws IOException {
         initJobInfo();
         initPrometheusReporter();
 

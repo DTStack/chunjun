@@ -41,12 +41,11 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
 
     private static final long serialVersionUID = 1L;
     protected RowType rowType;
-    protected DeserializationConverter[] toInternalConverters;
-    protected SerializationConverter[] toExternalConverters;
+    protected IDeserializationConverter[] toInternalConverters;
+    protected ISerializationConverter[] toExternalConverters;
     protected LogicalType[] fieldTypes;
 
-    public AbstractRowConverter() {
-    }
+    public AbstractRowConverter() {}
 
     public AbstractRowConverter(RowType rowType) {
         this(rowType.getFieldCount());
@@ -58,23 +57,23 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     }
 
     public AbstractRowConverter(int converterSize) {
-        this.toInternalConverters = new DeserializationConverter[converterSize];
-        this.toExternalConverters = new SerializationConverter[converterSize];
+        this.toInternalConverters = new IDeserializationConverter[converterSize];
+        this.toExternalConverters = new ISerializationConverter[converterSize];
     }
 
-    protected DeserializationConverter wrapIntoNullableInternalConverter(
-            DeserializationConverter deserializationConverter) {
+    protected IDeserializationConverter wrapIntoNullableInternalConverter(
+            IDeserializationConverter IDeserializationConverter) {
         return val -> {
             if (val == null) {
                 return null;
             } else {
-                return deserializationConverter.deserialize(val);
+                return IDeserializationConverter.deserialize(val);
             }
         };
     }
 
-    protected abstract SerializationConverter wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter, T type);
+    protected abstract ISerializationConverter wrapIntoNullableExternalConverter(
+            ISerializationConverter ISerializationConverter, T type);
 
     /**
      * Convert data retrieved from {@link ResultSet} to internal {@link RowData}.
@@ -94,29 +93,13 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      */
     public abstract SinkT toExternal(RowData rowData, SinkT output) throws Exception;
 
-    /** Runtime converter to convert field to {@link RowData} type object. */
-    @FunctionalInterface
-    protected interface DeserializationConverter<T> extends Serializable {
-        Object deserialize(T field) throws Exception;
-    }
-
-    /**
-     * 类型T一般是 Object，HBase这种特殊的就是byte[]
-     *
-     * @param <T>
-     */
-    @FunctionalInterface
-    protected interface SerializationConverter<T> extends Serializable {
-        void serialize(RowData rowData, int pos, T output) throws Exception;
-    }
-
     /**
      * 将外部数据库类型转换为flink内部类型
      *
      * @param type
      * @return
      */
-    protected abstract DeserializationConverter createInternalConverter(T type);
+    protected abstract IDeserializationConverter createInternalConverter(T type);
 
     /**
      * 将flink内部的数据类型转换为外部数据库系统类型
@@ -124,5 +107,5 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      * @param type
      * @return
      */
-    protected abstract SerializationConverter createExternalConverter(T type);
+    protected abstract ISerializationConverter createExternalConverter(T type);
 }

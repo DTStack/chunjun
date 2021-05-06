@@ -34,6 +34,8 @@ import org.apache.flink.table.types.utils.TypeConversions;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import io.vertx.core.json.JsonArray;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -64,8 +66,8 @@ public class JdbcRowConverter
     }
 
     @Override
-    protected SerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter, LogicalType type) {
+    protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
+            ISerializationConverter serializationConverter, LogicalType type) {
         final int sqlType =
                 JdbcTypeUtil.typeInformationToSqlType(
                         TypeConversions.fromDataTypeToLegacyInfo(
@@ -111,7 +113,7 @@ public class JdbcRowConverter
     }
 
     @Override
-    protected DeserializationConverter<Object> createInternalConverter(LogicalType type) {
+    protected IDeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case NULL:
                 return val -> null;
@@ -167,7 +169,7 @@ public class JdbcRowConverter
     }
 
     @Override
-    protected SerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
+    protected ISerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
             LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:

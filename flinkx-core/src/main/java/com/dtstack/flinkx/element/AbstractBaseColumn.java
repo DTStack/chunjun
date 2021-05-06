@@ -96,9 +96,6 @@ public abstract class AbstractBaseColumn implements Serializable {
 
     @Override
     public String toString() {
-        return "AbstractBaseColumn{" +
-                "data=" + data +
-                ", byteSize=" + byteSize +
-                '}';
+        return this.data == null ? "" : this.asString();
     }
 }

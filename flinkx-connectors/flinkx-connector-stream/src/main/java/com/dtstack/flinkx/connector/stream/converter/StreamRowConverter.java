@@ -30,6 +30,8 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
@@ -63,8 +65,8 @@ public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, R
     }
 
     @Override
-    protected SerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(
-            SerializationConverter serializationConverter, LogicalType type) {
+    protected ISerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(
+            ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, rowData) -> {
             if (val == null
                     || val.isNullAt(index)
@@ -99,7 +101,7 @@ public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, R
     }
 
     @Override
-    protected DeserializationConverter createInternalConverter(LogicalType type) {
+    protected IDeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case NULL:
                 return val -> null;
@@ -164,7 +166,7 @@ public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, R
     }
 
     @Override
-    protected SerializationConverter<GenericRowData> createExternalConverter(LogicalType type) {
+    protected ISerializationConverter<GenericRowData> createExternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:
                 return (val, index, rowData) -> rowData.setField(index, val.getBoolean(index));

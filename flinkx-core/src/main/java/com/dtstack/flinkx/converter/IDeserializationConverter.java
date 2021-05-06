@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,39 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.converter;
 
-/**
- * Date: 2021/04/27
- * Company: www.dtstack.com
- *
- * @author tudou
- */
-public enum OperationType {
-    //----------------- DML -----------------
-    INSERT(0, "INSERT"),
-    UPDATE(1, "UPDATE"),
-    UPDATE_BEFORE(3, "UPDATE"),
-    UPDATE_AFTER(4, "UPDATE"),
-    DELETE(5, "DELETE"),
-    //----------------- DDL -----------------
-    CREATE(10, "CREATE"),
-    DROP(11, "DROP"),
-    ALTER(12, "ALTER");
+import org.apache.flink.table.data.RowData;
 
-    private final int type;
-    private final String name;
+import java.io.Serializable;
 
-    OperationType(int type, String name) {
-        this.type = type;
-        this.name = name;
-    }
+public interface IDeserializationConverter<T, E> extends Serializable {
 
-    public int getType() {
-        return type;
-    }
-
-    public String getName() {
-        return name;
-    }
+    /**
+     * Runtime converter to convert field to {@link RowData} type object
+     * @param field
+     * @return
+     * @throws Exception
+     */
+    E deserialize(T field);
 }

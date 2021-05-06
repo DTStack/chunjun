@@ -31,8 +31,6 @@ import org.apache.commons.collections.CollectionUtils;
  * @author jiangbo
  */
 public class StreamInputFormat extends BaseRichInputFormat {
-    protected static final long serialVersionUID = 1L;
-
     private StreamConf streamConf;
 
     private long recordRead = 0;

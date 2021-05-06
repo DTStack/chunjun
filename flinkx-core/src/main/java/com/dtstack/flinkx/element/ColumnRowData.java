@@ -25,14 +25,17 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.types.RowKind;
+import org.apache.flink.util.InstantiationUtil;
+import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.enums.OperationType;
+import com.dtstack.flinkx.util.JsonUtil;
+import com.google.common.collect.Maps;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.apache.flink.util.Preconditions.checkNotNull;
+import java.util.Map;
 
 /**
  * Date: 2021/04/26
@@ -40,15 +43,13 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  *
  * @author tudou
  */
-public final class ColumnRowData implements RowData {
+public final class ColumnRowData implements RowData, Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final List<AbstractBaseColumn> fields;
+    private Map<String, Integer> header;
 
     private RowKind kind;
-    private String database;
-    private String schema;
-    private String table;
-    private OperationType operationType;
 
     public ColumnRowData(RowKind kind, int arity) {
         this.fields = new ArrayList<>(arity);
@@ -60,8 +61,36 @@ public final class ColumnRowData implements RowData {
         this.kind = RowKind.INSERT; // INSERT as default
     }
 
+    public void addHeader(String name){
+        if(this.header == null){
+            this.header = Maps.newHashMapWithExpectedSize(this.fields.size());
+        }
+        this.header.put(name, this.header.size());
+    }
+
+    public void addAllHeader(List<String> list){
+        for (String name : list) {
+            this.addHeader(name);
+        }
+    }
+
+    public String[] getHeaders(){
+        if(this.header == null){
+            return null;
+        }
+        String[] names = new String[this.header.size()];
+        for (Map.Entry<String, Integer> entry : header.entrySet()) {
+            names[entry.getValue()] = entry.getKey();
+        }
+        return names;
+    }
+
     public void addField(AbstractBaseColumn value) {
         this.fields.add(value);
+    }
+
+    public void addAllField(List<AbstractBaseColumn> list) {
+        this.fields.addAll(list);
     }
 
     public void setField(int pos, AbstractBaseColumn value) {
@@ -70,6 +99,22 @@ public final class ColumnRowData implements RowData {
 
     public AbstractBaseColumn getField(int pos) {
         return this.fields.get(pos);
+    }
+
+    public AbstractBaseColumn getField(String name) {
+        if(header == null){
+            return null;
+        }
+        Integer pos = header.getOrDefault(name, -1);
+        return pos == -1 ? null : this.fields.get(pos);
+    }
+
+    public ColumnRowData copy(){
+        try {
+            return InstantiationUtil.clone(this, Thread.currentThread().getContextClassLoader());
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -84,7 +129,7 @@ public final class ColumnRowData implements RowData {
 
     @Override
     public void setRowKind(RowKind kind) {
-        checkNotNull(kind);
+        Preconditions.checkNotNull(kind);
         this.kind = kind;
     }
 
@@ -100,7 +145,6 @@ public final class ColumnRowData implements RowData {
 
     @Override
     public byte getByte(int pos) {
-        // todo
         return this.fields.get(pos).asBigDecimal().byteValue();
     }
 
@@ -170,27 +214,8 @@ public final class ColumnRowData implements RowData {
         return null;
     }
 
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public void setTable(String table) {
-        this.table = table;
+    @Override
+    public String toString() {
+        return JsonUtil.toPrintJson(this);
     }
 }

@@ -15,39 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.enums;
+package com.dtstack.flinkx.converter;
+
+import org.apache.flink.table.data.RowData;
+
+import java.io.Serializable;
 
 /**
- * Date: 2021/04/27
+ * Date: 2021/04/30
  * Company: www.dtstack.com
  *
  * @author tudou
  */
-public enum OperationType {
-    //----------------- DML -----------------
-    INSERT(0, "INSERT"),
-    UPDATE(1, "UPDATE"),
-    UPDATE_BEFORE(3, "UPDATE"),
-    UPDATE_AFTER(4, "UPDATE"),
-    DELETE(5, "DELETE"),
-    //----------------- DDL -----------------
-    CREATE(10, "CREATE"),
-    DROP(11, "DROP"),
-    ALTER(12, "ALTER");
+public interface ISerializationConverter<T> extends Serializable {
 
-    private final int type;
-    private final String name;
-
-    OperationType(int type, String name) {
-        this.type = type;
-        this.name = name;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public String getName() {
-        return name;
-    }
+    /**
+     * 类型T一般是 Object，HBase这种特殊的就是byte[]
+     * @param rowData
+     * @param pos
+     * @param output
+     * @throws Exception
+     */
+    void serialize(RowData rowData, int pos, T output) throws Exception;
 }
