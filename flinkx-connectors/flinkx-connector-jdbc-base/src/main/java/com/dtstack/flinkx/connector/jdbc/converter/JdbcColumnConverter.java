@@ -16,12 +16,15 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.mysql.converter;
+package com.dtstack.flinkx.connector.jdbc.converter;
 
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
@@ -30,6 +33,7 @@ import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+import io.vertx.core.json.JsonArray;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -38,136 +42,27 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.Locale;
 
-/**
- * @author chuixue
- * @create 2021-04-27 11:46
- * @description
- */
-public class MysqlColumnConverter extends AbstractJdbcRowConverter<String> {
+/** Base class for all converters that convert between JDBC object and Flink internal object. */
+public class JdbcColumnConverter
+        extends AbstractRowConverter<
+                        ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
 
-    private static final long serialVersionUID = -4220475058412511171L;
-
-    public MysqlColumnConverter(List<String> typeList) {
-        super(typeList.size());
-        for (int i = 0; i < typeList.size(); i++) {
+    public JdbcColumnConverter(RowType rowType) {
+        super(rowType);
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters[i] =
-                    wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i)));
             toExternalConverters[i] =
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(typeList.get(i)), typeList.get(i));
-        }
-    }
-
-    @Override
-    protected IDeserializationConverter createInternalConverter(String type) {
-        switch (type.toUpperCase(Locale.ENGLISH)) {
-            case "BIT":
-                return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
-            case "TINYINT":
-                return val -> new BigDecimalColumn(((Integer) val).byteValue());
-            case "SMALLINT":
-            case "MEDIUMINT":
-            case "INT":
-            case "INT24":
-            case "INTEGER":
-                return val -> new BigDecimalColumn((Integer) val);
-            case "FLOAT":
-            case "DOUBLE":
-                return val -> new BigDecimalColumn((Double) val);
-            case "REAL":
-                return val -> new BigDecimalColumn((Float) val);
-            case "LONG":
-            case "BIGINT":
-                return val -> new BigDecimalColumn((Long) val);
-            case "DECIMAL":
-            case "NUMERIC":
-                return val -> new BigDecimalColumn((BigDecimal) val);
-            case "CHAR":
-            case "VARCHAR":
-                return val -> new StringColumn((String) val);
-            case "DATE":
-                return val -> new BigDecimalColumn(((Date) val).toLocalDate().toEpochDay());
-            case "TIME":
-                return val ->
-                        new BigDecimalColumn(((Time) val).toLocalTime().toNanoOfDay() / 1_000_000L);
-            case "TIMESTAMP":
-            case "DATETIME":
-                return val -> new TimestampColumn((Timestamp) val);
-            default:
-                throw new UnsupportedOperationException("Unsupported type:" + type);
-        }
-    }
-
-    @Override
-    protected ISerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
-            String type) {
-        switch (type.toUpperCase(Locale.ENGLISH)) {
-            case "BIT":
-                return (val, index, statement) ->
-                        statement.setBoolean(
-                                index, ((ColumnRowData) val).getField(index).asBoolean());
-            case "TINYINT":
-                return (val, index, statement) -> statement.setByte(index, val.getByte(index));
-            case "SMALLINT":
-            case "MEDIUMINT":
-            case "INT":
-            case "INT24":
-            case "INTEGER":
-                return (val, index, statement) ->
-                        statement.setInt(index, ((ColumnRowData) val).getField(index).asInt());
-            case "FLOAT":
-            case "DOUBLE":
-                return (val, index, statement) ->
-                        statement.setDouble(
-                                index, ((ColumnRowData) val).getField(index).asDouble());
-            case "REAL":
-                return (val, index, statement) ->
-                        statement.setFloat(index, ((ColumnRowData) val).getField(index).asFloat());
-            case "LONG":
-            case "BIGINT":
-                return (val, index, statement) ->
-                        statement.setLong(index, ((ColumnRowData) val).getField(index).asLong());
-            case "DECIMAL":
-            case "NUMERIC":
-                return (val, index, statement) ->
-                        statement.setBigDecimal(
-                                index, ((ColumnRowData) val).getField(index).asBigDecimal());
-            case "CHAR":
-            case "VARCHAR":
-                return (val, index, statement) ->
-                        statement.setString(
-                                index, ((ColumnRowData) val).getField(index).asString());
-            case "DATE":
-                return (val, index, statement) ->
-                        statement.setDate(
-                                index,
-                                Date.valueOf(
-                                        LocalDate.ofEpochDay(
-                                                ((ColumnRowData) val).getField(index).asInt())));
-            case "TIME":
-                return (val, index, statement) ->
-                        statement.setTime(
-                                index,
-                                Time.valueOf(
-                                        LocalTime.ofNanoOfDay(
-                                                ((ColumnRowData) val).getField(index).asInt()
-                                                        * 1_000_000L)));
-            case "TIMESTAMP":
-            case "DATETIME":
-                return (val, index, statement) ->
-                        statement.setTimestamp(
-                                index, ((ColumnRowData) val).getField(index).asTimestamp());
-            default:
-                throw new UnsupportedOperationException("Unsupported type:" + type);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
         }
     }
 
     @Override
     protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter, String type) {
+            ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, statement) -> {
             if (((ColumnRowData) val).getField(index) == null) {
                 statement.setObject(index, null);
@@ -185,5 +80,117 @@ public class MysqlColumnConverter extends AbstractJdbcRowConverter<String> {
             data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
         }
         return data;
+    }
+
+    @Override
+    public RowData toInternalLookup(JsonArray jsonArray) throws Exception {
+        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
+        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
+            Object field = jsonArray.getValue(pos);
+            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
+        }
+        return genericRowData;
+    }
+
+    @Override
+    public FieldNamedPreparedStatement toExternal(
+            RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
+        for (int index = 0; index < rowData.getArity(); index++) {
+            toExternalConverters[index].serialize(rowData, index, statement);
+        }
+        return statement;
+    }
+
+    @Override
+    protected IDeserializationConverter createInternalConverter(LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case BOOLEAN:
+                return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
+            case TINYINT:
+                return val -> new BigDecimalColumn(((Integer) val).byteValue());
+            case SMALLINT:
+            case INTEGER:
+                return val -> new BigDecimalColumn((Integer) val);
+            case FLOAT:
+                return val -> new BigDecimalColumn((Float) val);
+            case DOUBLE:
+                return val -> new BigDecimalColumn((Double) val);
+            case BIGINT:
+                return val -> new BigDecimalColumn((Long) val);
+            case DECIMAL:
+                return val -> new BigDecimalColumn((BigDecimal) val);
+            case CHAR:
+            case VARCHAR:
+                return val -> new StringColumn((String) val);
+            case DATE:
+                return val -> new BigDecimalColumn(((Date) val).toLocalDate().toEpochDay());
+            case TIME_WITHOUT_TIME_ZONE:
+                return val ->
+                        new BigDecimalColumn(((Time) val).toLocalTime().toNanoOfDay() / 1_000_000L);
+            case TIMESTAMP_WITH_TIME_ZONE:
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+                return val -> new TimestampColumn((Timestamp) val);
+            default:
+                throw new UnsupportedOperationException("Unsupported type:" + type);
+        }
+    }
+
+    @Override
+    protected ISerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
+            LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case BOOLEAN:
+                return (val, index, statement) ->
+                        statement.setBoolean(
+                                index, ((ColumnRowData) val).getField(index).asBoolean());
+            case TINYINT:
+                return (val, index, statement) -> statement.setByte(index, val.getByte(index));
+            case SMALLINT:
+            case INTEGER:
+                return (val, index, statement) ->
+                        statement.setInt(index, ((ColumnRowData) val).getField(index).asInt());
+            case FLOAT:
+                return (val, index, statement) ->
+                        statement.setFloat(index, ((ColumnRowData) val).getField(index).asFloat());
+            case DOUBLE:
+                return (val, index, statement) ->
+                        statement.setDouble(
+                                index, ((ColumnRowData) val).getField(index).asDouble());
+
+            case BIGINT:
+                return (val, index, statement) ->
+                        statement.setLong(index, ((ColumnRowData) val).getField(index).asLong());
+            case DECIMAL:
+                return (val, index, statement) ->
+                        statement.setBigDecimal(
+                                index, ((ColumnRowData) val).getField(index).asBigDecimal());
+            case CHAR:
+            case VARCHAR:
+                return (val, index, statement) ->
+                        statement.setString(
+                                index, ((ColumnRowData) val).getField(index).asString());
+            case DATE:
+                return (val, index, statement) ->
+                        statement.setDate(
+                                index,
+                                Date.valueOf(
+                                        LocalDate.ofEpochDay(
+                                                ((ColumnRowData) val).getField(index).asInt())));
+            case TIME_WITHOUT_TIME_ZONE:
+                return (val, index, statement) ->
+                        statement.setTime(
+                                index,
+                                Time.valueOf(
+                                        LocalTime.ofNanoOfDay(
+                                                ((ColumnRowData) val).getField(index).asInt()
+                                                        * 1_000_000L)));
+            case TIMESTAMP_WITH_TIME_ZONE:
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+                return (val, index, statement) ->
+                        statement.setTimestamp(
+                                index, ((ColumnRowData) val).getField(index).asTimestamp());
+            default:
+                throw new UnsupportedOperationException("Unsupported type:" + type);
+        }
     }
 }

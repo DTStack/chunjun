@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.jdbc.table;
 
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
-
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -31,15 +28,17 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
+import org.apache.flink.util.StringUtils;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.SourceConnectionConf;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -47,25 +46,28 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonOptions.PASSWORD;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonOptions.SCHEMA;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonOptions.TABLE_NAME;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonOptions.URL;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcCommonOptions.USERNAME;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcLookupOptions.LOOKUP_ASYNCPOOLSIZE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_ALLREPLACE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_MAX_RETRIES;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSinkOptions.SINK_PARALLELISM;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_AUTO_COMMIT;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_FETCH_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARALLELISM;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_COLUMN;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_LOWER_BOUND;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_NUM;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_PARTITION_UPPER_BOUND;
-import static com.dtstack.flinkx.connector.jdbc.constants.JdbcSourceOptions.SCAN_QUERY_TIMEOUT;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.PASSWORD;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.SCHEMA;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.TABLE_NAME;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.URL;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.USERNAME;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.LOOKUP_ASYNCPOOLSIZE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_ALLREPLACE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_MAX_RETRIES;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_PARALLELISM;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_AUTO_COMMIT;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_FETCH_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARALLELISM;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_COLUMN;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_COLUMN_TYPE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_LOWER_BOUND;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_NUM;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_UPPER_BOUND;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_POLLING_INTERVAL;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_QUERY_TIMEOUT;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_START_LOCATION;
 import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_ASYNCTIMEOUT;
 import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_PERIOD;
@@ -189,18 +191,16 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE));
         jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
 
-
-        final Optional<String> partitionColumnName =
-                readableConfig.getOptional(SCAN_PARTITION_COLUMN);
-        if (partitionColumnName.isPresent()) {
-            conf.setPartitionColumnName(partitionColumnName.get());
-            conf.setPartitionLowerBound(
-                    readableConfig.get(SCAN_PARTITION_LOWER_BOUND));
-            conf.setPartitionUpperBound(
-                    readableConfig.get(SCAN_PARTITION_UPPER_BOUND));
-            conf.setNumPartitions(readableConfig.get(SCAN_PARTITION_NUM));
+        Optional<Integer> pollingInterval = readableConfig.getOptional(SCAN_POLLING_INTERVAL);
+        if (pollingInterval.isPresent() && pollingInterval.get() > 0) {
+            jdbcConf.setPolling(true);
+            jdbcConf.setIncrement(true);
+            jdbcConf.setPollingInterval(pollingInterval.get());
+            jdbcConf.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
+            jdbcConf.setIncreColumnType(readableConfig.get(SCAN_PARTITION_COLUMN_TYPE));
+            jdbcConf.setIncreColumn(readableConfig.get(SCAN_PARTITION_COLUMN));
+            jdbcConf.setStartLocation(readableConfig.get(SCAN_START_LOCATION));
         }
-        conf.setAutoCommit(readableConfig.get(SCAN_AUTO_COMMIT));
 
         return jdbcConf;
     }
@@ -219,9 +219,12 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(USERNAME);
         optionalOptions.add(PASSWORD);
 
+        optionalOptions.add(SCAN_PARTITION_COLUMN);
+        optionalOptions.add(SCAN_PARTITION_COLUMN_TYPE);
+        optionalOptions.add(SCAN_POLLING_INTERVAL);
+        optionalOptions.add(SCAN_START_LOCATION);
         optionalOptions.add(SCAN_PARALLELISM);
         optionalOptions.add(SCAN_QUERY_TIMEOUT);
-        optionalOptions.add(SCAN_PARTITION_COLUMN);
         optionalOptions.add(SCAN_PARTITION_LOWER_BOUND);
         optionalOptions.add(SCAN_PARTITION_UPPER_BOUND);
         optionalOptions.add(SCAN_PARTITION_NUM);
@@ -253,28 +256,11 @@ public abstract class JdbcDynamicTableFactory
 
         checkAllOrNone(config, new ConfigOption[] {USERNAME, PASSWORD});
 
-        checkAllOrNone(
-                config,
-                new ConfigOption[] {
-                    SCAN_PARTITION_COLUMN,
-                    SCAN_PARTITION_NUM,
-                    SCAN_PARTITION_LOWER_BOUND,
-                    SCAN_PARTITION_UPPER_BOUND
-                });
-
-        if (config.getOptional(SCAN_PARTITION_LOWER_BOUND).isPresent()
-                && config.getOptional(SCAN_PARTITION_UPPER_BOUND).isPresent()) {
-            long lowerBound = config.get(SCAN_PARTITION_LOWER_BOUND);
-            long upperBound = config.get(SCAN_PARTITION_UPPER_BOUND);
-            if (lowerBound > upperBound) {
-                throw new IllegalArgumentException(
-                        String.format(
-                                "'%s'='%s' must not be larger than '%s'='%s'.",
-                                SCAN_PARTITION_LOWER_BOUND.key(),
-                                lowerBound,
-                                SCAN_PARTITION_UPPER_BOUND.key(),
-                                upperBound));
-            }
+        if (config.getOptional(SCAN_POLLING_INTERVAL).isPresent()
+                && config.getOptional(SCAN_POLLING_INTERVAL).get() > 0) {
+            checkState(
+                    !StringUtils.isNullOrWhitespaceOnly(config.get(SCAN_PARTITION_COLUMN)),
+                    "scan.partition.column can not null or empty in polling-interval mode.");
         }
 
         checkAllOrNone(config, new ConfigOption[] {LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});

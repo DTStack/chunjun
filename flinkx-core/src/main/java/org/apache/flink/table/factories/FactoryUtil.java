@@ -79,8 +79,8 @@ public final class FactoryUtil {
     /** 上下文环境 */
     private static StreamExecutionEnvironment env = null;
 
-    /** 插件加载方式，默认走CLASSLOADER方式 */
-    private static String connectorLoadMode = ConnectorLoadMode.CLASSLOADER.name();
+    /** 插件加载方式，默认走SPI方式 */
+    private static String connectorLoadMode = ConnectorLoadMode.SPI.name();
 
     /** shipfile需要的jar */
     private static List<URL> classPathSet = new ArrayList<>();

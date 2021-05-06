@@ -50,7 +50,7 @@ import static java.time.temporal.ChronoField.MILLI_OF_DAY;
  */
 public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, RowData, LogicalType> {
 
-    private static final long serialVersionUID = -6831309858122276980L;
+    private static final long serialVersionUID = 1L;
 
     public StreamRowConverter(RowType rowType) {
         super(rowType);

@@ -44,7 +44,7 @@ public class LocalTest {
         String userDir = System.getProperty("user.dir");
         System.out.println(userDir);
 
-        String jobPath = "/Users/tudou/Library/Application Support/JetBrains/IntelliJIdea2021.1/scratches/merge/binlog_stream.json";
+        String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
         String flinkxPluginPath = userDir + "/syncplugins";
 
         // 任务配置参数
@@ -73,8 +73,8 @@ public class LocalTest {
             argsList.add(URLEncoder.encode(content, StandardCharsets.UTF_8.name()));
             argsList.add("-jobName");
             argsList.add("flinkStreamSQLLocalTest");
-//            argsList.add("-pluginRoot");
-//            argsList.add(flinkxPluginPath);
+            argsList.add("-pluginRoot");
+            argsList.add(flinkxPluginPath);
             argsList.add("-remotePluginPath");
             argsList.add(flinkxPluginPath);
             argsList.add("-pluginLoadMode");

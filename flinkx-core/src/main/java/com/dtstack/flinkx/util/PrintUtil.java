@@ -40,10 +40,10 @@ public class PrintUtil {
 
     private static Logger LOG = LoggerFactory.getLogger(PrintUtil.class);
 
-    public static void printResult(JobExecutionResult result){
+    public static void printResult(Map<String, Object> result){
         List<String> names = Lists.newArrayList();
         List<String> values = Lists.newArrayList();
-        result.getAllAccumulatorResults().forEach((name, val) -> {
+        result.forEach((name, val) -> {
             names.add(name);
             values.add(String.valueOf(val));
         });

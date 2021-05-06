@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.constants;
+package com.dtstack.flinkx.connector.jdbc.options;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -28,6 +28,26 @@ import org.apache.flink.configuration.ConfigOptions;
  **/
 public class JdbcSourceOptions {
     // read config options
+    public static final ConfigOption<String> SCAN_PARTITION_COLUMN =
+            ConfigOptions.key("scan.partition.column")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("the column name used for partitioning the input.");
+    public static final ConfigOption<String> SCAN_PARTITION_COLUMN_TYPE =
+            ConfigOptions.key("scan.partition.column-type")
+                    .stringType()
+                    .defaultValue("int")
+                    .withDescription("scan.partition.column-type.");
+    public static final ConfigOption<Integer> SCAN_POLLING_INTERVAL =
+            ConfigOptions.key("scan.polling-interval")
+                    .intType()
+                    .defaultValue(0)
+                    .withDescription("scan.polling-interval");
+    public static final ConfigOption<String> SCAN_START_LOCATION =
+            ConfigOptions.key("scan.start-location")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("scan.start-location");
     public static final ConfigOption<Integer> SCAN_PARALLELISM =
             ConfigOptions.key("scan.parallelism")
                     .intType()
@@ -38,11 +58,6 @@ public class JdbcSourceOptions {
                     .intType()
                     .defaultValue(1)
                     .withDescription("scan parallelism.");
-    public static final ConfigOption<String> SCAN_PARTITION_COLUMN =
-            ConfigOptions.key("scan.partition.column")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("the column name used for partitioning the input.");
     public static final ConfigOption<Integer> SCAN_PARTITION_NUM =
             ConfigOptions.key("scan.partition.num")
                     .intType()

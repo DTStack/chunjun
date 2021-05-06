@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.constants;
+package com.dtstack.flinkx.connector.jdbc.options;
 
 import com.dtstack.flinkx.lookup.constants.LookupOptions;
 

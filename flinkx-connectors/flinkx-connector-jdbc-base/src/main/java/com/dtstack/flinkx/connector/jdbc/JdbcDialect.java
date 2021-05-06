@@ -18,15 +18,16 @@
 
 package com.dtstack.flinkx.connector.jdbc;
 
-import com.dtstack.flinkx.connector.jdbc.converter.AbstractJdbcRowConverter;
-
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,6 @@ public interface JdbcDialect extends Serializable {
      * Check if this dialect instance can handle a certain jdbc url.
      *
      * @param url the jdbc url.
-     *
      * @return True if the dialect can be applied on the given jdbc url.
      */
     boolean canHandle(String url);
@@ -55,31 +55,32 @@ public interface JdbcDialect extends Serializable {
      * Get converter that convert jdbc object and Flink internal object each other.
      *
      * @param rowType the given row type
-     *
      * @return a row converter for the database
      */
-    AbstractJdbcRowConverter getRowConverter(RowType rowType);
+    default AbstractRowConverter getRowConverter(RowType rowType) {
+        return new JdbcRowConverter(rowType);
+    }
 
     /**
      * ColumnConverter
      *
      * @return a row converter for the database
      */
-    AbstractJdbcRowConverter getRowConverter(List<String> typeList);
+    default AbstractRowConverter getColumnConverter(RowType rowType) {
+        return new JdbcColumnConverter(rowType);
+    }
 
     /**
      * Check if this dialect instance support a specific data type in table schema.
      *
      * @param schema the table schema.
-     *
      * @throws ValidationException in case of the table schema contains unsupported type.
      */
-    default void validate(TableSchema schema) throws ValidationException {
-    }
+    default void validate(TableSchema schema) throws ValidationException {}
 
     /**
      * @return the default driver class name, if user not configure the driver class name, then will
-     *         use this one.
+     *     use this one.
      */
     default Optional<String> defaultDriverName() {
         return Optional.empty();
@@ -101,18 +102,17 @@ public interface JdbcDialect extends Serializable {
      * @param tableName
      * @param fieldNames
      * @param uniqueKeyFields
-     * @param allReplace Whether to replace the original value with a null value ，if true replace else not replace
-     *
+     * @param allReplace Whether to replace the original value with a null value ，if true replace
+     *     else not replace
      * @return None if dialect does not support upsert statement, the writer will degrade to the use
-     *         of select + update/insert, this performance is poor.
+     *     of select + update/insert, this performance is poor.
      */
     default Optional<String> getUpsertStatement(
             String tableName, String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
         return Optional.empty();
     }
 
-    default Optional<String> getReplaceStatement(
-            String tableName, String[] fieldNames) {
+    default Optional<String> getReplaceStatement(String tableName, String[] fieldNames) {
         return Optional.empty();
     }
 
@@ -120,7 +120,6 @@ public interface JdbcDialect extends Serializable {
      * 构造查询表结构的sql语句
      *
      * @param tableName 要查询的表名称
-     *
      * @return 查询sql
      */
     String getSqlQueryFields(String tableName);
@@ -129,7 +128,6 @@ public interface JdbcDialect extends Serializable {
      * 给表名加引号
      *
      * @param table 表名
-     *
      * @return "table"
      */
     String quoteTable(String table);
@@ -147,7 +145,6 @@ public interface JdbcDialect extends Serializable {
      * @return 引号
      */
     String getEndQuote();
-
 
     /** Get row exists statement by condition fields. Default use SELECT. */
     default String getRowExistsStatement(String tableName, String[] conditionFields) {
@@ -230,6 +227,7 @@ public interface JdbcDialect extends Serializable {
 
     /**
      * Get select fields statement by condition fields. Default use SELECT.
+     *
      * @param schemaName
      * @param tableName
      * @param customSql
@@ -237,5 +235,10 @@ public interface JdbcDialect extends Serializable {
      * @param where
      * @return
      */
-    String getSelectFromStatement(String schemaName, String tableName, String customSql, String[] selectFields, String where);
+    String getSelectFromStatement(
+            String schemaName,
+            String tableName,
+            String customSql,
+            String[] selectFields,
+            String where);
 }

@@ -34,6 +34,7 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableConfig;
+import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
 import org.apache.flink.table.data.RowData;
@@ -145,7 +146,16 @@ public class Main {
         configStreamExecutionEnvironment(env, options, null, confProperties);
         List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
         StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
-        statementSet.execute();
+        TableResult execute = statementSet.execute();
+        if (env instanceof MyLocalStreamEnvironment) {
+            execute.getJobClient().ifPresent(v -> {
+                try {
+                    PrintUtil.printResult(v.getAccumulators().get());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
     }
 
     /**
@@ -202,7 +212,7 @@ public class Main {
 
         JobExecutionResult result = env.execute(options.getJobName());
         if (env instanceof MyLocalStreamEnvironment) {
-            PrintUtil.printResult(result);
+            PrintUtil.printResult(result.getAllAccumulatorResults());
         }
     }
 
