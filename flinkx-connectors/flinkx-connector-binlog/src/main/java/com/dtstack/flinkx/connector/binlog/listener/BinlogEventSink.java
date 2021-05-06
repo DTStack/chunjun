@@ -22,12 +22,10 @@ import org.apache.flink.table.data.RowData;
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-import com.dtstack.flinkx.connector.binlog.BinlogEventRow;
-import com.dtstack.flinkx.connector.binlog.converter.BinlogColumnConverter;
 import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormat;
+import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.element.ErrorMsgRowData;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,22 +45,16 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
 
     private final BinlogInputFormat format;
     private final LinkedBlockingDeque<RowData> queue;
-    private final boolean pavingData;
-    private final boolean splitUpdate;
-    private final SnowflakeIdWorker idWorker;
-    private final BinlogColumnConverter rowConverter;
+    private final AbstractCDCRowConverter rowConverter;
 
     public BinlogEventSink(BinlogInputFormat format) {
         this.format = format;
-        this.pavingData = format.getBinlogConf().isPavingData();
-        this.splitUpdate = format.getBinlogConf().isSplitUpdate();
         this.queue = new LinkedBlockingDeque<>();
-        this.idWorker = new SnowflakeIdWorker(1, 1);
         this.rowConverter = format.getRowConverter();
     }
 
     @Override
-    public boolean sink(List<CanalEntry.Entry> entries, InetSocketAddress inetSocketAddress, String s) throws CanalSinkException, InterruptedException {
+    public boolean sink(List<CanalEntry.Entry> entries, InetSocketAddress inetSocketAddress, String s) throws CanalSinkException {
         for (CanalEntry.Entry entry : entries) {
             CanalEntry.EntryType entryType = entry.getEntryType();
             if (entryType != CanalEntry.EntryType.ROWDATA) {
@@ -72,7 +64,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             try {
                 rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
             } catch (Exception e) {
-                LOG.error("ERROR ## parser of eromanga-event has an error , data: {}", entry);
+                LOG.error("ERROR ## parser of event has an error , data: {}", entry);
             }
 
             if(rowChange == null) {
@@ -95,6 +87,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
      * @param table table
      * @param executeTime   变更数据的执行时间
      */
+    @SuppressWarnings("unchecked")
     private void processRowChange(CanalEntry.RowChange rowChange, String schema, String table, long executeTime) {
         String eventType = rowChange.getEventType().toString();
         List<String> categories = format.getCategories();

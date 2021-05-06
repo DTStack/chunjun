@@ -19,6 +19,7 @@ package com.dtstack.flinkx.connector.binlog.inputformat;
 
 import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
 import com.dtstack.flinkx.connector.binlog.util.BinlogUtil;
+import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -55,6 +56,10 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
     public void setBinlogConf(BinlogConf binlogConf) {
         super.setConfig(binlogConf);
         this.format.setBinlogConf(binlogConf);
+    }
+
+    public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+        this.format.setRowConverter(rowConverter);
     }
 
     @Override

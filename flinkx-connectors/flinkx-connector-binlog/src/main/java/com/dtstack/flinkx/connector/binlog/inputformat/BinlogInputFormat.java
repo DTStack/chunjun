@@ -26,7 +26,6 @@ import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
-import com.dtstack.flinkx.connector.binlog.converter.BinlogColumnConverter;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogAlarmHandler;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogEventSink;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogJournalValidator;
@@ -34,6 +33,7 @@ import com.dtstack.flinkx.connector.binlog.listener.BinlogPositionManager;
 import com.dtstack.flinkx.connector.binlog.listener.HeartBeatController;
 import com.dtstack.flinkx.connector.binlog.util.BinlogUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -58,7 +58,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
     private BinlogConf binlogConf;
     private volatile EntryPosition entryPosition;
     private List<String> categories = new ArrayList<>();
-    private BinlogColumnConverter rowConverter;
+    private AbstractCDCRowConverter rowConverter;
 
     private transient MysqlEventParser controller;
     private transient BinlogEventSink binlogEventSink;
@@ -114,8 +114,6 @@ public class BinlogInputFormat extends BaseRichInputFormat {
             }
             LOG.info("binlog FilterAfter:{},tableAfter: {}", binlogConf.getFilter(), binlogConf.getTable());
         }
-
-        rowConverter = new BinlogColumnConverter(binlogConf.isPavingData(), binlogConf.isSplitUpdate());
     }
 
     @Override
@@ -249,7 +247,11 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         this.entryPosition = entryPosition;
     }
 
-    public BinlogColumnConverter getRowConverter() {
+    public AbstractCDCRowConverter getRowConverter() {
         return rowConverter;
+    }
+
+    public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+        this.rowConverter = rowConverter;
     }
 }

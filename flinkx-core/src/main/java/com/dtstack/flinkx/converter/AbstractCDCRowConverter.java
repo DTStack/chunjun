@@ -18,13 +18,18 @@
 
 package com.dtstack.flinkx.converter;
 
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
 
 import java.io.Serializable;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,15 +54,43 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
     protected static final String BEFORE = "before";
     protected static final String AFTER = "after";
 
-    protected final Map<String, IDeserializationConverter[]> cdcConverterCacheMap = new ConcurrentHashMap<>(32);
-    protected final SnowflakeIdWorker idWorker;
-    protected final boolean pavingData;
-    protected final boolean splitUpdate;
+    // times
+    protected static final DateTimeFormatter SQL_TIME_FORMAT =
+            (new DateTimeFormatterBuilder())
+                    .appendPattern("HH:mm:ss")
+                    .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
+                    .toFormatter();
+    protected static final DateTimeFormatter SQL_TIMESTAMP_FORMAT =
+            (new DateTimeFormatterBuilder())
+                    .append(DateTimeFormatter.ISO_LOCAL_DATE)
+                    .appendLiteral(' ')
+                    .append(SQL_TIME_FORMAT)
+                    .toFormatter();
+    protected static final DateTimeFormatter ISO8601_TIMESTAMP_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    protected static final DateTimeFormatter SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
+            new DateTimeFormatterBuilder()
+                    .append(DateTimeFormatter.ISO_LOCAL_DATE)
+                    .appendLiteral(' ')
+                    .append(SQL_TIME_FORMAT)
+                    .appendPattern("'Z'")
+                    .toFormatter();
+    protected static final DateTimeFormatter ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
+            new DateTimeFormatterBuilder()
+                    .append(DateTimeFormatter.ISO_LOCAL_DATE)
+                    .appendLiteral('T')
+                    .append(DateTimeFormatter.ISO_LOCAL_TIME)
+                    .appendPattern("'Z'")
+                    .toFormatter();
 
-    public AbstractCDCRowConverter(boolean pavingData, boolean splitUpdate) {
+    protected final Map<String, IDeserializationConverter[]> cdcConverterCacheMap = new ConcurrentHashMap<>(32);
+    protected final transient SnowflakeIdWorker idWorker;
+    protected boolean pavingData;
+    protected boolean splitUpdate;
+    protected List<String> fieldNameList;
+    protected IDeserializationConverter[] converters;
+
+    public AbstractCDCRowConverter() {
         this.idWorker = new SnowflakeIdWorker(1, 1);
-        this.pavingData = pavingData;
-        this.splitUpdate = splitUpdate;
     }
 
     /**
@@ -92,5 +125,23 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
             default:
                 throw new RuntimeException("unsupported eventType: " + type);
         }
+    }
+
+    /**
+     *
+     * @param fieldNameList
+     * @param converters
+     * @param valueMap
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    protected RowData createRowDataByConverters(List<String> fieldNameList, IDeserializationConverter[] converters, Map<Object, Object> valueMap){
+        GenericRowData genericRowData = new GenericRowData(fieldNameList.size());
+        for (int i = 0; i <fieldNameList.size(); i++) {
+            String fieldName = fieldNameList.get(i);
+            Object value = valueMap.get(fieldName);
+            genericRowData.setField(i, converters[i].deserialize(value));
+        }
+        return genericRowData;
     }
 }

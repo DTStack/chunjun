@@ -73,8 +73,8 @@ public class LocalTest {
             argsList.add(URLEncoder.encode(content, StandardCharsets.UTF_8.name()));
             argsList.add("-jobName");
             argsList.add("flinkStreamSQLLocalTest");
-            argsList.add("-pluginRoot");
-            argsList.add(flinkxPluginPath);
+//            argsList.add("-pluginRoot");
+//            argsList.add(flinkxPluginPath);
             argsList.add("-remotePluginPath");
             argsList.add(flinkxPluginPath);
             argsList.add("-pluginLoadMode");

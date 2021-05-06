@@ -21,7 +21,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.dtstack.flinkx.connector.binlog.BinlogEventRow;
+import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -54,7 +54,8 @@ import java.util.Map;
 public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRow, String> {
 
     public BinlogColumnConverter(boolean pavingData, boolean splitUpdate) {
-        super(pavingData, splitUpdate);
+        super.pavingData = pavingData;
+        super.splitUpdate = splitUpdate;
     }
 
     @Override
@@ -66,7 +67,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
         String schema = binlogEventRow.getSchema();
         String table = binlogEventRow.getTable();
         String key = schema + ConstantValue.POINT_SYMBOL + table;
-        IDeserializationConverter[] converters = this.cdcConverterCacheMap.get(key);
+        IDeserializationConverter[] converters = super.cdcConverterCacheMap.get(key);
         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
             if(converters == null){
                 List<CanalEntry.Column> list = rowData.getBeforeColumnsList();

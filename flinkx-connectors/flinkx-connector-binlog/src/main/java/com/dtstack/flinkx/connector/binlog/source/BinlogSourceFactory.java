@@ -21,9 +21,10 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
-import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormatBuilder;
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
+import com.dtstack.flinkx.connector.binlog.converter.BinlogColumnConverter;
+import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormatBuilder;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 
@@ -46,6 +47,7 @@ public class BinlogSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         BinlogInputFormatBuilder builder = new BinlogInputFormatBuilder();
         builder.setBinlogConf(binlogConf);
+        builder.setRowConverter(new BinlogColumnConverter(binlogConf.isPavingData(), binlogConf.isSplitUpdate()));
         return createInput(builder.finish());
     }
 }
