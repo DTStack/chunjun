@@ -17,9 +17,13 @@
  */
 package com.dtstack.flinkx.restapi.client;
 
+import com.dtstack.flinkx.restapi.common.MetaParam;
 import com.dtstack.flinkx.restapi.common.ParamType;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.MapUtil;
+import org.apache.commons.collections.MapUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,79 +35,121 @@ import java.util.Map;
  */
 public class HttpRequestParam {
 
-    private Map<String, String> body = new HashMap<>(32);
-    private Map<String, String> header = new HashMap<>(32);
-    private Map<String, String> param = new HashMap<>(32);
+    private Map<String, Object> body = new HashMap<>(32);
+    private Map<String, Object> header = new HashMap<>(32);
+    private Map<String, Object> param = new HashMap<>(32);
 
 
-    public void putValue(ParamType type, String name, String value) {
-        switch (type) {
+    /**
+     * 将动态参数根据按照key是否嵌套，获取真正的key 将值放入对应的map中
+     * @param metaParam 动态参数
+     * @param fieldDelimiter 切割键
+     * @param value 动态参数当前对应的值
+     */
+    public void putValue(MetaParam metaParam, String fieldDelimiter, Object value) {
+        if(null == metaParam.getNest()){
+            fieldDelimiter =null;
+        }else{
+            fieldDelimiter = metaParam.getNest() ? fieldDelimiter : null;
+        }
+        switch (metaParam.getParamType()) {
             case BODY:
-                body.put(name, value);
+                MapUtil.buildMap(metaParam.getKey(), fieldDelimiter, value, getBody());
                 break;
             case HEADER:
-                header.put(name, value);
+                MapUtil.buildMap(metaParam.getKey(), fieldDelimiter, value, getHeader());
                 break;
             case PARAM:
-                param.put(name, value);
+                MapUtil.buildMap(metaParam.getKey(), fieldDelimiter, value, getParam());
                 break;
             default:
-                throw new UnsupportedOperationException("HttpRequestParam not supported " + type + " to put value, name is " + name + " value is " + value);
+                throw new UnsupportedOperationException("HttpRequestParam not supported " + metaParam.getParamType());
         }
     }
 
 
-    public String getValue(ParamType type, String key) {
-        switch (type) {
+    /**
+     * 获取动态参数的值
+     * @param metaParam 动态参数
+     * @param fieldDelimiter 切割键
+     * @return
+     */
+    public Object getValue(MetaParam metaParam, String fieldDelimiter) {
+        if(null == metaParam.getNest()){
+            fieldDelimiter =null;
+        }else{
+            fieldDelimiter = metaParam.getNest() ? fieldDelimiter : null;
+        }
+        switch (metaParam.getParamType()) {
             case BODY:
-                return body.get(key);
+                return MapUtil.getValueByKey(getBody(), metaParam.getKey(), fieldDelimiter);
             case HEADER:
-                return header.get(key);
+                return MapUtil.getValueByKey(getHeader(), metaParam.getKey(), fieldDelimiter);
             case PARAM:
-                return param.get(key);
+                return MapUtil.getValueByKey(getParam(), metaParam.getKey(), fieldDelimiter);
             default:
-                throw new UnsupportedOperationException("HttpRequestParam not supported " + type + " to get value, key is " + key);
+                throw new UnsupportedOperationException("HttpRequestParam not supported " + metaParam.getParamType().name());
         }
     }
 
-    public boolean containsParam(ParamType type, String key) {
 
-        switch (type) {
-            case BODY:
-                return body.containsKey(key);
-            case HEADER:
-                return header.containsKey(key);
-            case PARAM:
-                return param.containsKey(key);
-            default:
-                throw new UnsupportedOperationException("HttpRequestParam not supported  to judge contains key when type is " + type.name() + " ,key is  " + key);
+    /**
+     * 是否包含动态参数对应的key
+     * @param metaParam 动态参数
+     * @param fieldDelimiter 切割键
+     * @return
+     */
+    public boolean containsKey(MetaParam metaParam, String fieldDelimiter) {
+        if(null == metaParam.getNest()){
+            fieldDelimiter =null;
+        }else{
+            fieldDelimiter = metaParam.getNest() ? fieldDelimiter : null;
+        }
+        try {
+            switch (metaParam.getParamType()) {
+                case BODY:
+                    MapUtil.getValueByKey(getBody(), metaParam.getKey(), fieldDelimiter);
+                    return true;
+                case HEADER:
+                    MapUtil.getValueByKey(getHeader(), metaParam.getKey(), fieldDelimiter);
+                    return true;
+                case PARAM:
+                    MapUtil.getValueByKey(getParam(), metaParam.getKey(), fieldDelimiter);
+                    return true;
+                default:
+                    throw new UnsupportedOperationException("HttpRequestParam not supported " + metaParam.getParamType().name());
+            }
+        }catch (RuntimeException e){
+            if(e instanceof UnsupportedOperationException){
+                throw e;
+            }else{
+                return false;
+            }
         }
 
     }
 
-    public Map<String, String> getBody() {
+
+
+
+    public Map<String, Object> getBody() {
         return body;
     }
 
-    public Map<String, String> getHeader() {
+    public Map<String, Object> getHeader() {
         return header;
     }
 
-    public Map<String, String> getParam() {
+    public Map<String, Object> getParam() {
         return param;
     }
 
     public static HttpRequestParam copy(HttpRequestParam source) {
         HttpRequestParam requestParam = new HttpRequestParam();
-        source.getBody().forEach((k, v) ->
-                requestParam.putValue(ParamType.BODY, k, v));
+        requestParam.getParam().putAll(source.getParam());
+        requestParam.getBody().putAll(source.getBody());
+        requestParam.getHeader().putAll(source.getHeader());
 
-
-        source.getParam().forEach((k, v) ->
-                requestParam.putValue(ParamType.PARAM, k, v));
-
-        source.getHeader().forEach((k, v) ->
-                requestParam.putValue(ParamType.HEADER, k, v));
         return requestParam;
     }
 

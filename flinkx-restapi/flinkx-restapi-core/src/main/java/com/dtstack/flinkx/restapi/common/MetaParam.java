@@ -19,13 +19,18 @@
 package com.dtstack.flinkx.restapi.common;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * 原始header param body配置信息
@@ -39,6 +44,10 @@ public class MetaParam implements Serializable {
     private String nextValue;
     private SimpleDateFormat timeFormat;
     private String format;
+    /**
+     * 是否是嵌套key
+     **/
+    private Boolean isNest = false;
     private ParamType paramType;
 
 
@@ -51,9 +60,17 @@ public class MetaParam implements Serializable {
         this.paramType = paramType;
     }
 
+    public MetaParam(String key, String value, ParamType paramType, boolean isNest) {
+        this.key = key;
+        this.value = value;
+        this.paramType = paramType;
+        this.isNest = isNest;
+    }
+
     /**
      * metaparam设置各自类型
-     * @param params 参数
+     *
+     * @param params    参数
      * @param paramType 类型
      */
     public static void setMetaColumnsType(List<MetaParam> params, ParamType paramType) {
@@ -65,16 +82,17 @@ public class MetaParam implements Serializable {
 
     /**
      * 将json脚本里的format转为SimpleDateFormat
+     *
      * @param params json配置信息
      */
     public static void initTimeFormat(List<MetaParam> params) {
 
         if (CollectionUtils.isNotEmpty(params)) {
             params.forEach(i -> {
-              if(StringUtils.isNotBlank(i.getFormat())){
-                  i.setTimeFormat(new SimpleDateFormat(i.getFormat()));
-              }
-            } );
+                if (StringUtils.isNotBlank(i.getFormat())) {
+                    i.setTimeFormat(new SimpleDateFormat(i.getFormat()));
+                }
+            });
         }
     }
 
@@ -100,6 +118,7 @@ public class MetaParam implements Serializable {
 
     /**
      * 获取这个metaparam的变量名 如body里的参数name 其变量名为 ${body.name}
+     *
      * @return metaparam的变量名
      */
     public String getVariableName() {
@@ -109,6 +128,7 @@ public class MetaParam implements Serializable {
 
     /**
      * 根据是否是第一次 获取真正的表达式
+     *
      * @param isFirst 是否是第一次请求
      * @return 参数对应的表达式
      */
@@ -169,6 +189,14 @@ public class MetaParam implements Serializable {
         this.format = format;
     }
 
+    public Boolean getNest() {
+        return isNest;
+    }
+
+    public void setNest(Boolean nest) {
+        isNest = nest;
+    }
+
     @Override
     public String toString() {
         return "MetaParam{" +
@@ -176,8 +204,21 @@ public class MetaParam implements Serializable {
                 ", value='" + value + '\'' +
                 ", nextValue='" + nextValue + '\'' +
                 ", timeFormat=" + timeFormat +
+                ", isNest=" + isNest +
                 ", format='" + format + '\'' +
                 ", paramType=" + paramType +
                 '}';
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + (StringUtils.isBlank(key) ? 0 : key.hashCode());
+        result = 31 * result + (StringUtils.isBlank(value) ? 0 : value.hashCode());
+        result = 31 * result + (StringUtils.isBlank(nextValue) ? 0 : nextValue.hashCode());
+        result = 31 * result + (isNest == null ? 0 : isNest.hashCode());
+        result = 31 * result + (StringUtils.isBlank(format) ? 0 : format.hashCode());
+        result = 31 * result + (paramType == null ? 0 : paramType.hashCode());
+        return result;
     }
 }

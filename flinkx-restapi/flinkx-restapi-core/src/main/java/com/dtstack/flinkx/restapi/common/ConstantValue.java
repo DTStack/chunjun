@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.restapi.common;
 
+import com.google.common.collect.Sets;
+
+import java.util.Set;
+
 /**
  * 常量
  *
@@ -41,5 +45,7 @@ public class ConstantValue {
     public static String CONTENT_TYPE_DEFAULT_VALUE = "application/json";
 
     public static final int REQUEST_RETRY_TIME = 3;
+
+    public static final Set<String> FIELD_DELIMITER = Sets.newHashSet(",","_","/",".","-",":");
 
 }

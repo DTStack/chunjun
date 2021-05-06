@@ -25,11 +25,12 @@ import com.dtstack.flinkx.restapi.reader.HttpRestConfig;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
+import com.dtstack.flinkx.util.StringUtil;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -47,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -64,10 +64,19 @@ public class DefaultRestHandler implements RestHandler {
 
 
     @Override
-    public Strategy chooseStrategy(List<Strategy> strategies, Map<String, Object> responseValue, HttpRestConfig restConfig, HttpRequestParam httpRequestParam) {
-        //根据指定的key  获取指定的值
+    public Strategy chooseStrategy(List<Strategy> strategies, Map<String, Object> responseValue, HttpRestConfig restConfig, HttpRequestParam httpRequestParam, List<MetaParam> metaParams) {
+
+
+        //将原始参数 转换为 HttpRequestParam
+        HttpRequestParam originParam = new HttpRequestParam();
+        metaParams.forEach(i -> {
+            originParam.putValue(i, restConfig.getFieldDelimiter(), i);
+        });
+
         return strategies.stream().filter(i -> {
             MetaParam metaParam = new MetaParam();
+            //Strategy里指定的动态变量不知道是不是嵌套的
+            metaParam.setNest(null);
             //key一定是一个动态变量且不是内置变量
             if (!MetaparamUtils.isDynamic(i.getKey()) && !MetaparamUtils.isInnerParam(i.getKey())) {
                 throw new IllegalArgumentException("strategy key " + i.getKey() + " is error,we just support ${response.},${param.},${body.}");
@@ -80,14 +89,14 @@ public class DefaultRestHandler implements RestHandler {
             //指定一个类别
             metaParam.setParamType(ParamType.BODY);
 
-            Object object = getValue(metaParam, null, null, responseValue, restConfig, true, copy);
+            Object object = getValue(metaParam, originParam, null, responseValue, restConfig, true, copy);
 
             String value = i.getValue();
             //value可以是内置变量
             if (MetaparamUtils.isDynamic(i.getValue())) {
                 metaParam.setKey(snowflakeIdWorker.nextId() + "");
                 metaParam.setValue(i.getValue());
-                value = getValue(metaParam, null, null, responseValue, restConfig, true, copy).toString();
+                value = getValue(metaParam, originParam, null, responseValue, restConfig, true, copy).toString();
             }
             if (object.toString().equals(value)) {
                 LOG.info("select a Strategy, key {}  value is {} ,key {} value is {} ,responseValue is {} ,httpRequestParam {}", i.getKey(), object.toString(), i.getValue(), value, GsonUtil.GSON.toJson(responseValue), httpRequestParam.toString());
@@ -120,34 +129,6 @@ public class DefaultRestHandler implements RestHandler {
         }
     }
 
-    /**
-     * 根据指定的key从response里获取对应的值
-     *
-     * @param map response值map格式
-     * @param key 指定的key  多层次用.表示
-     */
-    public Object getResponseValue(Map<String, Object> map, String key) {
-        if (MapUtils.isEmpty(map)) {
-            throw new RuntimeException(key + " not exist on responseValue because responseValue is empty");
-        }
-
-        Object o = null;
-        String[] split = key.split("\\.");
-        Map<String, Object> tempMap = map;
-        for (int i = 0; i < split.length; i++) {
-            o = getValue(tempMap, split[i]);
-            if (o == null) {
-                throw new RuntimeException(key + " on responseValue [" + GsonUtil.GSON.toJson(map) + "]  is null");
-            }
-            if (i != split.length - 1) {
-                if (!(o instanceof Map)) {
-                    throw new RuntimeException("key " + key + " in " + map + " is not a json");
-                }
-                tempMap = (Map<String, Object>) o;
-            }
-        }
-        return o;
-    }
 
     /**
      * 根据指定的key 构建一个新的response
@@ -159,42 +140,13 @@ public class DefaultRestHandler implements RestHandler {
         HashMap<String, Object> filedValue = new HashMap<>(fields.size() << 2);
 
         for (String key : fields) {
-            filedValue.put(key, getResponseValue(map, key));
+            filedValue.put(key, MapUtil.getValueByKey(map, key, com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL));
         }
-
-        HashMap<String, Object> response = new HashMap<>(filedValue.size() << 2);
+        HashMap<String, Object> data = new HashMap<>();
         filedValue.forEach((k, v) -> {
-            String[] split = k.split("\\.");
-            if (split.length == 1) {
-                response.put(split[0], v);
-            } else {
-                HashMap<String, Object> temp = response;
-                for (int i = 0; i < split.length - 1; i++) {
-                    if (temp.containsKey(split[i])) {
-                        if (temp.get(split[i]) instanceof HashMap) {
-                            temp = (HashMap) temp.get(split[i]);
-                        } else {
-                            throw new RuntimeException("build responseValue failed ,responseValue is " + GsonUtil.GSON.toJson(map) + " fields is " + String.join(",", fields));
-                        }
-                    } else {
-                        HashMap hashMap = new HashMap(2);
-                        temp.put(split[i], hashMap);
-                        temp = hashMap;
-                    }
-                    if (i == split.length - 2) {
-                        temp.put(split[split.length - 1], v);
-                    }
-                }
-            }
+            MapUtil.buildMap(k, com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL, v, data);
         });
-        return response;
-    }
-
-    public static Object getValue(Map<String, Object> map, String key) {
-        if (!map.containsKey(key)) {
-            throw new RuntimeException(key + " not exist on response [" + GsonUtil.GSON.toJson(map) + "] ");
-        }
-        return map.get(key);
+        return data;
     }
 
 
@@ -215,17 +167,17 @@ public class DefaultRestHandler implements RestHandler {
         metaParams.addAll(originalHeaderList);
         metaParams.addAll(originBodyList);
 
-        Map<String, MetaParam> allParam = metaParams.stream().collect(Collectors.toMap(MetaParam::getAllName, Function.identity()));
-
+        HttpRequestParam originParam = new HttpRequestParam();
+        metaParams.forEach(i -> {
+            originParam.putValue(i, restConfig.getFieldDelimiter(), i);
+        });
         //对header param header 参数解析，获取最终的值
-        metaParams.forEach(i -> getValue(i, allParam, prevRequestParam, prevResponseValue, restConfig, first, currentParam));
+        metaParams.forEach(i -> getValue(i, originParam, prevRequestParam, prevResponseValue, restConfig, first, currentParam));
     }
-
 
     /**
      * @param metaParam         本次解析的metaParam，获取最终的值
-     * @param map               所有的原始请求参数的名字和其本身的对应关系
-     *                          key 名字是各个metaParam的类型加上name字段值，如body里有一个参数stime，其名字就是body.name防止body header param里有同名的字段，所以加上各自类型前缀
+     * @param originParam       所有的原始请求参数 key和param对应关系 key如果是嵌套key已经拆分
      * @param prevRequestParam  上一次请求的参数
      * @param prevResponseValue 上一次返回的值
      * @param restConfig        请求的相关配置
@@ -233,7 +185,7 @@ public class DefaultRestHandler implements RestHandler {
      * @param currentParam      当前请求参数
      * @return 返回 metaParam 解析后的最终值
      */
-    public Object getValue(MetaParam metaParam, Map<String, MetaParam> map, HttpRequestParam prevRequestParam, Map<String, Object> prevResponseValue, HttpRestConfig restConfig, boolean first, HttpRequestParam currentParam) {
+    public Object getValue(MetaParam metaParam, HttpRequestParam originParam, HttpRequestParam prevRequestParam, Map<String, Object> prevResponseValue, HttpRestConfig restConfig, boolean first, HttpRequestParam currentParam) {
 
         //根据是否是第一次 获取对应的值 value 还是nextValue
         String value = metaParam.getActualValue(first);
@@ -241,14 +193,14 @@ public class DefaultRestHandler implements RestHandler {
         String actualValue;
 
         //如果已经加载过了 直接获取返回即可
-        if (currentParam.containsParam(metaParam.getParamType(), metaParam.getKey())) {
-            return currentParam.getValue(metaParam.getParamType(), metaParam.getKey());
+        if (currentParam.containsKey(metaParam, restConfig.getFieldDelimiter())) {
+            return currentParam.getValue(metaParam, restConfig.getFieldDelimiter());
         }
 
         List<Pair<MetaParam, String>> variableValues = new ArrayList<>();
 
         //获取 value 里关联到的所有动态变量
-        List<MetaParam> metaParams = MetaparamUtils.getValueOfMetaParams(value, restConfig, map);
+        List<MetaParam> metaParams = MetaparamUtils.getValueOfMetaParams(value, metaParam.getNest(), restConfig, originParam);
 
         //对变量 按照内置变量还是其他变量分类  因为内置变量 currentTime intervalTime uuid 其实都是常量
         if (CollectionUtils.isNotEmpty(metaParams)) {
@@ -257,15 +209,15 @@ public class DefaultRestHandler implements RestHandler {
                 if (i.getParamType().equals(ParamType.INNER)) {
                     variableValue = i.getValue();
                 } else if (i.getParamType().equals(ParamType.RESPONSE)) {
-                    //根据 返回值获取对应的值
-                    variableValue = getResponseValue(prevResponseValue, i.getKey()).toString();
+                    //根据 返回值获取对应的值 response仍然是按照.进行切割的
+                    variableValue = MapUtil.getValueByKey(prevResponseValue, i.getKey(), com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL).toString();
                 } else {
                     //如果变量指向的是自己，那么就获取当前变量在上一次请求的值
                     if (i.getKey().equals(metaParam.getKey())) {
-                        variableValue = prevRequestParam.getValue(i.getParamType(), i.getKey());
+                        variableValue = prevRequestParam.getValue(i, metaParam.getNest() ? restConfig.getFieldDelimiter() : null).toString();
                     } else {
                         //如果是其他变量 就进行递归查找
-                        variableValue = getValue(i, map, prevRequestParam, prevResponseValue, restConfig, first, currentParam).toString();
+                        variableValue = getValue(i, originParam, prevRequestParam, prevResponseValue, restConfig, first, currentParam).toString();
                     }
                 }
                 variableValues.add(Pair.of(i, variableValue));
@@ -278,7 +230,7 @@ public class DefaultRestHandler implements RestHandler {
             actualValue = getData(value, metaParam);
         }
 
-        currentParam.putValue(metaParam.getParamType(), metaParam.getKey(), actualValue);
+        currentParam.putValue(metaParam, restConfig.getFieldDelimiter(), actualValue);
         return actualValue;
     }
 
@@ -295,7 +247,6 @@ public class DefaultRestHandler implements RestHandler {
         if (variableValues.size() > 2) {
             return null;
         }
-
 
         AtomicReference<String> value = new AtomicReference<>(metaParam.getActualValue(first));
 
@@ -334,20 +285,20 @@ public class DefaultRestHandler implements RestHandler {
 
                 //如果是数字类型就直接替换
                 if (NumberUtils.isNumber(right)) {
-                    value.set(value.get().replaceFirst(escapeExprSpecialWord(key), NumberUtils.createBigDecimal(right).toPlainString()));
+                    value.set(value.get().replaceFirst(StringUtil.escapeExprSpecialWord(key), NumberUtils.createBigDecimal(right).toPlainString()));
                 } else {
 
                     //不是数字格式，就默认为是日期格式， 先是left解析  然后是 metaParam的去解析 然后是 默认的去解析，如果format解析失败 就直接返回null，当做字符串去拼接
                     if (Objects.nonNull(left.getTimeFormat())) {
                         try {
-                            value.set(value.get().replaceFirst(escapeExprSpecialWord(key), left.getTimeFormat().parse(right).getTime() + ""));
+                            value.set(value.get().replaceFirst(StringUtil.escapeExprSpecialWord(key), left.getTimeFormat().parse(right).getTime() + ""));
                         } catch (ParseException e) {
                             LOG.info(left.getTimeFormat().toPattern() + " parse " + right + " failed,error info: " + ExceptionUtil.getErrorMessage(e));
                         }
                     }
 
                     try {
-                        value.set(value.get().replaceFirst(escapeExprSpecialWord(key), DateUtil.stringToDate(right, metaParam.getTimeFormat()).getTime() + ""));
+                        value.set(value.get().replaceFirst(StringUtil.escapeExprSpecialWord(key), DateUtil.stringToDate(right, metaParam.getTimeFormat()).getTime() + ""));
                     } catch (RuntimeException e1) {
                         LOG.info("parse " + right + " failed,error info " + ExceptionUtil.getErrorMessage(e1));
                         return null;
@@ -437,7 +388,7 @@ public class DefaultRestHandler implements RestHandler {
 
         String value = metaParam.getActualValue(first);
         for (Pair<MetaParam, String> pair : variableValues) {
-            value = value.replaceFirst(escapeExprSpecialWord(pair.getLeft().getVariableName()), pair.getRight());
+            value = value.replaceFirst(StringUtil.escapeExprSpecialWord(pair.getLeft().getVariableName()), pair.getRight());
         }
         return value;
     }
@@ -453,7 +404,6 @@ public class DefaultRestHandler implements RestHandler {
      */
     public String getData(String value, MetaParam metaParam) {
         String data = value;
-        //假如是 metaParam是来自于response的 只能解析默认支持的类型  如果是由其他的key如param body组成的 则取他们的format去格式化
         if (Objects.nonNull(metaParam.getTimeFormat())) {
             try {
                 long l = Long.parseLong(data);
@@ -468,25 +418,6 @@ public class DefaultRestHandler implements RestHandler {
             }
         }
         return data;
-    }
-
-
-    /**
-     * 转义正则特殊字符 （$()*+.[]?\^{},|）
-     *
-     * @param keyword 需要转义特殊字符串的文本
-     * @return 特殊字符串转义后的文本
-     */
-    public static String escapeExprSpecialWord(String keyword) {
-        if (StringUtils.isNotBlank(keyword)) {
-            String[] fbsArr = {"\\", "$", "(", ")", "*", "+", ".", "[", "]", "?", "^", "{", "}", "|"};
-            for (String key : fbsArr) {
-                if (keyword.contains(key)) {
-                    keyword = keyword.replace(key, "\\" + key);
-                }
-            }
-        }
-        return keyword;
     }
 
 

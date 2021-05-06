@@ -148,6 +148,10 @@ public class KerberosUtil {
             LOG.info("will use local file:{}", filePath);
             checkFileExists(filePath);
         } else {
+            if(filePath.contains(SP)){
+                filePath = filePath.substring(filePath.lastIndexOf(SP) + 1);
+            }
+
             filePath = loadFromSftp(kerberosConfig, filePath);
         }
 
@@ -172,9 +176,6 @@ public class KerberosUtil {
         String localDirName = Md5Util.getMd5(remoteDir);
         String localDir = LOCAL_CACHE_DIR + SP + localDirName;
         localDir = createDir(localDir);
-        if (fileName.contains(SP)) {
-            fileName = fileName.substring(fileName.lastIndexOf(SP) + 1);
-        }
         String fileLocalPath = localDir + SP + fileName;
         // 更新sftp文件对应的local文件
         if (fileExists(fileLocalPath)) {

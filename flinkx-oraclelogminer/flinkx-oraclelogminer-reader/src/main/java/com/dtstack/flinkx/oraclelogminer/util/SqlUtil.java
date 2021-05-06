@@ -156,21 +156,26 @@ public class SqlUtil {
 //            "    commit_scn,\n" +
             "    timestamp,\n" +
             "    operation,\n" +
+            "    operation_code,\n" +
             "    seg_owner,\n" +
             "    table_name,\n" +
             "    sql_redo,\n" +
+            "    sql_undo,\n" +
+            "    xidsqn,\n" +
             "    row_id,\n" +
+            "    rollback,\n" +
             "    csf\n" +
             "FROM\n" +
             "    v$logmnr_contents\n" +
             "WHERE\n" +
-            "    scn > ? \n";
+            "    scn > ? \n" +
+            "    AND scn < ? \n";
 
 
     /**
      * 加载包含startSCN和endSCN之间日志的日志文件
      */
-    public final static  String SQL_START_LOGMINER_HAS_MAX_LIMIT =  "DECLARE \n" +
+    public final static String SQL_START_LOGMINER =  "DECLARE \n" +
             "    st          BOOLEAN := true;\n" +
             "    start_scn   NUMBER := ?;\n" +
             "    endScn   NUMBER := ?;\n" +
@@ -187,8 +192,8 @@ public class SqlUtil {
             "            FROM \n"+
             "              v$log   l \n"+
             "           INNER JOIN v$logfile   f ON l.group# = f.group# \n"+
-            "           WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE' \n"+
-            "           AND first_change# <= start_scn \n"+
+            "           WHERE (l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE' )\n"+
+            "           AND first_change# < endScn \n"+
             "           UNION \n"+
             "           SELECT  \n"+
             "              name, \n"+
@@ -210,45 +215,36 @@ public class SqlUtil {
             "   end;";
 
 
-    /**
-     * 加载比startSCN大的日志，即nextChange比startSCN大的日志文件都需要加载
-     */
-    public final static  String SQL_START_LOGMINER_NO_MAX_LIMIT =  "DECLARE \n" +
-            "    st          BOOLEAN := true;\n" +
-            "    start_scn   NUMBER := ?;\n" +
-            "BEGIN\n" +
-            "    FOR l_log_rec IN (\n" +
-            "        SELECT\n" +
-            "            MIN(name) name,\n" +
-            "            first_change#\n" +
-            "        FROM\n" +
-            "          (\n" +
-            "            SELECT \n"+
-            "              member AS name, \n"+
-            "              first_change# \n"+
-            "            FROM \n"+
-            "              v$log   l \n"+
-            "           INNER JOIN v$logfile   f ON l.group# = f.group# \n"+
-            "           WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE' \n"+
-            "           UNION \n"+
-            "           SELECT  \n"+
-            "              name, \n"+
-            "              first_change# \n"+
-            "           FROM \n"+
-            "              v$archived_log \n"+
-            "           WHERE \n"+
-            "              name IS NOT NULL \n"+
-            "           AND STANDBY_DEST='NO'\n"+
-            "           AND  next_change# > start_scn )group by first_change# order by first_change#  )LOOP IF st THEN \n"+
-            "  SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name, SYS.DBMS_LOGMNR.new); \n"+
-            "      st := false; \n"+
-            "  ELSE \n"+
-            "  SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name); \n"+
-            "  END IF; \n"+
-            "  END LOOP;\n"+
-            "  SYS.DBMS_LOGMNR.start_logmnr(       options =>          SYS.DBMS_LOGMNR.skip_corruption        + SYS.DBMS_LOGMNR.no_sql_delimiter        + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n"+
-            "  + SYS.DBMS_LOGMNR.dict_from_online_catalog    );\n"+
-            "   end;";
+    /** 查找delete的rollback语句对应的insert语句  存在一个事务里rowid相同的其他语句 所以需要子查询过滤掉scn相同rowid相同的语句(这是一对rollback和DML)*/
+    public static String queryDataForRollback =
+            "SELECT\n" +
+                    "    scn,\n" +
+                    //oracle 10 没有该字段
+//            "    commit_scn,\n" +
+                    "    timestamp,\n" +
+                    "    operation,\n" +
+                    "    operation_code,\n" +
+                    "    seg_owner,\n" +
+                    "    table_name,\n" +
+                    "    sql_redo,\n" +
+                    "    sql_undo,\n" +
+                    "    xidsqn,\n" +
+                    "    row_id,\n" +
+                    "    rollback,\n" +
+                    "    csf\n" +
+            "FROM\n" +
+            "   v$logmnr_contents a \n"+
+            "where \n"+
+                "scn <=?  and row_id=?  and xidsqn = ? and table_name = ?  and rollback =? and OPERATION_CODE =? \n"+
+                "and scn not in (select scn from  v$logmnr_contents where row_id =  ?   and xidsqn = ?  and scn !=?  group by scn HAVING count(scn) >1 and sum(rollback)>0) \n";
+
+    //查找加载到logminer的日志文件
+    public final static String SQL_QUERY_ADDED_LOG = "select filename ,thread_id ,low_scn,next_scn,type,filesize,status,type from  V$LOGMNR_LOGS ";
+
+    //移除logminer加载的日志文件
+    public final static String SQL_REMOVE_ADDED_LOG = "SYS.DBMS_LOGMNR.add_logfile(LogFileName=>?, Options=>dbms_logmnr.removefile) ";
+
+
 
     public final static String SQL_STOP_LOG_MINER = "BEGIN SYS.DBMS_LOGMNR.END_LOGMNR; end;";
 
@@ -265,6 +261,9 @@ public class SqlUtil {
     public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NVL(NEXT_TIME, TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')) union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO' and name is not null)";
 
     public final static String SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') > FIRST_TIME union select FIRST_CHANGE# from v$archived_log where TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') between FIRST_TIME and NEXT_TIME and standby_dest='NO' and name is not null)";
+
+    //查询会话级别 NLS_DATE_FORMAT 参数值
+    public final static String SQL_QUERY_NLS_DATE_FORMAT="select VALUE from nls_session_parameters where parameter = 'NLS_DATE_FORMAT'";
 
     //修改当前会话的date日期格式
     public final static String SQL_ALTER_DATE_FORMAT ="ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'";

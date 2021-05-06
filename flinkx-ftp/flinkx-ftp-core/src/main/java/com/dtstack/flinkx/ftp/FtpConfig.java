@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.ftp;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 import java.io.Serializable;
@@ -59,6 +60,12 @@ public class FtpConfig implements Serializable {
     public int timeout = FtpConfigConstants.DEFAULT_TIMEOUT;
 
     public long maxFileSize = 1024 * 1024 * 1024L;
+
+    /** ftp客户端编码格式 **/
+    public String controlEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
+
+    /** linux是否展示隐藏文件 **/
+    public boolean listHiddenFiles = true;
 
     public String getUsername() {
         return username;
@@ -178,5 +185,21 @@ public class FtpConfig implements Serializable {
 
     public void setMaxFileSize(long maxFileSize) {
         this.maxFileSize = maxFileSize;
+    }
+
+    public String getControlEncoding() {
+        return controlEncoding;
+    }
+
+    public void setControlEncoding(String controlEncoding) {
+        this.controlEncoding = controlEncoding;
+    }
+
+    public boolean getListHiddenFiles() {
+        return listHiddenFiles;
+    }
+
+    public void setListHiddenFiles(boolean listHiddenFiles) {
+        this.listHiddenFiles = listHiddenFiles;
     }
 }
