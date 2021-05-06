@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.kafka.table;
 
+import com.dtstack.flinkx.connector.kafka.sink.KafkaDynamicSink;
+
+import com.dtstack.flinkx.connector.kafka.source.KafkaDynamicSource;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.ConfigOption;

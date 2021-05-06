@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.connector.kafka.table;
+package com.dtstack.flinkx.connector.kafka.sink;
 
 
 import org.apache.flink.api.common.serialization.SerializationSchema;

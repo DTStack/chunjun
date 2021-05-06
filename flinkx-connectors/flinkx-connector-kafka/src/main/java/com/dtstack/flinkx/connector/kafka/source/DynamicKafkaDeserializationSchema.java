@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.connector.kafka.table;
+package com.dtstack.flinkx.connector.kafka.source;
 
 
 import com.dtstack.flinkx.metrics.MetricConstant;

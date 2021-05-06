@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.kafka.table;
+package com.dtstack.flinkx.connector.kafka.sink;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkKafkaPartitioner;
-import com.dtstack.flinkx.connector.kafka.table.DynamicKafkaSerializationSchema.MetadataConverter;
+import com.dtstack.flinkx.connector.kafka.sink.DynamicKafkaSerializationSchema.MetadataConverter;
 import org.apache.flink.streaming.connectors.kafka.table.KafkaSinkSemantic;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.connector.ChangelogMode;
