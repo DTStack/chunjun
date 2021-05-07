@@ -1,6 +1,8 @@
 package com.dtstack.flinkx.util;
 
 
+import java.io.Serializable;
+
 /**
  * Twitter_Snowflake<br>
  * SnowFlake的结构如下(每部分用-分开):<br>
@@ -16,7 +18,8 @@ package com.dtstack.flinkx.util;
  *
  * @author jiangbo
  */
-public class SnowflakeIdWorker {
+public class SnowflakeIdWorker implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /** 机器id所占的位数 */
     private final long workerIdBits = 5L;

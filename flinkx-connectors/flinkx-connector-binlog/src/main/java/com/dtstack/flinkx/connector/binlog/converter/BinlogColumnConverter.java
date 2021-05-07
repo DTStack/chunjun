@@ -29,16 +29,15 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.dtstack.flinkx.util.DateUtil;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.math.BigDecimal;
-import java.sql.Date;
-import java.sql.Time;
-import java.sql.Timestamp;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -97,7 +96,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             columnRowData.addHeader(SCHEMA);
             columnRowData.addField(new StringColumn(table));
             columnRowData.addHeader(TABLE);
-            columnRowData.addField(new BigDecimalColumn(idWorker.nextId()));
+            columnRowData.addField(new BigDecimalColumn(super.idWorker.nextId()));
             columnRowData.addHeader(TS);
             columnRowData.addField(new TimestampColumn(binlogEventRow.getExecuteTime()));
             columnRowData.addHeader(OP_TIME);
@@ -174,40 +173,52 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
 
     @Override
     protected IDeserializationConverter createInternalConverter(String type) {
-        String substring = type.substring(0, type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL));
+        String substring = type;
+        int index = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
+        if(index > 0 ){
+            substring = type.substring(0, index);
+        }
         switch (substring.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) val -> new BooleanColumn(Boolean.parseBoolean(val));
             case "TINYINT":
-                return val -> new BigDecimalColumn(((Integer) val).byteValue());
             case "SMALLINT":
             case "MEDIUMINT":
             case "INT":
             case "INT24":
             case "INTEGER":
-                return val -> new BigDecimalColumn((Integer) val);
             case "FLOAT":
             case "DOUBLE":
-                return val -> new BigDecimalColumn((Double) val);
             case "REAL":
-                return val -> new BigDecimalColumn((Float) val);
             case "LONG":
             case "BIGINT":
-                return val -> new BigDecimalColumn(val.toString());
             case "DECIMAL":
             case "NUMERIC":
-                return val -> new BigDecimalColumn((BigDecimal) val);
+                return (IDeserializationConverter<String, AbstractBaseColumn>) BigDecimalColumn::new;
             case "CHAR":
             case "VARCHAR":
-                return val -> new StringColumn((String) val);
+            case "TINYTEXT":
+            case "TEXT":
+            case "MEDIUMTEXT":
+            case "LONGTEXT":
+            case "ENUM":
+            case "SET":
+            case "JSON":
+                return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "DATE":
-                return val -> new BigDecimalColumn(((Date) val).toLocalDate().toEpochDay());
             case "TIME":
-                return val ->
-                        new BigDecimalColumn(((Time) val).toLocalTime().toNanoOfDay() / 1_000_000L);
             case "TIMESTAMP":
             case "DATETIME":
-                return val -> new TimestampColumn((Timestamp) val);
+            case "YEAR":
+                return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
+            case "TINYBLOB":
+            case "BLOB":
+            case "MEDIUMBLOB":
+            case "LONGBLOB":
+            case "GEOMETRY":
+            case "BINARY":
+            case "VARBINARY":
+                return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new BytesColumn(val.getBytes(StandardCharsets.UTF_8));
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }

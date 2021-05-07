@@ -31,7 +31,7 @@ import java.sql.Timestamp;
  * @author tudou
  */
 public class BytesColumn extends AbstractBaseColumn {
-    private Charset encoding = StandardCharsets.UTF_8;
+    private String encoding = StandardCharsets.UTF_8.name();
 
     public BytesColumn(byte[] data) {
         super(data);
@@ -39,7 +39,7 @@ public class BytesColumn extends AbstractBaseColumn {
 
     public BytesColumn(byte[] data, String encoding) {
         super(data);
-        this.encoding = Charset.forName(encoding);
+        this.encoding = encoding;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class BytesColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return new String((byte[])data, encoding);
+        return new String((byte[])data, Charset.forName(encoding));
     }
 
     @Override
