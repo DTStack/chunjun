@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.connector.binlog.conf;
 
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import java.util.List;
@@ -71,6 +72,10 @@ public class BinlogConf extends FlinkxCommonConf {
     private boolean isGTIDMode;
 
     private boolean splitUpdate;
+
+    private List<FieldConf> column;
+
+    private String timestampFormat = "sql";
 
     public String getHost() {
         return host;
@@ -240,6 +245,22 @@ public class BinlogConf extends FlinkxCommonConf {
         this.splitUpdate = splitUpdate;
     }
 
+    public List<FieldConf> getColumn() {
+        return column;
+    }
+
+    public void setColumn(List<FieldConf> column) {
+        this.column = column;
+    }
+
+    public String getTimestampFormat() {
+        return timestampFormat;
+    }
+
+    public void setTimestampFormat(String timestampFormat) {
+        this.timestampFormat = timestampFormat;
+    }
+
     @Override
     public String toString() {
         return "BinlogConf{" +
@@ -264,6 +285,8 @@ public class BinlogConf extends FlinkxCommonConf {
                 ", parallelThreadSize=" + parallelThreadSize +
                 ", isGTIDMode=" + isGTIDMode +
                 ", splitUpdate=" + splitUpdate +
+                ", column=" + column +
+                ", timestampFormat='" + timestampFormat + '\'' +
                 '}';
     }
 }
