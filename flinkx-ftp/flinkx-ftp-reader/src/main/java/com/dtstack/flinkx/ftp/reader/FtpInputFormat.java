@@ -26,6 +26,7 @@ import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
@@ -73,6 +74,9 @@ public class FtpInputFormat extends BaseRichInputFormat {
             for (String p : pathArray) {
                 files.addAll(ftpHandler.getFiles(p.trim()));
             }
+        }
+        if (CollectionUtils.isEmpty(files)) {
+            throw new RuntimeException("There are no readable files  in directory " + path);
         }
         LOG.info("FTP files = {}", GsonUtil.GSON.toJson(files));
         int numSplits = (Math.min(files.size(), minNumSplits));

@@ -32,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,22 +47,23 @@ public class MetaparamUtils {
 
 
     /**
-     * 获取一个表达式所关联的其他变量
+     * 获取一个变量所关联的其他变量
      *
-     * @param value         表达式 如${body.key1}+1000
-     * @param restConfig    http的相关配置
-     * @param allMetaParams 所有的MetaParam
+     * @param expression   解析的表达式${body.xxxx}
+     * @param nest         expression是否需要进行切割
+     * @param restConfig   http的相关配置
+     * @param requestParam 所有的原始MetaParam构造结果
      */
-    public static List<MetaParam> getValueOfMetaParams(String value, HttpRestConfig restConfig, Map<String, MetaParam> allMetaParams) {
+    public static List<MetaParam> getValueOfMetaParams(String expression, Boolean nest, HttpRestConfig restConfig, HttpRequestParam requestParam) {
 
-        Matcher matcher = valueExpression.matcher(value);
+        Matcher matcher = valueExpression.matcher(expression);
 
         ArrayList<MetaParam> metaParams = new ArrayList<>(12);
         while (matcher.find()) {
             //整个变量 如${body.time}
             String variableName = matcher.group("variable");
             //变量的名称 如${body.time}里的time
-            String name = matcher.group("name");
+            String key = matcher.group("name");
             //内置变量名称 如currentTime
             String innerName = matcher.group("innerName");
 
@@ -93,16 +93,38 @@ public class MetaparamUtils {
                 ParamType variableType = ParamType.valueOf(matcher.group("paramType").toUpperCase(Locale.ENGLISH));
 
                 if (variableType.equals(ParamType.RESPONSE)) {
-                    MetaParam metaParam1 = new MetaParam();
-                    metaParam1.setParamType(ParamType.RESPONSE);
-                    metaParam1.setKey(name);
-                    metaParams.add(metaParam1);
+                    MetaParam param = new MetaParam();
+                    param.setParamType(ParamType.RESPONSE);
+                    param.setKey(key);
+                    metaParams.add(param);
                 } else {
-                    MetaParam metaParam = allMetaParams.get(variableName.substring(2, variableName.length() - 1));
-                    if(metaParam == null){
-                      throw new RuntimeException(value + " has variable " + variableName.substring(2, variableName.length() - 1) + " but we not find this variable" );
+                    Map<String, Object> map;
+                    if (variableType.equals(ParamType.PARAM)) {
+                        map = requestParam.getParam();
+                    } else if (variableType.equals(ParamType.BODY)) {
+                        map = requestParam.getBody();
+                    } else {
+                        map = requestParam.getHeader();
                     }
-                    metaParams.add(metaParam);
+
+                    MetaParam param = new MetaParam();
+                    param.setParamType(variableType);
+                    param.setKey(key);
+                    //nest为空 代表不知道表达式的key是否需要切割 有可能是异常策略转换的metaparam
+                    if (null != nest) {
+                        param.setNest(nest);
+                    }
+
+                    if (requestParam.containsKey(param, restConfig.getFieldDelimiter())) {
+                        metaParams.add((MetaParam) requestParam.getValue(param, restConfig.getFieldDelimiter()));
+                    } else {
+                        param.setNest(true);
+                        //没找到 就代表动态参数指定的key不存在 直接报错
+                        if (null != nest || !requestParam.containsKey(param, restConfig.getFieldDelimiter())) {
+                            throw new RuntimeException("the metaParam pointed by the key [" + key + " ] of " + expression + " does not exist");
+                        }
+                        metaParams.add((MetaParam) requestParam.getValue(param, restConfig.getFieldDelimiter()));
+                    }
                 }
             }
         }
