@@ -19,8 +19,6 @@
         <module>flinkx-formats</module>
 
 <!--        &lt;!&ndash;******离线******&ndash;&gt;-->
-<!--        <module>flinkx-rdb</module>-->
-<!--        <module>flinkx-mysql</module>-->
 <!--        <module>flinkx-polardb</module>-->
 <!--        <module>flinkx-oracle</module>-->
 <!--        <module>flinkx-sqlserver</module>-->
@@ -49,12 +47,6 @@
 <!--        <module>flinkx-mongodb</module>-->
 
 <!--        &lt;!&ndash;******实时******&ndash;&gt;-->
-<!--        <module>flinkx-binlog</module>-->
-<!--        <module>flinkx-kb</module>-->
-<!--        <module>flinkx-kafka09</module>-->
-<!--        <module>flinkx-kafka10</module>-->
-<!--        <module>flinkx-kafka11</module>-->
-<!--        <module>flinkx-kafka</module>-->
 <!--                <module>flinkx-emqx</module>-->
 
 <!--        <module>flinkx-sqlservercdc</module>-->
@@ -71,7 +63,7 @@
 <!--        <module>flinkx-metadata-phoenix5</module>-->
 <!--        <module>flinkx-metadata-hbase</module>-->
 <!--        <module>flinkx-metadata-vertica</module>-->
-<!--&lt;!&ndash;        <module>flinkx-metadata-es6</module>&ndash;&gt;-->
+<!--        <module>flinkx-metadata-es6</module>-->
 
 <!--        <module>flinkx-restapi</module>-->
 <!--        <module>flinkx-websocket</module>-->
