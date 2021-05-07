@@ -39,14 +39,15 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../syncplugins/formats">
-                                    <fileset dir="target/">
-                                        <include name="${artifactId}-${project.version}.jar"/>
-                                    </fileset>
-                                </copy>
-                                <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../../syncplugins/formats/${artifactId}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/formats/${artifactId}-${git.branch}.jar"/>
+                                <copy todir="${basedir}/../../flinkxplugins/formats/"
+									  file="${basedir}/target/${artifactId}-${project.version}.jar"/>
+                                <move file="${basedir}/../../flinkxplugins/formats/${artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../../flinkxplugins/formats/${artifactId}-${git.branch}.jar"/>
+								<delete>
+									<fileset dir="${basedir}/../../flinkxplugins/formats/"
+											 includes="${artifactId}-*.jar"
+											 excludes="${artifactId}-${git.branch}.jar"/>
+								</delete>
                             </tasks>
                         </configuration>
                     </execution>
