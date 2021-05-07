@@ -26,10 +26,15 @@ import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
+import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
@@ -65,57 +70,49 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
 
     @Override
     protected IDeserializationConverter createInternalConverter(String type) {
-        switch (type.toLowerCase(Locale.ENGLISH)) {
-            case "id":
-                return val -> {
-                    BigDecimal bigDecimal = new BigDecimal(id.incrementAndGet());
-                    return new BigDecimalColumn(bigDecimal);
-                };
-            case "int":
-            case "integer":
-                return val -> {
-                    BigDecimal bigDecimal = new BigDecimal(JMockData.mock(int.class));
-                    return new BigDecimalColumn(bigDecimal);
-                };
+        switch (type.toUpperCase(Locale.ENGLISH)) {
+            case "ID":
+                return val -> new BigDecimalColumn(new BigDecimal(id.incrementAndGet()));
+            case "INT":
+            case "INTEGER":
+                return val -> new BigDecimalColumn(JMockData.mock(int.class));
+            case "BOOLEAN":
+                return val -> new BooleanColumn(JMockData.mock(boolean.class));
+            case "TINYINT":
+                return val -> new BigDecimalColumn(JMockData.mock(byte.class));
+            case "CHAR":
+            case "CHARACTER":
+                return val ->
+                        new StringColumn(JMockData.mock(char.class).toString());
+            case "SHORT":
+                return val -> new BigDecimalColumn(JMockData.mock(short.class));
+            case "LONG":
+            case "BIGINT":
+                return val -> new BigDecimalColumn(JMockData.mock(long.class));
+            case "FLOAT":
+                return val -> new BigDecimalColumn(JMockData.mock(float.class));
+            case "DOUBLE":
+                return val -> new BigDecimalColumn(JMockData.mock(double.class));
+            case "DECIMAL":
+                return val -> new BigDecimalColumn(JMockData.mock(BigDecimal.class));
+            case "DATE":
+                return val ->
+                        new StringColumn(LocalDate.now().toString());
+            case "TIME":
+                return val ->
+                        new StringColumn(LocalTime.now().toString());
+            case "DATETIME":
+            case "TIMESTAMP":
+                return val -> new TimestampColumn(JMockData.mock(Timestamp.class));
             default:
-                return val -> {
-                    String string = JMockData.mock(String.class);
-                    return new StringColumn(string);
-                };
+                return val -> new StringColumn(JMockData.mock(String.class));
         }
     }
 
     @Override
     protected ISerializationConverter<ColumnRowData> createExternalConverter(String type) {
-        switch (type.toUpperCase(Locale.ENGLISH)) {
-            case "ID":
-            case "BIT":
-            case "TINYINT":
-            case "SMALLINT":
-            case "MEDIUMINT":
-            case "INT":
-            case "INT24":
-            case "INTEGER":
-            case "FLOAT":
-            case "DOUBLE":
-            case "REAL":
-            case "LONG":
-            case "BIGINT":
-            case "DECIMAL":
-            case "NUMERIC":
-            case "CHAR":
-            case "VARCHAR":
-            case "STRING":
-            case "DATE":
-            case "TIME":
-            case "TIMESTAMP":
-            case "DATETIME":
-                return (val, index, rowData) ->
-                        rowData.addField(((ColumnRowData) val).getField(index));
-            default:
-                return (val, index, rowData) ->
-                        rowData.addField(((ColumnRowData) val).getField(index));
-        }
+        return (val, index, rowData) ->
+                rowData.addField(((ColumnRowData) val).getField(index));
     }
 
     @Override

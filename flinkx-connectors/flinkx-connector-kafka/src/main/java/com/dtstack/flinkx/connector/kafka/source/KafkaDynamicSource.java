@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.connector.kafka.source;
 
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -32,7 +30,6 @@ import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.DecodingFormat;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
-import org.apache.flink.table.connector.source.SourceFunctionProvider;
 import org.apache.flink.table.connector.source.abilities.SupportsReadingMetadata;
 import org.apache.flink.table.connector.source.abilities.SupportsWatermarkPushDown;
 import org.apache.flink.table.data.GenericMapData;
@@ -43,11 +40,19 @@ import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.internals.SubscriptionState;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Header;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -379,24 +384,19 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
                                 adjustedPhysicalArity))
                         .toArray();
 
-        final KafkaDeserializationSchema<RowData> kafkaDeserializer =
-                new DynamicKafkaDeserializationSchema(
-                        adjustedPhysicalArity,
-                        keyDeserialization,
-                        keyProjection,
-                        valueDeserialization,
-                        adjustedValueProjection,
-                        hasMetadata,
-                        metadataConverters,
-                        producedTypeInfo,
-                        upsertMode);
-
-        final FlinkKafkaConsumer<RowData> kafkaConsumer;
-        if (topics != null) {
-            kafkaConsumer = new FlinkKafkaConsumer<>(topics, kafkaDeserializer, properties);
-        } else {
-            kafkaConsumer = new FlinkKafkaConsumer<>(topicPattern, kafkaDeserializer, properties);
-        }
+        final FlinkKafkaConsumer<RowData> kafkaConsumer = new KafkaConsumerFactory().createKafkaConsumer(
+                topics,
+                adjustedPhysicalArity,
+                keyDeserialization,
+                keyProjection,
+                valueDeserialization,
+                adjustedValueProjection,
+                hasMetadata,
+                metadataConverters,
+                producedTypeInfo,
+                upsertMode,
+                properties,
+                topicPattern);
 
         switch (startupMode) {
             case EARLIEST:
@@ -545,6 +545,82 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
             this.key = key;
             this.dataType = dataType;
             this.converter = converter;
+        }
+    }
+
+    private static final class KafkaConsumerFactory implements Serializable {
+
+        private static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerFactory.class);
+
+        private static final long serialVersionUID = 1L;
+
+        public FlinkKafkaConsumer<RowData> createKafkaConsumer(
+                List<String> topics,
+                int adjustedPhysicalArity,
+                DeserializationSchema<RowData> keyDeserialization,
+                int[] keyProjection,
+                DeserializationSchema<RowData> valueDeserialization,
+                int[] adjustedValueProjection,
+                boolean hasMetadata,
+                DynamicKafkaDeserializationSchema.MetadataConverter[] metadataConverters,
+                TypeInformation<RowData> producedTypeInfo,
+                boolean upsertMode,
+                Properties properties,
+                Pattern topicPattern) {
+            KafkaConsumer kafkaConsumer;
+
+            final KafkaDeserializationSchema<RowData> kafkaDeserializer =
+                    new DynamicKafkaDeserializationSchemaWrapper(
+                            adjustedPhysicalArity,
+                            keyDeserialization,
+                            keyProjection,
+                            valueDeserialization,
+                            adjustedValueProjection,
+                            hasMetadata,
+                            metadataConverters,
+                            producedTypeInfo,
+                            upsertMode,
+                            (Calculate & Serializable)
+                                    (subscriptionState, tp) -> {
+                                        try {
+                                            return partitionLag(subscriptionState, tp);
+                                        } catch (Exception e) {
+                                            LOG.error(e.toString());
+                                        }
+                                        return null;
+                                    });
+
+            if (topics != null) {
+                kafkaConsumer = new KafkaConsumer(topics, kafkaDeserializer, properties);
+            } else {
+                kafkaConsumer = new KafkaConsumer(topicPattern, kafkaDeserializer, properties);
+            }
+            return kafkaConsumer;
+        }
+
+        /**
+         * 获取kafka的lag
+         *
+         * @param subscriptionState
+         * @param topicPartition
+         * @return
+         * @throws Exception
+         */
+        private Long partitionLag(SubscriptionState subscriptionState, TopicPartition topicPartition)
+                throws Exception {
+            Method assignedState = subscriptionState.getClass().getDeclaredMethod("assignedState", TopicPartition.class);
+            assignedState.setAccessible(true);
+            Object subscriptionStateInvoke = assignedState.invoke(subscriptionState, topicPartition);
+
+            Field highWatermarkField = subscriptionStateInvoke.getClass().getDeclaredField("highWatermark");
+            highWatermarkField.setAccessible(true);
+            Long highWatermark = (Long) highWatermarkField.get(subscriptionStateInvoke);
+
+            Field positionField = subscriptionStateInvoke.getClass().getDeclaredField("position");
+            positionField.setAccessible(true);
+            SubscriptionState.FetchPosition fetchPosition = (SubscriptionState.FetchPosition) positionField.get(subscriptionStateInvoke);
+            long offset = fetchPosition.offset;
+            return highWatermark - offset;
         }
     }
 }
