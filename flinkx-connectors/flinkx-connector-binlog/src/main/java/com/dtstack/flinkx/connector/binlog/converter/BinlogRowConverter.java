@@ -35,6 +35,7 @@ import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.google.common.collect.Maps;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -114,37 +115,37 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
             case NULL:
                 return val -> null;
             case BOOLEAN:
-                return val -> Boolean.getBoolean((String) val);
+                return (IDeserializationConverter<String, Boolean>) Boolean::getBoolean;
             case TINYINT:
-                return val -> Byte.parseByte((String) val);
+                return (IDeserializationConverter<String, Byte>) Byte::parseByte;
             case SMALLINT:
-                return val -> Short.parseShort((String) val);
+                return (IDeserializationConverter<String, Short>) Short::parseShort;
             case INTEGER:
             case INTERVAL_YEAR_MONTH:
-                return val -> Integer.parseInt((String) val);
+                return (IDeserializationConverter<String, Integer>) Integer::parseInt;
             case BIGINT:
             case INTERVAL_DAY_TIME:
-                return val -> Long.parseLong((String) val);
+                return (IDeserializationConverter<String, Long>) Long::parseLong;
             case DATE:
-                return val -> {
-                    LocalDate date = DateTimeFormatter.ISO_LOCAL_DATE.parse((String) val).query(TemporalQueries.localDate());
+                return (IDeserializationConverter<String, Integer>) val -> {
+                    LocalDate date = DateTimeFormatter.ISO_LOCAL_DATE.parse(val).query(TemporalQueries.localDate());
                     return (int)date.toEpochDay();
                 };
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> {
-                    TemporalAccessor parsedTime = SQL_TIME_FORMAT.parse((String) val);
+                return (IDeserializationConverter<String, Integer>) val -> {
+                    TemporalAccessor parsedTime = SQL_TIME_FORMAT.parse(val);
                     LocalTime localTime = parsedTime.query(TemporalQueries.localTime());
                     return localTime.toSecondOfDay() * 1000;
                 };
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> {
+                return (IDeserializationConverter<String, TimestampData>) val -> {
                     TemporalAccessor parsedTimestamp;
                     switch(this.timestampFormat) {
                         case SQL:
-                            parsedTimestamp = SQL_TIMESTAMP_FORMAT.parse((String) val);
+                            parsedTimestamp = SQL_TIMESTAMP_FORMAT.parse(val);
                             break;
                         case ISO_8601:
-                            parsedTimestamp = ISO8601_TIMESTAMP_FORMAT.parse((String) val);
+                            parsedTimestamp = ISO8601_TIMESTAMP_FORMAT.parse(val);
                             break;
                         default:
                             throw new TableException(String.format("Unsupported timestamp format '%s'. Validator should have checked that.", this.timestampFormat));
@@ -155,16 +156,16 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
                     return TimestampData.fromLocalDateTime(LocalDateTime.of(localDate, localTime));
                 };
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
-                return val -> {
+                return (IDeserializationConverter<String, TimestampData>) val -> {
                     TemporalAccessor parsedTimestampWithLocalZone;
                     switch (timestampFormat) {
                         case SQL:
                             parsedTimestampWithLocalZone =
-                                    SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse((String) val);
+                                    SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse(val);
                             break;
                         case ISO_8601:
                             parsedTimestampWithLocalZone =
-                                    ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse((String) val);
+                                    ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse(val);
                             break;
                         default:
                             throw new TableException(
@@ -179,20 +180,21 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
                             LocalDateTime.of(localDate, localTime).toInstant(ZoneOffset.UTC));
                 };
             case FLOAT:
-                return val -> Float.parseFloat((String) val);
+                return (IDeserializationConverter<String, Float>) Float::parseFloat;
             case DOUBLE:
-                return val -> Double.parseDouble((String) val);
+                return (IDeserializationConverter<String, Double>) Double::parseDouble;
             case CHAR:
             case VARCHAR:
-                return val -> StringData.fromString((String) val);
+                return (IDeserializationConverter<String, StringData>) StringData::fromString;
             case DECIMAL:
-                return val -> {
+                return (IDeserializationConverter<String, DecimalData>) val -> {
                     final int precision = ((DecimalType)type).getPrecision();
                     final int scale = ((DecimalType)type).getScale();
-                    return DecimalData.fromBigDecimal(new BigDecimal((String) val), precision, scale);
+                    return DecimalData.fromBigDecimal(new BigDecimal(val), precision, scale);
                 };
-//            case BINARY:
-//            case VARBINARY:
+            case BINARY:
+            case VARBINARY:
+                return (IDeserializationConverter<String, byte[]>) val ->val.getBytes(StandardCharsets.UTF_8);
 //            case ARRAY:
 //            case MAP:
 //            case MULTISET:

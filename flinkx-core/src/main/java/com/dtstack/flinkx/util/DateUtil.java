@@ -351,7 +351,7 @@ public class DateUtil {
             Instant instant = Instant.from(ISO_INSTANT.parse(timeStr));
             return new Timestamp(instant.getEpochSecond() * MILLIS_PER_SECOND);
         }
-        Date date = stringToDate(timeStr);
+        Date date = stringToDate(timeStr, null);
         return null == date ? null : new Timestamp(date.getTime());
     }
 

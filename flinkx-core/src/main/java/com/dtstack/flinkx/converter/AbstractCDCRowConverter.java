@@ -83,15 +83,11 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
                     .toFormatter();
 
     protected final Map<String, IDeserializationConverter[]> cdcConverterCacheMap = new ConcurrentHashMap<>(32);
-    protected final transient SnowflakeIdWorker idWorker;
+    protected final SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
     protected boolean pavingData;
     protected boolean splitUpdate;
     protected List<String> fieldNameList;
     protected IDeserializationConverter[] converters;
-
-    public AbstractCDCRowConverter() {
-        this.idWorker = new SnowflakeIdWorker(1, 1);
-    }
 
     /**
      * 将外部数据库类型转换为flink内部类型
@@ -116,7 +112,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * @return
      */
     protected RowKind getRowKindByType(String type){
-        switch (type.toLowerCase(Locale.ENGLISH)){
+        switch (type.toUpperCase(Locale.ENGLISH)){
             case "INSERT":
             case "UPDATE":
                 return RowKind.INSERT;
