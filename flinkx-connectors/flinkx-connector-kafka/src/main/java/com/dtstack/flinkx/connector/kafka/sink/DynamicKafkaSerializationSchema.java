@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.kafka.sink;
 
 
+import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.metrics.Meter;
@@ -75,6 +76,8 @@ class DynamicKafkaSerializationSchema
 
     protected transient Meter dtNumRecordsOutRate;
 
+    private transient RuntimeContext runtimeContext;
+
     DynamicKafkaSerializationSchema(
             String topic,
             @Nullable FlinkKafkaPartitioner<RowData> partitioner,
@@ -110,12 +113,14 @@ class DynamicKafkaSerializationSchema
         if (partitioner != null) {
             partitioner.open(parallelInstanceId, numParallelInstances);
         }
-        initMetric(context);
     }
 
-    public void initMetric(SerializationSchema.InitializationContext context) {
-        dtNumRecordsOut = context.getMetricGroup().counter(MetricConstant.DT_NUM_RECORDS_OUT);
-        dtNumRecordsOutRate = context.getMetricGroup().meter(MetricConstant.DT_NUM_RECORDS_OUT_RATE, new MeterView(dtNumRecordsOut, 20));
+    /**
+     * 初始化指标
+     */
+    public void initMetric() {
+        dtNumRecordsOut = runtimeContext.getMetricGroup().counter(MetricConstant.DT_NUM_RECORDS_OUT);
+        dtNumRecordsOutRate = runtimeContext.getMetricGroup().meter(MetricConstant.DT_NUM_RECORDS_OUT_RATE, new MeterView(dtNumRecordsOut, 20));
     }
 
     @Override
@@ -212,6 +217,14 @@ class DynamicKafkaSerializationSchema
             genericRowData.setField(fieldPos, fieldGetters[fieldPos].getFieldOrNull(consumedRow));
         }
         return genericRowData;
+    }
+
+    public RuntimeContext getRuntimeContext() {
+        return runtimeContext;
+    }
+
+    public void setRuntimeContext(RuntimeContext runtimeContext) {
+        this.runtimeContext = runtimeContext;
     }
 
     // --------------------------------------------------------------------------------------------

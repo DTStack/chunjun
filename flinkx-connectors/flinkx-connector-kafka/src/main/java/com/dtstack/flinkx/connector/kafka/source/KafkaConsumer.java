@@ -57,6 +57,13 @@ public class KafkaConsumer extends FlinkKafkaConsumer<RowData>{
     }
 
     @Override
+    public void run(SourceContext<RowData> sourceContext) throws Exception {
+        ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).setRuntimeContext(getRuntimeContext());
+        ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).initMetric();
+        super.run(sourceContext);
+    }
+
+    @Override
     protected AbstractFetcher<RowData, ?> createFetcher(
             SourceContext<RowData> sourceContext,
             Map<KafkaTopicPartition, Long> assignedPartitionsWithInitialOffsets,
