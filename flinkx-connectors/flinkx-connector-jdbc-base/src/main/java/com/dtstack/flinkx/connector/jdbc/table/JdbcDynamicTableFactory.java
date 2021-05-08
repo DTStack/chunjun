@@ -68,15 +68,15 @@ import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_P
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_POLLING_INTERVAL;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_QUERY_TIMEOUT;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_START_LOCATION;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_ASYNCTIMEOUT;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_PERIOD;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_TTL;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_TYPE;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_ERRORLIMIT;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_FETCH_SIZE;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_MAX_RETRIES;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_PARALLELISM;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TTL;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TYPE;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
