@@ -308,38 +308,7 @@ public final class FactoryUtil {
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
         final List<Factory> factories;
         if (connectorLoadMode.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name())) {
-            // syncplugins后面jar包的路径比如 kafka、mysql
-            String jarDirectorySuffix;
-            String fullClassName;
-            if (DynamicTableSourceFactory.class.isAssignableFrom(factoryClass)
-                    || DynamicTableSinkFactory.class.isAssignableFrom(factoryClass)) {
-                String factoryIdentifierPrefix = jarDirectorySuffix = factoryIdentifier.substring(
-                        0,
-                        factoryIdentifier.length() - 2);
-
-                fullClassName = CONNECTORS_PACKAGE_PREFIX.defaultValue() + factoryIdentifierPrefix
-                        + ".table." + StringUtils.capitalize(factoryIdentifierPrefix)
-                        + CONNECTORS_PACKAGE_SUFFIX.defaultValue();
-
-            } else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass)
-                    || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
-
-                // format都放到sqlplugins下的format目录下
-                fullClassName =
-                        FORMAT_PACKAGE_PREFIX.defaultValue() + factoryIdentifier + "." + StringUtils
-                                .capitalize(factoryIdentifier)
-                                + FORMAT_PACKAGE_SUFFIX.defaultValue();
-
-                jarDirectorySuffix = FORMATS.key();
-            } else {
-                throw new RuntimeException(factoryClass + " can not Identify");
-            }
-
-            factories = loadFactories(
-                    classLoader,
-                    jarDirectorySuffix,
-                    factoryIdentifier,
-                    fullClassName);
+            factories = loadFactories(classLoader, factoryClass, factoryIdentifier);
         } else {
             factories = discoverFactories(classLoader);
         }
@@ -390,6 +359,53 @@ public final class FactoryUtil {
         }
 
         return (T) matchingFactories.get(0);
+    }
+
+    /**
+     * 使用classLoader方式加载插件
+     * @param classLoader
+     * @param factoryClass
+     * @param factoryIdentifier
+     * @param <T>
+     * @return
+     */
+    private static <T extends Factory> List<Factory> loadFactories(
+            ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
+        final List<Factory> factories;
+        // syncplugins后面jar包的路径比如 kafka、mysql
+        String jarDirectorySuffix;
+        String fullClassName;
+        if (DynamicTableSourceFactory.class.isAssignableFrom(factoryClass)
+                || DynamicTableSinkFactory.class.isAssignableFrom(factoryClass)) {
+            String factoryIdentifierPrefix = jarDirectorySuffix = factoryIdentifier.substring(0, factoryIdentifier.length() - 2);
+
+            String[] packageName = StringUtils.splitByWholeSeparator(factoryIdentifierPrefix, "-");
+
+            fullClassName =
+                    CONNECTORS_PACKAGE_PREFIX.defaultValue()
+                            + StringUtils.join(packageName)
+                            + ".table."
+                            + Arrays.stream(packageName).map(StringUtils::capitalize).collect(Collectors.joining())
+                            + CONNECTORS_PACKAGE_SUFFIX.defaultValue();
+
+        } else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass)
+                || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
+
+            // format都放到sqlplugins下的format目录下
+            fullClassName =
+                    FORMAT_PACKAGE_PREFIX.defaultValue()
+                            + factoryIdentifier
+                            + "."
+                            + StringUtils.capitalize(factoryIdentifier)
+                            + FORMAT_PACKAGE_SUFFIX.defaultValue();
+
+            jarDirectorySuffix = FORMATS.key();
+        } else {
+            throw new RuntimeException(factoryClass + " can not Identify");
+        }
+
+        factories = doLoadFactories(classLoader, jarDirectorySuffix, factoryIdentifier, fullClassName);
+        return factories;
     }
 
     /**
@@ -549,7 +565,7 @@ public final class FactoryUtil {
      * @param fullClassName
      * @return
      */
-    private static List<Factory> loadFactories(
+    private static List<Factory> doLoadFactories(
             ClassLoader classLoader,
             String jarDirectorySuffix,
             String factoryIdentifier,
