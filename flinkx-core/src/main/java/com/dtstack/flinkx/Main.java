@@ -343,15 +343,16 @@ public class Main {
         configRestartStrategy(env, properties);
         configCheckpoint(env, properties);
         configEnvironment(env, properties);
+        if (env instanceof MyLocalStreamEnvironment) {
+            if (StringUtils.isNotEmpty(options.getS())) {
+                ((MyLocalStreamEnvironment) env)
+                        .setSettings(SavepointRestoreSettings.forPath(options.getS()));
+            }
+        }
+
         if (config != null) {
             PluginUtil.registerPluginUrlToCachedFile(config, env);
             env.setParallelism(config.getSpeed().getChannel());
-            if (env instanceof MyLocalStreamEnvironment) {
-                if (StringUtils.isNotEmpty(options.getS())) {
-                    ((MyLocalStreamEnvironment) env)
-                            .setSettings(SavepointRestoreSettings.forPath(options.getS()));
-                }
-            }
         } else {
             Preconditions.checkArgument(
                     ExecuteProcessHelper.checkRemoteSqlPluginPath(

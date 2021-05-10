@@ -76,8 +76,6 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
     private transient ListState<FormatState> unionOffsetStates;
 
-    private FunctionInitializationContext functionInitializationContext;
-
 	@SuppressWarnings("unchecked")
 	public DtInputFormatSourceFunction(InputFormat<OUT, ?> format, TypeInformation<OUT> typeInfo) {
 		super(format, typeInfo);
@@ -248,7 +246,6 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 	@Override
 	public void initializeState(FunctionInitializationContext context) throws Exception {
 	    LOG.info("Start initialize input format state");
-        functionInitializationContext = context;
 		OperatorStateStore stateStore = context.getOperatorStateStore();
         unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
 				LOCATION_STATE_NAME,
