@@ -21,6 +21,7 @@ package com.dtstack.flinkx.s3.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.s3.S3Config;
+import com.dtstack.flinkx.s3.format.S3OutputFormatBuilder;
 import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;

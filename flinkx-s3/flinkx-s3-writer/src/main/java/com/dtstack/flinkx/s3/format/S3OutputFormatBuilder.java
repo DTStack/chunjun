@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.s3.writer;
+package com.dtstack.flinkx.s3.format;
 
 import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
 import com.dtstack.flinkx.s3.S3Config;

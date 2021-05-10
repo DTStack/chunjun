@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.s3.writer;
+package com.dtstack.flinkx.s3.format;
 
 import com.amazonaws.services.s3.model.PartETag;
 

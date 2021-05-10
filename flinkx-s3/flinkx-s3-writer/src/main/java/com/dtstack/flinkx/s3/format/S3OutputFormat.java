@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.s3.writer;
+package com.dtstack.flinkx.s3.format;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
@@ -25,6 +25,7 @@ import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.s3.S3Config;
 import com.dtstack.flinkx.s3.S3Util;
+import com.dtstack.flinkx.s3.WriterUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;

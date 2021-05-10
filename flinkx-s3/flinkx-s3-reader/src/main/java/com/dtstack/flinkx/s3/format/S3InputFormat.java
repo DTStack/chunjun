@@ -26,6 +26,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.s3.ReaderUtil;
 import com.dtstack.flinkx.s3.S3SimpleObject;
 import com.dtstack.flinkx.s3.S3Util;
 import com.dtstack.flinkx.s3.S3Config;
