@@ -39,7 +39,7 @@ public class S3Config implements Serializable {
 
     private String secretKey;
 
-    private String region = Regions.DEFAULT_REGION.getName();
+    private String region = Regions.CN_NORTH_1.getName();
 
     private String endpoint;
 
@@ -49,9 +49,13 @@ public class S3Config implements Serializable {
 
     private char fieldDelimiter = ',';
 
+    private String writeMode = "append";
+
     private String encoding = "UTF-8";
 
     private boolean isFirstLineHeader = false;
+
+    private long maxFileSize = 1024 * 1024L;
 
     public String getAccessKey() {
         return accessKey;
@@ -124,5 +128,21 @@ public class S3Config implements Serializable {
 
     public void setIsFirstLineHeader(boolean isFirstLineHeader) {
         this.isFirstLineHeader = isFirstLineHeader;
+    }
+
+    public String getWriteMode() {
+        return writeMode;
+    }
+
+    public void setWriteMode(String writeMode) {
+        this.writeMode = writeMode;
+    }
+
+    public long getMaxFileSize() {
+        return maxFileSize;
+    }
+
+    public void setMaxFileSize(long maxFileSize) {
+        this.maxFileSize = maxFileSize;
     }
 }

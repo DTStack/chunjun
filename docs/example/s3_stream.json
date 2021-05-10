@@ -4,12 +4,12 @@
       {
         "reader": {
           "parameter": {
-            "accessKey": "test",
-            "secretKey": "test",
+            "accessKey": "AKIAVCE7XHFIL4ZA3652",
+            "secretKey": "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",
+            "region": "cn-northwest-1",
             "endpoint": "http://127.0.0.1:9090",
-            "region": "us-west-2",
-            "bucket": "test",
-            "object": ["people_bak_20210421.csv","[a-z]+/dir2.*"],
+            "bucket": "s3-smartdi-01",
+            "object": ["dt/test/csv/people_withTime20.csv"],
             "column": [
               {
                 "name": "id",
@@ -25,11 +25,17 @@
                 "name": "uuid",
                 "index": 2,
                 "type": "string"
+              },
+              {
+                "name": "create_time",
+                "index": 3,
+                "type": "datetime",
+                "format": "yyyy/MM/dd hh:mm:ss"
               }
             ],
             "encoding": "UTF-8",
             "fieldDelimiter": ",",
-            "isFirstLineHeader": false
+            "isFirstLineHeader": true
           },
           "name": "s3reader"
         },
@@ -50,9 +56,9 @@
         "record": 100
       },
       "log": {
-        "isLogger": false,
+        "isLogger": true,
         "level": "debug",
-        "path": "",
+        "path": "/data/jier/flinkx/logs/",
         "pattern": ""
       }
     }

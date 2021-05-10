@@ -42,10 +42,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * company www.dtstack.com
- *
  * @author jier
  */
-public class S3InputFormat extends BaseRichInputFormat {
+public class  S3InputFormat extends BaseRichInputFormat {
 
     private static final Logger LOG = LoggerFactory.getLogger(S3InputFormat.class);
 
@@ -66,14 +65,18 @@ public class S3InputFormat extends BaseRichInputFormat {
     private transient ReaderUtil readerUtil = null;
 
 
+
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
-        amazonS3 = S3Util.initS3(s3Config);
+//        amazonS3 = S3Util.initS3(s3Config);
     }
 
     @Override
     protected void openInternal(InputSplit split) throws IOException {
+        if(amazonS3 == null){
+            amazonS3 = S3Util.initS3(s3Config);
+        }
         S3InputSplit inputSplit = (S3InputSplit) split;
         List<String> splitsList = inputSplit.getSplits();
         LinkedList<String> result = new LinkedList<>();
@@ -91,7 +94,7 @@ public class S3InputFormat extends BaseRichInputFormat {
                 }
             }
         } else {
-            if (restoreConfig.isRestore()) {
+            if(restoreConfig.isRestore()){
                 offsetMap = new ConcurrentHashMap<>(inputSplit.getSplits().size());
             }
             for (int i = 0; i < splitsList.size(); i++) {
@@ -158,6 +161,10 @@ public class S3InputFormat extends BaseRichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
+        if(amazonS3 != null){
+            amazonS3.shutdown();
+            amazonS3 = null;
+        }
         if (readerUtil != null) {
             readerUtil.close();
             readerUtil = null;
@@ -179,7 +186,7 @@ public class S3InputFormat extends BaseRichInputFormat {
 
                 if (restoreConfig.isRestore() && offsetMap.containsKey(currentObject) && 0 <= offsetMap.get(currentObject)) {
                     //若开启断点续传，已经读过该文件且还没读取完成，则继续读
-                    long offset = offsetMap.getOrDefault(currentObject, 0L);
+                    long offset = offsetMap.getOrDefault(currentObject,0L);
                     rangeObjectRequest.setRange(offset);
                     S3Object o = amazonS3.getObject(rangeObjectRequest);
                     S3ObjectInputStream s3is = o.getObjectContent();
@@ -196,7 +203,7 @@ public class S3InputFormat extends BaseRichInputFormat {
                     if (s3Config.isFirstLineHeader()) {
                         readerUtil.readHeaders();
                     }
-                    if (restoreConfig.isRestore()) {
+                    if(restoreConfig.isRestore()){
                         offsetMap.put(currentObject, readerUtil.getNextOffset());
                     }
                 }
@@ -213,7 +220,7 @@ public class S3InputFormat extends BaseRichInputFormat {
             //读取完本次读取的文件，关闭 br 并置空
             readerUtil.close();
             readerUtil = null;
-            if (restoreConfig.isRestore()) {
+            if(restoreConfig.isRestore()){
                 offsetMap.replace(currentObject, -1L);
             }
             //尝试去读新文件

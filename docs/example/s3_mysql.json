@@ -4,27 +4,32 @@
       {
         "reader": {
           "parameter": {
-            "accessKey": "test",
-            "secretKey": "test",
-            "endpoint": "http://127.0.0.1:9090",
-            "region": "us-west-2",
-            "bucket": "test",
-            "object": ["people_20210426001.csv"],
+            "accessKey": "AKIAVCE7XHFIL4ZA3652",
+            "secretKey": "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",
+            "region": "cn-northwest-1",
+            "bucket": "s3-smartdi-01",
+            "object": ["dt/test/csv/people_withTime.csv"],
             "column": [
               {
                 "name": "id",
                 "index": 0,
-                "type": "int"
+                "type": "string"
               },
               {
-                "name": "value1",
+                "name": "name",
                 "index": 1,
                 "type": "string"
               },
               {
-                "name": "value2",
+                "name": "uuid",
                 "index": 2,
                 "type": "string"
+              },
+              {
+                "name": "create_time",
+                "index": 3,
+                "type": "datetime",
+                "format": "dd/MM/yyyy hh:mm:ss"
               }
             ],
             "encoding": "UTF-8",
@@ -36,18 +41,18 @@
         "writer": {
           "name": "mysqlwriter",
           "parameter": {
-            "username": "",
-            "password": "",
+            "username": "test",
+            "password": "Abc123456",
             "connection": [
               {
-                "jdbcUrl": "jdbc:mysql://localhost:3306/abc?useSSL=false",
+                "jdbcUrl": "jdbc:mysql://172.16.100.186:3306/test?useSSL=false",
                 "table": [
-                  "people_bak_20210421"
+                  "people_bak_20210429"
                 ]
               }
             ],
             "postSql": [],
-            "batchSize": 100,
+            "batchSize": 1000,
             "writeMode": "insert",
             "column": [
               {
@@ -61,6 +66,10 @@
               {
                 "name": "uuid",
                 "type": "varchar"
+              },
+              {
+                "name": "create_time",
+                "type": "timestamp"
               }
             ]
           }
@@ -76,14 +85,19 @@
         "record": 100
       },
       "restore": {
-        "maxRowNumForCheckpoint": 100,
+        "maxRowNumForCheckpoint": 1000,
         "isStream" : true,
         "isRestore": true,
         "restoreColumnName" : "id",
         "restoreColumnIndex" : 1
       },
+      "restart": {
+        "strategy": "fixedDelay",
+        "restartAttempts": 5,
+        "delayInterval": 1000
+      },
       "log": {
-        "isLogger": false,
+        "isLogger": true,
         "level": "debug",
         "path": "",
         "pattern": ""

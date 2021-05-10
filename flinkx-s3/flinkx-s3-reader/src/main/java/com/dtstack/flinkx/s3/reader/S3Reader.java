@@ -99,7 +99,7 @@ public class S3Reader extends BaseDataReader {
                 String prefix = RegexUtil.getCommonPrefix();
                 if (StringUtils.isBlank(prefix)) {
                     //公共前缀为空，则说明 key 为 */xxx/yyy... ,前缀不确定,需要查询出所有 key，再利用正则表达式去匹配
-                    List<String> subObjects = S3Util.listObjects(amazonS3, bucket);
+                    List<String> subObjects = S3Util.listObjectsKey(amazonS3, bucket);
                     for (String subObject : subObjects) {
                         //遍历所有 key，去匹配正则表达式
                         if (RegexUtil.match(subObject)) {
@@ -117,7 +117,7 @@ public class S3Reader extends BaseDataReader {
                         }
                     } else if (key.startsWith(prefix)) {
                         //该 key 是正则表达式，利用公共前缀去查询，再利用正则表达式去匹配
-                        List<String> subObjects = S3Util.listObjectsByPrefix(amazonS3, bucket, prefix);
+                        List<String> subObjects = S3Util.listObjectsKeyByPrefix(amazonS3, bucket, prefix);
                         for (String subObject : subObjects) {
                             //遍历所有 key，去匹配正则表达式
                             if (RegexUtil.match(subObject)) {

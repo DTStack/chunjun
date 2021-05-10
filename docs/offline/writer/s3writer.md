@@ -1,0 +1,194 @@
+# S3 Writer
+
+<a name="0eTYo"></a>
+## 一、插件名称
+名称：**s3writer**<br />
+
+<a name="ijmKB"></a>
+## 二、数据源版本
+amazon s3
+
+
+
+
+<a name="CAZZC"></a>
+## 三、参数说明
+
+
+- **accessKey**
+  - 描述：aws 用户凭证：aws_access_key_id
+  - 必选：是
+  - 默认值：无
+
+
+
+- **secretKey**
+  - 描述：aws 用户凭证：aws_secret_access_key
+  - 必选：是
+  - 默认值：无
+
+
+- **endpoint**
+  - 描述：若需指定endpoint，则可通过该参数制定，详情可参见官方文档
+    https://docs.aws.amazon.com/zh_cn/general/latest/gr/rande.html
+  - 必选：否
+  - 默认值：根据 region 自动选择 endpoint
+
+
+
+- **region**
+  - 描述：储存桶的区域
+  - 必选：否
+  - 默认值：`cn-north-1`
+
+
+
+- **bucket**
+  - 描述：存储桶名称
+  - 必选：是
+  - 默认值：无
+
+- **object**
+  - 描述：需要写入的对象,只支持一个对象
+  - 必选：是
+  - 默认值：无
+  - 格式：
+    - ["abc.xml"]
+    - ["xxx/abd"]
+
+
+- **fieldDelimiter**
+  - 描述：写入的字段分隔符
+  - 必选：是
+  - 默认值：`,`
+
+
+
+- **encoding**
+  - 描述：写入文件的编码配置
+  - 必选：否
+  - 默认值：`UTF-8`
+
+
+- **isFirstLineHeader**
+  - 描述：是否增加首行为标题行，如果是读取字段参数为标题行
+  - 必选：否
+  - 默认值：false
+
+
+- **writeMode**
+  - 描述：ftpwriter写入前数据清理处理模式：
+    - append，写入前不做任何处理，S3Writer直接使用object名称写入，并使用随机UUID的后缀名来保证文件名不冲突。例如用户指定的object名为abc.csv，实际写入为abc.csv_xxxxxx_xxxx_xxxx
+    - overwrite：覆盖
+  - 注意：overwrite模式时会在写入前清理object名称前缀匹配的所有object
+  - 必选：否
+  - 默认值：append
+
+
+- **column**
+  - 描述：需要读取的字段
+  - 格式：指定具体信息：
+```json
+"column": [{
+    "name": "col1",
+    "type": "datetime"
+}]
+```
+
+  - 属性说明:
+    - name：字段名称
+    - type：字段类型，s3写入的为文本文件，本质上都是要转化成字符串类型，这里可以指定要转换的字段转换之前的类型
+  - 必选：是
+  - 默认值：无
+
+
+
+<a name="lplB9"></a>
+## 五、使用示例
+<a name="vZyir"></a>
+```json
+{
+    "job": {
+        "content": [
+            {
+                "reader": {
+                    "parameter": {
+                        "column": [
+                            {
+                                "name": "col1",
+                                "type": "string"
+                            },
+                            {
+                                "name": "col2",
+                                "type": "string"
+                            },
+                            {
+                                "name": "col3",
+                                "type": "int"
+                            },
+                            {
+                                "name": "col4",
+                                "type": "int"
+                            }
+                        ],
+                        "sliceRecordCount": [
+                            "100"
+                        ]
+                    },
+                    "name": "streamreader"
+                },
+                "writer": {
+                    "parameter": {
+                        "accessKey": "",
+                        "secretKey": "",
+                        "endpoint": "http://127.0.0.1:9090",
+                        "region": "",
+                        "bucket": "",
+                        "object": ["aaa.xml"],
+                        "column": [
+                            {
+                                "name": "col1",
+                                "type": "string"
+                            },
+                            {
+                                "name": "col2",
+                                "type": "string"
+                            },
+                            {
+                                "name": "col3",
+                                "type": "int"
+                            },
+                            {
+                                "name": "col4",
+                                "type": "int"
+                            }
+                        ],
+                        "fieldDelimiter": ",",
+                        "writeMode" : "append",
+                        "encoding": "utf-8",
+                        "isFirstLineHeader": true
+                    },
+                    "name": "s3writer"
+                }
+            }
+        ],
+        "setting": {
+            "restore": {
+                "maxRowNumForCheckpoint": 0,
+                "isRestore": false,
+                "restoreColumnName": "",
+                "restoreColumnIndex": 0
+            },
+            "errorLimit": {
+                "record": 100
+            },
+            "speed": {
+                "bytes": 0,
+                "channel": 1
+            }
+        }
+    }
+}
+```
+
+

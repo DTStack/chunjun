@@ -24,13 +24,15 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.*;
+import org.apache.commons.lang.StringUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * a util for connect to AmazonS3
@@ -61,11 +63,18 @@ public class S3Util {
     }
 
 
-    public static List<String> listObjects(AmazonS3 s3Client, String bucketName) {
+    public static List<String> listObjectsKey(AmazonS3 s3Client, String bucketName) {
+        return listObjectsKeyByPrefix(s3Client,bucketName,null);
+    }
+
+    public static List<String> listObjectsKeyByPrefix(AmazonS3 s3Client, String bucketName, String prefix) {
         List<String> objects = new ArrayList<>(64);
         ListObjectsV2Request req = new ListObjectsV2Request()
                 .withBucketName(bucketName)
                 .withMaxKeys(64);
+        if(StringUtils.isNotBlank(prefix)){
+            req.setPrefix(prefix);
+        }
         ListObjectsV2Result result;
         do {
             result = s3Client.listObjectsV2(req);
@@ -79,23 +88,29 @@ public class S3Util {
         return objects;
     }
 
-    public static List<String> listObjectsByPrefix(AmazonS3 s3Client, String bucketName, String prefix) {
-        List<String> objects = new ArrayList<>(64);
+    public static List<S3ObjectSummary> listObjects(AmazonS3 s3Client, String bucketName) {
+        return listObjectsByPrefix(s3Client,bucketName,null);
+    }
+
+    public static List<S3ObjectSummary> listObjectsByPrefix(AmazonS3 s3Client, String bucketName, String prefix) {
+        List<S3ObjectSummary> objects = new ArrayList<>(64);
         ListObjectsV2Request req = new ListObjectsV2Request()
                 .withBucketName(bucketName)
-                .withMaxKeys(64).withPrefix(prefix);
+                .withMaxKeys(64);
+        if(StringUtils.isNotBlank(prefix)){
+            req.setPrefix(prefix);
+        }
         ListObjectsV2Result result;
         do {
             result = s3Client.listObjectsV2(req);
-
-            for (S3ObjectSummary objectSummary : result.getObjectSummaries()) {
-                objects.add(objectSummary.getKey());
-            }
+            objects.addAll(result.getObjectSummaries());
             String token = result.getNextContinuationToken();
             req.setContinuationToken(token);
         } while (result.isTruncated());
         return objects;
     }
+
+
 
     public static boolean doesObjectExist(AmazonS3 s3Client, String bucketName, String object) {
         return s3Client.doesObjectExist(bucketName, object);
@@ -114,5 +129,70 @@ public class S3Util {
         return new S3SimpleObject(object, s3Object.getObjectMetadata().getContentLength());
     }
 
+    public static PutObjectResult putS3Object(AmazonS3 s3Client, String bucketName,String object,String context) {
+        return s3Client.putObject(bucketName,object,context);
+    }
 
+    /**
+     * get S3SimpleObject{@link S3SimpleObject} from AWS S3
+     *
+     * @param s3Client
+     * @return
+     */
+    public static PutObjectResult putS3SimpleObject(AmazonS3 s3Client, PutObjectRequest putObjectRequest) {
+        return s3Client.putObject(putObjectRequest);
+    }
+
+    public static String getObjectContextAsString(AmazonS3 s3Client, String bucketName, String object){
+        return s3Client.getObjectAsString(bucketName, object);
+    }
+
+    public static void deleteObject(AmazonS3 s3Client, String bucketName,String object){
+        s3Client.deleteObject(bucketName,object);
+    }
+
+    public static DeleteObjectsResult batchDelete(AmazonS3 s3Client, String bucketName,List<String> deleteObjects){
+        ArrayList<DeleteObjectsRequest.KeyVersion> keys = new ArrayList<DeleteObjectsRequest.KeyVersion>();
+        for (String object : deleteObjects) {
+            keys.add(new DeleteObjectsRequest.KeyVersion(object));
+        }
+        // Delete the sample objects.
+        DeleteObjectsRequest multiObjectDeleteRequest = new DeleteObjectsRequest(bucketName)
+                .withKeys(keys)
+                .withQuiet(false);
+        return s3Client.deleteObjects(multiObjectDeleteRequest);
+    }
+
+    public static void closeS3(AmazonS3 s3Client){
+        if(s3Client != null){
+            s3Client.shutdown();
+        }
+    }
+
+    public static String initiateMultipartUploadAndGetId(AmazonS3 s3Client, String bucketName,String object){
+        InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(bucketName,object);
+        InitiateMultipartUploadResult initResponse = s3Client.initiateMultipartUpload(initRequest);
+        return initResponse.getUploadId();
+    }
+
+
+    public static PartETag uploadPart(AmazonS3 s3Client, String bucketName,String object,String uploadId,int partNumber,byte[] data) {
+        InputStream inputStream = new ByteArrayInputStream(data);
+
+        UploadPartRequest uploadRequest = new UploadPartRequest()
+                .withBucketName(bucketName)
+                .withKey(object)
+                .withUploadId(uploadId)
+                .withPartNumber(partNumber)
+                .withInputStream(inputStream)
+                .withPartSize(data.length);
+        UploadPartResult uploadResult = s3Client.uploadPart(uploadRequest);
+        return uploadResult.getPartETag();
+    }
+
+    public static void completeMultipartUpload(AmazonS3 s3Client, String bucketName,String object,String uploadId,List<PartETag> partETags) {
+        CompleteMultipartUploadRequest compRequest = new CompleteMultipartUploadRequest(bucketName, object,
+                uploadId, partETags);
+        s3Client.completeMultipartUpload(compRequest);
+    }
 }

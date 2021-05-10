@@ -26,12 +26,18 @@ aws s3
   - 必选：是
   - 默认值：无
 
+- **endpoint**
+  - 描述：若需指定endpoint，则可通过该参数制定，详情可参见官方文档 
+    https://docs.aws.amazon.com/zh_cn/general/latest/gr/rande.html
+  - 必选：否
+  - 默认值：根据 region 自动选择 endpoint
+
 
 
 - **region**
   - 描述：储存桶的区域
   - 必选：否
-  - 默认值：`us-west-2`
+  - 默认值：`cn-north-1`
 
 
 
@@ -115,6 +121,7 @@ aws s3
           "parameter": {
             "accessKey": "",
             "secretKey": "",
+            "endpoint": "http://127.0.0.1:9090",
             "region": "",
             "bucket": "",
             "object": ["aaa.xml"],
@@ -180,75 +187,15 @@ aws s3
     "content": [
       {
         "reader": {
-          "p
-      {
-        "job": {
-          "content": [
-            {
-              "reader": {
-                "parameter": {
-                  "accessKey": "",
-                  "secretKey": "",
-                  "region": "",
-                  "bucket": "",
-                  "object": ["aaa.xml","bbb/ccc.xml"],
-                  "column": [
-                    {
-                      "index": 0,
-                      "type": "string"
-                    },
-                    {
-                      "index": 1,
-                      "type": "string"
-                    },
-                    {
-                      "index": 2,
-                      "type": "int"
-                    },
-                    {
-                      "index": 3,
-                      "type": "int"
-                    }
-                  ],
-                  "encoding": "",
-                  "fieldDelimiter": ""
-                },
-                "name": "s3reader"
-              },
-              "writer": {
-                "name": "streamwriter",
-                "parameter": {
-                  "print": true
-                }
-              }
-            }
-          ],
-          "setting": {
-            "speed": {
-              "channel": 1,
-              "bytes": 0
-            },
-            "errorLimit": {
-              "record": 100
-            },
-            "restore": {
-              "maxRowNumForCheckpoint": 0,
-              "isRestore": false
-            },
-            "log": {
-              "isLogger": false,
-              "level": "debug",
-              "path": "",
-              "pattern": ""
-            }
-          }
-        }
-      }arameter": {
+          "parameter": {
             "accessKey": "",
             "secretKey": "",
             "region": "",
             "bucket": "",
-            "object": ["aaa.xml","bbb/ccc.xml"],
+            "object": [
+              "aaa.xml",
+              "bbb/ccc.xml"
+            ],
             "column": [
               {
                 "index": 0,
