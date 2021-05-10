@@ -132,20 +132,6 @@ public interface JdbcDialect extends Serializable {
      */
     String quoteTable(String table);
 
-    /**
-     * 获取左引号
-     *
-     * @return 引号
-     */
-    String getStartQuote();
-
-    /**
-     * 获取右引号
-     *
-     * @return 引号
-     */
-    String getEndQuote();
-
     /** Get row exists statement by condition fields. Default use SELECT. */
     default String getRowExistsStatement(String tableName, String[] conditionFields) {
         String fieldExpressions =

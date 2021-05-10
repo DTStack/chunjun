@@ -121,19 +121,9 @@ public class MysqlDialect implements JdbcDialect {
             if (i != 0) {
                 sb.append(".");
             }
-            sb.append(getStartQuote() + parts[i] + getEndQuote());
+            sb.append(quoteIdentifier(parts[i]));
         }
         return sb.toString();
-    }
-
-    @Override
-    public String getStartQuote() {
-        return "\"";
-    }
-
-    @Override
-    public String getEndQuote() {
-        return "\"";
     }
 
     @Override
