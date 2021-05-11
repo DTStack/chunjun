@@ -63,6 +63,7 @@ public class PluginNameConstrant {
     public static final String METADATAES6_READER = "metadataes6reader";
     public static final String METADATAVERTICA_READER = "metadataverticareader";
     public static final String METADATAPGSQL_READER = "metadatapostgresqlreader";
+    public static final String METADATAKAFKA_READER = "metadatakafkareader";
     public static final String GREENPLUM_READER = "greenplumreader";
     public static final String PHOENIX5_READER = "phoenix5reader";
     public static final String KINGBASE_READER = "kingbasereader";
