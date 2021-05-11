@@ -32,6 +32,8 @@ import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -97,10 +99,10 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
                 return val -> new BigDecimalColumn(JMockData.mock(BigDecimal.class));
             case "DATE":
                 return val ->
-                        new StringColumn(LocalDate.now().toString());
+                        new BigDecimalColumn(LocalDate.now().toEpochDay());
             case "TIME":
                 return val ->
-                        new StringColumn(LocalTime.now().toString());
+                        new BigDecimalColumn((LocalTime.now().toNanoOfDay() / 1_000_000L));
             case "DATETIME":
             case "TIMESTAMP":
                 return val -> new TimestampColumn(JMockData.mock(Timestamp.class));

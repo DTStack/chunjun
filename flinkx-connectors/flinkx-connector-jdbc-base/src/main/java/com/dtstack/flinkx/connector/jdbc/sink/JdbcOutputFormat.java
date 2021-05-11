@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -27,6 +25,7 @@ import org.apache.flink.types.Row;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
@@ -44,10 +43,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -99,7 +100,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
 
-            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(getTableName(), dbConn);
+            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
             List<String> fullColumn = pair.getLeft();
             List<String> fullColumnType = pair.getRight();
 

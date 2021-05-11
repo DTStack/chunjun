@@ -223,6 +223,7 @@ public abstract class JdbcDynamicTableFactory
         Set<ConfigOption<?>> optionalOptions = new HashSet<>();
         optionalOptions.add(USERNAME);
         optionalOptions.add(PASSWORD);
+        optionalOptions.add(SCHEMA);
 
         optionalOptions.add(SCAN_PARTITION_COLUMN);
         optionalOptions.add(SCAN_PARTITION_COLUMN_TYPE);

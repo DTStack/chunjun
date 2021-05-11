@@ -24,7 +24,9 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -221,10 +223,33 @@ public interface JdbcDialect extends Serializable {
      * @param where
      * @return
      */
-    String getSelectFromStatement(
+    default String getSelectFromStatement(
             String schemaName,
             String tableName,
             String customSql,
             String[] selectFields,
-            String where);
+            String where) {
+        String selectExpressions =
+                Arrays.stream(selectFields)
+                        .map(this::quoteIdentifier)
+                        .collect(Collectors.joining(", "));
+        StringBuilder sql = new StringBuilder(128);
+        sql.append("SELECT ");
+        if (StringUtils.isNotBlank(customSql)) {
+            sql.append("* FROM (")
+                    .append(customSql)
+                    .append(") ")
+                    .append(JdbcUtil.TEMPORARY_TABLE_NAME);
+        } else {
+            sql.append(selectExpressions).append(" FROM ");
+            if (StringUtils.isNotBlank(schemaName)) {
+                sql.append(quoteIdentifier(schemaName)).append(" .");
+            }
+            sql.append(quoteIdentifier(tableName));
+        }
+        if (StringUtils.isNotBlank(where)) {
+            sql.append(" WHERE ").append(where);
+        }
+        return sql.toString();
+    }
 }
