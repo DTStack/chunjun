@@ -21,6 +21,7 @@
         <module>flinkx-mysql</module>
         <module>flinkx-polardb</module>
         <module>flinkx-oracle</module>
+        <module>flinkx-oracle9</module>
         <module>flinkx-sqlserver</module>
         <module>flinkx-postgresql</module>
         <module>flinkx-db2</module>
