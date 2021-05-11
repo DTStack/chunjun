@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
 public class StringUtil {
 
     public static final int STEP_SIZE = 2;
-
+    public final static char[] hexChars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
     /**
      * Handle the escaped escape charactor.
      *
@@ -339,5 +339,21 @@ public class StringUtil {
             }
         }
         return stringBuffer.toString();
+    }
+
+    /**
+     * 16进制数组 转为hex字符串
+     * @see com.microsoft.sqlserver.jdbc.Util#bytesToHexString(byte[], int)
+     * @param b
+     * @return
+     */
+    public static String bytesToHexString(byte[] b) {
+        StringBuilder sb = new StringBuilder(b.length * 2);
+        for (byte value : b) {
+            int hexVal = value & 0xFF;
+            sb.append(hexChars[(hexVal & 0xF0) >> 4]);
+            sb.append(hexChars[(hexVal & 0x0F)]);
+        }
+        return sb.toString();
     }
 }

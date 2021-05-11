@@ -20,10 +20,19 @@ package com.dtstack.flinkx.sqlserver.format;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.sqlserver.SqlServerConstants;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
@@ -52,6 +61,10 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                             if (obj instanceof Boolean) {
                                 obj = ((Boolean) obj ? 1 : 0);
                             }
+                        }else if ("timestamp".equalsIgnoreCase(columnTypeList.get(pos))){
+                            byte[] value = (byte[]) obj;
+                            String hexString = StringUtil.bytesToHexString(value);
+                            obj = new BigInteger(hexString,16);
                         }
                     }
                     obj = clobToString(obj);
