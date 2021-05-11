@@ -19,9 +19,6 @@
 package com.dtstack.flinkx.connector.jdbc.source;
 
 
-import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.StringColumn;
-
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -32,6 +29,8 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metrics.BigIntegerAccmulator;
@@ -265,8 +264,16 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     public FormatState getFormatState() {
         super.getFormatState();
 
-        if (formatState != null && lastRow != null && jdbcConf.getRestoreColumnIndex() > 0) {
-            formatState.setState(((GenericRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex()));
+        if (formatState != null && lastRow != null && jdbcConf.getRestoreColumnIndex() > -1) {
+            Object state;
+            if (lastRow instanceof GenericRowData) {
+                state = ((GenericRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex());
+            } else if (lastRow instanceof ColumnRowData) {
+                state = ((ColumnRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex());
+            } else {
+                throw new RuntimeException("not support RowData:" + lastRow.getClass());
+            }
+            formatState.setState(state);
         }
         return formatState;
     }
@@ -458,9 +465,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         if (inputSplit != null) {
             JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
             String startLocation = jdbcInputSplit.getStartLocation();
-            if (formatState != null && StringUtils.isNotBlank(jdbcConf.getRestoreColumn())) {
+            if (formatState.getState() != null && StringUtils.isNotBlank(jdbcConf.getRestoreColumn())) {
                 startLocation = String.valueOf(formatState.getState());
                 if (StringUtils.isNotBlank(startLocation)) {
+                    if(endLocationAccumulator != null){
+                        endLocationAccumulator.add(new BigInteger(startLocation));
+                    }
                     LOG.info(
                             "restore from checkpoint, update startLocation, before = {}, after = {}",
                             startLocation,

@@ -28,6 +28,16 @@ import org.apache.flink.configuration.ConfigOptions;
  **/
 public class JdbcSourceOptions {
     // read config options
+    public static final ConfigOption<String> SCAN_RESTORE_COLUMNNAME =
+            ConfigOptions.key("scan.restore.columnname")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("restore.columnname.");
+    public static final ConfigOption<String> SCAN_RESTORE_COLUMNTYPE =
+            ConfigOptions.key("scan.restore.columntype")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("restore.columntype.");
     public static final ConfigOption<String> SCAN_PARTITION_COLUMN =
             ConfigOptions.key("scan.partition.column")
                     .stringType()
