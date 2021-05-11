@@ -16,8 +16,8 @@ CREATE TABLE source
       'schema' = 'dev_db',
       'username' = 'dev',
       'password' = 'dev123',
-      'scan.fetch-size' = '2',
-      'scan.query-timeout' = '10'
+      'sink.buffer-flush.max-rows' = '1',
+      'sink.allReplace' = 'false'
       );
 
 CREATE TABLE sink
@@ -32,9 +32,10 @@ CREATE TABLE sink
     todayDate      date,
     todayTime      time
 ) WITH (
-      'connector' = 'stream-x'
+      'connector' = 'stream-x',
+      'number-of-rows' = '50'
       );
 
-insert into sink
+insert into source
 select *
-from source;
+from sink;

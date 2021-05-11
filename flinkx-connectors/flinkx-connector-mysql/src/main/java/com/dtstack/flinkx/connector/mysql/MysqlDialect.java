@@ -19,8 +19,6 @@
 package com.dtstack.flinkx.connector.mysql;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -62,7 +60,11 @@ public class MysqlDialect implements JdbcDialect {
      */
     @Override
     public Optional<String> getUpsertStatement(
-            String tableName, String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
+            String schema,
+            String tableName,
+            String[] fieldNames,
+            String[] uniqueKeyFields,
+            boolean allReplace) {
         String updateClause;
         if (allReplace) {
             updateClause =
@@ -84,13 +86,14 @@ public class MysqlDialect implements JdbcDialect {
         }
 
         return Optional.of(
-                getInsertIntoStatement(tableName, fieldNames)
+                getInsertIntoStatement(schema, tableName, fieldNames)
                         + " ON DUPLICATE KEY UPDATE "
                         + updateClause);
     }
 
     @Override
-    public Optional<String> getReplaceStatement(String tableName, String[] fieldNames) {
+    public Optional<String> getReplaceStatement(
+            String schema, String tableName, String[] fieldNames) {
         String columns =
                 Arrays.stream(fieldNames)
                         .map(this::quoteIdentifier)
@@ -99,30 +102,12 @@ public class MysqlDialect implements JdbcDialect {
                 Arrays.stream(fieldNames).map(f -> "?").collect(Collectors.joining(", "));
         return Optional.of(
                 "REPLACE INTO "
-                        + quoteIdentifier(tableName)
+                        + buildTableInfoWithSchema(schema, tableName)
                         + "("
                         + columns
                         + ")"
                         + " VALUES ("
                         + placeholders
                         + ")");
-    }
-
-    @Override
-    public String getSqlQueryFields(String tableName) {
-        return "SELECT * FROM " + tableName + " LIMIT 0";
-    }
-
-    @Override
-    public String quoteTable(String table) {
-        String[] parts = table.split("\\.");
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < parts.length; ++i) {
-            if (i != 0) {
-                sb.append(".");
-            }
-            sb.append(quoteIdentifier(parts[i]));
-        }
-        return sb.toString();
     }
 }

@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.gbase;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.util.DtStringUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -50,16 +49,15 @@ public class GbaseDialect implements JdbcDialect {
         return Optional.of("com.gbase.jdbc.Driver");
     }
 
-    @Override
-    public String getSqlQueryFields(String tableName) {
-        return "SELECT * FROM " + tableName + " LIMIT 0";
-    }
-
-    @Override
-    public Optional<String> getUpsertStatement(
-            String tableName, String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
-        return JdbcDialect.super.getUpsertStatement(
-                tableName, fieldNames, uniqueKeyFields, allReplace);
+    /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */
+    public String buildDualQueryStatement(String[] column) {
+        StringBuilder sb = new StringBuilder("SELECT ");
+        String collect =
+                Arrays.stream(column)
+                        .map(col -> " ? " + quoteIdentifier(col))
+                        .collect(Collectors.joining(", "));
+        sb.append(collect);
+        return sb.toString();
     }
 
     public Optional<String> getUpsertStatement(
@@ -68,47 +66,42 @@ public class GbaseDialect implements JdbcDialect {
             String[] fieldNames,
             String[] uniqueKeyFields,
             boolean allReplace) {
-        tableName = DtStringUtil.getTableFullPath(schema, tableName);
-        StringBuilder sb = new StringBuilder();
-        sb.append("MERGE INTO ")
+        tableName = buildTableInfoWithSchema(schema, tableName);
+        StringBuilder mergeIntoSql = new StringBuilder(64);
+        mergeIntoSql
+                .append("MERGE INTO ")
                 .append(tableName)
-                .append(" T1 USING ")
-                .append("(")
-                .append(buildValuesStatement(fieldNames))
-                .append(") T2 (")
-                .append(String.join(", ", fieldNames))
-                .append(") ON (")
-                .append(buildConnectionConditions(uniqueKeyFields))
+                .append(" T1 USING (")
+                .append(buildDualQueryStatement(fieldNames))
+                .append(") T2 ON (")
+                .append(buildEqualConditions(uniqueKeyFields))
                 .append(") ");
 
         String updateSql = buildUpdateConnection(fieldNames, uniqueKeyFields, allReplace);
 
         if (StringUtils.isNotEmpty(updateSql)) {
-            sb.append(" WHEN MATCHED THEN UPDATE SET ").append(updateSql);
+            mergeIntoSql.append(" WHEN MATCHED THEN UPDATE SET ");
+            mergeIntoSql.append(updateSql);
         }
 
-        sb.append(" WHEN NOT MATCHED THEN " + "INSERT (")
+        mergeIntoSql
+                .append(" WHEN NOT MATCHED THEN ")
+                .append("INSERT (")
                 .append(
                         Arrays.stream(fieldNames)
                                 .map(this::quoteIdentifier)
-                                .collect(Collectors.joining(",")))
+                                .collect(Collectors.joining(", ")))
                 .append(") VALUES (")
                 .append(
                         Arrays.stream(fieldNames)
                                 .map(col -> "T2." + quoteIdentifier(col))
-                                .collect(Collectors.joining(",")))
+                                .collect(Collectors.joining(", ")))
                 .append(")");
-        return Optional.of(sb.toString());
+
+        return Optional.of(mergeIntoSql.toString());
     }
 
-    /**
-     * build T1."A"=T2."A" or T1."A"=nvl(T2."A",T1."A")
-     *
-     * @param fieldNames
-     * @param uniqueKeyFields
-     * @param allReplace
-     * @return
-     */
+    /** build T1."A"=T2."A" or T1."A"=nvl(T2."A",T1."A") */
     private String buildUpdateConnection(
             String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
         List<String> uniqueKeyList = Arrays.asList(uniqueKeyFields);
@@ -118,6 +111,10 @@ public class GbaseDialect implements JdbcDialect {
                 .collect(Collectors.joining(","));
     }
 
+    /**
+     * Depending on parameter [allReplace] build different sql part. e.g T1."A"=T2."A" or
+     * T1."A"=nvl(T2."A",T1."A")
+     */
     private String buildConnectString(boolean allReplace, String col) {
         return allReplace
                 ? quoteIdentifier("T1")
@@ -141,45 +138,11 @@ public class GbaseDialect implements JdbcDialect {
                         + ")";
     }
 
-    private String buildConnectionConditions(String[] uniqueKeyFields) {
+    /** build sql part e.g: T1.`A` = T2.`A`, T1.`B` = T2.`B` */
+    private String buildEqualConditions(String[] uniqueKeyFields) {
         return Arrays.stream(uniqueKeyFields)
-                .map(col -> "T1." + quoteIdentifier(col) + "=T2." + quoteIdentifier(col))
-                .collect(Collectors.joining(","));
-    }
-
-    /**
-     * build sql part e.g: VALUES('1001','zs','sss')
-     *
-     * @param column destination column
-     * @return e.g: VALUES('1001','zs','sss')
-     */
-    public String buildValuesStatement(String[] column) {
-        StringBuilder sb = new StringBuilder("VALUES(");
-        String collect = Arrays.stream(column).map(col -> " ? ").collect(Collectors.joining(", "));
-
-        return sb.append(collect).append(")").toString();
-    }
-
-    /**
-     * 给表名加引号
-     *
-     * @param table 表名
-     * @return "table"
-     */
-    @Override
-    public String quoteTable(String table) {
-        String[] strings = table.split("\\.");
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < strings.length; ++i) {
-            if (i != 0) {
-                sb.append(".");
-            }
-
-            sb.append(quoteIdentifier(strings[i]));
-        }
-
-        return sb.toString();
+                .map(col -> "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col))
+                .collect(Collectors.joining(", "));
     }
 
     @Override

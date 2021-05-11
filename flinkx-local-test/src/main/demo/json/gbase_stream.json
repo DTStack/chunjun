@@ -9,7 +9,7 @@
             "connection": [
               {
                 "jdbcUrl": [
-                  "jdbc:gbase://172.16.100.186:5258/dev_db"
+                  "jdbc:gbase://gbase:5258/dev_db"
                 ],
                 "schema": "dev_db",
                 "table": [

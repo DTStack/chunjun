@@ -115,6 +115,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         this.jdbcDialect = jdbcDialect;
         this.asyncPoolSize = ((JdbcLookupConf) lookupConf).getAsyncPoolSize();
         this.query = jdbcDialect.getSelectFromStatement(
+                jdbcConf.getSchema(),
                 jdbcConf.getTable(),
                 fieldNames,
                 keyNames);

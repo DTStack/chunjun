@@ -18,13 +18,12 @@
 
 package com.dtstack.flinkx.connector.gbase.sink;
 
-import com.dtstack.flinkx.connector.gbase.converter.GbaseRawTypeConverter;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.util.TableUtil;
-
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.connector.gbase.converter.GbaseRawTypeConverter;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.util.TableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,21 +42,10 @@ public class GbaseOutputFormat extends JdbcOutputFormat {
         super.openInternal(taskNumber, numTasks);
         try {
             LogicalType rowType =
-                    TableUtil.createRowType(
-                            fullColumn, fullColumnType, GbaseRawTypeConverter::apply);
+                    TableUtil.createRowType(column, columnType, GbaseRawTypeConverter::apply);
             setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
         } catch (SQLException e) {
             LOG.error("", e);
         }
-    }
-
-    @Override
-    protected String getTableName() {
-        String table = jdbcConf.getTable();
-        String[] split = table.split("\\.");
-        if (split.length > 1) {
-            table = split[1];
-        }
-        return table;
     }
 }

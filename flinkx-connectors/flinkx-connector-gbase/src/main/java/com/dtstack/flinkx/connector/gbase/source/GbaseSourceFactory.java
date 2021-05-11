@@ -32,8 +32,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  */
 public class GbaseSourceFactory extends JdbcSourceFactory {
 
-    private static final int DEFAULT_FETCH_SIZE = Integer.MIN_VALUE;
-
     public GbaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         super.jdbcDialect = new GbaseDialect();
@@ -48,10 +46,5 @@ public class GbaseSourceFactory extends JdbcSourceFactory {
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new GbaseInputFormat());
-    }
-
-    @Override
-    protected int getDefaultFetchSize() {
-        return DEFAULT_FETCH_SIZE;
     }
 }

@@ -43,8 +43,7 @@ public class GbaseInputFormat extends JdbcInputFormat {
         super.openInternal(inputSplit);
         try {
             LogicalType rowType =
-                    TableUtil.createRowType(
-                            fullColumnNameList, fullColumnTypeList, GbaseRawTypeConverter::apply);
+                    TableUtil.createRowType(column, columnType, GbaseRawTypeConverter::apply);
             setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
         } catch (SQLException e) {
             LOG.error("", e);

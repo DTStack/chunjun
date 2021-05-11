@@ -54,7 +54,7 @@
             "password": "dev123",
             "connection": [
               {
-                "jdbcUrl": "jdbc:gbase://172.16.100.186:5258/dev_db",
+                "jdbcUrl": "jdbc:gbase://gbase:5258/dev_db",
                 "schema": "dev_db",
                 "table": [
                   "sink"

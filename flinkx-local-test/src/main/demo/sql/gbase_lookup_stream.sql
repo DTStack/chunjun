@@ -29,7 +29,7 @@ CREATE TABLE side
     PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
       'connector' = 'gbase-x',
-      'url' = 'jdbc:gbase://172.16.100.186:5258/dev_db',
+      'url' = 'jdbc:gbase://gbase:5258/dev_db',
       'table-name' = 'sink',
       'schema' = 'dev_db',
       'username' = 'dev',
