@@ -18,13 +18,13 @@
 
 package com.dtstack.flinkx.util;
 
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
-
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.lang.reflect.Constructor;
 import java.net.URL;
