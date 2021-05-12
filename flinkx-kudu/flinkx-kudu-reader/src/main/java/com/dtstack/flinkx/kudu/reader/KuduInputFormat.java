@@ -88,7 +88,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
             }
         }
 
-        LOG.info("nextRecordInternal, numReadCounter = {}", numReadCounter.getLocalValue());
+        LOG.debug("nextRecordInternal, numReadCounter = {}", numReadCounter.getLocalValue());
         return row;
     }
 
@@ -106,7 +106,6 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        LOG.info("execute reachedEnd, indexOfSubtask = {}", indexOfSubTask);
         if (iterator == null || !iterator.hasNext()) {
             return getNextRows();
         }
