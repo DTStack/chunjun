@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.s3.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.s3.S3Config;
 import com.dtstack.flinkx.s3.format.S3OutputFormatBuilder;
@@ -43,11 +44,12 @@ public class S3Writer extends BaseDataWriter {
     private List<String> columnName;
     private List<String> columnType;
     private S3Config s3Config;
+    private SpeedConfig speedConfig;
 
     public S3Writer(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-
+        this.speedConfig = config.getJob().getSetting().getSpeed();
         try {
             String s3json = objectMapper.writeValueAsString(writerConfig.getParameter().getAll());
             s3Config = objectMapper.readValue(s3json, S3Config.class);
@@ -73,6 +75,7 @@ public class S3Writer extends BaseDataWriter {
         S3OutputFormatBuilder builder = new S3OutputFormatBuilder();
         builder.setS3Config(s3Config);
         builder.setObject(s3Config.getObject());
+        builder.setSpeedConfig(speedConfig);
         builder.setMonitorUrls(monitorUrls);
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);

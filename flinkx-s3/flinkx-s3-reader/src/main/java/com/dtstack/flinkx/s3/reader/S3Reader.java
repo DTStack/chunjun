@@ -28,7 +28,6 @@ import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.s3.S3SimpleObject;
 import com.dtstack.flinkx.s3.S3Util;
 import com.dtstack.flinkx.s3.S3Config;
-import com.dtstack.flinkx.s3.format.RegexUtil;
 import com.dtstack.flinkx.s3.format.S3InputFormat;
 import com.dtstack.flinkx.s3.format.S3InputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
@@ -95,40 +94,21 @@ public class S3Reader extends BaseDataReader {
         AmazonS3 amazonS3 = S3Util.initS3(s3Config);
         for (String key : s3Config.getObject()) {
             if (StringUtils.isNotBlank(key)) {
-                RegexUtil.initializeOrReset(key);
-                String prefix = RegexUtil.getCommonPrefix();
-                if (StringUtils.isBlank(prefix)) {
-                    //公共前缀为空，则说明 key 为 */xxx/yyy... ,前缀不确定,需要查询出所有 key，再利用正则表达式去匹配
-                    List<String> subObjects = S3Util.listObjectsKey(amazonS3, bucket);
+                if(key.endsWith(".*")){
+                    //以 .* 结尾，说明该 object 为前缀
+                    String prefix = key.substring(0,key.indexOf(".*"));
+                    List<String> subObjects = S3Util.listObjectsKeyByPrefix(amazonS3, bucket, prefix);
                     for (String subObject : subObjects) {
                         //遍历所有 key，去匹配正则表达式
-                        if (RegexUtil.match(subObject)) {
-                            //如果匹配正则表达式，则获取其元数据信息
-                            S3SimpleObject s3SimpleObject = S3Util.getS3SimpleObject(amazonS3, bucket, subObject);
-                            resolved.add(s3SimpleObject);
-                        }
+                        //如果匹配正则表达式，则获取其元数据信息
+                        S3SimpleObject s3SimpleObject = S3Util.getS3SimpleObject(amazonS3, bucket, subObject);
+                        resolved.add(s3SimpleObject);
                     }
-                } else {
-                    if (key.equals(prefix)) {
-                        // 该 key 不是正则表达式，是唯一的
-                        if (S3Util.doesObjectExist(amazonS3, bucket, key)) {
-                            S3SimpleObject s3SimpleObject = S3Util.getS3SimpleObject(amazonS3, bucket, key);
-                            resolved.add(s3SimpleObject);
-                        }
-                    } else if (key.startsWith(prefix)) {
-                        //该 key 是正则表达式，利用公共前缀去查询，再利用正则表达式去匹配
-                        List<String> subObjects = S3Util.listObjectsKeyByPrefix(amazonS3, bucket, prefix);
-                        for (String subObject : subObjects) {
-                            //遍历所有 key，去匹配正则表达式
-                            if (RegexUtil.match(subObject)) {
-                                //如果匹配正则表达式，则获取其元数据信息
-                                S3SimpleObject s3SimpleObject = S3Util.getS3SimpleObject(amazonS3, bucket, subObject);
-                                resolved.add(s3SimpleObject);
-                            }
-                        }
-                    }
+                }else if(S3Util.doesObjectExist(amazonS3,bucket,key)){
+                    //精确查询且 object 存在
+                    S3SimpleObject s3SimpleObject = S3Util.getS3SimpleObject(amazonS3, bucket, key);
+                    resolved.add(s3SimpleObject);
                 }
-
             }
         }
         List<S3SimpleObject> distinct = new ArrayList<>(resolved);

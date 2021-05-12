@@ -74,15 +74,7 @@ amazon s3
   - 描述：是否增加首行为标题行，如果是读取字段参数为标题行
   - 必选：否
   - 默认值：false
-
-
-- **writeMode**
-  - 描述：ftpwriter写入前数据清理处理模式：
-    - append，写入前不做任何处理，S3Writer直接使用object名称写入，并使用随机UUID的后缀名来保证文件名不冲突。例如用户指定的object名为abc.csv，实际写入为abc.csv_xxxxxx_xxxx_xxxx
-    - overwrite：覆盖
-  - 注意：overwrite模式时会在写入前清理object名称前缀匹配的所有object
-  - 必选：否
-  - 默认值：append
+  
 
 
 - **column**

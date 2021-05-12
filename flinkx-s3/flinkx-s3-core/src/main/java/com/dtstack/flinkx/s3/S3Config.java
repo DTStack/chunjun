@@ -49,7 +49,7 @@ public class S3Config implements Serializable {
 
     private char fieldDelimiter = ',';
 
-    private String writeMode = "append";
+    private String writeMode = "overwrite";
 
     private String encoding = "UTF-8";
 

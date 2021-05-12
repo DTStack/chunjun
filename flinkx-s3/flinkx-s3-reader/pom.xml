@@ -25,6 +25,7 @@
             <groupId>dk.brics.automaton</groupId>
             <artifactId>automaton</artifactId>
             <version>1.11-8</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

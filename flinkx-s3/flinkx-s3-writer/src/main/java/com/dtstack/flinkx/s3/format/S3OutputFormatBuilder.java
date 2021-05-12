@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.s3.format;
 
+import com.dtstack.flinkx.config.SpeedConfig;
 import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
 import com.dtstack.flinkx.s3.S3Config;
 
@@ -31,6 +32,7 @@ import java.util.List;
  */
 public class S3OutputFormatBuilder extends FileOutputFormatBuilder {
 
+    private SpeedConfig speedConfig;
 
     public S3OutputFormatBuilder() {
         S3OutputFormat format = new S3OutputFormat();
@@ -52,9 +54,20 @@ public class S3OutputFormatBuilder extends FileOutputFormatBuilder {
     @Override
     protected void checkFormat() {
         notSupportBatchWrite("S3Writer");
+        if (speedConfig.getChannel() > 1) {
+            throw new IllegalArgumentException(String.format("S3Writer can not support channel bigger than 1, current channel is [%s]",speedConfig.getChannel()));
+        }
     }
 
     public void setObject(List<String> object) {
 
+    }
+
+    public SpeedConfig getSpeedConfig() {
+        return speedConfig;
+    }
+
+    public void setSpeedConfig(SpeedConfig speedConfig) {
+        this.speedConfig = speedConfig;
     }
 }

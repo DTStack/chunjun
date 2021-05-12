@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.s3.format;
+package com.dtstack.flinkx.s3;
 
 import dk.brics.automaton.Automaton;
 import dk.brics.automaton.RegExp;
