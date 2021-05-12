@@ -757,8 +757,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (endLocationAccumulator != null) {
                 metrics.put(Metrics.END_LOCATION, endLocationAccumulator.getLocalValue());
             }
-            Gson gson = new Gson();
-            out.writeUTF(gson.toJson(metrics));
+            out.writeUTF(MapUtil.writeValueAsString(metrics));
         } catch (Exception e) {
             LOG.error("hadoop conf:{}", hadoopConfig);
             throw new IOException("Upload metric to HDFS error", e);
