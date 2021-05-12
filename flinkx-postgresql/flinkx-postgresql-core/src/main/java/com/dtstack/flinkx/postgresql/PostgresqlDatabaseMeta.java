@@ -38,16 +38,6 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getStartQuote() {
-        return "";
-    }
-
-    @Override
-    public String getEndQuote() {
-        return "";
-    }
-
-    @Override
     public String quoteValue(String value, String column) {
         return String.format("'%s' as %s",value,column);
     }
