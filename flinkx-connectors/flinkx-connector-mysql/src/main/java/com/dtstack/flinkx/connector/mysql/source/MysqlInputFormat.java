@@ -45,7 +45,7 @@ public class MysqlInputFormat extends JdbcInputFormat {
         try {
             LogicalType rowType =
                     TableUtil.createRowType(
-                            fullColumnNameList, fullColumnTypeList, MysqlRawTypeConverter::apply);
+                            column, columnType, MysqlRawTypeConverter::apply);
             setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
         } catch (SQLException e) {
             LOG.error("", e);

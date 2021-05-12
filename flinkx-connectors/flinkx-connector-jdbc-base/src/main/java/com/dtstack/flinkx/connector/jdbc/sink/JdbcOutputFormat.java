@@ -71,14 +71,15 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected transient Connection dbConn;
     protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
-    // TODO 这几个名Source Sinke要对齐下，column、columnType、fullColumn、fullColumnType
+
+    /** 用户脚本中填写的字段名称集合 */
     protected List<String> column;
+    /** 用户脚本中填写的字段类型集合 */
     protected List<String> columnType;
-    protected List<String> fullColumnType;
 
     protected RowData lastRow = null;
     protected long rowsOfCurrentTransaction;
-    protected List<String> fullColumn;
+
 
     @Override
     public void initializeGlobal(int parallelism) {
@@ -99,8 +100,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             dbConn.setAutoCommit(false);
 
             Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(getTableName(), dbConn);
-            fullColumn = pair.getLeft();
-            fullColumnType = pair.getRight();
+            List<String> fullColumn = pair.getLeft();
+            List<String> fullColumnType = pair.getRight();
 
             List<FieldConf> fieldList = jdbcConf.getColumn();
             if(fieldList.size() == 1 && Objects.equals(fieldList.get(0).getName(), "*")){

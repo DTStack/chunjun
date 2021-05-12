@@ -31,6 +31,7 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import io.vertx.core.json.JsonArray;
@@ -130,6 +131,9 @@ public class JdbcColumnConverter
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn((Timestamp) val);
+            case BINARY:
+            case VARBINARY:
+                return val -> new BytesColumn((byte[]) val);
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
@@ -189,6 +193,11 @@ public class JdbcColumnConverter
                 return (val, index, statement) ->
                         statement.setTimestamp(
                                 index, ((ColumnRowData) val).getField(index).asTimestamp());
+
+            case BINARY:
+            case VARBINARY:
+                return (val, index, statement) ->
+                        statement.setBytes(index, ((ColumnRowData) val).getField(index).asBytes());
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }

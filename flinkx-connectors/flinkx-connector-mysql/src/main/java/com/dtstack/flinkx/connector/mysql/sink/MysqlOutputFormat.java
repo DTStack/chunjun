@@ -44,7 +44,7 @@ public class MysqlOutputFormat extends JdbcOutputFormat {
         try {
             LogicalType rowType =
                     TableUtil.createRowType(
-                            fullColumn, fullColumnType, MysqlRawTypeConverter::apply);
+                            column, columnType, MysqlRawTypeConverter::apply);
             setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
         } catch (SQLException e) {
             LOG.error("", e);
