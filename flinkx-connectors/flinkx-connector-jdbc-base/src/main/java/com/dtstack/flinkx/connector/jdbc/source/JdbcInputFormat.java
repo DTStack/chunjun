@@ -751,7 +751,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         try {
             List<FieldConf> fieldList = jdbcConf.getColumn();
 
-            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getTable(), dbConn);
+            Pair<List<String>, List<String>> pair =
+                    JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
             List<String> fullColumn = pair.getLeft();
             List<String> fullColumnType = pair.getRight();
 
