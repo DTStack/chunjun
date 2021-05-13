@@ -154,7 +154,7 @@ public class JdbcRowConverter
                 return val -> TimestampData.fromTimestamp((Timestamp) val);
             case CHAR:
             case VARCHAR:
-                return val -> StringData.fromString((String) val);
+                return val -> StringData.fromString(val.toString());
             case BINARY:
             case VARBINARY:
                 return val -> (byte[]) val;
