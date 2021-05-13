@@ -18,11 +18,6 @@
 
 package org.apache.flink.table.factories;
 
-import com.dtstack.flinkx.enums.ConnectorLoadMode;
-import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
-import com.dtstack.flinkx.util.PluginUtil;
-import org.apache.commons.lang.StringUtils;
-
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -43,11 +38,16 @@ import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.utils.EncodingUtils;
 import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.enums.ConnectorLoadMode;
+import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.util.PluginUtil;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -574,8 +574,14 @@ public final class FactoryUtil {
             final List<Factory> result = new LinkedList<>();
 
             // 1.通过factoryIdentifier查找jar路径
-            String pluginJarPath = PluginUtil.getJarFileDirPath(jarDirectorySuffix, pluginPath);
+            String pluginJarPath = pluginPath + File.separatorChar + jarDirectorySuffix;
             URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath, factoryIdentifier);
+            URL[] formatsJarUrls = PluginUtil.getPluginJarUrls(pluginPath + File.separatorChar + PluginUtil.FORMATS_SUFFIX, factoryIdentifier);
+            List<URL> jarUrlList = Arrays.stream(pluginJarUrls).collect(Collectors.toList());
+            if(formatsJarUrls.length > 0){
+                jarUrlList.addAll(Arrays.asList(formatsJarUrls));
+            }
+            URL[] jarUrls = jarUrlList.toArray(new URL[0]);
 
             // 2.反射创建对象
             Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
@@ -590,12 +596,14 @@ public final class FactoryUtil {
                 currentClassloader = field.get(classLoader);
             }
 
-            add.invoke(currentClassloader, pluginJarUrls);
+            for (URL jarUrl : jarUrls) {
+                add.invoke(currentClassloader, jarUrl);
+            }
             Factory factory = (Factory) classLoader.loadClass(fullClassName).newInstance();
             result.add(factory);
 
             // 3.registerCachedFile 为了添加到shipfile中
-            for (URL pluginJarUrl : pluginJarUrls) {
+            for (URL pluginJarUrl : jarUrls) {
                 if (!classPathSet.contains(pluginJarUrl)) {
                     classPathSet.add(pluginJarUrl);
                     String classFileName = String.format(

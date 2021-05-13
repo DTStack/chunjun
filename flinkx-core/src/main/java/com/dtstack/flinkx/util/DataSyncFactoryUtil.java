@@ -43,8 +43,8 @@ public class DataSyncFactoryUtil {
         try {
             String pluginName = config.getJob().getReader().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.source);
-            Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
+            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
+            urlList.addAll(PluginUtil.getJarFileDirPath(PluginUtil.FORMATS_SUFFIX, config.getPluginRoot(), null));
 
             return ClassLoaderManager.newInstance(
                     urlList,
@@ -64,8 +64,8 @@ public class DataSyncFactoryUtil {
         try {
             String pluginName = config.getJob().getContent().get(0).getWriter().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.sink);
-            Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
+            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
+            urlList.addAll(PluginUtil.getJarFileDirPath(PluginUtil.FORMATS_SUFFIX, config.getPluginRoot(), null));
 
             return ClassLoaderManager.newInstance(
                     urlList,
