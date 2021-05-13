@@ -101,6 +101,35 @@ public class DtStringUtil {
         return tokensList;
     }
 
+    /**
+     * add line Number after new line
+     * @param str
+     * @return
+     */
+    public static String addLineNumber(String str) {
+        String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(str, "\n");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 1; i <= lines.length; i++) {
+            int length = String.valueOf(i).length();
+            switch (length){
+                case 1:
+                    sb.append(i).append(">    ");
+                    break;
+                case 2:
+                    sb.append(i).append(">   ");
+                    break;
+                case 3:
+                    sb.append(i).append(">  ");
+                    break;
+                default:
+                    sb.append(i).append("> ");
+                    break;
+            }
+            sb.append(lines[i-1]).append("\n");
+        }
+        return sb.toString();
+    }
+
     public static List<String> splitField(String str) {
         final char delimiter = ',';
         List<String> tokensList = new ArrayList<>();

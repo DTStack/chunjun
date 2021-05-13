@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 
 public class CreateTableParser implements IParser {
 
-    private static final String PATTERN_STR = "(?i)create\\s+table\\s+(\\S+)\\s*\\((.+)\\)\\s*with\\s*\\((.+)\\)";
+    private static final String PATTERN_STR = "(?i)create\\s+table\\s+";
 
     private static final Pattern PATTERN = Pattern.compile(PATTERN_STR);
 
