@@ -2,7 +2,9 @@ package com.dtstack.flinkx.oracle9.format;
 
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
+import com.dtstack.flinkx.oracle9.IOracle9Helper;
 import com.dtstack.flinkx.oracle9.Oracle9DatabaseMeta;
+import com.dtstack.flinkx.oracle9.OracleUtil;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -40,48 +42,6 @@ import java.util.Map;
  * @date 2021/4/30 17:29
  */
 public class Oracle9OutputFormat extends JdbcOutputFormat {
-
-    @Override
-    protected void openInternal(int taskNumber, int numTasks){
-        try {
-            dbConn = getConnection();
-            //默认关闭事务自动提交，手动控制事务
-            dbConn.setAutoCommit(false);
-
-            if(CollectionUtils.isEmpty(fullColumn)) {
-                fullColumn = probeFullColumns(getTable(), dbConn);
-            }
-
-            if (!EWriteMode.INSERT.name().equalsIgnoreCase(mode)){
-                if(updateKey == null || updateKey.size() == 0) {
-                    updateKey = probePrimaryKeys(getTable(), dbConn);
-                }
-            }
-
-            if(fullColumnType == null) {
-                fullColumnType = analyzeTable();
-            }
-
-            for(String col : column) {
-                for (int i = 0; i < fullColumn.size(); i++) {
-                    if (col.equalsIgnoreCase(fullColumn.get(i))){
-                        columnType.add(fullColumnType.get(i));
-                        break;
-                    }
-                }
-            }
-
-            preparedStatement = prepareTemplates();
-            readyCheckpoint = false;
-
-            LOG.info("subTask[{}}] wait finished", taskNumber);
-        } catch (SQLException sqe) {
-            throw new IllegalArgumentException("open() failed.", sqe);
-        }finally {
-            DbUtil.commit(dbConn);
-        }
-    }
-
 
     @Override
     protected Object getField(Row row, int index) {
@@ -152,6 +112,7 @@ public class Oracle9OutputFormat extends JdbcOutputFormat {
      * 获取数据库连接
      * @return Connection
      */
+    @Override
     public Connection getConnection(){
         Field declaredField = ReflectionUtils.getDeclaredField(getClass().getClassLoader(), "ucp");
         assert declaredField != null;
@@ -182,8 +143,10 @@ public class Oracle9OutputFormat extends JdbcOutputFormat {
         URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
 
         ClassUtil.forName(driverName, childFirstClassLoader);
+
         try {
-            return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(dbUrl, username, password), 3, 2000,false);
+            IOracle9Helper helper = OracleUtil.getOracleHelperOfWrite(childFirstClassLoader);
+            return helper.getConnection(dbUrl, username, password);
         }catch (Exception e){
             String message = String.format("can not get oracle connection , dbUrl = %s, e = %s", dbUrl, ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message, e);

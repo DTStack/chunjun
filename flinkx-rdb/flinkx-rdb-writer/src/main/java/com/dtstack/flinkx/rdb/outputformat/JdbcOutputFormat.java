@@ -151,7 +151,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks){
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = DbUtil.getConnection(dbUrl, username, password);
+            dbConn = getConnection();
 
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
@@ -449,6 +449,15 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         if(taskNumber == 0) {
             DbUtil.executeBatch(dbConn, postSql);
         }
+    }
+
+    /**
+     * 获取jdbc链接
+     * @return
+     * @throws SQLException
+     */
+    public Connection getConnection() throws SQLException {
+        return DbUtil.getConnection(dbUrl, username, password);
     }
 
     /**

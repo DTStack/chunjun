@@ -18,11 +18,23 @@
 package com.dtstack.flinkx.oracle.format;
 
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.oracle.IOracleHelper;
 import com.dtstack.flinkx.oracle.OracleDatabaseMeta;
+import com.dtstack.flinkx.oracle.OracleUtil;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
+import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.ReflectionUtils;
+import com.google.common.collect.Lists;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.apache.flink.types.Row;
+import sun.misc.URLClassPath;
 
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -31,6 +43,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -104,6 +117,51 @@ public class OracleOutputFormat extends JdbcOutputFormat {
                 }
             }
             return retMap;
+        }
+    }
+
+    /**
+     * 获取数据库连接
+     * @return Connection
+     */
+    @Override
+    public Connection getConnection(){
+        Field declaredField = ReflectionUtils.getDeclaredField(getClass().getClassLoader(), "ucp");
+        assert declaredField != null;
+        declaredField.setAccessible(true);
+        URLClassPath urlClassPath;
+        try {
+            urlClassPath = (URLClassPath) declaredField.get(getClass().getClassLoader());
+        } catch (IllegalAccessException e) {
+            String message = String.format("can not get urlClassPath from current classLoader, classLoader = %s, e = %s", getClass().getClassLoader(), ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(message, e);
+        }
+        declaredField.setAccessible(false);
+
+        List<URL> needJar = Lists.newArrayList();
+        for (URL url : urlClassPath.getURLs()) {
+            String urlFileName = FilenameUtils.getName(url.getPath());
+            if (urlFileName.startsWith("flinkx-oracle-writer")) {
+                needJar.add(url);
+                break;
+            }
+        }
+
+        ClassLoader parentClassLoader = getClass().getClassLoader();
+        List<String> list = new LinkedList<>();
+        list.add("org.apache.flink");
+        list.add("com.dtstack.flinkx");
+
+        URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
+
+        ClassUtil.forName(driverName, childFirstClassLoader);
+
+        try {
+            IOracleHelper helper = OracleUtil.getOracleHelperOfWrite(childFirstClassLoader);
+            return helper.getConnection(dbUrl, username, password);
+        }catch (Exception e){
+            String message = String.format("can not get oracle connection , dbUrl = %s, e = %s", dbUrl, ExceptionUtil.getErrorMessage(e));
+            throw new RuntimeException(message, e);
         }
     }
 }

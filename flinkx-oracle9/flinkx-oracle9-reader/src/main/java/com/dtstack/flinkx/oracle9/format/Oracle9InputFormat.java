@@ -1,6 +1,8 @@
 package com.dtstack.flinkx.oracle9.format;
 
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.oracle9.IOracle9Helper;
+import com.dtstack.flinkx.oracle9.OracleUtil;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
 import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -19,7 +21,6 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.List;
@@ -144,7 +145,8 @@ public class Oracle9InputFormat extends JdbcInputFormat {
         URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
         ClassUtil.forName(driverName, childFirstClassLoader);
         try {
-            return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(dbUrl, username, password), 3, 2000,false);
+            IOracle9Helper helper = OracleUtil.getOracleHelperOfReader(childFirstClassLoader);
+            return RetryUtil.executeWithRetry(()->helper.getConnection(dbUrl, username, password), 3, 2000,false);
         }catch (Exception e){
             String message = String.format("can not get oracle connection , dbUrl = %s, e = %s", dbUrl, ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message, e);
