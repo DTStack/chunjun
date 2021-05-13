@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.oraclelogminer.format;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
@@ -73,6 +74,9 @@ public class LogMinerConfig implements Serializable {
      * Oracle 12c第二个版本之后LogMiner不支持自动添加日志
      */
     private boolean supportAutoAddLog;
+
+    /** logminer一次最大加载数据量 默认5g **/
+    private long maxLogFileSize = 5 * ConstantValue.STORE_SIZE_G;
 
     public boolean getSupportAutoAddLog() {
         return supportAutoAddLog;
@@ -184,5 +188,13 @@ public class LogMinerConfig implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public long getMaxLogFileSize() {
+        return maxLogFileSize;
+    }
+
+    public void setMaxLogFileSize(long maxLogFileSize) {
+        this.maxLogFileSize = maxLogFileSize;
     }
 }

@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.oraclelogminer.format;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -27,9 +28,20 @@ public class LogFile {
 
     private String fileName;
 
-    private Long firstChange;
+    private BigDecimal firstChange;
 
-    private Long nextChange;
+    private BigDecimal nextChange;
+
+    private Long thread;
+
+    /** 日志文件状态 https://docs.oracle.com/cd/B12037_01/server.101/b10755/dynviews_1132.htm  V$LOGMNR_LOGS里的status */
+    private int status;
+
+    //是归档日志 还是online日志
+    private String type;
+
+    /** 文件大小  **/
+    private Long bytes;
 
     public String getFileName() {
         return fileName;
@@ -39,20 +51,52 @@ public class LogFile {
         this.fileName = fileName;
     }
 
-    public Long getFirstChange() {
+    public BigDecimal getFirstChange() {
         return firstChange;
     }
 
-    public void setFirstChange(Long firstChange) {
+    public void setFirstChange(BigDecimal firstChange) {
         this.firstChange = firstChange;
     }
 
-    public Long getNextChange() {
+    public BigDecimal getNextChange() {
         return nextChange;
     }
 
-    public void setNextChange(Long nextChange) {
+    public void setNextChange(BigDecimal nextChange) {
         this.nextChange = nextChange;
+    }
+
+    public long getThread() {
+        return thread;
+    }
+
+    public void setThread(Long thread) {
+        this.thread = thread;
+    }
+
+    public Long getBytes() {
+        return bytes;
+    }
+
+    public void setBytes(Long bytes) {
+        this.bytes = bytes;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     @Override
@@ -61,6 +105,9 @@ public class LogFile {
                 "fileName='" + fileName + '\'' +
                 ", firstChange=" + firstChange +
                 ", nextChange=" + nextChange +
+                ", thread=" + thread +
+                ", bytes=" + bytes +
+                ", type=" + type +
                 '}';
     }
 
@@ -77,11 +124,12 @@ public class LogFile {
         LogFile logFile = (LogFile) o;
         return Objects.equals(fileName, logFile.fileName) &&
                 Objects.equals(firstChange, logFile.firstChange) &&
+                Objects.equals(thread, logFile.thread) &&
                 Objects.equals(nextChange, logFile.nextChange);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fileName, firstChange, nextChange);
+        return Objects.hash(fileName, firstChange, nextChange, thread, bytes);
     }
 }
