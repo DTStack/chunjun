@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.oraclelogminer.entity;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -26,15 +27,15 @@ import java.util.Map;
  * @author tudou
  */
 public class QueueData {
-    private long scn;
+    private BigDecimal scn;
     private Map<String, Object> data;
 
-    public QueueData(long lsn, Map<String, Object> data) {
+    public QueueData(BigDecimal lsn, Map<String, Object> data) {
         this.scn = lsn;
         this.data = data;
     }
 
-    public long getScn() {
+    public BigDecimal getScn() {
         return scn;
     }
 

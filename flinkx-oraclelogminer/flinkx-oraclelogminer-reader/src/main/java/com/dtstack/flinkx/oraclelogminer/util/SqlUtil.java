@@ -68,191 +68,86 @@ public class SqlUtil {
             ");" +
             "END;";
 
-    /**
-     * 启动logminer
-     * 视图说明：
-     * v$log：存储未归档的日志
-     * v$archived_log：存储已归档的日志文件
-     * v$logfile：
-     */
-    public final static String SQL_START_LOG_MINER = "" +
-            "DECLARE\n" +
-            "    st          BOOLEAN := true;\n" +
-            "    start_scn   NUMBER := ?;\n" +
-            "BEGIN\n" +
-            "    FOR l_log_rec IN (\n" +
-            "        SELECT\n" +
-            "            MIN(name) name,\n" +
-            "            first_change#\n" +
-            "        FROM\n" +
-            "            (\n" +
-            "                SELECT\n" +
-            "                    MIN(member) AS name,\n" +
-            "                    first_change#,\n" +
-            "                    281474976710655 AS next_change#\n" +
-            "                FROM\n" +
-            "                    v$log       l\n" +
-            "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "                WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
-            "                GROUP BY\n" +
-            "                    first_change#\n" +
-            "                UNION\n" +
-            "                SELECT\n" +
-            "                    name,\n" +
-            "                    first_change#,\n" +
-            "                    next_change#\n" +
-            "                FROM\n" +
-            "                    v$archived_log\n" +
-            "                WHERE\n" +
-            "                    name IS NOT NULL\n" +
-            "            )\n" +
-            "        WHERE\n" +
-            "            first_change# >= start_scn\n" +
-            "            OR start_scn < next_change#\n" +
-            "        GROUP BY\n" +
-            "            first_change#\n" +
-            "        ORDER BY\n" +
-            "            first_change#\n" +
-            "    ) LOOP IF st THEN\n" +
-            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name, SYS.DBMS_LOGMNR.new);\n" +
-            "        st := false;\n" +
-            "    ELSE\n" +
-            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name);\n" +
-            "    END IF;\n" +
-            "    END LOOP;\n" +
-            "\n" +
-            "    SYS.DBMS_LOGMNR.start_logmnr(" +
-            "       options => " +
-            "         SYS.DBMS_LOGMNR.skip_corruption " +
-            "       + SYS.DBMS_LOGMNR.no_sql_delimiter " +
-            "       + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n" +
-            "       + SYS.DBMS_LOGMNR.dict_from_online_catalog " +
-            "       + SYS.DBMS_LOGMNR.string_literals_in_stmt" +
-            "   );\n" +
-            "END;";
-
-    public final static String SQL_START_LOG_MINER_10 = "" +
-            "DECLARE\n" +
-            "    st          BOOLEAN := true;\n" +
-            "    start_scn   NUMBER := ?;\n" +
-            "BEGIN\n" +
-            "    FOR l_log_rec IN (\n" +
-            "        SELECT\n" +
-            "            MIN(name) name,\n" +
-            "            first_change#\n" +
-            "        FROM\n" +
-            "            (\n" +
-            "                SELECT\n" +
-            "                    MIN(member) AS name,\n" +
-            "                    first_change#,\n" +
-            "                    281474976710655 AS next_change#\n" +
-            "                FROM\n" +
-            "                    v$log       l\n" +
-            "                    INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "                WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
-            "                GROUP BY\n" +
-            "                    first_change#\n" +
-            "                UNION\n" +
-            "                SELECT\n" +
-            "                    name,\n" +
-            "                    first_change#,\n" +
-            "                    next_change#\n" +
-            "                FROM\n" +
-            "                    v$archived_log\n" +
-            "                WHERE\n" +
-            "                    name IS NOT NULL\n" +
-            "            )\n" +
-            "        WHERE\n" +
-            "            first_change# >= start_scn\n" +
-            "            OR start_scn < next_change#\n" +
-            "        GROUP BY\n" +
-            "            first_change#\n" +
-            "        ORDER BY\n" +
-            "            first_change#\n" +
-            "    ) LOOP IF st THEN\n" +
-            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name, SYS.DBMS_LOGMNR.new);\n" +
-            "        st := false;\n" +
-            "    ELSE\n" +
-            "        SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name);\n" +
-            "    END IF;\n" +
-            "    END LOOP;\n" +
-            "\n" +
-            "    SYS.DBMS_LOGMNR.start_logmnr(" +
-            "       options => " +
-            "         SYS.DBMS_LOGMNR.skip_corruption " +
-            "       + SYS.DBMS_LOGMNR.no_sql_delimiter " +
-            "       + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n" +
-            "       + SYS.DBMS_LOGMNR.dict_from_online_catalog " +
-            "   );\n" +
-            "END;";
 
     public final static String SQL_QUERY_LOG_FILE =
             "SELECT\n" +
-            "    MIN(name) name,\n" +
-            "    first_change#\n" +
-            "FROM\n" +
-            "    (\n" +
-            "        SELECT\n" +
-            "            MIN(member) AS name,\n" +
-            "            first_change#,\n" +
-            "            281474976710655 AS next_change#\n" +
-            "        FROM\n" +
-            "            v$log       l\n" +
-            "            INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "        WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
-            "        GROUP BY\n" +
-            "            first_change#\n" +
-            "        UNION\n" +
-            "        SELECT\n" +
-            "            name,\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
-            "        FROM\n" +
-            "            v$archived_log\n" +
-            "        WHERE\n" +
-            "            name IS NOT NULL\n" +
-            "    )\n" +
-            "WHERE\n" +
-            "    first_change# >= ?\n" +
-            "    OR ? < next_change#\n" +
-            "GROUP BY\n" +
-            "    first_change#\n" +
-            "ORDER BY\n" +
-            "    first_change#";
+                    "    MIN(name) as name,\n" +
+                    "    MIN(thread#) as thread#,\n" +
+                    "    first_change#,\n" +
+                    "    MIN(next_change#) as next_change#,\n" +
+                    "    MIN(BYTES) as BYTES\n" +
+                    "FROM\n" +
+                    "    (\n" +
+                    "        SELECT\n" +
+                    "            member AS name,\n" +
+                    "            thread#,\n" +
+                    "            first_change#,\n" +
+                    "            next_change#,\n" +
+                    "            BYTES\n" +
+                    "        FROM\n" +
+                    "            v$log       l\n" +
+                    "            INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
+                    "        WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
+                    "        UNION\n" +
+                    "        SELECT\n" +
+                    "            name,\n" +
+                    "            thread#,\n" +
+                    "            first_change#,\n" +
+                    "            next_change#,\n" +
+                    "            BLOCKS*BLOCK_SIZE as BYTES\n" +
+                    "        FROM\n" +
+                    "            v$archived_log\n" +
+                    "        WHERE\n" +
+                    "            name IS NOT NULL\n" +
+                    "            AND STANDBY_DEST='NO' \n" +
+                    "    )\n" +
+                    "WHERE\n" +
+                    "    first_change# >= ?\n" +
+                    "    OR ? < next_change#\n" +
+                    "        GROUP BY\n" +
+                    "            first_change#\n" +
+                    "ORDER BY\n" +
+                    "    first_change#";
 
     public final static String SQL_QUERY_LOG_FILE_10 =
             "SELECT\n" +
-            "    MIN(name) name,\n" +
-            "    first_change#\n" +
-            "FROM\n" +
-            "    (\n" +
-            "        SELECT\n" +
-            "            MIN(member) AS name,\n" +
-            "            first_change#,\n" +
-            "            281474976710655 AS next_change#\n" +
-            "        FROM\n" +
-            "            v$log       l\n" +
-            "            INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
-            "        WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
-            "        GROUP BY\n" +
-            "            first_change#\n" +
-            "        UNION\n" +
-            "        SELECT\n" +
-            "            name,\n" +
-            "            first_change#,\n" +
-            "            next_change#\n" +
-            "        FROM\n" +
-            "            v$archived_log\n" +
-            "        WHERE\n" +
-            "            name IS NOT NULL\n" +
-            "    )\n" +
-            "WHERE\n" +
-            "    first_change# >= ?\n" +
-            "    OR ? < next_change#\n" +
-            "GROUP BY\n" +
-            "    first_change#\n" +
-            "ORDER BY\n" +
-            "    first_change#";
+                    "    MIN(name) as name,\n" +
+                    "    MIN(thread#) as thread#,\n" +
+                    "    first_change#,\n" +
+                    "    MIN(next_change#) as next_change#,\n" +
+                    "    MIN(BYTES) as BYTES\n" +
+                    "FROM\n" +
+                    "    (\n" +
+                    "        SELECT\n" +
+                    "            member as  name,\n" +
+                    "            thread#,\n" +
+                    "            first_change#,\n" +
+                    "            281474976710655 AS next_change#,\n" +
+                    "            BYTES\n" +
+                    "        FROM\n" +
+                    "            v$log       l\n" +
+                    "            INNER JOIN v$logfile   f ON l.group# = f.group#\n" +
+                    "        WHERE l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE'\n" +
+                    "        UNION\n" +
+                    "        SELECT\n" +
+                    "            name,\n" +
+                    "            thread#,\n" +
+                    "            first_change#,\n" +
+                    "            next_change#,\n" +
+                    "            BLOCKS*BLOCK_SIZE as BYTES\n" +
+                    "        FROM\n" +
+                    "            v$archived_log\n" +
+                    "        WHERE\n" +
+                    "            name IS NOT NULL\n" +
+                    "            AND STANDBY_DEST='NO' \n" +
+                    "    )\n" +
+                    "WHERE\n" +
+                    "    first_change# >= ?\n" +
+                    "    OR ? < next_change#\n" +
+                    "        GROUP BY\n" +
+                    "            first_change#\n" +
+                    "ORDER BY\n" +
+                    "    first_change#";
 
     public final static String SQL_SELECT_DATA = "" +
             "SELECT\n" +
@@ -261,19 +156,101 @@ public class SqlUtil {
 //            "    commit_scn,\n" +
             "    timestamp,\n" +
             "    operation,\n" +
+            "    operation_code,\n" +
             "    seg_owner,\n" +
             "    table_name,\n" +
             "    sql_redo,\n" +
+            "    sql_undo,\n" +
+            "    xidsqn,\n" +
             "    row_id,\n" +
+            "    rollback,\n" +
             "    csf\n" +
             "FROM\n" +
             "    v$logmnr_contents\n" +
             "WHERE\n" +
-            "    scn > ?";
+            "    scn > ? \n" +
+            "    AND scn < ? \n";
+
+
+    /**
+     * 加载包含startSCN和endSCN之间日志的日志文件
+     */
+    public final static String SQL_START_LOGMINER =  "DECLARE \n" +
+            "    st          BOOLEAN := true;\n" +
+            "    start_scn   NUMBER := ?;\n" +
+            "    endScn   NUMBER := ?;\n" +
+            "BEGIN\n" +
+            "    FOR l_log_rec IN (\n" +
+            "        SELECT\n" +
+            "            MIN(name) name,\n" +
+            "            first_change#\n" +
+            "        FROM\n" +
+            "          (\n" +
+            "            SELECT \n"+
+            "              member AS name, \n"+
+            "              first_change# \n"+
+            "            FROM \n"+
+            "              v$log   l \n"+
+            "           INNER JOIN v$logfile   f ON l.group# = f.group# \n"+
+            "           WHERE (l.STATUS = 'CURRENT' OR l.STATUS = 'ACTIVE' )\n"+
+            "           AND first_change# < endScn \n"+
+            "           UNION \n"+
+            "           SELECT  \n"+
+            "              name, \n"+
+            "              first_change# \n"+
+            "           FROM \n"+
+            "              v$archived_log \n"+
+            "           WHERE \n"+
+            "              name IS NOT NULL \n"+
+            "           AND STANDBY_DEST='NO'\n"+
+            "           AND  first_change# < endScn  AND next_change# > start_scn )group by first_change# order by first_change#  )LOOP IF st THEN \n"+
+            "  SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name, SYS.DBMS_LOGMNR.new); \n"+
+            "      st := false; \n"+
+            "  ELSE \n"+
+            "  SYS.DBMS_LOGMNR.add_logfile(l_log_rec.name); \n"+
+            "  END IF; \n"+
+            "  END LOOP;\n"+
+            "  SYS.DBMS_LOGMNR.start_logmnr(       options =>          SYS.DBMS_LOGMNR.skip_corruption        + SYS.DBMS_LOGMNR.no_sql_delimiter        + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n"+
+            "  + SYS.DBMS_LOGMNR.dict_from_online_catalog    );\n"+
+            "   end;";
+
+
+    /** 查找delete的rollback语句对应的insert语句  存在一个事务里rowid相同的其他语句 所以需要子查询过滤掉scn相同rowid相同的语句(这是一对rollback和DML)*/
+    public static String queryDataForRollback =
+            "SELECT\n" +
+                    "    scn,\n" +
+                    //oracle 10 没有该字段
+//            "    commit_scn,\n" +
+                    "    timestamp,\n" +
+                    "    operation,\n" +
+                    "    operation_code,\n" +
+                    "    seg_owner,\n" +
+                    "    table_name,\n" +
+                    "    sql_redo,\n" +
+                    "    sql_undo,\n" +
+                    "    xidsqn,\n" +
+                    "    row_id,\n" +
+                    "    rollback,\n" +
+                    "    csf\n" +
+                    "FROM\n" +
+                    "   v$logmnr_contents a \n"+
+                    "where \n"+
+                    "scn <=?  and row_id=?  and xidsqn = ? and table_name = ?  and rollback =? and OPERATION_CODE =? \n"+
+                    "and scn not in (select scn from  v$logmnr_contents where row_id =  ?   and xidsqn = ?  and scn !=?  group by scn HAVING count(scn) >1 and sum(rollback)>0) \n";
+
+    //查找加载到logminer的日志文件
+    public final static String SQL_QUERY_ADDED_LOG = "select filename ,thread_id ,low_scn,next_scn,type,filesize,status,type from  V$LOGMNR_LOGS ";
+
+    //移除logminer加载的日志文件
+    public final static String SQL_REMOVE_ADDED_LOG = "SYS.DBMS_LOGMNR.add_logfile(LogFileName=>?, Options=>dbms_logmnr.removefile) ";
+
+
 
     public final static String SQL_STOP_LOG_MINER = "BEGIN SYS.DBMS_LOGMNR.END_LOGMNR; end;";
 
     public final static String SQL_GET_CURRENT_SCN = "select min(CURRENT_SCN) CURRENT_SCN from gv$database";
+
+    public final static String SQL_GET_MAX_SCN_IN_CONTENTS = "select max(scn) as scn  from  v$logmnr_contents";
 
     public final static String SQL_GET_LOG_FILE_START_POSITION = "select min(FIRST_CHANGE#) FIRST_CHANGE# from (select FIRST_CHANGE# from v$log union select FIRST_CHANGE# from v$archived_log where standby_dest='NO' and name is not null)";
 
@@ -300,9 +277,17 @@ public class SqlUtil {
 
     public final static String SQL_QUERY_ENCODING = "SELECT USERENV('LANGUAGE') FROM DUAL";
 
+    public final static String SQL_QUERY_LOG_MODE = "SELECT LOG_MODE FROM V$DATABASE";
+
+    public final static String SQL_QUERY_SUPPLEMENTAL_LOG_DATA_ALL = "SELECT SUPPLEMENTAL_LOG_DATA_ALL FROM V$DATABASE";
+
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 
     public static List<String> EXCLUDE_SCHEMAS = Collections.singletonList("SYS");
+
+    public static final List<String> PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "LOGMINING", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
+
+    public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
 
     /**
      * 构建查询v$logmnr_contents视图SQL
@@ -315,16 +300,16 @@ public class SqlUtil {
 
         if (StringUtils.isNotEmpty(listenerOptions)) {
             sqlBuilder.append(" and ").append(buildOperationFilter(listenerOptions));
-    }
+        }
 
         if (StringUtils.isNotEmpty(listenerTables)) {
-        sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
-    } else {
-        sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
-    }
+            sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
+        } else {
+            sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
+        }
 
         return sqlBuilder.toString();
-}
+    }
 
     /**
      * 构建需要采集操作类型字符串的过滤条件
@@ -336,14 +321,26 @@ public class SqlUtil {
 
         String[] operations = listenerOptions.split(ConstantValue.COMMA_SYMBOL);
         for (String operation : operations) {
-            if (!SUPPORTED_OPERATIONS.contains(operation.toUpperCase())) {
-                throw new RuntimeException("Unsupported operation type:" + operation);
+
+            int operationCode;
+            switch (operation.toUpperCase()) {
+                case "INSERT":
+                    operationCode = 1;
+                    break;
+                case "DELETE":
+                    operationCode = 2;
+                    break;
+                case "UPDATE":
+                    operationCode = 3;
+                    break;
+                default:
+                    throw new RuntimeException("Unsupported operation type:" + operation);
             }
 
-            standardOperations.add(String.format("'%s'", operation.toUpperCase()));
+            standardOperations.add(String.format("'%s'", operationCode));
         }
 
-        return String.format("OPERATION in (%s) ", StringUtils.join(standardOperations, ConstantValue.COMMA_SYMBOL));
+        return String.format("OPERATION_CODE in (%s) ", StringUtils.join(standardOperations, ConstantValue.COMMA_SYMBOL));
     }
 
     /**

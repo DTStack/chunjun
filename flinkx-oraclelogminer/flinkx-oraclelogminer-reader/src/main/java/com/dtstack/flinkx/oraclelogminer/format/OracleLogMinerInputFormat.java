@@ -26,6 +26,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -44,7 +45,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
     private transient PositionManager positionManager;
 
     @Override
-    protected InputSplit[] createInputSplitsInternal(int i) throws Exception {
+    protected InputSplit[] createInputSplitsInternal(int i) {
         return new InputSplit[]{new GenericInputSplit(1,1)};
     }
 
@@ -59,18 +60,25 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
     private void initPosition() {
         if (null != formatState && formatState.getState() != null) {
-            positionManager.updatePosition((Long)formatState.getState());
+            BigDecimal position;
+            //升级之后，进行续跑，以前版本的值是long，需要转换为BigDecimal
+            if(formatState.getState() instanceof  Long){
+                position = new BigDecimal(formatState.getState().toString());
+            }else{
+                position = (BigDecimal) formatState.getState();
+            }
+            positionManager.updatePosition(position);
         }
     }
 
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
+    protected void openInternal(InputSplit inputSplit) {
         logMinerListener.init();
         logMinerListener.start();
     }
 
     @Override
-    protected Row nextRecordInternal(Row row) throws IOException {
+    protected Row nextRecordInternal(Row row) {
         Map<String, Object> data = logMinerListener.getData();
         if(null != data) {
             return Row.of(data);
