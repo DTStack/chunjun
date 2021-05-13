@@ -69,17 +69,13 @@ public class PostgresqlTypeConverter implements TypeConverterInterface {
                 dataValue = StringUtils.substring(dataValue, 1);
             }
             data = Double.parseDouble(dataValue);
-        } else if(bitTypes.contains(typeName)){
-            //
-        }else if(byteTypes.contains(typeName)){
-            data = Byte.valueOf(dataValue);
-        } else if(intTypes.contains(typeName)){
+        }else if(intTypes.contains(typeName)){
             if(dataValue.contains(".")){
                 dataValue =  new BigDecimal(dataValue).stripTrailingZeros().toPlainString();
             }
             data = Long.parseLong(dataValue);
         }
-
+        //bitType和byteTypes直接返回data
         return data;
     }
 }
