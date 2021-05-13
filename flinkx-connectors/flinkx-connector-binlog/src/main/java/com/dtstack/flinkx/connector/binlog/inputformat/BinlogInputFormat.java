@@ -192,6 +192,10 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         }
     }
 
+    /**
+     * 设置binlog文件起始位置
+     * @return
+     */
     private EntryPosition findStartPosition() {
         EntryPosition startPosition = null;
         if (formatState != null && formatState.getState() != null && formatState.getState() instanceof EntryPosition) {
