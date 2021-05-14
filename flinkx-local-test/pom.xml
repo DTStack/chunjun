@@ -38,6 +38,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-gbase</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
 			<artifactId>hadoop-mapreduce-client-core</artifactId>
 			<exclusions>
 				<exclusion>

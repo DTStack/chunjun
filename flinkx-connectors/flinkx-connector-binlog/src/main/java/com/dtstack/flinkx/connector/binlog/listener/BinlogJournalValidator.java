@@ -54,6 +54,10 @@ public class BinlogJournalValidator {
         return listJournals().contains(journalName);
     }
 
+    /**
+     * 查找Binlog日志列表
+     * @return
+     */
     public List<String> listJournals() {
         List<String> journalList = new ArrayList<>();
         MysqlConnection conn = new MysqlConnection(new InetSocketAddress(host, port), user, pass, (byte) 33, null);

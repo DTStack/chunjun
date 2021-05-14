@@ -124,10 +124,10 @@ public class JdbcColumnConverter
             case VARCHAR:
                 return val -> new StringColumn((String) val);
             case DATE:
-                return val -> new BigDecimalColumn(((Date) val).toLocalDate().toEpochDay());
+                return val -> new BigDecimalColumn(Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
-                        new BigDecimalColumn(((Time) val).toLocalTime().toNanoOfDay() / 1_000_000L);
+                        new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn((Timestamp) val);
