@@ -75,6 +75,7 @@ import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
 import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
+import com.dtstack.flinkx.pgwal.reader.PgwalReader;
 import com.dtstack.flinkx.phoenix5.reader.Phoenix5Reader;
 import com.dtstack.flinkx.phoenix5.writer.Phoenix5Writer;
 import com.dtstack.flinkx.polardb.reader.PolardbReader;
@@ -107,9 +108,11 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -127,8 +130,8 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception{
         Properties confProperties = new Properties();
-//        confProperties.put("flink.checkpoint.interval", "10000");
-//        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
+        confProperties.put("flink.checkpoint.interval", "10000");
+        confProperties.put("flink.checkpoint.stateBackend", "file:///tmp/flinkx_checkpoint");
 
 //        conf.setString("metrics.reporter.promgateway.class","org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter");
 //        conf.setString("metrics.reporter.promgateway.host","127.0.0.1");
@@ -136,9 +139,9 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.jobName","108job");
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
-
-        String jobPath = "D:\\daishu\\metaes.json";
-        JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
+        URL resource = LocalTest.class.getClassLoader().getResource("pg-cdc.json");
+        Assert.notNull(resource, "file : pg-cdc.json is not found");
+        JobExecutionResult result = LocalTest.runJob(new File(resource.getFile()), confProperties, null);
         ResultPrintUtil.printResult(result);
         System.exit(0);
     }
@@ -208,6 +211,7 @@ public class LocalTest {
         String readerName = config.getJob().getContent().get(0).getReader().getName();
         BaseDataReader reader ;
         switch (readerName){
+            case PluginNameConstrant.PGWAL_READER: reader = new PgwalReader(config, env); break;
             case PluginNameConstrant.STREAM_READER : reader = new StreamReader(config, env); break;
             case PluginNameConstrant.CARBONDATA_READER : reader = new CarbondataReader(config, env); break;
             case PluginNameConstrant.ORACLE_READER : reader = new OracleReader(config, env); break;

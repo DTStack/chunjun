@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>flinkx-inceptor</artifactId>
+        <groupId>com.dtstack.flinkx</groupId>
+        <version>1.6</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>flinkx-inceptor-writer</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libfb303</artifactId>
+            <version>0.9.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-inceptor-core</artifactId>
+            <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>libfb303</artifactId>
+                    <groupId>org.apache.thrift</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-cli</artifactId>
+                    <groupId>commons-cli</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>com.data-artisans:*</exclude>
+                                    <exclude>org.scala-lang:*</exclude>
+                                    <exclude>io.netty:*</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>org/apache/hadoop/hive/ql/parse/oracle/*</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.facebook.fb303</pattern>
+                                    <shadedPattern>shade.inceptorwriter.com.facebook.fb303</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.hadoop.hive</pattern>
+                                    <shadedPattern>shade.inceptorwriter.org.apache.hadoop.hive</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.hive</pattern>
+                                    <shadedPattern>shade.inceptorwriter.org.apache.hive</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.inceptorwriter.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.thrift</pattern>
+                                    <shadedPattern>shade.inceptorwriter.org.apache.thrift</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <!-- here the phase you need -->
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <copy todir="${basedir}/../../syncplugins/inceptorwriter">
+                                    <fileset dir="target/">
+                                        <include name="${project.name}-${project.version}.jar"/>
+                                    </fileset>
+                                </copy>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <move file="${basedir}/../../syncplugins/inceptorwriter/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/inceptorwriter/${project.name}-${git.branch}.jar"/>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>

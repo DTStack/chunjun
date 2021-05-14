@@ -40,8 +40,9 @@ public class TelnetUtil {
     private static final String HOST_KEY = "host";
     private static final String PORT_KEY = "port";
     private static final String SPLIT_KEY = ",";
+    private static final int DEFAULT_CONNECTION_TIMEOUT_MS = 1000 * 60;
 
-    public static void telnet(String ip,int port) {
+    public static void telnet(String ip,int port, int connectTimeoutMs) {
         try {
             RetryUtil.executeWithRetry(new Callable<Boolean>() {
                 @Override
@@ -49,7 +50,11 @@ public class TelnetUtil {
                     TelnetClient client = null;
                     try{
                         client = new TelnetClient();
-                        client.setConnectTimeout(3000);
+                        int innerConnectTimeoutMs = connectTimeoutMs;
+                        if(innerConnectTimeoutMs <= 0) {
+                            innerConnectTimeoutMs = DEFAULT_CONNECTION_TIMEOUT_MS;
+                        }
+                        client.setConnectTimeout(innerConnectTimeoutMs);
                         client.connect(ip,port);
                         return true;
                     } catch (Exception e){
@@ -69,14 +74,22 @@ public class TelnetUtil {
         }
     }
 
+    public static void telnet(int connectionTimeoutMs, String url) {
+        telnet(url, connectionTimeoutMs);
+    }
+
     public static void telnet(String url) {
+        telnet(url, DEFAULT_CONNECTION_TIMEOUT_MS);
+    }
+
+    public static void telnet(String url, int connectionTimeoutMs) {
         if (url == null || url.trim().length() == 0){
             throw new IllegalArgumentException("url can not be null");
         }
 
         String host = null;
         int port = 0;
-        Matcher matcher = null;
+        Matcher matcher;
         if(StringUtils.startsWith(url, PHOENIX_PREFIX)){
             matcher = PHOENIX_PATTERN.matcher(url);
         }else{
@@ -96,11 +109,11 @@ public class TelnetUtil {
             String[] hosts = host.split(SPLIT_KEY);
             for (String s : hosts) {
                 if(StringUtils.isNotBlank(s)){
-                    telnet(s,port);
+                    telnet(s,port, connectionTimeoutMs);
                 }
             }
         }else{
-            telnet(host,port);
+            telnet(host,port, connectionTimeoutMs);
         }
     }
 }

@@ -36,6 +36,7 @@ public class PluginNameConstrant {
     public static final String ODPS_READER = "odpsreader";
     public static final String ORACLE_READER = "oraclereader";
     public static final String POSTGRESQL_READER = "postgresqlreader";
+    public static final String PGWAL_READER = "pgwalreader";
     public static final String SQLSERVER_READER = "sqlserverreader";
     public static final String GBASE_READER = "gbasereader";
     public static final String KUDU_READER = "kudureader";
