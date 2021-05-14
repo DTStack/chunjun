@@ -60,6 +60,7 @@ public class GbaseDialect implements JdbcDialect {
         return sb.toString();
     }
 
+    @Override
     public Optional<String> getUpsertStatement(
             String schema,
             String tableName,

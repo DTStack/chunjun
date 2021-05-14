@@ -9,11 +9,27 @@ CREATE TABLE source
       ,'topic' = 'tiezhu_in_one'
       ,'properties.bootstrap.servers' = 'kudu1:9092'
       ,'properties.group.id' = 'luna_g'
-      ,'scan.startup.mode' = 'latest-offset'
+      ,'scan.startup.mode' = 'earliest-offset'
       -- ,'scan.startup.mode' = 'latest-offset'
       ,'format' = 'json'
       ,'json.timestamp-format.standard' = 'SQL'
       );
+
+-- CREATE TABLE "sink"
+-- (
+--     "id"             int(11) DEFAULT NULL,
+--     "name"           varchar(255)       DEFAULT NULL,
+--     "message"        text,
+--     "age"            tinyint(4) DEFAULT NULL,
+--     "money"          double             DEFAULT NULL,
+--     "price"          decimal(10, 0)     DEFAULT NULL,
+--     "todayTimestamp" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     "todayDate"      date               DEFAULT NULL,
+--     "todayTime"      time               DEFAULT NULL
+-- ) ENGINE=EXPRESS DEFAULT CHARSET=utf8 TABLESPACE='sys_tablespace';
+
+-- insert into dev_db.sink (id, name, message, age, money, price, todayTimestamp, todayDate, todayTime)
+-- values (1, 'aa', 'bb', 10, 13.2, 33.2, NOW(), NOW(), NOW());
 
 CREATE TABLE side
 (

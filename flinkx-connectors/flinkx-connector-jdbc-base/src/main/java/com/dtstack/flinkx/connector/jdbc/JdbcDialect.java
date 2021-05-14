@@ -155,7 +155,7 @@ public interface JdbcDialect extends Serializable {
             String schema, String tableName, String[] conditionFields) {
         String fieldExpressions =
                 Arrays.stream(conditionFields)
-                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
+                        .map(f -> format("%s = ?", quoteIdentifier(f)))
                         .collect(Collectors.joining(" AND "));
         return "SELECT 1 FROM "
                 + buildTableInfoWithSchema(schema, tableName)
@@ -189,11 +189,11 @@ public interface JdbcDialect extends Serializable {
             String schema, String tableName, String[] fieldNames, String[] conditionFields) {
         String setClause =
                 Arrays.stream(fieldNames)
-                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
+                        .map(f -> format("%s = ?", quoteIdentifier(f)))
                         .collect(Collectors.joining(", "));
         String conditionClause =
                 Arrays.stream(conditionFields)
-                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
+                        .map(f -> format("%s = ?", quoteIdentifier(f)))
                         .collect(Collectors.joining(" AND "));
         return "UPDATE "
                 + buildTableInfoWithSchema(schema, tableName)
@@ -227,7 +227,7 @@ public interface JdbcDialect extends Serializable {
                         .collect(Collectors.joining(", "));
         String fieldExpressions =
                 Arrays.stream(conditionFields)
-                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
+                        .map(f -> format("%s = ?", quoteIdentifier(f)))
                         .collect(Collectors.joining(" AND "));
         return "SELECT "
                 + selectExpressions
