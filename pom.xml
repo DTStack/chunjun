@@ -75,6 +75,8 @@
         <module>flinkx-metadata-vertica</module>
         <module>flinkx-metadata-kafka</module>
         <module>flinkx-socket</module>
+        <module>flinkx-solr</module>
+
         <module>flinkx-s3</module>
     </modules>
 
