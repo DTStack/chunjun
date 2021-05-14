@@ -18,44 +18,35 @@
 
 package com.dtstack.flinkx.oracle9;
 
-import com.dtstack.flinkx.constants.ConstantValue;
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.ClassBodyEvaluator;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
 
 public class OracleUtil {
     public static IOracle9Helper getOracleHelperOfReader(ClassLoader parentClassLoader) throws IOException, CompileException {
-        ArrayList<String> imports = new ArrayList<>(32);
-        imports.add("com.dtstack.flinkx.util.ClassUtil");
-        imports.add("java.sql.Connection");
-        imports.add("java.sql.DriverManager");
-        imports.add("java.sql.SQLException");
 
-        return getHelper(parentClassLoader, imports, IOracle9Helper.CLASS_READER_STR);
-    }
-
-    public static IOracle9Helper getOracleHelperOfWrite(ClassLoader parentClassLoader) throws IOException, CompileException {
-        ArrayList<String> imports = new ArrayList<>(32);
-
-        imports.add("com.dtstack.flinkx.rdb.util.DbUtil");
-        imports.add("java.sql.Connection");
-        imports.add("java.sql.SQLException");
-        return getHelper(parentClassLoader, imports, IOracle9Helper.CLASS_WRITER_STR);
-
-    }
-
-    public static IOracle9Helper getHelper(ClassLoader parentClassLoader, List<String> imports, String javaContent) throws IOException, CompileException {
         ClassBodyEvaluator cbe = new ClassBodyEvaluator();
         cbe.setParentClassLoader(parentClassLoader);
 
-        cbe.setDefaultImports(StringUtils.join(imports, ConstantValue.COMMA_SYMBOL));
+        cbe.setDefaultImports("com.dtstack.flinkx.util.ClassUtil", "java.sql.Connection", "java.sql.DriverManager", "java.sql.SQLException");
         cbe.setImplementedInterfaces(new Class[]{IOracle9Helper.class});
-        StringReader sr = new StringReader(javaContent);
+        StringReader sr = new StringReader(IOracle9Helper.CLASS_READER_STR);
         return (IOracle9Helper) cbe.createInstance(sr);
     }
+
+    public static IOracle9Helper getOracleHelperOfWrite(ClassLoader parentClassLoader) throws IOException, CompileException {
+
+        ClassBodyEvaluator cbe = new ClassBodyEvaluator();
+        cbe.setParentClassLoader(parentClassLoader);
+
+        cbe.setDefaultImports("com.dtstack.flinkx.rdb.util.DbUtil", "java.sql.Connection", "java.sql.SQLException");
+        cbe.setImplementedInterfaces(new Class[]{IOracle9Helper.class});
+        StringReader sr = new StringReader(IOracle9Helper.CLASS_WRITER_STR);
+        return (IOracle9Helper) cbe.createInstance(sr);
+
+    }
+
+
 }

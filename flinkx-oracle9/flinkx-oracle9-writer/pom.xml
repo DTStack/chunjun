@@ -70,6 +70,52 @@
                                     <pattern>com.google.thirdparty</pattern>
                                     <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
                                 </relocation>
+
+                                <relocation>
+                                    <pattern>oracle.core</pattern>
+                                    <shadedPattern>shade.oracle.core</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>oracle.jdbc</pattern>
+                                    <shadedPattern>shade.oracle.jdbc</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>oracle.jpub</pattern>
+                                    <shadedPattern>shade.oracle.jpub</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>oracle.net</pattern>
+                                    <shadedPattern>shade.oracle.net</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>oracle.security</pattern>
+                                    <shadedPattern>shade.oracle.security</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>oracle.sql</pattern>
+                                    <shadedPattern>shade.oracle.sql</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>oracle.ons</pattern>
+                                    <shadedPattern>shade.oracle.ons</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>oracle.simplefan</pattern>
+                                    <shadedPattern>shade.oracle.simplefan</shadedPattern>
+                                </relocation>
+
+                                <relocation>
+                                    <pattern>oracle.ucp</pattern>
+                                    <shadedPattern>shade.oracle.ucp</shadedPattern>
+                                </relocation>
+
                             </relocations>
                         </configuration>
                     </execution>
