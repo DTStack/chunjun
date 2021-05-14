@@ -50,10 +50,10 @@ CREATE TABLE source
     atinyint    tinyint
 ) WITH (
       'connector' = 'mysql-x',
-      'url' = 'jdbc:mysql://xxx:3306/test',
+      'url' = 'jdbc:mysql://k3:3306/tiezhu',
       'table-name' = 'flink_type',
       'username' = 'root',
-      'password' = 'root'
+      'password' = 'admin123'
 
       ,'scan.partition.column' = 'id'
       ,'scan.polling-interval' = '3000'

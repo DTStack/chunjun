@@ -75,10 +75,10 @@ CREATE TABLE side
     PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
       'connector' = 'mysql-x',
-      'url' = 'jdbc:mysql://localhost:3306/test',
+      'url' = 'jdbc:mysql://k3:3306/tiezhu',
       'table-name' = 'flink_out',
       'username' = 'root',
-      'password' = 'abc123',
+      'password' = 'admin123',
       'lookup.cache-type' = 'lru'
       );
 
@@ -134,10 +134,10 @@ CREATE TABLE sink
       -- 'connector' = 'stream'
 
       'connector' = 'mysql-x',
-      'url' = 'jdbc:mysql://localhost:3306/test',
+      'url' = 'jdbc:mysql://k3:3306/tiezhu',
       'table-name' = 'flink_type',
       'username' = 'root',
-      'password' = 'abc123',
+      'password' = 'admin123',
       'sink.buffer-flush.max-rows' = '1',
       'sink.allReplace' = 'true'
       );
