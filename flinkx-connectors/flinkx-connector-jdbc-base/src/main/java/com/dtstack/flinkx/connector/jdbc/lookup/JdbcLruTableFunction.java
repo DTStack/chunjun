@@ -151,8 +151,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    public void handleAsyncInvoke(
-            CompletableFuture<Collection<RowData>> future, Object... keys) throws Exception {
+    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys) throws Exception {
         AtomicLong networkLogCounter = new AtomicLong(0L);
         //network is unhealthy
         while (!connectionStatus.get()) {
