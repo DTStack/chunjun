@@ -32,9 +32,6 @@ import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -54,19 +51,15 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
     public StreamColumnConverter(List<String> typeList) {
         super(typeList.size());
         for (int i = 0; i < typeList.size(); i++) {
-            toInternalConverters[i] =
-                    wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
-            toExternalConverters[i] =
-                    wrapIntoNullableExternalConverter(
-                            createExternalConverter(typeList.get(i)), typeList.get(i));
+            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
+            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(typeList.get(i)), typeList.get(i));
         }
     }
 
     public StreamColumnConverter() {}
 
     @Override
-    protected ISerializationConverter<ColumnRowData> wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter, String type) {
+    protected ISerializationConverter<ColumnRowData> wrapIntoNullableExternalConverter( ISerializationConverter serializationConverter, String type) {
         return (val, index, rowData) -> rowData.addField(((ColumnRowData) val).getField(index));
     }
 
@@ -84,8 +77,7 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
                 return val -> new BigDecimalColumn(JMockData.mock(byte.class));
             case "CHAR":
             case "CHARACTER":
-                return val ->
-                        new StringColumn(JMockData.mock(char.class).toString());
+                return val -> new StringColumn(JMockData.mock(char.class).toString());
             case "SHORT":
                 return val -> new BigDecimalColumn(JMockData.mock(short.class));
             case "LONG":
@@ -98,14 +90,12 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
             case "DECIMAL":
                 return val -> new BigDecimalColumn(JMockData.mock(BigDecimal.class));
             case "DATE":
-                return val ->
-                        new BigDecimalColumn(LocalDate.now().toEpochDay());
+                return val -> new BigDecimalColumn(LocalDate.now().toEpochDay());
             case "TIME":
-                return val ->
-                        new BigDecimalColumn((LocalTime.now().toNanoOfDay() / 1_000_000L));
+                return val -> new BigDecimalColumn((LocalTime.now().toNanoOfDay() / 1_000_000L));
             case "DATETIME":
             case "TIMESTAMP":
-                return val -> new TimestampColumn(JMockData.mock(Timestamp.class));
+                return val -> new TimestampColumn(System.currentTimeMillis());
             default:
                 return val -> new StringColumn(JMockData.mock(String.class));
         }
@@ -113,13 +103,12 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
 
     @Override
     protected ISerializationConverter<ColumnRowData> createExternalConverter(String type) {
-        return (val, index, rowData) ->
-                rowData.addField(((ColumnRowData) val).getField(index));
+        return (val, index, rowData) -> rowData.addField(((ColumnRowData) val).getField(index));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public RowData toInternal(RowData rowData) throws Exception {
+    public RowData toInternal(RowData rowData) {
         ColumnRowData data = new ColumnRowData(toInternalConverters.length);
         for (int i = 0; i < toInternalConverters.length; i++) {
             data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(data));
@@ -128,7 +117,7 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
     }
 
     @Override
-    public RowData toInternalLookup(RowData input) throws Exception {
+    public RowData toInternalLookup(RowData input) {
         return null;
     }
 
@@ -137,7 +126,10 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
         ColumnRowData genericRowData = (ColumnRowData) rowData;
         GenericRowData outputRowData = (GenericRowData) output;
         for (int pos = 0; pos < rowData.getArity(); pos++) {
-            outputRowData.setField(pos, genericRowData.getField(pos).asString());
+            AbstractBaseColumn field = genericRowData.getField(pos);
+            if (field != null) {
+                outputRowData.setField(pos, field.asString());
+            }
         }
         return outputRowData;
     }
