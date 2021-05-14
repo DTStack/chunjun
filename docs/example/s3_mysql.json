@@ -29,11 +29,11 @@
                 "name": "create_time",
                 "index": 3,
                 "type": "datetime",
-                "format": "dd/MM/yyyy hh:mm:ss"
+                "format": "yyyy/MM/dd hh:mm:ss"
               }
             ],
             "encoding": "UTF-8",
-            "fieldDelimiter": ",",
+            "fieldDelimiter": "\u0001",
             "isFirstLineHeader": true
           },
           "name": "s3reader"

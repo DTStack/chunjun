@@ -4,12 +4,11 @@
       {
         "reader": {
           "parameter": {
-            "accessKey": "test",
-            "secretKey": "test",
-            "endpoint": "http://127.0.0.1:9090",
-            "region": "us-west-2",
-            "bucket": "test",
-            "object": ["people_20210426001.csv"],
+            "accessKey": "AKIAVCE7XHFIL4ZA3652",
+            "secretKey": "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",
+            "region": "cn-northwest-1",
+            "bucket": "s3-smartdi-01",
+            "object": ["dt/test/csv/people_withTime.csv"],
             "column": [
               {
                 "name": "id",
@@ -25,11 +24,17 @@
                 "name": "uuid",
                 "index": 2,
                 "type": "string"
+              },
+              {
+                "name": "create_time",
+                "index": 3,
+                "type": "datetime",
+                "format": "yyyy/MM/dd hh:mm:ss"
               }
             ],
             "encoding": "UTF-8",
-            "fieldDelimiter": ",",
-            "isFirstLineHeader": false
+            "fieldDelimiter": "\u0001",
+            "isFirstLineHeader": true
           },
           "name": "s3reader"
         },
@@ -45,7 +50,7 @@
             "compress" : "",
             "charsetName" : "UTF-8",
             "maxFileSize" : 1073741824,
-            "tablesColumn" : "{\"student_big2\":[{\"key\":\"id\",\"type\":\"int\"},{\"key\":\"name\",\"type\":\"string\"},{\"key\":\"uuid\",\"type\":\"string\"}]}",
+            "tablesColumn" : "{\"people_time\":[{\"key\":\"id\",\"type\":\"int\"},{\"key\":\"name\",\"type\":\"string\"},{\"key\":\"uuid\",\"type\":\"string\"},{\"key\":\"create_time\",\"type\":\"timestamp\"}]}",
             "defaultFS" : "hdfs://ns1",
             "hadoopConfig" : {
               "dfs.ha.namenodes.ns1": "nn1,nn2",

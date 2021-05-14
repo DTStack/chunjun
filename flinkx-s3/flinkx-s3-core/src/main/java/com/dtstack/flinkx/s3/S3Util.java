@@ -67,6 +67,14 @@ public class S3Util {
         return listObjectsKeyByPrefix(s3Client,bucketName,null);
     }
 
+    public static PutObjectResult putStringObject(AmazonS3 s3Client, String bucketName, String key, String content) {
+        return s3Client.putObject(bucketName,key,content);
+    }
+
+    public static String getStringObject(AmazonS3 s3Client, String bucketName, String object) {
+        return s3Client.getObjectAsString(bucketName, object);
+    }
+
     public static List<String> listObjectsKeyByPrefix(AmazonS3 s3Client, String bucketName, String prefix) {
         List<String> objects = new ArrayList<>(64);
         ListObjectsV2Request req = new ListObjectsV2Request()
@@ -129,39 +137,11 @@ public class S3Util {
         return new S3SimpleObject(object, s3Object.getObjectMetadata().getContentLength());
     }
 
-    public static PutObjectResult putS3Object(AmazonS3 s3Client, String bucketName,String object,String context) {
-        return s3Client.putObject(bucketName,object,context);
-    }
-
-    /**
-     * get S3SimpleObject{@link S3SimpleObject} from AWS S3
-     *
-     * @param s3Client
-     * @return
-     */
-    public static PutObjectResult putS3SimpleObject(AmazonS3 s3Client, PutObjectRequest putObjectRequest) {
-        return s3Client.putObject(putObjectRequest);
-    }
-
-    public static String getObjectContextAsString(AmazonS3 s3Client, String bucketName, String object){
-        return s3Client.getObjectAsString(bucketName, object);
-    }
 
     public static void deleteObject(AmazonS3 s3Client, String bucketName,String object){
         s3Client.deleteObject(bucketName,object);
     }
 
-    public static DeleteObjectsResult batchDelete(AmazonS3 s3Client, String bucketName,List<String> deleteObjects){
-        ArrayList<DeleteObjectsRequest.KeyVersion> keys = new ArrayList<DeleteObjectsRequest.KeyVersion>();
-        for (String object : deleteObjects) {
-            keys.add(new DeleteObjectsRequest.KeyVersion(object));
-        }
-        // Delete the sample objects.
-        DeleteObjectsRequest multiObjectDeleteRequest = new DeleteObjectsRequest(bucketName)
-                .withKeys(keys)
-                .withQuiet(false);
-        return s3Client.deleteObjects(multiObjectDeleteRequest);
-    }
 
     public static void closeS3(AmazonS3 s3Client){
         if(s3Client != null){
