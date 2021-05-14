@@ -74,12 +74,16 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
             List<CanalEntry.Column> beforeColumnsList = rowData.getBeforeColumnsList();
             Map<Object, Object> beforeMap = Maps.newHashMapWithExpectedSize(beforeColumnsList.size());
             for (CanalEntry.Column column : beforeColumnsList) {
-                beforeMap.put(column.getName(), column.getValue());
+                if (!column.getIsNull()) {
+                    beforeMap.put(column.getName(), column.getValue());
+                }
             }
             List<CanalEntry.Column> afterColumnsList = rowData.getAfterColumnsList();
             Map<Object, Object> afterMap = Maps.newHashMapWithExpectedSize(afterColumnsList.size());
             for (CanalEntry.Column column : afterColumnsList) {
-                afterMap.put(column.getName(), column.getValue());
+                if (!column.getIsNull()) {
+                    afterMap.put(column.getName(), column.getValue());
+                }
             }
 
             switch (eventType){

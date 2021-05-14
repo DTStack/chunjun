@@ -42,6 +42,7 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -54,7 +55,6 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -90,11 +90,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected int columnCount;
     protected RowData lastRow = null;
 
-    // TODO 这几个名Source Sinke要对齐下，columnTypeList、columnNameList、fullColumnTypeList、fullColumnNameList
-    protected List<String> columnTypeList = new ArrayList<>();
-    protected List<String> columnNameList = new ArrayList<>();
-    protected List<String> fullColumnTypeList = new ArrayList<>();
-    protected List<String> fullColumnNameList = new ArrayList<>();
+    /** 用户脚本中填写的字段名称集合 */
+    protected List<String> column = new ArrayList<>();
+    /** 用户脚本中填写的字段类型集合 */
+    protected List<String> columnType = new ArrayList<>();
 
     protected StringAccumulator maxValueAccumulator;
     protected BigIntegerAccmulator endLocationAccumulator;
@@ -127,41 +126,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         checkSize(columnCount, jdbcConf.getColumn());
 
-        analyzeMetaData();
-
         LOG.info("JdbcInputFormat[{}]open: end", jobName);
-    }
-
-    protected void analyzeMetaData() {
-        try {
-            ResultSetMetaData rd = resultSet.getMetaData();
-            Map<String, String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
-            for (int i = 0; i < rd.getColumnCount(); ++i) {
-                String rawType = rd.getColumnTypeName(i + 1);
-                String rawName = rd.getColumnName(i + 1);
-                nameTypeMap.put(rawName, rawType);
-                fullColumnNameList.add(rawName);
-                fullColumnTypeList.add(rawType);
-            }
-
-            for (FieldConf metaColumn : jdbcConf.getColumn()) {
-                columnNameList.add(metaColumn.getName());
-                if (metaColumn.getValue() != null) {
-                    columnTypeList.add("VARCHAR");
-                } else {
-                    columnTypeList.add(nameTypeMap.get(metaColumn.getName()));
-                }
-            }
-        } catch (SQLException e) {
-            String message = String.format(
-                    "error to analyzeSchema, resultSet = %s, finalFieldTypes = %s, e = %s",
-                    resultSet,
-                    GsonUtil.GSON.toJson(columnTypeList),
-                    ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
-            throw new RuntimeException(message);
-        }
-
     }
 
     @Override
@@ -753,6 +718,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     protected void executeQuery(String startLocation) throws SQLException {
         dbConn = getConnection();
+        analyzeMetaData();
         // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
         dbConn.setAutoCommit(false);
         if (jdbcConf.isPolling()) {
@@ -774,6 +740,45 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             statement.setQueryTimeout(jdbcConf.getQueryTimeOut());
             resultSet = statement.executeQuery(jdbcConf.getQuerySql());
             hasNext = resultSet.next();
+        }
+    }
+
+    /**
+     * 提取将json脚本中的常量字段
+     * 例如：{ "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
+     */
+    protected void analyzeMetaData() {
+        try {
+            List<FieldConf> fieldList = jdbcConf.getColumn();
+
+            Pair<List<String>, List<String>> pair =
+                    JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
+            List<String> fullColumn = pair.getLeft();
+            List<String> fullColumnType = pair.getRight();
+
+            column = new ArrayList<>(fieldList.size());
+            columnType = new ArrayList<>(fieldList.size());
+            for (FieldConf fieldConf : jdbcConf.getColumn()) {
+                column.add(fieldConf.getName());
+                for (int i = 0; i < fullColumn.size(); i++) {
+                    if (fieldConf.getName().equalsIgnoreCase(fullColumn.get(i))) {
+                        if (fieldConf.getValue() != null) {
+                            columnType.add("VARCHAR");
+                        } else {
+                            columnType.add(fullColumnType.get(i));
+                        }
+                        break;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String message = String.format(
+                    "error to analyzeSchema, resultSet = %s, finalFieldTypes = %s, e = %s",
+                    resultSet,
+                    GsonUtil.GSON.toJson(columnType),
+                    ExceptionUtil.getErrorMessage(e));
+            LOG.error(message);
+            throw new RuntimeException(message);
         }
     }
 
@@ -912,7 +917,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         if(!(rawRowData instanceof ColumnRowData)){
             return rawRowData;
         }
-        int len = columnTypeList.size();
+        int len = columnType.size();
         List<FieldConf> fieldConfs = jdbcConf.getColumn();
         ColumnRowData finalRowData = new ColumnRowData(len);
         for (int i = 0; i < len; i++) {
