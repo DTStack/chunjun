@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.oracle9;
 
+import java.io.BufferedReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -25,23 +26,61 @@ public interface IOracle9Helper {
 
     String CLASS_READER_STR =
             "    @Override\n" +
-            "   public Connection getConnection(String url, String user, String password) throws SQLException {\n" +
-            "        Connection dbConn;\n" +
-            "        synchronized (ClassUtil.LOCK_STR) {\n" +
-            "            DriverManager.setLoginTimeout(10);\n" +
-            "            dbConn = DriverManager.getConnection(url, user, password);\n" +
-            "        }\n" +
-            "\n" +
-            "        return dbConn;\n" +
-            "    }\n" +
-            "\n";
+                    "   public Connection getConnection(String url, String user, String password) throws SQLException {\n" +
+                    "        Connection dbConn;\n" +
+                    "        synchronized (ClassUtil.LOCK_STR) {\n" +
+                    "            DriverManager.setLoginTimeout(10);\n" +
+                    "            dbConn = DriverManager.getConnection(url, user, password);\n" +
+                    "        }\n" +
+                    "\n" +
+                    "        return dbConn;\n" +
+                    "    }\n" +
+                    "  @Override\n" +
+                    "   public Object xmlTypeToString(Object obj) throws Exception {\n" +
+                    "     String dataStr = \"\";\n" +
+                    "            if ( obj instanceof oracle.xdb.XMLType) {\n" +
+                    "                oracle.xdb.XMLType xml = (oracle.xdb.XMLType) obj;\n" +
+                    "                BufferedReader bf = new BufferedReader(xml.getCharacterStream());\n" +
+                    "                StringBuilder stringBuilder = new StringBuilder();\n" +
+                    "                String line;\n" +
+                    "                while ((line = bf.readLine()) != null) {\n" +
+                    "                    stringBuilder.append(line);\n" +
+                    "                }\n" +
+                    "                dataStr = stringBuilder.toString();\n" +
+                    "            } else {\n" +
+                    "                return obj;\n" +
+                    "            }\n" +
+                    "\n" +
+                    "        return dataStr;" +
+                    "    }\n" +
+                    "\n";
 
     String CLASS_WRITER_STR =
             "  @Override\n" +
                     "   public Connection getConnection(String url, String user, String password) throws SQLException {\n" +
                     "     return DbUtil.getConnection(url, user, password)  ;  \n" +
                     "    }\n" +
+                    "\n"+
+                    "  @Override\n" +
+                    "   public Object xmlTypeToString(Object obj) throws Exception {\n" +
+                    "     String dataStr = \"\";\n" +
+                    "            if ( obj instanceof oracle.xdb.XMLType) {\n" +
+                    "                oracle.xdb.XMLType xml = (oracle.xdb.XMLType) obj;\n" +
+                    "                BufferedReader bf = new BufferedReader(xml.getCharacterStream());\n" +
+                    "                StringBuilder stringBuilder = new StringBuilder();\n" +
+                    "                String line;\n" +
+                    "                while ((line = bf.readLine()) != null) {\n" +
+                    "                    stringBuilder.append(line);\n" +
+                    "                }\n" +
+                    "                dataStr = stringBuilder.toString();\n" +
+                    "            } else {\n" +
+                    "                return obj;\n" +
+                    "            }\n" +
+                    "\n" +
+                    "        return dataStr;" +
+                    "    }\n" +
                     "\n";
+
 
 
     /**
@@ -54,4 +93,6 @@ public interface IOracle9Helper {
      */
     public Connection getConnection(String url, String user, String password) throws SQLException ;
 
+
+    public Object xmlTypeToString(Object obj) throws Exception ;
 }

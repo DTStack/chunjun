@@ -1,5 +1,6 @@
 package com.dtstack.flinkx.oracle9.format;
 
+import com.dtstack.flinkx.classloader.PluginUtil;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.oracle9.IOracle9Helper;
@@ -10,15 +11,20 @@ import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
 import com.dtstack.flinkx.util.RetryUtil;
+import com.dtstack.flinkx.util.SysUtil;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 import sun.misc.URLClassPath;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -31,9 +37,12 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Company：www.dtstack.com
@@ -131,6 +140,34 @@ public class Oracle9OutputFormat extends JdbcOutputFormat {
             String urlFileName = FilenameUtils.getName(url.getPath());
             if (urlFileName.startsWith("flinkx-oracle9-writer")) {
                 needJar.add(url);
+
+                String currentPath = SysUtil.getCurrentPath();
+                LOG.info("ccurrent path is {}",currentPath);
+
+                File file = new File(currentPath + File.separator + "oracle9.zip");
+                if(!file.exists()){
+                    throw new RuntimeException("File oracle9.zip not exists,please sure upload this file");
+                }
+                //获取zip进行解压缩  加载进去
+                try {
+                    String savePath = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".")) + File.separator;
+                    File file1 = new File(savePath);
+                    file1.deleteOnExit();
+                    if(!file1.mkdir()){
+                        throw new RuntimeException("create file [ "+file1.getAbsolutePath() + "] failed");
+                    }
+                    SysUtil.unZip(file.getAbsolutePath(),savePath);
+                    Set<URL> collect = new HashSet<>();
+                    for (String s1 : PluginUtil.getAllJarNames(file1)) {
+                        URL url1 = new URL("file:"+file1.getAbsolutePath()+ File.separator + s1);
+                        collect.add(url1);
+                    }
+                    needJar.addAll(collect);
+                    LOG.info("need jars {} ", GsonUtil.GSON.toJson(needJar));
+                } catch (IOException e) {
+                    throw new RuntimeException("");
+                }
+
                 break;
             }
         }

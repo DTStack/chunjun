@@ -39,6 +39,7 @@ import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -828,7 +829,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         } catch (InterruptedException e) {
             LOG.warn("interrupted while waiting for polling, e = {}", ExceptionUtil.getErrorMessage(e));
         }
-
         //查询到数据，更新querySql
         builder = new StringBuilder(128);
         builder.append(querySql)

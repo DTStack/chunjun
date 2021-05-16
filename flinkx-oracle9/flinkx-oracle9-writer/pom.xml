@@ -94,6 +94,13 @@
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
+
+                                <copy todir="${basedir}/../../syncplugins/oracle9writer">
+                                    <fileset dir="${basedir}/../../flinkx-oracle9/src/main/resources/">
+                                        <include name="oracle9.zip" />
+                                    </fileset>
+                                </copy>
+
                                 <!--suppress UnresolvedMavenProperty -->
                                 <move file="${basedir}/../../syncplugins/oracle9writer/${project.name}-${project.version}.jar"
                                       tofile="${basedir}/../../syncplugins/oracle9writer/${project.name}-${git.branch}.jar" />

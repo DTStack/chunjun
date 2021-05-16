@@ -21,14 +21,18 @@ package com.dtstack.flinkx.classloader;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.config.DataTransferConfig;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -56,7 +60,7 @@ public class PluginUtil {
     private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
     public static Set<URL> getJarFileDirPath(String pluginName, String pluginRoot, String remotePluginPath) {
-        Set<URL> urlList = new HashSet<>();
+        Set<URL> urlList = new LinkedHashSet<>();
 
         String pluginPath = Objects.isNull(remotePluginPath) ? pluginRoot : remotePluginPath;
 
@@ -92,6 +96,20 @@ public class PluginUtil {
         return jarNames;
     }
 
+    public static List<String> getAllJarNames(File pluginPath) {
+        List<String> jarNames = new ArrayList<>();
+        if (pluginPath.exists() && pluginPath.isDirectory()) {
+            File[] jarFiles = pluginPath.listFiles((dir, name) ->
+                    name.toLowerCase().endsWith(".jar"));
+
+            if (Objects.nonNull(jarFiles) && jarFiles.length > 0) {
+                Arrays.stream(jarFiles).forEach(item -> jarNames.add(item.getName()));
+            }
+        }
+        return jarNames;
+    }
+
+
     public static String getPluginClassName(String pluginName) {
         String pluginClassName;
         if (pluginName.toLowerCase().endsWith(READER_SUFFIX)) {
@@ -124,6 +142,7 @@ public class PluginUtil {
         String writerPluginName = config.getJob().getContent().get(0).getWriter().getName();
         Set<URL> writerUrlList = PluginUtil.getJarFileDirPath(writerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
 
+        Set<URL> coreUrlList = getJarFileDirPath("", config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> urlSet = new HashSet<>();
 
         urlSet.addAll(readerUrlList);
@@ -138,6 +157,16 @@ public class PluginUtil {
 
         if (env instanceof MyLocalStreamEnvironment) {
             ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(urlSet));
+            if(CollectionUtils.isNotEmpty(coreUrlList)){
+                try {
+                    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+                    Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+                    add.setAccessible(true);
+                    add.invoke(contextClassLoader, new ArrayList<>(coreUrlList).get(0));
+                }catch (Exception e){
+                    //LOG.warn("cannot add core jar into contextClassLoader, coreUrlList = {}", GsonUtil.GSON.toJson(coreUrlList), e);
+                }
+            }
         }
     }
 }
