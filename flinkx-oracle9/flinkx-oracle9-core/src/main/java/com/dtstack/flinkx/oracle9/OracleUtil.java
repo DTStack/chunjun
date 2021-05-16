@@ -18,15 +18,11 @@
 
 package com.dtstack.flinkx.oracle9;
 
-import com.dtstack.flinkx.constants.ConstantValue;
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.ClassBodyEvaluator;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
 
 public class OracleUtil {
     public static IOracle9Helper getOracleHelperOfReader(ClassLoader parentClassLoader) throws IOException, CompileException {
@@ -34,7 +30,7 @@ public class OracleUtil {
         ClassBodyEvaluator cbe = new ClassBodyEvaluator();
         cbe.setParentClassLoader(parentClassLoader);
 
-        cbe.setDefaultImports("com.dtstack.flinkx.util.ClassUtil","java.sql.Connection","java.sql.DriverManager","java.sql.SQLException","java.io.BufferedReader");
+        cbe.setDefaultImports("com.dtstack.flinkx.util.ClassUtil", "java.sql.Connection", "java.sql.DriverManager", "java.sql.SQLException", "java.io.BufferedReader");
         cbe.setImplementedInterfaces(new Class[]{IOracle9Helper.class});
         StringReader sr = new StringReader(IOracle9Helper.CLASS_READER_STR);
         return (IOracle9Helper) cbe.createInstance(sr);
@@ -45,7 +41,7 @@ public class OracleUtil {
         ClassBodyEvaluator cbe = new ClassBodyEvaluator();
         cbe.setParentClassLoader(parentClassLoader);
 
-        cbe.setDefaultImports("com.dtstack.flinkx.rdb.util.DbUtil","java.sql.Connection","java.sql.SQLException","java.io.BufferedReader");
+        cbe.setDefaultImports("com.dtstack.flinkx.rdb.util.DbUtil", "java.sql.Connection", "java.sql.SQLException", "java.io.BufferedReader");
         cbe.setImplementedInterfaces(new Class[]{IOracle9Helper.class});
         StringReader sr = new StringReader(IOracle9Helper.CLASS_WRITER_STR);
         return (IOracle9Helper) cbe.createInstance(sr);

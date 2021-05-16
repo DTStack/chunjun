@@ -71,6 +71,9 @@ public class Oracle9InputFormat extends JdbcInputFormat {
         LOG.info("inputSplit = {}", inputSplit);
         actionBeforeReadData();
 
+        //环境中没有oracle的jar包
+//        ClassUtil.forName(driverName, getClass().getClassLoader());
+
         initMetric(inputSplit);
         if (!canReadData(inputSplit)) {
             LOG.warn("Not read data when the start location are equal to end location");
@@ -213,7 +216,7 @@ public class Oracle9InputFormat extends JdbcInputFormat {
         } catch (Exception e) {
             String message = String.format("can not get oracle connection , dbUrl = %s, e = %s", dbUrl, ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message, e);
-        }finally {
+        } finally {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
     }
@@ -236,14 +239,14 @@ public class Oracle9InputFormat extends JdbcInputFormat {
         try {
             File needLoadJarDirectory = new File(needLoadJarPath);
 
-            if(!needLoadJarDirectory.exists()){
-                if(!needLoadJarDirectory.mkdir()){
-                    throw new RuntimeException("create file [ "+needLoadJarDirectory.getAbsolutePath() + "] failed");
+            if (!needLoadJarDirectory.exists()) {
+                if (!needLoadJarDirectory.mkdir()) {
+                    throw new RuntimeException("create file [ " + needLoadJarDirectory.getAbsolutePath() + "] failed");
                 }
 
                 File unzipFile = new File(unzipTempPath);
-                if(!unzipFile.mkdir()){
-                    throw new RuntimeException("create file [ "+unzipTempPath + "] failed");
+                if (!unzipFile.mkdir()) {
+                    throw new RuntimeException("create file [ " + unzipTempPath + "] failed");
                 }
 
                 List<String> jars = SysUtil.unZip(zipFile.getAbsolutePath(), unzipTempPath);
@@ -256,8 +259,8 @@ public class Oracle9InputFormat extends JdbcInputFormat {
                 unzipFile.deleteOnExit();
 
                 File actionFile = new File(actionPath);
-                if(!actionFile.mkdir()){
-                    throw new RuntimeException("create file [ "+actionFile.getAbsolutePath() + "] failed");
+                if (!actionFile.mkdir()) {
+                    throw new RuntimeException("create file [ " + actionFile.getAbsolutePath() + "] failed");
                 }
             }
         } catch (IOException e) {
@@ -271,10 +274,10 @@ public class Oracle9InputFormat extends JdbcInputFormat {
     protected void waitForActionFinishedBeforeRead() {
 
         File unzipFile = new File(needLoadJarPath);
-        File actionFile= new File(actionPath);
+        File actionFile = new File(actionPath);
         int n = 0;
-        while(!unzipFile.exists() || !actionFile.exists()){
-            if(n > SECOND_WAIT){
+        while (!unzipFile.exists() || !actionFile.exists()) {
+            if (n > SECOND_WAIT) {
                 throw new RuntimeException("Wait action finished before write timeout");
             }
             SysUtil.sleep(2000);

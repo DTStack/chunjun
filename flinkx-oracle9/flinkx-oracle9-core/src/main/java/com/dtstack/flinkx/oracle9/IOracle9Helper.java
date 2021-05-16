@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.oracle9;
 
-import java.io.BufferedReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -60,7 +59,7 @@ public interface IOracle9Helper {
                     "   public Connection getConnection(String url, String user, String password) throws SQLException {\n" +
                     "     return DbUtil.getConnection(url, user, password)  ;  \n" +
                     "    }\n" +
-                    "\n"+
+                    "\n" +
                     "  @Override\n" +
                     "   public Object xmlTypeToString(Object obj) throws Exception {\n" +
                     "     String dataStr = \"\";\n" +
@@ -82,17 +81,17 @@ public interface IOracle9Helper {
                     "\n";
 
 
-
     /**
      * 获取jdbc连接
+     *
      * @param url
      * @param user
      * @param password
      * @return
      * @throws SQLException
      */
-    public Connection getConnection(String url, String user, String password) throws SQLException ;
+    public Connection getConnection(String url, String user, String password) throws SQLException;
 
 
-    public Object xmlTypeToString(Object obj) throws Exception ;
+    public Object xmlTypeToString(Object obj) throws Exception;
 }
