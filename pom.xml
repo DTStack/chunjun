@@ -18,63 +18,63 @@
 
         <!--******离线******-->
         <module>flinkx-rdb</module>
-        <module>flinkx-mysql</module>
-        <module>flinkx-polardb</module>
+<!--        <module>flinkx-mysql</module>-->
+<!--        <module>flinkx-polardb</module>-->
         <module>flinkx-oracle</module>
         <module>flinkx-oracle9</module>
-        <module>flinkx-sqlserver</module>
-        <module>flinkx-postgresql</module>
-        <module>flinkx-db2</module>
-        <module>flinkx-dm</module>
-        <module>flinkx-gbase</module>
-        <module>flinkx-clickhouse</module>
-        <module>flinkx-saphana</module>
-        <module>flinkx-greenplum</module>
-        <module>flinkx-kingbase</module>
+<!--        <module>flinkx-sqlserver</module>-->
+<!--        <module>flinkx-postgresql</module>-->
+<!--        <module>flinkx-db2</module>-->
+<!--        <module>flinkx-dm</module>-->
+<!--        <module>flinkx-gbase</module>-->
+<!--        <module>flinkx-clickhouse</module>-->
+<!--        <module>flinkx-saphana</module>-->
+<!--        <module>flinkx-greenplum</module>-->
+<!--        <module>flinkx-kingbase</module>-->
 
-        <module>flinkx-hdfs</module>
-        <module>flinkx-hive</module>
-        <module>flinkx-es</module>
-        <module>flinkx-ftp</module>
-        <module>flinkx-odps</module>
-        <module>flinkx-hbase</module>
-<!--        <module>flinkx-phoenix</module>-->
-        <module>flinkx-phoenix5</module>
-        <module>flinkx-carbondata</module>
-        <module>flinkx-kudu</module>
-        <module>flinkx-cassandra</module>
+<!--        <module>flinkx-hdfs</module>-->
+<!--        <module>flinkx-hive</module>-->
+<!--        <module>flinkx-es</module>-->
+<!--        <module>flinkx-ftp</module>-->
+<!--        <module>flinkx-odps</module>-->
+<!--        <module>flinkx-hbase</module>-->
+<!--&lt;!&ndash;        <module>flinkx-phoenix</module>&ndash;&gt;-->
+<!--        <module>flinkx-phoenix5</module>-->
+<!--        <module>flinkx-carbondata</module>-->
+<!--        <module>flinkx-kudu</module>-->
+<!--        <module>flinkx-cassandra</module>-->
 
-        <module>flinkx-redis</module>
-        <module>flinkx-mongodb</module>
+<!--        <module>flinkx-redis</module>-->
+<!--        <module>flinkx-mongodb</module>-->
 
-        <!--******实时******-->
-        <module>flinkx-binlog</module>
-        <module>flinkx-kb</module>
-        <module>flinkx-kafka09</module>
-        <module>flinkx-kafka10</module>
-        <module>flinkx-kafka11</module>
-        <module>flinkx-kafka</module>
-        <module>flinkx-emqx</module>
+<!--        &lt;!&ndash;******实时******&ndash;&gt;-->
+<!--        <module>flinkx-binlog</module>-->
+<!--        <module>flinkx-kb</module>-->
+<!--        <module>flinkx-kafka09</module>-->
+<!--        <module>flinkx-kafka10</module>-->
+<!--        <module>flinkx-kafka11</module>-->
+<!--        <module>flinkx-kafka</module>-->
+<!--        <module>flinkx-emqx</module>-->
 
-        <module>flinkx-sqlservercdc</module>
-        <module>flinkx-oraclelogminer</module>
+<!--        <module>flinkx-sqlservercdc</module>-->
+<!--        <module>flinkx-oraclelogminer</module>-->
 
         <!--******元数据******-->
-        <module>flinkx-metadata</module>
-        <module>flinkx-metadata-hive2</module>
-        <module>flinkx-metadata-hive1</module>
-        <module>flinkx-metadata-tidb</module>
-        <module>flinkx-metadata-oracle</module>
-        <module>flinkx-metadata-mysql</module>
-        <module>flinkx-metadata-sqlserver</module>
-        <module>flinkx-metadata-phoenix5</module>
-        <module>flinkx-metadata-hbase</module>
-        <module>flinkx-metadata-vertica</module>
-<!--        <module>flinkx-metadata-es6</module>-->
+<!--        <module>flinkx-metadata</module>-->
+<!--        <module>flinkx-metadata-hive2</module>-->
+<!--        <module>flinkx-metadata-hive1</module>-->
+<!--        <module>flinkx-metadata-tidb</module>-->
+<!--        <module>flinkx-metadata-oracle</module>-->
+<!--        <module>flinkx-metadata-mysql</module>-->
+<!--        <module>flinkx-metadata-sqlserver</module>-->
+<!--        <module>flinkx-metadata-phoenix5</module>-->
+<!--        <module>flinkx-metadata-hbase</module>-->
+<!--        <module>flinkx-metadata-vertica</module>-->
+<!--&lt;!&ndash;        <module>flinkx-metadata-es6</module>&ndash;&gt;-->
 
-        <module>flinkx-restapi</module>
-        <module>flinkx-websocket</module>
-        <module>flinkx-socket</module>
+<!--        <module>flinkx-restapi</module>-->
+<!--        <module>flinkx-websocket</module>-->
+<!--        <module>flinkx-socket</module>-->
     </modules>
 
     <properties>
