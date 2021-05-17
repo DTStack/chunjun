@@ -25,7 +25,6 @@ import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
@@ -33,12 +32,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
+import java.util.Objects;
 
 
 /**
@@ -84,7 +82,36 @@ public class SysUtil {
         return ENV.get(ApplicationConstants.Environment.PWD.key());
     }
 
-    public static List<String> unZip(String path,String savePath) throws IOException {
+
+    /**
+     * 递归查找指定名称的文件
+     * @param file
+     * @param name
+     * @return
+     */
+    public static File findFile(File file, String name) {
+        if (file.isDirectory()) {
+            for (File listFile : file.listFiles()) {
+                File result = findFile(listFile, name);
+                if (Objects.nonNull(result)) {
+                    return result;
+                }
+            }
+        } else if (file.getName().equals(name)) {
+            return file;
+        }
+        return null;
+    }
+
+
+    /**
+     *  解压指定文件到指定目录下
+     * @param path
+     * @param targetPath
+     * @return
+     * @throws IOException
+     */
+    public static List<String> unZip(String path,String targetPath) throws IOException {
 
         ArrayList<String> jars = new ArrayList<>(32);
         ZipFile zf;
@@ -93,7 +120,7 @@ public class SysUtil {
         while (e.hasMoreElements()) {
             ZipArchiveEntry zn = e.nextElement();
             if (!zn.isDirectory()) {
-                File newFile = new File(savePath + File.separator + zn.getName());
+                File newFile = new File(targetPath + File.separator + zn.getName());
                 LOG.info("start create file {}",newFile.getAbsolutePath());
                 if (!newFile.createNewFile()) {
                     throw new IOException("create file" + newFile.getAbsolutePath() + " failed");

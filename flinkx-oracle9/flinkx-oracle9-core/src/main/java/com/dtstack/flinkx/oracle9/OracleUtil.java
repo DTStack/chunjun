@@ -25,27 +25,15 @@ import java.io.IOException;
 import java.io.StringReader;
 
 public class OracleUtil {
-    public static IOracle9Helper getOracleHelperOfReader(ClassLoader parentClassLoader) throws IOException, CompileException {
+    public static IOracle9Helper getOracleHelper(ClassLoader parentClassLoader) throws IOException, CompileException {
 
         ClassBodyEvaluator cbe = new ClassBodyEvaluator();
         cbe.setParentClassLoader(parentClassLoader);
 
-        cbe.setDefaultImports("com.dtstack.flinkx.util.ClassUtil", "java.sql.Connection", "java.sql.DriverManager", "java.sql.SQLException", "java.io.BufferedReader");
+        cbe.setDefaultImports("com.dtstack.flinkx.util.ClassUtil", "java.sql.Connection", "java.sql.DriverManager", "java.sql.SQLException", "java.io.BufferedReader","java.sql.ResultSet");
         cbe.setImplementedInterfaces(new Class[]{IOracle9Helper.class});
-        StringReader sr = new StringReader(IOracle9Helper.CLASS_READER_STR);
+        StringReader sr = new StringReader(IOracle9Helper.CLASS_STR);
         return (IOracle9Helper) cbe.createInstance(sr);
-    }
-
-    public static IOracle9Helper getOracleHelperOfWrite(ClassLoader parentClassLoader) throws IOException, CompileException {
-
-        ClassBodyEvaluator cbe = new ClassBodyEvaluator();
-        cbe.setParentClassLoader(parentClassLoader);
-
-        cbe.setDefaultImports("com.dtstack.flinkx.rdb.util.DbUtil", "java.sql.Connection", "java.sql.SQLException", "java.io.BufferedReader");
-        cbe.setImplementedInterfaces(new Class[]{IOracle9Helper.class});
-        StringReader sr = new StringReader(IOracle9Helper.CLASS_WRITER_STR);
-        return (IOracle9Helper) cbe.createInstance(sr);
-
     }
 
 }

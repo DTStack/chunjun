@@ -86,8 +86,9 @@ public class PluginUtil {
     private static List<String> getJarNames(File pluginPath) {
         List<String> jarNames = new ArrayList<>();
         if (pluginPath.exists() && pluginPath.isDirectory()) {
+            //不仅仅是加载jar包 也有可能加载zip包(插件会在运行时将zip解压 使用classloader加载解压的jar包)
             File[] jarFiles = pluginPath.listFiles((dir, name) ->
-                    name.toLowerCase().startsWith(JAR_PREFIX) && name.toLowerCase().endsWith(".jar"));
+                    name.toLowerCase().startsWith(JAR_PREFIX) && (name.toLowerCase().endsWith(".jar") || name.toLowerCase().endsWith(".zip")));
 
             if (Objects.nonNull(jarFiles) && jarFiles.length > 0) {
                 Arrays.stream(jarFiles).forEach(item -> jarNames.add(item.getName()));

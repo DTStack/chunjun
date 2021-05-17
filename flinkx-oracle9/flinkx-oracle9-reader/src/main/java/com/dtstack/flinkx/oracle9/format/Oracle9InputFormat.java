@@ -24,6 +24,8 @@ import sun.misc.URLClassPath;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -45,24 +47,30 @@ import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
  */
 public class Oracle9InputFormat extends JdbcInputFormat {
 
+
     protected static final int SECOND_WAIT = 30;
+
     private URLClassLoader childFirstClassLoader;
     private IOracle9Helper helper;
+
+
+    //压缩文件名称
+    private final String ZIP_NAME = "flinkx-oracle9reader.zip";
+    //taskmanager本地路径
     private String currentPath;
+    //解压后的jar包路径
     private String needLoadJarPath;
+    //解压jar包临时路径
     private String unzipTempPath;
-
+    //解压完成路径
     private String actionPath;
-    private File zipFile;
-
-
 
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
         currentPath = SysUtil.getCurrentPath();
-        LOG.info("ccurrent path is {}",currentPath);
+        LOG.info("ccurrent path is {}", currentPath);
 
     }
 
@@ -83,7 +91,7 @@ public class Oracle9InputFormat extends JdbcInputFormat {
         querySql = buildQuerySql(inputSplit);
         try {
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
-            if(!resultSet.isClosed()){
+            if (!resultSet.isClosed()) {
                 columnCount = resultSet.getMetaData().getColumnCount();
             }
         } catch (SQLException se) {
@@ -105,10 +113,11 @@ public class Oracle9InputFormat extends JdbcInputFormat {
             return null;
         }
         row = new Row(columnCount);
-
-        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        ClassLoader contextClassLoader = null;
         try {
+            contextClassLoader  = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(childFirstClassLoader);
+
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
                 if (obj != null) {
@@ -119,6 +128,9 @@ public class Oracle9InputFormat extends JdbcInputFormat {
                     obj = clobToString(obj);
                     //XMLType transform to String
                     obj = helper.xmlTypeToString(obj);
+                }
+                if(pos == 0){
+                    obj=new BigInteger("10000"+((BigDecimal)obj).longValue());
                 }
                 row.setField(pos, obj);
             }
@@ -182,13 +194,11 @@ public class Oracle9InputFormat extends JdbcInputFormat {
 
                 Set<URL> collect = new HashSet<>();
                 for (String s1 : PluginUtil.getAllJarNames(new File(needLoadJarPath))) {
-                    URL url1;
                     try {
-                        url1 = new URL("file:" + needLoadJarPath + File.separator + s1);
+                        collect.add(new URL("file:" + needLoadJarPath + File.separator + s1));
                     } catch (MalformedURLException e) {
                         throw new RuntimeException("get  [" + "file:" + needLoadJarPath + File.separator + s1 + "] failed", e);
                     }
-                    collect.add(url1);
                 }
                 needJar.addAll(collect);
                 LOG.info("need jars {} ", GsonUtil.GSON.toJson(needJar));
@@ -202,16 +212,17 @@ public class Oracle9InputFormat extends JdbcInputFormat {
         list.add("org.apache.flink");
         list.add("com.dtstack.flinkx");
 
-        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+
 
         childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
 
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(childFirstClassLoader);
 
         ClassUtil.forName(driverName, childFirstClassLoader);
 
         try {
-            helper = OracleUtil.getOracleHelperOfReader(childFirstClassLoader);
+            helper = OracleUtil.getOracleHelper(childFirstClassLoader);
             return RetryUtil.executeWithRetry(() -> helper.getConnection(dbUrl, username, password), 3, 2000, false);
         } catch (Exception e) {
             String message = String.format("can not get oracle connection , dbUrl = %s, e = %s", dbUrl, ExceptionUtil.getErrorMessage(e));
@@ -221,11 +232,18 @@ public class Oracle9InputFormat extends JdbcInputFormat {
         }
     }
 
+    /**
+     * 解压缩oracle9reader的驱动包
+     * 如果解压缩的路径存在就不需要解压
+     * 只有编号为0的task才会进行解压，先解压到oracle9reader/.unzip临时目录下 然后再移到oracle9reader目录下
+     */
     protected void actionBeforeReadData() {
-        zipFile = new File(currentPath + File.separator + "oracle9.zip");
-        if (!zipFile.exists()) {
-            throw new RuntimeException("File oracle9.zip not exists,please sure upload this file");
+        File zipFile = new File(currentPath);
+        zipFile = SysUtil.findFile(zipFile, ZIP_NAME);
+        if (zipFile == null) {
+            throw new RuntimeException("File " + zipFile.getAbsolutePath() + "  not exists,please sure upload this file");
         }
+
         needLoadJarPath = zipFile.getAbsolutePath().substring(0, zipFile.getAbsolutePath().lastIndexOf(".zip"));
         actionPath = needLoadJarPath + File.separator + "action";
         unzipTempPath = needLoadJarPath + File.separator + ".unzip";
@@ -241,22 +259,25 @@ public class Oracle9InputFormat extends JdbcInputFormat {
 
             if (!needLoadJarDirectory.exists()) {
                 if (!needLoadJarDirectory.mkdir()) {
-                    throw new RuntimeException("create file [ " + needLoadJarDirectory.getAbsolutePath() + "] failed");
+                    throw new RuntimeException("create directory [ " + needLoadJarDirectory.getAbsolutePath() + "] failed");
                 }
 
-                File unzipFile = new File(unzipTempPath);
-                if (!unzipFile.mkdir()) {
-                    throw new RuntimeException("create file [ " + unzipTempPath + "] failed");
+                File unzipDirectory = new File(unzipTempPath);
+                if (!unzipDirectory.mkdir()) {
+                    throw new RuntimeException("create directory [ " + unzipTempPath + "] failed");
                 }
 
+
+                //解压到.unzip目录下
                 List<String> jars = SysUtil.unZip(zipFile.getAbsolutePath(), unzipTempPath);
 
+                //移动到oracle9reader目录下
                 for (String jarPath : jars) {
                     File file = new File(jarPath);
                     file.renameTo(new File(needLoadJarPath + File.separator + file.getName()));
                 }
 
-                unzipFile.deleteOnExit();
+                unzipDirectory.delete();
 
                 File actionFile = new File(actionPath);
                 if (!actionFile.mkdir()) {
@@ -280,7 +301,7 @@ public class Oracle9InputFormat extends JdbcInputFormat {
             if (n > SECOND_WAIT) {
                 throw new RuntimeException("Wait action finished before write timeout");
             }
-            SysUtil.sleep(2000);
+            SysUtil.sleep(3000);
             n++;
         }
     }
