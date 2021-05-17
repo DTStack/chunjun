@@ -256,34 +256,29 @@ public class Oracle9OutputFormat extends JdbcOutputFormat {
         actionPath = needLoadJarPath + File.separator + "action";
         unzipTempPath = needLoadJarPath + File.separator + ".unzip";
 
-        if(waitForActionFinishedBeforeWrite()){
+
+        LOG.info("needLoadJarPath {}", needLoadJarPath);
+
+        if (waitForActionFinishedBeforeWrite()) {
             //获取zip进行解压缩
             try {
-                File needLoadJarDirectory = new File(needLoadJarPath);
+                File unzipDirectory = new File(unzipTempPath);
+                if (!unzipDirectory.mkdir()) {
+                    throw new RuntimeException("create directory [ " + unzipTempPath + "] failed");
+                }
 
-                if (!needLoadJarDirectory.exists()) {
-                    if (!needLoadJarDirectory.mkdir()) {
-                        throw new RuntimeException("create directory [ " + needLoadJarDirectory.getAbsolutePath() + "] failed");
-                    }
+                List<String> jars = SysUtil.unZip(zipFile.getAbsolutePath(), unzipTempPath);
 
-                    File unzipDirectory = new File(unzipTempPath);
-                    if (!unzipDirectory.mkdir()) {
-                        throw new RuntimeException("create directory [ " + unzipTempPath + "] failed");
-                    }
+                for (String jarPath : jars) {
+                    File file = new File(jarPath);
+                    file.renameTo(new File(needLoadJarPath + File.separator + file.getName()));
+                }
 
-                    List<String> jars = SysUtil.unZip(zipFile.getAbsolutePath(), unzipTempPath);
+                unzipDirectory.delete();
 
-                    for (String jarPath : jars) {
-                        File file = new File(jarPath);
-                        file.renameTo(new File(needLoadJarPath + File.separator + file.getName()));
-                    }
-
-                    unzipDirectory.delete();
-
-                    File actionFile = new File(actionPath);
-                    if (!actionFile.mkdir()) {
-                        throw new RuntimeException("create file [ " + actionFile.getAbsolutePath() + "] failed");
-                    }
+                File actionFile = new File(actionPath);
+                if (!actionFile.mkdir()) {
+                    throw new RuntimeException("create file [ " + actionFile.getAbsolutePath() + "] failed");
                 }
             } catch (IOException e) {
                 new File(needLoadJarPath).deleteOnExit();
@@ -297,6 +292,7 @@ public class Oracle9OutputFormat extends JdbcOutputFormat {
 
     /**
      * 创建解压目录 如果创建成功 则当前subtask进行解压 其余的channel进行等待
+     *
      * @return
      */
     protected boolean waitForActionFinishedBeforeWrite() {
@@ -304,18 +300,18 @@ public class Oracle9OutputFormat extends JdbcOutputFormat {
         File unzipFile = new File(needLoadJarPath);
         File actionFile = new File(actionPath);
         int n = 0;
-        //如果解压路径存在就不新建 代表其他的任务在新建中
-        if(!unzipFile.exists()){
+        //如果解压路径存在就不新建 否则代表其他的任务在新建中
+        if (!unzipFile.exists()) {
             try {
                 result = unzipFile.mkdir();
-            }catch (Exception e){
-                if(!unzipFile.exists()){
-                    throw new RuntimeException("create directory"+ needLoadJarPath + " failed",e);
+            } catch (Exception e) {
+                if (!unzipFile.exists()) {
+                    throw new RuntimeException("create directory" + needLoadJarPath + " failed", e);
                 }
             }
         }
         //如果创建成功 就返回true 否则就等待其他channel完成新建
-        if(result){
+        if (result) {
             return result;
         }
 
