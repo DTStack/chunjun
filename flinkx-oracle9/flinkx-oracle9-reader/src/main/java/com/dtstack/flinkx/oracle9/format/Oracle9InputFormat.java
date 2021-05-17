@@ -28,26 +28,22 @@ import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
-import com.dtstack.flinkx.util.ReflectionUtils;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.google.common.collect.Lists;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.apache.flink.types.Row;
-import sun.java2d.opengl.OGLContext;
-import sun.misc.URLClassPath;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -88,8 +84,15 @@ public class Oracle9InputFormat extends JdbcInputFormat {
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
-        currentPath = SysUtil.getCurrentPath();
-        LOG.info("ccurrent path is {}", currentPath);
+        String osName = System.getProperties().getProperty("os.name");
+        if ("Linux".equals(osName)) {
+            //linux环境
+            currentPath = SysUtil.getCurrentPath();
+        } else {
+            //window环境
+            currentPath = Paths.get("").toAbsolutePath().toString();
+        }
+        LOG.info("current path is {}", currentPath);
 
     }
 
@@ -97,9 +100,6 @@ public class Oracle9InputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit = {}", inputSplit);
         actionBeforeReadData();
-
-        //环境中没有oracle的jar包
-//        ClassUtil.forName(driverName, getClass().getClassLoader());
 
         initMetric(inputSplit);
         if (!canReadData(inputSplit)) {
@@ -193,44 +193,22 @@ public class Oracle9InputFormat extends JdbcInputFormat {
      */
     @Override
     public Connection getConnection() {
-        Field declaredField = ReflectionUtils.getDeclaredField(getClass().getClassLoader(), "ucp");
-        assert declaredField != null;
-        declaredField.setAccessible(true);
-        URLClassPath urlClassPath;
-        try {
-            urlClassPath = (URLClassPath) declaredField.get(getClass().getClassLoader());
-        } catch (IllegalAccessException e) {
-            String message = String.format("can not get urlClassPath from current classLoader, classLoader = %s, e = %s", getClass().getClassLoader(), ExceptionUtil.getErrorMessage(e));
-            throw new RuntimeException(message, e);
-        }
-        declaredField.setAccessible(false);
-
         List<URL> needJar = Lists.newArrayList();
-        for (URL url : urlClassPath.getURLs()) {
-            String urlFileName = FilenameUtils.getName(url.getPath());
-            if (urlFileName.startsWith("flinkx-oracle9-reader")) {
-                needJar.add(url);
-
-                Set<URL> collect = new HashSet<>();
-                for (String s1 : PluginUtil.getAllJarNames(new File(needLoadJarPath))) {
-                    try {
-                        collect.add(new URL("file:" + needLoadJarPath + File.separator + s1));
-                    } catch (MalformedURLException e) {
-                        throw new RuntimeException("get  [" + "file:" + needLoadJarPath + File.separator + s1 + "] failed", e);
-                    }
-                }
-                needJar.addAll(collect);
-                LOG.info("need jars {} ", GsonUtil.GSON.toJson(needJar));
-
-                break;
+        Set<URL> collect = new HashSet<>();
+        for (String s1 : PluginUtil.getAllJarNames(new File(needLoadJarPath))) {
+            try {
+                collect.add(new URL("file:" + needLoadJarPath + File.separator + s1));
+            } catch (MalformedURLException e) {
+                throw new RuntimeException("get  [" + "file:" + needLoadJarPath + File.separator + s1 + "] failed", e);
             }
         }
+        needJar.addAll(collect);
+        LOG.info("need jars {} ", GsonUtil.GSON.toJson(needJar));
 
         ClassLoader parentClassLoader = getClass().getClassLoader();
         List<String> list = new LinkedList<>();
         list.add("org.apache.flink");
         list.add("com.dtstack.flinkx");
-
 
         childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, list.toArray(new String[0]));
 
