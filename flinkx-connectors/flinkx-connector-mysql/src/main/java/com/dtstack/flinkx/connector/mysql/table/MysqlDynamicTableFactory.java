@@ -29,6 +29,9 @@ import com.dtstack.flinkx.connector.mysql.MysqlDialect;
  **/
 public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
+    // 默认是Mysql流式拉取
+    private static final int DEFAULT_FETCH_SIZE = Integer.MIN_VALUE;
+
     /** 通过该值查找具体插件 */
     private static final String IDENTIFIER = "mysql-x";
 
@@ -40,5 +43,10 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     protected JdbcDialect getDialect() {
         return new MysqlDialect();
+    }
+
+    @Override
+    protected int getDefaultFetchSize() {
+        return DEFAULT_FETCH_SIZE;
     }
 }
