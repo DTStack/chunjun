@@ -22,6 +22,7 @@
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
+        <module>flinkx-connector-sqlservercdc</module>
     </modules>
 
     <dependencies>
