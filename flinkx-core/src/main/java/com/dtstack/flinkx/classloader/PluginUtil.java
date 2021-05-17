@@ -21,8 +21,11 @@ package com.dtstack.flinkx.classloader;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -42,6 +45,8 @@ import java.util.Set;
  * @date 2019/10/21
  */
 public class PluginUtil {
+
+    protected static final Logger LOG = LoggerFactory.getLogger(PluginUtil.class);
 
     private static final String COMMON_DIR = "common";
 
@@ -165,7 +170,7 @@ public class PluginUtil {
                     add.setAccessible(true);
                     add.invoke(contextClassLoader, new ArrayList<>(coreUrlList).get(0));
                 }catch (Exception e){
-                    //LOG.warn("cannot add core jar into contextClassLoader, coreUrlList = {}", GsonUtil.GSON.toJson(coreUrlList), e);
+                    LOG.warn("cannot add core jar into contextClassLoader, coreUrlList = {}", GsonUtil.GSON.toJson(coreUrlList), e);
                 }
             }
         }
