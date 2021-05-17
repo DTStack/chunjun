@@ -18,8 +18,9 @@
 
 package com.dtstack.flinkx.oracle9;
 
+
+import java.io.IOException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public interface IOracle9Helper {
@@ -52,7 +53,19 @@ public interface IOracle9Helper {
                     "            }\n" +
                     "\n" +
                     "        return dataStr;" +
-                    "    }\n" ;
+                    "    }\n"+
+            " @Override\n" +
+                    "    public Object blobToString(Object obj) throws SQLException, IOException {\n" +
+                    "        String dataStr = \"\";\n" +
+                    "        if (obj instanceof oracle.sql.BLOB) {\n" +
+                    "            BLOB blob = (BLOB) obj;\n" +
+                    "            InputStream binaryStream = blob.getBinaryStream();\n" +
+                    "            byte[] bytes = new byte[binaryStream.available()];\n" +
+                    "            binaryStream.read(bytes, 0, bytes.length);\n" +
+                    "            dataStr = new String(bytes);\n" +
+                    "        }\n" +
+                    "        return dataStr;\n" +
+                    "    }";
 
     /**
      * 获取jdbc连接
@@ -67,5 +80,11 @@ public interface IOracle9Helper {
 
 
     public Object xmlTypeToString(Object obj) throws Exception;
+
+
+    public Object blobToByteArray(Object obj);
+
+
+    public Object blobToString(Object obj) throws SQLException, IOException;
 
 }
