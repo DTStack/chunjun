@@ -29,6 +29,7 @@ import org.apache.flink.runtime.taskexecutor.rpc.RpcGlobalAggregateManager;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,9 +73,7 @@ public class AccumulatorCollector {
         scheduledExecutorService = new ScheduledThreadPoolExecutor(1, r -> new Thread(r, THREAD_NAME));
 
         //比task manager心跳间隔多1秒
-        this.period = ((TaskManagerConfiguration) context.getTaskManagerRuntimeInfo())
-                .getTimeout()
-                .toMilliseconds() + 1000;
+        this.period = ((TaskManagerConfiguration) context.getTaskManagerRuntimeInfo()).getTimeout().toMilliseconds() + 1000;
         RpcGlobalAggregateManager globalAggregateManager = ((RpcGlobalAggregateManager)(context).getGlobalAggregateManager());
         Field field = ReflectionUtils.getDeclaredField(globalAggregateManager, "jobMasterGateway");
         assert field != null;
@@ -125,7 +124,20 @@ public class AccumulatorCollector {
         }
     }
 
-    public long getAccumulatorValue(String name){
+    /**
+     * 获取指定累加器信息
+     * @param name 累加器名称
+     * @param needWaited 是否需要等待
+     * @return
+     */
+    public long getAccumulatorValue(String name, boolean needWaited) {
+        if(needWaited){
+            try {
+                TimeUnit.MILLISECONDS.wait(this.period);
+            } catch (InterruptedException e) {
+                LOG.warn("Interrupted when waiting for valueAccumulatorMap, e = {}", ExceptionUtil.getErrorMessage(e));
+            }
+        }
         ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
         if(valueAccumulator == null){
             return 0;

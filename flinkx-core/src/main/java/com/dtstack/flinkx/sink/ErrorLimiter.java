@@ -18,10 +18,11 @@
 
 package com.dtstack.flinkx.sink;
 
-import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
+
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
 
 /**
  * Error Limitation
@@ -62,14 +63,14 @@ public class ErrorLimiter {
             errorDataStr = errorData.toString() + "\n";
         }
 
-        long errors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS);
+        long errors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
         if(maxErrors != null){
             Preconditions.checkArgument(errors <= maxErrors, "WritingRecordError: error writing record [" + errors + "] exceed limit [" + maxErrors
                     + "]\n" + errorDataStr + errMsg);
         }
 
         if(maxErrorRatio != null){
-            long numRead = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS);
+            long numRead = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS, false);
             if(numRead >= 1) {
                 errorRatio = (double) errors / numRead;
             }
