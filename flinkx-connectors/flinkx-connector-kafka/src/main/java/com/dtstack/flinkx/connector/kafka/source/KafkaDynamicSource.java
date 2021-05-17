@@ -42,17 +42,12 @@ import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.internals.SubscriptionState;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Header;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.kafka.common.requests.IsolationLevel;
 
 import javax.annotation.Nullable;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -548,9 +543,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
         }
     }
 
-    private static final class KafkaConsumerFactory implements Serializable {
-
-        private static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerFactory.class);
+    private class KafkaConsumerFactory implements Serializable {
 
         private static final long serialVersionUID = 1L;
 
@@ -581,14 +574,9 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
                             producedTypeInfo,
                             upsertMode,
                             (Calculate & Serializable)
-                                    (subscriptionState, tp) -> {
-                                        try {
-                                            return partitionLag(subscriptionState, tp);
-                                        } catch (Exception e) {
-                                            LOG.error(e.toString());
-                                        }
-                                        return null;
-                                    });
+                                    (subscriptionState, tp) ->
+                                            subscriptionState.partitionLag(
+                                                    tp, IsolationLevel.READ_UNCOMMITTED));
 
             if (topics != null) {
                 kafkaConsumer = new KafkaConsumer(topics, kafkaDeserializer, properties);
@@ -596,31 +584,6 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
                 kafkaConsumer = new KafkaConsumer(topicPattern, kafkaDeserializer, properties);
             }
             return kafkaConsumer;
-        }
-
-        /**
-         * 获取kafka的lag
-         *
-         * @param subscriptionState
-         * @param topicPartition
-         * @return
-         * @throws Exception
-         */
-        private Long partitionLag(SubscriptionState subscriptionState, TopicPartition topicPartition)
-                throws Exception {
-            Method assignedState = subscriptionState.getClass().getDeclaredMethod("assignedState", TopicPartition.class);
-            assignedState.setAccessible(true);
-            Object subscriptionStateInvoke = assignedState.invoke(subscriptionState, topicPartition);
-
-            Field highWatermarkField = subscriptionStateInvoke.getClass().getDeclaredField("highWatermark");
-            highWatermarkField.setAccessible(true);
-            Long highWatermark = (Long) highWatermarkField.get(subscriptionStateInvoke);
-
-            Field positionField = subscriptionStateInvoke.getClass().getDeclaredField("position");
-            positionField.setAccessible(true);
-            SubscriptionState.FetchPosition fetchPosition = (SubscriptionState.FetchPosition) positionField.get(subscriptionStateInvoke);
-            long offset = fetchPosition.offset;
-            return highWatermark - offset;
         }
     }
 }

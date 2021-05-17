@@ -57,8 +57,6 @@ public class DynamicKafkaDeserializationSchemaWrapper extends DynamicKafkaDeseri
 
     private Calculate calculate;
 
-    private DeserializationSchema.InitializationContext context;
-
     DynamicKafkaDeserializationSchemaWrapper(
             int physicalArity,
             @Nullable DeserializationSchema<RowData> keyDeserialization,
@@ -83,12 +81,6 @@ public class DynamicKafkaDeserializationSchemaWrapper extends DynamicKafkaDeseri
         this.calculate = calculate;
     }
 
-    @Override
-    public void open(DeserializationSchema.InitializationContext context) throws Exception {
-        super.open(context);
-        this.context = context;
-    }
-
     protected void registerPtMetric(AbstractFetcher<RowData, ?> fetcher) throws Exception {
         Field consumerThreadField = ReflectionUtils.getDeclaredField(fetcher, "consumerThread");
         consumerThreadField.setAccessible(true);
@@ -105,7 +97,7 @@ public class DynamicKafkaDeserializationSchemaWrapper extends DynamicKafkaDeseri
         // init partition lag metric
         for (KafkaTopicPartitionState<?, KafkaTopicPartition> kafkaTopicPartitionState : subscribedPartitionStates) {
             KafkaTopicPartition kafkaTopicPartition = kafkaTopicPartitionState.getKafkaTopicPartition();
-            MetricGroup topicMetricGroup = context.getMetricGroup().addGroup(DT_TOPIC_GROUP, kafkaTopicPartition.getTopic());
+            MetricGroup topicMetricGroup = getRuntimeContext().getMetricGroup().addGroup(DT_TOPIC_GROUP, kafkaTopicPartition.getTopic());
 
             MetricGroup metricGroup = topicMetricGroup.addGroup(DT_PARTITION_GROUP, kafkaTopicPartition.getPartition() + "");
             metricGroup.gauge(DT_TOPIC_PARTITION_LAG_GAUGE, new Gauge<Long>() {

@@ -45,13 +45,13 @@
 						<configuration>
 							<tasks>
 								<copy todir="${basedir}/../../flinkxplugins/mysql/"
-									  file="${basedir}/target/${artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../flinkxplugins/mysql/${artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../flinkxplugins/mysql/${artifactId}-${git.branch}.jar"/>
+									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+								<move file="${basedir}/../../flinkxplugins/mysql/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../flinkxplugins/mysql/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../../flinkxplugins/mysql/"
-											 includes="${artifactId}-*.jar"
-											 excludes="${artifactId}-${git.branch}.jar"/>
+											 includes="${project.artifactId}-*.jar"
+											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>
 							</tasks>
 						</configuration>

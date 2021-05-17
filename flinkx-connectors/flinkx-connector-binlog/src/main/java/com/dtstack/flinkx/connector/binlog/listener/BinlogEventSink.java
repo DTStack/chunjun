@@ -26,6 +26,7 @@ import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormat;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.element.ErrorMsgRowData;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +64,8 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             CanalEntry.RowChange rowChange = null;
             try {
                 rowChange = CanalEntry.RowChange.parseFrom(entry.getStoreValue());
-            } catch (Exception e) {
-                LOG.error("ERROR ## parser of event has an error , data: {}", entry);
+            } catch (InvalidProtocolBufferException e) {
+                LOG.error("parser data[{}] error:{}", entry, ExceptionUtil.getErrorMessage(e));
             }
 
             if(rowChange == null) {
@@ -96,14 +97,14 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         }
 
         BinlogEventRow binlogEventRow = new BinlogEventRow(rowChange, schema, table, executeTime);
+        LinkedList<RowData> rowDatalist = rowConverter.toInternal(binlogEventRow);
+        RowData rowData = null;
         try {
-            LinkedList<RowData> rowDatalist = rowConverter.toInternal(binlogEventRow);
-            RowData rowData;
             while ((rowData = rowDatalist.poll()) != null){
                 queue.put(rowData);
             }
-        }catch (Exception e){
-            LOG.error("{}", ExceptionUtil.getErrorMessage(e));
+        }catch (InterruptedException e){
+            LOG.error("put rowData[{}] into queue interrupted error:{}", rowData, ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -117,7 +118,6 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         try {
             //最多阻塞100ms
             rowData = queue.poll(100, TimeUnit.MILLISECONDS);
-            //@see com.dtstack.flinkx.binlog.listener.HeartBeatController.onFailed 检测到异常之后 会添加key为e的错误数据
             if(rowData instanceof ErrorMsgRowData){
                 throw new RuntimeException(rowData.toString());
             }
@@ -135,7 +135,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
         try {
             queue.put(rowData);
         } catch (InterruptedException e) {
-            LOG.error("processErrorMsgRowData interrupted event:{} error:{}", rowData, ExceptionUtil.getErrorMessage(e));
+            LOG.error("processErrorMsgRowData interrupted rowData:{} error:{}", rowData, ExceptionUtil.getErrorMessage(e));
         }
     }
 

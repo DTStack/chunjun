@@ -45,8 +45,8 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
  * Please see the documentation for more information.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
- * 改动内容：在checkAndCopy法中，对Time、Date、Timestamp类型直接返回，不强转为string
- * 改动原因：在vertx获取异步查询数据的时候将Time、Date、Timestamp转换为string，导致类型转换问题
+ * 改动内容：在checkAndCopy法中，对Time、Date、Timestamp、byte[]类型直接返回，不强转为string
+ * 改动原因：在vertx获取异步查询数据的时候将Time、Date、Timestamp、byte[]转换为string，导致类型转换问题
  */
 public class JsonObject implements Iterable<Map.Entry<String, Object>>, ClusterSerializable, Shareable {
 
@@ -1103,7 +1103,9 @@ public class JsonObject implements Iterable<Map.Entry<String, Object>>, ClusterS
                 val = new JsonArray((List)val);
             }
         } else if (val instanceof byte[]) {
-            val = Base64.getEncoder().encodeToString((byte[])val);
+            // DTSTACK fix remove timestamp check
+            // ok
+            // val = Base64.getEncoder().encodeToString((byte[])val);
         } else if (val instanceof Instant) {
             val = ISO_INSTANT.format((Instant) val);
         } else if(val instanceof Timestamp){

@@ -28,6 +28,16 @@ import org.apache.flink.configuration.ConfigOptions;
  **/
 public class JdbcSourceOptions {
     // read config options
+    public static final ConfigOption<String> SCAN_RESTORE_COLUMNNAME =
+            ConfigOptions.key("scan.restore.columnname")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("restore.columnname.");
+    public static final ConfigOption<String> SCAN_RESTORE_COLUMNTYPE =
+            ConfigOptions.key("scan.restore.columntype")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("restore.columntype.");
     public static final ConfigOption<String> SCAN_PARTITION_COLUMN =
             ConfigOptions.key("scan.partition.column")
                     .stringType()
@@ -81,6 +91,14 @@ public class JdbcSourceOptions {
                             "gives the reader a hint as to the number of rows that should be fetched, from"
                                     + " the database when reading per round trip. If the value specified is zero, then the hint is ignored. The"
                                     + " default value is zero.");
+    public static final ConfigOption<Integer> SCAN_DEFAULT_FETCH_SIZE =
+            ConfigOptions.key("scan.default-fetch-size")
+                    .intType()
+                    .defaultValue(1024)
+                    .withDescription(
+                            "gives the reader a hint as to the number of rows that should be fetched, from"
+                                    + " the database when reading per round trip. If the value specified is zero, then the hint is ignored. The"
+                                    + " default value is 1024.");
     public static final ConfigOption<Boolean> SCAN_AUTO_COMMIT =
             ConfigOptions.key("scan.auto-commit")
                     .booleanType()

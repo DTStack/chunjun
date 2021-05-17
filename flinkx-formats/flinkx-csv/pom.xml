@@ -40,13 +40,13 @@
                         <configuration>
                             <tasks>
                                 <copy todir="${basedir}/../../flinkxplugins/formats/"
-									  file="${basedir}/target/${artifactId}-${project.version}.jar"/>
-                                <move file="${basedir}/../../flinkxplugins/formats/${artifactId}-${project.version}.jar"
-                                      tofile="${basedir}/../../flinkxplugins/formats/${artifactId}-${git.branch}.jar"/>
+									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+                                <move file="${basedir}/../../flinkxplugins/formats/${project.artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../../flinkxplugins/formats/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../../flinkxplugins/formats/"
-											 includes="${artifactId}-*.jar"
-											 excludes="${artifactId}-${git.branch}.jar"/>
+											 includes="${project.artifactId}-*.jar"
+											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>
                             </tasks>
                         </configuration>

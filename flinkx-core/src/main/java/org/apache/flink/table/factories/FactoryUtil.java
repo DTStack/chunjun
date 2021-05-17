@@ -18,11 +18,6 @@
 
 package org.apache.flink.table.factories;
 
-import com.dtstack.flinkx.enums.ConnectorLoadMode;
-import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
-import com.dtstack.flinkx.util.PluginUtil;
-import org.apache.commons.lang.StringUtils;
-
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -43,11 +38,16 @@ import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.utils.EncodingUtils;
 import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.enums.ConnectorLoadMode;
+import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.util.PluginUtil;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -308,38 +308,7 @@ public final class FactoryUtil {
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
         final List<Factory> factories;
         if (connectorLoadMode.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name())) {
-            // syncplugins后面jar包的路径比如 kafka、mysql
-            String jarDirectorySuffix;
-            String fullClassName;
-            if (DynamicTableSourceFactory.class.isAssignableFrom(factoryClass)
-                    || DynamicTableSinkFactory.class.isAssignableFrom(factoryClass)) {
-                String factoryIdentifierPrefix = jarDirectorySuffix = factoryIdentifier.substring(
-                        0,
-                        factoryIdentifier.length() - 2);
-
-                fullClassName = CONNECTORS_PACKAGE_PREFIX.defaultValue() + factoryIdentifierPrefix
-                        + ".table." + StringUtils.capitalize(factoryIdentifierPrefix)
-                        + CONNECTORS_PACKAGE_SUFFIX.defaultValue();
-
-            } else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass)
-                    || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
-
-                // format都放到sqlplugins下的format目录下
-                fullClassName =
-                        FORMAT_PACKAGE_PREFIX.defaultValue() + factoryIdentifier + "." + StringUtils
-                                .capitalize(factoryIdentifier)
-                                + FORMAT_PACKAGE_SUFFIX.defaultValue();
-
-                jarDirectorySuffix = FORMATS.key();
-            } else {
-                throw new RuntimeException(factoryClass + " can not Identify");
-            }
-
-            factories = loadFactories(
-                    classLoader,
-                    jarDirectorySuffix,
-                    factoryIdentifier,
-                    fullClassName);
+            factories = loadFactories(classLoader, factoryClass, factoryIdentifier);
         } else {
             factories = discoverFactories(classLoader);
         }
@@ -390,6 +359,53 @@ public final class FactoryUtil {
         }
 
         return (T) matchingFactories.get(0);
+    }
+
+    /**
+     * 使用classLoader方式加载插件
+     * @param classLoader
+     * @param factoryClass
+     * @param factoryIdentifier
+     * @param <T>
+     * @return
+     */
+    private static <T extends Factory> List<Factory> loadFactories(
+            ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
+        final List<Factory> factories;
+        // syncplugins后面jar包的路径比如 kafka、mysql
+        String jarDirectorySuffix;
+        String fullClassName;
+        if (DynamicTableSourceFactory.class.isAssignableFrom(factoryClass)
+                || DynamicTableSinkFactory.class.isAssignableFrom(factoryClass)) {
+            String factoryIdentifierPrefix = jarDirectorySuffix = factoryIdentifier.substring(0, factoryIdentifier.length() - 2);
+
+            String[] packageName = StringUtils.splitByWholeSeparator(factoryIdentifierPrefix, "-");
+
+            fullClassName =
+                    CONNECTORS_PACKAGE_PREFIX.defaultValue()
+                            + StringUtils.join(packageName)
+                            + ".table."
+                            + Arrays.stream(packageName).map(StringUtils::capitalize).collect(Collectors.joining())
+                            + CONNECTORS_PACKAGE_SUFFIX.defaultValue();
+
+        } else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass)
+                || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
+
+            // format都放到sqlplugins下的format目录下
+            fullClassName =
+                    FORMAT_PACKAGE_PREFIX.defaultValue()
+                            + factoryIdentifier
+                            + "."
+                            + StringUtils.capitalize(factoryIdentifier)
+                            + FORMAT_PACKAGE_SUFFIX.defaultValue();
+
+            jarDirectorySuffix = FORMATS.key();
+        } else {
+            throw new RuntimeException(factoryClass + " can not Identify");
+        }
+
+        factories = doLoadFactories(classLoader, jarDirectorySuffix, factoryIdentifier, fullClassName);
+        return factories;
     }
 
     /**
@@ -549,7 +565,7 @@ public final class FactoryUtil {
      * @param fullClassName
      * @return
      */
-    private static List<Factory> loadFactories(
+    private static List<Factory> doLoadFactories(
             ClassLoader classLoader,
             String jarDirectorySuffix,
             String factoryIdentifier,
@@ -558,8 +574,14 @@ public final class FactoryUtil {
             final List<Factory> result = new LinkedList<>();
 
             // 1.通过factoryIdentifier查找jar路径
-            String pluginJarPath = PluginUtil.getJarFileDirPath(jarDirectorySuffix, pluginPath);
+            String pluginJarPath = pluginPath + File.separatorChar + jarDirectorySuffix;
             URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath, factoryIdentifier);
+            URL[] formatsJarUrls = PluginUtil.getPluginJarUrls(pluginPath + File.separatorChar + PluginUtil.FORMATS_SUFFIX, factoryIdentifier);
+            List<URL> jarUrlList = Arrays.stream(pluginJarUrls).collect(Collectors.toList());
+            if(formatsJarUrls.length > 0){
+                jarUrlList.addAll(Arrays.asList(formatsJarUrls));
+            }
+            URL[] jarUrls = jarUrlList.toArray(new URL[0]);
 
             // 2.反射创建对象
             Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
@@ -574,12 +596,14 @@ public final class FactoryUtil {
                 currentClassloader = field.get(classLoader);
             }
 
-            add.invoke(currentClassloader, pluginJarUrls);
+            for (URL jarUrl : jarUrls) {
+                add.invoke(currentClassloader, jarUrl);
+            }
             Factory factory = (Factory) classLoader.loadClass(fullClassName).newInstance();
             result.add(factory);
 
             // 3.registerCachedFile 为了添加到shipfile中
-            for (URL pluginJarUrl : pluginJarUrls) {
+            for (URL pluginJarUrl : jarUrls) {
                 if (!classPathSet.contains(pluginJarUrl)) {
                     classPathSet.add(pluginJarUrl);
                     String classFileName = String.format(

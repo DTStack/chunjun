@@ -46,6 +46,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         super(fieldNames, keyNames, lookupConf, jdbcDialect.getRowConverter(rowType));
         this.jdbcConf = jdbcConf;
         this.query = jdbcDialect.getSelectFromStatement(
+                jdbcConf.getSchema(),
                 jdbcConf.getTable(),
                 fieldNames,
                 new String[]{});
