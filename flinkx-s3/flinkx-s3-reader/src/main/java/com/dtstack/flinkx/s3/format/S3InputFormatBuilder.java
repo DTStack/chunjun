@@ -59,7 +59,7 @@ public class S3InputFormatBuilder extends BaseRichInputFormatBuilder {
             LOG.info("accessKey was not supplied separately.");
             sb.append("accessKey was not supplied separately;\n");
         }
-        if (CollectionUtils.isEmpty(s3Config.getObject())) {
+        if (CollectionUtils.isEmpty(s3Config.getObjects())) {
             LOG.info("object was not supplied separately.");
             sb.append("object was not supplied separately;\n");
         }

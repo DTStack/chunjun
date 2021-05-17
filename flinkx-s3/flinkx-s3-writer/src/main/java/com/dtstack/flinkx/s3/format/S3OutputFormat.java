@@ -29,8 +29,6 @@ import com.dtstack.flinkx.s3.S3Util;
 import com.dtstack.flinkx.s3.WriterUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.types.Row;
 
@@ -111,7 +109,7 @@ public class S3OutputFormat extends BaseFileOutputFormat {
     protected void createActionFinishedTag() {
         if(currentUploadId == null || "".equals(currentUploadId.trim())){
             this.currentUploadId = S3Util.initiateMultipartUploadAndGetId(
-                    amazonS3,s3Config.getBucket(), s3Config.getObject().get(0));
+                    amazonS3,s3Config.getBucket(), s3Config.getObject());
         }
     }
 
@@ -131,7 +129,7 @@ public class S3OutputFormat extends BaseFileOutputFormat {
         if(sb.length() > MINSIZE || willClose){
             byte[] byteArray = sb.toString().getBytes(s3Config.getEncoding());
             PartETag partETag = S3Util.uploadPart(amazonS3,s3Config.getBucket(),
-                    s3Config.getObject().get(0),
+                    s3Config.getObject(),
                     this.currentUploadId,
                     this.currentPartNumber,
                     byteArray);
@@ -245,14 +243,14 @@ public class S3OutputFormat extends BaseFileOutputFormat {
     @Override
     protected void moveAllTemporaryDataFileToDirectory() throws IOException {
         List<PartETag> partETags = myPartETags.stream().map(MyPartETag::genPartETag).collect(Collectors.toList());
-        S3Util.completeMultipartUpload(amazonS3,s3Config.getBucket(), s3Config.getObject().get(0),this.currentUploadId, partETags);
+        S3Util.completeMultipartUpload(amazonS3,s3Config.getBucket(), s3Config.getObject(),this.currentUploadId, partETags);
     }
 
     @Override
     protected void checkOutputDir() {
-        if (S3Util.doesObjectExist(amazonS3,s3Config.getBucket(), s3Config.getObject().get(0))) {
+        if (S3Util.doesObjectExist(amazonS3,s3Config.getBucket(), s3Config.getObject())) {
             if (OVERWRITE_MODE.equalsIgnoreCase(s3Config.getWriteMode()) && !SP.equals(outputFilePath)) {
-                S3Util.deleteObject(amazonS3,s3Config.getBucket(), s3Config.getObject().get(0));
+                S3Util.deleteObject(amazonS3,s3Config.getBucket(), s3Config.getObject());
             }
         }
     }
@@ -301,8 +299,8 @@ public class S3OutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected String getExtension() {
-        int index = s3Config.getObject().get(0).lastIndexOf(".");
-        return index < 0 ? ".csv" : s3Config.getObject().get(0).substring(index);
+        int index = s3Config.getObject().lastIndexOf(".");
+        return index < 0 ? ".csv" : s3Config.getObject().substring(index);
     }
 
     @Override

@@ -45,7 +45,9 @@ public class S3Config implements Serializable {
 
     private String bucket;
 
-    private List<String> object;
+    private List<String> objects;
+
+    private String object;
 
     private char fieldDelimiter = ',';
 
@@ -89,12 +91,12 @@ public class S3Config implements Serializable {
         this.bucket = bucket;
     }
 
-    public List<String> getObject() {
-        return object;
+    public List<String> getObjects() {
+        return objects;
     }
 
-    public void setObject(List<String> object) {
-        this.object = object;
+    public void setObjects(List<String> objects) {
+        this.objects = objects;
     }
 
     public char getFieldDelimiter() {
@@ -144,5 +146,13 @@ public class S3Config implements Serializable {
 
     public void setMaxFileSize(long maxFileSize) {
         this.maxFileSize = maxFileSize;
+    }
+
+    public String getObject() {
+        return object;
+    }
+
+    public void setObject(String object) {
+        this.object = object;
     }
 }

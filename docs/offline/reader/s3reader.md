@@ -46,7 +46,7 @@ aws s3
   - 必选：是
   - 默认值：无
 
-- **object**
+- **objects**
   - 描述：需要同步的对象,支持正则表达式
   - 格式：
     - 单个对象
@@ -124,7 +124,7 @@ aws s3
             "endpoint": "http://127.0.0.1:9090",
             "region": "",
             "bucket": "",
-            "object": ["aaa.xml"],
+            "objects": ["aaa.xml"],
             "column": [
               {
                 "index": 0,
@@ -192,7 +192,7 @@ aws s3
             "secretKey": "",
             "region": "",
             "bucket": "",
-            "object": [
+            "objects": [
               "aaa.xml",
               "bbb/ccc.xml"
             ],
@@ -262,7 +262,7 @@ aws s3
             "secretKey": "",
             "region": "",
             "bucket": "",
-            "object": ["dir/.+\.xml","bbb/ccc.xml"],
+            "objects": ["dir/.+\.xml","bbb/ccc.xml"],
             "column": [
               {
                 "index": 0,
@@ -334,7 +334,7 @@ restore 中 restoreColumnIndex 的值需选择 reader 中任意一个字段的 i
             "endpoint": "http://127.0.0.1:9090",
             "region": "us-west-2",
             "bucket": "test",
-            "object": ["people_20210426001.csv"],
+            "objects": ["people_20210426001.csv"],
             "column": [
               {
                 "name": "id",

@@ -53,8 +53,8 @@ amazon s3
   - 必选：是
   - 默认值：无
   - 格式：
-    - ["abc.xml"]
-    - ["xxx/abd"]
+    - "abc.xml"
+    - "xxx/abd"
 
 
 - **fieldDelimiter**

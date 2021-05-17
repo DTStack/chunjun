@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.s3.format;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.dtstack.flinkx.config.RestoreConfig;
-import com.dtstack.flinkx.s3.ReaderUtil;
 import com.dtstack.flinkx.s3.S3Config;
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,7 +49,7 @@ public class S3InputFormatBuilderTest {
     @Test
     public void testCheckFormat(){
         S3Config s3Config = mock(S3Config.class);
-        when(s3Config.getObject()).thenReturn(null);
+        when(s3Config.getObjects()).thenReturn(null);
         when(s3Config.getAccessKey()).thenReturn("");
         when(s3Config.getSecretKey()).thenReturn("");
         when(s3Config.getBucket()).thenReturn("");
@@ -71,7 +68,7 @@ public class S3InputFormatBuilderTest {
                 "accessKey was not supplied separately;\n" +
                 "object was not supplied separately;");
 
-        when(s3Config.getObject()).thenReturn(new ArrayList<>());
+        when(s3Config.getObjects()).thenReturn(new ArrayList<>());
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("accessKey was not supplied separately;\n" +
                 "accessKey was not supplied separately;\n" +

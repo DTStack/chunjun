@@ -92,7 +92,7 @@ public class S3Reader extends BaseDataReader {
         String bucket = s3Config.getBucket();
         Set<S3SimpleObject> resolved = new HashSet<>();
         AmazonS3 amazonS3 = S3Util.initS3(s3Config);
-        for (String key : s3Config.getObject()) {
+        for (String key : s3Config.getObjects()) {
             if (StringUtils.isNotBlank(key)) {
                 if(key.endsWith(".*")){
                     //以 .* 结尾，说明该 object 为前缀

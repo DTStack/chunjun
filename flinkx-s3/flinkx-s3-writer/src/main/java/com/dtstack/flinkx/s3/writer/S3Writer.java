@@ -74,7 +74,6 @@ public class S3Writer extends BaseDataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         S3OutputFormatBuilder builder = new S3OutputFormatBuilder();
         builder.setS3Config(s3Config);
-        builder.setObject(s3Config.getObject());
         builder.setSpeedConfig(speedConfig);
         builder.setMonitorUrls(monitorUrls);
         builder.setColumnNames(columnName);
