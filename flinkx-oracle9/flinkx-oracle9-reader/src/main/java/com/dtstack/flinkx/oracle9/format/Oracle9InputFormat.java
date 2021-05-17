@@ -50,6 +50,7 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
@@ -85,12 +86,12 @@ public class Oracle9InputFormat extends JdbcInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
         String osName = System.getProperties().getProperty("os.name");
-        if ("Linux".equals(osName)) {
-            //linux环境
-            currentPath = SysUtil.getCurrentPath();
-        } else {
+        if (osName.toLowerCase(Locale.ENGLISH).contains("windows")) {
             //window环境
             currentPath = Paths.get("").toAbsolutePath().toString();
+        } else {
+            //linux环境
+            currentPath = SysUtil.getCurrentPath();
         }
         LOG.info("current path is {}", currentPath);
 

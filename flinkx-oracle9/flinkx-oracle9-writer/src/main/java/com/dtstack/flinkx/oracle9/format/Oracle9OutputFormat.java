@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -234,12 +235,12 @@ public class Oracle9OutputFormat extends JdbcOutputFormat {
 
     protected void actionBeforeWriteData() {
         String osName = System.getProperties().getProperty("os.name");
-        if ("Linux".equals(osName)) {
-            //linux环境
-            currentPath = SysUtil.getCurrentPath();
-        } else {
+        if (osName.toLowerCase(Locale.ENGLISH).contains("windows")) {
             //window环境
             currentPath = Paths.get("").toAbsolutePath().toString();
+        } else {
+            //linux环境
+            currentPath = SysUtil.getCurrentPath();
         }
         LOG.info("current path is {}", currentPath);
 
