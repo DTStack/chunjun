@@ -48,10 +48,11 @@ public class ClickhouseOutputFormat extends JdbcOutputFormat {
         try {
             LogicalType rowType =
                     TableUtil.createRowType(
-                            fullColumn, fullColumnType, ClickhouseRawTypeConverter::apply);
+                            column, columnType, ClickhouseRawTypeConverter::apply);
             setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
         } catch (SQLException e) {
             LOG.error("", e);
+            throw new RuntimeException(e);
         }
     }
 

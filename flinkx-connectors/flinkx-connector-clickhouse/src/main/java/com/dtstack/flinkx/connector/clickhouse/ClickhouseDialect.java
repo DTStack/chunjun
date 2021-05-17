@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
  * @create: 2021/05/08
  */
 public class ClickhouseDialect implements JdbcDialect {
+
     @Override
     public String dialectName() {
         return "ClickHouse";
@@ -48,45 +49,17 @@ public class ClickhouseDialect implements JdbcDialect {
     }
 
     @Override
-    public String getSqlQueryFields(String tableName) {
-        return "SELECT * FROM " + tableName + " LIMIT 0";
-    }
-
-    @Override
-    public String quoteTable(String table) {
-        String[] parts = table.split("\\.");
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < parts.length; ++i) {
-            if (i != 0) {
-                sb.append(".");
-            }
-            sb.append(getStartQuote() + parts[i] + getEndQuote());
-        }
-        return sb.toString();
-    }
-
-    @Override
-    public String getStartQuote() {
-        return "\"";
-    }
-
-    @Override
-    public String getEndQuote() {
-        return "\"";
-    }
-
-    @Override
-    public String getUpdateStatement(String tableName, String[] fieldNames, String[] conditionFields) {
+    public String getUpdateStatement(String schema, String tableName, String[] fieldNames, String[] conditionFields) {
         throw new RuntimeException("Clickhouse does not support update sql");
     }
 
     @Override
-    public Optional<String> getReplaceStatement(String tableName, String[] fieldNames) {
+    public Optional<String> getReplaceStatement(String schema, String tableName, String[] fieldNames) {
         throw new RuntimeException("Clickhouse does not support replace sql");
     }
 
     @Override
-    public String getDeleteStatement(String tableName, String[] conditionFields) {
+    public String getDeleteStatement(String schema, String tableName, String[] conditionFields) {
         throw new RuntimeException("Clickhouse does not support delete sql");
     }
 
