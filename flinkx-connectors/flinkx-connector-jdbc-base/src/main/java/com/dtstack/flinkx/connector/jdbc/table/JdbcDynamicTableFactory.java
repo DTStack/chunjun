@@ -67,16 +67,18 @@ import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_P
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_UPPER_BOUND;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_POLLING_INTERVAL;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_QUERY_TIMEOUT;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_RESTORE_COLUMNNAME;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_RESTORE_COLUMNTYPE;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_START_LOCATION;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_ASYNCTIMEOUT;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_PERIOD;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_TTL;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_CACHE_TYPE;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_ERRORLIMIT;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_FETCH_SIZE;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_MAX_RETRIES;
-import static com.dtstack.flinkx.lookup.constants.LookupOptions.LOOKUP_PARALLELISM;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TTL;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TYPE;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
@@ -191,6 +193,9 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE));
         jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
 
+        jdbcConf.setRestoreColumn(readableConfig.get(SCAN_RESTORE_COLUMNNAME));
+        jdbcConf.setRestoreColumnType(readableConfig.get(SCAN_RESTORE_COLUMNTYPE));
+
         Optional<Integer> pollingInterval = readableConfig.getOptional(SCAN_POLLING_INTERVAL);
         if (pollingInterval.isPresent() && pollingInterval.get() > 0) {
             jdbcConf.setPolling(true);
@@ -218,6 +223,7 @@ public abstract class JdbcDynamicTableFactory
         Set<ConfigOption<?>> optionalOptions = new HashSet<>();
         optionalOptions.add(USERNAME);
         optionalOptions.add(PASSWORD);
+        optionalOptions.add(SCHEMA);
 
         optionalOptions.add(SCAN_PARTITION_COLUMN);
         optionalOptions.add(SCAN_PARTITION_COLUMN_TYPE);
@@ -230,6 +236,8 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(SCAN_PARTITION_NUM);
         optionalOptions.add(SCAN_FETCH_SIZE);
         optionalOptions.add(SCAN_AUTO_COMMIT);
+        optionalOptions.add(SCAN_RESTORE_COLUMNNAME);
+        optionalOptions.add(SCAN_RESTORE_COLUMNTYPE);
 
         optionalOptions.add(LOOKUP_CACHE_PERIOD);
         optionalOptions.add(LOOKUP_CACHE_MAX_ROWS);

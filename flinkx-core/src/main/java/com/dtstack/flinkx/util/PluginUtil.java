@@ -20,9 +20,9 @@
 package com.dtstack.flinkx.util;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.factories.FactoryUtil;
 
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import org.apache.commons.collections.CollectionUtils;
@@ -50,14 +50,15 @@ import java.util.Set;
  */
 
 public class PluginUtil {
-    public static final String READER_SUFFIX = "reader";
-    private static final String SP = File.separator;
+    public static final String FORMATS_SUFFIX = "formats";
 
+    public static final String READER_SUFFIX = "reader";
     private static final String JAR_SUFFIX = ".jar";
     public static final String SOURCE_SUFFIX = "source";
     public static final String WRITER_SUFFIX = "writer";
     public static final String SINK_SUFFIX = "sink";
     public static final String GENERIC_SUFFIX = "Factory";
+    private static final String SP = File.separator;
     private static final Logger LOG = LoggerFactory.getLogger(PluginUtil.class);
     private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connector.";
 
@@ -67,33 +68,20 @@ public class PluginUtil {
 
     private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
-    public static String getJarFileDirPath(String type, String sqlRootDir) {
-        String jarPath = sqlRootDir + SP + type;
-
-        checkJarFileDirPath(sqlRootDir, jarPath);
-
-        return jarPath;
-    }
-
-    private static void checkJarFileDirPath(String sqlRootDir, String path) {
-        if (sqlRootDir == null || sqlRootDir.isEmpty()) {
-            throw new RuntimeException("sqlPlugin is empty !");
-        }
-
-        File jarFile = new File(path);
-
-        if (!jarFile.exists()) {
-            throw new RuntimeException(String.format("path %s not exists!!!", path));
-        }
-    }
-
+    /**
+     * 获取插件jar包
+     * @param pluginDir 插件包路径
+     * @param factoryIdentifier SQL任务插件包名称，如：kafka-x
+     * @return
+     * @throws MalformedURLException
+     */
     public static URL[] getPluginJarUrls(String pluginDir, String factoryIdentifier) throws MalformedURLException {
         List<URL> urlList = new ArrayList<>();
 
         File dirFile = new File(pluginDir);
 
         if (!dirFile.exists() || !dirFile.isDirectory()) {
-            throw new RuntimeException("plugin path:" + pluginDir + "is not exist.");
+            throw new RuntimeException("plugin path:" + pluginDir + " is not exist.");
         }
 
         File[] files = dirFile.listFiles(tmpFile -> tmpFile.isFile() && tmpFile.getName().endsWith(JAR_SUFFIX));
@@ -103,17 +91,10 @@ public class PluginUtil {
 
         for (File file : files) {
             URL pluginJarUrl = file.toURI().toURL();
-            // 同种类型的format只加载一个jar
-            if (pluginDir.endsWith(FactoryUtil.FORMATS.key())) {
-                if (file.getName().contains(factoryIdentifier)) {
-                    urlList.add(pluginJarUrl);
-                }
-            } else {
-                urlList.add(pluginJarUrl);
-            }
+            urlList.add(pluginJarUrl);
         }
 
-        if (urlList == null || urlList.size() == 0) {
+        if (urlList.size() == 0) {
             throw new RuntimeException("no match jar in :" + pluginDir + " directory ，factoryIdentifier is :" + factoryIdentifier);
         }
 
@@ -148,6 +129,11 @@ public class PluginUtil {
         }
     }
 
+    /**
+     * 获取路径当前层级下所有jar包名称
+     * @param pluginPath
+     * @return
+     */
     private static List<String> getJarNames(File pluginPath) {
         List<String> jarNames = new ArrayList<>();
         if (pluginPath.exists() && pluginPath.isDirectory()) {
@@ -172,11 +158,11 @@ public class PluginUtil {
         switch (operatorType){
             case source:
                 String sourceName = pluginName.replace(READER_SUFFIX, SOURCE_SUFFIX);
-                pluginClassName = PACKAGE_PREFIX + camelize(sourceName, SOURCE_SUFFIX) + GENERIC_SUFFIX;
+                pluginClassName = camelize(sourceName, SOURCE_SUFFIX);
                 break;
             case sink:
                 String sinkName = pluginName.replace(WRITER_SUFFIX, SINK_SUFFIX);
-                pluginClassName = PACKAGE_PREFIX + camelize(sinkName, SINK_SUFFIX) + GENERIC_SUFFIX;
+                pluginClassName = camelize(sinkName, SINK_SUFFIX);
                 break;
             default:
                 throw new IllegalArgumentException("Plugin Name should end with reader, writer, current plugin name is: " + pluginName);
@@ -185,25 +171,40 @@ public class PluginUtil {
         return pluginClassName;
     }
 
+    /**
+     * 拼接插件包类全限定名
+     * @param pluginName 插件包名称，如：binlogsource
+     * @param suffix 插件类型前缀，如：source、sink
+     * @return 插件包类全限定名，如：com.dtstack.flinkx.connector.binlog.source.BinlogSourceFactory
+     */
     private static String camelize(String pluginName, String suffix) {
         int pos = pluginName.indexOf(suffix);
         String left = pluginName.substring(0, pos);
         left = left.toLowerCase();
         suffix = suffix.toLowerCase();
-        StringBuffer sb = new StringBuffer();
-        sb.append(left).append(".").append(suffix).append(".");
+        StringBuilder sb = new StringBuilder(32);
+        sb.append(PACKAGE_PREFIX);
+        sb.append(left).append(ConstantValue.POINT_SYMBOL).append(suffix).append(ConstantValue.POINT_SYMBOL);
         sb.append(left.substring(0, 1).toUpperCase()).append(left.substring(1));
         sb.append(suffix.substring(0, 1).toUpperCase()).append(suffix.substring(1));
+        sb.append(GENERIC_SUFFIX);
         return sb.toString();
     }
 
+    /**
+     * 将任务所用到的插件包注册到env中
+     * @param config
+     * @param env
+     */
     public static void registerPluginUrlToCachedFile(SyncConf config, StreamExecutionEnvironment env) {
         Set<URL> urlSet = new HashSet<>();
         Set<URL> coreUrlList = getJarFileDirPath("", config.getPluginRoot(), config.getRemotePluginPath());
+        Set<URL> formatsUrlList = getJarFileDirPath(FORMATS_SUFFIX, config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> sourceUrlList = getJarFileDirPath(config.getReader().getName(), config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> sinkUrlList = getJarFileDirPath(config.getWriter().getName(), config.getPluginRoot(), config.getRemotePluginPath());
 
         urlSet.addAll(coreUrlList);
+        urlSet.addAll(formatsUrlList);
         urlSet.addAll(sourceUrlList);
         urlSet.addAll(sinkUrlList);
 

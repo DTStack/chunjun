@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         this.jdbcDialect = jdbcDialect;
         this.asyncPoolSize = ((JdbcLookupConf) lookupConf).getAsyncPoolSize();
         this.query = jdbcDialect.getSelectFromStatement(
+                jdbcConf.getSchema(),
                 jdbcConf.getTable(),
                 fieldNames,
                 keyNames);
@@ -151,8 +153,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    public void handleAsyncInvoke(
-            CompletableFuture<Collection<RowData>> future, Object... keys) throws Exception {
+    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys) throws Exception {
         AtomicLong networkLogCounter = new AtomicLong(0L);
         //network is unhealthy
         while (!connectionStatus.get()) {
@@ -326,7 +327,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                             String.format(
                                     "\nget data with sql [%s],data [%s] failed! \ncause: [%s]",
                                     query,
-                                    keys,
+                                    Arrays.toString(keys),
                                     rs.cause().getMessage()
                             )
                     );

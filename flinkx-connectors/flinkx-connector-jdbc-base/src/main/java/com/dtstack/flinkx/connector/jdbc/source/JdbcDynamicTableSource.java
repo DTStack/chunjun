@@ -30,6 +30,8 @@ import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvi
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -111,12 +113,27 @@ public class JdbcDynamicTableSource
         JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(new JdbcInputFormat());
         String[] fieldNames = physicalSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
+        int index = 0;
         for (String name : fieldNames) {
             FieldConf field = new FieldConf();
             field.setName(name);
+            field.setIndex(index++);
             columnList.add(field);
         }
         jdbcConf.setColumn(columnList);
+
+        String restoreColumn = jdbcConf.getRestoreColumn();
+        if(StringUtils.isNotBlank(restoreColumn)){
+            FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), restoreColumn);
+            if (fieldConf != null) {
+                jdbcConf.setRestoreColumn(restoreColumn);
+                jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
+                jdbcConf.setRestoreColumnType(jdbcConf.getIncreColumnType());
+            } else {
+                throw new IllegalArgumentException("unknown restore column name: " + restoreColumn);
+            }
+        }
+
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));

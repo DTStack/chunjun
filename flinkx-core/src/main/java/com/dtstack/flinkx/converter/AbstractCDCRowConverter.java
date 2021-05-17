@@ -124,7 +124,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
     }
 
     /**
-     *
+     * 通过convertor将map中的数据按照顺序取出并转换成对应的类型，最终设置到rowData中
      * @param fieldNameList
      * @param converters
      * @param valueMap
@@ -136,7 +136,10 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
         for (int i = 0; i <fieldNameList.size(); i++) {
             String fieldName = fieldNameList.get(i);
             Object value = valueMap.get(fieldName);
-            genericRowData.setField(i, converters[i].deserialize(value));
+            if(value != null){
+                value = converters[i].deserialize(value);
+            }
+            genericRowData.setField(i, value);
         }
         return genericRowData;
     }

@@ -19,14 +19,14 @@
 
 package com.dtstack.flinkx.parser;
 
+import org.apache.flink.table.api.StatementSet;
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+
+import com.dtstack.flinkx.exception.DtSqlParserException;
 import com.dtstack.flinkx.util.DtStringUtil;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.table.api.StatementSet;
-import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.List;
@@ -42,8 +42,6 @@ import java.util.regex.Pattern;
  */
 
 public class SqlParser {
-    private static final Logger LOG = LoggerFactory.getLogger(SqlParser.class);
-
     private static final char SQL_DELIMITER = ';';
     private static final Pattern ADD_FILE_AND_JAR_PATTERN = Pattern.compile("(?i).*add\\s+file\\s+.+|(?i).*add\\s+jar\\s+.+");
     private static final List<IParser> sqlParserList =
@@ -61,31 +59,31 @@ public class SqlParser {
      *
      * @param
      */
-    public static StatementSet parseSql(String sql, List<URL> urlList, StreamTableEnvironment tableEnvironment) throws Exception {
+    public static StatementSet parseSql(String sql, List<URL> urlList, StreamTableEnvironment tableEnvironment) {
 
         if (StringUtils.isBlank(sql)) {
             throw new IllegalArgumentException("SQL must be not empty!");
         }
 
-        sql = DtStringUtil
-                .dealSqlComment(sql)
-                .replaceAll("\r\n", " ")
-                .replaceAll("\n", " ")
-                .replace("\t", " ").trim();
+        sql = DtStringUtil.dealSqlComment(sql);
 
         StatementSet statement = tableEnvironment.createStatementSet();
 
         List<String> sqlArr = DtStringUtil.splitIgnoreQuota(sql, SQL_DELIMITER);
         sqlArr = removeAddFileAndJarStmt(sqlArr);
         for (String childSql : sqlArr) {
-            if (Strings.isNullOrEmpty(childSql)) {
+            if (Strings.isNullOrEmpty(childSql.trim())) {
                 continue;
             }
             for (IParser sqlParser : sqlParserList) {
                 if (!sqlParser.verify(childSql)) {
                     continue;
                 }
-                sqlParser.execSql(childSql, tableEnvironment, statement, urlList);
+                try {
+                    sqlParser.execSql(childSql, tableEnvironment, statement, urlList);
+                } catch (Exception e) {
+                    throw new DtSqlParserException(childSql, e.getMessage());
+                }
             }
         }
 

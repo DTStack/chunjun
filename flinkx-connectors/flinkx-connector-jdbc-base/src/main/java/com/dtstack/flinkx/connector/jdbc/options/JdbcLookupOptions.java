@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.jdbc.options;
 
-import com.dtstack.flinkx.lookup.constants.LookupOptions;
+import com.dtstack.flinkx.lookup.options.LookupOptions;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
