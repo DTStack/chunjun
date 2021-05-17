@@ -192,6 +192,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         ResultSet rs = null;
         try {
             stmt = dbConn.createStatement();
+            stmt.setQueryTimeout(databaseInterface.getQueryTimeout());
             rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
