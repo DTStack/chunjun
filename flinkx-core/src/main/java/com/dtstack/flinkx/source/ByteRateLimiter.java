@@ -22,8 +22,6 @@ import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.concurrent.ScheduledExecutorService;
@@ -37,19 +35,14 @@ import java.util.concurrent.TimeUnit;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
+@SuppressWarnings("all")
 public class ByteRateLimiter {
 
-    private final static Logger LOG = LoggerFactory.getLogger(ByteRateLimiter.class);
-
     public static final int MIN_RECORD_NUMBER_UPDATE_RATE = 1000;
-
-    private RateLimiter rateLimiter;
-
-    private double expectedBytePerSecond;
-
-    private AccumulatorCollector accumulatorCollector;
-
-    private ScheduledExecutorService scheduledExecutorService;
+    private final RateLimiter rateLimiter;
+    private final double expectedBytePerSecond;
+    private final AccumulatorCollector accumulatorCollector;
+    private final ScheduledExecutorService scheduledExecutorService;
 
     public ByteRateLimiter(AccumulatorCollector accumulatorCollector, double expectedBytePerSecond) {
         double initialRate = 1000.0;
@@ -80,9 +73,9 @@ public class ByteRateLimiter {
     }
 
     private void updateRate(){
-        long totalBytes = accumulatorCollector.getAccumulatorValue(Metrics.READ_BYTES);
+        long totalBytes = accumulatorCollector.getAccumulatorValue(Metrics.READ_BYTES, false);
         long thisRecords = accumulatorCollector.getLocalAccumulatorValue(Metrics.NUM_READS);
-        long totalRecords = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS);
+        long totalRecords = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS, false);
 
         BigDecimal thisWriteRatio = BigDecimal.valueOf(totalRecords == 0 ? 0 : thisRecords / (double) totalRecords);
 

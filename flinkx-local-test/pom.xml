@@ -32,18 +32,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-mysql</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-gbase</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
 			<artifactId>hadoop-mapreduce-client-core</artifactId>
 			<exclusions>
 				<exclusion>
@@ -89,6 +77,26 @@
 			<version>${flink.version}</version>
 		</dependency>
 
+		<!--		本地测试模块 start -->
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-mysql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-gbase</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-postgres</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-kafka</artifactId>
@@ -103,23 +111,9 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-mysql</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-binlog</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-oracle</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
 	</dependencies>
 
 </project>

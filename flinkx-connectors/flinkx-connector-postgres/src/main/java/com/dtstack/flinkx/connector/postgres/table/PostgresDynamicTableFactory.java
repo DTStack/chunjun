@@ -16,24 +16,20 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.mysql.table;
+package com.dtstack.flinkx.connector.postgres.table;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
-import com.dtstack.flinkx.connector.mysql.MysqlDialect;
+import com.dtstack.flinkx.connector.postgres.PostgresDialect;
 
 /**
  * @program: flinkx
  * @author: wuren
- * @create: 2021/03/17
- **/
-public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
+ * @create: 2021/04/22
+ */
+public class PostgresDynamicTableFactory extends JdbcDynamicTableFactory {
 
-    // 默认是Mysql流式拉取
-    private static final int DEFAULT_FETCH_SIZE = Integer.MIN_VALUE;
-
-    /** 通过该值查找具体插件 */
-    private static final String IDENTIFIER = "mysql-x";
+    private static final String IDENTIFIER = "postgres-x";
 
     @Override
     public String factoryIdentifier() {
@@ -42,11 +38,6 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
     @Override
     protected JdbcDialect getDialect() {
-        return new MysqlDialect();
-    }
-
-    @Override
-    protected int getDefaultFetchSize() {
-        return DEFAULT_FETCH_SIZE;
+        return new PostgresDialect();
     }
 }

@@ -16,37 +16,27 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.mysql.table;
+package com.dtstack.flinkx.connector.postgres.sink;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
-import com.dtstack.flinkx.connector.mysql.MysqlDialect;
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
+import com.dtstack.flinkx.connector.postgres.PostgresDialect;
 
 /**
  * @program: flinkx
  * @author: wuren
- * @create: 2021/03/17
- **/
-public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
+ * @create: 2021/04/26
+ */
+public class PostgresSinkFactory extends JdbcSinkFactory {
 
-    // 默认是Mysql流式拉取
-    private static final int DEFAULT_FETCH_SIZE = Integer.MIN_VALUE;
-
-    /** 通过该值查找具体插件 */
-    private static final String IDENTIFIER = "mysql-x";
-
-    @Override
-    public String factoryIdentifier() {
-        return IDENTIFIER;
+    public PostgresSinkFactory(SyncConf syncConf) {
+        super(syncConf);
+        super.jdbcDialect = new PostgresDialect();
     }
 
     @Override
-    protected JdbcDialect getDialect() {
-        return new MysqlDialect();
-    }
-
-    @Override
-    protected int getDefaultFetchSize() {
-        return DEFAULT_FETCH_SIZE;
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new PostgresOutputFormat());
     }
 }

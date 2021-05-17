@@ -118,9 +118,7 @@ public class JdbcUtil {
         }
         Properties finalProp = prop;
         synchronized (ClassUtil.LOCK_STR){
-            return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(
-                    jdbcConf.getJdbcUrl(),
-                    finalProp), 3, 2000, false);
+            return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp), 3, 2000, false);
         }
     }
 
