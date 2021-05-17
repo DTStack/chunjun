@@ -54,18 +54,12 @@ public interface IOracle9Helper {
                     "\n" +
                     "        return dataStr;" +
                     "    }\n"+
-            " @Override\n" +
-                    "    public Object blobToString(Object obj) throws SQLException, IOException {\n" +
-                    "        String dataStr = \"\";\n" +
-                    "        if (obj instanceof oracle.sql.BLOB) {\n" +
+                    " @Override\n" +
+                    " public Object blobToString(Object obj) throws SQLException, IOException {\n" +
+                    "    if (obj instanceof oracle.sql.BLOB) {\n" +
                     "            oracle.sql.BLOB blob = (oracle.sql.BLOB) obj;\n" +
-                    "            InputStream binaryStream = blob.getBinaryStream();\n" +
-                    "            byte[] bytes = new byte[binaryStream.available()];\n" +
-                    "            binaryStream.read(bytes, 0, bytes.length);\n" +
-                    "            dataStr = new String(bytes);\n" +
-                    "        }else{" +
-                    "return obj;}\n" +
-                    "        return dataStr;\n" +
+                    "           return  blob.getBytes();\n" +
+                    "        }else{return obj;}"+
                     "    }";
 
     /**
