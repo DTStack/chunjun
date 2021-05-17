@@ -22,6 +22,8 @@ import com.dtstack.flinkx.connector.sqlservercdc.options.SqlServerCdcOptions;
 import com.dtstack.flinkx.connector.sqlservercdc.source.SqlServerCdcDynamicTableSource;
 import com.dtstack.flinkx.constants.ConstantValue;
 
+import com.dtstack.flinkx.enums.EJobType;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.formats.json.JsonOptions;
@@ -32,7 +34,6 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,8 +43,8 @@ import java.util.Set;
  *
  * @author tudou
  */
-public class SqlserverCdcDynamicTableFactory implements DynamicTableSourceFactory {
-    public static final String IDENTIFIER = "binlog-x";
+public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactory {
+    public static final String IDENTIFIER = "sqlservercdc-x";
 
     @Override
     public String factoryIdentifier() {
@@ -56,7 +57,7 @@ public class SqlserverCdcDynamicTableFactory implements DynamicTableSourceFactor
         options.add(SqlServerCdcOptions.JDBC_URL);
         options.add(SqlServerCdcOptions.USERNAME);
         options.add(SqlServerCdcOptions.PASSWORD);
-        options.add(SqlServerCdcOptions.SCHEMA);
+        options.add(SqlServerCdcOptions.DATABASE);
         options.add(SqlServerCdcOptions.TABLE);
         return options;
     }
@@ -102,9 +103,8 @@ public class SqlserverCdcDynamicTableFactory implements DynamicTableSourceFactor
         sqlServerCdcConf.setPollInterval(config.get(SqlServerCdcOptions.POLLINTERVAL));
         sqlServerCdcConf.setCat(config.get(SqlServerCdcOptions.CAT));
         sqlServerCdcConf.setPavingData(true);
-        sqlServerCdcConf.setDatabaseName(config.get(SqlServerCdcOptions.SCHEMA));
-        sqlServerCdcConf.setTableList(Arrays.asList(config.get(SqlServerCdcOptions.TABLE).split(ConstantValue.COMMA_SYMBOL)));
-        sqlServerCdcConf.setSplitUpdate(true);
+        sqlServerCdcConf.setDatabaseName(config.get(SqlServerCdcOptions.DATABASE));
+        sqlServerCdcConf.setTableList(Arrays.asList(config.get(SqlServerCdcOptions.TABLE)));
 
         return sqlServerCdcConf;
     }

@@ -60,11 +60,11 @@ public class SqlServerCdcOptions {
                     .withDescription("SqlServer table.");
 
 
-    public static final ConfigOption<String> SCHEMA =
-            ConfigOptions.key("schema")
+    public static final ConfigOption<String> DATABASE =
+            ConfigOptions.key("database")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("SqlServer schema. ");
+                    .withDescription("SqlServer database. ");
 
 
     public static final ConfigOption<String> LSN =
@@ -79,8 +79,6 @@ public class SqlServerCdcOptions {
                     .longType()
                     .defaultValue(1000L)
                     .withDescription("SqlServer pollInterval.");
-
-
 
 
 }

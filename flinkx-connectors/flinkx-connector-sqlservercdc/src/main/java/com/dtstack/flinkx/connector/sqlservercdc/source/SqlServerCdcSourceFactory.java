@@ -21,7 +21,7 @@ import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
 
 import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcColumnConverter;
 import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
-import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlserverCdcInputFormatBuilder;
+import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
 
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -40,11 +40,11 @@ import com.dtstack.flinkx.util.TableUtil;
  * @author: toutian
  * @create: 2019/7/4
  */
-public class SqlServerCdcSourceFactory extends SourceFactory {
+public class SqlservercdcSourceFactory extends SourceFactory {
 
     private final SqlServerCdcConf sqlServerCdcConf;
 
-    public SqlServerCdcSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
+    public SqlservercdcSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
         sqlServerCdcConf = JsonUtil.toObject(JsonUtil.toJson(config.getReader().getParameter()), SqlServerCdcConf.class);
         sqlServerCdcConf.setColumn(config.getReader().getFieldList());
@@ -53,10 +53,10 @@ public class SqlServerCdcSourceFactory extends SourceFactory {
 
     @Override
     public DataStream<RowData> createSource() {
-        SqlserverCdcInputFormatBuilder builder = new SqlserverCdcInputFormatBuilder();
+        SqlServerCdcInputFormatBuilder builder = new SqlServerCdcInputFormatBuilder();
         builder.setSqlserverCdcConf(sqlServerCdcConf);
         AbstractCDCRowConverter rowConverter;
-        if(useAbstractBaseColumn){
+        if (useAbstractBaseColumn) {
             rowConverter = new SqlServerCdcColumnConverter(sqlServerCdcConf.isPavingData(), sqlServerCdcConf.isSplitUpdate());
         } else {
             final RowType rowType = (RowType) TableUtil.getDataType(sqlServerCdcConf.getColumn()).getLogicalType();

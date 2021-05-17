@@ -20,9 +20,10 @@ package com.dtstack.flinkx.connector.sqlservercdc.inputFormat;
 import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.Lsn;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil;
-import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlserverCdcEnum;
+import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEnum;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
+import com.dtstack.flinkx.enums.EJobType;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -50,18 +51,19 @@ import static com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil.
  *
  * @author tudou
  */
-public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
+public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
-    protected SqlserverCdcInputFormat format;
+    protected SqlServerCdcInputFormat format;
 
-    public SqlserverCdcInputFormatBuilder() {
-        super.format = this.format = new SqlserverCdcInputFormat();
+    public SqlServerCdcInputFormatBuilder() {
+        super.format = this.format = new SqlServerCdcInputFormat();
     }
+
 
     public void setSqlserverCdcConf(SqlServerCdcConf sqlserverCdcConf) {
-        format.sqlserverCdcConf = sqlserverCdcConf;
+        super.setConfig(sqlserverCdcConf);
+        this.format.setSqlserverCdcConf(sqlserverCdcConf);
     }
-
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter) {
         this.format.setRowConverter(rowConverter);
@@ -83,9 +85,6 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (StringUtils.isBlank(format.sqlserverCdcConf.getDatabaseName())) {
             sb.append("No databaseName supplied;\n");
         }
-        if (CollectionUtils.isEmpty(format.sqlserverCdcConf.getTableList())) {
-            sb.append("No tableList supplied;\n");
-        }
         if (StringUtils.isBlank(format.sqlserverCdcConf.getCat())) {
             sb.append("No cat supplied;\n");
         }
@@ -95,9 +94,9 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
         //校验cat
         HashSet<String> set = Sets.newHashSet(
-                SqlserverCdcEnum.DELETE.name,
-                SqlserverCdcEnum.UPDATE.name,
-                SqlserverCdcEnum.INSERT.name);
+                SqlServerCdcEnum.DELETE.name,
+                SqlServerCdcEnum.UPDATE.name,
+                SqlServerCdcEnum.INSERT.name);
         ArrayList<String> cats = Lists.newArrayList(format.sqlserverCdcConf.getCat().split(ConstantValue.COMMA_SYMBOL));
         cats.removeIf(s -> set.contains(s.toLowerCase(Locale.ENGLISH)));
         if (CollectionUtils.isNotEmpty(cats)) {
@@ -172,5 +171,6 @@ public class SqlserverCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
 
             throw new RuntimeException(detailsInfo.toString(), e);
         }
+
     }
 }

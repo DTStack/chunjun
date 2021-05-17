@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.sqlservercdc.convert;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.ChangeTable;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEventRow;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil;
-import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlserverCdcEnum;
+import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEnum;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -46,10 +46,10 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Date: 2021/04/29
+ * Date: 2021/05/12
  * Company: www.dtstack.com
  *
- * @author tudou
+ * @author shifang
  */
 public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServerCdcEventRow, String> {
 
@@ -119,7 +119,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
         }
 
         //update类型且要拆分
-        if (splitUpdate && SqlserverCdcEnum.UPDATE.name.equalsIgnoreCase(sqlServerCdcEventRow.getType())) {
+        if (splitUpdate && SqlServerCdcEnum.UPDATE.name.equalsIgnoreCase(sqlServerCdcEventRow.getType())) {
             ColumnRowData copy = columnRowData.copy();
             copy.setRowKind(RowKind.UPDATE_BEFORE);
             copy.addField(new StringColumn(RowKind.UPDATE_BEFORE.name()));

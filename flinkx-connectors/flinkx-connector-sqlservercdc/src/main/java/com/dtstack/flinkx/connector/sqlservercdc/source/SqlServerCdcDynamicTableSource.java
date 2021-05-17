@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.sqlservercdc.source;
 
 import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
 import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
-import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlserverCdcInputFormatBuilder;
+import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
@@ -57,7 +57,7 @@ public class SqlServerCdcDynamicTableSource implements ScanTableSource {
         final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
-        SqlserverCdcInputFormatBuilder builder = new SqlserverCdcInputFormatBuilder();
+        SqlServerCdcInputFormatBuilder builder = new SqlServerCdcInputFormatBuilder();
         builder.setSqlserverCdcConf(sqlserverCdcConf);
         builder.setRowConverter(new SqlServerCdcRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat));
 

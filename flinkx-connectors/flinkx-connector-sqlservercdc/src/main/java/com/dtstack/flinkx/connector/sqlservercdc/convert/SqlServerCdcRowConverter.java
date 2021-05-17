@@ -26,6 +26,7 @@ import com.google.common.collect.Maps;
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.data.DecimalData;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
@@ -45,13 +46,14 @@ import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
- * Date: 2021/04/29
+ * Date: 2021/05/12
  * Company: www.dtstack.com
  *
- * @author tudou
+ * @author shifang
  */
 public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerCdcEventRow, LogicalType> {
     private final TimestampFormat timestampFormat;
@@ -73,16 +75,16 @@ public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerC
         Object[] dataPrev = sqlServerCdcEventRow.getDataPrev();
         Object[] data = sqlServerCdcEventRow.getData();
         List<String> columnList = changeTable.getColumnList();
-        List<String> columnTypes = sqlServerCdcEventRow.getColumnTypes();
 
         Map<Object, Object> beforeMap = Maps.newHashMapWithExpectedSize(dataPrev.length);
-        for (int columnIndex=0;columnIndex<sqlServerCdcEventRow.getColumnTypes().size();columnIndex++) {
-            beforeMap.put(columnList.get(columnIndex),columnTypes.get(columnIndex));
+        for (int columnIndex = 0; columnIndex < sqlServerCdcEventRow.getColumnTypes().size(); columnIndex++) {
+            beforeMap.put(columnList.get(columnIndex), dataPrev[columnIndex] == null ? null : dataPrev[columnIndex].toString());
         }
         Map<Object, Object> afterMap = Maps.newHashMapWithExpectedSize(data.length);
-        afterMap.putAll(beforeMap);
-
-        switch (eventType){
+        for (int columnIndex = 0; columnIndex < sqlServerCdcEventRow.getColumnTypes().size(); columnIndex++) {
+            afterMap.put(columnList.get(columnIndex), data[columnIndex] == null ? null : data[columnIndex].toString());
+        }
+        switch (eventType.toUpperCase(Locale.ENGLISH)){
             case "INSERT":
                 RowData insert = createRowDataByConverters(fieldNameList, converters, afterMap);
                 insert.setRowKind(RowKind.INSERT);

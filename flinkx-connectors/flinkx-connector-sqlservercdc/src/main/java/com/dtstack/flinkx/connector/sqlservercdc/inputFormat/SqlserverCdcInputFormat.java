@@ -56,7 +56,7 @@ import static com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil.
  *
  * @author tudou
  */
-public class SqlserverCdcInputFormat extends BaseRichInputFormat {
+public class SqlServerCdcInputFormat extends BaseRichInputFormat {
     public SqlServerCdcConf sqlserverCdcConf;
 
     private Connection conn;
@@ -67,6 +67,7 @@ public class SqlserverCdcInputFormat extends BaseRichInputFormat {
     private volatile boolean running = false;
 
     private AbstractCDCRowConverter rowConverter;
+
 
     @Override
     protected void openInternal(InputSplit inputSplit) {
@@ -88,11 +89,11 @@ public class SqlserverCdcInputFormat extends BaseRichInputFormat {
             conn.setAutoCommit(false);
             SqlServerCdcUtil.changeDatabase(conn, sqlserverCdcConf.getDatabaseName());
 
-            if(StringUtils.isNotBlank(sqlserverCdcConf.getLsn())){
+            if (StringUtils.isNotBlank(sqlserverCdcConf.getLsn())) {
                 logPosition = TxLogPosition.valueOf(Lsn.valueOf(sqlserverCdcConf.getLsn()));
-            }else if(formatState != null && formatState.getState() != null){
-                logPosition = (TxLogPosition)formatState.getState();
-            }else{
+            } else if (formatState != null && formatState.getState() != null) {
+                logPosition = (TxLogPosition) formatState.getState();
+            } else {
                 logPosition = TxLogPosition.valueOf(SqlServerCdcUtil.getMaxLsn(conn));
             }
 
@@ -108,27 +109,19 @@ public class SqlserverCdcInputFormat extends BaseRichInputFormat {
 
 
     @Override
-    protected RowData nextRecordInternal(RowData rowData) throws IOException {
-        return null;
+    protected RowData nextRecordInternal(RowData row) throws IOException {
+        RowData rowData = null;
+        try {
+            rowData = queue.take();
+        } catch (InterruptedException e) {
+            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
+            throw new IOException(e);
+        }
+        return rowData;
     }
 
-//    @Override
-//    protected RowData nextRecordInternal(Row row) throws IOException {
-//        try {
-//            Map<String, Object> map = queue.take();
-//            if(map.size() == 1){
-//                throw new IOException((String) map.get("e"));
-//            }else{
-//                row = Row.of(map);
-//            }
-//        } catch (InterruptedException e) {
-//            LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
-//        }
-//        return row;
-//    }
-
     @Override
-    protected void closeInternal(){
+    protected void closeInternal() {
         if (running) {
             executor.shutdownNow();
             running = false;
@@ -169,7 +162,6 @@ public class SqlserverCdcInputFormat extends BaseRichInputFormat {
     }
 
 
-
     public Connection getConn() {
         return conn;
     }
@@ -194,7 +186,12 @@ public class SqlserverCdcInputFormat extends BaseRichInputFormat {
         return queue;
     }
 
-    public void setQueue(BlockingQueue<RowData> queue) {
-        this.queue = queue;
+
+    public SqlServerCdcConf getSqlserverCdcConf() {
+        return sqlserverCdcConf;
+    }
+
+    public void setSqlserverCdcConf(SqlServerCdcConf sqlserverCdcConf) {
+        this.sqlserverCdcConf = sqlserverCdcConf;
     }
 }

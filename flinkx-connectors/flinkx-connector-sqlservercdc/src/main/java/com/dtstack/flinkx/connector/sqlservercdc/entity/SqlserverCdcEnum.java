@@ -28,7 +28,7 @@ import java.util.Set;
  *
  * @author tudou
  */
-public enum  SqlserverCdcEnum {
+public enum SqlServerCdcEnum {
 
     /**
      * 操作未知
@@ -56,12 +56,12 @@ public enum  SqlserverCdcEnum {
     public int code;
     public String name;
 
-    SqlserverCdcEnum(int code, String name) {
+    SqlServerCdcEnum(int code, String name) {
         this.code = code;
         this.name = name;
     }
 
-    public static SqlserverCdcEnum getEnum(String name){
+    public static SqlServerCdcEnum getEnum(String name){
         switch (name.toLowerCase()){
             case "delete": return DELETE;
             case "insert": return INSERT;
@@ -71,7 +71,7 @@ public enum  SqlserverCdcEnum {
         }
     }
 
-    public static SqlserverCdcEnum getEnum(int code){
+    public static SqlServerCdcEnum getEnum(int code){
         switch (code){
             case 1: return DELETE;
             case 2: return INSERT;
