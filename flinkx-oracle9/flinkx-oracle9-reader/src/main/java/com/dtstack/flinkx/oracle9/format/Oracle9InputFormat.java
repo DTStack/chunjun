@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.apache.flink.types.Row;
+import sun.java2d.opengl.OGLContext;
 import sun.misc.URLClassPath;
 
 import java.io.File;
@@ -248,62 +249,79 @@ public class Oracle9InputFormat extends JdbcInputFormat {
         actionPath = needLoadJarPath + File.separator + "action";
         unzipTempPath = needLoadJarPath + File.separator + ".unzip";
 
-        if (indexOfSubTask > 0) {
-            waitForActionFinishedBeforeRead();
-            return;
-        }
+        if(waitForActionFinishedBeforeRead()){
+            //获取zip进行解压缩
+            try {
+                File needLoadJarDirectory = new File(needLoadJarPath);
 
-        //获取zip进行解压缩
-        try {
-            File needLoadJarDirectory = new File(needLoadJarPath);
+                if (!needLoadJarDirectory.exists()) {
+                    if (!needLoadJarDirectory.mkdir()) {
+                        throw new RuntimeException("create directory [ " + needLoadJarDirectory.getAbsolutePath() + "] failed");
+                    }
 
-            if (!needLoadJarDirectory.exists()) {
-                if (!needLoadJarDirectory.mkdir()) {
-                    throw new RuntimeException("create directory [ " + needLoadJarDirectory.getAbsolutePath() + "] failed");
+                    File unzipDirectory = new File(unzipTempPath);
+                    if (!unzipDirectory.mkdir()) {
+                        throw new RuntimeException("create directory [ " + unzipTempPath + "] failed");
+                    }
+
+
+                    //解压到.unzip目录下
+                    List<String> jars = SysUtil.unZip(zipFile.getAbsolutePath(), unzipTempPath);
+
+                    //移动到oracle9reader目录下
+                    for (String jarPath : jars) {
+                        File file = new File(jarPath);
+                        file.renameTo(new File(needLoadJarPath + File.separator + file.getName()));
+                    }
+
+                    unzipDirectory.delete();
+
+                    File actionFile = new File(actionPath);
+                    if (!actionFile.mkdir()) {
+                        throw new RuntimeException("create file [ " + actionFile.getAbsolutePath() + "] failed");
+                    }
                 }
-
-                File unzipDirectory = new File(unzipTempPath);
-                if (!unzipDirectory.mkdir()) {
-                    throw new RuntimeException("create directory [ " + unzipTempPath + "] failed");
-                }
-
-
-                //解压到.unzip目录下
-                List<String> jars = SysUtil.unZip(zipFile.getAbsolutePath(), unzipTempPath);
-
-                //移动到oracle9reader目录下
-                for (String jarPath : jars) {
-                    File file = new File(jarPath);
-                    file.renameTo(new File(needLoadJarPath + File.separator + file.getName()));
-                }
-
-                unzipDirectory.delete();
-
-                File actionFile = new File(actionPath);
-                if (!actionFile.mkdir()) {
-                    throw new RuntimeException("create file [ " + actionFile.getAbsolutePath() + "] failed");
-                }
+            } catch (IOException e) {
+                new File(needLoadJarPath).deleteOnExit();
+                throw new RuntimeException(e);
             }
-        } catch (IOException e) {
-            new File(needLoadJarPath).deleteOnExit();
-            throw new RuntimeException(e);
         }
-
     }
 
 
-    protected void waitForActionFinishedBeforeRead() {
-
+    /**
+     * 创建解压目录 如果创建成功 则当前subtask进行解压 其余的channel进行等待
+     * @return
+     */
+    protected boolean waitForActionFinishedBeforeRead() {
+        boolean result = false;
         File unzipFile = new File(needLoadJarPath);
         File actionFile = new File(actionPath);
         int n = 0;
-        while (!unzipFile.exists() || !actionFile.exists()) {
+        //如果解压路径存在就不新建 代表其他的任务在新建中
+        if(!unzipFile.exists()){
+            try {
+                result = unzipFile.mkdir();
+            }catch (Exception e){
+                if(!unzipFile.exists()){
+                    throw new RuntimeException("create directory"+ needLoadJarPath + " failed",e);
+                }
+            }
+        }
+        //如果创建成功 就返回true 否则就等待其他channel完成新建
+        if(result){
+            return result;
+        }
+
+        while (!actionFile.exists()) {
             if (n > SECOND_WAIT) {
                 throw new RuntimeException("Wait action finished before write timeout");
             }
             SysUtil.sleep(3000);
             n++;
         }
+        //如果等到其他任务创建成功 就返回false
+        return result;
     }
 
 }
