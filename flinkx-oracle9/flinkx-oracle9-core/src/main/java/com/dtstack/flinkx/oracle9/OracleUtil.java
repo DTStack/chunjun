@@ -30,7 +30,7 @@ public class OracleUtil {
         ClassBodyEvaluator cbe = new ClassBodyEvaluator();
         cbe.setParentClassLoader(parentClassLoader);
 
-        cbe.setDefaultImports("com.dtstack.flinkx.util.ClassUtil", "java.sql.Connection", "java.sql.DriverManager", "java.sql.SQLException", "java.io.BufferedReader","java.sql.ResultSet", "oracle.sql.BLOB", "java.io.InputStream");
+        cbe.setDefaultImports("com.dtstack.flinkx.util.ClassUtil", "java.sql.Connection", "java.sql.DriverManager", "java.sql.SQLException", "java.io.BufferedReader","java.sql.ResultSet", "oracle.sql.BLOB", "java.io.InputStream", "java.io.IOException");
         cbe.setImplementedInterfaces(new Class[]{IOracle9Helper.class});
         StringReader sr = new StringReader(IOracle9Helper.CLASS_STR);
         return (IOracle9Helper) cbe.createInstance(sr);

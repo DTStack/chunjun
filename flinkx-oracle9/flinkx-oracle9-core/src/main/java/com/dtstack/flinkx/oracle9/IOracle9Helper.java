@@ -58,12 +58,13 @@ public interface IOracle9Helper {
                     "    public Object blobToString(Object obj) throws SQLException, IOException {\n" +
                     "        String dataStr = \"\";\n" +
                     "        if (obj instanceof oracle.sql.BLOB) {\n" +
-                    "            BLOB blob = (BLOB) obj;\n" +
+                    "            oracle.sql.BLOB blob = (oracle.sql.BLOB) obj;\n" +
                     "            InputStream binaryStream = blob.getBinaryStream();\n" +
                     "            byte[] bytes = new byte[binaryStream.available()];\n" +
                     "            binaryStream.read(bytes, 0, bytes.length);\n" +
                     "            dataStr = new String(bytes);\n" +
-                    "        }\n" +
+                    "        }else{" +
+                    "return obj;}\n" +
                     "        return dataStr;\n" +
                     "    }";
 
@@ -80,9 +81,6 @@ public interface IOracle9Helper {
 
 
     public Object xmlTypeToString(Object obj) throws Exception;
-
-
-    public Object blobToByteArray(Object obj);
 
 
     public Object blobToString(Object obj) throws SQLException, IOException;
