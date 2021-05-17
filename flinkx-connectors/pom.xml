@@ -22,6 +22,7 @@
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
+        <module>flinkx-connector-clickhouse</module>
     </modules>
 
     <dependencies>
