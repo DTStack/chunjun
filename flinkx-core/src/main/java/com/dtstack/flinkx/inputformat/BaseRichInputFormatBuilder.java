@@ -45,10 +45,14 @@ public abstract class BaseRichInputFormatBuilder {
     }
 
     /**
-     * Check the value of parameters
+     * 检查format配置
      */
     protected abstract void checkFormat();
 
+    /**
+     * 结束builder构建
+     * @return 返回format对象
+     */
     public BaseRichInputFormat finish() {
         Preconditions.checkNotNull(format);
         if(format.getConfig().isCheckFormat()){

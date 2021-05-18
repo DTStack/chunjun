@@ -76,7 +76,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     /** 用户脚本中填写的字段类型集合 */
     protected List<String> columnType;
 
-    protected RowData lastRow = null;
     protected long rowsOfCurrentTransaction;
 
 

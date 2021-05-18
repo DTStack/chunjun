@@ -31,7 +31,7 @@ import java.io.Serializable;
  */
 public class SimpleAccumulatorGauge<T extends Serializable> implements Gauge<T> {
 
-    private Accumulator<T, T> accumulator;
+    private final Accumulator<T, T> accumulator;
 
     public SimpleAccumulatorGauge(Accumulator<T, T> accumulator) {
         this.accumulator = accumulator;
