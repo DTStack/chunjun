@@ -96,6 +96,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     protected String checkpointMode;
     /** 定时提交数据服务 */
     protected transient ScheduledExecutorService scheduler;
+    /** 定时提交数据服务返回结果 */
+    protected transient ScheduledFuture scheduledFuture;
     /** 定时提交数据服务间隔时间，单位毫秒 */
     protected long flushIntervalMills;
     /** 任务公共配置 */
@@ -119,12 +121,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     protected ErrorLimiter errorLimiter;
     /** 输出指标组 */
     protected transient BaseMetric outputMetric;
+
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
     protected LongCounter bytesWriteCounter;
     protected LongCounter durationCounter;
-    /** 定时提交数据服务返回结果 */
-    private transient ScheduledFuture scheduledFuture;
     protected LongCounter numWriteCounter;
     protected LongCounter snapshotWriteCounter;
     protected LongCounter errCounter;
