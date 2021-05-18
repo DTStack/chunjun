@@ -29,13 +29,14 @@ import org.apache.commons.lang.StringUtils;
  */
 public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
-    private JdbcOutputFormat format;
+    protected JdbcOutputFormat format;
 
     public JdbcOutputFormatBuilder(JdbcOutputFormat format) {
         super.format = this.format = format;
     }
 
     public void setJdbcConf(JdbcConf jdbcConf) {
+        super.setConfig(jdbcConf);
         format.setJdbcConf(jdbcConf);
     }
 
@@ -59,6 +60,9 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         }
         if (StringUtils.isBlank(jdbcConf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
+        }
+        if(sb.length() > 0){
+            throw new IllegalArgumentException(sb.toString());
         }
     }
 }
