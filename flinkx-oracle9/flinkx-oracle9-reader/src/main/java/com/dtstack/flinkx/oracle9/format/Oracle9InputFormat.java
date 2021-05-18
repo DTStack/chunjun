@@ -149,7 +149,7 @@ public class Oracle9InputFormat extends JdbcInputFormat {
                     //XMLType transform to String
                     obj = helper.xmlTypeToString(obj);
                     //BLOB transform to byteArray
-                    obj = helper.blobToString(obj);
+                    obj = helper.blobToByteArray(obj);
                 }
                 if (pos == 0) {
                     obj = new BigInteger("10000" + ((BigDecimal) obj).longValue());

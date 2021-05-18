@@ -55,10 +55,10 @@ public interface IOracle9Helper {
                     "        return dataStr;" +
                     "    }\n"+
                     " @Override\n" +
-                    " public Object blobToString(Object obj) throws SQLException, IOException {\n" +
+                    " public Object blobToByteArray(Object obj) throws SQLException, IOException {\n" +
                     "    if (obj instanceof oracle.sql.BLOB) {\n" +
                     "            oracle.sql.BLOB blob = (oracle.sql.BLOB) obj;\n" +
-                    "           return  blob.getBytes();\n" +
+                    "           return blob.getBytes();\n" +
                     "        }else{return obj;}"+
                     "    }";
 
@@ -77,6 +77,6 @@ public interface IOracle9Helper {
     public Object xmlTypeToString(Object obj) throws Exception;
 
 
-    public Object blobToString(Object obj) throws SQLException, IOException;
+    public Object blobToByteArray(Object obj) throws SQLException, IOException;
 
 }
