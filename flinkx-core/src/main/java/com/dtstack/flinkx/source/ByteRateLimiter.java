@@ -18,9 +18,10 @@
 
 package com.dtstack.flinkx.source;
 
+import org.apache.flink.shaded.guava18.com.google.common.util.concurrent.RateLimiter;
+
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
-import com.google.common.util.concurrent.RateLimiter;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import java.math.BigDecimal;
@@ -38,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("all")
 public class ByteRateLimiter {
 
-    public static final int MIN_RECORD_NUMBER_UPDATE_RATE = 1000;
+    private static final int MIN_RECORD_NUMBER_UPDATE_RATE = 1000;
     private final RateLimiter rateLimiter;
     private final double expectedBytePerSecond;
     private final AccumulatorCollector accumulatorCollector;
@@ -79,7 +80,8 @@ public class ByteRateLimiter {
 
         BigDecimal thisWriteRatio = BigDecimal.valueOf(totalRecords == 0 ? 0 : thisRecords / (double) totalRecords);
 
-        if (totalRecords > MIN_RECORD_NUMBER_UPDATE_RATE && totalBytes != 0
+        if (totalRecords > MIN_RECORD_NUMBER_UPDATE_RATE
+                && totalBytes != 0
                 && thisWriteRatio.compareTo(BigDecimal.ZERO) != 0) {
             double bpr = totalBytes / (double)totalRecords;
             double permitsPerSecond = expectedBytePerSecond / bpr * thisWriteRatio.doubleValue();

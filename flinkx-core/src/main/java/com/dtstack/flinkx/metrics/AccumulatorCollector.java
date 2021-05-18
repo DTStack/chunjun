@@ -19,7 +19,6 @@
 
 package com.dtstack.flinkx.metrics;
 
-import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.accumulators.StringifiedAccumulatorResult;
 import org.apache.flink.runtime.executiongraph.ArchivedExecutionGraph;
@@ -44,7 +43,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Regularly get statistics from the flink API
+ * 累加器收集器，周期性地更新累加器信息
  *
  * @author jiangbo
  * @date 2019/7/17
@@ -57,11 +56,12 @@ public class AccumulatorCollector {
 
     private static final int MAX_COLLECT_ERROR_TIMES = 100;
     private long collectErrorTimes = 0;
-    private long period;
 
     private JobMasterGateway gateway;
-    private ScheduledExecutorService scheduledExecutorService;
-    private Map<String, ValueAccumulator> valueAccumulatorMap;
+
+    private final long period;
+    private final ScheduledExecutorService scheduledExecutorService;
+    private final Map<String, ValueAccumulator> valueAccumulatorMap;
 
     public AccumulatorCollector(StreamingRuntimeContext context, List<String> metricNames){
         Preconditions.checkArgument(metricNames != null && metricNames.size() > 0);
@@ -80,11 +80,14 @@ public class AccumulatorCollector {
         field.setAccessible(true);
         try {
             gateway = (JobMasterGateway) field.get(globalAggregateManager);
-        } catch (Exception e) {
-            LOG.error("", e);
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            LOG.error("failed to get field:[gateway] from RpcGlobalAggregateManager, e = {}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
+    /**
+     * 启动线程池，周期性更新累加器信息
+     */
     public void start(){
         scheduledExecutorService.scheduleAtFixedRate(
                 this::collectAccumulator,
@@ -94,12 +97,18 @@ public class AccumulatorCollector {
         );
     }
 
+    /**
+     * 关闭线程池
+     */
     public void close(){
         if(scheduledExecutorService != null && !scheduledExecutorService.isShutdown() && !scheduledExecutorService.isTerminated()) {
             scheduledExecutorService.shutdown();
         }
     }
 
+    /**
+     * 收集累加器信息
+     */
     public void collectAccumulator(){
         CompletableFuture<ArchivedExecutionGraph> archivedExecutionGraphFuture = gateway.requestJob(Time.seconds(10));
         ArchivedExecutionGraph archivedExecutionGraph;
@@ -111,7 +120,7 @@ public class AccumulatorCollector {
             if (collectErrorTimes > MAX_COLLECT_ERROR_TIMES){
                 // 主动关闭线程和资源，防止异常情况下没有关闭
                 close();
-                throw new RuntimeException("更新统计数据出错次数超过最大限制100次，为了确保数据正确性，任务自动失败");
+                throw new RuntimeException("The number of errors in updating statistics data exceeds the maximum limit of 100 times. To ensure the correctness of the data, the task automatically fails");
             }
            return;
         }
@@ -145,33 +154,16 @@ public class AccumulatorCollector {
         return valueAccumulator.getGlobal();
     }
 
+    /**
+     * 根据名称获取指定累加器的本地value
+     * @param name 累加器指标名称
+     * @return
+     */
     public long getLocalAccumulatorValue(String name){
         ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
         if(valueAccumulator == null){
             return 0;
         }
         return valueAccumulator.getLocal().getLocalValue();
-    }
-
-    static class ValueAccumulator{
-        private long global;
-        private LongCounter local;
-
-        public ValueAccumulator(long global, LongCounter local) {
-            this.global = global;
-            this.local = local;
-        }
-
-        public long getGlobal() {
-            return global;
-        }
-
-        public LongCounter getLocal() {
-            return local;
-        }
-
-        public void setGlobal(long global) {
-            this.global = global;
-        }
     }
 }

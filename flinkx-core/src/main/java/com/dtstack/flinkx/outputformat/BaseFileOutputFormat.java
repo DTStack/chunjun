@@ -34,8 +34,6 @@ import java.io.IOException;
  */
 public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
-    protected RowData lastRowData;
-
     protected String currentBlockFileNamePrefix;
 
     protected String currentBlockFileName;

@@ -77,7 +77,7 @@ public class Metrics {
 
     public static final String SUFFIX_RATE = "PerSecond";
 
-    public static final List<String> METRIC_LIST = Arrays.asList(
+    public static final List<String> METRIC_SINK_LIST = Arrays.asList(
             NUM_ERRORS,
             NUM_NULL_ERRORS,
             NUM_DUPLICATE_ERRORS,

@@ -15,31 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.metrics;
 
-package com.dtstack.flinkx.inputformat;
-
-import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.api.common.accumulators.LongCounter;
 
 /**
- * @author jiangbo
- * @date 2019/11/21
+ * Date: 2021/05/18
+ * Company: www.dtstack.com
+ *
+ * @author tudou
  */
-public class ErrorInputSplit implements InputSplit {
+public class ValueAccumulator {
+    private final LongCounter local;
+    private long global;
 
-    int splitNumber;
-
-    String errorMessage;
-
-    public ErrorInputSplit(String errorMessage) {
-        this.errorMessage = errorMessage;
+    public ValueAccumulator(long global, LongCounter local) {
+        this.global = global;
+        this.local = local;
     }
 
-    public String getErrorMessage(){
-        return errorMessage;
+    public long getGlobal() {
+        return global;
     }
 
-    @Override
-    public int getSplitNumber() {
-        return splitNumber;
+    public void setGlobal(long global) {
+        this.global = global;
+    }
+
+    public LongCounter getLocal() {
+        return local;
     }
 }
