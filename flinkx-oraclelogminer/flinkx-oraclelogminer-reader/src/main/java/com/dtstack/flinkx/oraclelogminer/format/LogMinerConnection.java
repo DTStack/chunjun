@@ -92,9 +92,9 @@ public class LogMinerConnection {
             "SELECT ANY TRANSACTION",
             "SELECT ANY DICTIONARY");
 
-    private static final int RETRY_TIMES = 3;
+    public static final int RETRY_TIMES = 3;
 
-    private static final int SLEEP_TIME = 2000;
+    public static final int SLEEP_TIME = 2000;
 
     public final static String KEY_SEG_OWNER = "SEG_OWNER";
     public final static String KEY_TABLE_NAME = "TABLE_NAME";
@@ -1026,7 +1026,7 @@ public class LogMinerConnection {
         configStatement(logMinerStartStmt);
     }
 
-    enum ReadPosition {
+    public enum ReadPosition {
         ALL, CURRENT, TIME, SCN
     }
 }

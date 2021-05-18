@@ -276,7 +276,18 @@ public class SqlUtil {
     public final static String SQL_QUERY_PRIVILEGES = "SELECT * FROM SESSION_PRIVS";
 
     public final static String SQL_QUERY_ENCODING = "SELECT USERENV('LANGUAGE') FROM DUAL";
+
+    public final static String SQL_QUERY_LOG_MODE = "SELECT LOG_MODE FROM V$DATABASE";
+
+    public final static String SQL_QUERY_SUPPLEMENTAL_LOG_DATA_ALL = "SELECT SUPPLEMENTAL_LOG_DATA_ALL FROM V$DATABASE";
+
+    private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
+
     public static List<String> EXCLUDE_SCHEMAS = Collections.singletonList("SYS");
+
+    public static final List<String> PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "LOGMINING", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
+
+    public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
 
     /**
      * 构建查询v$logmnr_contents视图SQL
@@ -289,16 +300,16 @@ public class SqlUtil {
 
         if (StringUtils.isNotEmpty(listenerOptions)) {
             sqlBuilder.append(" and ").append(buildOperationFilter(listenerOptions));
-    }
+        }
 
         if (StringUtils.isNotEmpty(listenerTables)) {
-        sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
-    } else {
-        sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
-    }
+            sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
+        } else {
+            sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
+        }
 
         return sqlBuilder.toString();
-}
+    }
 
     /**
      * 构建需要采集操作类型字符串的过滤条件
