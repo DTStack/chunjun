@@ -235,7 +235,7 @@ public class SqlUtil {
             "FROM\n" +
             "   v$logmnr_contents a \n"+
             "where \n"+
-                "scn <=?  and row_id=?  and xidsqn = ? and table_name = ?  and rollback =? and OPERATION_CODE =? \n"+
+                "scn <=?  and row_id=?  and xidsqn = ? and table_name = ?  and rollback =? and OPERATION_CODE in (?,?) \n"+
                 "and scn not in (select scn from  v$logmnr_contents where row_id =  ?   and xidsqn = ?  and scn !=?  group by scn HAVING count(scn) >1 and sum(rollback)>0) \n";
 
     //查找加载到logminer的日志文件
@@ -283,11 +283,19 @@ public class SqlUtil {
 
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 
+    /** cdb环境切换容器 **/
+    public final static String SQL_ALTER_SESSION_CONTAINER = "alter session set container=%s";
+
+    public final static String SQL_IS_CDB = "select cdb from v$database";
+
+    public final static String SQL_IS_RAC = " select VALUE from v$option a where a.PARAMETER='Real Application Clusters'";
+
+
     public static List<String> EXCLUDE_SCHEMAS = Collections.singletonList("SYS");
 
-    public static final List<String> PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "LOGMINING", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
+    public static final List<String> PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
 
-    public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
+    public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION",  "LOGMINING", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
 
     /**
      * 构建查询v$logmnr_contents视图SQL
@@ -295,21 +303,21 @@ public class SqlUtil {
      * @param listenerTables    需要采集的schema+表名 SCHEMA1.TABLE1,SCHEMA2.TABLE2
      * @return
      */
-    public static String buildSelectSql(String listenerOptions, String listenerTables){
+    public static String buildSelectSql(String listenerOptions, String listenerTables, boolean isCdb){
         StringBuilder sqlBuilder = new StringBuilder(SQL_SELECT_DATA);
 
         if (StringUtils.isNotEmpty(listenerOptions)) {
             sqlBuilder.append(" and ").append(buildOperationFilter(listenerOptions));
-    }
+        }
 
         if (StringUtils.isNotEmpty(listenerTables)) {
-        sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables));
-    } else {
-        sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
-    }
+            sqlBuilder.append(" and ").append(buildSchemaTableFilter(listenerTables, isCdb));
+        } else {
+            sqlBuilder.append(" and ").append(buildExcludeSchemaFilter());
+        }
 
         return sqlBuilder.toString();
-}
+    }
 
     /**
      * 构建需要采集操作类型字符串的过滤条件
@@ -361,7 +369,7 @@ public class SqlUtil {
      * @param listenerTables    需要采集的schema+表名 SCHEMA1.TABLE1,SCHEMA2.TABLE2
      * @return
      */
-    private static String buildSchemaTableFilter(String listenerTables){
+    private static String buildSchemaTableFilter(String listenerTables, boolean isCdb){
         List<String> filters = new ArrayList<>();
 
         String[] tableWithSchemas = listenerTables.split(ConstantValue.COMMA_SYMBOL);
@@ -372,10 +380,14 @@ public class SqlUtil {
             }
 
             StringBuilder tableFilterBuilder = new StringBuilder(256);
-            tableFilterBuilder.append(String.format("SEG_OWNER='%s'", tables.get(0)));
+            if (isCdb && tables.size() == 3) {
+                tableFilterBuilder.append(String.format("SRC_CON_NAME='%s' and ", tables.get(0)));
+            }
 
-            if(!ConstantValue.STAR_SYMBOL.equals(tables.get(1))){
-                tableFilterBuilder.append(" and ").append(String.format("TABLE_NAME='%s'", tables.get(1)));
+            tableFilterBuilder.append(String.format("SEG_OWNER='%s'", isCdb && tables.size() == 3 ? tables.get(1) : tables.get(0)));
+
+            if (!ConstantValue.STAR_SYMBOL.equals(isCdb && tables.size() == 3 ? tables.get(2) : tables.get(1))) {
+                tableFilterBuilder.append(" and ").append(String.format("TABLE_NAME='%s'", isCdb && tables.size() == 3 ? tables.get(2) : tables.get(1)));
             }
 
             filters.add(String.format("(%s)", tableFilterBuilder.toString()));

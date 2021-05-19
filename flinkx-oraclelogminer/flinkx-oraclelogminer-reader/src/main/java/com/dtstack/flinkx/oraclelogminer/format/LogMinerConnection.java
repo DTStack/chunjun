@@ -28,6 +28,8 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.CollectionUtils;
@@ -67,28 +69,25 @@ import java.util.stream.Collectors;
  */
 public class LogMinerConnection {
     public static Logger LOG = LoggerFactory.getLogger(LogMinerConnection.class);
-
     public static final String KEY_PRIVILEGE = "PRIVILEGE";
     public static final String KEY_GRANTED_ROLE = "GRANTED_ROLE";
+
+    public static final String CDB_CONTAINER_ROOT= "CDB$ROOT";
 
     public static final String DBA_ROLE = "DBA";
     public static final String LOG_TYPE_ARCHIVED = "ARCHIVED";
     public static final String EXECUTE_CATALOG_ROLE = "EXECUTE_CATALOG_ROLE";
 
     public static final int ORACLE_11_VERSION = 11;
-    public int oracleVersion;
-    //oracle10数据库字符编码是否设置为GBK
-    public boolean isGBK = false;
-    boolean isOracle10;
 
     public static final List<String> PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
-            "LOGMINING",
             "SELECT ANY TRANSACTION",
             "SELECT ANY DICTIONARY");
 
     public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList(
             "CREATE SESSION",
+            "LOGMINING",
             "SELECT ANY TRANSACTION",
             "SELECT ANY DICTIONARY");
 
@@ -110,7 +109,6 @@ public class LogMinerConnection {
     public final static String KEY_ROLLBACK = "ROLLBACK";
     public final static String KEY_ROW_ID = "ROW_ID";
     public final static String KEY_XID_SQN = "XIDSQN";
-
 
     private LogMinerConfig logMinerConfig;
 
@@ -136,7 +134,7 @@ public class LogMinerConnection {
     private LogMinerConnection queryDataForRollbackConnection;
 
     /**缓存的结构为  xidsqn(事务id)+rowId,scn**/
-    Cache<String, LinkedHashMap<BigDecimal, RecordLog>> insertRecordCache = CacheBuilder.newBuilder()
+    Cache<String, LinkedHashMap<BigDecimal, RecordLog>> recordCache = CacheBuilder.newBuilder()
             .maximumSize(1000)
             .expireAfterWrite(20, TimeUnit.MINUTES)
             .build();
@@ -149,6 +147,8 @@ public class LogMinerConnection {
     /** 保证比maxScn小的日志文件都加载到logminer，在rac场景下，不一定和logminer里日志文件的最大的nextChange相等 **/
     private BigDecimal maxScn = null;
 
+    /** oracle数据源信息 **/
+    public OracleInfo oracleInfo;
 
     public LogMinerConnection(LogMinerConfig logMinerConfig) {
         this.logMinerConfig = logMinerConfig;
@@ -160,13 +160,13 @@ public class LogMinerConnection {
 
             connection = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), logMinerConfig.getPassword()), RETRY_TIMES, SLEEP_TIME, false);
 
-            oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
-            isOracle10 = oracleVersion == 10;
+            oracleInfo = getOracleInfo(connection);
 
             //修改session级别的 NLS_DATE_FORMAT 值为 "YYYY-MM-DD HH24:MI:SS"，否则在解析日志时 redolog出现 TO_DATE('18-APR-21', 'DD-MON-RR')
             boolean isAlterDateFormat = false;
             try {
                 try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_QUERY_NLS_DATE_FORMAT)) {
+                    preparedStatement.setQueryTimeout(logMinerConfig.getQueryTimeout().intValue());
                     try (ResultSet resultSet = preparedStatement.executeQuery(SqlUtil.SQL_QUERY_NLS_DATE_FORMAT)) {
                         while (resultSet.next()) {
                             String nlsDateFormat = resultSet.getString(1);
@@ -181,14 +181,24 @@ public class LogMinerConnection {
 
             if (isAlterDateFormat) {
                 try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT)) {
+                    preparedStatement.setQueryTimeout(logMinerConfig.getQueryTimeout().intValue());
                     preparedStatement.execute();
                 }
                 try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT)) {
+                    preparedStatement.setQueryTimeout(logMinerConfig.getQueryTimeout().intValue());
                     preparedStatement.execute();
                 }
             }
 
-            LOG.info("get connection successfully, url:{}, username:{}, Oracle version：{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), oracleVersion);
+            //cdb需要会话在CDB$ROOT里
+            if(oracleInfo.isCdbMode()){
+                try (PreparedStatement preparedStatement = connection.prepareStatement(String.format(SqlUtil.SQL_ALTER_SESSION_CONTAINER, CDB_CONTAINER_ROOT))) {
+                    preparedStatement.setQueryTimeout(logMinerConfig.getQueryTimeout().intValue());
+                    preparedStatement.execute();
+                }
+            }
+
+            LOG.info("get connection successfully, url:{}, username:{}, Oracle info：{}", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), oracleInfo);
         } catch (Exception e) {
             String message = String.format("get connection failed，url:[%s], username:[%s], e:%s", logMinerConfig.getJdbcUrl(), logMinerConfig.getUsername(), ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
@@ -245,7 +255,7 @@ public class LogMinerConnection {
             lastQueryTime = System.currentTimeMillis();
 
             if (logMinerConfig.getSupportAutoAddLog()) {
-                startSql = isOracle10 ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
+                startSql = oracleInfo.isOracle10() ? SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG_10 : SqlUtil.SQL_START_LOG_MINER_AUTO_ADD_LOG;
             } else {
                 //第一次加载,此时maxScn为空
                 if (null == maxScn) {
@@ -333,9 +343,10 @@ public class LogMinerConnection {
             logMinerSelectStmt.setString(4, recordLog.getTableName());
             logMinerSelectStmt.setInt(5, 0);
             logMinerSelectStmt.setInt(6, 1);
-            logMinerSelectStmt.setString(7, recordLog.getRowId());
-            logMinerSelectStmt.setString(8, recordLog.getXidSqn());
-            logMinerSelectStmt.setBigDecimal(9, recordLog.getScn());
+            logMinerSelectStmt.setInt(7, 3);
+            logMinerSelectStmt.setString(8, recordLog.getRowId());
+            logMinerSelectStmt.setString(9, recordLog.getXidSqn());
+            logMinerSelectStmt.setBigDecimal(10, recordLog.getScn());
 
             logMinerData = logMinerSelectStmt.executeQuery();
 
@@ -395,7 +406,7 @@ public class LogMinerConnection {
         ResultSet lastLogFileResultSet = null;
 
         try {
-            lastLogFileStmt = connection.prepareCall(isOracle10 ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN_10 : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
+            lastLogFileStmt = connection.prepareCall(oracleInfo.isOracle10() ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN_10 : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
             configStatement(lastLogFileStmt);
 
             lastLogFileStmt.setBigDecimal(1, scn);
@@ -469,13 +480,13 @@ public class LogMinerConnection {
         try {
             String timeStr = DateFormatUtils.format(time, "yyyy-MM-dd HH:mm:ss");
 
-            lastLogFileStmt = connection.prepareCall(isOracle10 ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME);
+            lastLogFileStmt = connection.prepareCall(oracleInfo.isOracle10() ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME_10 : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_TIME);
             configStatement(lastLogFileStmt);
 
             lastLogFileStmt.setString(1, timeStr);
             lastLogFileStmt.setString(2, timeStr);
 
-            if (!isOracle10) {
+            if (!oracleInfo.isOracle10()) {
                 //oracle10只有两个参数
                 lastLogFileStmt.setString(3, timeStr);
             }
@@ -533,7 +544,7 @@ public class LogMinerConnection {
         ResultSet rs = null;
         BigDecimal onlineNextChange = null;
         try {
-            statement = connection.prepareStatement(isOracle10 ? SqlUtil.SQL_QUERY_LOG_FILE_10 : SqlUtil.SQL_QUERY_LOG_FILE);
+            statement = connection.prepareStatement(oracleInfo.isOracle10() ? SqlUtil.SQL_QUERY_LOG_FILE_10 : SqlUtil.SQL_QUERY_LOG_FILE);
             statement.setBigDecimal(1, scn);
             statement.setBigDecimal(2, scn);
             rs = statement.executeQuery();
@@ -618,6 +629,7 @@ public class LogMinerConnection {
     private List<LogFile> queryAddedLogFiles() throws SQLException {
         List<LogFile> logFileLists = new ArrayList<>();
         try(PreparedStatement statement = connection.prepareStatement(SqlUtil.SQL_QUERY_ADDED_LOG)) {
+            statement.setQueryTimeout(logMinerConfig.getQueryTimeout().intValue());
            try(ResultSet rs = statement.executeQuery()) {
                while (rs.next()) {
                    LogFile logFile = new LogFile();
@@ -652,6 +664,7 @@ public class LogMinerConnection {
                 continue;
             }
             BigDecimal scn = logMinerData.getBigDecimal(KEY_SCN);
+            String tableName = logMinerData.getString(KEY_TABLE_NAME);
             String operation = logMinerData.getString(KEY_OPERATION);
             int operationCode = logMinerData.getInt(KEY_OPERATION_CODE);
 
@@ -659,25 +672,54 @@ public class LogMinerConnection {
 
             String xidSqn = logMinerData.getString(KEY_XID_SQN);
             String rowId = logMinerData.getString(KEY_ROW_ID);
+            boolean rollback = logMinerData.getBoolean(KEY_ROLLBACK);
 
 
-            if (logMinerData.getBoolean(KEY_ROLLBACK)) {
+            // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
+            boolean isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
+            //是否存在多条SQL
+            hasMultiSql = isSqlNotEnd;
+
+            while (isSqlNotEnd) {
+                logMinerData.next();
+                //redoLog 实际上不需要发生切割  但是sqlUndo发生了切割，导致redolog值为null
+                String sqlRedoValue = logMinerData.getString(KEY_SQL_REDO);
+                if (Objects.nonNull(sqlRedoValue)) {
+                    sqlRedo.append(sqlRedoValue);
+                }
+
+                String sqlUndoValue = logMinerData.getString(KEY_SQL_UNDO);
+                if (Objects.nonNull(sqlUndoValue)) {
+                    sqlUndo.append(sqlUndoValue);
+                }
+                isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
+            }
+
+
+            //只有delete且为回滚的时候 需要找到其对应的 insert 操作的undoLog替换 delete格式为delete from table where rowId ='AAAAADDD'
+            //update的回滚语句某些场景下会出现没有where条件 如oracle19Cdb
+            if (rollback && (operationCode == 2 ||
+                    (oracleInfo.getVersion() == 19 && oracleInfo.isCdbMode()
+                            && operationCode == 3 && !sqlRedo.toString().contains("where"))) ) {
                 StringBuilder undoLog = new StringBuilder(1024);
 
                 //从缓存里查找rollback对应的insert语句
                 RecordLog recordLog = queryUndoLogFromCache(xidSqn + rowId, scn);
-                if(Objects.nonNull(recordLog)){
-                    undoLog.append(recordLog.getSqlUndo());
-                    hasMultiSql = recordLog.getHasMultiSql();
-                }
-
-                if (undoLog.length() == 0) {
+                //没有找到去数据库查找历史文件
+                if (Objects.isNull(recordLog)) {
                     //如果insert语句不在缓存 或者 和rollback不再同一个日志文件里 会递归从日志文件里查找
                     recordLog = recursionQueryDataForRollback(new RecordLog(scn, "", "", xidSqn, rowId, operationCode, false, logMinerData.getString(KEY_TABLE_NAME)));
-                    if (Objects.nonNull(recordLog)) {
-                        undoLog.append(recordLog.getSqlUndo());
-                        hasMultiSql = recordLog.getHasMultiSql();
+                }
+
+                if (Objects.nonNull(recordLog)) {
+                    //判断是insert还是update
+                    try {
+                        recordLog.setSqlUndo(recordLog.getSqlUndo().replace("IS NULL", "= NULL"));
+                        undoLog.append(getRollbackSql(new RecordLog(scn, sqlUndo.toString(), sqlRedo.toString(), xidSqn, rowId, operationCode, hasMultiSql, tableName), recordLog));
+                    } catch (JSQLParserException e) {
+                        LOG.warn("parse sql failed when rollbackSql is {},scn is {} ,rowId is {}", recordLog.getSqlUndo(), recordLog.getScn(), rowId);
                     }
+                    hasMultiSql = recordLog.getHasMultiSql();
                 }
 
                 if(undoLog.length() == 0){
@@ -686,31 +728,11 @@ public class LogMinerConnection {
                 }else{
                     sqlRedo = undoLog;
                 }
-                LOG.debug("there is a rollback sql,scn is {},rowId is {},xisSqn is {}", scn, rowId, xidSqn);
-            } else {
-                // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
-                boolean isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
-                //是否存在多条SQL
-                hasMultiSql = isSqlNotEnd;
-
-                while (isSqlNotEnd) {
-                    logMinerData.next();
-                    //redoLog 实际上不需要发生切割  但是sqlUndo发生了切割，导致redolog值为null
-                    String sqlRedoValue = logMinerData.getString(KEY_SQL_REDO);
-                    if (Objects.nonNull(sqlRedoValue)) {
-                        sqlRedo.append(sqlRedoValue);
-                    }
-
-                    String sqlUndoValue = logMinerData.getString(KEY_SQL_UNDO);
-                    if (Objects.nonNull(sqlUndoValue)) {
-                        sqlUndo.append(sqlUndoValue);
-                    }
-                    isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
-                }
+                LOG.debug("find a rollback sql,scn is {},rowId is {},xisSqn is {}", scn, rowId, xidSqn);
             }
 
             //oracle10中文编码且字符串大于4000，LogMiner可能出现中文乱码导致SQL解析异常
-            if(hasMultiSql && isOracle10 && isGBK){
+            if(hasMultiSql && oracleInfo.isOracle10() && oracleInfo.isGbk()){
                 String redo = sqlRedo.toString();
                 String hexStr = new String(Hex.encodeHex(redo.getBytes("GBK")));
                 boolean hasChange = false;
@@ -748,7 +770,6 @@ public class LogMinerConnection {
             }
 
             String schema = logMinerData.getString(KEY_SEG_OWNER);
-            String tableName = logMinerData.getString(KEY_TABLE_NAME);
             Timestamp timestamp = logMinerData.getTimestamp(KEY_TIMESTAMP);
 
             Map<String, Object> data = new HashMap<>();
@@ -760,8 +781,10 @@ public class LogMinerConnection {
 
             result = new QueueData(scn, data);
 
-            //解析的数据放入缓存
-            putCache(new RecordLog(scn, sqlUndo.toString(), sqlLog, xidSqn, rowId, operationCode, hasMultiSql, tableName));
+            //只有非回滚的insert update解析的数据放入缓存
+           if(!rollback){
+               putCache(new RecordLog(scn, sqlUndo.toString(), sqlLog, xidSqn, rowId, operationCode, hasMultiSql, tableName));
+           }
             return true;
         }
 
@@ -777,36 +800,6 @@ public class LogMinerConnection {
         }
     }
 
-    public void checkPrivileges() {
-        try (Statement statement = connection.createStatement()) {
-
-            queryDataBaseEncoding();
-
-            List<String> roles = getUserRoles(statement);
-            if (roles.contains(DBA_ROLE)) {
-                return;
-            }
-
-            if (!roles.contains(EXECUTE_CATALOG_ROLE)) {
-                throw new IllegalArgumentException("非DBA角色的用户必须是[EXECUTE_CATALOG_ROLE]角色,请执行sql赋权：GRANT EXECUTE_CATALOG_ROLE TO USERNAME");
-            }
-
-            if (containsNeededPrivileges(statement)) {
-                return;
-            }
-
-            String message;
-            if (ORACLE_11_VERSION <= oracleVersion) {
-                message = "权限不足，请执行sql赋权：GRANT CREATE SESSION, EXECUTE_CATALOG_ROLE, SELECT ANY TRANSACTION, FLASHBACK ANY TABLE, SELECT ANY TABLE, LOCK ANY TABLE, SELECT ANY DICTIONARY TO USER_ROLE;";
-            } else {
-                message = "权限不足，请执行sql赋权：GRANT LOGMINING, CREATE SESSION, SELECT ANY TRANSACTION ,SELECT ANY DICTIONARY TO USER_ROLE;";
-            }
-
-            throw new IllegalArgumentException(message);
-        } catch (SQLException e) {
-            throw new RuntimeException("检查权限出错", e);
-        }
-    }
 
 
     private boolean containsNeededPrivileges(Statement statement) {
@@ -821,7 +814,7 @@ public class LogMinerConnection {
 
             int privilegeCount = 0;
             List<String> privilegeList;
-            if (oracleVersion <= ORACLE_11_VERSION) {
+            if (oracleInfo.getVersion() >= ORACLE_11_VERSION) {
                 privilegeList = ORACLE_11_PRIVILEGES_NEEDED;
             } else {
                 privilegeList = PRIVILEGES_NEEDED;
@@ -851,23 +844,6 @@ public class LogMinerConnection {
             return roles;
         } catch (SQLException e) {
             throw new RuntimeException("检查用户角色出错", e);
-        }
-    }
-
-    /**
-     * 查询Oracle10数据库的字符编码
-     */
-    private void queryDataBaseEncoding() {
-        if (isOracle10) {
-            try (Statement statement = connection.createStatement();
-                 ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ENCODING)) {
-                rs.next();
-                String encoding = rs.getString(1);
-                LOG.info("current oracle encoding is {}", encoding);
-                isGBK = encoding.contains("GBK");
-            } catch (SQLException e) {
-                throw new RuntimeException("检查用户角色出错", e);
-            }
         }
     }
 
@@ -911,17 +887,17 @@ public class LogMinerConnection {
 
 
     private void putCache(RecordLog recordLog) {
-        //缓存里只放入insert的DML语句
-        if (recordLog.getOperationCode() != 1) {
+        //缓存里不放入delete的DML语句
+        if (recordLog.getOperationCode() == 2) {
             return;
         }
-        Map<BigDecimal, RecordLog> bigDecimalListMap = insertRecordCache.getIfPresent(recordLog.getXidSqn() + recordLog.getRowId());
-        if (Objects.isNull(bigDecimalListMap)) {
+        Map<BigDecimal, RecordLog> recordLogMap = recordCache.getIfPresent(recordLog.getXidSqn() + recordLog.getRowId());
+        if (Objects.isNull(recordLogMap)) {
             LinkedHashMap<BigDecimal, RecordLog> data = new LinkedHashMap<>(32);
-            insertRecordCache.put(recordLog.getXidSqn() + recordLog.getRowId(), data);
-            bigDecimalListMap = data;
+            recordCache.put(recordLog.getXidSqn() + recordLog.getRowId(), data);
+            recordLogMap = data;
         }
-          bigDecimalListMap.put(recordLog.getScn(), recordLog);
+          recordLogMap.put(recordLog.getScn(), recordLog);
 
     }
 
@@ -934,7 +910,7 @@ public class LogMinerConnection {
      * @return insert Log
      */
     public RecordLog queryUndoLogFromCache(String key, BigDecimal scn) {
-        LinkedHashMap<BigDecimal, RecordLog> recordMap = insertRecordCache.getIfPresent(key);
+        LinkedHashMap<BigDecimal, RecordLog> recordMap = recordCache.getIfPresent(key);
         if (MapUtils.isEmpty(recordMap)) {
             return null;
         }
@@ -954,7 +930,7 @@ public class LogMinerConnection {
         } else {
             recordMap.remove(scn);
         }
-        LOG.info("query a insert sql for rollback in cache,rollback scn is {}",scn);
+        LOG.info("query a redoLog for rollback in cache,rollback scn is {}",scn);
         return recordLog;
     }
 
@@ -993,9 +969,9 @@ public class LogMinerConnection {
             //while循环查找所有数据 并都加载到缓存里去
             while (queryDataForRollbackConnection.hasNext()){}
             //从缓存里取
-            RecordLog insertLog = queryDataForRollbackConnection.queryUndoLogFromCache(rollbackRecord.getXidSqn() + rollbackRecord.getRowId(), rollbackRecord.getScn());
-            if (Objects.nonNull(insertLog)) {
-                return insertLog;
+            RecordLog dmlLog = queryDataForRollbackConnection.queryUndoLogFromCache(rollbackRecord.getXidSqn() + rollbackRecord.getRowId(), rollbackRecord.getScn());
+            if (Objects.nonNull(dmlLog)) {
+                return dmlLog;
             }
             endScn = startScn;
             startScn = startScn.subtract(step);
@@ -1016,5 +992,66 @@ public class LogMinerConnection {
 
     public enum ReadPosition {
         ALL, CURRENT, TIME, SCN
+    }
+
+    /**
+     * 获取oracle的信息
+     */
+    public static OracleInfo getOracleInfo(Connection connection) throws SQLException {
+        OracleInfo oracleInfo = new OracleInfo();
+
+        oracleInfo.setVersion(connection.getMetaData().getDatabaseMajorVersion());
+
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ENCODING)) {
+            rs.next();
+            oracleInfo.setEncoding(rs.getString(1));
+        }
+
+        //目前只有19才会判断是否是cdb模式
+        if(oracleInfo.getVersion() == 19){
+            try (Statement statement = connection.createStatement();
+                 ResultSet rs = statement.executeQuery(SqlUtil.SQL_IS_CDB)) {
+                 rs.next();
+                oracleInfo.setCdbMode(rs.getString(1).equalsIgnoreCase("YES"));
+            }
+        }
+
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(SqlUtil.SQL_IS_RAC)) {
+            rs.next();
+            oracleInfo.setRacMode(rs.getString(1).equalsIgnoreCase("TRUE"));
+        }
+
+        LOG.info("oracle info {}", oracleInfo);
+        return oracleInfo;
+    }
+
+    /**
+     * 回滚日志根据对应的dml日志找出对应的undoog
+     * @param rollbackLog 回滚日志
+     * @param dmlLog 对应的dml语句
+     * @return
+     * @throws JSQLParserException
+     */
+    public String getRollbackSql(RecordLog rollbackLog, RecordLog dmlLog) throws JSQLParserException {
+        //如果回滚日志是update，则其where条件没有 才会进入
+        if(rollbackLog.getOperationCode() == 3 && dmlLog.getOperationCode() == 3){
+            return dmlLog.getSqlUndo();
+        }
+
+        //回滚日志是delete
+        //delete回滚两种场景 如果客户表字段存在blob字段且插入时blob字段为空 此时会出现insert emptyBlob语句以及一个update语句之外 才会有一个delete语句，而此delete语句对应的上面update 所以要拼接一个delete
+        if (rollbackLog.getOperationCode() == 2) {
+            if (dmlLog.getOperationCode() == 3) {
+                net.sf.jsqlparser.statement.Statement statement = LogParser.getStatement(dmlLog.getSqlUndo());
+                Update updateStatement = (Update) statement;
+                return "delete from " + updateStatement.getTable() + " where " + updateStatement.getWhere();
+            } else {
+                return dmlLog.getSqlUndo();
+            }
+        }
+        LOG.warn(" dmlLog [{}]  is not hit for rollbackLog [{}]", rollbackLog, dmlLog);
+        return "";
     }
 }
