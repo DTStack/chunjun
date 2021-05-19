@@ -72,7 +72,7 @@ import java.util.concurrent.TimeUnit;
 public class JdbcInputFormat extends BaseRichInputFormat {
 
     public static final long serialVersionUID = 1L;
-    public static final int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
+    public static int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
     public static int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
     public DatabaseInterface databaseInterface;
 
