@@ -58,6 +58,7 @@ import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_BUF
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_MAX_RETRIES;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_PARALLELISM;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_AUTO_COMMIT;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_DEFAULT_FETCH_SIZE;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_FETCH_SIZE;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARALLELISM;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_COLUMN;
@@ -190,7 +191,7 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setPassword(readableConfig.get(PASSWORD));
 
         jdbcConf.setParallelism(readableConfig.get(SCAN_PARALLELISM));
-        jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE));
+        jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE) == 0 ? getDefaultFetchSize() : readableConfig.get(SCAN_FETCH_SIZE));
         jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
 
         jdbcConf.setRestoreColumn(readableConfig.get(SCAN_RESTORE_COLUMNNAME));
@@ -200,6 +201,7 @@ public abstract class JdbcDynamicTableFactory
         if (pollingInterval.isPresent() && pollingInterval.get() > 0) {
             jdbcConf.setPolling(true);
             jdbcConf.setIncrement(true);
+            jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE) == 0 ? SCAN_DEFAULT_FETCH_SIZE.defaultValue() : readableConfig.get(SCAN_FETCH_SIZE));
             jdbcConf.setPollingInterval(pollingInterval.get());
             jdbcConf.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
             jdbcConf.setIncreColumnType(readableConfig.get(SCAN_PARTITION_COLUMN_TYPE));
@@ -317,4 +319,12 @@ public abstract class JdbcDynamicTableFactory
      * @return
      */
     protected abstract JdbcDialect getDialect();
+
+    /**
+     * 从数据库中每次读取的条数，离线读取的时候每个插件需要测试，防止大数据量下生成大量临时文件
+     * @return
+     */
+    protected int getDefaultFetchSize(){
+        return SCAN_DEFAULT_FETCH_SIZE.defaultValue();
+    }
 }

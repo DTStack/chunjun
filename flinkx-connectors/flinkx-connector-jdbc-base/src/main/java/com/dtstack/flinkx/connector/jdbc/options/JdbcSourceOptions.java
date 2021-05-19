@@ -91,6 +91,14 @@ public class JdbcSourceOptions {
                             "gives the reader a hint as to the number of rows that should be fetched, from"
                                     + " the database when reading per round trip. If the value specified is zero, then the hint is ignored. The"
                                     + " default value is zero.");
+    public static final ConfigOption<Integer> SCAN_DEFAULT_FETCH_SIZE =
+            ConfigOptions.key("scan.default-fetch-size")
+                    .intType()
+                    .defaultValue(1024)
+                    .withDescription(
+                            "gives the reader a hint as to the number of rows that should be fetched, from"
+                                    + " the database when reading per round trip. If the value specified is zero, then the hint is ignored. The"
+                                    + " default value is 1024.");
     public static final ConfigOption<Boolean> SCAN_AUTO_COMMIT =
             ConfigOptions.key("scan.auto-commit")
                     .booleanType()

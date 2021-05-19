@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,30 +16,28 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.inputformat;
+package com.dtstack.flinkx.connector.postgres.table;
 
-import org.apache.flink.core.io.InputSplit;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
+import com.dtstack.flinkx.connector.postgres.PostgresDialect;
 
 /**
- * @author jiangbo
- * @date 2019/11/21
+ * @program: flinkx
+ * @author: wuren
+ * @create: 2021/04/22
  */
-public class ErrorInputSplit implements InputSplit {
+public class PostgresDynamicTableFactory extends JdbcDynamicTableFactory {
 
-    int splitNumber;
+    private static final String IDENTIFIER = "postgres-x";
 
-    String errorMessage;
-
-    public ErrorInputSplit(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-
-    public String getErrorMessage(){
-        return errorMessage;
+    @Override
+    public String factoryIdentifier() {
+        return IDENTIFIER;
     }
 
     @Override
-    public int getSplitNumber() {
-        return splitNumber;
+    protected JdbcDialect getDialect() {
+        return new PostgresDialect();
     }
 }

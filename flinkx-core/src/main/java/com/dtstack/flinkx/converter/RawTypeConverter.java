@@ -15,31 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.converter;
 
-package com.dtstack.flinkx.inputformat;
+import org.apache.flink.table.types.DataType;
 
-import org.apache.flink.core.io.InputSplit;
+import java.sql.SQLException;
 
 /**
- * @author jiangbo
- * @date 2019/11/21
+ * Each connector
  */
-public class ErrorInputSplit implements InputSplit {
+@FunctionalInterface
+public interface RawTypeConverter {
 
-    int splitNumber;
+     DataType apply(String type) throws SQLException;
 
-    String errorMessage;
-
-    public ErrorInputSplit(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-
-    public String getErrorMessage(){
-        return errorMessage;
-    }
-
-    @Override
-    public int getSplitNumber() {
-        return splitNumber;
-    }
 }

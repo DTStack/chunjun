@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,30 +16,27 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.inputformat;
+package com.dtstack.flinkx.connector.postgres.sink;
 
-import org.apache.flink.core.io.InputSplit;
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
+import com.dtstack.flinkx.connector.postgres.PostgresDialect;
 
 /**
- * @author jiangbo
- * @date 2019/11/21
+ * @program: flinkx
+ * @author: wuren
+ * @create: 2021/04/26
  */
-public class ErrorInputSplit implements InputSplit {
+public class PostgresSinkFactory extends JdbcSinkFactory {
 
-    int splitNumber;
-
-    String errorMessage;
-
-    public ErrorInputSplit(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-
-    public String getErrorMessage(){
-        return errorMessage;
+    public PostgresSinkFactory(SyncConf syncConf) {
+        super(syncConf);
+        super.jdbcDialect = new PostgresDialect();
     }
 
     @Override
-    public int getSplitNumber() {
-        return splitNumber;
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new PostgresOutputFormat());
     }
 }

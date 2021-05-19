@@ -37,6 +37,7 @@ import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.ByteRateLimiter;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,44 +59,37 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     protected static final long serialVersionUID = 1L;
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    /** BaseRichInputFormat是否结束 */
+    private final AtomicBoolean isClosed = new AtomicBoolean(false);
+    /** 环境上下文 */
+    protected StreamingRuntimeContext context;
+    /** 任务名称 */
     protected String jobName = "defaultJobName";
+    /** 任务id */
     protected String jobId;
+    /** 任务索引id */
+    protected int indexOfSubTask;
+    /** 任务开始时间, openInputFormat()开始计算 */
+    protected long startTime;
+    /** 任务公共配置 */
+    protected FlinkxCommonConf config;
+    /** 数据类型转换器 */
+    protected AbstractRowConverter rowConverter;
+    /** 输入指标组 */
+    protected transient BaseMetric inputMetric;
+    /** 自定义的prometheus reporter，用于提交startLocation和endLocation指标 */
+    protected transient CustomPrometheusReporter customPrometheusReporter;
+    /** 累加器收集器 */
+    protected AccumulatorCollector accumulatorCollector;
+    /** checkpoint状态缓存map */
+    protected FormatState formatState;
     protected LongCounter numReadCounter;
     protected LongCounter bytesReadCounter;
     protected LongCounter durationCounter;
     protected ByteRateLimiter byteRateLimiter;
-
-    protected FlinkxCommonConf config;
-
-    protected FormatState formatState;
-
-    protected transient BaseMetric inputMetric;
-
-    protected int indexOfSubTask;
-
-    protected long startTime;
-
-    protected AccumulatorCollector accumulatorCollector;
-
-    private boolean inited = false;
-
-    private final AtomicBoolean isClosed = new AtomicBoolean(false);
-
-    protected transient CustomPrometheusReporter customPrometheusReporter;
-
-    /** 环境上下文 */
-    protected StreamingRuntimeContext context;
-
-    /** 数据类型转换器 */
-    protected AbstractRowConverter rowConverter;
-
-    /**
-     * 有子类实现，打开数据连接
-     *
-     * @param inputSplit 分片
-     * @throws IOException 连接异常
-     */
-    protected abstract void openInternal(InputSplit inputSplit) throws IOException;
+    /** BaseRichInputFormat是否已经初始化 */
+    private boolean initialized = false;
 
     @Override
     public final void configure(Configuration parameters) {
@@ -103,135 +97,59 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     }
 
     @Override
-    public void openInputFormat() throws IOException {
-        initJobInfo();
-        initPrometheusReporter();
-
-        startTime = System.currentTimeMillis();
+    public final BaseStatistics getStatistics(BaseStatistics baseStatistics) {
+        return null;
     }
 
     @Override
-    public final InputSplit[] createInputSplits(int i) {
+    public final InputSplit[] createInputSplits(int minNumSplits) {
         try {
-            return createInputSplitsInternal(i);
+            return createInputSplitsInternal(minNumSplits);
         } catch (Exception e){
-            LOG.warn(ExceptionUtil.getErrorMessage(e));
-
-            return createErrorInputSplit(e);
+            LOG.warn("error to create InputSplits, e = {}", ExceptionUtil.getErrorMessage(e));
+            return new ErrorInputSplit[]{new ErrorInputSplit(ExceptionUtil.getErrorMessage(e))};
         }
     }
 
-    private ErrorInputSplit[] createErrorInputSplit(Exception e){
-        ErrorInputSplit[] inputSplits = new ErrorInputSplit[1];
-
-        ErrorInputSplit errorInputSplit = new ErrorInputSplit(ExceptionUtil.getErrorMessage(e));
-        inputSplits[0] = errorInputSplit;
-
-        return inputSplits;
+    @Override
+    public final InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
+        return new DefaultInputSplitAssigner(inputSplits);
     }
-
-    /**
-     * 由子类实现，创建数据分片
-     *
-     * @param i 分片数量
-     * @return 分片数组
-     * @throws Exception 可能会出现连接数据源异常
-     */
-    protected abstract InputSplit[] createInputSplitsInternal(int i) throws Exception;
 
     @Override
     public void open(InputSplit inputSplit) throws IOException {
         this.context = (StreamingRuntimeContext) getRuntimeContext();
-        checkIfCreateSplitFailed(inputSplit);
 
-        if(!inited){
+        if (inputSplit instanceof ErrorInputSplit) {
+            throw new RuntimeException(((ErrorInputSplit) inputSplit).getErrorMessage());
+        }
+
+        if(!initialized){
             initAccumulatorCollector();
             initStatisticsAccumulator();
-            openByteRateLimiter();
+            initByteRateLimiter();
             initRestoreInfo();
-            inited = true;
+            initialized = true;
         }
 
         openInternal(inputSplit);
     }
 
-    private void checkIfCreateSplitFailed(InputSplit inputSplit){
-        if (inputSplit instanceof ErrorInputSplit) {
-            throw new RuntimeException(((ErrorInputSplit) inputSplit).getErrorMessage());
+    @Override
+    public void openInputFormat() throws IOException {
+        Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
+        if(vars != null){
+            jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");
+            jobId = vars.get(Metrics.JOB_NAME);
+            indexOfSubTask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
         }
-    }
 
-    private void initPrometheusReporter() {
         if (useCustomPrometheusReporter()) {
             customPrometheusReporter = new CustomPrometheusReporter(getRuntimeContext(), makeTaskFailedWhenReportFailed());
             customPrometheusReporter.open();
         }
-    }
 
-    protected boolean useCustomPrometheusReporter() {
-        return false;
-    }
-
-    protected boolean makeTaskFailedWhenReportFailed(){
-        return false;
-    }
-
-    private void initAccumulatorCollector(){
-        String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubTask);
-        String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubTask);
-
-        accumulatorCollector = new AccumulatorCollector(context,
-                Arrays.asList(Metrics.NUM_READS,
-                        Metrics.READ_BYTES,
-                        Metrics.READ_DURATION,
-                        Metrics.WRITE_BYTES,
-                        Metrics.NUM_WRITES,
-                        lastWriteLocation,
-                        lastWriteNum));
-        accumulatorCollector.start();
-    }
-
-    private void initJobInfo(){
-        Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
-        if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
-            jobName = vars.get(Metrics.JOB_NAME);
-        }
-
-        if(vars!= null && vars.get(Metrics.JOB_ID) != null) {
-            jobId = vars.get(Metrics.JOB_ID);
-        }
-
-        if(vars != null && vars.get(Metrics.SUBTASK_INDEX) != null){
-            indexOfSubTask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
-        }
-    }
-
-    private void openByteRateLimiter(){
-        if (config.getSpeedBytes() > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, config.getSpeedBytes());
-            this.byteRateLimiter.start();
-        }
-    }
-
-    private void initStatisticsAccumulator(){
-        numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
-        bytesReadCounter = getRuntimeContext().getLongCounter(Metrics.READ_BYTES);
-        durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
-
-        inputMetric = new BaseMetric(getRuntimeContext());
-        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter, true);
-        inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter, true);
-        inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
-    }
-
-    private void initRestoreInfo(){
-        if(formatState == null){
-            formatState = new FormatState(indexOfSubTask, null);
-        } else {
-            numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
-            bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
-            durationCounter.add(formatState.getMetricValue(Metrics.READ_DURATION));
-        }
+        startTime = System.currentTimeMillis();
     }
 
     @Override
@@ -242,44 +160,20 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         RowData internalRow = nextRecordInternal(rowData);
         if(internalRow != null){
             updateDuration();
-            if(numReadCounter !=null ){
+            if (numReadCounter != null) {
                 numReadCounter.add(1);
             }
-            if(bytesReadCounter!=null){
-                bytesReadCounter.add(internalRow.toString().getBytes().length);
+            if (bytesReadCounter != null) {
+                bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(internalRow));
             }
         }
 
         return internalRow;
     }
 
-    /**
-     * Get the recover point of current channel
-     * @return DataRecoverPoint
-     */
-    public FormatState getFormatState() {
-        if (formatState != null && numReadCounter != null && inputMetric!= null) {
-            formatState.setMetric(inputMetric.getMetricCounters());
-        }
-        return formatState;
-    }
-
-    /**
-     * 由子类实现，读取一条数据
-     *
-     * @param rowData 需要创建和填充的数据
-     * @return 读取的数据
-     * @throws IOException 读取异常
-     */
-    protected abstract RowData nextRecordInternal(RowData rowData) throws IOException;
-
     @Override
-    public void close() {
-        try{
-            closeInternal();
-        }catch (Exception e){
-            throw new RuntimeException(e);
-        }
+    public void close() throws IOException{
+        closeInternal();
     }
 
     @Override
@@ -316,29 +210,128 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         LOG.info("subtask input close finished");
     }
 
+    /**
+     * 更新任务执行时间指标
+     */
     private void updateDuration(){
-        if(durationCounter !=null ){
+        if (durationCounter != null) {
             durationCounter.resetLocal();
             durationCounter.add(System.currentTimeMillis() - startTime);
         }
     }
 
     /**
+     * 初始化累加器收集器
+     */
+    private void initAccumulatorCollector(){
+        String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubTask);
+        String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubTask);
+
+        accumulatorCollector = new AccumulatorCollector(context,
+                Arrays.asList(Metrics.NUM_READS,
+                        Metrics.READ_BYTES,
+                        Metrics.READ_DURATION,
+                        Metrics.WRITE_BYTES,
+                        Metrics.NUM_WRITES,
+                        lastWriteLocation,
+                        lastWriteNum));
+        accumulatorCollector.start();
+    }
+
+    /**
+     * 初始化速率限制器
+     */
+    private void initByteRateLimiter(){
+        if (config.getSpeedBytes() > 0) {
+            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, config.getSpeedBytes());
+            this.byteRateLimiter.start();
+        }
+    }
+
+    /**
+     * 初始化累加器指标
+     */
+    private void initStatisticsAccumulator(){
+        numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
+        bytesReadCounter = getRuntimeContext().getLongCounter(Metrics.READ_BYTES);
+        durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
+
+        inputMetric = new BaseMetric(getRuntimeContext());
+        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter, true);
+        inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter, true);
+        inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
+    }
+
+    /**
+     * 从checkpoint状态缓存map中恢复上次任务的指标信息
+     */
+    private void initRestoreInfo(){
+        if(formatState == null){
+            formatState = new FormatState(indexOfSubTask, null);
+        } else {
+            numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
+            bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
+            durationCounter.add(formatState.getMetricValue(Metrics.READ_DURATION));
+        }
+    }
+
+    /**
+     * 更新checkpoint状态缓存map
+     * @return
+     */
+    public FormatState getFormatState() {
+        if (formatState != null && numReadCounter != null && inputMetric!= null) {
+            formatState.setMetric(inputMetric.getMetricCounters());
+        }
+        return formatState;
+    }
+
+    /**
+     * 使用自定义的指标输出器把增量指标打到普罗米修斯
+     */
+    protected boolean useCustomPrometheusReporter() {
+        return false;
+    }
+
+    /**
+     * 为了保证增量数据的准确性，指标输出失败时使任务失败
+     */
+    protected boolean makeTaskFailedWhenReportFailed(){
+        return false;
+    }
+
+    /**
+     * 由子类实现，创建数据分片
+     *
+     * @param minNumSplits 分片数量
+     * @return 分片数组
+     * @throws Exception 可能会出现连接数据源异常
+     */
+    protected abstract InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception;
+
+    /**
+     * 由子类实现，打开数据连接
+     *
+     * @param inputSplit 分片
+     * @throws IOException 连接异常
+     */
+    protected abstract void openInternal(InputSplit inputSplit) throws IOException;
+
+    /**
+     * 由子类实现，读取一条数据
+     *
+     * @param rowData 需要创建和填充的数据
+     * @return 读取的数据
+     * @throws IOException 读取异常
+     */
+    protected abstract RowData nextRecordInternal(RowData rowData) throws IOException;
+
+    /**
      * 由子类实现，关闭资源
      *
      * @throws IOException 连接关闭异常
      */
-    protected abstract  void closeInternal() throws IOException;
-
-    @Override
-    public final BaseStatistics getStatistics(BaseStatistics baseStatistics) {
-        return null;
-    }
-
-    @Override
-    public final InputSplitAssigner getInputSplitAssigner(InputSplit[] inputSplits) {
-        return new DefaultInputSplitAssigner(inputSplits);
-    }
+    protected abstract void closeInternal() throws IOException;
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;
