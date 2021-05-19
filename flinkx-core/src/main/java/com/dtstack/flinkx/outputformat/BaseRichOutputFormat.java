@@ -363,7 +363,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                             writeRecordInternal();
                         }
                     } catch (Exception e) {
-                        throw new RuntimeException("Writing records to JDBC failed.", e);
+                        throw new RuntimeException("Writing records failed.", e);
                     }
                 }
             }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);

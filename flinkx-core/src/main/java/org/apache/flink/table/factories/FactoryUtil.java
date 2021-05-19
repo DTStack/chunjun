@@ -215,9 +215,11 @@ public final class FactoryUtil {
         } catch (Throwable t) {
             throw new ValidationException(
                     String.format(
-                            "Unable to create a source for reading table '%s'.\n\n"
+                            "%s \n\n"
+                                    + "Unable to create a source for reading table '%s'.\n\n"
                                     + "Table options are:\n\n"
                                     + "%s",
+                            t.getMessage(),
                             objectIdentifier.asSummaryString(),
                             catalogTable.getOptions().entrySet().stream()
                                     .map(e -> stringifyOption(e.getKey(), e.getValue()))
@@ -331,7 +333,7 @@ public final class FactoryUtil {
                         .collect(Collectors.toList());
 
         if (matchingFactories.isEmpty()) {
-            throw new ValidationException(
+            throw new RuntimeException(
                     String.format(
                             "Could not find any factory for identifier '%s' that implements '%s' in the classpath.\n\n"
                                     + "Available factory identifiers are:\n\n"
