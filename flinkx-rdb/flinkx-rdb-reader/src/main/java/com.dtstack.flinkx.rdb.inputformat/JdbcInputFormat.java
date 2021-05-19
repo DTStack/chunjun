@@ -72,7 +72,7 @@ import java.util.concurrent.TimeUnit;
 public class JdbcInputFormat extends BaseRichInputFormat {
 
     public static final long serialVersionUID = 1L;
-    public static final int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
+    public static int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
     public static int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
     public DatabaseInterface databaseInterface;
 
@@ -828,7 +828,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         } catch (InterruptedException e) {
             LOG.warn("interrupted while waiting for polling, e = {}", ExceptionUtil.getErrorMessage(e));
         }
-
         //查询到数据，更新querySql
         builder = new StringBuilder(128);
         builder.append(querySql)

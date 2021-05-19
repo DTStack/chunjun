@@ -21,6 +21,7 @@
         <module>flinkx-mysql</module>
         <module>flinkx-polardb</module>
         <module>flinkx-oracle</module>
+        <module>flinkx-oracle9</module>
         <module>flinkx-sqlserver</module>
         <module>flinkx-postgresql</module>
         <module>flinkx-db2</module>
@@ -37,7 +38,7 @@
         <module>flinkx-ftp</module>
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
-<!--        <module>flinkx-phoenix</module>-->
+        <!--        <module>flinkx-phoenix</module>-->
         <module>flinkx-phoenix5</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
@@ -69,7 +70,7 @@
         <module>flinkx-metadata-phoenix5</module>
         <module>flinkx-metadata-hbase</module>
         <module>flinkx-metadata-vertica</module>
-<!--        <module>flinkx-metadata-es6</module>-->
+        <!--        <module>flinkx-metadata-es6</module>-->
 
         <module>flinkx-restapi</module>
         <module>flinkx-websocket</module>
@@ -82,6 +83,8 @@
         <hadoop.version>2.7.3</hadoop.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
+        <mockito.version>3.0.0</mockito.version>
+        <powermock.version>2.0.4</powermock.version>
     </properties>
 
     <dependencies>
@@ -149,8 +152,28 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.0.0</version>
+            <version>${mockito.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.mockito</groupId>
+                    <artifactId>mockito-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

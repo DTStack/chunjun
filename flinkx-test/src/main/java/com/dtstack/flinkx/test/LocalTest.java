@@ -73,6 +73,8 @@ import com.dtstack.flinkx.odps.reader.OdpsReader;
 import com.dtstack.flinkx.odps.writer.OdpsWriter;
 import com.dtstack.flinkx.oracle.reader.OracleReader;
 import com.dtstack.flinkx.oracle.writer.OracleWriter;
+import com.dtstack.flinkx.oracle9.reader.Oracle9Reader;
+import com.dtstack.flinkx.oracle9.writer.Oracle9Writer;
 import com.dtstack.flinkx.oraclelogminer.reader.OraclelogminerReader;
 import com.dtstack.flinkx.phoenix5.reader.Phoenix5Reader;
 import com.dtstack.flinkx.phoenix5.writer.Phoenix5Writer;
@@ -210,6 +212,7 @@ public class LocalTest {
             case PluginNameConstrant.STREAM_READER : reader = new StreamReader(config, env); break;
             case PluginNameConstrant.CARBONDATA_READER : reader = new CarbondataReader(config, env); break;
             case PluginNameConstrant.ORACLE_READER : reader = new OracleReader(config, env); break;
+            case PluginNameConstrant.ORACLE9_READER : reader = new Oracle9Reader(config, env); break;
             case PluginNameConstrant.POSTGRESQL_READER : reader = new PostgresqlReader(config, env); break;
             case PluginNameConstrant.SQLSERVER_READER : reader = new SqlserverReader(config, env); break;
             case PluginNameConstrant.MYSQLD_READER : reader = new MysqldReader(config, env); break;
@@ -262,6 +265,7 @@ public class LocalTest {
             case PluginNameConstrant.MYSQL_WRITER : writer = new MysqlWriter(config); break;
             case PluginNameConstrant.SQLSERVER_WRITER : writer = new SqlserverWriter(config); break;
             case PluginNameConstrant.ORACLE_WRITER : writer = new OracleWriter(config); break;
+            case PluginNameConstrant.ORACLE9_WRITER : writer = new Oracle9Writer(config); break;
             case PluginNameConstrant.POSTGRESQL_WRITER : writer = new PostgresqlWriter(config); break;
             case PluginNameConstrant.DB2_WRITER : writer = new Db2Writer(config); break;
             case PluginNameConstrant.GBASE_WRITER : writer = new GbaseWriter(config); break;
