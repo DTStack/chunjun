@@ -243,7 +243,14 @@ public class S3OutputFormat extends BaseFileOutputFormat {
     @Override
     protected void moveAllTemporaryDataFileToDirectory() throws IOException {
         List<PartETag> partETags = myPartETags.stream().map(MyPartETag::genPartETag).collect(Collectors.toList());
-        S3Util.completeMultipartUpload(amazonS3,s3Config.getBucket(), s3Config.getObject(),this.currentUploadId, partETags);
+        if(partETags.size() > 0){
+            // 说明上游有数据
+            S3Util.completeMultipartUpload(amazonS3,s3Config.getBucket(), s3Config.getObject(),this.currentUploadId, partETags);
+        }else{
+            // 说明上游没有数据，取消文件上传，建立空文件
+            S3Util.abortMultipartUpload(amazonS3,s3Config.getBucket(),s3Config.getObject(),this.currentUploadId);
+            S3Util.putStringObject(amazonS3,s3Config.getBucket(),s3Config.getObject(),"");
+        }
     }
 
     @Override

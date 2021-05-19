@@ -175,4 +175,11 @@ public class S3Util {
                 uploadId, partETags);
         s3Client.completeMultipartUpload(compRequest);
     }
+
+    public static void abortMultipartUpload(AmazonS3 s3Client, String bucketName,String object,String uploadId) {
+        s3Client.abortMultipartUpload(new AbortMultipartUploadRequest(
+                bucketName, object, uploadId));
+    }
+
+
 }
