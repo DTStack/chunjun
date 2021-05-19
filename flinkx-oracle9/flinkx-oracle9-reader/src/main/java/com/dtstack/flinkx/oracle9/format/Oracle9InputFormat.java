@@ -45,6 +45,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashSet;
@@ -100,6 +101,8 @@ public class Oracle9InputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         LOG.info("inputSplit = {}", inputSplit);
+        //oracle9 不设置ResultSet.CONCUR_UPDATABLE 在数据库没数据时执行 resultSet.next() 会自动关闭resultSet 导致后面checkSize()出错
+        resultSetConcurrency = ResultSet.CONCUR_UPDATABLE;
         actionBeforeReadData();
 
         initMetric(inputSplit);
