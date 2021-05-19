@@ -94,12 +94,12 @@ public class LogMinerListener implements Runnable {
 
     public void start() {
         logMinerConnection.connect();
-        logMinerConnection.checkPrivileges();
 
         BigDecimal startScn = logMinerConnection.getStartScn(positionManager.getPosition());
         positionManager.updatePosition(startScn);
 
-        logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables());
+        logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConfig.getCat(), logMinerConfig.getListenerTables(), logMinerConnection.oracleInfo.isCdbMode());
+        LOG.info("logMinerSelectSql {} ",logMinerSelectSql);
         executor.execute(this);
         running = true;
     }
