@@ -64,7 +64,6 @@ public class SqlServerCdcListener implements Runnable{
     private Connection conn;
     private List<String> tableList;
     private Set<Integer> cat;
-    private boolean pavingData;
     private Duration pollInterval;
     private SnowflakeIdWorker idWorker;
     private AbstractCDCRowConverter rowConverter;
@@ -78,7 +77,6 @@ public class SqlServerCdcListener implements Runnable{
         for (String type : format.sqlserverCdcConf.getCat().split(ConstantValue.COMMA_SYMBOL)) {
             cat.addAll(SqlServerCdcEnum.transform(type));
         }
-        this.pavingData = format.sqlserverCdcConf.isPavingData();
         this.tablesSlot = SqlServerCdcUtil.getCdcTablesToQuery(conn, format.sqlserverCdcConf.getDatabaseName(), tableList);
         this.pollInterval = Duration.of(format.sqlserverCdcConf.getPollInterval(), ChronoUnit.MILLIS);
         idWorker = new SnowflakeIdWorker(1, 1);

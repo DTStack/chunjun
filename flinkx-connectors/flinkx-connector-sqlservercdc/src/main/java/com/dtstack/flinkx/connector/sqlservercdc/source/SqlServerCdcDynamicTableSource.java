@@ -58,7 +58,7 @@ public class SqlServerCdcDynamicTableSource implements ScanTableSource {
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
         SqlServerCdcInputFormatBuilder builder = new SqlServerCdcInputFormatBuilder();
-        builder.setSqlserverCdcConf(sqlserverCdcConf);
+        builder.setSqlServerCdcConf(sqlserverCdcConf);
         builder.setRowConverter(new SqlServerCdcRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat));
 
         return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);

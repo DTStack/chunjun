@@ -197,7 +197,9 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
             case "NUMERIC":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) BigDecimalColumn::new;
             case "CHAR":
+            case "NCHAR":
             case "VARCHAR":
+            case "NVARCHAR":
             case "TINYTEXT":
             case "TEXT":
             case "MEDIUMTEXT":
@@ -208,9 +210,8 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "DATE":
             case "TIME":
-            case "TIMESTAMP":
             case "DATETIME":
-            case "YEAR":
+            case "DATETIME2":
                 return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
             case "TINYBLOB":
             case "BLOB":

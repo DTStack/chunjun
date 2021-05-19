@@ -20,9 +20,6 @@ package com.dtstack.flinkx.connector.sqlservercdc.table;
 import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
 import com.dtstack.flinkx.connector.sqlservercdc.options.SqlServerCdcOptions;
 import com.dtstack.flinkx.connector.sqlservercdc.source.SqlServerCdcDynamicTableSource;
-import com.dtstack.flinkx.constants.ConstantValue;
-
-import com.dtstack.flinkx.enums.EJobType;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
@@ -41,8 +38,9 @@ import java.util.Set;
  * Date: 2021/04/27
  * Company: www.dtstack.com
  *
- * @author tudou
+ * @author shifang
  */
+@SuppressWarnings("all")
 public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactory {
     public static final String IDENTIFIER = "sqlservercdc-x";
 

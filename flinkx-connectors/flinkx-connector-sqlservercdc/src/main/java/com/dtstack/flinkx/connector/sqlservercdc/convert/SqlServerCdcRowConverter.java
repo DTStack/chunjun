@@ -77,11 +77,11 @@ public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerC
         List<String> columnList = changeTable.getColumnList();
 
         Map<Object, Object> beforeMap = Maps.newHashMapWithExpectedSize(dataPrev.length);
-        for (int columnIndex = 0; columnIndex < sqlServerCdcEventRow.getColumnTypes().size(); columnIndex++) {
+        for (int columnIndex = 0; columnIndex < dataPrev.length; columnIndex++) {
             beforeMap.put(columnList.get(columnIndex), dataPrev[columnIndex] == null ? null : dataPrev[columnIndex].toString());
         }
         Map<Object, Object> afterMap = Maps.newHashMapWithExpectedSize(data.length);
-        for (int columnIndex = 0; columnIndex < sqlServerCdcEventRow.getColumnTypes().size(); columnIndex++) {
+        for (int columnIndex = 0; columnIndex < data.length; columnIndex++) {
             afterMap.put(columnList.get(columnIndex), data[columnIndex] == null ? null : data[columnIndex].toString());
         }
         switch (eventType.toUpperCase(Locale.ENGLISH)){

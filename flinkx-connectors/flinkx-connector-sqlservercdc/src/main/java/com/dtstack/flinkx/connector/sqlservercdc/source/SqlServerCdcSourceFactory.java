@@ -40,6 +40,7 @@ import com.dtstack.flinkx.util.TableUtil;
  * @author: toutian
  * @create: 2019/7/4
  */
+@SuppressWarnings("all")
 public class SqlservercdcSourceFactory extends SourceFactory {
 
     private final SqlServerCdcConf sqlServerCdcConf;
@@ -54,7 +55,7 @@ public class SqlservercdcSourceFactory extends SourceFactory {
     @Override
     public DataStream<RowData> createSource() {
         SqlServerCdcInputFormatBuilder builder = new SqlServerCdcInputFormatBuilder();
-        builder.setSqlserverCdcConf(sqlServerCdcConf);
+        builder.setSqlServerCdcConf(sqlServerCdcConf);
         AbstractCDCRowConverter rowConverter;
         if (useAbstractBaseColumn) {
             rowConverter = new SqlServerCdcColumnConverter(sqlServerCdcConf.isPavingData(), sqlServerCdcConf.isSplitUpdate());

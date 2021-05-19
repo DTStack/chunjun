@@ -23,7 +23,6 @@ import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEnum;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.enums.EJobType;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -60,9 +59,9 @@ public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
     }
 
 
-    public void setSqlserverCdcConf(SqlServerCdcConf sqlserverCdcConf) {
-        super.setConfig(sqlserverCdcConf);
-        this.format.setSqlserverCdcConf(sqlserverCdcConf);
+    public void setSqlServerCdcConf(SqlServerCdcConf sqlServerCdcConf) {
+        super.setConfig(sqlServerCdcConf);
+        this.format.setSqlServerCdcConf(sqlServerCdcConf);
     }
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter) {

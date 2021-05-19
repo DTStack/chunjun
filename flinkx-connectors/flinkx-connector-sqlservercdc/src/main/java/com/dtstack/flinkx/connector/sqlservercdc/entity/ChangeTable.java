@@ -39,10 +39,6 @@ public class ChangeTable {
         this.changeTableId = sourceTableId != null ? new TableId(sourceTableId.getCatalogName(), CDC_SCHEMA, captureInstance + "_CT") : null;
     }
 
-    public ChangeTable(String captureInstance, int changeTableObjectId, Lsn startLsn, Lsn stopLsn, List<String> columnList) {
-        this(null, captureInstance, changeTableObjectId, startLsn, stopLsn, columnList);
-    }
-
     public String getCaptureInstance() {
         return captureInstance;
     }
@@ -65,18 +61,6 @@ public class ChangeTable {
 
     public List<String> getColumnList() {
         return columnList;
-    }
-
-    public void setColumnList(List<String> columnList) {
-        this.columnList = columnList;
-    }
-
-    public TableId getChangeTableId() {
-        return changeTableId;
-    }
-
-    public int getChangeTableObjectId() {
-        return changeTableObjectId;
     }
 
     @Override

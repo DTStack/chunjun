@@ -24,7 +24,7 @@ import org.apache.flink.configuration.ConfigOptions;
  * Date: 2021/05/06
  * Company: www.dtstack.com
  *
- * @author tudou
+ * @author shifang
  */
 public class SqlServerCdcOptions {
 

@@ -153,15 +153,6 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
         return formatState;
     }
 
-    public void processEvent(RowData rowData) {
-        try {
-            queue.put(rowData);
-        } catch (InterruptedException e) {
-            LOG.error("takeEvent interrupted event:{} error:{}", rowData, ExceptionUtil.getErrorMessage(e));
-        }
-    }
-
-
     public Connection getConn() {
         return conn;
     }
@@ -186,12 +177,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
         return queue;
     }
 
-
-    public SqlServerCdcConf getSqlserverCdcConf() {
-        return sqlserverCdcConf;
-    }
-
-    public void setSqlserverCdcConf(SqlServerCdcConf sqlserverCdcConf) {
+    public void setSqlServerCdcConf(SqlServerCdcConf sqlserverCdcConf) {
         this.sqlserverCdcConf = sqlserverCdcConf;
     }
 }
