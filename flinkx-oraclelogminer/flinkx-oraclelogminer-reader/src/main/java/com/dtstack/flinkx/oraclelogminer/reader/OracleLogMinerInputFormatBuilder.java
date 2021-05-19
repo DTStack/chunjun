@@ -228,14 +228,14 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             }
 
             //3、检查Oracle数据库是否开启日志归档
-//            rs = statement.executeQuery(SqlUtil.SQL_QUERY_LOG_MODE);
-//            rs.next();
-//            String logMode = rs.getString(1);
-//            if(!"ARCHIVELOG".equalsIgnoreCase(logMode)){
-//                sb.append("oracle logMode is ")
-//                        .append(logMode)
-//                        .append(", please enable log archiving;\n");
-//            }
+            rs = statement.executeQuery(SqlUtil.SQL_QUERY_LOG_MODE);
+            rs.next();
+            String logMode = rs.getString(1);
+            if(!"ARCHIVELOG".equalsIgnoreCase(logMode)){
+                sb.append("oracle logMode is ")
+                        .append(logMode)
+                        .append(", please enable log archiving;\n");
+            }
 
             //4、检查Oracle数据库是否开启ALL追加日志
             rs = statement.executeQuery(SqlUtil.SQL_QUERY_SUPPLEMENTAL_LOG_DATA_ALL);
