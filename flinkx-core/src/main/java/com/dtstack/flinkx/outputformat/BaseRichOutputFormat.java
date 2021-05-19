@@ -196,10 +196,12 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             writeSingleRecord(rowData);
             size = 1;
         } else {
-            rows.add(rowData);
-            if (rows.size() == batchSize) {
-                writeRecordInternal();
-                size = batchSize;
+            synchronized (rows){
+                rows.add(rowData);
+                if (rows.size() == batchSize) {
+                    writeRecordInternal();
+                    size = batchSize;
+                }
             }
         }
 
@@ -224,8 +226,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 this.scheduler.shutdown();
             }
             // when exist data
-            if (rows.size() != 0) {
-                writeRecordInternal();
+            synchronized (rows){
+                if (rows.size() != 0) {
+                    writeRecordInternal();
+                }
             }
 
             if (durationCounter != null) {
@@ -348,9 +352,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      */
     private void initTimingSubmitTask() {
         if (batchSize > 1 && flushIntervalMills > 0) {
-            this.scheduler = new ScheduledThreadPoolExecutor(1, new DTThreadFactory("jdbc-upsert-output-format"));
+            this.scheduler = new ScheduledThreadPoolExecutor(1, new DTThreadFactory("timer-data-write-thread"));
             this.scheduledFuture = this.scheduler.scheduleWithFixedDelay(() -> {
-                synchronized (BaseRichOutputFormat.this) {
+                synchronized (rows) {
                     if (closed) {
                         return;
                     }
@@ -388,7 +392,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     /**
      * 数据批量写出
      */
-    protected synchronized void writeRecordInternal() {
+    protected void writeRecordInternal() {
         try {
             writeMultipleRecordsInternal();
         } catch (Exception e) {
