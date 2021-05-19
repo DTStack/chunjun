@@ -21,14 +21,21 @@ package com.dtstack.flinkx.classloader;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.util.GsonUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -38,6 +45,8 @@ import java.util.Set;
  * @date 2019/10/21
  */
 public class PluginUtil {
+
+    protected static final Logger LOG = LoggerFactory.getLogger(PluginUtil.class);
 
     private static final String COMMON_DIR = "common";
 
@@ -56,7 +65,7 @@ public class PluginUtil {
     private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
     public static Set<URL> getJarFileDirPath(String pluginName, String pluginRoot, String remotePluginPath) {
-        Set<URL> urlList = new HashSet<>();
+        Set<URL> urlList = new LinkedHashSet<>();
 
         String pluginPath = Objects.isNull(remotePluginPath) ? pluginRoot : remotePluginPath;
 
@@ -82,8 +91,9 @@ public class PluginUtil {
     private static List<String> getJarNames(File pluginPath) {
         List<String> jarNames = new ArrayList<>();
         if (pluginPath.exists() && pluginPath.isDirectory()) {
+            //不仅仅是加载jar包 也有可能加载zip包(插件会在运行时将zip解压 使用classloader加载解压的jar包)
             File[] jarFiles = pluginPath.listFiles((dir, name) ->
-                    name.toLowerCase().startsWith(JAR_PREFIX) && name.toLowerCase().endsWith(".jar"));
+                    name.toLowerCase().startsWith(JAR_PREFIX) && (name.toLowerCase().endsWith(".jar") || name.toLowerCase().endsWith(".zip")));
 
             if (Objects.nonNull(jarFiles) && jarFiles.length > 0) {
                 Arrays.stream(jarFiles).forEach(item -> jarNames.add(item.getName()));
@@ -91,6 +101,20 @@ public class PluginUtil {
         }
         return jarNames;
     }
+
+    public static List<String> getAllJarNames(File pluginPath) {
+        List<String> jarNames = new ArrayList<>();
+        if (pluginPath.exists() && pluginPath.isDirectory()) {
+            File[] jarFiles = pluginPath.listFiles((dir, name) ->
+                    name.toLowerCase().endsWith(".jar"));
+
+            if (Objects.nonNull(jarFiles) && jarFiles.length > 0) {
+                Arrays.stream(jarFiles).forEach(item -> jarNames.add(item.getName()));
+            }
+        }
+        return jarNames;
+    }
+
 
     public static String getPluginClassName(String pluginName) {
         String pluginClassName;
@@ -124,6 +148,7 @@ public class PluginUtil {
         String writerPluginName = config.getJob().getContent().get(0).getWriter().getName();
         Set<URL> writerUrlList = PluginUtil.getJarFileDirPath(writerPluginName, config.getPluginRoot(), config.getRemotePluginPath());
 
+        Set<URL> coreUrlList = getJarFileDirPath("", config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> urlSet = new HashSet<>();
 
         urlSet.addAll(readerUrlList);
@@ -138,6 +163,16 @@ public class PluginUtil {
 
         if (env instanceof MyLocalStreamEnvironment) {
             ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(urlSet));
+            if(CollectionUtils.isNotEmpty(coreUrlList)){
+                try {
+                    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+                    Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+                    add.setAccessible(true);
+                    add.invoke(contextClassLoader, new ArrayList<>(coreUrlList).get(0));
+                }catch (Exception e){
+                    LOG.warn("cannot add core jar into contextClassLoader, coreUrlList = {}", GsonUtil.GSON.toJson(coreUrlList), e);
+                }
+            }
         }
     }
 }

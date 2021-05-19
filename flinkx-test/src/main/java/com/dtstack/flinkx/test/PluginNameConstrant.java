@@ -35,6 +35,7 @@ public class PluginNameConstrant {
     public static final String MYSQL_READER = "mysqlreader";
     public static final String ODPS_READER = "odpsreader";
     public static final String ORACLE_READER = "oraclereader";
+    public static final String ORACLE9_READER = "oracle9reader";
     public static final String POSTGRESQL_READER = "postgresqlreader";
     public static final String PGWAL_READER = "pgwalreader";
     public static final String SQLSERVER_READER = "sqlserverreader";
@@ -82,6 +83,7 @@ public class PluginNameConstrant {
     public static final String MYSQL_WRITER = "mysqlwriter";
     public static final String ODPS_WRITER = "odpswriter";
     public static final String ORACLE_WRITER = "oraclewriter";
+    public static final String ORACLE9_WRITER = "oracle9writer";
     public static final String POSTGRESQL_WRITER = "postgresqlwriter";
     public static final String REDIS_WRITER = "rediswriter";
     public static final String SQLSERVER_WRITER = "sqlserverwriter";
