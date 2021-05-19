@@ -28,9 +28,6 @@ public class OracleRawTypeConverter {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "SMALLINT" :
                 return DataTypes.SMALLINT();
-            case "INT":
-            case "INTEGER":
-                return DataTypes.INT();
             case "FLOAT":
             case "REAL":
             case "BINARY_DOUBLE":
@@ -42,6 +39,8 @@ public class OracleRawTypeConverter {
             case "LONG":
             case "NVARCHAR2":
                 return DataTypes.STRING();
+            case "INT":
+            case "INTEGER":
             case "NUMBER":
             case "DECIMAL" :
                 return DataTypes.DECIMAL(1,0);
