@@ -235,7 +235,7 @@ public class SqlUtil {
                     "FROM\n" +
                     "   v$logmnr_contents a \n"+
                     "where \n"+
-                    "scn <=?  and row_id=?  and xidsqn = ? and table_name = ?  and rollback =? and OPERATION_CODE =? \n"+
+                    "scn <=?  and row_id=?  and xidsqn = ? and table_name = ?  and rollback =? and OPERATION_CODE in (?,?) \n"+
                     "and scn not in (select scn from  v$logmnr_contents where row_id =  ?   and xidsqn = ?  and scn !=?  group by scn HAVING count(scn) >1 and sum(rollback)>0) \n";
 
     //查找加载到logminer的日志文件
