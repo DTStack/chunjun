@@ -92,7 +92,7 @@ public class LogminerColumnConverter extends AbstractCDCRowConverter<LogminerEve
                 || beforeColumnList.size() != converters.length
                 || !beforeColumnList.stream().map(LogminerEventRow.Column::getName).collect(Collectors.toCollection(HashSet::new)).containsAll(metadata.getLeft())) {
             try {
-                Pair<List<String>, List<String>> tableMetaData = JdbcUtil.getTableMetaData(table, connection);
+                Pair<List<String>, List<String>> tableMetaData = JdbcUtil.getTableMetaData(schema, table, connection);
                 converters = tableMetaData.getRight().stream().map(x -> wrapIntoNullableInternalConverter(createInternalConverter(x))).toArray(IDeserializationConverter[]::new);
 
                 metadata = tableMetaData;
