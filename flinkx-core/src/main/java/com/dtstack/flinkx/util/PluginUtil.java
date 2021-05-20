@@ -81,7 +81,7 @@ public class PluginUtil {
         File dirFile = new File(pluginDir);
 
         if (!dirFile.exists() || !dirFile.isDirectory()) {
-            throw new RuntimeException("plugin path:" + pluginDir + "is not exist.");
+            throw new RuntimeException("plugin path:" + pluginDir + " is not exist.");
         }
 
         File[] files = dirFile.listFiles(tmpFile -> tmpFile.isFile() && tmpFile.getName().endsWith(JAR_SUFFIX));

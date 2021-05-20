@@ -41,6 +41,7 @@ import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,94 +66,77 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    protected String formatId;
-
     public static final int LOG_PRINT_INTERNAL = 2000;
-
-    protected FlinkxCommonConf config;
-
-    /** Dirty data manager */
-    protected DirtyDataManager dirtyDataManager;
-
-    /** 批量提交条数 */
-    protected int batchSize = 1;
-
-    /** 存储用于批量写入的数据 */
-    protected transient List<RowData> rows;
-
-    /** 总记录数 */
-    protected LongCounter numWriteCounter;
-
-    /** snapshot 中记录的总记录数 */
-    protected LongCounter snapshotWriteCounter;
-
-    /** 错误记录数 */
-    protected LongCounter errCounter;
-
-    /** Number of null pointer errors */
-    protected LongCounter nullErrCounter;
-
-    /** Number of primary key conflict errors */
-    protected LongCounter duplicateErrCounter;
-
-    /** Number of type conversion errors */
-    protected LongCounter conversionErrCounter;
-
-    /** Number of other errors */
-    protected LongCounter otherErrCounter;
-
-    /** 错误限制 */
-    protected ErrorLimiter errorLimiter;
-
-    protected LongCounter bytesWriteCounter;
-
-    protected LongCounter durationCounter;
-
-    /** 任务名 */
-    protected String jobName = "defaultJobName";
-
-    /** 子任务编号 */
-    protected int taskNumber;
 
     /** 环境上下文 */
     protected StreamingRuntimeContext context;
-
     /** 是否开启了checkpoint */
     protected boolean checkpointEnabled;
 
-    /** 虽然开启cp，是否采用定时器和一定条数让下游数据可见。EXACTLY_ONCE：否。AT_LEAST_ONCE：只要数据条数或者超时即可见 */
-    protected String checkpointMode;
-
+    /** 任务名称 */
+    protected String jobName = "defaultJobName";
+    /** 任务id */
+    protected String jobId;
+    /** 任务索引id */
+    protected int taskNumber;
     /** 子任务数量 */
     protected int numTasks;
+    /** 任务开始时间, openInputFormat()开始计算 */
+    protected long startTime;
 
-    protected String jobId;
-
+    protected String formatId;
+    /** checkpoint状态缓存map */
     protected FormatState formatState;
 
-    protected Object initState;
+    /**
+     * 虽然开启cp，是否采用定时器和一定条数让下游数据可见。
+     * EXACTLY_ONCE：否。
+     * AT_LEAST_ONCE：只要数据条数或者超时即可见
+     */
+    protected String checkpointMode;
+    /** 定时提交数据服务 */
+    protected transient ScheduledExecutorService scheduler;
+    /** 定时提交数据服务返回结果 */
+    protected transient ScheduledFuture scheduledFuture;
+    /** 定时提交数据服务间隔时间，单位毫秒 */
+    protected long flushIntervalMills;
+    /** 任务公共配置 */
+    protected FlinkxCommonConf config;
+    /** BaseRichOutputFormat是否结束 */
+    protected transient volatile boolean closed = false;
+    /** 批量提交条数 */
+    protected int batchSize = 1;
+    /** 最新读取的数据 */
+    protected RowData lastRow = null;
 
+    /** 存储用于批量写入的数据 */
+    protected transient List<RowData> rows;
+    /** 数据类型转换器 */
+    protected AbstractRowConverter rowConverter;
+    /** 是否需要初始化脏数据和累加器，目前只有hive插件该参数设置为false */
+    protected boolean initAccumulatorAndDirty = true;
+    /** 脏数据管理器 */
+    protected DirtyDataManager dirtyDataManager;
+    /** 脏数据限制器 */
+    protected ErrorLimiter errorLimiter;
+    /** 输出指标组 */
     protected transient BaseMetric outputMetric;
 
+    /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
-
-    private long startTime;
-
-    protected boolean initAccumulatorAndDirty = true;
-
-    private transient ScheduledExecutorService scheduler;
-
-    private transient ScheduledFuture scheduledFuture;
-
-    protected long flushIntervalMills;
-
-    private transient volatile boolean closed = false;
-
-    protected AbstractRowConverter rowConverter;
+    protected LongCounter bytesWriteCounter;
+    protected LongCounter durationCounter;
+    protected LongCounter numWriteCounter;
+    protected LongCounter snapshotWriteCounter;
+    protected LongCounter errCounter;
+    protected LongCounter nullErrCounter;
+    protected LongCounter duplicateErrCounter;
+    protected LongCounter conversionErrCounter;
+    protected LongCounter otherErrCounter;
 
     @Override
     public void initializeGlobal(int parallelism) {
-        //任务开始前操作，在configure前调用，overwrite by subclass
+        //任务开始前操作，在configure前调用。
     }
 
     @Override
@@ -162,24 +146,14 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     @Override
     public void finalizeGlobal(int parallelism) {
-        //任务结束后操作，overwrite by subclass
+        //任务结束后操作。
     }
-
-    /**
-     * 子类实现，打开资源
-     *
-     * @param taskNumber 通道索引
-     * @param numTasks 通道数量
-     *
-     * @throws IOException
-     */
-    protected abstract void openInternal(int taskNumber, int numTasks) throws IOException;
 
     /**
      * 打开资源的前后做一些初始化操作
      *
-     * @param taskNumber The number of the parallel instance.
-     * @param numTasks The number of parallel tasks.
+     * @param taskNumber 任务索引id
+     * @param numTasks 子任务数量
      *
      * @throws IOException
      */
@@ -187,98 +161,110 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     public void open(int taskNumber, int numTasks) throws IOException {
         LOG.info("subtask[{}] open start", taskNumber);
         this.taskNumber = taskNumber;
+        this.numTasks = numTasks;
         this.context = (StreamingRuntimeContext) getRuntimeContext();
         this.checkpointEnabled = context.isCheckpointingEnabled();
-        this.rows = new ArrayList<>();
+        this.rows = new ArrayList<>(1024);
 
         ExecutionConfig executionConfig = context.getExecutionConfig();
-        checkpointMode = executionConfig
-                .getGlobalJobParameters()
-                .toMap()
-                .getOrDefault("sql.checkpoint.mode",CheckpointingMode.EXACTLY_ONCE.toString());
-
-        this.numTasks = numTasks;
+        checkpointMode = executionConfig.getGlobalJobParameters().toMap()
+                .getOrDefault("sql.checkpoint.mode", CheckpointingMode.EXACTLY_ONCE.toString());
+        Map<String, String> vars = context.getMetricGroup().getAllVariables();
+        if(vars != null){
+            jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");
+            jobId = vars.get(Metrics.JOB_NAME);
+        }
 
         initStatisticsAccumulator();
-        initJobInfo();
+        initRestoreInfo();
+        initTimingSubmitTask();
 
         if (initAccumulatorAndDirty) {
             initAccumulatorCollector();
-//            openErrorLimiter();
-//            openDirtyDataManager();
+            initErrorLimiter();
+            initDirtyDataManager();
         }
-
-        initRestoreInfo();
-
-//        if(needWaitBeforeOpenInternal()) {
-//            beforeOpenInternal();
-//            waitWhile("#1");
-//        }
 
         openInternal(taskNumber, numTasks);
-//        if(needWaitBeforeWriteRecords()) {
-//            beforeWriteRecords();
-//            waitWhile("#2");
-//        }
-        // 是否开启定时提交数据
-        if (batchSize > 1 && flushIntervalMills > 0) {
-            this.scheduler = new ScheduledThreadPoolExecutor(
-                    1,
-                    new DTThreadFactory("jdbc-upsert-output-format"));
-            this.scheduledFuture = this.scheduler.scheduleWithFixedDelay(() -> {
-                synchronized (BaseRichOutputFormat.this) {
-                    if (closed) {
-                        return;
-                    }
-                    try {
-                        if(!rows.isEmpty()){
-                            writeRecordInternal();
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException("Writing records to JDBC failed.", e);
-                    }
-                }
-            }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
-        }
+        this.startTime = System.currentTimeMillis();
     }
 
-    private void initAccumulatorCollector() {
-        accumulatorCollector = new AccumulatorCollector(context, Metrics.METRIC_LIST);
-        accumulatorCollector.start();
-    }
-
-    protected void initRestoreInfo() {
-        if (formatState == null) {
-            formatState = new FormatState(taskNumber, null);
+    @Override
+    public void writeRecord(RowData rowData) {
+        int size = 0;
+        if (batchSize <= 1) {
+            writeSingleRecord(rowData);
+            size = 1;
         } else {
-            initState = formatState.getState();
+            synchronized (rows){
+                rows.add(rowData);
+                if (rows.size() == batchSize) {
+                    writeRecordInternal();
+                    size = batchSize;
+                }
+            }
+        }
 
-            errCounter.add(formatState.getMetricValue(Metrics.NUM_ERRORS));
-            nullErrCounter.add(formatState.getMetricValue(Metrics.NUM_NULL_ERRORS));
-            duplicateErrCounter.add(formatState.getMetricValue(Metrics.NUM_DUPLICATE_ERRORS));
-            conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
-            otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
-
-            //use snapshot write count
-            numWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
-
-            snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
-            bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
-            durationCounter.add(formatState.getMetricValue(Metrics.WRITE_DURATION));
+        updateDuration();
+        numWriteCounter.add(size);
+        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
+        if(!checkpointEnabled){
+            snapshotWriteCounter.add(size);
         }
     }
 
-    protected void initJobInfo() {
-        Map<String, String> vars = context.getMetricGroup().getAllVariables();
-        if (vars != null && vars.get(Metrics.JOB_NAME) != null) {
-            jobName = vars.get(Metrics.JOB_NAME);
-        }
+    @Override
+    public void close() throws IOException {
+        LOG.info("subtask[{}] close()", taskNumber);
 
-        if (vars != null && vars.get(Metrics.JOB_ID) != null) {
-            jobId = vars.get(Metrics.JOB_ID);
+        try {
+            if (closed) {
+                return;
+            }
+            if (this.scheduledFuture != null) {
+                scheduledFuture.cancel(false);
+                this.scheduler.shutdown();
+            }
+            // when exist data
+            synchronized (rows){
+                if (rows.size() != 0) {
+                    writeRecordInternal();
+                }
+            }
+
+            if (durationCounter != null) {
+                updateDuration();
+            }
+            this.closed = true;
+        } finally {
+            try {
+                closeInternal();
+                if (outputMetric != null) {
+                    outputMetric.waitForReportMetrics();
+                }
+            } finally {
+                if (dirtyDataManager != null) {
+                    dirtyDataManager.close();
+                }
+
+                if (errorLimiter != null) {
+                    errorLimiter.updateErrorInfo();
+                    errorLimiter.checkErrorLimit();
+                }
+                if (accumulatorCollector != null) {
+                    accumulatorCollector.close();
+                }
+            }
+            LOG.info("subtask[{}}] close() finished", taskNumber);
         }
     }
 
+    @Override
+    public void tryCleanupOnError() throws Exception {}
+
+    /**
+     * 初始化累加器指标
+     */
     protected void initStatisticsAccumulator() {
         errCounter = context.getLongCounter(Metrics.NUM_ERRORS);
         nullErrCounter = context.getLongCounter(Metrics.NUM_NULL_ERRORS);
@@ -300,21 +286,34 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         outputMetric.addMetric(Metrics.SNAPSHOT_WRITES, snapshotWriteCounter);
         outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter, true);
         outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
-
-        startTime = System.currentTimeMillis();
     }
 
-    private void openErrorLimiter() {
+    /**
+     * 初始化累加器收集器
+     */
+    private void initAccumulatorCollector() {
+        accumulatorCollector = new AccumulatorCollector(context, Metrics.METRIC_SINK_LIST);
+        accumulatorCollector.start();
+    }
+
+    /**
+     * 初始化脏数据限制器
+     */
+    private void initErrorLimiter() {
         if (config.getErrorRecord() >= 0 || config.getErrorPercentage() > 0) {
             Double errorRatio = null;
             if (config.getErrorPercentage() > 0) {
                 errorRatio = (double) config.getErrorPercentage();
             }
             errorLimiter = new ErrorLimiter(accumulatorCollector, config.getErrorRecord(), errorRatio);
+            LOG.info("init dirtyDataManager: {}", this.errorLimiter);
         }
     }
 
-    private void openDirtyDataManager() {
+    /**
+     * 初始化脏数据管理器
+     */
+    private void initDirtyDataManager() {
         if (StringUtils.isNotBlank(config.getDirtyDataPath())) {
             dirtyDataManager = new DirtyDataManager(
                     config.getDirtyDataPath(),
@@ -322,40 +321,93 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                     config.getFieldNameList().toArray(new String[0]),
                     jobId);
             dirtyDataManager.open();
-            LOG.info("init dirtyDataManager, {}", this.dirtyDataManager);
+            LOG.info("init dirtyDataManager: {}", this.dirtyDataManager);
         }
     }
 
+    /**
+     * 从checkpoint状态缓存map中恢复上次任务的指标信息
+     */
+    private void initRestoreInfo() {
+        if (formatState == null) {
+            formatState = new FormatState(taskNumber, null);
+        } else {
+            errCounter.add(formatState.getMetricValue(Metrics.NUM_ERRORS));
+            nullErrCounter.add(formatState.getMetricValue(Metrics.NUM_NULL_ERRORS));
+            duplicateErrCounter.add(formatState.getMetricValue(Metrics.NUM_DUPLICATE_ERRORS));
+            conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
+            otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
+
+            //use snapshot write count
+            numWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+
+            snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+            bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
+            durationCounter.add(formatState.getMetricValue(Metrics.WRITE_DURATION));
+        }
+    }
+
+    /**
+     * 开启定时提交数据
+     */
+    private void initTimingSubmitTask() {
+        if (batchSize > 1 && flushIntervalMills > 0) {
+            this.scheduler = new ScheduledThreadPoolExecutor(1, new DTThreadFactory("timer-data-write-thread"));
+            this.scheduledFuture = this.scheduler.scheduleWithFixedDelay(() -> {
+                synchronized (rows) {
+                    if (closed) {
+                        return;
+                    }
+                    try {
+                        if(!rows.isEmpty()){
+                            writeRecordInternal();
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException("Writing records failed.", e);
+                    }
+                }
+            }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    /**
+     * 数据单条写出
+     * @param rowData 单条数据
+     */
     protected void writeSingleRecord(RowData rowData) {
         if (errorLimiter != null) {
-            errorLimiter.acquire();
+            errorLimiter.checkErrorLimit();
         }
 
         try {
             writeSingleRecordInternal(rowData);
-
-            numWriteCounter.add(1);
-//            snapshotWriteCounter.add(1);
         } catch (WriteRecordException e) {
-            saveErrorData(rowData, e);
-            updateStatisticsOfDirtyData(rowData, e);
-            // 总记录数加1
-            numWriteCounter.add(1);
-            snapshotWriteCounter.add(1);
-
-            if (dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
-                LOG.error(e.getMessage());
-            }
+            updateDirtyDataMsg(rowData, e);
             if (LOG.isTraceEnabled()) {
-                LOG.trace(
-                        "write error rowData, rowData = {}, e = {}",
-                        rowData.toString(),
-                        ExceptionUtil.getErrorMessage(e));
+                LOG.trace("write error rowData, rowData = {}, e = {}", rowData.toString(), ExceptionUtil.getErrorMessage(e));
             }
         }
     }
 
-    private void saveErrorData(RowData rowData, WriteRecordException e) {
+    /**
+     * 数据批量写出
+     */
+    protected void writeRecordInternal() {
+        try {
+            writeMultipleRecordsInternal();
+        } catch (Exception e) {
+            //批量写异常转为单条写
+            rows.forEach(this::writeSingleRecord);
+        }
+        rows.clear();
+    }
+
+    /**
+     * 更新脏数据信息
+     * @param rowData 当前读取的数据
+     * @param e 异常
+     */
+    private void updateDirtyDataMsg(RowData rowData, WriteRecordException e) {
         errCounter.add(1);
 
         String errMsg = ExceptionUtil.getErrorMessage(e);
@@ -364,30 +416,63 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             errMsg += recordConvertDetailErrorMessage(pos, e.getRowData());
         }
 
+        //每2000条打印一次脏数据
+        if (errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
+            LOG.error(errMsg);
+        }
+
         if (errorLimiter != null) {
             errorLimiter.setErrMsg(errMsg);
             errorLimiter.setErrorData(rowData);
         }
-    }
 
-    private void updateStatisticsOfDirtyData(RowData rowData, WriteRecordException e) {
         if (dirtyDataManager != null) {
             String errorType = dirtyDataManager.writeData(rowData, e);
-            if (WriteErrorTypes.ERR_NULL_POINTER.equals(errorType)) {
-                nullErrCounter.add(1);
-            } else if (WriteErrorTypes.ERR_FORMAT_TRANSFORM.equals(errorType)) {
-                conversionErrCounter.add(1);
-            } else if (WriteErrorTypes.ERR_PRIMARY_CONFLICT.equals(errorType)) {
-                duplicateErrCounter.add(1);
-            } else {
-                otherErrCounter.add(1);
+            switch (errorType){
+                case WriteErrorTypes.ERR_NULL_POINTER:
+                    nullErrCounter.add(1);
+                    break;
+                case WriteErrorTypes.ERR_FORMAT_TRANSFORM:
+                    conversionErrCounter.add(1);
+                    break;
+                case WriteErrorTypes.ERR_PRIMARY_CONFLICT:
+                    duplicateErrCounter.add(1);
+                    break;
+                default:
+                    otherErrCounter.add(1);
             }
         }
     }
 
+    /**
+     * 记录脏数据异常信息
+     * @param pos 异常字段索引
+     * @param rowData 当前读取的数据
+     * @return 脏数据异常信息记录
+     */
     protected String recordConvertDetailErrorMessage(int pos, RowData rowData) {
-        return getClass().getName() + " WriteRecord error: when converting field[" + pos
-                + "] in Row(" + rowData + ")";
+        return String.format("%s WriteRecord error: when converting field[%s] in Row(%s)", getClass().getName(), pos, rowData);
+    }
+
+    /**
+     * 更新任务执行时间指标
+     */
+    private void updateDuration() {
+        if (durationCounter != null) {
+            durationCounter.resetLocal();
+            durationCounter.add(System.currentTimeMillis() - startTime);
+        }
+    }
+
+    /**
+     * 更新checkpoint状态缓存map
+     * @return
+     */
+    public FormatState getFormatState() throws Exception {
+        if (formatState != null) {
+            formatState.setMetric(outputMetric.getMetricCounters());
+        }
+        return formatState;
     }
 
     /**
@@ -399,13 +484,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      */
     protected abstract void writeSingleRecordInternal(RowData rowData) throws WriteRecordException;
 
-    protected void writeMultipleRecords() throws Exception {
-        writeMultipleRecordsInternal();
-        if (numWriteCounter != null) {
-            numWriteCounter.add(rows.size());
-        }
-    }
-
     /**
      * 写出多条数据
      *
@@ -413,122 +491,22 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      */
     protected abstract void writeMultipleRecordsInternal() throws Exception;
 
-    protected synchronized void writeRecordInternal() {
-        try {
-            writeMultipleRecords();
-        } catch (Exception e) {
-            rows.forEach(this::writeSingleRecord);
-        }
-        rows.clear();
-    }
-
-    @Override
-    public void writeRecord(RowData rowData) {
-//        Row internalRow = setChannelInfo(row);
-        if (batchSize <= 1) {
-            writeSingleRecord(rowData);
-        } else {
-            rows.add(rowData);
-            if (rows.size() == batchSize) {
-                writeRecordInternal();
-            }
-        }
-
-        updateDuration();
-        if (bytesWriteCounter != null) {
-            bytesWriteCounter.add(rowData.toString().getBytes().length);
-        }
-    }
-
-    @Override
-    public void close() throws IOException {
-        LOG.info("subtask[{}}] close()", taskNumber);
-
-        try {
-            // close scheduler
-            if (closed) {
-                return;
-            }
-            closed = true;
-            if (this.scheduledFuture != null) {
-                scheduledFuture.cancel(false);
-                this.scheduler.shutdown();
-            }
-            // when exist data
-            if (rows.size() != 0) {
-                writeRecordInternal();
-            }
-
-            if (durationCounter != null) {
-                updateDuration();
-            }
-
-//            if(needWaitBeforeCloseInternal()) {
-//                beforeCloseInternal();
-//                waitWhile("#3");
-//            }
-        } finally {
-            try {
-                closeInternal();
-//                if(needWaitAfterCloseInternal()) {
-//                    afterCloseInternal();
-//                    waitWhile("#4");
-//                }
-
-                if (outputMetric != null) {
-                    outputMetric.waitForReportMetrics();
-                }
-            } finally {
-                if (dirtyDataManager != null) {
-                    dirtyDataManager.close();
-                }
-
-                checkErrorLimit();
-                if (accumulatorCollector != null) {
-                    accumulatorCollector.close();
-                }
-            }
-            LOG.info("subtask[{}}] close() finished", taskNumber);
-        }
-    }
-
-    private void checkErrorLimit() {
-        if (errorLimiter != null) {
-            try {
-                errorLimiter.updateErrorInfo();
-            } catch (Exception e) {
-                LOG.warn("Update error info error when task closing: ", e);
-            }
-
-            errorLimiter.acquire();
-        }
-    }
-
-    private void updateDuration() {
-        if (durationCounter != null) {
-            durationCounter.resetLocal();
-            durationCounter.add(System.currentTimeMillis() - startTime);
-        }
-    }
-
-    public void closeInternal() throws IOException {
-    }
-
-    @Override
-    public void tryCleanupOnError() throws Exception {
-    }
+    /**
+     * 子类实现，打开资源
+     *
+     * @param taskNumber 通道索引
+     * @param numTasks 通道数量
+     *
+     * @throws IOException
+     */
+    protected abstract void openInternal(int taskNumber, int numTasks) throws IOException;
 
     /**
-     * Get the recover point of current channel
+     * 子类实现，关闭资源
      *
-     * @return DataRecoverPoint
+     * @throws IOException
      */
-    public FormatState getFormatState() throws Exception {
-        if (formatState != null) {
-            formatState.setMetric(outputMetric.getMetricCounters());
-        }
-        return formatState;
-    }
+    protected abstract void closeInternal() throws IOException;
 
     /**
      * checkpoint成功时操作

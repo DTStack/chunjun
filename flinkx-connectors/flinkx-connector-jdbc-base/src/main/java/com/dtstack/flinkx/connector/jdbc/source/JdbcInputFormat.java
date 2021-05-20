@@ -37,17 +37,10 @@ import com.dtstack.flinkx.metrics.BigIntegerAccmulator;
 import com.dtstack.flinkx.metrics.StringAccumulator;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.GsonUtil;
-import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.hadoop.io.IOUtils;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -59,9 +52,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -102,9 +93,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     //轮询增量标识字段类型
     protected ColumnType type;
 
-    //The hadoop config for metric
-    protected Map<String, Object> hadoopConfig;
-
     @Override
     public void openInternal(InputSplit inputSplit) {
         LOG.info("inputSplit = {}", inputSplit);
@@ -139,24 +127,23 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public boolean reachedEnd() {
         if (hasNext) {
             return false;
         } else {
             if (jdbcConf.isPolling()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(jdbcConf.getPollingInterval());
-                    //sqlserver、DB2驱动包不支持isValid()，这里先注释掉，后续更换驱动包
                     //间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
-//                    if(!dbConn.isValid(3)){
-//                        dbConn = JdbcUtil.getConnection(dbUrl, username, password);
-//                        //重新连接后还是不可用则认为数据库异常，任务失败
-//                        if(!dbConn.isValid(3)){
-//                            String message = String.format("cannot connect to %s, username = %s, please check %s is available.", dbUrl, username, databaseInterface.getDatabaseType());
-//                            LOG.error(message);
-//                            throw new RuntimeException(message);
-//                        }
-//                    }
+                    if(!dbConn.isValid(3)){
+                        dbConn = getConnection();
+                        //重新连接后还是不可用则认为数据库异常，任务失败
+                        if(!dbConn.isValid(3)){
+                            String message = String.format("cannot connect to %s, username = %s, please check %s is available.", jdbcConf.getJdbcUrl(), jdbcConf.getJdbcUrl(), jdbcDialect.dialectName());
+                            LOG.error(message);
+                            throw new RuntimeException(message);
+                        }
+                    }
                     if (!dbConn.getAutoCommit()) {
                         dbConn.setAutoCommit(true);
                     }
@@ -165,17 +152,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     queryForPolling(endLocationAccumulator.getLocalValue().toString());
                     return false;
                 } catch (InterruptedException e) {
-                    LOG.warn(
-                            "interrupted while waiting for polling, e = {}",
-                            ExceptionUtil.getErrorMessage(e));
+                    LOG.warn("interrupted while waiting for polling, e = {}", ExceptionUtil.getErrorMessage(e));
                 } catch (SQLException e) {
                     JdbcUtil.closeDbResources(resultSet, ps, null, false);
-                    String message = String.format(
-                            "error to execute sql = %s, startLocation = %s, e = %s",
+                    String message = String.format("error to execute sql = %s, startLocation = %s, e = %s",
                             jdbcConf.getQuerySql(),
                             endLocationAccumulator.getLocalValue(),
-                            ExceptionUtil
-                                    .getErrorMessage(e));
+                            ExceptionUtil.getErrorMessage(e));
                     throw new RuntimeException(message, e);
                 }
             }
@@ -194,17 +177,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             RowData rawRowData = rowConverter.toInternal(resultSet);
             RowData finalRowData = loadConstantData(rawRowData);
 
-            boolean isUpdateLocation =
-                    jdbcConf.isPolling() || (jdbcConf.isIncrement() && !jdbcConf.isUseMaxFunc());
+            boolean isUpdateLocation = jdbcConf.isPolling() || (jdbcConf.isIncrement() && !jdbcConf.isUseMaxFunc());
             if (isUpdateLocation) {
                 String location = null;
                 Object obj = resultSet.getObject(jdbcConf.getIncreColumn());
                 if (obj != null) {
-                    boolean isTimestampType =
-                            obj.getClass()
-                                    .getSimpleName()
-                                    .toUpperCase()
-                                    .contains(ColumnType.TIMESTAMP.name());
+                    boolean isTimestampType = obj.getClass().getSimpleName().toUpperCase().contains(ColumnType.TIMESTAMP.name());
                     if (obj instanceof java.util.Date || isTimestampType) {
                         obj = resultSet.getTimestamp(jdbcConf.getIncreColumn()).getTime();
                     }
@@ -244,10 +222,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public void closeInternal() throws IOException {
-        if (jdbcConf.isIncrement() && hadoopConfig != null) {
-            uploadMetricData();
-        }
+    public void closeInternal() {
         JdbcUtil.closeDbResources(resultSet, statement, dbConn, true);
     }
 
@@ -281,9 +256,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             getMaxValue(inputSplit);
             //endLocation设置为数据库中查询的最大值
             String endLocation = ((JdbcInputSplit) inputSplit).getEndLocation();
-            endLocationAccumulator.add(new BigInteger(StringUtil.stringToTimestampStr(
-                    endLocation,
-                    type)));
+            endLocationAccumulator.add(new BigInteger(StringUtil.stringToTimestampStr(endLocation, type)));
         } else {
             //增量任务，且useMaxFunc设置为false，如果startLocation不为空，则将endLocation初始值设置为startLocation的值，防止数据库无增量数据时下次获取到的startLocation为空
             if (StringUtils.isNotEmpty(startLocation)) {
@@ -312,8 +285,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             maxValueAccumulator.add(maxValue);
             getRuntimeContext().addAccumulator(Metrics.MAX_VALUE, maxValueAccumulator);
         } else {
-            //todo 需要等一段时间，不过增量任务并行度一般不会大于1，这里逻辑需要后续去梳理
-            maxValue = String.valueOf(accumulatorCollector.getAccumulatorValue(Metrics.MAX_VALUE));
+            maxValue = String.valueOf(accumulatorCollector.getAccumulatorValue(Metrics.MAX_VALUE, true));
         }
 
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
@@ -358,6 +330,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
             conn = getConnection();
             st = conn.createStatement(resultSetType, resultSetConcurrency);
+            st.setQueryTimeout(jdbcConf.getQueryTimeOut());
             rs = st.executeQuery(queryMaxValueSql);
             if (rs.next()) {
                 switch (type) {
@@ -368,15 +341,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                         maxValue = String.valueOf(rs.getDate("max_value").getTime());
                         break;
                     default:
-                        maxValue = StringUtil.stringToTimestampStr(String.valueOf(rs.getObject(
-                                "max_value")), type);
+                        maxValue = StringUtil.stringToTimestampStr(String.valueOf(rs.getObject("max_value")), type);
                 }
             }
 
-            LOG.info(String.format(
-                    "Takes [%s] milliseconds to get the maximum value [%s]",
-                    System.currentTimeMillis() - startTime,
-                    maxValue));
+            LOG.info(String.format("Takes [%s] milliseconds to get the maximum value [%s]", System.currentTimeMillis() - startTime, maxValue));
 
             return maxValue;
         } catch (Throwable e) {
@@ -405,9 +374,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             return true;
         }
 
-        return !StringUtils.equals(
-                jdbcInputSplit.getStartLocation(),
-                jdbcInputSplit.getEndLocation());
+        return !StringUtils.equals(jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation());
     }
 
     /**
@@ -436,40 +403,22 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     if(endLocationAccumulator != null){
                         endLocationAccumulator.add(new BigInteger(startLocation));
                     }
-                    LOG.info(
-                            "restore from checkpoint, update startLocation, before = {}, after = {}",
-                            startLocation,
-                            startLocation);
+                    LOG.info("restore from checkpoint, update startLocation, before = {}, after = {}", startLocation, startLocation);
                     jdbcInputSplit.setStartLocation(startLocation);
                     StringBuilder sql = new StringBuilder(64);
-                    sql.append(buildFilterSql(
-                            ">",
-                            startLocation,
-                            jdbcConf.getRestoreColumn(),
-                            jdbcConf.getRestoreColumnType(),
-                            jdbcConf.isPolling()));
+                    sql.append(buildFilterSql(">", startLocation, jdbcConf.getRestoreColumn(), jdbcConf.getRestoreColumnType(), jdbcConf.isPolling()));
                     whereList.add(sql.toString());
                 }
             } else if (jdbcConf.isIncrement()) {
                 if (StringUtils.isNotBlank(startLocation)) {
                     StringBuilder sql = new StringBuilder(64);
                     String operator = jdbcConf.isUseMaxFunc() ? " >= " : " > ";
-                    sql.append(buildFilterSql(
-                            operator,
-                            startLocation,
-                            jdbcConf.getIncreColumn(),
-                            jdbcConf.getIncreColumnType(),
-                            jdbcConf.isPolling()));
+                    sql.append(buildFilterSql(operator, startLocation, jdbcConf.getIncreColumn(), jdbcConf.getIncreColumnType(), jdbcConf.isPolling()));
                     whereList.add(sql.toString());
                 }
                 if (StringUtils.isNotBlank(jdbcInputSplit.getEndLocation())) {
                     StringBuilder sql = new StringBuilder(64);
-                    sql.append(buildFilterSql(
-                            "<",
-                            jdbcInputSplit.getEndLocation(),
-                            jdbcConf.getIncreColumn(),
-                            jdbcConf.getIncreColumnType(),
-                            false));
+                    sql.append(buildFilterSql("<", jdbcInputSplit.getEndLocation(), jdbcConf.getIncreColumn(), jdbcConf.getIncreColumnType(), false));
                     whereList.add(sql.toString());
                 }
             }
@@ -488,44 +437,34 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     .append(" ASC");
         }
 
-        String querySql = jdbcDialect.getSelectFromStatement(
-                jdbcConf.getSchema(),
-                jdbcConf.getTable(),
-                jdbcConf.getCustomSql(),
-                fieldNames,
-                sql.toString());
+        String querySql = jdbcDialect.getSelectFromStatement(jdbcConf.getSchema(), jdbcConf.getTable(), jdbcConf.getCustomSql(), fieldNames, sql.toString());
 
         LOG.warn("Executing sql is: '{}'", querySql);
         return querySql;
     }
 
     /**
-     * buildFilterSql
+     * 构造过滤条件SQL
      *
-     * @param operator
-     * @param location
-     * @param columnName
-     * @param columnType
-     * @param isPolling
+     * @param operator 比较符
+     * @param location 比较的值
+     * @param columnName 字段名称
+     * @param columnType 字段类型
+     * @param isPolling 是否是轮询任务
      *
      * @return
      */
-    public String buildFilterSql(
-            String operator,
-            String location,
-            String columnName,
-            String columnType,
-            boolean isPolling) {
+    public String buildFilterSql(String operator, String location, String columnName, String columnType, boolean isPolling) {
         StringBuilder sql = new StringBuilder(64);
         if (StringUtils.isNotEmpty(jdbcConf.getCustomSql())) {
-            sql.append(JdbcUtil.TEMPORARY_TABLE_NAME)
-                    .append(".");
+            sql.append(JdbcUtil.TEMPORARY_TABLE_NAME).append(".");
         }
         sql.append(jdbcDialect.quoteIdentifier(columnName))
                 .append(" ")
                 .append(operator)
                 .append(" ");
         if (isPolling) {
+            //轮询任务使用占位符
             sql.append("?");
         } else {
             sql.append(buildLocation(columnType, location));
@@ -543,7 +482,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     public String buildLocation(String columnType, String location) {
         if (ColumnType.isTimeType(columnType)) {
-            return getTimeStr(Long.parseLong(location), columnType);
+            return getTimeStr(Long.parseLong(location));
         } else if (ColumnType.isNumberType(columnType)) {
             return location;
         } else {
@@ -561,11 +500,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      *
      * @return
      */
-    protected String buildStartLocationSql(
-            String incrementColType,
-            String incrementCol,
-            String startLocation,
-            boolean useMaxFunc) {
+    protected String buildStartLocationSql(String incrementColType, String incrementCol, String startLocation, boolean useMaxFunc) {
         if (org.apache.commons.lang.StringUtils.isEmpty(startLocation)
                 || JdbcUtil.NULL_STRING.equalsIgnoreCase(startLocation)) {
             return null;
@@ -591,16 +526,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      *
      * @return
      */
-    protected String getLocationSql(
-            String incrementColType,
-            String incrementCol,
-            String location,
-            String operator) {
+    protected String getLocationSql(String incrementColType, String incrementCol, String location, String operator) {
         String endTimeStr;
         String endLocationSql;
 
         if (ColumnType.isTimeType(incrementColType)) {
-            endTimeStr = getTimeStr(Long.parseLong(location), incrementColType);
+            endTimeStr = getTimeStr(Long.parseLong(location));
             endLocationSql = incrementCol + operator + endTimeStr;
         } else if (ColumnType.isNumberType(incrementColType)) {
             endLocationSql = incrementCol + operator + location;
@@ -616,11 +547,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * 构建时间边界字符串
      *
      * @param location 边界位置(起始/结束)
-     * @param incrementColType 增量字段类型
-     *
      * @return
      */
-    protected String getTimeStr(Long location, String incrementColType) {
+    protected String getTimeStr(Long location) {
         String timeStr;
         Timestamp ts = new Timestamp(JdbcUtil.getMillis(location));
         ts.setNanos(JdbcUtil.getNanos(location));
@@ -629,52 +558,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         timeStr = String.format("'%s'", timeStr);
 
         return timeStr;
-    }
-
-    /**
-     * 上传累加器数据
-     * <p>
-     * 注：hadoopConfig始终为空，这个方法实际上是没有调到的，也没啥用
-     *
-     * @throws IOException
-     */
-    private void uploadMetricData() throws IOException {
-        FSDataOutputStream out = null;
-        try {
-            org.apache.hadoop.conf.Configuration conf = FileSystemUtil.getConfiguration(
-                    hadoopConfig,
-                    null);
-
-            Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
-            String jobId = vars.get("<job_id>");
-            String taskId = vars.get("<task_id>");
-            String subtaskIndex = vars.get("<subtask_index>");
-            LOG.info("jobId:{} taskId:{} subtaskIndex:{}", jobId, taskId, subtaskIndex);
-
-            Path remotePath = new Path(
-                    conf.get("fs.defaultFS"),
-                    "/tmp/logs/admin/logs/" + jobId + "/" + taskId + "_" + subtaskIndex);
-            FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, null);
-            out = FileSystem.create(
-                    fs,
-                    remotePath,
-                    new FsPermission(FsPermission.createImmutable((short) 0777)));
-
-            Map<String, Object> metrics = new HashMap<>(3);
-            metrics.put(Metrics.TABLE_COL, jdbcConf.getTable() + "-" + jdbcConf.getIncreColumn());
-            if (startLocationAccumulator != null) {
-                metrics.put(Metrics.START_LOCATION, startLocationAccumulator.getLocalValue());
-            }
-            if (endLocationAccumulator != null) {
-                metrics.put(Metrics.END_LOCATION, endLocationAccumulator.getLocalValue());
-            }
-            out.writeUTF(MapUtil.writeValueAsString(metrics));
-        } catch (Exception e) {
-            LOG.error("hadoop conf:{}", hadoopConfig);
-            throw new IOException("Upload metric to HDFS error", e);
-        } finally {
-            IOUtils.closeStream(out);
-        }
     }
 
     /**
@@ -689,13 +572,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         boolean isNumber = StringUtils.isNumeric(startLocation);
         switch (type) {
             case TIMESTAMP:
-                Timestamp ts = isNumber ? new Timestamp(Long.parseLong(startLocation)) : Timestamp.valueOf(
-                        startLocation);
+                Timestamp ts = isNumber ? new Timestamp(Long.parseLong(startLocation)) : Timestamp.valueOf(startLocation);
                 ps.setTimestamp(1, ts);
                 break;
             case DATE:
-                Date date = isNumber ? new Date(Long.parseLong(startLocation)) : Date.valueOf(
-                        startLocation);
+                Date date = isNumber ? new Date(Long.parseLong(startLocation)) : Date.valueOf(startLocation);
                 ps.setDate(1, date);
                 break;
             default:
@@ -726,10 +607,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 //从数据库中获取起始位置
                 queryStartLocation();
             } else {
-                ps = dbConn.prepareStatement(
-                        jdbcConf.getQuerySql(),
-                        resultSetType,
-                        resultSetConcurrency);
+                ps = dbConn.prepareStatement(jdbcConf.getQuerySql(), resultSetType, resultSetConcurrency);
                 ps.setFetchSize(jdbcConf.getFetchSize());
                 ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
                 queryForPolling(startLocation);
@@ -751,7 +629,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         try {
             List<FieldConf> fieldList = jdbcConf.getColumn();
 
-            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getTable(), dbConn);
+            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
             List<String> fullColumn = pair.getLeft();
             List<String> fullColumnType = pair.getRight();
 
@@ -771,8 +649,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 }
             }
         } catch (SQLException e) {
-            String message = String.format(
-                    "error to analyzeSchema, resultSet = %s, finalFieldTypes = %s, e = %s",
+            String message = String.format("error to analyzeSchema, resultSet = %s, finalFieldTypes = %s, e = %s",
                     resultSet,
                     GsonUtil.GSON.toJson(columnType),
                     ExceptionUtil.getErrorMessage(e));
@@ -813,18 +690,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 resultSet = ps.executeQuery();
                 hasNext = resultSet.next();
                 //每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
-                if ((System.currentTimeMillis() - startTime) % 300000
-                        <= jdbcConf.getPollingInterval()) {
-                    LOG.info(
-                            "no record matched condition in database, execute query sql = {}, startLocation = {}",
-                            jdbcConf.getQuerySql(),
-                            endLocationAccumulator.getLocalValue());
+                if ((System.currentTimeMillis() - startTime) % 300000 <= jdbcConf.getPollingInterval()) {
+                    LOG.info("no record matched condition in database, execute query sql = {}, startLocation = {}", jdbcConf.getQuerySql(), endLocationAccumulator.getLocalValue());
                 }
             }
         } catch (InterruptedException e) {
-            LOG.warn(
-                    "interrupted while waiting for polling, e = {}",
-                    ExceptionUtil.getErrorMessage(e));
+            LOG.warn("interrupted while waiting for polling, e = {}", ExceptionUtil.getErrorMessage(e));
         }
 
         //查询到数据，更新querySql
@@ -877,8 +748,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected void checkSize(int columnCount, List<FieldConf> metaColumns) {
         if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())
                 && columnCount != metaColumns.size()) {
-            String message = String.format(
-                    "error config: column = %s, column size = %s, but columns size for query result is %s. And the query sql is %s.",
+            String message = String.format("error config: column = %s, column size = %s, but columns size for query result is %s. And the query sql is %s.",
                     GsonUtil.GSON.toJson(metaColumns),
                     metaColumns.size(),
                     columnCount,
@@ -896,10 +766,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     private void updateColumnCount() throws SQLException {
         if (columnCount == 0) {
             columnCount = resultSet.getMetaData().getColumnCount();
-            boolean splitWithRowCol =
-                    numPartitions > 1 && StringUtils.isNotEmpty(jdbcConf.getSplitPk()) && jdbcConf
-                            .getSplitPk()
-                            .contains("(");
+            boolean splitWithRowCol = numPartitions > 1
+                    && StringUtils.isNotEmpty(jdbcConf.getSplitPk())
+                    && jdbcConf.getSplitPk().contains("(");
             if (splitWithRowCol) {
                 columnCount = columnCount - 1;
             }
@@ -917,17 +786,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             return rawRowData;
         }
         int len = columnType.size();
-        List<FieldConf> fieldConfs = jdbcConf.getColumn();
+        List<FieldConf> fieldConfList = jdbcConf.getColumn();
         ColumnRowData finalRowData = new ColumnRowData(len);
         for (int i = 0; i < len; i++) {
-            String val = fieldConfs.get(i).getValue();
+            String val = fieldConfList.get(i).getValue();
             // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
             if (val != null) {
-                String value =
-                        StringUtil.string2col(
-                                val,
-                                fieldConfs.get(i).getType(),
-                                fieldConfs.get(i).getTimeFormat()).toString();
+                String value = StringUtil.string2col(val, fieldConfList.get(i).getType(), fieldConfList.get(i).getTimeFormat()).toString();
                 finalRowData.addField(new StringColumn(value));
             } else {
                 finalRowData.addField(((ColumnRowData) rawRowData).getField(i));

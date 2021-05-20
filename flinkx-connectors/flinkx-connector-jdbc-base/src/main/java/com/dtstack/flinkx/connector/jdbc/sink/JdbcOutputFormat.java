@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -27,6 +25,7 @@ import org.apache.flink.types.Row;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
@@ -77,7 +76,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     /** 用户脚本中填写的字段类型集合 */
     protected List<String> columnType;
 
-    protected RowData lastRow = null;
     protected long rowsOfCurrentTransaction;
 
 
@@ -99,7 +97,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
 
-            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(getTableName(), dbConn);
+            Pair<List<String>, List<String>> pair =
+                    JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
             List<String> fullColumn = pair.getLeft();
             List<String> fullColumnType = pair.getRight();
 
@@ -124,7 +123,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
                 List<String> updateKey = jdbcConf.getUpdateKey();
                 if (CollectionUtils.isEmpty(updateKey)) {
-                    List<String> tableIndex = JdbcUtil.getTableIndex(getTableName(), dbConn);
+                    List<String> tableIndex =
+                            JdbcUtil.getTableIndex(
+                                    jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
                     jdbcConf.setUpdateKey(tableIndex);
                     LOG.info("updateKey = {}", JsonUtil.toPrintJson(tableIndex));
                 }
@@ -261,11 +262,29 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected String prepareTemplates() {
         String singleSql;
         if (EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
-            singleSql = jdbcDialect.getInsertIntoStatement(getTableName(), column.toArray(new String[0]));
+            singleSql =
+                    jdbcDialect.getInsertIntoStatement(
+                            jdbcConf.getSchema(),
+                            jdbcConf.getTable(),
+                            column.toArray(new String[0]));
         } else if (EWriteMode.REPLACE.name().equalsIgnoreCase(jdbcConf.getMode())) {
-            singleSql = jdbcDialect.getReplaceStatement(getTableName(), column.toArray(new String[0])).get();
+            singleSql =
+                    jdbcDialect
+                            .getReplaceStatement(
+                                    jdbcConf.getSchema(),
+                                    jdbcConf.getTable(),
+                                    column.toArray(new String[0]))
+                            .get();
         } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())) {
-            singleSql = jdbcDialect.getUpsertStatement(getTableName(), column.toArray(new String[0]), jdbcConf.getUpdateKey().toArray(new String[0]), jdbcConf.isAllReplace()).get();
+            singleSql =
+                    jdbcDialect
+                            .getUpsertStatement(
+                                    jdbcConf.getSchema(),
+                                    jdbcConf.getTable(),
+                                    column.toArray(new String[0]),
+                                    jdbcConf.getUpdateKey().toArray(new String[0]),
+                                    jdbcConf.isAllReplace())
+                            .get();
         } else {
             throw new IllegalArgumentException("Unknown write mode:" + jdbcConf.getMode());
         }
@@ -338,15 +357,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             LOG.error(ExceptionUtil.getErrorMessage(e));
         }
         JdbcUtil.closeDbResources(null, null, dbConn, true);
-    }
-
-    /**
-     * 获取table名称，如果table是schema.table格式，可重写此方法 只返回table
-     *
-     * @return
-     */
-    protected String getTableName() {
-        return jdbcConf.getTable();
     }
 
     /**

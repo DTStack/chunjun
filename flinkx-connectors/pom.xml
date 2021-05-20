@@ -18,6 +18,8 @@
         <module>flinkx-connector-stream</module>
 		<module>flinkx-connector-jdbc-base</module>
 		<module>flinkx-connector-mysql</module>
+		<module>flinkx-connector-postgres</module>
+		<module>flinkx-connector-gbase</module>
         <module>flinkx-connector-hbase-base</module>
 
 		<!--CDC-->

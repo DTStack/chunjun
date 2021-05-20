@@ -18,25 +18,64 @@
 
 package com.dtstack.flinkx.sink;
 
-import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
+
 /**
- * Error Limitation
- *
- * Company: www.dtstack.com
- * @author huyifan.zju@163.com
+ * 脏数据限制器，当脏数据满足以下条件任务，任务报错并停止
+ * 1、脏数据记录数超过设置的最大值
+ * 2、脏数据比例超过设置的最大值
  */
 public class ErrorLimiter {
 
     private final Integer maxErrors;
     private final Double maxErrorRatio;
-    private AccumulatorCollector accumulatorCollector;
+    private final AccumulatorCollector accumulatorCollector;
     private volatile double errorRatio = 0.0;
     private String errMsg = "";
     private RowData errorData;
+
+    public ErrorLimiter(AccumulatorCollector accumulatorCollector, Integer maxErrors, Double maxErrorRatio) {
+        this.maxErrors = maxErrors;
+        this.maxErrorRatio = maxErrorRatio;
+        this.accumulatorCollector = accumulatorCollector;
+    }
+
+    /**
+     * 从累加器收集器中更新脏数据指标信息
+     */
+    public void updateErrorInfo(){
+        accumulatorCollector.collectAccumulator();
+    }
+
+    /**
+     * 校验脏数据指标是否超过设定值
+     */
+    public void checkErrorLimit() {
+        String errorDataStr = "";
+        if(errorData != null){
+            errorDataStr = errorData + "\n";
+        }
+
+        long errors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
+        if(maxErrors != null){
+            Preconditions.checkArgument(errors <= maxErrors,
+                    "WritingRecordError: error writing record [" + errors + "] exceed limit [" + maxErrors + "]\n" + errorDataStr + errMsg);
+        }
+
+        if(maxErrorRatio != null){
+            long numRead = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS, false);
+            if(numRead >= 1) {
+                errorRatio = (double) errors / numRead;
+            }
+
+            Preconditions.checkArgument(errorRatio <= maxErrorRatio,
+                    "WritingRecordError: error writing record ratio [" + errorRatio + "] exceed limit [" + maxErrorRatio + "]\n" + errorDataStr + errMsg);
+        }
+    }
 
     public void setErrorData(RowData errorData){
         this.errorData = errorData;
@@ -46,37 +85,14 @@ public class ErrorLimiter {
         this.errMsg = errMsg;
     }
 
-    public ErrorLimiter(AccumulatorCollector accumulatorCollector, Integer maxErrors, Double maxErrorRatio) {
-        this.maxErrors = maxErrors;
-        this.maxErrorRatio = maxErrorRatio;
-        this.accumulatorCollector = accumulatorCollector;
+    @Override
+    public String toString() {
+        return "ErrorLimiter{" +
+                "maxErrors=" + maxErrors +
+                ", maxErrorRatio=" + maxErrorRatio +
+                ", errorRatio=" + errorRatio +
+                ", errMsg='" + errMsg + '\'' +
+                ", errorData=" + errorData +
+                '}';
     }
-
-    public void updateErrorInfo(){
-        accumulatorCollector.collectAccumulator();
-    }
-
-    public void acquire() {
-        String errorDataStr = "";
-        if(errorData != null){
-            errorDataStr = errorData.toString() + "\n";
-        }
-
-        long errors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS);
-        if(maxErrors != null){
-            Preconditions.checkArgument(errors <= maxErrors, "WritingRecordError: error writing record [" + errors + "] exceed limit [" + maxErrors
-                    + "]\n" + errorDataStr + errMsg);
-        }
-
-        if(maxErrorRatio != null){
-            long numRead = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS);
-            if(numRead >= 1) {
-                errorRatio = (double) errors / numRead;
-            }
-
-            Preconditions.checkArgument(errorRatio <= maxErrorRatio, "WritingRecordError: error writing record ratio [" + errorRatio + "] exceed limit [" + maxErrorRatio
-                    + "]\n" + errorDataStr + errMsg);
-        }
-    }
-
 }

@@ -37,7 +37,7 @@ public class JdbcCommonOptions {
             ConfigOptions.key("schema")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("the jdbc table name.");
+                    .withDescription("the jdbc schema name.");
 
     public static final ConfigOption<String> TABLE_NAME =
             ConfigOptions.key("table-name")

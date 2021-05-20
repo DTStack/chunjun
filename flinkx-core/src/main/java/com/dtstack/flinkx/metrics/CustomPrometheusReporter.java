@@ -16,13 +16,8 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.metrics;
 
-import com.dtstack.flinkx.constants.Metrics;
-import io.prometheus.client.Collector;
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.exporter.PushGateway;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -41,6 +36,11 @@ import org.apache.flink.runtime.metrics.groups.ReporterScopedSettings;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.util.AbstractID;
 import org.apache.flink.util.StringUtils;
+
+import com.dtstack.flinkx.constants.Metrics;
+import io.prometheus.client.Collector;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.exporter.PushGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,11 +72,11 @@ public class CustomPrometheusReporter {
 
     private boolean deleteOnShutdown;
 
-    private boolean makeTaskFailedWhenReportFailed;
+    private final boolean makeTaskFailedWhenReportFailed;
 
     private Configuration configuration;
 
-    private RuntimeContext context;
+    private final RuntimeContext context;
 
     private static final String KEY_HOST = "metrics.reporter.promgateway.host";
     private static final String KEY_PORT = "metrics.reporter.promgateway.port";
@@ -106,7 +106,7 @@ public class CustomPrometheusReporter {
         return UN_ALLOWED_CHAR_PATTERN.matcher(input).replaceAll("_");
     }
 
-    private CharacterFilter labelValueCharactersFilter = CHARACTER_FILTER;
+    private final CharacterFilter labelValueCharactersFilter = CHARACTER_FILTER;
 
     public CustomPrometheusReporter(RuntimeContext context, boolean makeTaskFailedWhenReportFailed) {
         this.context = context;

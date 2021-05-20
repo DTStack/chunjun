@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.jdbc.util;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.CollectionUtil;
 
-import com.dtstack.flinkx.RawTypeConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
@@ -118,21 +118,19 @@ public class JdbcUtil {
         }
         Properties finalProp = prop;
         synchronized (ClassUtil.LOCK_STR){
-            return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(
-                    jdbcConf.getJdbcUrl(),
-                    finalProp), 3, 2000, false);
+            return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp), 3, 2000, false);
         }
     }
 
     /**
-     *
      * @param tableName
      * @param dbConn
      * @return
      * @throws SQLException
      */
-    public static Pair<List<String>, List<String>> getTableMetaData(String tableName, Connection dbConn) throws SQLException {
-        ResultSet rs = dbConn.getMetaData().getColumns(null, null, tableName, null);
+    public static Pair<List<String>, List<String>> getTableMetaData(
+            String schema, String tableName, Connection dbConn) throws SQLException {
+        ResultSet rs = dbConn.getMetaData().getColumns(null, schema, tableName, null);
         List<String> rawFieldNames = new LinkedList<>();
         List<String> rawFieldTypes = new LinkedList<>();
         while (rs.next()) {
@@ -146,16 +144,15 @@ public class JdbcUtil {
     }
 
     /**
-     *
      * @param tableName
      * @param dbConn
      * @return
      * @throws SQLException
      */
-    public static List<String> getTableIndex(String tableName, Connection dbConn) throws SQLException {
-        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, null, tableName, true, false);
+    public static List<String> getTableIndex(String schema, String tableName, Connection dbConn) throws SQLException {
+        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, tableName, true, false);
         List<String> indexList = new LinkedList<>();
-        while (rs.next()){
+        while (rs.next()) {
             indexList.add(rs.getString(9));
         }
         return indexList;
@@ -391,7 +388,8 @@ public class JdbcUtil {
      */
     public static LogicalType getLogicalTypeFromJdbcMetaData(JdbcConf jdbcConf, JdbcDialect jdbcDialect, RawTypeConverter converter){
         try (Connection conn = JdbcUtil.getConnection(jdbcConf, jdbcDialect)) {
-            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getTable(), conn);
+            Pair<List<String>, List<String>> pair =
+                    JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), conn);
             List<String> rawFieldNames =  pair.getLeft();
             List<String> rawFieldTypes = pair.getRight();
             return TableUtil.createRowType(rawFieldNames, rawFieldTypes, converter);

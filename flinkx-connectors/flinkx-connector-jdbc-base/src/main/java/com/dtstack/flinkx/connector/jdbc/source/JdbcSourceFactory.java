@@ -51,7 +51,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
-    private static final int DEFAULT_FETCH_SIZE = 1;
+    private static final int DEFAULT_FETCH_SIZE = 1024;
     private static final int DEFAULT_QUERY_TIMEOUT = 300;
 
     public JdbcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {

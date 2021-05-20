@@ -92,6 +92,11 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
+    protected void closeInternal() {
+        // do nothing
+    }
+
+    @Override
     public void notifyCheckpointComplete(long checkpointId) {
         // do nothing
     }

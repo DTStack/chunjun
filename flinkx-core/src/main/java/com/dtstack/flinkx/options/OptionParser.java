@@ -40,14 +40,13 @@ public class OptionParser {
 
     private final static String OPTION_JOB = "job";
 
-    private org.apache.commons.cli.Options options = new org.apache.commons.cli.Options();
+    private final org.apache.commons.cli.Options options = new org.apache.commons.cli.Options();
 
-    private DefaultParser parser = new DefaultParser();
+    private final DefaultParser parser = new DefaultParser();
 
-    private Options properties = new Options();
+    private final Options properties = new Options();
 
     public OptionParser(String[] args) throws Exception {
-
         Class cla = properties.getClass();
         Field[] fields = cla.getDeclaredFields();
         for(Field field : fields){
@@ -88,9 +87,9 @@ public class OptionParser {
             }else if(OPTION_JOB.equalsIgnoreCase(key)){
                 File file = new File(value.toString());
                 try (FileInputStream in = new FileInputStream(file)) {
-                    byte[] filecontent = new byte[(int) file.length()];
-                    in.read(filecontent);
-                    value = new String(filecontent, StandardCharsets.UTF_8);
+                    byte[] fileContent = new byte[(int) file.length()];
+                    in.read(fileContent);
+                    value = new String(fileContent, StandardCharsets.UTF_8);
                 }
             }
             args.add("-" + key);

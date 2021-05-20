@@ -19,11 +19,12 @@
 
 package com.dtstack.flinkx.metrics;
 
-import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.util.SysUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.MetricGroup;
+
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.util.SysUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +39,9 @@ public class BaseMetric {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private Long delayPeriodMill = 20000L;
+    private final Long delayPeriodMill = 10000L;
 
-    private MetricGroup flinkxOutput;
+    private final MetricGroup flinkxOutput;
 
     private final Map<String, LongCounter> metricCounters = new HashMap<>();
 
@@ -54,7 +55,7 @@ public class BaseMetric {
 
     public void addMetric(String metricName, LongCounter counter, boolean meterView){
         metricCounters.put(metricName, counter);
-        flinkxOutput.gauge(metricName, new SimpleAccumulatorGauge<Long>(counter));
+        flinkxOutput.gauge(metricName, new SimpleAccumulatorGauge<>(counter));
         if (meterView){
             flinkxOutput.meter(metricName + Metrics.SUFFIX_RATE, new SimpleLongCounterMeterView(counter, 20));
         }

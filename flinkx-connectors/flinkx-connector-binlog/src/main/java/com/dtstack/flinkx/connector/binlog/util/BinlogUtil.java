@@ -118,6 +118,15 @@ public class BinlogUtil {
         return true;
     }
 
+    /**
+     * 校验MySQL表权限
+     * @param connection MySQL connection
+     * @param database database名称
+     * @param filter 过滤字符串
+     * @param tables 表名
+     * @return 没有权限的表
+     * @throws SQLException
+     */
     public static List<String> checkTablesPrivilege(Connection connection, String database, String filter, List<String> tables) throws SQLException {
         if (CollectionUtils.isNotEmpty(tables)) {
             HashMap<String, String> checkedTable = new HashMap<>(tables.size());

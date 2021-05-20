@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.inputformat;
 
 import org.apache.flink.core.io.InputSplit;
