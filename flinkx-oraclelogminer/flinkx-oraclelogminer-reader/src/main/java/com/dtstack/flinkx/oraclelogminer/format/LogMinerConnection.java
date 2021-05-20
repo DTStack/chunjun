@@ -699,7 +699,9 @@ public class LogMinerConnection {
                 }
 
                 if(Objects.nonNull(recordLog)){
-                    undoLog.append(getRollbackSql(new RecordLog(scn, sqlUndo.toString(), sqlRedo.toString(), xidSqn, rowId, operationCode, hasMultiSql, tableName), recordLog));
+                    RecordLog rollbackLog = new RecordLog(scn, sqlUndo.toString(), sqlRedo.toString(), xidSqn, rowId, operationCode, hasMultiSql, tableName);
+                    String rollbackSql = getRollbackSql(rollbackLog, recordLog);
+                    undoLog.append(rollbackSql);
                     hasMultiSql = recordLog.getHasMultiSql();
                 }
 
