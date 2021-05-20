@@ -21,6 +21,8 @@ import com.dtstack.flinkx.connector.sqlservercdc.entity.ChangeTable;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEventRow;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.google.common.collect.Maps;
 
 import org.apache.flink.formats.json.TimestampFormat;
@@ -116,7 +118,12 @@ public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerC
             case NULL:
                 return val -> null;
             case BOOLEAN:
-                return (IDeserializationConverter<String, Boolean>) Boolean::getBoolean;
+                return (IDeserializationConverter<String, Boolean>) val -> {
+                    if (val == null) {
+                        return Boolean.FALSE;
+                    }
+                    return Boolean.parseBoolean(val);
+                };
             case TINYINT:
                 return (IDeserializationConverter<String, Byte>) Byte::parseByte;
             case SMALLINT:

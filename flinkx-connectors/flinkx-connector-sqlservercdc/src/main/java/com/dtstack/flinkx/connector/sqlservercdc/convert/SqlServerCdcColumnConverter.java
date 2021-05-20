@@ -33,11 +33,13 @@ import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import com.google.common.collect.Maps;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -69,7 +71,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
         String key = schema + ConstantValue.POINT_SYMBOL + table;
         IDeserializationConverter[] converters = super.cdcConverterCacheMap.get(key);
 
-        if(converters == null){
+        if (converters == null) {
             List<String> columnTypes = sqlServerCdcEventRow.getColumnTypes();
             converters =
                     columnTypes.stream()
@@ -108,14 +110,36 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
         List<AbstractBaseColumn> afterColumnList = new ArrayList<>(data.length);
         List<String> afterHeaderList = new ArrayList<>(data.length);
 
-        if (pavingData){
-            parseColumnList(converters, dataPrev, changeTable.getColumnList(),beforeColumnList, beforeHeaderList, BEFORE_);
-            parseColumnList(converters, data, changeTable.getColumnList(),afterColumnList, afterHeaderList, AFTER_);
+        if (pavingData) {
+            switch (sqlServerCdcEventRow.getType().toUpperCase(Locale.ENGLISH)) {
+                case "DELETE":
+                    parseColumnList(converters, dataPrev, changeTable.getColumnList(), beforeColumnList, beforeHeaderList, BEFORE_);
+                    break;
+                case "INSERT":
+                    parseColumnList(converters, data, changeTable.getColumnList(), beforeColumnList, beforeHeaderList, AFTER_);
+                    break;
+                case "UPDATE":
+                    parseColumnList(converters, dataPrev, changeTable.getColumnList(), beforeColumnList, beforeHeaderList, BEFORE_);
+                    parseColumnList(converters, data, changeTable.getColumnList(), beforeColumnList, beforeHeaderList, AFTER_);
+                    break;
+            }
         } else {
-            beforeColumnList.add(new MapColumn(processColumnList(changeTable.getColumnList(),sqlServerCdcEventRow.getColumnTypes())));
-            beforeHeaderList.add(BEFORE);
-            afterColumnList.add(new MapColumn(processColumnList(changeTable.getColumnList(),sqlServerCdcEventRow.getColumnTypes())));
-            afterHeaderList.add(AFTER);
+            switch (sqlServerCdcEventRow.getType().toUpperCase(Locale.ENGLISH)) {
+                case "DELETE":
+                    beforeColumnList.add(new MapColumn(processColumnList(changeTable.getColumnList(), sqlServerCdcEventRow.getDataPrev())));
+                    beforeHeaderList.add(BEFORE);
+                    break;
+                case "INSERT":
+                    afterColumnList.add(new MapColumn(processColumnList(changeTable.getColumnList(), sqlServerCdcEventRow.getData())));
+                    afterHeaderList.add(AFTER);
+                    break;
+                case "UPDATE":
+                    beforeColumnList.add(new MapColumn(processColumnList(changeTable.getColumnList(), sqlServerCdcEventRow.getDataPrev())));
+                    beforeHeaderList.add(BEFORE);
+                    afterColumnList.add(new MapColumn(processColumnList(changeTable.getColumnList(), sqlServerCdcEventRow.getData())));
+                    afterHeaderList.add(AFTER);
+                    break;
+            }
         }
 
         //update类型且要拆分
@@ -131,7 +155,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
             columnRowData.setRowKind(RowKind.UPDATE_AFTER);
             columnRowData.addField(new StringColumn(RowKind.UPDATE_AFTER.name()));
             columnRowData.addHeader(TYPE);
-        }else{
+        } else {
             columnRowData.setRowKind(getRowKindByType(eventType));
             columnRowData.addField(new StringColumn(eventType));
             columnRowData.addHeader(TYPE);
@@ -146,6 +170,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
 
     /**
      * 解析CanalEntry.Column
+     *
      * @param converters
      * @param columnList
      * @param headerList
@@ -176,7 +201,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
     protected IDeserializationConverter createInternalConverter(String type) {
         String substring = type;
         int index = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
-        if(index > 0 ){
+        if (index > 0) {
             substring = type.substring(0, index);
         }
         switch (substring.toUpperCase(Locale.ENGLISH)) {
@@ -212,7 +237,8 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
             case "TIME":
             case "DATETIME":
             case "DATETIME2":
-                return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
+            case "SMALLDATETIME":
+                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
             case "TINYBLOB":
             case "BLOB":
             case "MEDIUMBLOB":
@@ -220,7 +246,14 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
             case "GEOMETRY":
             case "BINARY":
             case "VARBINARY":
-                return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new BytesColumn(val.getBytes(StandardCharsets.UTF_8));
+                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> new BytesColumn(val.getBytes(StandardCharsets.UTF_8));
+            case "TIMESTAMP":
+                return (IDeserializationConverter<Object, AbstractBaseColumn>) val -> {
+                    byte[] value = (byte[]) val;
+                    String hexString = StringUtil.bytesToHexString(value);
+                    long longValue = new BigInteger(hexString, 16).longValue();
+                    return new BigDecimalColumn(longValue);
+                };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
@@ -228,14 +261,16 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
 
     /**
      * 解析CanalEntry中的Column，获取字段名及值
+     *
      * @param columnNames
-     * @param columnTypes
+     * @param data
+     *
      * @return 字段名和值的map集合
      */
-    private Map<String, Object> processColumnList(List<String> columnNames, List<String> columnTypes) {
+    private Map<String, Object> processColumnList(List<String> columnNames, Object[] data) {
         Map<String, Object> map = Maps.newLinkedHashMapWithExpectedSize(columnNames.size());
         for (int columnIndex = 0; columnIndex < columnNames.size(); columnIndex++) {
-            map.put(columnNames.get(columnIndex), columnTypes.get(columnIndex));
+            map.put(columnNames.get(columnIndex), data[columnIndex]);
         }
         return map;
     }

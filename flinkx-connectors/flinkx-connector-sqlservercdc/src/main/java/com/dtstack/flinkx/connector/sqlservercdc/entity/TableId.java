@@ -184,8 +184,4 @@ public class TableId implements Comparable<TableId> {
     private static String repeat(char quotingChar) {
         return String.valueOf(quotingChar) + quotingChar;
     }
-
-    public TableId toLowercase() {
-        return new TableId(catalogName, schemaName, tableName.toLowerCase());
-    }
 }

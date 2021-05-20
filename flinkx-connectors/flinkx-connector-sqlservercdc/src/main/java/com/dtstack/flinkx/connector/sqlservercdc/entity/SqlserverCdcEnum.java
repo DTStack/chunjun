@@ -61,33 +61,43 @@ public enum SqlServerCdcEnum {
         this.name = name;
     }
 
-    public static SqlServerCdcEnum getEnum(String name){
-        switch (name.toLowerCase()){
-            case "delete": return DELETE;
-            case "insert": return INSERT;
-            case "update_before": return UPDATE_BEFORE;
-            case "update_after": return UPDATE_AFTER;
-            default: return UNKNOWN;
+    public static SqlServerCdcEnum getEnum(String name) {
+        switch (name.toLowerCase()) {
+            case "delete":
+                return DELETE;
+            case "insert":
+                return INSERT;
+            case "update_before":
+                return UPDATE_BEFORE;
+            case "update_after":
+                return UPDATE_AFTER;
+            default:
+                return UNKNOWN;
         }
     }
 
-    public static SqlServerCdcEnum getEnum(int code){
-        switch (code){
-            case 1: return DELETE;
-            case 2: return INSERT;
-            case 3: return UPDATE_BEFORE;
-            case 4: return UPDATE_AFTER;
-            default: return UNKNOWN;
+    public static SqlServerCdcEnum getEnum(int code) {
+        switch (code) {
+            case 1:
+                return DELETE;
+            case 2:
+                return INSERT;
+            case 3:
+                return UPDATE_BEFORE;
+            case 4:
+                return UPDATE_AFTER;
+            default:
+                return UNKNOWN;
         }
     }
 
-    public static Set<Integer> transform(String name){
-        if(Objects.equals(name, UPDATE.name)){
+    public static Set<Integer> transform(String name) {
+        if (Objects.equals(name, UPDATE.name)) {
             Set<Integer> set = new HashSet<>();
             set.add(UPDATE_BEFORE.code);
             set.add(UPDATE_AFTER.code);
             return set;
-        }else{
+        } else {
             return Collections.singleton(getEnum(name).code);
         }
     }

@@ -140,8 +140,4 @@ public class Lsn implements Comparable<Lsn> {
         return 0;
     }
 
-    public boolean isBetween(Lsn from, Lsn to) {
-        return this.compareTo(from) >= 0 && this.compareTo(to) < 0;
-    }
-
 }

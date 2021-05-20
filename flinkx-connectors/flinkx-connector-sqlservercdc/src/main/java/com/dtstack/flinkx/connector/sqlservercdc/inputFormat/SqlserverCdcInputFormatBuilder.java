@@ -112,11 +112,6 @@ public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                 SqlServerCdcUtil.SLEEP_TIME,
                 false)) {
 
-            //效验是否开启agent
-            if (!SqlServerCdcUtil.checkAgentHasStart(conn)) {
-                sb.append("\n\nsqlServer agentServer not running,please enable agentServer;");
-            }
-
             //校验数据库是否开启cdc
             SqlServerCdcUtil.changeDatabase(conn, format.sqlserverCdcConf.getDatabaseName());
             if (!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, format.sqlserverCdcConf.getDatabaseName())) {

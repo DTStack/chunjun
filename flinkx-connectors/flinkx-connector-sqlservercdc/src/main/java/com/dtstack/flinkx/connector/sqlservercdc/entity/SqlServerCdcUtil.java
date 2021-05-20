@@ -110,7 +110,9 @@ public class SqlServerCdcUtil {
      * 校验sqlServer是否开启了agent服务
      *
      * @param conn
+     *
      * @return
+     *
      * @throws SQLException
      */
     public static boolean checkAgentHasStart(Connection conn) throws SQLException {
@@ -254,7 +256,9 @@ public class SqlServerCdcUtil {
      * clob转string
      *
      * @param obj clob
+     *
      * @return
+     *
      * @throws Exception
      */
     public static Object clobToString(Object obj) throws Exception {
@@ -276,10 +280,12 @@ public class SqlServerCdcUtil {
     /**
      * 获取jdbc连接(超时10S)
      *
-     * @param url      url
+     * @param url url
      * @param username 账号
      * @param password 密码
+     *
      * @return
+     *
      * @throws SQLException
      */
     public static Connection getConnection(String url, String username, String password) throws SQLException {

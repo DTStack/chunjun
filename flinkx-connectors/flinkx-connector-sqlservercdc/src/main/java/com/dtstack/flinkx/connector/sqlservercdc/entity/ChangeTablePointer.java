@@ -46,7 +46,7 @@ public class ChangeTablePointer {
         return changeTable;
     }
 
-    public TxLogPosition getChangePosition() throws SQLException {
+    public TxLogPosition getChangePosition() {
         return currentChangePosition;
     }
 
@@ -87,7 +87,7 @@ public class ChangeTablePointer {
         return completed;
     }
 
-    public int compareTo(ChangeTablePointer o) throws SQLException {
+    public int compareTo(ChangeTablePointer o) {
         return getChangePosition().compareTo(o.getChangePosition());
     }
 
