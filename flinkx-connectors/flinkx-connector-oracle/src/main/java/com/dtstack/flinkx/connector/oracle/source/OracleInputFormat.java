@@ -48,7 +48,7 @@ public class OracleInputFormat extends JdbcInputFormat {
         super.openInternal(inputSplit);
         // 若是同步任务，则 rowConverter 为空。
         // sql 任务中 rowConverter 会在 OracleDynamicTableFactory#createDynamicTableSource() 处初始化 rowConverter
-        if(rowConverter == null){
+        if (rowConverter == null) {
             // 说明是同步任务
             try {
                 LogicalType rowType =
@@ -60,7 +60,6 @@ public class OracleInputFormat extends JdbcInputFormat {
             }
         }
     }
-
 
 
 }

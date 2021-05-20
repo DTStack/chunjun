@@ -60,6 +60,8 @@ public class OracleRawTypeConverter {
             default:
                 if (TIMESTAMP_PREDICATE.test(type)) {
                     return DataTypes.TIMESTAMP();
+                }else if(type.startsWith("INTERVAL")){
+                    return DataTypes.STRING();
                 }
                 throw new SQLException("不支持" + type + "类型");
         }
