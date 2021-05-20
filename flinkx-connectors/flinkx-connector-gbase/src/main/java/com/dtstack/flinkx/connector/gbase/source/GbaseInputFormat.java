@@ -25,8 +25,6 @@ import org.apache.flink.table.types.logical.RowType;
 import com.dtstack.flinkx.connector.gbase.converter.GbaseRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.util.TableUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 
@@ -36,8 +34,6 @@ import java.sql.SQLException;
  */
 public class GbaseInputFormat extends JdbcInputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GbaseInputFormat.class);
-
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
@@ -46,7 +42,7 @@ public class GbaseInputFormat extends JdbcInputFormat {
                     TableUtil.createRowType(column, columnType, GbaseRawTypeConverter::apply);
             setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
         } catch (SQLException e) {
-            LOG.error("", e);
+            throw new RuntimeException(e);
         }
     }
 }
