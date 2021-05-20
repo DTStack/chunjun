@@ -112,19 +112,18 @@ public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                 SqlServerCdcUtil.SLEEP_TIME,
                 false)) {
 
-            //校验数据库是否开启cdc
+            //check database cdc is enable
             SqlServerCdcUtil.changeDatabase(conn, format.sqlserverCdcConf.getDatabaseName());
             if (!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, format.sqlserverCdcConf.getDatabaseName())) {
                 sb.append(format.sqlserverCdcConf.getDatabaseName()).append(" is not enable sqlServer CDC;\n")
                         .append("please execute sql for enable databaseCDC：\nUSE ").append(format.sqlserverCdcConf.getDatabaseName()).append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
             }
 
-            //如果数据库没有开启cdc 则直接抛出异常 不需要进行后续cdc相关配置校验(否则部分sql查询会报错 如查询最大LSN)
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
 
-            //效验表是否开启cdc
+            //check table cdc is enable
             Set<String> unEnabledCdcTables = SqlServerCdcUtil.checkUnEnabledCdcTables(conn, format.sqlserverCdcConf.getTableList());
             if (CollectionUtils.isNotEmpty(unEnabledCdcTables)) {
                 String tables = unEnabledCdcTables.toString();
@@ -142,7 +141,7 @@ public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                 }
             }
 
-            //效验lsn是否超过max_lsn
+            //check lsn if over max lsn
             Lsn currentMaxLsn = SqlServerCdcUtil.getMaxLsn(conn);
             if (StringUtils.isNotBlank(format.sqlserverCdcConf.getLsn())) {
                 if (currentMaxLsn.compareTo(Lsn.valueOf(format.sqlserverCdcConf.getLsn())) < 0) {

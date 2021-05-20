@@ -203,11 +203,6 @@ public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerC
             case BINARY:
             case VARBINARY:
                 return (IDeserializationConverter<String, byte[]>) val ->val.getBytes(StandardCharsets.UTF_8);
-//            case ARRAY:
-//            case MAP:
-//            case MULTISET:
-//            case ROW:
-//            case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type: " + type);
         }

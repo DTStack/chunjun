@@ -110,6 +110,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
         List<AbstractBaseColumn> afterColumnList = new ArrayList<>(data.length);
         List<String> afterHeaderList = new ArrayList<>(data.length);
 
+        // delete pass before value,insert pass after value,update pass both
         if (pavingData) {
             switch (sqlServerCdcEventRow.getType().toUpperCase(Locale.ENGLISH)) {
                 case "DELETE":
@@ -142,7 +143,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
             }
         }
 
-        //update类型且要拆分
+        //update operate needs split
         if (splitUpdate && SqlServerCdcEnum.UPDATE.name.equalsIgnoreCase(sqlServerCdcEventRow.getType())) {
             ColumnRowData copy = columnRowData.copy();
             copy.setRowKind(RowKind.UPDATE_BEFORE);
@@ -169,7 +170,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
     }
 
     /**
-     * 解析CanalEntry.Column
+     * parse CanalEntry.Column
      *
      * @param converters
      * @param columnList
@@ -260,12 +261,12 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
     }
 
     /**
-     * 解析CanalEntry中的Column，获取字段名及值
+     * parse CanalEntry Column，get column name and value
      *
      * @param columnNames
      * @param data
      *
-     * @return 字段名和值的map集合
+     * @return a map for column name and value
      */
     private Map<String, Object> processColumnList(List<String> columnNames, Object[] data) {
         Map<String, Object> map = Maps.newLinkedHashMapWithExpectedSize(columnNames.size());

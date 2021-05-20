@@ -75,6 +75,13 @@ public class SqlServerCdcUtil {
         }
     }
 
+    /**
+     * check database cdc is enable
+     * @param conn
+     * @param databaseName
+     * @return
+     * @throws SQLException
+     */
     public static boolean checkEnabledCdcDatabase(Connection conn, String databaseName) throws SQLException {
 
 
@@ -90,6 +97,13 @@ public class SqlServerCdcUtil {
         return ret;
     }
 
+    /**
+     * check table is enable
+     * @param conn
+     * @param tableSet
+     * @return
+     * @throws SQLException
+     */
     public static Set<String> checkUnEnabledCdcTables(Connection conn, Collection<String> tableSet) throws SQLException {
         CopyOnWriteArraySet<String> unEnabledCdcTables = new CopyOnWriteArraySet<>(tableSet);
         try (Statement statement = conn.createStatement()) {
@@ -106,35 +120,14 @@ public class SqlServerCdcUtil {
         return unEnabledCdcTables;
     }
 
+
     /**
-     * 校验sqlServer是否开启了agent服务
-     *
+     * get tables which changes
      * @param conn
-     *
+     * @param databaseName
      * @return
-     *
      * @throws SQLException
      */
-    public static boolean checkAgentHasStart(Connection conn) throws SQLException {
-
-        try (Statement statement = conn.createStatement()) {
-            try (ResultSet rs = statement.executeQuery(CHECK_CDC_AGENT)) {
-                if (rs.next()) {
-                    String status = rs.getString(1);
-                    if (StringUtils.isNotEmpty(status)) {
-                        return "Running.".equalsIgnoreCase(status.toUpperCase(Locale.ENGLISH));
-                    }
-                }
-                return false;
-            }
-        } catch (SQLException e) {
-            LOG.error("error to query agent status, sql = {}, e = {}", CHECK_CDC_AGENT, ExceptionUtil.getErrorMessage(e));
-            //如果出现异常 就直接返回true  因为有可能是这个sql没有权限 即如果有权限就去判断 没权限就不需要判断
-            // throw e;
-            return true;
-        }
-    }
-
     public static Set<ChangeTable> queryChangeTableSet(Connection conn, String databaseName) throws SQLException {
         Set<ChangeTable> changeTableSet = new HashSet<>();
         try (Statement statement = conn.createStatement()) {
@@ -165,6 +158,12 @@ public class SqlServerCdcUtil {
         return changeTableSet;
     }
 
+    /**
+     * get current max lsn
+     * @param conn
+     * @return
+     * @throws SQLException
+     */
     public static Lsn getMaxLsn(Connection conn) throws SQLException {
         Lsn lsn = null;
         try (Statement statement = conn.createStatement()) {
@@ -179,6 +178,14 @@ public class SqlServerCdcUtil {
         return lsn;
     }
 
+    /**
+     * get tables detail changes
+     * @param conn
+     * @param databaseName
+     * @param tableList
+     * @return
+     * @throws SQLException
+     */
     public static ChangeTable[] getCdcTablesToQuery(Connection conn, String databaseName, List<String> tableList) throws SQLException {
         Set<ChangeTable> cdcEnabledTableSet = SqlServerCdcUtil.queryChangeTableSet(conn, databaseName);
 
@@ -214,6 +221,7 @@ public class SqlServerCdcUtil {
         return changeTableList.toArray(new ChangeTable[0]);
     }
 
+
     public static Lsn incrementLsn(Connection conn, Lsn lsn) throws SQLException {
         Lsn ret;
         try (PreparedStatement ps = conn.prepareStatement(INCREMENT_LSN)) {
@@ -229,6 +237,15 @@ public class SqlServerCdcUtil {
         return ret;
     }
 
+    /**
+     * get changes resultSet by tables
+     * @param conn
+     * @param changeTables
+     * @param intervalFromLsn
+     * @param intervalToLsn
+     * @return
+     * @throws SQLException
+     */
     public static StatementResult[] getChangesForTables(Connection conn, ChangeTable[] changeTables, Lsn intervalFromLsn, Lsn intervalToLsn) throws SQLException {
         StatementResult[] resultSets = new StatementResult[changeTables.length];
         String sql;
@@ -253,7 +270,7 @@ public class SqlServerCdcUtil {
     }
 
     /**
-     * clob转string
+     * clob to string
      *
      * @param obj clob
      *
@@ -278,11 +295,11 @@ public class SqlServerCdcUtil {
     }
 
     /**
-     * 获取jdbc连接(超时10S)
+     * get jdbc connection
      *
-     * @param url url
-     * @param username 账号
-     * @param password 密码
+     * @param url
+     * @param username
+     * @param password
      *
      * @return
      *

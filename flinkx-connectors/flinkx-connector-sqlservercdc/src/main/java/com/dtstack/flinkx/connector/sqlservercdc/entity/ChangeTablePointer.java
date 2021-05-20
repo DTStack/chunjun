@@ -54,6 +54,11 @@ public class ChangeTablePointer {
         return resultSet.getInt(COL_OPERATION);
     }
 
+    /**
+     * get data form resultSet
+     * @return
+     * @throws SQLException
+     */
     public Object[] getData() throws SQLException {
         final int dataColumnCount = resultSet.getMetaData().getColumnCount() - (COL_DATA - 1);
         final Object[] data = new Object[dataColumnCount];
@@ -63,6 +68,11 @@ public class ChangeTablePointer {
         return data;
     }
 
+    /**
+     * get types from metadata
+     * @return
+     * @throws SQLException
+     */
     public List<String> getTypes() throws SQLException {
         final int dataColumnCount = resultSet.getMetaData().getColumnCount() - (COL_DATA - 1);
         List<String> columnTypes = new ArrayList<>();

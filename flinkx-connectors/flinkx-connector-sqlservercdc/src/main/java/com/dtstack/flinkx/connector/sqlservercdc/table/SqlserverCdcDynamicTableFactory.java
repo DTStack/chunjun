@@ -74,13 +74,13 @@ public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactor
     public DynamicTableSource createDynamicTableSource(Context context) {
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
-        // 1.所有的requiredOptions和optionalOptions参数
+        // 1.all params includes requiredOptions and optionalOptions
         final ReadableConfig config = helper.getOptions();
 
-        // 2.参数校验
+        // 2.param validate
         helper.validate();
 
-        // 3.封装参数
+        // 3.
         TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         SqlServerCdcConf serverCdcConf = getSqlServerCdcConf(config);
 
