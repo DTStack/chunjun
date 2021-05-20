@@ -63,7 +63,7 @@ public class BigDecimalColumn extends AbstractBaseColumn {
 
     @Override
     public String asString() {
-        return data.toString();
+        return null == data ? null:data.toString();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class BigDecimalColumn extends AbstractBaseColumn {
 
     @Override
     public Boolean asBoolean() {
-        return null;
+     return null == data ? null:((BigDecimal)data ).intValue() != 0;
     }
 
     @Override

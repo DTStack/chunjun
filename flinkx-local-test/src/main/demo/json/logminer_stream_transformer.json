@@ -1,0 +1,88 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "jdbcUrl": "jdbc:oracle:thin:@172.16.100.220:1521:xe",
+            "username": "tudou",
+            "password": "abc123",
+            "supportAutoAddLog": false,
+            "table": ["TUDOU.CDC_1"],
+            "cat": "UPDATE,INSERT,DELETE",
+            "pavingData" : true,
+            "readPosition" : "CURRENT",
+            "startSCN" : "4893202",
+            "column": [
+              {
+                "name": "id",
+                "type": "BIGINT"
+              },
+              {
+                "name": "USER_ID",
+                "type": "BIGINT"
+              },
+              {
+                "name": "name",
+                "type": "VARCHAR"
+              },{
+                "name": "date1",
+                "type": "DATE"
+              }
+            ],
+            "queryTimeout": 3000
+          },
+          "table": {
+            "tableName": "sourceTable"
+          },
+          "name": "oraclelogminerreader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true,
+            "column": [
+              {
+                "name": "id",
+                "type": "BIGINT"
+              },
+              {
+                "name": "USER_ID",
+                "type": "BIGINT"
+              },
+              {
+                "name": "name",
+                "type": "VARCHAR"
+              },{
+                "name": "date1",
+                "type": "DATE"
+              }
+            ]
+          },
+          "table": {
+            "tableName": "sinkTable"
+          },
+          "name": "streamwriter"
+        },
+        "transformer": {
+          "transformSql": "select id,USER_ID,name,date1 from sourceTable where MOD(id, 2) <> 0"
+        }
+      }
+    ],
+    "setting": {
+      "log" : {
+        "isLogger": false,
+        "level" : "info"
+      },
+      "restore": {
+        "isRestore": false,
+        "isStream": true
+      },
+      "errorLimit": {
+      },
+      "speed": {
+        "bytes": 0,
+        "channel": 1
+      }
+    }
+  }
+}

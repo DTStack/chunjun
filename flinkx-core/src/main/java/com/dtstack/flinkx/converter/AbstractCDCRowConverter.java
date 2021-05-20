@@ -23,6 +23,8 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.time.format.DateTimeFormatter;
@@ -41,6 +43,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author tudou
  */
 public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializable {
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
     protected static final long serialVersionUID = 1L;
 
     // cdc keys
@@ -105,6 +109,22 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      */
     protected abstract IDeserializationConverter createInternalConverter(T type);
 
+
+    protected IDeserializationConverter wrapIntoNullableInternalConverter(
+            IDeserializationConverter IDeserializationConverter) {
+        return val -> {
+            if (val == null) {
+                return null;
+            } else {
+                try {
+                    return IDeserializationConverter.deserialize(val);
+                }catch (Exception e){
+                    LOG.error("value [{}] convent failed ", val);
+                    throw  e;
+                }
+            }
+        };
+    }
 
     /**
      * 根据eventType获取RowKind

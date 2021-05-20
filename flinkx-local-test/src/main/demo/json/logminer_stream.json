@@ -1,0 +1,45 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "jdbcUrl": "jdbc:oracle:thin:@172.16.100.220:1521:xe",
+            "username": "tudou",
+            "password": "abc123",
+            "supportAutoAddLog": false,
+            "table": ["TUDOU.*"],
+            "cat": "UPDATE,INSERT,DELETE",
+            "pavingData" : true,
+            "readPosition" : "CURRENT",
+            "startSCN" : "5515688",
+            "queryTimeout": 3000
+          },
+          "name": "oraclelogminerreader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "log" : {
+        "isLogger": false,
+        "level" : "info"
+      },
+      "restore": {
+        "isRestore": false,
+        "isStream": true
+      },
+      "errorLimit": {
+      },
+      "speed": {
+        "bytes": 0,
+        "channel": 1
+      }
+    }
+  }
+}

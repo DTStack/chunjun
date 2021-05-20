@@ -73,6 +73,7 @@ public class KafkaSourceFactory extends SourceFactory {
                 break;
             case SPECIFIC_OFFSETS:
                 consumer.setStartFromSpecificOffsets(KafkaUtil.parseSpecificOffsetsString(kafkaConf.getTopic(), kafkaConf.getOffset()));
+                break;
             default:
                 consumer.setStartFromGroupOffsets();
                 break;
