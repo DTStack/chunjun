@@ -23,9 +23,9 @@ import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.oracle.OracleDialect;
 
 /**
- * Date: 2021/04/13 Company: www.dtstack.com
+ * company www.dtstack.com
  *
- * @author tudou
+ * @author jier
  */
 public class OracleSinkFactory extends JdbcSinkFactory {
 

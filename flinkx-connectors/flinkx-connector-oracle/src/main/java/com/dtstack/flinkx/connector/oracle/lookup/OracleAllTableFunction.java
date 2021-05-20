@@ -29,9 +29,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A lookup function for {@link }.
+ * company www.dtstack.com
  *
- * @author chuixue
+ * @author jier
  */
 @Internal
 public class OracleAllTableFunction extends JdbcAllTableFunction {
@@ -47,7 +47,7 @@ public class OracleAllTableFunction extends JdbcAllTableFunction {
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(jdbcConf,jdbcDialect,lookupConf,fieldNames,keyNames,rowType);
+        super(jdbcConf, jdbcDialect, lookupConf, fieldNames, keyNames, rowType);
     }
 
     @Override

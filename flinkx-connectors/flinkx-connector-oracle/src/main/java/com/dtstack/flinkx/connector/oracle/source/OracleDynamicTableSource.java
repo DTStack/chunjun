@@ -46,8 +46,11 @@ import org.apache.flink.util.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 
-
-/** A {@link DynamicTableSource} for JDBC. */
+/**
+ * company www.dtstack.com
+ *
+ * @author jier
+ */
 public class OracleDynamicTableSource extends JdbcDynamicTableSource {
 
     public OracleDynamicTableSource(JdbcConf jdbcConf, LookupConf lookupConf, TableSchema physicalSchema, JdbcDialect jdbcDialect) {
@@ -107,7 +110,7 @@ public class OracleDynamicTableSource extends JdbcDynamicTableSource {
         jdbcConf.setColumn(columnList);
 
         String restoreColumn = jdbcConf.getRestoreColumn();
-        if(StringUtils.isNotBlank(restoreColumn)){
+        if (StringUtils.isNotBlank(restoreColumn)) {
             FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), restoreColumn);
             if (fieldConf != null) {
                 jdbcConf.setRestoreColumn(restoreColumn);

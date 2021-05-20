@@ -62,10 +62,10 @@ import java.util.stream.Stream;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.*;
 
 /**
- * @author chuixue
- * @create 2021-04-10 21:15
- * @description
- **/
+ * company www.dtstack.com
+ *
+ * @author jier
+ */
 public class OracleLruTableFunction extends JdbcLruTableFunction {
 
     private static final long serialVersionUID = 1L;
@@ -79,7 +79,7 @@ public class OracleLruTableFunction extends JdbcLruTableFunction {
             String[] fieldNames,
             String[] keyNames,
             RowType rowType) {
-        super(jdbcConf,jdbcDialect,lookupConf,fieldNames,keyNames,rowType);
+        super(jdbcConf, jdbcDialect, lookupConf, fieldNames, keyNames, rowType);
     }
 
     @Override

@@ -32,10 +32,10 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
 /**
- * @program: flinkx
- * @author: wuren
- * @create: 2021/03/17
- **/
+ * company www.dtstack.com
+ *
+ * @author jier
+ */
 public class OracleDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** 通过该值查找具体插件 */

@@ -27,9 +27,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * @program: flinkx
- * @author: wuren
- * @create: 2021/03/17
+ * company www.dtstack.com
+ *
+ * @author jier
  */
 public class OracleDialect implements JdbcDialect {
 
@@ -98,18 +98,4 @@ public class OracleDialect implements JdbcDialect {
         return sql.toString();
     }
 
-    public String queryOracleMetaDataStatement(
-            String schemaName,
-            String tableName,
-            String[] selectFields) {
-        String selectExpressions =
-                Arrays.stream(selectFields)
-                        .collect(Collectors.joining("','","'","'"));
-        StringBuilder sql = new StringBuilder(128);
-        sql.append("SELECT DATA_PRECISION,DATA_SCALE,COLUMN_NAME,DATA_TYPE FROM ALL_TAB_COLUMNS ");
-        sql.append("WHERE TABLE_NAME = '").append(tableName).append("'").append(" AND OWNER = '")
-                .append(schemaName).append("'")
-                .append(" AND COLUMN_NAME in (").append(selectExpressions).append(")");
-        return sql.toString();
-    }
 }

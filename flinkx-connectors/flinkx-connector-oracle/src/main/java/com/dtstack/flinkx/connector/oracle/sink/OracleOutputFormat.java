@@ -18,37 +18,23 @@
 
 package com.dtstack.flinkx.connector.oracle.sink;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.oracle.OracleDialect;
 import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
-
-import com.dtstack.flinkx.connector.oracle.util.OracleUtil;
 
 import com.dtstack.flinkx.util.TableUtil;
 
-import org.apache.flink.table.api.TableColumn;
-import org.apache.flink.table.api.TableSchema;
-import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import scala.Tuple4;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Date: 2021/04/13 Company: www.dtstack.com
+ * company www.dtstack.com
  *
- * @author tudou
+ * @author jier
  */
 public class OracleOutputFormat extends JdbcOutputFormat {
 
