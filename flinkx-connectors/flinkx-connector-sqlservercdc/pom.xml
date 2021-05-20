@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>flinkx-connector-sqlservercdc</artifactId>
-	<name>FlinkX : Connectors : SQLSERVERCDC</name>
+	<name>FlinkX : Connectors : SqlServer CDC</name>
 
 	<dependencies>
 		<dependency>

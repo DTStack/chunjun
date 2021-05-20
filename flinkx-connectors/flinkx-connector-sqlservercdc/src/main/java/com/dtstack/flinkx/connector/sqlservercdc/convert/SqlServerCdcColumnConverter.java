@@ -19,7 +19,6 @@ package com.dtstack.flinkx.connector.sqlservercdc.convert;
 
 import com.dtstack.flinkx.connector.sqlservercdc.entity.ChangeTable;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEventRow;
-import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEnum;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
@@ -32,15 +31,19 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
-import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.google.common.collect.Maps;
+
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -117,11 +120,11 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
                     parseColumnList(converters, dataPrev, changeTable.getColumnList(), beforeColumnList, beforeHeaderList, BEFORE_);
                     break;
                 case "INSERT":
-                    parseColumnList(converters, data, changeTable.getColumnList(), beforeColumnList, beforeHeaderList, AFTER_);
+                    parseColumnList(converters, data, changeTable.getColumnList(), afterColumnList, afterHeaderList, AFTER_);
                     break;
                 case "UPDATE":
                     parseColumnList(converters, dataPrev, changeTable.getColumnList(), beforeColumnList, beforeHeaderList, BEFORE_);
-                    parseColumnList(converters, data, changeTable.getColumnList(), beforeColumnList, beforeHeaderList, AFTER_);
+                    parseColumnList(converters, data, changeTable.getColumnList(), afterColumnList, afterHeaderList, AFTER_);
                     break;
             }
         } else {
@@ -170,7 +173,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
     }
 
     /**
-     * parse CanalEntry.Column
+     * parse sqlServer.Column
      *
      * @param converters
      * @param columnList
@@ -178,22 +181,19 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
      * @param after
      */
     private void parseColumnList(
-            IDeserializationConverter<String, AbstractBaseColumn>[] converters,
+            IDeserializationConverter<Object, AbstractBaseColumn>[] converters,
             Object[] data,
             List<String> columnsNames,
             List<AbstractBaseColumn> columnList,
             List<String> headerList,
             String after) {
         for (int i = 0; i < data.length; i++) {
+            headerList.add(after + columnsNames.get(i));
             if (data[i] != null) {
-                AbstractBaseColumn column = null;
-                try {
-                    column = converters[i].deserialize(SqlServerCdcUtil.clobToString(data[i]).toString());
-                } catch (Exception e) {
-                    throw new RuntimeException("column convert error", e);
-                }
+                AbstractBaseColumn column = converters[i].deserialize(data[i]);
                 columnList.add(column);
-                headerList.add(after + columnsNames.get(i));
+            } else {
+                columnList.add(null);
             }
         }
     }
@@ -207,61 +207,55 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
         }
         switch (substring.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
-                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> new BooleanColumn(Boolean.parseBoolean(val));
+                return (IDeserializationConverter<Boolean, AbstractBaseColumn>) val -> new BooleanColumn(val);
             case "TINYINT":
-            case "SMALLINT":
-            case "MEDIUMINT":
+                return (IDeserializationConverter<Short, AbstractBaseColumn>) BigDecimalColumn::new;
             case "INT":
-            case "INT24":
             case "INTEGER":
+                return (IDeserializationConverter<Integer, AbstractBaseColumn>) BigDecimalColumn::new;
             case "FLOAT":
-            case "DOUBLE":
-            case "REAL":
-            case "LONG":
+                return (IDeserializationConverter<Double, AbstractBaseColumn>) val -> (new BigDecimalColumn(val.toString()));
             case "BIGINT":
+                return (IDeserializationConverter<Long, AbstractBaseColumn>) BigDecimalColumn::new;
             case "DECIMAL":
             case "NUMERIC":
-                return (IDeserializationConverter<String, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<BigDecimal, AbstractBaseColumn>) BigDecimalColumn::new;
             case "CHAR":
             case "NCHAR":
             case "VARCHAR":
             case "NVARCHAR":
-            case "TINYTEXT":
             case "TEXT":
-            case "MEDIUMTEXT":
-            case "LONGTEXT":
-            case "ENUM":
-            case "SET":
-            case "JSON":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "DATE":
+                return (IDeserializationConverter<Date, AbstractBaseColumn>) TimestampColumn::new;
             case "TIME":
+                return (IDeserializationConverter<Time, AbstractBaseColumn>) TimestampColumn::new;
             case "DATETIME":
             case "DATETIME2":
             case "SMALLDATETIME":
-                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
-            case "TINYBLOB":
-            case "BLOB":
-            case "MEDIUMBLOB":
-            case "LONGBLOB":
-            case "GEOMETRY":
+                return (IDeserializationConverter<Timestamp, AbstractBaseColumn>) TimestampColumn::new;
             case "BINARY":
             case "VARBINARY":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) val -> new BytesColumn(val.getBytes(StandardCharsets.UTF_8));
             case "TIMESTAMP":
-                return (IDeserializationConverter<Object, AbstractBaseColumn>) val -> {
-                    byte[] value = (byte[]) val;
-                    String hexString = StringUtil.bytesToHexString(value);
+                return (IDeserializationConverter<byte[], AbstractBaseColumn>) val -> {
+                    String hexString = StringUtil.bytesToHexString(val);
                     long longValue = new BigInteger(hexString, 16).longValue();
                     return new BigDecimalColumn(longValue);
                 };
+//            case "ROWVERSION":
+//            case "UNIQUEIDENTIFIER":
+//            case "CURSOR":
+//            case "TABLE":
+//            case "SQL_VARIANT":
+//            case "XML":
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
     }
 
     /**
-     * parse CanalEntry Column，get column name and value
+     * parse sqlServer Column，get column name and value
      *
      * @param columnNames
      * @param data

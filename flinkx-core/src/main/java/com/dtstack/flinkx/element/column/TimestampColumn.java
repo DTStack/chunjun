@@ -21,6 +21,8 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 
 /**
@@ -32,6 +34,14 @@ import java.sql.Timestamp;
 public class TimestampColumn extends AbstractBaseColumn {
 
     public TimestampColumn(Timestamp data) {
+        super(data);
+    }
+
+    public TimestampColumn(Time data) {
+        super(data);
+    }
+
+    public TimestampColumn(Date data) {
         super(data);
     }
 

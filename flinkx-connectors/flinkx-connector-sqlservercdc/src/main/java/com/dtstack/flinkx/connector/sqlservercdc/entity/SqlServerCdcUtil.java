@@ -270,31 +270,6 @@ public class SqlServerCdcUtil {
     }
 
     /**
-     * clob to string
-     *
-     * @param obj clob
-     *
-     * @return
-     *
-     * @throws Exception
-     */
-    public static Object clobToString(Object obj) throws Exception {
-        if (obj instanceof Clob) {
-            Clob clob = (Clob) obj;
-            BufferedReader bf = new BufferedReader(clob.getCharacterStream());
-            StringBuilder stringBuilder = new StringBuilder();
-            String line;
-            while ((line = bf.readLine()) != null) {
-                stringBuilder.append(line);
-            }
-            bf.close();
-            return stringBuilder.toString();
-        } else {
-            return obj;
-        }
-    }
-
-    /**
      * get jdbc connection
      *
      * @param url

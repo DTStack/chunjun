@@ -56,6 +56,10 @@ public class BigDecimalColumn extends AbstractBaseColumn {
         super(new BigDecimal(data));
     }
 
+    public BigDecimalColumn(short data) {
+        super(new BigDecimal(data));
+    }
+
     @Override
     public int getByteSize(Object data) {
         return null == data ? 0 : data.toString().getBytes(StandardCharsets.UTF_8).length;
