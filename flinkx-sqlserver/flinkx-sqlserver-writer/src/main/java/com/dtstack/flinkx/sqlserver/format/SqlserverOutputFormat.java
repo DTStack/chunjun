@@ -49,7 +49,7 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
             super.beforeWriteRecords();
         }
         Statement stmt = null;
-        String sql = String.format("IF OBJECTPROPERTY(OBJECT_ID('%s'),'TableHasIdentity')=1 BEGIN SET IDENTITY_INSERT \"%s\" ON  END", table, table);
+        String sql = String.format("IF OBJECTPROPERTY(OBJECT_ID('%s'),'TableHasIdentity')=1 BEGIN SET IDENTITY_INSERT %s ON  END", table, table);
         try {
             stmt = dbConn.createStatement();
             stmt.execute(sql);
