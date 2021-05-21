@@ -190,18 +190,16 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     }
 
     @Override
-    public void writeRecord(RowData rowData) {
+    public synchronized void writeRecord(RowData rowData) {
         int size = 0;
         if (batchSize <= 1) {
             writeSingleRecord(rowData);
             size = 1;
         } else {
-            synchronized (rows){
-                rows.add(rowData);
-                if (rows.size() == batchSize) {
-                    writeRecordInternal();
-                    size = batchSize;
-                }
+            rows.add(rowData);
+            if (rows.size() >= batchSize) {
+                writeRecordInternal();
+                size = batchSize;
             }
         }
 
@@ -214,7 +212,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         LOG.info("subtask[{}] close()", taskNumber);
 
         try {
@@ -226,10 +224,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 this.scheduler.shutdown();
             }
             // when exist data
-            synchronized (rows){
-                if (rows.size() != 0) {
-                    writeRecordInternal();
-                }
+            if (rows.size() != 0) {
+                writeRecordInternal();
             }
 
             if (durationCounter != null) {
@@ -354,7 +350,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         if (batchSize > 1 && flushIntervalMills > 0) {
             this.scheduler = new ScheduledThreadPoolExecutor(1, new DTThreadFactory("timer-data-write-thread"));
             this.scheduledFuture = this.scheduler.scheduleWithFixedDelay(() -> {
-                synchronized (rows) {
+                synchronized (BaseRichOutputFormat.this) {
                     if (closed) {
                         return;
                     }
@@ -392,7 +388,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     /**
      * 数据批量写出
      */
-    protected void writeRecordInternal() {
+    protected synchronized void writeRecordInternal() {
         try {
             writeMultipleRecordsInternal();
         } catch (Exception e) {
