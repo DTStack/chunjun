@@ -43,8 +43,7 @@ public class MysqlRawTypeConverter {
                 return DataTypes.FLOAT();
             case "DECIMAL":
             case "NUMERIC":
-                // TODO 精度应该可以动态传进来？
-                return DataTypes.DECIMAL(38, 18);
+                return DataTypes.DECIMAL(1, 0);
             case "DOUBLE":
                 return DataTypes.DOUBLE();
             case "CHAR":
