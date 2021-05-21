@@ -333,9 +333,10 @@ public class LogMinerConnection {
             logMinerSelectStmt.setString(4, recordLog.getTableName());
             logMinerSelectStmt.setInt(5, 0);
             logMinerSelectStmt.setInt(6, 1);
-            logMinerSelectStmt.setString(7, recordLog.getRowId());
-            logMinerSelectStmt.setString(8, recordLog.getXidSqn());
-            logMinerSelectStmt.setBigDecimal(9, recordLog.getScn());
+            logMinerSelectStmt.setInt(7, 3);
+            logMinerSelectStmt.setString(8, recordLog.getRowId());
+            logMinerSelectStmt.setString(9, recordLog.getXidSqn());
+            logMinerSelectStmt.setBigDecimal(10, recordLog.getScn());
 
             logMinerData = logMinerSelectStmt.executeQuery();
 
@@ -520,18 +521,6 @@ public class LogMinerConnection {
         }
     }
 
-    public long maxSCN() throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(SqlUtil.SQL_GET_MAX_SCN_IN_CONTENTS)) {
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getLong(1);
-            } else {
-                throw new RuntimeException();
-            }
-
-        }
-    }
-
     /**
      * 根据scn号查询在线及归档日志组
      *
@@ -664,32 +653,56 @@ public class LogMinerConnection {
                 continue;
             }
             BigDecimal scn = logMinerData.getBigDecimal(KEY_SCN);
+            String tableName = logMinerData.getString(KEY_TABLE_NAME);
             String operation = logMinerData.getString(KEY_OPERATION);
             int operationCode = logMinerData.getInt(KEY_OPERATION_CODE);
 
-            boolean hasMultiSql = false;
+            boolean hasMultiSql;
 
             String xidSqn = logMinerData.getString(KEY_XID_SQN);
             String rowId = logMinerData.getString(KEY_ROW_ID);
+            boolean rollback = logMinerData.getBoolean(KEY_ROLLBACK);
 
 
-            if (logMinerData.getBoolean(KEY_ROLLBACK)) {
-                StringBuilder undoLog = new StringBuilder(1024);
+            // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
+            boolean isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
+            //是否存在多条SQL
+            hasMultiSql = isSqlNotEnd;
 
-                //从缓存里查找rollback对应的insert语句
-                RecordLog recordLog = queryUndoLogFromCache(xidSqn + rowId, scn);
-                if(Objects.nonNull(recordLog)){
-                    undoLog.append(recordLog.getSqlUndo());
-                    hasMultiSql = recordLog.getHasMultiSql();
+            while (isSqlNotEnd) {
+                logMinerData.next();
+                //redoLog 实际上不需要发生切割  但是sqlUndo发生了切割，导致redolog值为null
+                String sqlRedoValue = logMinerData.getString(KEY_SQL_REDO);
+                if (Objects.nonNull(sqlRedoValue)) {
+                    sqlRedo.append(sqlRedoValue);
                 }
 
-                if (undoLog.length() == 0) {
-                    //如果insert语句不在缓存 或者 和rollback不再同一个日志文件里 会递归从日志文件里查找
+                String sqlUndoValue = logMinerData.getString(KEY_SQL_UNDO);
+                if (Objects.nonNull(sqlUndoValue)) {
+                    sqlUndo.append(sqlUndoValue);
+                }
+                isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
+            }
+
+
+            //delete from "table"."ID" where ROWID = 'AAADcjAAFAAAABoAAC' delete语句需要rowid条件需要替换
+            //update "schema"."table" set "ID" = '29' 缺少where条件
+            if (rollback && (operationCode == 2 || operationCode == 3 )) {
+                StringBuilder undoLog = new StringBuilder(1024);
+
+                //从缓存里查找rollback对应的DML语句
+                RecordLog recordLog = queryUndoLogFromCache(xidSqn + rowId, scn);
+
+                if (Objects.isNull(recordLog)) {
+                    //如果DML语句不在缓存 或者 和rollback不再同一个日志文件里 会递归从日志文件里查找
                     recordLog = recursionQueryDataForRollback(new RecordLog(scn, "", "", xidSqn, rowId, operationCode, false, logMinerData.getString(KEY_TABLE_NAME)));
-                    if (Objects.nonNull(recordLog)) {
-                        undoLog.append(recordLog.getSqlUndo());
-                        hasMultiSql = recordLog.getHasMultiSql();
-                    }
+                }
+
+                if(Objects.nonNull(recordLog)){
+                    RecordLog rollbackLog = new RecordLog(scn, sqlUndo.toString(), sqlRedo.toString(), xidSqn, rowId, operationCode, hasMultiSql, tableName);
+                    String rollbackSql = getRollbackSql(rollbackLog, recordLog);
+                    undoLog.append(rollbackSql);
+                    hasMultiSql = recordLog.getHasMultiSql();
                 }
 
                 if(undoLog.length() == 0){
@@ -698,27 +711,7 @@ public class LogMinerConnection {
                 }else{
                     sqlRedo = undoLog;
                 }
-                LOG.debug("there is a rollback sql,scn is {},rowId is {},xisSqn is {}", scn, rowId, xidSqn);
-            } else {
-                // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
-                boolean isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
-                //是否存在多条SQL
-                hasMultiSql = isSqlNotEnd;
-
-                while (isSqlNotEnd) {
-                    logMinerData.next();
-                    //redoLog 实际上不需要发生切割  但是sqlUndo发生了切割，导致redolog值为null
-                    String sqlRedoValue = logMinerData.getString(KEY_SQL_REDO);
-                    if (Objects.nonNull(sqlRedoValue)) {
-                        sqlRedo.append(sqlRedoValue);
-                    }
-
-                    String sqlUndoValue = logMinerData.getString(KEY_SQL_UNDO);
-                    if (Objects.nonNull(sqlUndoValue)) {
-                        sqlUndo.append(sqlUndoValue);
-                    }
-                    isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
-                }
+                LOG.debug("find rollback sql,scn is {},rowId is {},xisSqn is {}", scn, rowId, xidSqn);
             }
 
             //oracle10中文编码且字符串大于4000，LogMiner可能出现中文乱码导致SQL解析异常
@@ -760,7 +753,6 @@ public class LogMinerConnection {
             }
 
             String schema = logMinerData.getString(KEY_SEG_OWNER);
-            String tableName = logMinerData.getString(KEY_TABLE_NAME);
             Timestamp timestamp = logMinerData.getTimestamp(KEY_TIMESTAMP);
 
             Map<String, Object> data = new HashMap<>();
@@ -772,8 +764,10 @@ public class LogMinerConnection {
 
             result = new QueueData(scn, data);
 
-            //解析的数据放入缓存
-            putCache(new RecordLog(scn, sqlUndo.toString(), sqlLog, xidSqn, rowId, operationCode, hasMultiSql, tableName));
+            //只有非回滚的insert update解析的数据放入缓存
+            if(!rollback){
+                putCache(new RecordLog(scn, sqlUndo.toString(), sqlLog, xidSqn, rowId, operationCode, hasMultiSql, tableName));
+            }
             return true;
         }
 
@@ -922,9 +916,13 @@ public class LogMinerConnection {
     }
 
 
+    /**
+     * insert以及update record放入缓存中
+     * @param recordLog
+     */
     private void putCache(RecordLog recordLog) {
-        //缓存里只放入insert的DML语句
-        if (recordLog.getOperationCode() != 1) {
+        //缓存里不放入delete的DML语句
+        if (recordLog.getOperationCode() == 2) {
             return;
         }
         Map<BigDecimal, RecordLog> bigDecimalListMap = insertRecordCache.getIfPresent(recordLog.getXidSqn() + recordLog.getRowId());
@@ -933,7 +931,9 @@ public class LogMinerConnection {
             insertRecordCache.put(recordLog.getXidSqn() + recordLog.getRowId(), data);
             bigDecimalListMap = data;
         }
-          bigDecimalListMap.put(recordLog.getScn(), recordLog);
+        recordLog.setSqlUndo(recordLog.getSqlUndo().replace("IS NULL", "= NULL"));
+        recordLog.setSqlRedo(recordLog.getSqlRedo().replace("IS NULL", "= NULL"));
+        bigDecimalListMap.put(recordLog.getScn(), recordLog);
 
     }
 
@@ -959,10 +959,10 @@ public class LogMinerConnection {
             while (iterator.hasNext()) {
                 tail = iterator.next();
             }
-             if(Objects.nonNull(tail)){
-                 recordLog = tail.getValue();
-                 recordMap.remove(tail.getKey());
-             }
+            if(Objects.nonNull(tail)){
+                recordLog = tail.getValue();
+                recordMap.remove(tail.getKey());
+            }
         } else {
             recordMap.remove(scn);
         }
@@ -1005,9 +1005,9 @@ public class LogMinerConnection {
             //while循环查找所有数据 并都加载到缓存里去
             while (queryDataForRollbackConnection.hasNext()){}
             //从缓存里取
-            RecordLog insertLog = queryDataForRollbackConnection.queryUndoLogFromCache(rollbackRecord.getXidSqn() + rollbackRecord.getRowId(), rollbackRecord.getScn());
-            if (Objects.nonNull(insertLog)) {
-                return insertLog;
+            RecordLog dmlLog = queryDataForRollbackConnection.queryUndoLogFromCache(rollbackRecord.getXidSqn() + rollbackRecord.getRowId(), rollbackRecord.getScn());
+            if (Objects.nonNull(dmlLog)) {
+                return dmlLog;
             }
             endScn = startScn;
             startScn = startScn.subtract(step);
@@ -1028,5 +1028,25 @@ public class LogMinerConnection {
 
     public enum ReadPosition {
         ALL, CURRENT, TIME, SCN
+    }
+
+    /**
+     * 回滚语句根据对应的dml日志找出对应的undoog
+     * @param rollbackLog 回滚语句
+     * @param dmlLog 对应的dml语句
+     */
+    public String getRollbackSql(RecordLog rollbackLog, RecordLog dmlLog) {
+        //如果回滚日志是update，则其where条件没有 才会进入
+        if(rollbackLog.getOperationCode() == 3 && dmlLog.getOperationCode() == 3){
+            return dmlLog.getSqlUndo();
+        }
+
+        //回滚日志是delete
+        //delete回滚两种场景 如果客户表字段存在blob字段且插入时blob字段为空 此时会出现insert emptyBlob语句以及一个update语句之外 之后才会有一个delete语句，而此delete语句rowid对应的上面update语句 所以直接返回delete from "table"."ID" where ROWID = 'AAADcjAAFAAAABoAAC'（blob不支持）
+        if (rollbackLog.getOperationCode() == 2 && dmlLog.getOperationCode() == 1) {
+            return dmlLog.getSqlUndo();
+        }
+        LOG.warn(" dmlLog [{}]  is not hit for rollbackLog [{}]", rollbackLog, dmlLog);
+        return "";
     }
 }
