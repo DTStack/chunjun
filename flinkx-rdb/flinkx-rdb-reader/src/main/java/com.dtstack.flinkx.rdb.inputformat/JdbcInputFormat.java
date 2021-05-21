@@ -828,7 +828,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         } catch (InterruptedException e) {
             LOG.warn("interrupted while waiting for polling, e = {}", ExceptionUtil.getErrorMessage(e));
         }
-
         //查询到数据，更新querySql
         builder = new StringBuilder(128);
         builder.append(querySql)
