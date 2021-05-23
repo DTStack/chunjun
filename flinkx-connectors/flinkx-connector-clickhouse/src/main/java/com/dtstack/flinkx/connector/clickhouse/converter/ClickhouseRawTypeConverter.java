@@ -24,6 +24,7 @@ import org.apache.flink.table.types.DataType;
 import java.sql.SQLException;
 import java.util.Locale;
 
+
 /**
  * @program: flinkx
  * @author: xiuzhu
@@ -45,11 +46,14 @@ public class ClickhouseRawTypeConverter {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
-            case "BYTE":
-                return DataTypes.TINYINT();
-            case "SHORT":
-            case "SMALLINT":
             case "TINYINT":
+            case "INT8":
+            case "UINT8":
+                return DataTypes.TINYINT();
+            case "SMALLINT":
+            case "UINT16":
+            case "INT16":
+                return DataTypes.SMALLINT();
             case "INTEGER":
             case "INTERVALYEAR":
             case "INTERVALQUARTER":
@@ -59,11 +63,7 @@ public class ClickhouseRawTypeConverter {
             case "INTERVALHOUR":
             case "INTERVALMINUTE":
             case "INTERVALSECOND":
-            case "UINT16":
-            case "UINT8":
             case "INT32":
-            case "INT16":
-            case "INT8":
             case "INT":
                 return DataTypes.INT();
             case "UINT32":
@@ -110,8 +110,10 @@ public class ClickhouseRawTypeConverter {
             case "TIMESTAMP":
             case "DATETIME":
                 return DataTypes.TIMESTAMP();
-            case "byte[]":
-                return DataTypes.BYTES();
+            case "NOTHING":
+            case "NULLABLE":
+            case "NULL":
+                return DataTypes.NULL();
             default:
                 throw new SQLException("不支持" + type + "类型");
         }
