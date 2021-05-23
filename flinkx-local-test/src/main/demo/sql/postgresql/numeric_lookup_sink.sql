@@ -33,7 +33,7 @@ CREATE TABLE lookup_pg
     val_numeric     DECIMAL,
     PRIMARY KEY (val_smallint) NOT ENFORCED
 ) WITH (
-    'connector' = 'postgres-x',
+    'connector' = 'postgresql-x',
     'url' = 'jdbc:postgresql://localhost:5432/dev',
     'table-name' = 'dim_numeric',
     'username' = 'postgres',
@@ -57,7 +57,7 @@ CREATE TABLE sink_pg (
     val_decimal     DECIMAL,
     val_numeric     DECIMAL
 ) WITH (
-    'connector' = 'postgres-x',
+    'connector' = 'postgresql-x',
     'url' = 'jdbc:postgresql://localhost:5432/dev',
     'table-name' = 'dim_numeric',
     'username' = 'postgres',

@@ -32,7 +32,7 @@ CREATE TABLE lookup_pg
     val_boolean           BOOLEAN,
     PRIMARY KEY (val_varchar) NOT ENFORCED
 ) WITH (
-    'connector' = 'postgres-x',
+    'connector' = 'postgresql-x',
     'url' = 'jdbc:postgresql://localhost:5432/dev',
     'table-name' = 'dim_without_numeric',
     'username' = 'postgres',
@@ -55,7 +55,7 @@ CREATE TABLE sink_pg (
     val_timetz            TIME,
     val_boolean           BOOLEAN
 ) WITH (
-    'connector' = 'postgres-x',
+    'connector' = 'postgresql-x',
     'url' = 'jdbc:postgresql://localhost:5432/dev',
     'table-name' = 'dim_without_numeric',
     'username' = 'postgres',

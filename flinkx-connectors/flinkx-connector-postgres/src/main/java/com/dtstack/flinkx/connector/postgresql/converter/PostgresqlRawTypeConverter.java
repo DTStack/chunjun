@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.postgres.converter;
+package com.dtstack.flinkx.connector.postgresql.converter;
 
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
@@ -31,7 +31,7 @@ import java.util.Locale;
  * @author: wuren
  * @create: 2021/04/22
  */
-public class PostgresRawTypeConverter {
+public class PostgresqlRawTypeConverter {
 
     /**
      * inspired by Postgresql doc. https://www.postgresql.org/docs/current/datatype.html

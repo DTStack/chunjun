@@ -16,35 +16,38 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.postgres.source;
+package com.dtstack.flinkx.connector.postgresql.sink;
 
-import org.apache.flink.core.io.InputSplit;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.postgresql.converter.PostgresqlRawTypeConverter;
+import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
-import com.dtstack.flinkx.connector.postgres.converter.PostgresRawTypeConverter;
-import com.dtstack.flinkx.util.TableUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 
 /**
  * @program: flinkx
  * @author: wuren
- * @create: 2021/04/22
+ * @create: 2021/04/28
  */
-public class PostgresInputFormat extends JdbcInputFormat {
+public class PostgresqlOutputFormat extends JdbcOutputFormat {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PostgresqlOutputFormat.class);
 
     @Override
-    public void openInternal(InputSplit inputSplit) {
-        super.openInternal(inputSplit);
+    protected void openInternal(int taskNumber, int numTasks) {
+        super.openInternal(taskNumber, numTasks);
         try {
             LogicalType rowType =
-                    TableUtil.createRowType(
-                            column, columnType, PostgresRawTypeConverter::apply);
+                    TableUtil.createRowType(column, columnType, PostgresqlRawTypeConverter::apply);
             setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            LOG.error("", e);
         }
     }
 }
