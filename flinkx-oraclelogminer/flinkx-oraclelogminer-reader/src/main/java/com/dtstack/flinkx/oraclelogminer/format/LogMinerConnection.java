@@ -54,6 +54,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -136,7 +137,7 @@ public class LogMinerConnection {
     private LogMinerConnection queryDataForRollbackConnection;
 
     /**缓存的结构为  xidsqn(事务id)+rowId,scn**/
-    Cache<String, LinkedHashMap<BigDecimal, RecordLog>> insertRecordCache = CacheBuilder.newBuilder()
+    Cache<String, LinkedHashMap<BigDecimal,  LinkedList<RecordLog>>> insertRecordCache = CacheBuilder.newBuilder()
             .maximumSize(1000)
             .expireAfterWrite(20, TimeUnit.MINUTES)
             .build();
@@ -925,48 +926,63 @@ public class LogMinerConnection {
         if (recordLog.getOperationCode() == 2) {
             return;
         }
-        Map<BigDecimal, RecordLog> bigDecimalListMap = insertRecordCache.getIfPresent(recordLog.getXidSqn() + recordLog.getRowId());
+        Map<BigDecimal, LinkedList<RecordLog>> bigDecimalListMap = insertRecordCache.getIfPresent(recordLog.getXidSqn() + recordLog.getRowId());
         if (Objects.isNull(bigDecimalListMap)) {
-            LinkedHashMap<BigDecimal, RecordLog> data = new LinkedHashMap<>(32);
+            LinkedHashMap<BigDecimal, LinkedList<RecordLog>> data = new LinkedHashMap<>(32);
             insertRecordCache.put(recordLog.getXidSqn() + recordLog.getRowId(), data);
             bigDecimalListMap = data;
         }
+        LinkedList<RecordLog> recordList = bigDecimalListMap.get(recordLog.getScn());
+        if(CollectionUtils.isEmpty(recordList)){
+            recordList = new LinkedList<>();
+            bigDecimalListMap.put(recordLog.getScn(),recordList);
+        }
+
         recordLog.setSqlUndo(recordLog.getSqlUndo().replace("IS NULL", "= NULL"));
         recordLog.setSqlRedo(recordLog.getSqlRedo().replace("IS NULL", "= NULL"));
-        bigDecimalListMap.put(recordLog.getScn(), recordLog);
+        recordList.add(recordLog);
 
     }
 
 
     /**
-     * 从缓存的insert语句里找到rollback语句对应的DML语句
+     * 从缓存的dml语句里找到rollback语句对应的DML语句
      * 如果查找到 需要删除对应的缓存信息
      * @param key xidSqn+rowid
      * @param scn scn of rollback
-     * @return insert Log
+     * @return dml Log
      */
     public RecordLog queryUndoLogFromCache(String key, BigDecimal scn) {
-        LinkedHashMap<BigDecimal, RecordLog> recordMap = insertRecordCache.getIfPresent(key);
+        LinkedHashMap<BigDecimal, LinkedList<RecordLog>> recordMap = insertRecordCache.getIfPresent(key);
         if (MapUtils.isEmpty(recordMap)) {
             return null;
         }
-        //根据scn号查找 如果scn号相同 则取此对应的DML语句
-        RecordLog recordLog = recordMap.get(scn);
-        if (Objects.isNull(recordLog)) {
+        //根据scn号查找 如果scn号相同 则取此对应的最后DML语句  dml按顺序添加，rollback倒序取对应的语句
+        LinkedList<RecordLog> recordLogList = recordMap.get(scn);
+        BigDecimal recordKey = scn;
+        RecordLog recordLog = null;
+        if (CollectionUtils.isEmpty(recordLogList)) {
             //如果scn相同的DML语句没有 则取同一个事务里rowId相同的最后一个
-            Iterator<Map.Entry<BigDecimal, RecordLog>> iterator = recordMap.entrySet().iterator();
-            Map.Entry<BigDecimal, RecordLog> tail = null;
+            Iterator<Map.Entry<BigDecimal, LinkedList<RecordLog>>> iterator = recordMap.entrySet().iterator();
+            Map.Entry<BigDecimal,  LinkedList<RecordLog> > tail = null;
             while (iterator.hasNext()) {
                 tail = iterator.next();
             }
             if(Objects.nonNull(tail)){
-                recordLog = tail.getValue();
-                recordMap.remove(tail.getKey());
+                recordLogList = tail.getValue();
+                recordKey = tail.getKey();
             }
-        } else {
-            recordMap.remove(scn);
         }
-        LOG.info("query a insert sql for rollback in cache,rollback scn is {}",scn);
+        if(CollectionUtils.isNotEmpty(recordLogList)){
+            recordLog = recordLogList.getLast();
+            recordLogList.removeLast();
+            LOG.info("query a insert sql for rollback in cache,rollback scn is {}",scn);
+        }
+
+        if(CollectionUtils.isEmpty(recordLogList)){
+            recordMap.remove(recordKey);
+        }
+
         return recordLog;
     }
 
@@ -999,7 +1015,7 @@ public class LogMinerConnection {
         BigDecimal startScn = rollbackRecord.getScn().subtract(step);
         BigDecimal endScn = rollbackRecord.getScn();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 2; i++) {
             queryDataForRollbackConnection.startOrUpdateLogminer(startScn, endScn);
             queryDataForRollbackConnection.queryDataForDeleteRollback(rollbackRecord, SqlUtil.queryDataForRollback);
             //while循环查找所有数据 并都加载到缓存里去
@@ -1046,7 +1062,7 @@ public class LogMinerConnection {
         if (rollbackLog.getOperationCode() == 2 && dmlLog.getOperationCode() == 1) {
             return dmlLog.getSqlUndo();
         }
-        LOG.warn(" dmlLog [{}]  is not hit for rollbackLog [{}]", rollbackLog, dmlLog);
+        LOG.warn("dmlLog [{}]  is not hit for rollbackLog [{}]", dmlLog, rollbackLog);
         return "";
     }
 }
