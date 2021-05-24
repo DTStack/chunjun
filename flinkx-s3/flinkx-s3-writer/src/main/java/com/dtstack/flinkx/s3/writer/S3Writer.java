@@ -80,6 +80,7 @@ public class S3Writer extends BaseDataWriter {
         builder.setColumnTypes(columnType);
         builder.setMaxFileSize(s3Config.getMaxFileSize());
         builder.setErrors(errors);
+        builder.setErrorRatio(errorRatio);
         builder.setDirtyPath(dirtyPath);
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
