@@ -47,14 +47,14 @@ aws s3
   - 默认值：无
 
 - **objects**
-  - 描述：需要同步的对象,支持正则表达式
+  - 描述：需要同步的对象,".*" 结尾视为查询 ".*" 的前缀的所以对象，如 "abc/.*" 为查询以 "abc/" 为前缀的所有对象
   - 格式：
     - 单个对象
       - ["abc.xml"]
       - ["abd"]
     - 多个对象
       - ["dir/.+"]
-      - ["abc.xml","dir/.+\.xml"]
+      - ["abc.xml","xxxx.*"]
 
 - **column**
 
@@ -262,7 +262,7 @@ aws s3
             "secretKey": "",
             "region": "",
             "bucket": "",
-            "objects": ["dir/.+\.xml","bbb/ccc.xml"],
+            "objects": ["abc/.*","bbb/ccc.xml"],
             "column": [
               {
                 "index": 0,

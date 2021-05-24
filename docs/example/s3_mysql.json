@@ -4,10 +4,10 @@
       {
         "reader": {
           "parameter": {
-            "accessKey": "AKIAVCE7XHFIL4ZA3652",
-            "secretKey": "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",
+            "accessKey": "test_accessKey",
+            "secretKey": "test_secretKey",
             "region": "cn-northwest-1",
-            "bucket": "s3-smartdi-01",
+            "bucket": "test_bucket",
             "object": ["dt/test/csv/people_withTime.csv"],
             "column": [
               {
@@ -45,7 +45,7 @@
             "password": "Abc123456",
             "connection": [
               {
-                "jdbcUrl": "jdbc:mysql://172.16.100.186:3306/test?useSSL=false",
+                "jdbcUrl": "jdbc:mysql://localhost:3306/test?useSSL=false",
                 "table": [
                   "people_bak_20210429"
                 ]
