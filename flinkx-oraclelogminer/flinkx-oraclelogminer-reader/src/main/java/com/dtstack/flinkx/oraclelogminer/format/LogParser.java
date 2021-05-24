@@ -181,6 +181,10 @@ public class LogParser {
             parseDeleteStmt((Delete) stmt, beforeDataMap, afterDataMap);
         }
 
+        if(LOG.isDebugEnabled()){
+            printDelay(message);
+        }
+
         if (config.getPavingData()) {
             afterDataMap.forEach((key, val) -> message.put("after_" + key, val));
 
@@ -243,5 +247,21 @@ public class LogParser {
         }
         return redoLog;
     }
+
+
+    /**
+     * 打印flinkx延迟时间
+     * @param message
+     */
+    private void printDelay(Map<String, Object> message) {
+        //flinkx处理时间
+        long ts = Long.parseLong(message.get("ts").toString());
+        long res = ts >> 22;
+
+        long opTime = ((Timestamp) message.get("opTime")).getTime();
+
+        LOG.debug("scn {} ,delay {} ms", message.get("scn"), res - opTime);
+    }
+
 
 }
