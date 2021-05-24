@@ -4,15 +4,14 @@
       {
         "reader": {
           "parameter": {
-            "jdbcUrl": "jdbc:oracle:thin:@172.16.100.220:1521:xe",
-            "username": "tudou",
-            "password": "abc123",
+            "jdbcUrl": "jdbc:oracle:thin:@127.0.0.1:1521:xe",
+            "username": "username",
+            "password": "password",
             "supportAutoAddLog": false,
-            "table": ["TUDOU.*"],
+            "table": ["table.*"],
             "cat": "UPDATE,INSERT,DELETE",
             "pavingData" : true,
             "readPosition" : "CURRENT",
-            "startSCN" : "5515688",
             "queryTimeout": 3000
           },
           "name": "oraclelogminerreader"
@@ -25,20 +24,10 @@
         }
       }
     ],
-    "setting": {
-      "log" : {
-        "isLogger": false,
-        "level" : "info"
-      },
-      "restore": {
-        "isRestore": false,
-        "isStream": true
-      },
-      "errorLimit": {
-      },
-      "speed": {
-        "bytes": 0,
-        "channel": 1
+    "setting" : {
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
       }
     }
   }

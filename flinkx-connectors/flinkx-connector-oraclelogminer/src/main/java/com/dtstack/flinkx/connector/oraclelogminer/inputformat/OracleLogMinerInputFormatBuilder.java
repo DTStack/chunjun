@@ -140,6 +140,8 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
                     false);
             Statement statement = connection.createStatement();
         ) {
+            statement.setQueryTimeout(config.getQueryTimeout().intValue());
+
             int oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
             LOG.info("current Oracle version is：{}", oracleVersion);
 

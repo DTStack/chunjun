@@ -22,7 +22,8 @@ package com.dtstack.flinkx.connector.oraclelogminer.listener;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
-import com.dtstack.flinkx.connector.oraclelogminer.entity.LogminerEventRow;
+import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRow;
+import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRowData;
 import com.dtstack.flinkx.connector.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
@@ -38,21 +39,18 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author jiangbo
@@ -62,14 +60,6 @@ public class LogParser {
 
     public static Logger LOG = LoggerFactory.getLogger(LogParser.class);
 
-    //TO_DATE函数值匹配
-    public static Pattern toDatePattern = Pattern.compile("(?i)(?<toDate>(TO_DATE\\('(?<datetime>(.*?))',\\s+'YYYY-MM-DD HH24:MI:SS'\\)))");
-    //TO_TIMESTAMP函数值匹配
-    public static Pattern timeStampPattern = Pattern.compile("(?i)(?<toTimeStamp>(TO_TIMESTAMP\\('(?<datetime>(.*?))'\\)))");
-
-    public static Pattern timeStampItzPattern = Pattern.compile("(?i)(?<toTimeStampItz>(TO_TIMESTAMP_ITZ\\('(?<datetime>(.*?))'\\)))");
-
-    public static Pattern timeStampTzPattern = Pattern.compile("(?i)(?<toTimeStampTz>(TO_TIMESTAMP_TZ\\('(?<datetime>(.*?))'\\)))");
 
     public static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
 
@@ -99,7 +89,7 @@ public class LogParser {
         return str.replace("IS NULL", "= NULL").trim();
     }
 
-    private static void parseInsertStmt(Insert insert, ArrayList<LogminerEventRow.Column> beforeData, ArrayList<LogminerEventRow.Column> afterData) {
+    private static void parseInsertStmt(Insert insert, ArrayList<EventRowData> beforeData, ArrayList<EventRowData> afterData) {
         ArrayList<String> columnLists = new ArrayList<>();
         for (Column column : insert.getColumns()) {
             columnLists.add(cleanString(column.getColumnName()));
@@ -110,19 +100,21 @@ public class LogParser {
         int i = 0;
         for (String key : columnLists) {
             String value = cleanString(valueList.get(i).toString());
-            afterData.add(new LogminerEventRow.Column(key, value, Objects.isNull(value)));
-            beforeData.add(new LogminerEventRow.Column(key, null, true));
+            afterData.add(new EventRowData(key, value, Objects.isNull(value)));
+            beforeData.add(new EventRowData(key, null, true));
             i++;
         }
     }
 
-    private static void parseUpdateStmt(Update update, ArrayList<LogminerEventRow.Column> beforeData, ArrayList<LogminerEventRow.Column> afterData, String sqlRedo) {
+    private static void parseUpdateStmt(Update update, ArrayList<EventRowData> beforeData, ArrayList<EventRowData> afterData, String sqlRedo) {
         Iterator<Expression> iterator = update.getExpressions().iterator();
         HashSet<String> columns = new HashSet<>(32);
         for (Column c : update.getColumns()) {
             String value = cleanString(iterator.next().toString());
             String columnName = cleanString(c.getColumnName());
-            afterData.add(new LogminerEventRow.Column(columnName, value, Objects.isNull(value)));
+            boolean isNull = Objects.isNull(value) || value.equalsIgnoreCase("= NULL");
+
+            afterData.add(new EventRowData(columnName, isNull ? null : value, isNull));
             columns.add(columnName);
         }
 
@@ -133,9 +125,10 @@ public class LogParser {
                     String col = cleanString(expr.getLeftExpression().toString());
                     String value = cleanString(expr.getRightExpression().toString());
 
-                    beforeData.add(new LogminerEventRow.Column(col,  value, Objects.isNull(value)));
+                    boolean isNull = Objects.isNull(value) || value.equalsIgnoreCase("= NULL");
+                    beforeData.add(new EventRowData(col,isNull ? null : value, isNull));
                     if (!columns.contains(col)) {
-                        afterData.add(new LogminerEventRow.Column(col,  value, Objects.isNull(value)));
+                        afterData.add(new EventRowData(col, isNull ? null : value, isNull));
                     }
                 }
             });
@@ -144,15 +137,15 @@ public class LogParser {
         }
     }
 
-    private static void parseDeleteStmt(Delete delete, ArrayList<LogminerEventRow.Column> beforeData, ArrayList<LogminerEventRow.Column> afterData) {
+    private static void parseDeleteStmt(Delete delete, ArrayList<EventRowData> beforeData, ArrayList<EventRowData> afterData) {
         delete.getWhere().accept(new ExpressionVisitorAdapter() {
             @Override
             public void visit(final EqualsTo expr) {
                 String col = cleanString(expr.getLeftExpression().toString());
                 String value = cleanString(expr.getRightExpression().toString());
-                boolean isNull = value.equalsIgnoreCase("= NULL");
-                beforeData.add(new LogminerEventRow.Column(col, isNull ? null : value, isNull));
-                afterData.add(new LogminerEventRow.Column(col, null, true));
+                boolean isNull = Objects.isNull(value) || value.equalsIgnoreCase("= NULL");
+                beforeData.add(new EventRowData(col, isNull ? null : value, isNull));
+                afterData.add(new EventRowData(col, null, true));
             }
         });
     }
@@ -167,13 +160,6 @@ public class LogParser {
         String sqlRedo = sqlLog.replace("IS NULL", "= NULL");
         Timestamp timestamp = logData.getField("opTime").asTimestamp();
 
-
-        //只有oracle10需要进行toDate toTimestamp转换
-        LOG.debug("before parse toDate/toTimestamp sqlRedo = {}", sqlRedo);
-        if (isOracle10) {
-            sqlRedo = parseToTimeStampTz(parseToTimeStampItz(parseToTimeStamp(parseToDate(sqlRedo))));
-        }
-
         Statement stmt;
         try {
             stmt = CCJSqlParserUtil.parse(sqlRedo);
@@ -182,103 +168,73 @@ public class LogParser {
             stmt = CCJSqlParserUtil.parse(sqlRedo.replace("\\'", "\\ '"));
         }
 
-        ArrayList<LogminerEventRow.Column> afterColumnList = new ArrayList<>();
-        ArrayList<LogminerEventRow.Column> beforColumnList = new ArrayList<>();
+        ArrayList<EventRowData> afterEventRowDataList = new ArrayList<>();
+        ArrayList<EventRowData> EventRowDataList = new ArrayList<>();
 
         if (stmt instanceof Insert) {
-            parseInsertStmt((Insert) stmt, beforColumnList, afterColumnList);
+            parseInsertStmt((Insert) stmt, EventRowDataList, afterEventRowDataList);
         } else if (stmt instanceof Update) {
-            parseUpdateStmt((Update) stmt, beforColumnList, afterColumnList, sqlRedo);
+            parseUpdateStmt((Update) stmt, EventRowDataList, afterEventRowDataList, sqlRedo);
         } else if (stmt instanceof Delete) {
-            parseDeleteStmt((Delete) stmt, beforColumnList, afterColumnList);
+            parseDeleteStmt((Delete) stmt, EventRowDataList, afterEventRowDataList);
         }
 
 
-        LogminerEventRow logminerEventRow = new LogminerEventRow(beforColumnList, afterColumnList, pair.getScn(), operation, schema, tableName, idWorker.nextId(), timestamp);
+        EventRow eventRow = new EventRow(EventRowDataList, afterEventRowDataList, pair.getScn(), operation, schema, tableName, idWorker.nextId(), timestamp);
 
-        return rowConverter.toInternal(logminerEventRow);
-    }
-
-    /**
-     * 解析to_date函数
-     *
-     * @param redoLog
-     *
-     * @return
-     */
-    private String parseToDate(String redoLog) {
-        Matcher matcher = toDatePattern.matcher(redoLog);
-        HashMap<String, String> replaceData = new HashMap<>(8);
-        while (matcher.find()) {
-            String key = matcher.group("toDate");
-            String value = "'" + matcher.group("datetime") + "'";
-            replaceData.put(key, value);
-        }
-        return replace(redoLog, replaceData);
+        return rowConverter.toInternal(eventRow);
     }
 
 
     /**
-     * 解析to_timestamp函数
+     * parse time type data
      *
-     * @param redoLog
+     * @param value
      *
      * @return
      */
-    private String parseToTimeStamp(String redoLog) {
-        Matcher matcher = timeStampPattern.matcher(redoLog);
-        HashMap<String, String> replaceData = new HashMap<>(8);
-        while (matcher.find()) {
-            String key = matcher.group("toTimeStamp");
-            String value = "'" + matcher.group("datetime") + "'";
-            replaceData.put(key, value);
+    public static String parseTime(String value) {
+        if (!value.endsWith("')")) {
+            return value;
         }
-        return replace(redoLog, replaceData);
+
+        //DATE类型
+        if (value.startsWith("TO_DATE('")) {
+            return value.substring(9, value.length() - 27);
+        }
+
+        //TIMESTAMP类型
+        if (value.startsWith("TO_TIMESTAMP('")) {
+            return value.substring(14, value.length() - 2);
+        }
+
+        //TIMESTAMP WITH LOCAL TIME ZONE
+        if (value.startsWith("TO_TIMESTAMP_ITZ('")) {
+            return value.substring(18, value.length() - 2);
+        }
+
+        //TIMESTAMP WITH TIME ZONE 类型
+        if (value.startsWith("TO_TIMESTAMP_TZ('")) {
+            return value.substring(17, value.length() - 2);
+        }
+        return value;
     }
 
-    /**
-     * TO_TIMESTAMP_ITZ('2021-05-17 07:08:27.000000')格式解析
-     * @param redoLog
-     * @return
-     */
-    private String parseToTimeStampItz(String redoLog) {
-        Matcher matcher = timeStampItzPattern.matcher(redoLog);
-        HashMap<String, String> replaceData = new HashMap<>(8);
-        while (matcher.find()) {
-            String key = matcher.group("toTimeStampItz");
-            String value = "'" + matcher.group("datetime") + "'";
-            replaceData.put(key, value);
+
+    public static String parseString(String value) {
+        if (!value.endsWith("')")) {
+            return value;
         }
-        return replace(redoLog, replaceData);
-    }
 
-
-    /**
-     * TO_TIMESTAMP_TZ('2021-05-17 07:08:27.000000 上午 +08:00')
-     * @param redoLog
-     * @return
-     */
-    private String parseToTimeStampTz(String redoLog) {
-        Matcher matcher = timeStampTzPattern.matcher(redoLog);
-        HashMap<String, String> replaceData = new HashMap<>(8);
-        while (matcher.find()) {
-            String key = matcher.group("toTimeStampTz");
-            String value = "'" + matcher.group("datetime") + "'";
-            replaceData.put(key, value);
-        }
-        return replace(redoLog, replaceData);
-    }
-
-    private String replace(String redoLog, HashMap<String, String> replaceData) {
-        if (MapUtils.isNotEmpty(replaceData)) {
-            for (Map.Entry<String, String> entry : replaceData.entrySet()) {
-                //to_timeStamp/to_date()函数有括号 需要转义
-                String k = entry.getKey().replaceAll("\\(", "\\\\(").replaceAll("\\)", "\\\\)");
-                String v = entry.getValue();
-                redoLog = redoLog.replaceAll(k, v);
+        //BLOB/CLOB类型 HEXTORAW('1234')
+        if (value.startsWith("HEXTORAW('")) {
+            try {
+                return new String(Hex.decodeHex(value.substring(10, value.length() - 2).toCharArray()), StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                throw new RuntimeException("parse value [" + value + " ] failed ", e);
             }
         }
-        return redoLog;
+        return value;
     }
 
 }

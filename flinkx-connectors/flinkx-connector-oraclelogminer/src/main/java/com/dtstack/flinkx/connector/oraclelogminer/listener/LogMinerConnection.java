@@ -138,12 +138,15 @@ public class LogMinerConnection {
             if(isOracle10){
                 //oracle10开启logMiner之前 需要设置会话级别的日期格式 否则sql语句会含有todate函数 而不是todate函数计算后的值
                 try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_DATE_FORMAT)) {
+                    preparedStatement.setQueryTimeout(logMinerConf.getQueryTimeout().intValue());
                     preparedStatement.execute();
                 }
                 try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_FORMAT)) {
+                    preparedStatement.setQueryTimeout(logMinerConf.getQueryTimeout().intValue());
                     preparedStatement.execute();
                 }
                 try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.NLS_TIMESTAMP_TZ_FORMAT)) {
+                    preparedStatement.setQueryTimeout(logMinerConf.getQueryTimeout().intValue());
                     preparedStatement.execute();
                 }
             }
@@ -314,7 +317,7 @@ public class LogMinerConnection {
 
             return logFileFirstChange;
         } catch (SQLException e) {
-            LOG.error("根据scn:[{}]获取指定归档日志起始位置出错", scn, e);
+            LOG.error("According to scn:[{}], an error occurred when obtaining the starting position of the specified archive log", scn, e);
             throw new RuntimeException(e);
         } finally {
             closeResources(lastLogFileResultSet, lastLogFileStmt, null);
@@ -337,7 +340,7 @@ public class LogMinerConnection {
 
             return minScn;
         } catch (SQLException e) {
-            LOG.error("获取最早归档日志起始位置出错", e);
+            LOG.error(" obtaining the starting position of the earliest archive log error", e);
             throw new RuntimeException(e);
         } finally {
             closeResources(minScnResultSet, minScnStmt, null);
@@ -562,7 +565,7 @@ public class LogMinerConnection {
             }
 
             if (!roles.contains(EXECUTE_CATALOG_ROLE)) {
-                throw new IllegalArgumentException("非DBA角色的用户必须是[EXECUTE_CATALOG_ROLE]角色,请执行sql赋权：GRANT EXECUTE_CATALOG_ROLE TO USERNAME");
+                throw new IllegalArgumentException("users in non DBA roles must be [EXECUTE_CATALOG_ROLE] Role, please execute SQL GRANT：GRANT EXECUTE_CATALOG_ROLE TO USERNAME");
             }
 
             if (containsNeededPrivileges(statement)) {
@@ -571,14 +574,14 @@ public class LogMinerConnection {
 
             String message;
             if(ORACLE_11_VERSION <= oracleVersion){
-                message = "权限不足，请执行sql赋权：GRANT CREATE SESSION, EXECUTE_CATALOG_ROLE, SELECT ANY TRANSACTION, FLASHBACK ANY TABLE, SELECT ANY TABLE, LOCK ANY TABLE, SELECT ANY DICTIONARY TO USER_ROLE;";
+                message = "Insufficient permissions, please execute sql authorization：GRANT CREATE SESSION, EXECUTE_CATALOG_ROLE, SELECT ANY TRANSACTION, FLASHBACK ANY TABLE, SELECT ANY TABLE, LOCK ANY TABLE, SELECT ANY DICTIONARY TO USER_ROLE;";
             }else{
-                message = "权限不足，请执行sql赋权：GRANT LOGMINING, CREATE SESSION, SELECT ANY TRANSACTION ,SELECT ANY DICTIONARY TO USER_ROLE;";
+                message = "Insufficient permissions, please execute sql authorization：GRANT LOGMINING, CREATE SESSION, SELECT ANY TRANSACTION ,SELECT ANY DICTIONARY TO USER_ROLE;";
             }
 
             throw new IllegalArgumentException(message);
         } catch (SQLException e) {
-            throw new RuntimeException("检查权限出错", e);
+            throw new RuntimeException("check permissions failed", e);
         }
     }
 
@@ -608,7 +611,7 @@ public class LogMinerConnection {
 
             return privilegeCount == privilegeList.size();
         } catch (SQLException e) {
-            throw new RuntimeException("检查用户权限出错", e);
+            throw new RuntimeException("check user permissions error", e);
         }
     }
 
@@ -624,7 +627,7 @@ public class LogMinerConnection {
 
             return roles;
         } catch (SQLException e) {
-            throw new RuntimeException("检查用户角色出错", e);
+            throw new RuntimeException("check user permissions error", e);
         }
     }
 
@@ -640,7 +643,7 @@ public class LogMinerConnection {
                 LOG.info("current oracle encoding is {}", encoding);
                 isGBK = encoding.contains("GBK");
             } catch (SQLException e) {
-                throw new RuntimeException("检查用户角色出错", e);
+                throw new RuntimeException("check user permissions error", e);
             }
         }
     }

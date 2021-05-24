@@ -293,22 +293,31 @@ public class SqlUtil {
 
     public final static String NLS_TIMESTAMP_TZ_FORMAT ="alter session set NLS_TIMESTAMP_TZ_FORMAT = 'yyyy-mm-dd hh:mi:ss.FF6 AM TZR'";
 
+    /** 查看用户权限组 **/
     public final static String SQL_QUERY_ROLES = "SELECT * FROM USER_ROLE_PRIVS";
 
+    /** 查看用户权限 **/
     public final static String SQL_QUERY_PRIVILEGES = "SELECT * FROM SESSION_PRIVS";
 
+    /** 查看编码 **/
     public final static String SQL_QUERY_ENCODING = "SELECT USERENV('LANGUAGE') FROM DUAL";
 
+    /** 查看是否开启日志归档 **/
     public final static String SQL_QUERY_LOG_MODE = "SELECT LOG_MODE FROM V$DATABASE";
 
+    /** 查看是否开启ALL追加日志 **/
     public final static String SQL_QUERY_SUPPLEMENTAL_LOG_DATA_ALL = "SELECT SUPPLEMENTAL_LOG_DATA_ALL FROM V$DATABASE";
 
+    /** 支持的表操作 **/
     private final static List<String> SUPPORTED_OPERATIONS = Arrays.asList("UPDATE", "INSERT", "DELETE");
 
+    /** 系统表 **/
     public static List<String> EXCLUDE_SCHEMAS = Collections.singletonList("SYS");
 
+    /** oracle10 版本 logminer需要的权限 **/
     public static final List<String> PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "LOGMINING", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
 
+    /** oracle10以上版本 logminer需要的权限 **/
     public static final List<String> ORACLE_11_PRIVILEGES_NEEDED = Arrays.asList("CREATE SESSION", "SELECT ANY TRANSACTION", "SELECT ANY DICTIONARY");
 
     /**
@@ -343,15 +352,28 @@ public class SqlUtil {
 
         String[] operations = listenerOptions.split(ConstantValue.COMMA_SYMBOL);
         for (String operation : operations) {
-            if (!SUPPORTED_OPERATIONS.contains(operation.toUpperCase())) {
-                throw new RuntimeException("Unsupported operation type:" + operation);
+
+            int operationCode;
+            switch (operation.toUpperCase()) {
+                case "INSERT":
+                    operationCode = 1;
+                    break;
+                case "DELETE":
+                    operationCode = 2;
+                    break;
+                case "UPDATE":
+                    operationCode = 3;
+                    break;
+                default:
+                    throw new RuntimeException("Unsupported operation type:" + operation);
             }
 
-            standardOperations.add(String.format("'%s'", operation.toUpperCase()));
+            standardOperations.add(String.format("'%s'", operationCode));
         }
 
-        return String.format("OPERATION in (%s) ", StringUtils.join(standardOperations, ConstantValue.COMMA_SYMBOL));
+        return String.format("OPERATION_CODE in (%s) ", StringUtils.join(standardOperations, ConstantValue.COMMA_SYMBOL));
     }
+
 
     /**
      * 过滤系统表

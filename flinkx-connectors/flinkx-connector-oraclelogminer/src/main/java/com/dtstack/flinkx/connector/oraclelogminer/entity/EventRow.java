@@ -22,12 +22,12 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
-public class LogminerEventRow implements Serializable {
+public class EventRow implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private List<Column> beforeColumnList;
+    private List<EventRowData> beforeColumnList;
 
-    private List<Column> afterColumnList;
+    private List<EventRowData> afterColumnList;
 
     private Long scn;
 
@@ -43,7 +43,7 @@ public class LogminerEventRow implements Serializable {
     private Timestamp opTime;
 
 
-    public LogminerEventRow(List<Column> beforeColumn, List<Column> afterColumn, Long scn, String type, String schema, String table, Long ts, Timestamp timestamp) {
+    public EventRow(List<EventRowData> beforeColumn, List<EventRowData> afterColumn, Long scn, String type, String schema, String table, Long ts, Timestamp timestamp) {
         this.beforeColumnList = beforeColumn;
         this.afterColumnList = afterColumn;
         this.scn = scn;
@@ -54,11 +54,11 @@ public class LogminerEventRow implements Serializable {
         this.opTime = timestamp;
     }
 
-    public List<Column> getBeforeColumnList() {
+    public List<EventRowData> getBeforeColumnList() {
         return beforeColumnList;
     }
 
-    public List<Column> getAfterColumnList() {
+    public List<EventRowData> getAfterColumnList() {
         return afterColumnList;
     }
 
@@ -86,11 +86,11 @@ public class LogminerEventRow implements Serializable {
         return opTime;
     }
 
-    public void setBeforeColumnList(List<Column> beforeColumnList) {
+    public void setBeforeColumnList(List<EventRowData> beforeColumnList) {
         this.beforeColumnList = beforeColumnList;
     }
 
-    public void setAfterColumnList(List<Column> afterColumnList) {
+    public void setAfterColumnList(List<EventRowData> afterColumnList) {
         this.afterColumnList = afterColumnList;
     }
 
@@ -130,53 +130,6 @@ public class LogminerEventRow implements Serializable {
                 ", ts=" + ts +
                 ", timestamp=" + opTime +
                 '}';
-    }
-
-     public static class Column {
-        private String name;
-        private String data;
-        private boolean isNull;
-
-
-        public Column(String name, String data, boolean isNull) {
-            this.name = name;
-            this.data = data;
-            this.isNull = isNull;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getData() {
-            return data;
-        }
-
-        public void setData(String data) {
-            this.data = data;
-        }
-
-        public boolean isNull() {
-            return isNull;
-        }
-
-        public void setNull(boolean aNull) {
-            isNull = aNull;
-        }
-
-        @Override
-        public String toString() {
-            return "Column{" +
-                    "name='" + name + '\'' +
-                    ", data='" + data + '\'' +
-                    ", isNull=" + isNull +
-                    '}';
-        }
-
     }
 
 

@@ -19,8 +19,8 @@ package com.dtstack.flinkx.connector.oraclelogminer.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
-import com.dtstack.flinkx.connector.oraclelogminer.converter.LogminerColumnConverter;
-import com.dtstack.flinkx.connector.oraclelogminer.converter.LogminerRowConverter;
+import com.dtstack.flinkx.connector.oraclelogminer.converter.LogMinerColumnConverter;
+import com.dtstack.flinkx.connector.oraclelogminer.converter.LogMinerRowConverter;
 import com.dtstack.flinkx.connector.oraclelogminer.inputformat.OracleLogMinerInputFormatBuilder;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.source.SourceFactory;
@@ -68,11 +68,11 @@ public class OraclelogminerSourceFactory extends SourceFactory {
         builder.setLogMinerConfig(logMinerConf);
         AbstractCDCRowConverter rowConverter;
         if (useAbstractBaseColumn) {
-            rowConverter = new LogminerColumnConverter(logMinerConf.isPavingData(), logMinerConf.isSplitUpdate());
+            rowConverter = new LogMinerColumnConverter(logMinerConf.isPavingData(), logMinerConf.isSplitUpdate());
         } else {
             final RowType rowType = (RowType) TableUtil.getDataType(logMinerConf.getColumn()).getLogicalType();
             TimestampFormat format = "sql".equalsIgnoreCase(logMinerConf.getTimestampFormat()) ? TimestampFormat.SQL : TimestampFormat.ISO_8601;
-            rowConverter = new LogminerRowConverter(rowType, format);
+            rowConverter = new LogMinerRowConverter(rowType, format);
         }
         builder.setRowConverter(rowConverter);
         return createInput(builder.finish());

@@ -17,6 +17,10 @@
  */
 package com.dtstack.flinkx.connector.oraclelogminer.converter;
 
+import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRowData;
+
+import com.dtstack.flinkx.connector.oraclelogminer.listener.LogParser;
+
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.data.DecimalData;
@@ -28,7 +32,7 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.connector.oraclelogminer.entity.LogminerEventRow;
+import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRow;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.google.common.collect.Maps;
@@ -51,12 +55,12 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class LogminerRowConverter extends AbstractCDCRowConverter<LogminerEventRow, LogicalType> {
+public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, LogicalType> {
 
     private final TimestampFormat timestampFormat;
 
 
-    public LogminerRowConverter(RowType rowType, TimestampFormat timestampFormat) {
+    public LogMinerRowConverter(RowType rowType, TimestampFormat timestampFormat) {
         super.fieldNameList = rowType.getFieldNames();
         this.timestampFormat = timestampFormat;
         super.converters = new IDeserializationConverter[rowType.getFieldCount()];
@@ -66,21 +70,21 @@ public class LogminerRowConverter extends AbstractCDCRowConverter<LogminerEventR
     }
 
     @Override
-    public LinkedList<RowData> toInternal(LogminerEventRow logminerEventRow) {
+    public LinkedList<RowData> toInternal(EventRow eventRow) {
         LinkedList<RowData> result = new LinkedList<>();
 
-        String eventType = logminerEventRow.getType();
+        String eventType = eventRow.getType();
 
-        List<LogminerEventRow.Column> beforeColumnsList = logminerEventRow.getBeforeColumnList();
-        Map<Object, Object> beforeMap = Maps.newHashMapWithExpectedSize(beforeColumnsList.size());
-        beforeColumnsList.forEach(x -> {
+        List<EventRowData> beforeRowDataList = eventRow.getBeforeColumnList();
+        Map<Object, Object> beforeMap = Maps.newHashMapWithExpectedSize(beforeRowDataList.size());
+        beforeRowDataList.forEach(x -> {
             beforeMap.put(x.getName(), x.getData());
         });
 
 
-        List<LogminerEventRow.Column> afterColumnsList = logminerEventRow.getAfterColumnList();
-        Map<Object, Object> afterMap = Maps.newHashMapWithExpectedSize(afterColumnsList.size());
-        afterColumnsList.forEach(x -> {
+        List<EventRowData> afterRowDataList = eventRow.getAfterColumnList();
+        Map<Object, Object> afterMap = Maps.newHashMapWithExpectedSize(afterRowDataList.size());
+        afterRowDataList.forEach(x -> {
             afterMap.put(x.getName(), x.getData());
         });
 
@@ -130,17 +134,20 @@ public class LogminerRowConverter extends AbstractCDCRowConverter<LogminerEventR
                 return (IDeserializationConverter<String, Long>) Long::parseLong;
             case DATE:
                 return (IDeserializationConverter<String, Integer>) val -> {
+                    val = LogParser.parseTime(val);
                     LocalDate date = SQL_TIMESTAMP_FORMAT.parse(val).query(TemporalQueries.localDate());
                     return (int) date.toEpochDay();
                 };
             case TIME_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<String, Integer>) val -> {
+                    val = LogParser.parseTime(val);
                     TemporalAccessor parsedTime = SQL_TIME_FORMAT.parse(val);
                     LocalTime localTime = parsedTime.query(TemporalQueries.localTime());
                     return localTime.toSecondOfDay() * 1000;
                 };
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<String, TimestampData>) val -> {
+                    val = LogParser.parseTime(val);
                     TemporalAccessor parsedTimestamp;
                     switch (this.timestampFormat) {
                         case SQL:
@@ -159,6 +166,8 @@ public class LogminerRowConverter extends AbstractCDCRowConverter<LogminerEventR
                 };
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
                 return (IDeserializationConverter<String, TimestampData>) val -> {
+                    val = LogParser.parseTime(val);
+
                     TemporalAccessor parsedTimestampWithLocalZone;
                     switch (timestampFormat) {
                         case SQL:
@@ -187,7 +196,10 @@ public class LogminerRowConverter extends AbstractCDCRowConverter<LogminerEventR
                 return (IDeserializationConverter<String, Double>) Double::parseDouble;
             case CHAR:
             case VARCHAR:
-                return (IDeserializationConverter<String, StringData>) StringData::fromString;
+                return (IDeserializationConverter<String, StringData>) val -> {
+                    val = LogParser.parseString(val);
+                    return  StringData.fromString(val);
+                };
             case DECIMAL:
                 return (IDeserializationConverter<String, DecimalData>) val -> {
                     final int precision = ((DecimalType) type).getPrecision();

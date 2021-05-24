@@ -17,11 +17,16 @@
  */
 package com.dtstack.flinkx.connector.oraclelogminer.converter;
 
+import com.dtstack.flinkx.connector.oraclelogminer.listener.LogMinerConnection;
+import com.dtstack.flinkx.connector.oraclelogminer.listener.LogParser;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.connector.oraclelogminer.entity.LogminerEventRow;
+import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRowData;
+import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRow;
+import com.dtstack.flinkx.connector.oraclelogminer.entity.TableMetaData;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -37,8 +42,6 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.collect.Maps;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -59,45 +62,43 @@ import java.util.stream.Collectors;
  *
  * @author tudou
  */
-public class LogminerColumnConverter extends AbstractCDCRowConverter<LogminerEventRow, String> {
-
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, String> {
 
     protected static final String SCN = "scn";
-    private Connection connection;
+    protected LogMinerConnection connection;
     //存储表字段
-    protected final Map<String, Pair<List<String>, List<String>>> tableMetaDataCacheMap = new ConcurrentHashMap<>(32);
+    protected final Map<String, TableMetaData> tableMetaDataCacheMap = new ConcurrentHashMap<>(32);
 
-    public LogminerColumnConverter(boolean pavingData, boolean splitUpdate) {
+    public LogMinerColumnConverter(boolean pavingData, boolean splitUpdate) {
         super.pavingData = pavingData;
         super.splitUpdate = splitUpdate;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public LinkedList<RowData> toInternal(LogminerEventRow logminerEventRow) {
+    public LinkedList<RowData> toInternal(EventRow eventRow) {
         LinkedList<RowData> result = new LinkedList<>();
 
-        String eventType = logminerEventRow.getType();
-        String schema = logminerEventRow.getSchema();
-        String table = logminerEventRow.getTable();
+        String eventType = eventRow.getType();
+        String schema = eventRow.getSchema();
+        String table = eventRow.getTable();
         String key = schema + ConstantValue.POINT_SYMBOL + table;
         IDeserializationConverter[] converters = super.cdcConverterCacheMap.get(key);
-        Pair<List<String>, List<String>> metadata = tableMetaDataCacheMap.get(key);
+        TableMetaData metadata = tableMetaDataCacheMap.get(key);
 
-        List<LogminerEventRow.Column> beforeColumnList = logminerEventRow.getBeforeColumnList();
+        List<EventRowData> beforeColumnList = eventRow.getBeforeColumnList();
 
         //  如果缓存为空 或者 长度变了 或者名字变了  重新更新缓存
         if (Objects.isNull(converters) || Objects.isNull(metadata)
                 || beforeColumnList.size() != converters.length
-                || !beforeColumnList.stream().map(LogminerEventRow.Column::getName).collect(Collectors.toCollection(HashSet::new)).containsAll(metadata.getLeft())) {
+                || !beforeColumnList.stream().map(EventRowData::getName).collect(Collectors.toCollection(HashSet::new)).containsAll(metadata.getFieldList())) {
             try {
-                Pair<List<String>, List<String>> tableMetaData = JdbcUtil.getTableMetaData(schema, table, connection);
-                converters = tableMetaData.getRight().stream().map(x -> wrapIntoNullableInternalConverter(createInternalConverter(x))).toArray(IDeserializationConverter[]::new);
+                Pair<List<String>, List<String>> latestMetaData = JdbcUtil.getTableMetaData(schema, table, connection.getConnection());
+                converters = latestMetaData.getRight().stream().map(x -> wrapIntoNullableInternalConverter(createInternalConverter(x))).toArray(IDeserializationConverter[]::new);
 
-                metadata = tableMetaData;
+                metadata = new TableMetaData(schema, table, latestMetaData.getLeft(), latestMetaData.getRight());
                 super.cdcConverterCacheMap.put(key, converters);
-                tableMetaDataCacheMap.put(key, tableMetaData);
+                tableMetaDataCacheMap.put(key, metadata);
 
             } catch (SQLException e) {
                 throw new RuntimeException("get table " + table + " metadata failed", e);
@@ -108,7 +109,7 @@ public class LogminerColumnConverter extends AbstractCDCRowConverter<LogminerEve
         int size;
         if (pavingData) {
             //6: scn, type, schema, table, ts, opTime
-            size = 6 + logminerEventRow.getBeforeColumnList().size() + logminerEventRow.getAfterColumnList().size();
+            size = 6 + eventRow.getBeforeColumnList().size() + eventRow.getAfterColumnList().size();
         } else {
             //7: scn, type, schema, table, ts, opTime, before, after
             size = 8;
@@ -116,19 +117,19 @@ public class LogminerColumnConverter extends AbstractCDCRowConverter<LogminerEve
 
         ColumnRowData columnRowData = new ColumnRowData(size);
 
-        columnRowData.addField(new BigDecimalColumn(logminerEventRow.getScn()));
+        columnRowData.addField(new BigDecimalColumn(eventRow.getScn()));
         columnRowData.addHeader(SCN);
         columnRowData.addField(new StringColumn(schema));
         columnRowData.addHeader(SCHEMA);
         columnRowData.addField(new StringColumn(table));
         columnRowData.addHeader(TABLE);
-        columnRowData.addField(new BigDecimalColumn(logminerEventRow.getTs()));
+        columnRowData.addField(new BigDecimalColumn(eventRow.getTs()));
         columnRowData.addHeader(TS);
-        columnRowData.addField(new TimestampColumn(logminerEventRow.getOpTime()));
+        columnRowData.addField(new TimestampColumn(eventRow.getOpTime()));
         columnRowData.addHeader(OP_TIME);
 
-        List<LogminerEventRow.Column> beforeList = logminerEventRow.getBeforeColumnList();
-        List<LogminerEventRow.Column> afterList = logminerEventRow.getAfterColumnList();
+        List<EventRowData> beforeList = eventRow.getBeforeColumnList();
+        List<EventRowData> afterList = eventRow.getAfterColumnList();
 
         List<AbstractBaseColumn> beforeFieldList = new ArrayList<>(beforeList.size());
         List<String> beforeHeaderList = new ArrayList<>(beforeList.size());
@@ -136,8 +137,8 @@ public class LogminerColumnConverter extends AbstractCDCRowConverter<LogminerEve
         List<String> afterHeaderList = new ArrayList<>(afterList.size());
 
         if (pavingData) {
-            parseColumnList(converters, beforeList, beforeFieldList, metadata.getLeft(), beforeHeaderList, BEFORE_);
-            parseColumnList(converters, afterList, afterFieldList, metadata.getLeft(), afterHeaderList, AFTER_);
+            parseColumnList(converters, metadata.getFieldList(), beforeList, beforeFieldList, beforeHeaderList, BEFORE_);
+            parseColumnList(converters, metadata.getFieldList(), afterList, afterFieldList, afterHeaderList, AFTER_);
         } else {
             beforeFieldList.add(new MapColumn(processColumnList(beforeList)));
             beforeHeaderList.add(BEFORE);
@@ -174,35 +175,34 @@ public class LogminerColumnConverter extends AbstractCDCRowConverter<LogminerEve
     }
 
     /**
-     * 解析CanalEntry.Column
-     *
-     * @param converters
-     * @param entryColumnList
-     * @param columnList
-     * @param headerList
-     * @param after
+     * @param converters converters
+     * @param fieldList fieldsOftTable
+     * @param entryColumnList analyzeData
+     * @param columnList columnList
+     * @param headerList headerList
+     * @param prefix after_/before_
      */
     private void parseColumnList(
             IDeserializationConverter<String, AbstractBaseColumn>[] converters,
-            List<LogminerEventRow.Column> entryColumnList,
+            List<String> fieldList,
+            List<EventRowData> entryColumnList,
             List<AbstractBaseColumn> columnList,
-            List<String> metaColumnNameList,
             List<String> headerList,
-            String after) {
+            String prefix) {
         for (int i = 0; i < entryColumnList.size(); i++) {
-            LogminerEventRow.Column entryColumn = entryColumnList.get(i);
+            EventRowData entryColumn = entryColumnList.get(i);
 
             //解析的字段顺序和metadata顺序不一致 所以先从metadata里找到字段的index  再找到对应的converters
-            int index = metaColumnNameList.indexOf(entryColumn.getName());
+            int index = fieldList.indexOf(entryColumn.getName());
             //字段不一致
             if (index == -1) {
                 throw new RuntimeException("The fields in the log are inconsistent with those in the current meta information，The fields in the log is "
-                        + GsonUtil.GSON.toJson(entryColumnList) + " ,The fields in the metadata is" + GsonUtil.GSON.toJson(metaColumnNameList));
+                        + GsonUtil.GSON.toJson(entryColumnList) + " ,The fields in the metadata is" + GsonUtil.GSON.toJson(fieldList));
             }
 
             AbstractBaseColumn column = converters[index].deserialize(entryColumn.getData());
             columnList.add(column);
-            headerList.add(after + entryColumn.getName());
+            headerList.add(prefix + entryColumn.getName());
         }
     }
 
@@ -244,18 +244,10 @@ public class LogminerColumnConverter extends AbstractCDCRowConverter<LogminerEve
             case "BLOB":
             case "LONG RAW":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
-                    //HEXTORAW('1234')
-                    if (val.startsWith("HEXTORAW('") && val.endsWith("')")) {
-                        try {
-                            return new StringColumn(new String(Hex.decodeHex(val.substring(10, val.length() - 2).toCharArray()), "UTF-8"));
-                        } catch (Exception e) {
-                            throw new RuntimeException("RAWConverter: parse value [" + val + " ] failed ", e);
-                        }
-                    } else {
-                        return new StringColumn(val);
-                    }
+                    val = LogParser.parseString(val);
+                    return new StringColumn(val);
                 };
-                //暂不支持
+            //暂不支持
 //            case "INTERVAL YEAR":
 //                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
 //                    // TO_YMINTERVAL('+00-03')
@@ -278,9 +270,10 @@ public class LogminerColumnConverter extends AbstractCDCRowConverter<LogminerEve
             case "TIMESTAMP":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
                     //如果包含时区会携带时区信息 无法转为timestamp '2021-05-17 15:08:27.000000 上午 +08:00'
-                    if (type.contains("TIME ZONE")) {
+                    if (type.contains("WITH TIME ZONE")) {
                         throw new UnsupportedOperationException("Unsupported type:" + type);
                     } else {
+                        val = LogParser.parseTime(val);
                         return new TimestampColumn(DateUtil.getTimestampFromStr(val));
                     }
                 };
@@ -297,19 +290,19 @@ public class LogminerColumnConverter extends AbstractCDCRowConverter<LogminerEve
     }
 
     /**
-     * 解析CanalEntry中的Column，获取字段名及值
+     * Column，获取字段名及值
      *
      * @return 字段名和值的map集合
      */
-    private Map<String, Object> processColumnList(List<LogminerEventRow.Column> columnList) {
-        Map<String, Object> map = Maps.newLinkedHashMapWithExpectedSize(columnList.size());
-        for (LogminerEventRow.Column column : columnList) {
-            map.put(column.getName(), column.getData());
+    private Map<String, Object> processColumnList(List<EventRowData> eventRowDataList) {
+        Map<String, Object> map = Maps.newLinkedHashMapWithExpectedSize(eventRowDataList.size());
+        for (EventRowData data : eventRowDataList) {
+            map.put(data.getName(), data.getData());
         }
         return map;
     }
 
-    public void setConnection(Connection connection) {
+    public void setConnection(LogMinerConnection connection) {
         this.connection = connection;
     }
 }

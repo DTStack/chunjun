@@ -4,15 +4,14 @@
       {
         "reader": {
           "parameter": {
-            "jdbcUrl": "jdbc:oracle:thin:@172.16.100.220:1521:xe",
-            "username": "tudou",
-            "password": "abc123",
+            "jdbcUrl": "jdbc:oracle:thin:@127.0.0.1:1521:xe",
+            "username": "username",
+            "password": "password",
             "supportAutoAddLog": false,
-            "table": ["TUDOU.CDC_1"],
+            "table": ["schema.table"],
             "cat": "UPDATE,INSERT,DELETE",
             "pavingData" : true,
             "readPosition" : "CURRENT",
-            "startSCN" : "4893202",
             "column": [
               {
                 "name": "id",
@@ -68,20 +67,10 @@
         }
       }
     ],
-    "setting": {
-      "log" : {
-        "isLogger": false,
-        "level" : "info"
-      },
-      "restore": {
-        "isRestore": false,
-        "isStream": true
-      },
-      "errorLimit": {
-      },
-      "speed": {
-        "bytes": 0,
-        "channel": 1
+    "setting" : {
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
       }
     }
   }

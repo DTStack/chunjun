@@ -30,7 +30,7 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
-import com.dtstack.flinkx.connector.oraclelogminer.converter.LogminerRowConverter;
+import com.dtstack.flinkx.connector.oraclelogminer.converter.LogMinerRowConverter;
 import com.dtstack.flinkx.connector.oraclelogminer.inputformat.OracleLogMinerInputFormatBuilder;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
@@ -59,7 +59,7 @@ public class OraclelogminerDynamicTableSource implements ScanTableSource {
 
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
         builder.setLogMinerConfig(logMinerConf);
-        builder.setRowConverter(new LogminerRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat));
+        builder.setRowConverter(new LogMinerRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat));
 
         return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }

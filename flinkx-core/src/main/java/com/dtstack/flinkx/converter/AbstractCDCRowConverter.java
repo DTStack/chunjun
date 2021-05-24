@@ -116,12 +116,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
             if (val == null) {
                 return null;
             } else {
-                try {
-                    return IDeserializationConverter.deserialize(val);
-                }catch (Exception e){
-                    LOG.error("value [{}] convent failed ", val);
-                    throw  e;
-                }
+                return IDeserializationConverter.deserialize(val);
             }
         };
     }

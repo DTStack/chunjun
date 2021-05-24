@@ -19,11 +19,10 @@
 
 package com.dtstack.flinkx.connector.oraclelogminer.listener;
 
-import com.dtstack.flinkx.connector.oraclelogminer.converter.LogminerColumnConverter;
-
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.flinkx.connector.oraclelogminer.converter.LogMinerColumnConverter;
 import com.dtstack.flinkx.connector.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.connector.oraclelogminer.util.OraUtil;
 import com.dtstack.flinkx.connector.oraclelogminer.util.SqlUtil;
@@ -58,11 +57,11 @@ public class LogMinerListener implements Runnable {
 
     private ExecutorService executor;
 
-    private LogMinerConf logMinerConf;
+    private final LogMinerConf logMinerConf;
 
     private LogMinerConnection logMinerConnection;
 
-    private PositionManager positionManager;
+    private final PositionManager positionManager;
 
     private LogParser logParser;
 
@@ -110,9 +109,9 @@ public class LogMinerListener implements Runnable {
 
         logMinerSelectSql = SqlUtil.buildSelectSql(logMinerConf.getCat(), logMinerConf.getListenerTables());
 
-        //LogminerColumnConverter 需要connection获取元数据
-        if (rowConverter instanceof LogminerColumnConverter) {
-            ((LogminerColumnConverter) rowConverter).setConnection(logMinerConnection.getConnection());
+        //LogMinerColumnConverter 需要connection获取元数据
+        if (rowConverter instanceof LogMinerColumnConverter) {
+            ((LogMinerColumnConverter) rowConverter).setConnection(logMinerConnection);
         }
 
 
@@ -177,10 +176,6 @@ public class LogMinerListener implements Runnable {
                     }
 
                     logMinerConnection.connect();
-                    //LogminerColumnConverter 需要connection获取元数据
-                    if (rowConverter instanceof LogminerColumnConverter) {
-                        ((LogminerColumnConverter) rowConverter).setConnection(logMinerConnection.getConnection());
-                    }
                 }
             }
         }
