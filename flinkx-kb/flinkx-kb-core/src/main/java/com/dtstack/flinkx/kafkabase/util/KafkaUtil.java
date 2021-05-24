@@ -95,6 +95,7 @@ public class KafkaUtil {
         switch (mode){
             case EARLIEST:
                 props.put("auto.offset.reset", "earliest");
+                break;
             case LATEST:
                 props.put("auto.offset.reset", "latest");
         }
