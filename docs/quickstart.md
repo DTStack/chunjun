@@ -28,7 +28,7 @@ cd flinkx
 ```
 wget https://github.com/DTStack/flinkx/archive/1.10_release.zip
 unzip 1.10_release.zip
-cd 1.10_release
+cd flinkx-1.10_release
 ```
 
 ## 编译插件
