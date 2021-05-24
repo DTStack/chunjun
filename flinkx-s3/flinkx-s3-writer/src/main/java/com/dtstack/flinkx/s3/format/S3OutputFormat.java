@@ -242,6 +242,9 @@ public class S3OutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void moveAllTemporaryDataFileToDirectory() throws IOException {
+        if(this.currentPartNumber > 10000){
+            throw new IOException("part can not bigger than 10000");
+        }
         List<PartETag> partETags = myPartETags.stream().map(MyPartETag::genPartETag).collect(Collectors.toList());
         if(partETags.size() > 0){
             // 说明上游有数据
