@@ -277,7 +277,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     endLocationAccumulator.add(new BigInteger(location));
                 }
 
-                LOG.trace("update endLocationAccumulator, current Location = {}", location);
+                LOG.debug("update endLocationAccumulator, current Location = {}", location);
             }
 
             //update hasNext after we've read the record
@@ -546,6 +546,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 if (StringUtils.isNotBlank(startLocation)) {
                     LOG.info("update startLocation, before = {}, after = {}", jdbcInputSplit.getStartLocation(), startLocation);
                     jdbcInputSplit.setStartLocation(startLocation);
+                    if (incrementConfig.isPolling()){
+                        endLocationAccumulator.add(new BigInteger(startLocation));
+                    }
                     useMaxFunc = false;
                 }
                 String restoreFilter = buildIncrementFilter(restoreColumn.getType(),
@@ -773,7 +776,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void queryForPolling(String startLocation) throws SQLException {
-        LOG.trace("polling startLocation = {}", startLocation);
+        LOG.debug("polling startLocation = {}", startLocation);
         boolean isNumber = StringUtils.isNumeric(startLocation);
         switch (type) {
             case TIMESTAMP:
