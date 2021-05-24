@@ -59,8 +59,6 @@
 
         <module>flinkx-sqlservercdc</module>
         <module>flinkx-oraclelogminer</module>
-        <module>flinkx-restapi</module>
-        <module>flinkx-websocket</module>
         <module>flinkx-pgwal</module>
 
         <!--******元数据******-->
