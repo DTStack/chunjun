@@ -15,7 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.connector.kafka.source;
+
+import com.dtstack.flinkx.converter.RawTypeConverter;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -79,5 +82,10 @@ public class KafkaSourceFactory extends SourceFactory {
         }
         consumer.setCommitOffsetsOnCheckpoints(kafkaConf.getGroupId() != null);
         return createInput(consumer, syncConf.getReader().getName());
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        throw new UnsupportedOperationException("Kafka" + NO_SUPPORT_MSG);
     }
 }

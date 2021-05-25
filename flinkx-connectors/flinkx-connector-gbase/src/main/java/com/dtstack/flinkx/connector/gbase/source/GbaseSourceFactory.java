@@ -18,13 +18,15 @@
 
 package com.dtstack.flinkx.connector.gbase.source;
 
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.gbase.GbaseDialect;
+import com.dtstack.flinkx.connector.gbase.converter.GbaseRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * @author tiezhu
@@ -46,5 +48,10 @@ public class GbaseSourceFactory extends JdbcSourceFactory {
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new GbaseInputFormat());
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return GbaseRawTypeConverter::apply;
     }
 }

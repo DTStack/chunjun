@@ -47,22 +47,14 @@ public class OperatorConf implements Serializable {
     private List<FieldConf> fieldList;
     /** fieldNameList */
     private List<String> fieldNameList;
-    /** fieldTypeList */
-    private List<String> fieldTypeList;
-    /** fieldClassList */
-    private List<Class> fieldClassList;
 
     public List<FieldConf> getFieldList(){
         if(fieldList == null){
             List list = (List) parameter.get(ConfigConstant.KEY_COLUMN);
             fieldList = FieldConf.getFieldList(list);
             fieldNameList = new ArrayList<>(fieldList.size());
-            fieldTypeList = new ArrayList<>(fieldList.size());
-            fieldClassList = new ArrayList<>(fieldList.size());
             for (FieldConf field : fieldList) {
                 fieldNameList.add(field.getName());
-                fieldTypeList.add(field.getType());
-                fieldClassList.add(field.getFieldClass());
             }
         }
         return fieldList;
@@ -70,14 +62,6 @@ public class OperatorConf implements Serializable {
 
     public List<String> getFieldNameList() {
         return fieldNameList;
-    }
-
-    public List<String> getFieldTypeList() {
-        return fieldTypeList;
-    }
-
-    public List<Class> getFieldClassList() {
-        return fieldClassList;
     }
 
     public String getName() {

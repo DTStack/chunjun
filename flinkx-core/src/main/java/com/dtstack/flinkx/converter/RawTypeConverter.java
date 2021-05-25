@@ -15,18 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.converter;
 
 import org.apache.flink.table.types.DataType;
 
-import java.sql.SQLException;
-
 /**
- * Each connector
+ * Each connector implements. It is used to convert raw type to flink type.
+ *
+ * <p>e.g.: convert string "SHORT" to {@link DataType}.
  */
 @FunctionalInterface
 public interface RawTypeConverter {
 
-     DataType apply(String type) throws SQLException;
-
+    /**
+     * @param type raw type string. e.g.: "SHORT", "INT", "TIMESTAMP"
+     * @return e.g.: DataTypes.INT(), DataTypes.TIMESTAMP().
+     */
+    DataType apply(String type);
 }

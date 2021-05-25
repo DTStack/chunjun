@@ -17,21 +17,23 @@
  */
 package com.dtstack.flinkx.connector.binlog.source;
 
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
+import com.dtstack.flinkx.connector.binlog.converter.BinlogColumnConverter;
+import com.dtstack.flinkx.connector.binlog.converter.BinlogRowConverter;
+import com.dtstack.flinkx.connector.binlog.converter.MysqlBinlogRawTypeConverter;
+import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormatBuilder;
+import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
-import com.dtstack.flinkx.connector.binlog.converter.BinlogColumnConverter;
-import com.dtstack.flinkx.connector.binlog.converter.BinlogRowConverter;
-import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormatBuilder;
-import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.source.SourceFactory;
-import com.dtstack.flinkx.util.JsonUtil;
-import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * @company: www.dtstack.com
@@ -44,7 +46,9 @@ public class BinlogSourceFactory extends SourceFactory {
 
     public BinlogSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
-        binlogConf = JsonUtil.toObject(JsonUtil.toJson(config.getReader().getParameter()), BinlogConf.class);
+        binlogConf =
+                JsonUtil.toObject(
+                        JsonUtil.toJson(config.getReader().getParameter()), BinlogConf.class);
         binlogConf.setColumn(config.getReader().getFieldList());
         super.initFlinkxCommonConf(binlogConf);
     }
@@ -54,14 +58,27 @@ public class BinlogSourceFactory extends SourceFactory {
         BinlogInputFormatBuilder builder = new BinlogInputFormatBuilder();
         builder.setBinlogConf(binlogConf);
         AbstractCDCRowConverter rowConverter;
-        if(useAbstractBaseColumn){
-            rowConverter = new BinlogColumnConverter(binlogConf.isPavingData(), binlogConf.isSplitUpdate());
+        if (useAbstractBaseColumn) {
+            rowConverter =
+                    new BinlogColumnConverter(
+                            binlogConf.isPavingData(), binlogConf.isSplitUpdate());
         } else {
-            final RowType rowType = (RowType) TableUtil.getDataType(binlogConf.getColumn()).getLogicalType();
-            TimestampFormat format = "sql".equalsIgnoreCase(binlogConf.getTimestampFormat()) ? TimestampFormat.SQL : TimestampFormat.ISO_8601;
+            final RowType rowType =
+                    TableUtil.createRowType(
+                            binlogConf.getColumn(), getRawTypeConverter());
+            TimestampFormat format =
+                    "sql".equalsIgnoreCase(binlogConf.getTimestampFormat())
+                            ? TimestampFormat.SQL
+                            : TimestampFormat.ISO_8601;
             rowConverter = new BinlogRowConverter(rowType, format);
         }
         builder.setRowConverter(rowConverter);
         return createInput(builder.finish());
     }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return MysqlBinlogRawTypeConverter::apply;
+    }
+
 }

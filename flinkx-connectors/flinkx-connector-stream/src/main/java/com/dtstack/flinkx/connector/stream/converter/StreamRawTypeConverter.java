@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.gbase.converter;
+package com.dtstack.flinkx.connector.stream.converter;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
@@ -26,73 +26,46 @@ import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import java.util.Locale;
 
 /**
- * @author tiezhu
- * @since 2021/5/10 5:24 下午
+ * @author wuren
+ * @program flinkx
+ * @create 2021/05/24
  */
-public class GbaseRawTypeConverter {
+public class StreamRawTypeConverter {
 
-    public static DataType apply(String type) {
+    public static DataType apply(String type) throws UnsupportedTypeException {
         switch (type.toUpperCase(Locale.ENGLISH)) {
-            case "BIT":
-                return DataTypes.BOOLEAN();
             case "TINYINT":
                 return DataTypes.TINYINT();
-            case "SMALLINT":
-            case "MEDIUMINT":
+            case "SHORT":
+                return DataTypes.SMALLINT();
             case "INT":
             case "INTEGER":
-            case "INT24":
-            case "SERIAL":
                 return DataTypes.INT();
+            case "ID":
+            case "LONG":
             case "BIGINT":
-            case "INT8":
-            case "BIGSERIAL":
-            case "SERIAL8":
                 return DataTypes.BIGINT();
-            case "REAL":
             case "FLOAT":
-            case "SMALLFLOAT":
                 return DataTypes.FLOAT();
-            case "DECIMAL":
-            case "DEC":
-            case "NUMERIC":
-            case "MONEY":
-                // TODO 精度应该可以动态传进来？
-                return DataTypes.DECIMAL(38, 18);
             case "DOUBLE":
-            case "PRECISION":
                 return DataTypes.DOUBLE();
+            case "DECIMAL":
+                return DataTypes.DECIMAL(38, 18);
+
             case "CHAR":
-            case "VARCHAR":
-            case "TINYTEXT":
-            case "TEXT":
-            case "MEDIUMTEXT":
-            case "LVARCHAR":
-            case "LONGTEXT":
-            case "JSON":
-            case "ENUM":
             case "CHARACTER":
-            case "VARYING":
-            case "NCHAR":
-            case "SET":
                 return DataTypes.STRING();
+
             case "DATE":
-            case "YEAR":
                 return DataTypes.DATE();
             case "TIME":
                 return DataTypes.TIME();
-            case "TIMESTAMP":
             case "DATETIME":
+            case "TIMESTAMP":
                 return DataTypes.TIMESTAMP();
-            case "TINYBLOB":
-            case "BLOB":
-            case "MEDIUMBLOB":
-            case "LONGBLOB":
-            case "BINARY":
-            case "VARBINARY":
-            case "GEOMETRY":
-                // BYTES 底层调用的是VARBINARY最大长度
-                return DataTypes.BYTES();
+
+            case "BOOLEAN":
+                return DataTypes.BOOLEAN();
 
             default:
                 throw new UnsupportedTypeException(type);

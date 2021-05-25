@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.kafka.sink;
 
+import com.dtstack.flinkx.converter.RawTypeConverter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
@@ -55,5 +57,10 @@ public class KafkaSinkFactory extends SinkFactory {
 //        FlinkKafkaProducer kafkaProducer = new FlinkKafkaProducer(kafkaConf.getTopic(), serializationMetricWrapper, props, Optional.of(new CustomerFlinkPartition<>()), KafkaUtil.getPartitionKeys(kafkaConf.getPartitionKeys()));
 
         return null;
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        throw new UnsupportedOperationException("Kafka" + NO_SUPPORT_MSG);
     }
 }
