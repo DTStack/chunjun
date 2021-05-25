@@ -16,36 +16,31 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.postgres.source;
+package com.dtstack.flinkx.connector.postgresql.source;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.flinkx.connector.postgres.PostgresDialect;
+import com.dtstack.flinkx.connector.postgresql.PostgresqlDialect;
 import org.apache.commons.lang3.StringUtils;
 
 /**
+ * Starting with Postgresql that is for compatible with 1.10 API.
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/28
  */
-public class PostgresSourceFactory extends JdbcSourceFactory {
+public class PostgresqlSourceFactory extends JdbcSourceFactory {
 
-    public PostgresSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public PostgresqlSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
-        super.jdbcDialect = new PostgresDialect();
-        // 避免result.next阻塞
-        if (jdbcConf.isPolling()
-                && StringUtils.isEmpty(jdbcConf.getStartLocation())
-                && jdbcConf.getFetchSize() == 0) {
-            jdbcConf.setFetchSize(1000);
-        }
+        super.jdbcDialect = new PostgresqlDialect();
     }
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new PostgresInputFormat());
+        return new JdbcInputFormatBuilder(new PostgresqlInputFormat());
     }
 }

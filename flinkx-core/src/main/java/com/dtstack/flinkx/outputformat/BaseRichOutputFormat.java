@@ -54,6 +54,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Abstract Specification for all the OutputFormat defined in flinkx plugins
@@ -121,6 +122,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     protected ErrorLimiter errorLimiter;
     /** 输出指标组 */
     protected transient BaseMetric outputMetric;
+    /** cp和flush互斥条件 */
+    protected transient AtomicBoolean flushEnable;
 
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
@@ -165,6 +168,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.context = (StreamingRuntimeContext) getRuntimeContext();
         this.checkpointEnabled = context.isCheckpointingEnabled();
         this.rows = new ArrayList<>(1024);
+        this.flushEnable = new AtomicBoolean(true);
 
         ExecutionConfig executionConfig = context.getExecutionConfig();
         checkpointMode = executionConfig.getGlobalJobParameters().toMap()
@@ -389,13 +393,15 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * 数据批量写出
      */
     protected synchronized void writeRecordInternal() {
-        try {
-            writeMultipleRecordsInternal();
-        } catch (Exception e) {
-            //批量写异常转为单条写
-            rows.forEach(this::writeSingleRecord);
+        if(flushEnable.get()){
+            try {
+                writeMultipleRecordsInternal();
+            } catch (Exception e) {
+                //批量写异常转为单条写
+                rows.forEach(this::writeSingleRecord);
+            }
+            rows.clear();
         }
-        rows.clear();
     }
 
     /**
@@ -464,7 +470,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * 更新checkpoint状态缓存map
      * @return
      */
-    public FormatState getFormatState() throws Exception {
+    public synchronized FormatState getFormatState() throws Exception {
+        flushEnable.compareAndSet(true,false);
         if (formatState != null) {
             formatState.setMetric(outputMetric.getMetricCounters());
         }
@@ -509,7 +516,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      *
      * @param checkpointId
      */
-    public abstract void notifyCheckpointComplete(long checkpointId) throws Exception;
+    public synchronized void notifyCheckpointComplete(long checkpointId) throws Exception{
+        flushEnable.compareAndSet(false,true);
+    }
 
     /**
      * checkpoint失败时操作

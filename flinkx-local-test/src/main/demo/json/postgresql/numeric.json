@@ -3,7 +3,7 @@
       "content": [
         {
           "reader": {
-            "name": "postgresreader",
+            "name": "postgresqlreader",
             "parameter": {
               "column": [
                 {
@@ -74,7 +74,7 @@
             }
           },
           "writer": {
-            "name": "postgreswriter",
+            "name": "postgresqlwriter",
             "parameter": {
               "username": "postgres",
               "password": "root",

@@ -16,27 +16,28 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.postgres.sink;
+package com.dtstack.flinkx.connector.postgresql.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.connector.postgres.PostgresDialect;
+import com.dtstack.flinkx.connector.postgresql.PostgresqlDialect;
 
 /**
+ * Starting with Postgresql that is for compatible with 1.10 API.
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/26
  */
-public class PostgresSinkFactory extends JdbcSinkFactory {
+public class PostgresqlSinkFactory extends JdbcSinkFactory {
 
-    public PostgresSinkFactory(SyncConf syncConf) {
+    public PostgresqlSinkFactory(SyncConf syncConf) {
         super(syncConf);
-        super.jdbcDialect = new PostgresDialect();
+        super.jdbcDialect = new PostgresqlDialect();
     }
 
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new PostgresOutputFormat());
+        return new JdbcOutputFormatBuilder(new PostgresqlOutputFormat());
     }
 }

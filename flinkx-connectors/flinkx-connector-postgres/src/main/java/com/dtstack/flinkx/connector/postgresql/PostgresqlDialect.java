@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.postgres;
+package com.dtstack.flinkx.connector.postgresql;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @author: wuren
  * @create: 2021/04/22
  */
-public class PostgresDialect implements JdbcDialect {
+public class PostgresqlDialect implements JdbcDialect {
 
     private static final String DIEALECT_NAME = "PostgreSQL";
     private static final String DRIVER = "org.postgresql.Driver";
@@ -82,24 +82,6 @@ public class PostgresDialect implements JdbcDialect {
                         + ")"
                         + " DO UPDATE SET "
                         + updateClause);
-    }
-
-    @Override
-    public String getSqlQueryFields(String schema, String tableName) {
-        return "SELECT * FROM " + tableName + " LIMIT 0";
-    }
-
-    @Override
-    public String quoteTable(String table) {
-        String[] parts = table.split("\\.");
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < parts.length; ++i) {
-            if (i != 0) {
-                sb.append(".");
-            }
-            sb.append(quoteIdentifier(parts[i]));
-        }
-        return sb.toString();
     }
 
     @Override

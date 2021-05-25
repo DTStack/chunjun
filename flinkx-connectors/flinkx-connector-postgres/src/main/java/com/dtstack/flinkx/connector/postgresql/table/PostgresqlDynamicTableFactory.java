@@ -16,20 +16,20 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.postgres.table;
+package com.dtstack.flinkx.connector.postgresql.table;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
-import com.dtstack.flinkx.connector.postgres.PostgresDialect;
+import com.dtstack.flinkx.connector.postgresql.PostgresqlDialect;
 
 /**
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/22
  */
-public class PostgresDynamicTableFactory extends JdbcDynamicTableFactory {
+public class PostgresqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
-    private static final String IDENTIFIER = "postgres-x";
+    private static final String IDENTIFIER = "postgresql-x";
 
     @Override
     public String factoryIdentifier() {
@@ -38,6 +38,6 @@ public class PostgresDynamicTableFactory extends JdbcDynamicTableFactory {
 
     @Override
     protected JdbcDialect getDialect() {
-        return new PostgresDialect();
+        return new PostgresqlDialect();
     }
 }
