@@ -59,8 +59,6 @@ public class FieldConf implements Serializable {
     private Boolean notNull = false;
     /** 字段长度 */
     private Integer length;
-    /** 字段类型class */
-    private Class fieldClass;
 
     /**
      * 获取fieldList
@@ -140,8 +138,6 @@ public class FieldConf implements Serializable {
 
         Object length = map.get("length");
         field.setLength(length != null ? (Integer) length : null);
-
-        field.setFieldClass(ClassUtil.typeToClass(field.getType()));
 
         return field;
     }
@@ -233,14 +229,6 @@ public class FieldConf implements Serializable {
         this.length = length;
     }
 
-    public Class getFieldClass() {
-        return fieldClass;
-    }
-
-    public void setFieldClass(Class fieldClass) {
-        this.fieldClass = fieldClass;
-    }
-
     @Override
     public String toString() {
         return "FieldConf{" +
@@ -253,7 +241,6 @@ public class FieldConf implements Serializable {
                 ", isPart=" + isPart +
                 ", notNull=" + notNull +
                 ", length=" + length +
-                ", fieldClass=" + fieldClass +
                 '}';
     }
 

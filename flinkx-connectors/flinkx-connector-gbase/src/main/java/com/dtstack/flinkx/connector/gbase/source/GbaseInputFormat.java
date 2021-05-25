@@ -19,14 +19,11 @@
 package com.dtstack.flinkx.connector.gbase.source;
 
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.gbase.converter.GbaseRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.util.TableUtil;
-
-import java.sql.SQLException;
 
 /**
  * @author tiezhu
@@ -37,12 +34,7 @@ public class GbaseInputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
-        try {
-            LogicalType rowType =
-                    TableUtil.createRowType(column, columnType, GbaseRawTypeConverter::apply);
-            setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        RowType rowType = TableUtil.createRowType(column, columnType, GbaseRawTypeConverter::apply);
+        setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 }

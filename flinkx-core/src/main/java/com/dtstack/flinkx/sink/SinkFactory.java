@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.sink;
 
+import com.dtstack.flinkx.RawTypeConvertible;
+
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -45,7 +47,7 @@ import java.util.List;
  *
  * @author huyifan.zju@163.com
  */
-public abstract class SinkFactory {
+public abstract class SinkFactory implements RawTypeConvertible {
 
     protected SyncConf syncConf;
     protected TypeInformation<RowData> typeInformation;
@@ -62,9 +64,9 @@ public abstract class SinkFactory {
 
         if (syncConf.getTransformer() == null
                 || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
-            typeInformation = TableUtil.getTypeInformation(Collections.emptyList());
+            typeInformation = TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
         } else {
-            typeInformation = TableUtil.getTypeInformation(fieldList);
+            typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter());
             useAbstractBaseColumn = false;
         }
     }

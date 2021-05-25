@@ -22,9 +22,12 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.postgresql.PostgresqlDialect;
+import com.dtstack.flinkx.connector.postgresql.converter.PostgresqlRawTypeConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 
 /**
  * Starting with Postgresql that is for compatible with 1.10 API.
+ *
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/26
@@ -39,5 +42,10 @@ public class PostgresqlSinkFactory extends JdbcSinkFactory {
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
         return new JdbcOutputFormatBuilder(new PostgresqlOutputFormat());
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return PostgresqlRawTypeConverter::apply;
     }
 }

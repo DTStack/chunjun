@@ -18,12 +18,11 @@
 
 package com.dtstack.flinkx.connector.postgresql.converter;
 
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import java.sql.SQLException;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import java.util.Locale;
 
 /**
@@ -37,10 +36,8 @@ public class PostgresqlRawTypeConverter {
      * inspired by Postgresql doc. https://www.postgresql.org/docs/current/datatype.html
      *
      * @param type
-     * @return
-     * @throws SQLException
      */
-    public static DataType apply(String type) throws SQLException {
+    public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
                 // Numeric Types
             case "SMALLINT":

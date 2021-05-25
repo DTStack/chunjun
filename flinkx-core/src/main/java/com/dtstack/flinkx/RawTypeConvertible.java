@@ -16,26 +16,24 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.mysql.source;
+package com.dtstack.flinkx;
 
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
-import com.dtstack.flinkx.connector.mysql.converter.MysqlRawTypeConverter;
-import com.dtstack.flinkx.util.TableUtil;
-
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 
 /**
- * Date: 2021/04/12 Company: www.dtstack.com
- *
- * @author tudou
+ * The class implement this will be convert Raw Type to Flink Type. Implementations are
+ * SourceFactory、SinkFactory、InputFormat、OutputFormat. When Flink running, Input/OutputFormat
+ * convert raw type. When Flink setup, Source/SinkFactory convert raw type. When to convert depends
+ * on the specific connector.
  */
-public class MysqlInputFormat extends JdbcInputFormat {
+public interface RawTypeConvertible {
 
-    @Override
-    public void openInternal(InputSplit inputSplit) {
-        super.openInternal(inputSplit);
-        RowType rowType = TableUtil.createRowType(column, columnType, MysqlRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
-    }
+    /**
+     * Some connector (e.g. Kafka) that don't support to set raw type. Throw a {@link
+     * UnsupportedOperationException} with this message.
+     */
+    String NO_SUPPORT_MSG = " connector don't support to set raw type.";
+
+    /** @return Connector RawTypeConverter for parse data type string. */
+    RawTypeConverter getRawTypeConverter();
 }
