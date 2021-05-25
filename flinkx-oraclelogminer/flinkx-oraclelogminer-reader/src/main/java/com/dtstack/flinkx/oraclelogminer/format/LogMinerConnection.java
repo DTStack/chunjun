@@ -113,7 +113,7 @@ public class LogMinerConnection {
     public final static String KEY_XID_SQN = "XIDSQN";
 
 
-    private LogMinerConfig logMinerConfig;
+    private final LogMinerConfig logMinerConfig;
 
     private Connection connection;
 
@@ -349,9 +349,8 @@ public class LogMinerConnection {
     }
 
     public BigDecimal getStartScn(BigDecimal startScn) {
-        // 恢复位置不为0，则获取上一次读取的日志文件的起始位置开始读取
+        // restart from checkpoint
         if (null != startScn && startScn.compareTo(BigDecimal.ZERO) != 0) {
-            startScn = getLogFileStartPositionByScn(startScn);
             return startScn;
         }
 
@@ -380,40 +379,6 @@ public class LogMinerConnection {
         }
 
         return startScn;
-    }
-
-    /**
-     * oracle会把把重做日志分文件存储，每个文件都有 "FIRST_CHANGE" 和 "NEXT_CHANGE" 标识范围,
-     * 这里需要根据给定scn找到对应的日志文件，并获取这个文件的 "FIRST_CHANGE"，然后从位置 "FIRST_CHANGE" 开始读取,
-     * 在[FIRST_CHANGE,scn] 范围内的数据需要跳过。
-     * <p>
-     * 视图说明：
-     * v$archived_log 视图存储已经归档的日志文件
-     * v$log 视图存储未归档的日志文件
-     */
-    private BigDecimal getLogFileStartPositionByScn(BigDecimal scn) {
-        BigDecimal logFileFirstChange = null;
-        PreparedStatement lastLogFileStmt = null;
-        ResultSet lastLogFileResultSet = null;
-
-        try {
-            lastLogFileStmt = connection.prepareCall(isOracle10 ? SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN_10 : SqlUtil.SQL_GET_LOG_FILE_START_POSITION_BY_SCN);
-            configStatement(lastLogFileStmt);
-
-            lastLogFileStmt.setBigDecimal(1, scn);
-            lastLogFileStmt.setBigDecimal(2, scn);
-            lastLogFileResultSet = lastLogFileStmt.executeQuery();
-            while (lastLogFileResultSet.next()) {
-                logFileFirstChange = lastLogFileResultSet.getBigDecimal(KEY_FIRST_CHANGE);
-            }
-
-            return logFileFirstChange;
-        } catch (SQLException e) {
-            LOG.error("根据scn:[{}]获取指定归档日志起始位置出错", scn, e);
-            throw new RuntimeException(e);
-        } finally {
-            closeResources(lastLogFileResultSet, lastLogFileStmt, null);
-        }
     }
 
     private BigDecimal getMinScn() {
