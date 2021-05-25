@@ -17,34 +17,29 @@
  */
 package com.dtstack.flinkx.connector.oraclelogminer.converter;
 
-import com.dtstack.flinkx.connector.oraclelogminer.listener.LogMinerConnection;
-import com.dtstack.flinkx.connector.oraclelogminer.listener.LogParser;
-
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRowData;
 import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRow;
+import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRowData;
 import com.dtstack.flinkx.connector.oraclelogminer.entity.TableMetaData;
+import com.dtstack.flinkx.connector.oraclelogminer.listener.LogMinerConnection;
+import com.dtstack.flinkx.connector.oraclelogminer.listener.LogParser;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
-import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.collect.Maps;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -239,33 +234,14 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
             case "VARCHAR":
                 // oracle里的long 可以插入字符串
             case "LONG":
-                return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "RAW":
-            case "BLOB":
             case "LONG RAW":
+            case "INTERVAL YEAR":
+            case "INTERVAL DAY":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
                     val = LogParser.parseString(val);
                     return new StringColumn(val);
                 };
-            //暂不支持
-//            case "INTERVAL YEAR":
-//                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
-//                    // TO_YMINTERVAL('+00-03')
-//                    if (val.startsWith("TO_YMINTERVAL('") && val.endsWith("')") ) {
-//                        return new StringColumn(val.substring(15, val.length() - 2));
-//                    } else {
-//                        return new StringColumn(val);
-//                    }
-//                };
-//            case "INTERVAL DAY":
-//                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
-//                    //HEXTORAW('3132')
-//                    if (val.startsWith("TO_DSINTERVAL('") && val.endsWith("')")) {
-//                        return new StringColumn(val.substring(10, val.length() - 2));
-//                    }else{
-//                        return new StringColumn(val);
-//                    }
-//                };
             case "DATE":
             case "TIMESTAMP":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
@@ -277,12 +253,9 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                         return new TimestampColumn(DateUtil.getTimestampFromStr(val));
                     }
                 };
-
+            case "BLOB":
             case "CLOB":
             case "NCLOB":
-                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> new BytesColumn(val.getBytes(StandardCharsets.UTF_8));
-            case "INTERVAL YEAR":
-            case "INTERVAL DAY":
             case "BFILE":
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);

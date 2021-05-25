@@ -234,6 +234,19 @@ public class LogParser {
                 throw new RuntimeException("parse value [" + value + " ] failed ", e);
             }
         }
+
+
+        //INTERVAL YEAR(2) TO MONTH
+        if (value.startsWith("TO_YMINTERVAL('") && value.endsWith("')")) {
+            return value.substring(15, value.length() - 2);
+        }
+
+        //INTERVAL DAY(2) TO SECOND(6)
+        if (value.startsWith("TO_DSINTERVAL('") && value.endsWith("')")) {
+            return value.substring(15, value.length() - 2);
+        }
+
+
         return value;
     }
 
