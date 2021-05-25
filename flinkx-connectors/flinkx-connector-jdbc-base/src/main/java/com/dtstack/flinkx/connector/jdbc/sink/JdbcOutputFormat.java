@@ -196,12 +196,10 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public FormatState getFormatState() throws Exception {
+    public synchronized FormatState getFormatState() throws Exception {
         LOG.info("getFormatState:Start commit connection, rowsOfCurrentTransaction: {}", rowsOfCurrentTransaction);
         if (rows != null && rows.size() > 0) {
             super.writeRecordInternal();
-        } else {
-            fieldNamedPreparedStatement.executeBatch();
         }
         LOG.info("getFormatState:Commit connection success");
 
@@ -215,7 +213,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public void notifyCheckpointComplete(long checkpointId) throws Exception {
+    public synchronized void notifyCheckpointComplete(long checkpointId) throws Exception {
         try {
             dbConn.commit();
             rowsOfCurrentTransaction = 0;
@@ -225,6 +223,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             dbConn.rollback();
             LOG.error("commit transaction error, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
+        } finally{
+            super.notifyCheckpointComplete(checkpointId);
         }
     }
 
