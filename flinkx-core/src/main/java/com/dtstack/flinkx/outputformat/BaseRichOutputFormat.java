@@ -56,6 +56,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.dtstack.flinkx.constants.ConfigConstant.FLINK_CHECKPOINT_MODE_KEY;
+
 /**
  * Abstract Specification for all the OutputFormat defined in flinkx plugins
  * <p>
@@ -172,7 +174,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
         ExecutionConfig executionConfig = context.getExecutionConfig();
         checkpointMode = executionConfig.getGlobalJobParameters().toMap()
-                .getOrDefault("sql.checkpoint.mode", CheckpointingMode.EXACTLY_ONCE.toString());
+                .getOrDefault(FLINK_CHECKPOINT_MODE_KEY, CheckpointingMode.EXACTLY_ONCE.toString());
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
         if(vars != null){
             jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");

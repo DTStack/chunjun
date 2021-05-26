@@ -81,11 +81,13 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import static com.dtstack.flinkx.constants.ConfigConstant.FLINK_CHECKPOINT_MODE_KEY;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_DELAYINTERVAL;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_FAILUREINTERVAL;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_FAILURERATE;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_RESTARTATTEMPTS;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_STRATEGY;
+import static org.apache.flink.streaming.api.CheckpointingMode.AT_LEAST_ONCE;
 
 /**
  * The main class entry
@@ -143,6 +145,8 @@ public class Main {
             Options options,
             Properties confProperties)
             throws Exception {
+        // SQL uses AT_LEAST_ONCE by default
+        confProperties.setProperty(FLINK_CHECKPOINT_MODE_KEY, confProperties.getProperty(FLINK_CHECKPOINT_MODE_KEY, AT_LEAST_ONCE.name()));
         configStreamExecutionEnvironment(env, options, null, confProperties);
         List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
         StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
@@ -492,6 +496,8 @@ public class Main {
         Optional<Boolean> checkpointEnabled =
                 StreamEnvConfigManagerUtil.isCheckpointEnabled(properties);
         if (checkpointEnabled.get()) {
+            StreamEnvConfigManagerUtil.getTolerableCheckpointFailureNumber(properties)
+                    .ifPresent(env.getCheckpointConfig()::setTolerableCheckpointFailureNumber);
             StreamEnvConfigManagerUtil.getCheckpointInterval(properties)
                     .ifPresent(env::enableCheckpointing);
             StreamEnvConfigManagerUtil.getCheckpointMode(properties)
