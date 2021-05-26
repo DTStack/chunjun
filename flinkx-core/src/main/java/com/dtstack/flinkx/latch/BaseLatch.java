@@ -28,7 +28,7 @@ import com.dtstack.flinkx.util.SysUtil;
  */
 public abstract class BaseLatch {
 
-    protected static int MAX_RETRY_TIMES = 30;
+    protected static int MAX_RETRY_TIMES = 60;
 
     /**
      * 从Flink REST API获取累加器里的值
