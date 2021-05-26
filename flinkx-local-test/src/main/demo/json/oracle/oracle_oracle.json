@@ -1,0 +1,79 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "username": "oracle",
+            "password": "oracle",
+            "connection": [{
+              "jdbcUrl": ["jdbc:oracle:thin:@172.16.100.243:1521:orcl"],
+              "table": ["oracle_all_type_source"]
+            }],
+            "column": [{
+              "name": "id",
+              "type": "decimal"
+            },{
+              "name": "t_binary_double",
+              "type": "decimal"
+            },{
+              "name": "t_binary_float",
+              "type": "decimal"
+            }],
+            "splitPk": "",
+            "fetchSize": 1024,
+            "queryTimeOut": 1000,
+            "requestAccumulatorInterval": 2
+          },
+          "name": "oraclereader"
+        },
+        "writer": {
+          "name": "oraclewriter",
+          "parameter": {
+            "username": "oracle",
+            "password": "oracle",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:oracle:thin:@172.16.100.243:1521:orcl",
+                "table": ["oracle_all_type_sink"]
+              }
+            ],
+            "writeMode": "insert",
+            "column": [{
+              "name": "id",
+              "type": "decimal"
+            },{
+              "name": "t_binary_double",
+              "type": "decimal"
+            },{
+              "name": "t_binary_float",
+              "type": "decimal"
+            }],
+            "batchSize": 1024
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 1
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log" : {
+        "isLogger": false,
+        "level" : "debug",
+        "path" : "",
+        "pattern":""
+      }
+    }
+  }
+}
