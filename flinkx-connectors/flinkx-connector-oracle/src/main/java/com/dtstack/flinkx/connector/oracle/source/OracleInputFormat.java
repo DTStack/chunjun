@@ -50,14 +50,10 @@ public class OracleInputFormat extends JdbcInputFormat {
         // sql 任务中 rowConverter 会在 OracleDynamicTableFactory#createDynamicTableSource() 处初始化 rowConverter
         if (rowConverter == null) {
             // 说明是同步任务
-            try {
-                LogicalType rowType =
-                        TableUtil.createRowType(
-                                column, columnType, OracleRawTypeConverter::apply);
-                setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
-            } catch (SQLException e) {
-                LOG.error("", e);
-            }
+            RowType rowType =
+                    TableUtil.createRowType(
+                            column, columnType, OracleRawTypeConverter::apply);
+            setRowConverter(jdbcDialect.getColumnConverter(rowType));
         }
     }
 

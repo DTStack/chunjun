@@ -4,6 +4,8 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.connector.oracle.OracleDialect;
+import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -30,5 +32,10 @@ public class OracleSourceFactory extends JdbcSourceFactory {
     @Override
     protected int getDefaultFetchSize() {
         return DEFAULT_FETCH_SIZE;
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return OracleRawTypeConverter::apply;
     }
 }

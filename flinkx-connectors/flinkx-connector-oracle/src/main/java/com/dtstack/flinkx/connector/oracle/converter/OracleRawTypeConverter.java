@@ -1,5 +1,7 @@
 package com.dtstack.flinkx.connector.oracle.converter;
 
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
@@ -28,7 +30,7 @@ public class OracleRawTypeConverter {
      *
      * @throws SQLException
      */
-    public static DataType apply(String type) throws SQLException {
+    public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "SMALLINT":
                 return DataTypes.SMALLINT();
@@ -56,14 +58,14 @@ public class OracleRawTypeConverter {
             case "BINARY_FLOAT":
                 return DataTypes.FLOAT();
             case "BLOB":
-                throw new SQLException("不支持" + type + "类型");
+                throw new UnsupportedTypeException(type);
             default:
                 if (TIMESTAMP_PREDICATE.test(type)) {
                     return DataTypes.TIMESTAMP();
                 }else if(type.startsWith("INTERVAL")){
                     return DataTypes.STRING();
                 }
-                throw new SQLException("不支持" + type + "类型");
+                throw new UnsupportedTypeException(type);
         }
     }
 

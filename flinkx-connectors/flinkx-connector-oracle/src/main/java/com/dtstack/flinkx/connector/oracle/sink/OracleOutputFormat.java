@@ -43,14 +43,10 @@ public class OracleOutputFormat extends JdbcOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
-        try {
-            LogicalType rowType =
-                    TableUtil.createRowType(
-                            column, columnType, OracleRawTypeConverter::apply);
-            setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
-        } catch (SQLException e) {
-            LOG.error("", e);
-        }
+        RowType rowType =
+                TableUtil.createRowType(
+                        column, columnType, OracleRawTypeConverter::apply);
+        setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 
 }
