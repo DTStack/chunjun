@@ -34,7 +34,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
     private final JdbcConf jdbcConf;
     private final String query;
-    private final JdbcDialect jdbcDialect;
+    protected final JdbcDialect jdbcDialect;
 
     public JdbcAllTableFunction(
             JdbcConf jdbcConf,

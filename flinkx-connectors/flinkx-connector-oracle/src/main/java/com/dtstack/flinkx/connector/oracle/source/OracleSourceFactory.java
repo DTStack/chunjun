@@ -20,12 +20,6 @@ public class OracleSourceFactory extends JdbcSourceFactory {
     public OracleSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         super.jdbcDialect = new OracleDialect();
-        // 避免result.next阻塞
-        if (jdbcConf.isPolling()
-                && StringUtils.isEmpty(jdbcConf.getStartLocation())
-                && jdbcConf.getFetchSize() == 0) {
-            jdbcConf.setFetchSize(1000);
-        }
     }
 
     @Override

@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>flinkx-connector-oracle</artifactId>
-	<name>FlinkX : Connectors : ORACLE</name>
+	<name>FlinkX : Connectors : Oracle</name>
 
 
 	<dependencies>

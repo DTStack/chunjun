@@ -26,6 +26,8 @@ import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
+import com.dtstack.flinkx.connector.oracle.lookup.OracleAllTableFunction;
+import com.dtstack.flinkx.connector.oracle.lookup.OracleLruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 
@@ -71,7 +73,7 @@ public class OracleDynamicTableSource extends JdbcDynamicTableSource {
 
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return ParallelAsyncTableFunctionProvider.of(
-                    new JdbcLruTableFunction(
+                    new OracleLruTableFunction(
                             jdbcConf,
                             jdbcDialect,
                             lookupConf,
@@ -81,7 +83,7 @@ public class OracleDynamicTableSource extends JdbcDynamicTableSource {
                     lookupConf.getParallelism());
         }
         return ParallelTableFunctionProvider.of(
-                new JdbcAllTableFunction(
+                new OracleAllTableFunction(
                         jdbcConf,
                         jdbcDialect,
                         lookupConf,

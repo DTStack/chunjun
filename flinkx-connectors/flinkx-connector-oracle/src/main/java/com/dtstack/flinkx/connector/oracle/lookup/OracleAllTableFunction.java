@@ -55,4 +55,15 @@ public class OracleAllTableFunction extends JdbcAllTableFunction {
         System.getProperties().setProperty("oracle.jdbc.J2EE13Compliant", "true");
         super.open(context);
     }
+
+
+    @Override
+    protected Connection getConn(String dbUrl, String userName, String password) {
+        try {
+            Class.forName(jdbcDialect.defaultDriverName().get());
+            return DriverManager.getConnection(dbUrl, userName, password);
+        } catch (Exception e) {
+            throw new RuntimeException("", e);
+        }
+    }
 }
