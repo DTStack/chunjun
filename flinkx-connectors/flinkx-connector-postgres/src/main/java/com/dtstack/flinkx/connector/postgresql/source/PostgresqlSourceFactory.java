@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.postgresql.source;
 
+import com.dtstack.flinkx.connector.postgresql.converter.PostgresqlRawTypeConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
@@ -42,5 +45,10 @@ public class PostgresqlSourceFactory extends JdbcSourceFactory {
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new PostgresqlInputFormat());
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return PostgresqlRawTypeConverter::apply;
     }
 }

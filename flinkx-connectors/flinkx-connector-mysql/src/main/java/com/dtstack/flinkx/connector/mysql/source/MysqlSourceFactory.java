@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.connector.mysql.source;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -23,6 +24,8 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.connector.mysql.MysqlDialect;
+import com.dtstack.flinkx.connector.mysql.converter.MysqlRawTypeConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -54,5 +57,10 @@ public class MysqlSourceFactory extends JdbcSourceFactory {
     @Override
     protected int getDefaultFetchSize() {
         return DEFAULT_FETCH_SIZE;
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return MysqlRawTypeConverter::apply;
     }
 }
