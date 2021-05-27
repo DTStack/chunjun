@@ -19,6 +19,87 @@
             },{
               "name": "t_binary_float",
               "type": "decimal"
+            },{
+              "name": "t_char",
+              "type": "string"
+            },{
+              "name": "t_char_varying",
+              "type": "string"
+            },{
+              "name": "t_character",
+              "type": "string"
+            },{
+              "name": "t_character_varying",
+              "type": "string"
+            },{
+              "name": "t_date",
+              "type": "date"
+            },{
+              "name": "t_decimal",
+              "type": "decimal"
+            },{
+              "name": "t_double_precision",
+              "type": "double"
+            },{
+              "name": "t_float",
+              "type": "double"
+            },{
+              "name": "t_int",
+              "type": "int"
+            },{
+              "name": "t_integer",
+              "type": "decimal"
+            },{
+              "name": "t_long",
+              "type": "decimal"
+            },{
+              "name": "t_national_char",
+              "type": "string"
+            },{
+              "name": "t_national_char_varying",
+              "type": "string"
+            },{
+              "name": "t_national_character",
+              "type": "string"
+            },{
+              "name": "t_national_character_varying",
+              "type": "string"
+            },{
+              "name": "t_nchar",
+              "type": "string"
+            },{
+              "name": "t_nchar_varying",
+              "type": "string"
+            },{
+              "name": "t_number_1",
+              "type": "decimal"
+            },{
+              "name": "t_number_2",
+              "type": "decimal"
+            },{
+              "name": "t_number_3",
+              "type": "decimal"
+            },{
+              "name": "t_numeric",
+              "type": "decimal"
+            },{
+              "name": "t_nvarchar2",
+              "type": "string"
+            },{
+              "name": "t_raw",
+              "type": "bytes"
+            },{
+              "name": "t_real",
+              "type": "double"
+            },{
+              "name": "t_timestamp",
+              "type": "timestamp"
+            },{
+              "name": "t_varchar",
+              "type": "string"
+            },{
+              "name": "t_varchar2",
+              "type": "string"
             }],
             "splitPk": "",
             "fetchSize": 1024,
@@ -48,6 +129,87 @@
             },{
               "name": "t_binary_float",
               "type": "decimal"
+            },{
+              "name": "t_char",
+              "type": "string"
+            },{
+              "name": "t_char_varying",
+              "type": "string"
+            },{
+              "name": "t_character",
+              "type": "string"
+            },{
+              "name": "t_character_varying",
+              "type": "string"
+            },{
+              "name": "t_date",
+              "type": "timestamp"
+            },{
+              "name": "t_decimal",
+              "type": "decimal"
+            },{
+              "name": "t_double_precision",
+              "type": "double"
+            },{
+              "name": "t_float",
+              "type": "double"
+            },{
+              "name": "t_int",
+              "type": "int"
+            },{
+              "name": "t_integer",
+              "type": "decimal"
+            },{
+              "name": "t_long",
+              "type": "decimal"
+            },{
+              "name": "t_national_char",
+              "type": "string"
+            },{
+              "name": "t_national_char_varying",
+              "type": "string"
+            },{
+              "name": "t_national_character",
+              "type": "string"
+            },{
+              "name": "t_national_character_varying",
+              "type": "string"
+            },{
+              "name": "t_nchar",
+              "type": "string"
+            },{
+              "name": "t_nchar_varying",
+              "type": "string"
+            },{
+              "name": "t_number_1",
+              "type": "decimal"
+            },{
+              "name": "t_number_2",
+              "type": "decimal"
+            },{
+              "name": "t_number_3",
+              "type": "decimal"
+            },{
+              "name": "t_numeric",
+              "type": "decimal"
+            },{
+              "name": "t_nvarchar2",
+              "type": "string"
+            },{
+              "name": "t_raw",
+              "type": "bytes"
+            },{
+              "name": "t_real",
+              "type": "double"
+            },{
+              "name": "t_timestamp",
+              "type": "timestamp"
+            },{
+              "name": "t_varchar",
+              "type": "string"
+            },{
+              "name": "t_varchar2",
+              "type": "string"
             }],
             "batchSize": 1024
           }

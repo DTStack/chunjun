@@ -19,9 +19,20 @@
 package com.dtstack.flinkx.connector.oracle;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.connector.oracle.converter.OracleColumnConverter;
+import com.dtstack.flinkx.connector.oracle.converter.OracleRowConverter;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
+import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,24 +59,6 @@ public class OracleDialect implements JdbcDialect {
         return Optional.of("oracle.jdbc.OracleDriver");
     }
 
-    @Override
-    public String quoteIdentifier(String identifier) {
-        return "\"" + identifier + "\"";
-    }
-
-
-    @Override
-    public String quoteTable(String table) {
-        String[] parts = table.split("\\.");
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < parts.length; ++i) {
-            if (i != 0) {
-                sb.append(".");
-            }
-            sb.append(quoteIdentifier(parts[i]));
-        }
-        return sb.toString();
-    }
 
     @Override
     public String getSelectFromStatement(
@@ -98,4 +91,15 @@ public class OracleDialect implements JdbcDialect {
         return sql.toString();
     }
 
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(
+            RowType rowType) {
+        return new OracleRowConverter(rowType);
+    }
+
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
+            RowType rowType) {
+        return new OracleColumnConverter(rowType);
+    }
 }

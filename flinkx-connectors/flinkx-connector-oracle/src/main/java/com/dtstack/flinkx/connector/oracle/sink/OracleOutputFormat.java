@@ -38,7 +38,6 @@ import java.sql.SQLException;
  */
 public class OracleOutputFormat extends JdbcOutputFormat {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(OracleOutputFormat.class);
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {

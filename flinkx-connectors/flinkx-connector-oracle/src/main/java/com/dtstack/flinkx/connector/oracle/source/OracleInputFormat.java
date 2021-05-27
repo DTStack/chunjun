@@ -38,23 +38,15 @@ import java.sql.SQLException;
  */
 public class OracleInputFormat extends JdbcInputFormat {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(OracleInputFormat.class);
 
 
     @Override
     public void openInternal(InputSplit inputSplit) {
-        // 使 oracle 驱动按照 jdbc 规范返回数据
-        System.getProperties().setProperty("oracle.jdbc.J2EE13Compliant", "true");
         super.openInternal(inputSplit);
-        // 若是同步任务，则 rowConverter 为空。
-        // sql 任务中 rowConverter 会在 OracleDynamicTableFactory#createDynamicTableSource() 处初始化 rowConverter
-        if (rowConverter == null) {
-            // 说明是同步任务
-            RowType rowType =
-                    TableUtil.createRowType(
-                            column, columnType, OracleRawTypeConverter::apply);
-            setRowConverter(jdbcDialect.getColumnConverter(rowType));
-        }
+        RowType rowType =
+                TableUtil.createRowType(
+                        column, columnType, OracleRawTypeConverter::apply);
+        setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 
 

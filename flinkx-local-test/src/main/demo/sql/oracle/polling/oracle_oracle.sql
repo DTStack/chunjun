@@ -102,7 +102,7 @@ CREATE TABLE source
     t_interval_day2s                    string
 ) WITH (
       'connector' = 'oracle-x',
-      'url' = 'jdbc:oracle:thin:@172.16.100.243:1521:orcl',
+      'url' = 'jdbc:oracle:thin:@localhost:1521:orcl',
       'table-name' = 'oracle_all_type_source_empty',
       'username' = 'oracle',
       'password' = 'oracle',
@@ -149,7 +149,7 @@ CREATE TABLE sink
     t_interval_day2s                    string
 ) WITH (
       'connector' = 'oracle-x',
-      'url' = 'jdbc:oracle:thin:@172.16.100.243:1521:orcl',
+      'url' = 'jdbc:oracle:thin:@localhost:1521:orcl',
       'table-name' = 'oracle_all_type_sink_clear',
       'username' = 'oracle',
       'password' = 'oracle',

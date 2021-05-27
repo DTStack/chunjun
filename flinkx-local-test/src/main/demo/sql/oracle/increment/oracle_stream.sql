@@ -101,7 +101,7 @@ CREATE TABLE source
     t_varchar2                          string
 ) WITH (
       'connector' = 'oracle-x',
-      'url' = 'jdbc:oracle:thin:@172.16.100.243:1521:orcl',
+      'url' = 'jdbc:oracle:thin:@localhost:1521:orcl',
       'table-name' = 'oracle_all_type_source',
       'username' = 'oracle',
       'password' = 'oracle',
