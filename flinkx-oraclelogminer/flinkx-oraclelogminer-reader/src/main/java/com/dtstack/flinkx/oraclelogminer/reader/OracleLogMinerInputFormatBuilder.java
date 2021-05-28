@@ -198,7 +198,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             int privilegeCount = 0;
             List<String> privilegeList;
             //Oracle 11
-            if (oracleInfo.getVersion() >= 11) {
+            if (oracleInfo.getVersion() <= 11) {
                 privilegeList = SqlUtil.ORACLE_11_PRIVILEGES_NEEDED;
             } else {
                 privilegeList = SqlUtil.PRIVILEGES_NEEDED;
@@ -210,18 +210,18 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             }
 
             if(privilegeCount != privilegeList.size()){
-                if (oracleInfo.getVersion() >= 11) {
+                if (oracleInfo.getVersion() <= 11) {
                     sb.append("Insufficient permissions, ")
                             .append("current permissions are :")
                             .append(GsonUtil.GSON.toJson(privileges))
-                            .append(",please execute sql for empowerment：grant create session, execute_catalog_role, select any transaction, flashback any table, select any table, lock any table, select any dictionary to ")
+                            .append(",please execute sql for empowerment：grant create session, execute_catalog_role, select any transaction, flashback any table, select any table, lock any table,logmining, select any dictionary to ")
                             .append(config.getUsername())
                             .append(";\n");
                 }else{
                     sb.append("Insufficient permissions, ")
                             .append("current permissions are :")
                             .append(GsonUtil.GSON.toJson(privilegeList))
-                            .append(",please execute sql for empowerment：grant create session, execute_catalog_role, select any transaction, flashback any table, select any table, lock any table, logmining, select any dictionary to ")
+                            .append(",please execute sql for empowerment：grant create session, execute_catalog_role, select any transaction, flashback any table, select any table, lock any table,  select any dictionary to ")
                             .append(config.getUsername())
                             .append(";\n");
                 }
