@@ -20,9 +20,13 @@ package com.dtstack.flinkx.postgresql;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * The class of PostgreSQL database prototype
@@ -66,7 +70,33 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        throw new UnsupportedOperationException("PostgreSQL not support update mode");
+
+        //如果为空 则为insert语句
+        if(MapUtils.isEmpty(updateKey)) {
+            return getInsertStatement(column, table);
+        }
+
+        Map.Entry<String, List<String>> next = updateKey.entrySet().iterator().next();
+
+        return "INSERT INTO " + quoteTable(table)
+                + " (" + quoteColumns(column) + ") values "
+                + makeValues(column.size())
+                + " ON CONFLICT "
+                + " (" + quoteColumns(next.getValue()) + ")"
+                + makeUpdatePart(column,next.getValue());
+    }
+
+    private String makeUpdatePart(List<String> columnList, List<String> conflictNameList) {
+
+        //获取需要更新的字段
+        List<String> updateColumnList = columnList.stream().filter(i -> !conflictNameList.contains(i)).collect(Collectors.toList());
+        //如果没有待更新的字段 则 do nothing
+        if (CollectionUtils.isEmpty(updateColumnList)) {
+            return " DO NOTHING";
+        }
+
+        return " DO UPDATE SET " + updateColumnList.stream().map(f -> quoteColumn(f) + "=EXCLUDED." + quoteColumn(f))
+                        .collect(Collectors.joining(", "));
     }
 
     @Override
@@ -87,5 +117,9 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
     @Override
     public int getQueryTimeout(){
         return 1000;
+    }
+
+    private String makeValues(int nCols) {
+        return "(" + StringUtils.repeat("?", ",", nCols) + ")";
     }
 }
