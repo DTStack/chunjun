@@ -83,7 +83,6 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
                 + makeValues(column.size())
                 + " ON CONFLICT "
                 + " (" + quoteColumns(next.getValue()) + ")"
-                + " DO UPDATE SET "
                 + makeUpdatePart(column,next.getValue());
     }
 
@@ -93,11 +92,10 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
         List<String> updateColumnList = columnList.stream().filter(i -> !conflictNameList.contains(i)).collect(Collectors.toList());
         //如果没有待更新的字段 则 do nothing
         if (CollectionUtils.isEmpty(updateColumnList)) {
-            return "DO NOTHING";
+            return " DO NOTHING";
         }
 
-        return
-                updateColumnList.stream().map(f -> quoteColumn(f) + "=EXCLUDED." + quoteColumn(f))
+        return " DO UPDATE SET " + updateColumnList.stream().map(f -> quoteColumn(f) + "=EXCLUDED." + quoteColumn(f))
                         .collect(Collectors.joining(", "));
     }
 

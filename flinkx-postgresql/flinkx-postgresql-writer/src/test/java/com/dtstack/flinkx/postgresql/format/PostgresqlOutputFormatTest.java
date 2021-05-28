@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.postgresql.format;
 
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +34,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -46,11 +46,12 @@ public class PostgresqlOutputFormatTest {
     private Connection c;
     private DatabaseMetaData metaData;
     private PostgresqlOutputFormat postgresqlOutputFormat;
+
     @Before
     public void setup() throws SQLException {
         c = mock(Connection.class);
         metaData = mock(DatabaseMetaData.class);
-        postgresqlOutputFormat = Mockito.mock(PostgresqlOutputFormat.class);
+        postgresqlOutputFormat = mock(PostgresqlOutputFormat.class);
 
         mockStatic(PostgresqlOutputFormat.class);
         mockStatic(DriverManager.class);
@@ -58,41 +59,39 @@ public class PostgresqlOutputFormatTest {
         PowerMockito.when(DriverManager.getConnection(any(), any(), any())).thenReturn(c);
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testCheckFormatAdbVersion() throws SQLException {
 
         Whitebox.setInternalState(postgresqlOutputFormat, "mode", "update");
         Whitebox.setInternalState(postgresqlOutputFormat, "sourceType", "ADB");
 
-        when(postgresqlOutputFormat.checkUpsert()).thenCallRealMethod();
-
+        doCallRealMethod().when(postgresqlOutputFormat).checkUpsert();
         when(c.getMetaData()).thenReturn(metaData);
-        when(metaData.getDatabaseProductVersion()).thenReturn("9.4").thenReturn("9.3");
 
-        String s = postgresqlOutputFormat.checkUpsert();
-        Assert.assertEquals(0, s.length());
+        when(metaData.getDatabaseProductVersion()).thenReturn("11.2");
+        postgresqlOutputFormat.checkUpsert();
 
-        s = postgresqlOutputFormat.checkUpsert();
-        Assert.assertTrue(s.length() > 0);
+        when(metaData.getDatabaseProductVersion()).thenReturn("9.3");
+        postgresqlOutputFormat.checkUpsert();
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testCheckFormatPostgreSqlVersion() throws SQLException {
 
         PostgresqlOutputFormat postgresqlOutputFormat = Mockito.mock(PostgresqlOutputFormat.class);
         Whitebox.setInternalState(postgresqlOutputFormat, "mode", "update");
         Whitebox.setInternalState(postgresqlOutputFormat, "sourceType", "POSTGRESQL");
 
-        when(postgresqlOutputFormat.checkUpsert()).thenCallRealMethod();
+        doCallRealMethod().when(postgresqlOutputFormat).checkUpsert();
 
         when(c.getMetaData()).thenReturn(metaData);
-        when(metaData.getDatabaseProductVersion()).thenReturn("9.4").thenReturn("9.5.24");
 
-        String s = postgresqlOutputFormat.checkUpsert();
-        Assert.assertTrue(s.length() > 0);
+        when(metaData.getDatabaseProductVersion()).thenReturn("10.2.34");
+        postgresqlOutputFormat.checkUpsert();
 
-        s = postgresqlOutputFormat.checkUpsert();
-        Assert.assertEquals(0, s.length());
+        when(metaData.getDatabaseProductVersion()).thenReturn("9.4");
+        postgresqlOutputFormat.checkUpsert();
+
     }
 
 }

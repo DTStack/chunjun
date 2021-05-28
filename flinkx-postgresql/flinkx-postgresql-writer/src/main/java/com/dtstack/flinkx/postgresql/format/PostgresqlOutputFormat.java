@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.postgresql.format;
 
-import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
@@ -25,13 +24,11 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.types.Row;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
 
 import java.io.ByteArrayInputStream;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -284,12 +281,11 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
 
     /**
      * 当mode为update时进行校验
+     *
      * @return
      * @throws SQLException
      */
-    public String checkUpsert() throws SQLException {
-        StringBuilder errorInfo = new StringBuilder(1024);
-
+    public void checkUpsert() throws SQLException {
         if (EWriteMode.UPDATE.name().equalsIgnoreCase(mode)) {
             try (Connection connection = RetryUtil.executeWithRetry(
                     () -> DriverManager.getConnection(
@@ -303,28 +299,20 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
                 //效验版本
                 String databaseProductVersion = connection.getMetaData().getDatabaseProductVersion();
                 LOG.info("source version is {}", databaseProductVersion);
-                String[] split = databaseProductVersion.split("\\.");
-                //databaseProductVersion格式有可能为9.4.24
-                if (split.length >= 2) {
-                    databaseProductVersion = split[0] + ConstantValue.POINT_SYMBOL + split[1];
-                }
 
-                if(NumberUtils.isNumber(databaseProductVersion)){
-                    if (sourceType.equalsIgnoreCase(PostgresqlOutputFormat.SourceType.POSTGRESQL.name())) {
-                        //pg大于等于9.5
-                        if (new BigDecimal(databaseProductVersion).compareTo(new BigDecimal("9.5")) < 0) {
-                            errorInfo.append("the postgreSql version is {} and must greater than or equal to 9.5 when you use update mode and source is ").append(PostgresqlOutputFormat.SourceType.POSTGRESQL.name());
-                        }
-                    } else if (sourceType.equalsIgnoreCase(PostgresqlOutputFormat.SourceType.ADB.name())) {
-                        //adb大于等于9.4
-                        if (new BigDecimal(databaseProductVersion).compareTo(new BigDecimal("9.4")) < 0) {
-                            errorInfo.append("the postgreSql version is {} and must greater than or equal to 9.4 when you use update mode and source is ").append(PostgresqlOutputFormat.SourceType.ADB.name());
-                        }
+                if (sourceType.equalsIgnoreCase(PostgresqlOutputFormat.SourceType.POSTGRESQL.name())) {
+                    //pg大于等于9.5
+                    if (databaseProductVersion.compareTo("9.5") < 0) {
+                        throw new RuntimeException("the postgreSql version is {} and must greater than or equal to 9.5 when you use update mode and source is "+ PostgresqlOutputFormat.SourceType.POSTGRESQL.name());
+                    }
+                } else if (sourceType.equalsIgnoreCase(PostgresqlOutputFormat.SourceType.ADB.name())) {
+                    //adb大于等于9.4
+                    if (databaseProductVersion.compareTo("9.4") < 0) {
+                        throw new RuntimeException("the postgreSql version is {} and must greater than or equal to 9.4 when you use update mode and source is " + PostgresqlOutputFormat.SourceType.ADB.name());
                     }
                 }
             }
         }
-        return errorInfo.toString();
     }
 
     /**

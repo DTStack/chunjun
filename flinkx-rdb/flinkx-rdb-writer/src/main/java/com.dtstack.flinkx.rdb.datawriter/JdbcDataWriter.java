@@ -25,9 +25,11 @@ import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.BaseDataWriter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.Preconditions;
 
 import java.util.List;
 import java.util.Map;
@@ -85,6 +87,7 @@ public class JdbcDataWriter extends BaseDataWriter {
     public JdbcDataWriter(DataTransferConfig config) {
 
         super(config);
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(config.getJob().getContent().get(0).getWriter().getParameter().getConnection()), "Must specify at least one connection info");
 
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
 
