@@ -93,7 +93,8 @@ public class ConfigConstant {
     public static final String SQL_UNALIGNED_CHECKPOINTS = "sql.checkpoint.unalignedCheckpoints";
 
     /**cp模式*/
-    public static final String FLINK_CHECKPOINT_MODE_KEY = "sql.checkpoint.mode";
+    public static final String SQL_CHECKPOINT_MODE_KEY = "sql.checkpoint.mode";
+    public static final String FLINK_CHECKPOINT_MODE_KEY = "flink.checkpoint.mode";
 
     /**cp失败容忍的最大次数*/
     public static final String FLINK_CHECKPOINT_FAILURENUMBER_KEY = "flink.checkpoint.failurenumber";

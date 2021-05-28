@@ -31,7 +31,6 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -173,9 +172,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             }
             fieldNamedPreparedStatement.executeBatch();
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
-            if (checkpointEnabled && CheckpointingMode.EXACTLY_ONCE
-                    .name()
-                    .equalsIgnoreCase(checkpointMode)) {
+            if (checkpointEnabled && CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
                 rowsOfCurrentTransaction += rows.size();
             } else {
                 //手动提交事务
@@ -196,35 +193,31 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public synchronized FormatState getFormatState() throws Exception {
+    public void preCommit() throws Exception{
         LOG.info("getFormatState:Start commit connection, rowsOfCurrentTransaction: {}", rowsOfCurrentTransaction);
+        if (jdbcConf.getRestoreColumnIndex() > -1) {
+            formatState.setState(((GenericRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex()));
+        }
+
         if (rows != null && rows.size() > 0) {
             super.writeRecordInternal();
+        } else {
+            fieldNamedPreparedStatement.executeBatch();
         }
-        LOG.info("getFormatState:Commit connection success");
-
-        if(jdbcConf.getRestoreColumnIndex() > -1){
-            formatState.setState(((GenericRowData)lastRow).getField(jdbcConf.getRestoreColumnIndex()));
-        }
-        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
-        LOG.info("format state:{}", formatState.getState());
-        super.getFormatState();
-        return formatState;
     }
 
     @Override
-    public synchronized void notifyCheckpointComplete(long checkpointId) throws Exception {
+    protected void commit(long checkpointId) throws Exception {
         try {
             dbConn.commit();
             rowsOfCurrentTransaction = 0;
             snapshotWriteCounter.add(rowsOfCurrentTransaction);
             fieldNamedPreparedStatement.clearBatch();
-        }catch (Exception e){
+            LOG.info("notifyCheckpointComplete:Commit connection success , checkpointId:{}", checkpointId);
+        } catch (Exception e) {
             dbConn.rollback();
             LOG.error("commit transaction error, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
-        } finally{
-            super.notifyCheckpointComplete(checkpointId);
         }
     }
 

@@ -194,12 +194,16 @@ public final class StreamEnvConfigManagerUtil {
     }
 
     public static Optional<CheckpointingMode> getCheckpointMode(Properties properties) {
-        String checkpointingModeStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_MODE_KEY);
+        String flinkCheckpointingModeStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_MODE_KEY);
+        String sqlCheckpointingModeStr = properties.getProperty(ConfigConstant.SQL_CHECKPOINT_MODE_KEY);
         CheckpointingMode checkpointingMode = null;
-        if (!StringUtils.isEmpty(checkpointingModeStr)) {
-            checkpointingMode = CheckpointingMode.valueOf(checkpointingModeStr.toUpperCase());
+        if (!StringUtils.isEmpty(flinkCheckpointingModeStr)) {
+            checkpointingMode = CheckpointingMode.valueOf(flinkCheckpointingModeStr.toUpperCase());
         }
-        return checkpointingMode == null ? Optional.of(CheckpointingMode.EXACTLY_ONCE) : Optional.of(checkpointingMode);
+        if (!StringUtils.isEmpty(sqlCheckpointingModeStr)) {
+            checkpointingMode = CheckpointingMode.valueOf(sqlCheckpointingModeStr.toUpperCase());
+        }
+        return checkpointingMode == null ? Optional.of(CheckpointingMode.AT_LEAST_ONCE) : Optional.of(checkpointingMode);
     }
 
     public static Optional<Long> getCheckpointTimeout(Properties properties) {
