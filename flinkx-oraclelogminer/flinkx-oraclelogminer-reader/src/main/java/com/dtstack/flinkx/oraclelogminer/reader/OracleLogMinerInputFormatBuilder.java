@@ -18,9 +18,11 @@
 package com.dtstack.flinkx.oraclelogminer.reader;
 
 import com.dtstack.flinkx.config.SpeedConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.oraclelogminer.format.LogMinerConfig;
 import com.dtstack.flinkx.oraclelogminer.format.LogMinerConnection;
+import com.dtstack.flinkx.oraclelogminer.format.OracleInfo;
 import com.dtstack.flinkx.oraclelogminer.format.OracleLogMinerInputFormat;
 import com.dtstack.flinkx.oraclelogminer.util.SqlUtil;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -139,8 +141,30 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
                     false);
             Statement statement = connection.createStatement();
         ) {
-            int oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
-            LOG.info("current Oracle version is：{}", oracleVersion);
+            OracleInfo oracleInfo = LogMinerConnection.getOracleInfo(connection);
+
+            checkOracleInfo(oracleInfo, sb);
+
+            if(sb.length() > 0){
+                throw new IllegalArgumentException(sb.toString());
+            }
+
+            if(StringUtils.isNotBlank(config.getListenerTables())){
+                checkTableFormat(sb, config.getListenerTables(), oracleInfo.isCdbMode());
+            }
+
+            //cdb模式 需要切换到根容器
+            if(oracleInfo.isCdbMode()){
+                try{
+                    statement.execute(String.format(SqlUtil.SQL_ALTER_SESSION_CONTAINER, LogMinerConnection.CDB_CONTAINER_ROOT));
+                }catch (SQLException e){
+                    LOG.warn("alter session container to CDB$ROOT error,errorInfo is {} ", ExceptionUtil.getErrorMessage(e));
+                    sb.append("your account can't alter session container to CDB$ROOT \n");
+                }
+                if(sb.length() > 0){
+                    throw new IllegalArgumentException(sb.toString());
+                }
+            }
 
             //1、校验Oracle账号用户角色组
             ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ROLES);
@@ -174,7 +198,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             int privilegeCount = 0;
             List<String> privilegeList;
             //Oracle 11
-            if (oracleVersion <= 11) {
+            if (oracleInfo.getVersion() >= 11) {
                 privilegeList = SqlUtil.ORACLE_11_PRIVILEGES_NEEDED;
             } else {
                 privilegeList = SqlUtil.PRIVILEGES_NEEDED;
@@ -186,7 +210,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             }
 
             if(privilegeCount != privilegeList.size()){
-                if (oracleVersion <= 11) {
+                if (oracleInfo.getVersion() <= 11) {
                     sb.append("Insufficient permissions, ")
                             .append("current permissions are :")
                             .append(GsonUtil.GSON.toJson(privileges))
@@ -236,6 +260,40 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             detailsInfo.append(" \n error to check logMiner config, e = " ).append(ExceptionUtil.getErrorMessage(e));
 
             throw new RuntimeException(detailsInfo.toString(), e);
+        }
+    }
+
+
+    private void checkOracleInfo(OracleInfo oracleInfo, StringBuilder sb) {
+
+        //只支持 10 11 19
+        if (oracleInfo.getVersion() != 10 && oracleInfo.getVersion() != 11 && oracleInfo.getVersion() != 19) {
+            sb.append("we not support " +  oracleInfo.getVersion() + "and the Oracle version we support contains【10 11 19】 \n" );
+        }
+
+        //19只有cdb模式验证过 其他模式还没验证
+        if (oracleInfo.getVersion() == 19 && !oracleInfo.isCdbMode()) {
+            LOG.warn( "the oracle version is 19 but the mode is not cdbMode \n");
+        }
+    }
+
+    /**
+     * 检查监听表格式
+     * pdb.schema.table 或者 schema.table
+     */
+    private void checkTableFormat(StringBuilder sb, String listenerTables, boolean isCdb) throws SQLException {
+        String[] tableWithPdbs = listenerTables.split(ConstantValue.COMMA_SYMBOL);
+
+        for (String tableWithPdb : tableWithPdbs) {
+            String[] tables = tableWithPdb.split("\\.");
+            //格式是pdb.schema.table 或者schema.table
+            if (tables.length != 2 &&  tables.length != 3) {
+                if(isCdb){
+                    sb.append("The monitored table " + tableWithPdb + " does not conform to the specification.，The correct format is pdbName.schema.table \n ");
+                }else{
+                    sb.append("The monitored table " + tableWithPdb + " does not conform to the specification.，The correct format is schema.table \n ");
+                }
+            }
         }
     }
 }

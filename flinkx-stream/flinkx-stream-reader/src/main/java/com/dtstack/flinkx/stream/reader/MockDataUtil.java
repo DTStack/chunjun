@@ -60,7 +60,7 @@ public class MockDataUtil {
             case "float": mockData = JMockData.mock(float.class);break;
             case "double": mockData = JMockData.mock(double.class);break;
             case "date": mockData = JMockData.mock(Date.class);break;
-            case "timestamp": mockData = JMockData.mock(Timestamp.class);break;
+            case "timestamp": mockData = new Timestamp(System.currentTimeMillis());break;
             case "bigdecimal": mockData = JMockData.mock(BigDecimal.class);break;
             case "biginteger": mockData = JMockData.mock(BigInteger.class);break;
             case "int[]": mockData = JMockData.mock(int[].class);break;
