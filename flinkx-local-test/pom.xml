@@ -93,7 +93,7 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-postgres</artifactId>
+			<artifactId>flinkx-connector-postgresql</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
