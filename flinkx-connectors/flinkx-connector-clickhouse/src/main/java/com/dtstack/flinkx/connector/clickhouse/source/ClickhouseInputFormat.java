@@ -24,7 +24,6 @@ import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import org.slf4j.Logger;
@@ -33,13 +32,11 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-
 /**
  * @program: flinkx
  * @author: xiuzhu
  * @create: 2021/05/10
  */
-
 public class ClickhouseInputFormat extends JdbcInputFormat {
 
     protected static final Logger LOG = LoggerFactory.getLogger(ClickhouseInputFormat.class);
@@ -47,24 +44,16 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
-        try {
-            LogicalType rowType =
-                    TableUtil.createRowType(
-                            column, columnType, ClickhouseRawTypeConverter::apply);
-            setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
-        } catch (SQLException e) {
-            LOG.error("", e);
-            throw new RuntimeException(e);
-        }
+        RowType rowType =
+                TableUtil.createRowType(column, columnType, ClickhouseRawTypeConverter::apply);
+        setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 
     @Override
     protected Connection getConnection() {
         try {
             return ClickhouseUtil.getConnection(
-                    jdbcConf.getJdbcUrl(),
-                    jdbcConf.getUsername(),
-                    jdbcConf.getPassword());
+                    jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
         } catch (SQLException e) {
             LOG.error("", e);
             throw new RuntimeException(e);
