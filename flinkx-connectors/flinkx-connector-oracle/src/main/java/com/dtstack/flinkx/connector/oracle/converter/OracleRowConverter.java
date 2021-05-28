@@ -67,29 +67,20 @@ public class OracleRowConverter
             case TINYINT:
                 return val -> ((Integer) val).byteValue();
             case SMALLINT:
-                // Converter for small type that casts value to int and then return short value,
-                // since
-                // JDBC 1.0 use int type for small values.
                 return val -> val instanceof Integer ? ((Integer) val).shortValue() : val;
             case INTEGER:
                 return val -> val;
             case BIGINT:
                 return val -> val;
             case DECIMAL:
-                final int precision = ((DecimalType) type).getPrecision();
-                final int scale = ((DecimalType) type).getScale();
-                // using decimal(20, 0) to support db type bigint unsigned, user should define
-                // decimal(20, 0) in SQL,
-                // but other precision like decimal(30, 0) can work too from lenient consideration.
-                return val ->
-                        val instanceof BigInteger
-                                ? DecimalData.fromBigDecimal(
-                                        new BigDecimal((BigInteger) val, 0), precision, scale)
-                                : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
+                return val -> DecimalData.fromBigDecimal((BigDecimal) val,
+                        ((BigDecimal) val).precision(),
+                        (((BigDecimal) val).scale()));
             case DATE:
                 return val -> ((Timestamp) val).getNanos();
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay() / 1_000_000L);
+                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> {
@@ -97,7 +88,8 @@ public class OracleRowConverter
                         return TimestampData.fromTimestamp(((TIMESTAMP) val).timestampValue());
                     } catch (SQLException throwables) {
                         throwables.printStackTrace();
-                        throw new UnsupportedOperationException("Unsupported type:" + type+",value:"+val);
+                        throw new UnsupportedOperationException(
+                                "Unsupported type:" + type + ",value:" + val);
                     }
                 };
             case CHAR:
@@ -106,11 +98,6 @@ public class OracleRowConverter
             case BINARY:
             case VARBINARY:
                 return val -> (byte[]) val;
-            case ARRAY:
-            case ROW:
-            case MAP:
-            case MULTISET:
-            case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
@@ -169,11 +156,6 @@ public class OracleRowConverter
                                 index,
                                 val.getDecimal(index, decimalPrecision, decimalScale)
                                         .toBigDecimal());
-            case ARRAY:
-            case MAP:
-            case MULTISET:
-            case ROW:
-            case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }

@@ -35,7 +35,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  * @author jier
  */
 public class OracleSourceFactory extends JdbcSourceFactory {
-    // 默认是流式拉取
+
     private static final int DEFAULT_FETCH_SIZE = Integer.MIN_VALUE;
 
     public OracleSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {

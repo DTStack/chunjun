@@ -95,7 +95,7 @@ CREATE TABLE source
     t_numeric                           decimal(38,0) ,
     t_nvarchar2                         string,
     t_raw                               bytes ,
-    t_real                              double ,
+    t_real                              decimal(38,0) ,
     t_timestamp                         timestamp ,
     t_varchar                           string ,
     t_varchar2                          string
@@ -137,7 +137,7 @@ CREATE TABLE sink
     t_numeric                           decimal(38,0) ,
     t_nvarchar2                         string,
     t_raw                               bytes ,
-    t_real                              double ,
+    t_real                              decimal(38,0) ,
     t_timestamp                         timestamp ,
     t_varchar                           string ,
     t_varchar2                          string

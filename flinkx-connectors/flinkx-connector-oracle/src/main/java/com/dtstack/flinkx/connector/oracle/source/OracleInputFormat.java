@@ -39,7 +39,6 @@ import java.sql.SQLException;
 public class OracleInputFormat extends JdbcInputFormat {
 
 
-
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);

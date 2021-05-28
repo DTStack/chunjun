@@ -17,7 +17,6 @@
  */
 
 
-
 package com.dtstack.flinkx.connector.oracle.converter;
 
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
@@ -38,7 +37,9 @@ import java.util.regex.Pattern;
 public class OracleRawTypeConverter {
 
     private final static String TIMESTAMP = "^TIMESTAMP\\(\\d+\\)";
-    private final static Predicate<String> TIMESTAMP_PREDICATE = Pattern.compile(TIMESTAMP).asPredicate();
+    private final static Predicate<String> TIMESTAMP_PREDICATE = Pattern
+            .compile(TIMESTAMP)
+            .asPredicate();
 
 
     /**
@@ -54,7 +55,6 @@ public class OracleRawTypeConverter {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "SMALLINT":
                 return DataTypes.SMALLINT();
-            case "REAL":
             case "BINARY_DOUBLE":
                 return DataTypes.DOUBLE();
             case "CHAR":
@@ -82,7 +82,7 @@ public class OracleRawTypeConverter {
             default:
                 if (TIMESTAMP_PREDICATE.test(type)) {
                     return DataTypes.TIMESTAMP();
-                }else if(type.startsWith("INTERVAL")){
+                } else if (type.startsWith("INTERVAL")) {
                     return DataTypes.STRING();
                 }
                 throw new UnsupportedTypeException(type);
