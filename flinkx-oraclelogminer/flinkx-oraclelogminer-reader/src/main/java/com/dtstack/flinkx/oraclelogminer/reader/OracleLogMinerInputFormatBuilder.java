@@ -210,7 +210,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             }
 
             if(privilegeCount != privilegeList.size()){
-                if (oracleInfo.getVersion() <= 11) {
+                if (oracleInfo.getVersion() >= 11) {
                     sb.append("Insufficient permissions, ")
                             .append("current permissions are :")
                             .append(GsonUtil.GSON.toJson(privileges))
