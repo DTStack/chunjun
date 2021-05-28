@@ -19,12 +19,12 @@
 package com.dtstack.flinkx.postgresql.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
 import com.dtstack.flinkx.postgresql.format.PostgresqlOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
-import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -38,22 +38,29 @@ import org.apache.flink.types.Row;
  * @author jiangbo
  */
 public class PostgresqlWriter extends JdbcDataWriter {
+    private final String SOURCE_TYPE_KEY = "sourceType";
 
+    protected String sourceType;
+
+    protected  String schema;
 
     public PostgresqlWriter(DataTransferConfig config) {
         super(config);
-        String schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
+        schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
         if (StringUtils.isNotEmpty(schema)){
             table = schema + ConstantValue.POINT_SYMBOL + table;
         }
         setDatabaseInterface(new PostgresqlDatabaseMeta());
         setTypeConverterInterface(new PostgresqlTypeConverter());
+
+        WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
+        sourceType = writerConfig.getParameter().getStringVal(SOURCE_TYPE_KEY, PostgresqlOutputFormat.SourceType.POSTGRESQL.name());
     }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         PostgresqlOutputFormat postgresqlOutputFormat = new PostgresqlOutputFormat();
-        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(postgresqlOutputFormat);
+        PostgresqlOutputFormatBuilder builder = new PostgresqlOutputFormatBuilder(postgresqlOutputFormat);
         builder.setDriverName(databaseInterface.getDriverClass());
         builder.setDbUrl(dbUrl);
         builder.setUsername(username);
@@ -76,6 +83,8 @@ public class PostgresqlWriter extends JdbcDataWriter {
         builder.setTypeConverter(typeConverter);
         builder.setRestoreConfig(restoreConfig);
         builder.setInsertSqlMode(insertSqlMode);
+        builder.setSourceType(sourceType);
+        builder.setSchema(schema);
 
         DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(builder.finish());
         DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);

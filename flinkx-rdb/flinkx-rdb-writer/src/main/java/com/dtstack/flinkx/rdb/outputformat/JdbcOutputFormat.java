@@ -462,4 +462,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     public void setSchema(String schema){
         this.schema = schema;
     }
+
+    public String getMode() {
+        return mode;
+    }
 }

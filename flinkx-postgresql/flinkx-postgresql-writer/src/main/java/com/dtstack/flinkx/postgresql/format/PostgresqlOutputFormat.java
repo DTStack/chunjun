@@ -17,18 +17,31 @@
  */
 package com.dtstack.flinkx.postgresql.format;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormat;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.RetryUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.types.Row;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * when  postgresql with mode insert, it use 'copy tableName(columnName) from stdin' syntax
@@ -58,6 +71,22 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
 
     private CopyManager copyManager;
 
+    /** 数据源类型信息 **/
+    private String sourceType = SourceType.POSTGRESQL.name();
+
+    /** 根据表名查看对应的uniqueKey id **/
+    protected static String GET_UNIQUE_KEY_ID_SQL = "select " +
+            "F.relname,E.relid,C.indkey " +
+            "from " +
+            " PG_CLASS F " +
+            "    left join PG_STAT_ALL_INDEXES E on F.OID = E.INDEXRELID " +
+            "    left join PG_INDEX C on E.INDEXRELID = C.INDEXRELID " +
+            "where %s E.RELNAME = ? and  indisunique = true order by indisprimary desc ";
+
+
+    /** 根据字段Id以及表id 找到对应的字段名 **/
+    protected final static String GET_UNIQUE_KEY_NAME_SQL = "select attname from pg_catalog.pg_attribute b where attnum in %s and attrelid = %s";
+
 
     @Override
     protected PreparedStatement prepareTemplates() throws SQLException {
@@ -73,6 +102,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
             return null;
         }
 
+        checkUpsert();
         return super.prepareTemplates();
     }
 
@@ -187,5 +217,125 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
         }
 
         return true;
+    }
+
+
+    /**
+     * 获取uniqueKey
+     * @param table
+     * @param dbConn
+     * @return
+     * @throws SQLException
+     */
+    @Override
+    protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
+        Map<String, List<String>> map = new HashMap<>(16);
+
+        if(StringUtils.isNotBlank(schema)){
+            GET_UNIQUE_KEY_ID_SQL = String.format(GET_UNIQUE_KEY_ID_SQL,  "E.SCHEMANAME = ? and");
+        }else{
+            GET_UNIQUE_KEY_ID_SQL = String.format(GET_UNIQUE_KEY_ID_SQL,  "");
+        }
+
+        try (PreparedStatement ps = dbConn.prepareStatement(GET_UNIQUE_KEY_ID_SQL)) {
+            String tableName = getTableName();
+            if (StringUtils.isNotBlank(schema)) {
+                ps.setString(1, schema);
+                ps.setString(2, tableName);
+            } else {
+                ps.setString(1, tableName);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String tableId = rs.getString("relid");
+                    String columnName = rs.getString("indkey");
+                    String uniqueName = rs.getString("relname");
+
+                    try (PreparedStatement conflictPs = dbConn.prepareStatement(String.format(GET_UNIQUE_KEY_NAME_SQL, "(" +String.join(",", columnName.split(" ") )+ ")", tableId));
+                         ResultSet conflictRs = conflictPs.executeQuery()) {
+                        ArrayList<String> attNameList = new ArrayList<>(32);
+                        while (conflictRs.next()) {
+                            attNameList.add(conflictRs.getString("attname"));
+                        }
+                        if (CollectionUtils.isNotEmpty(attNameList)) {
+                            map.put(uniqueName, attNameList);
+                        }
+                    }
+                }
+            }
+
+            LOG.info("find conflict key is {}", GsonUtil.GSON.toJson(map));
+            return map;
+        }
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    /** 数据源类型 **/
+    public enum SourceType {
+        POSTGRESQL, ADB
+    }
+
+    /**
+     * 当mode为update时进行校验
+     * @return
+     * @throws SQLException
+     */
+    public String checkUpsert() throws SQLException {
+        StringBuilder errorInfo = new StringBuilder(1024);
+
+        if (EWriteMode.UPDATE.name().equalsIgnoreCase(mode)) {
+            try (Connection connection = RetryUtil.executeWithRetry(
+                    () -> DriverManager.getConnection(
+                            dbUrl,
+                            username,
+                            password),
+                    3,
+                    2000,
+                    false)) {
+
+                //效验版本
+                String databaseProductVersion = connection.getMetaData().getDatabaseProductVersion();
+                LOG.info("source version is {}", databaseProductVersion);
+                String[] split = databaseProductVersion.split("\\.");
+                //databaseProductVersion格式有可能为9.4.24
+                if (split.length >= 2) {
+                    databaseProductVersion = split[0] + ConstantValue.POINT_SYMBOL + split[1];
+                }
+
+                if(NumberUtils.isNumber(databaseProductVersion)){
+                    if (sourceType.equalsIgnoreCase(PostgresqlOutputFormat.SourceType.POSTGRESQL.name())) {
+                        //pg大于等于9.5
+                        if (new BigDecimal(databaseProductVersion).compareTo(new BigDecimal("9.5")) < 0) {
+                            errorInfo.append("the postgreSql version is {} and must greater than or equal to 9.5 when you use update mode and source is ").append(PostgresqlOutputFormat.SourceType.POSTGRESQL.name());
+                        }
+                    } else if (sourceType.equalsIgnoreCase(PostgresqlOutputFormat.SourceType.ADB.name())) {
+                        //adb大于等于9.4
+                        if (new BigDecimal(databaseProductVersion).compareTo(new BigDecimal("9.4")) < 0) {
+                            errorInfo.append("the postgreSql version is {} and must greater than or equal to 9.4 when you use update mode and source is ").append(PostgresqlOutputFormat.SourceType.ADB.name());
+                        }
+                    }
+                }
+            }
+        }
+        return errorInfo.toString();
+    }
+
+    /**
+     * 获取表名 如果是schema.table返回table
+     * @return
+     */
+    private String getTableName() {
+        //如果schema不为空 则table名为schema.table格式
+        if (StringUtils.isNotBlank(schema)) {
+            return table.substring(schema.length() + 1);
+        }
+        return table;
     }
 }
