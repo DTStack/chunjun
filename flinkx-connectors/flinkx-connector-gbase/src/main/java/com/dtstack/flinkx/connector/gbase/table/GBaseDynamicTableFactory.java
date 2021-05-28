@@ -16,25 +16,27 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.gbase.source;
+package com.dtstack.flinkx.connector.gbase.table;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.gbase.converter.GbaseRawTypeConverter;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
-import com.dtstack.flinkx.util.TableUtil;
+import com.dtstack.flinkx.connector.gbase.GBaseDialect;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 
 /**
  * @author tiezhu
- * @since 2021/5/10 5:22 下午
+ * @since 2021/5/8 4:12 下午
  */
-public class GbaseInputFormat extends JdbcInputFormat {
+public class GBaseDynamicTableFactory extends JdbcDynamicTableFactory {
+
+    private static final String IDENTIFIER = "gbase-x";
 
     @Override
-    public void openInternal(InputSplit inputSplit) {
-        super.openInternal(inputSplit);
-        RowType rowType = TableUtil.createRowType(column, columnType, GbaseRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+    public String factoryIdentifier() {
+        return IDENTIFIER;
+    }
+
+    @Override
+    protected JdbcDialect getDialect() {
+        return new GBaseDialect();
     }
 }

@@ -21,8 +21,8 @@ package com.dtstack.flinkx.connector.gbase.source;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.gbase.GbaseDialect;
-import com.dtstack.flinkx.connector.gbase.converter.GbaseRawTypeConverter;
+import com.dtstack.flinkx.connector.gbase.GBaseDialect;
+import com.dtstack.flinkx.connector.gbase.converter.GBaseRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.converter.RawTypeConverter;
@@ -32,11 +32,11 @@ import org.apache.commons.lang3.StringUtils;
  * @author tiezhu
  * @since 2021/5/10 5:27 下午
  */
-public class GbaseSourceFactory extends JdbcSourceFactory {
+public class GBaseSourceFactory extends JdbcSourceFactory {
 
-    public GbaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public GBaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
-        super.jdbcDialect = new GbaseDialect();
+        super.jdbcDialect = new GBaseDialect();
         // 避免result.next阻塞
         if (jdbcConf.isPolling()
                 && StringUtils.isEmpty(jdbcConf.getStartLocation())
@@ -47,11 +47,11 @@ public class GbaseSourceFactory extends JdbcSourceFactory {
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new GbaseInputFormat());
+        return new JdbcInputFormatBuilder(new GBaseInputFormat());
     }
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return GbaseRawTypeConverter::apply;
+        return GBaseRawTypeConverter::apply;
     }
 }

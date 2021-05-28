@@ -29,7 +29,7 @@ import java.util.Locale;
  * @author tiezhu
  * @since 2021/5/10 5:24 下午
  */
-public class GbaseRawTypeConverter {
+public class GBaseRawTypeConverter {
 
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
