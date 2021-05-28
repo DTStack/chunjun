@@ -639,8 +639,6 @@ public class LogMinerConnection {
             String rowId = logMinerData.getString(KEY_ROW_ID);
             boolean rollback = logMinerData.getBoolean(KEY_ROLLBACK);
 
-            if (logMinerData.getBoolean(KEY_ROLLBACK)) {
-                StringBuilder undoLog = new StringBuilder(1024);
 
             // 用CSF来判断一条sql是在当前这一行结束，sql超过4000 字节，会处理成多行
             boolean isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
@@ -975,7 +973,6 @@ public class LogMinerConnection {
     public enum ReadPosition {
         ALL, CURRENT, TIME, SCN
     }
-
     /**
      * 回滚语句根据对应的dml日志找出对应的undoog
      * @param rollbackLog 回滚语句
@@ -1029,31 +1026,5 @@ public class LogMinerConnection {
         return oracleInfo;
     }
 
-    /**
-     * 回滚日志根据对应的dml日志找出对应的undoog
-     * @param rollbackLog 回滚日志
-     * @param dmlLog 对应的dml语句
-     * @return
-     * @throws JSQLParserException
-     */
-    public String getRollbackSql(RecordLog rollbackLog, RecordLog dmlLog) throws JSQLParserException {
-        //如果回滚日志是update，则其where条件没有 才会进入
-        if(rollbackLog.getOperationCode() == 3 && dmlLog.getOperationCode() == 3){
-            return dmlLog.getSqlUndo();
-        }
 
-        //回滚日志是delete
-        //delete回滚两种场景 如果客户表字段存在blob字段且插入时blob字段为空 此时会出现insert emptyBlob语句以及一个update语句之外 才会有一个delete语句，而此delete语句对应的上面update 所以要拼接一个delete
-        if (rollbackLog.getOperationCode() == 2) {
-            if (dmlLog.getOperationCode() == 3) {
-                net.sf.jsqlparser.statement.Statement statement = LogParser.getStatement(dmlLog.getSqlUndo());
-                Update updateStatement = (Update) statement;
-                return "delete from " + updateStatement.getTable() + " where " + updateStatement.getWhere();
-            } else {
-                return dmlLog.getSqlUndo();
-            }
-        }
-        LOG.warn(" dmlLog [{}]  is not hit for rollbackLog [{}]", rollbackLog, dmlLog);
-        return "";
-    }
 }
