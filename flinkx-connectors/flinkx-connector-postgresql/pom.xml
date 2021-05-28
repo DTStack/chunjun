@@ -9,12 +9,12 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>flinkx-connector-postgres</artifactId>
+	<artifactId>flinkx-connector-postgresql</artifactId>
 
-	<name>FlinkX : Connectors : Postgres</name>
+	<name>FlinkX : Connectors : Postgresql</name>
 
 	<properties>
-		<dir.name>postgres</dir.name>
+		<dir.name>postgresql</dir.name>
 	</properties>
 
 	<dependencies>
