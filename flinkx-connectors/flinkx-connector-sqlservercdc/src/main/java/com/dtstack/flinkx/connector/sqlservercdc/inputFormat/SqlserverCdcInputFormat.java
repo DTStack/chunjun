@@ -19,7 +19,7 @@ package com.dtstack.flinkx.connector.sqlservercdc.inputFormat;
 
 import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.Lsn;
-import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil;
+import com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.TxLogPosition;
 
 import com.dtstack.flinkx.connector.sqlservercdc.listener.SqlServerCdcListener;
@@ -41,13 +41,13 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil.DRIVER;
+import static com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil.DRIVER;
 
 
 /**
@@ -62,7 +62,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
     private Connection conn;
     private TxLogPosition logPosition;
 
-    private transient BlockingQueue<RowData> queue;
+    private transient LinkedBlockingDeque<RowData> queue;
     private transient ExecutorService executor;
     private volatile boolean running = false;
 
@@ -75,7 +75,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
         executor = new ThreadPoolExecutor(1, 1,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(1024), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
-        queue = new SynchronousQueue<>(false);
+        queue = new LinkedBlockingDeque(1000);
 
         if (inputSplit.getSplitNumber() != 0) {
             LOG.info("sqlServer cdc openInternal split number:{} abort...", inputSplit.getSplitNumber());

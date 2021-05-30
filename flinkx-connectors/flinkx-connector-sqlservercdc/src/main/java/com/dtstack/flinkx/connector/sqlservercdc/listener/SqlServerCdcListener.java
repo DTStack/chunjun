@@ -21,7 +21,7 @@ import com.dtstack.flinkx.connector.sqlservercdc.entity.ChangeTable;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.ChangeTablePointer;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.Lsn;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEventRow;
-import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil;
+import com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEnum;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.TableId;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.TxLogPosition;

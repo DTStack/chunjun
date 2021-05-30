@@ -19,7 +19,7 @@ package com.dtstack.flinkx.connector.sqlservercdc.inputFormat;
 
 import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.Lsn;
-import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil;
+import com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEnum;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcUtil.DRIVER;
+import static com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil.DRIVER;
 
 /**
  * Date: 2019/12/03

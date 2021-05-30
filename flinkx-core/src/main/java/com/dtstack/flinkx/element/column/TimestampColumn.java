@@ -37,14 +37,6 @@ public class TimestampColumn extends AbstractBaseColumn {
         super(data);
     }
 
-    public TimestampColumn(Time data) {
-        super(data);
-    }
-
-    public TimestampColumn(Date data) {
-        super(data);
-    }
-
     public TimestampColumn(long data) {
         super(new Timestamp(data));
     }

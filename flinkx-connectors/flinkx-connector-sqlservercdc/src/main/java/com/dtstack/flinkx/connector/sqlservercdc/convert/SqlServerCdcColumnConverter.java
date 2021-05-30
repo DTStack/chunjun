@@ -35,6 +35,8 @@ import com.dtstack.flinkx.util.StringUtil;
 import com.google.common.collect.Maps;
 
 
+import org.apache.commons.net.ntp.TimeStamp;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
@@ -227,9 +229,11 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
             case "TEXT":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "DATE":
-                return (IDeserializationConverter<Date, AbstractBaseColumn>) TimestampColumn::new;
             case "TIME":
-                return (IDeserializationConverter<Time, AbstractBaseColumn>) TimestampColumn::new;
+                return (IDeserializationConverter<Date, AbstractBaseColumn>) val ->{
+                    Timestamp timestamp = new Timestamp(val.getTime());
+                    return new TimestampColumn(timestamp);
+                };
             case "DATETIME":
             case "DATETIME2":
             case "SMALLDATETIME":

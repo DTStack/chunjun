@@ -5,6 +5,7 @@
  */
 package com.dtstack.flinkx.connector.sqlservercdc.entity;
 
+import com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
