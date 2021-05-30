@@ -18,31 +18,36 @@
 
 package com.dtstack.flinkx.connector.oracle.converter;
 
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
+import org.apache.flink.table.data.DecimalData;
+import org.apache.flink.table.data.StringData;
+import org.apache.flink.table.data.TimestampData;
+import org.apache.flink.table.types.logical.DecimalType;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
+
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
-import io.vertx.core.json.JsonArray;
-
 import oracle.sql.TIMESTAMP;
-
-import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
-import org.apache.flink.table.data.*;
-import org.apache.flink.table.types.logical.*;
-import org.apache.flink.table.types.utils.TypeConversions;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/** Base class for all converters that convert between JDBC object and Flink internal object. */
+/**
+ * company www.dtstack.com
+ *
+ * @author jier
+ */
 public class OracleRowConverter
         extends JdbcRowConverter {
 
@@ -73,9 +78,19 @@ public class OracleRowConverter
             case BIGINT:
                 return val -> val;
             case DECIMAL:
-                return val -> DecimalData.fromBigDecimal((BigDecimal) val,
-                        ((BigDecimal) val).precision(),
-                        (((BigDecimal) val).scale()));
+                return val -> {
+                    if(val instanceof BigInteger){
+                        // sometime decimal will return cast to BigInteger in lookup
+                        BigDecimal bigDecimal = new BigDecimal((BigInteger) val);
+                        return DecimalData.fromBigDecimal(bigDecimal,
+                                bigDecimal.precision(),
+                                bigDecimal.scale());
+                    }else{
+                        return DecimalData.fromBigDecimal((BigDecimal) val,
+                                ((BigDecimal) val).precision(),
+                                (((BigDecimal) val).scale()));
+                    }
+                };
             case DATE:
                 return val -> ((Timestamp) val).getNanos();
             case TIME_WITHOUT_TIME_ZONE:
@@ -84,12 +99,17 @@ public class OracleRowConverter
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> {
-                    try {
-                        return TimestampData.fromTimestamp(((TIMESTAMP) val).timestampValue());
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                        throw new UnsupportedOperationException(
-                                "Unsupported type:" + type + ",value:" + val);
+                    if(val instanceof String){
+                        // oracle.sql.TIMESTAMP will return cast to String in lookup
+                        return TimestampData.fromTimestamp(Timestamp.valueOf((String) val));
+                    }else {
+                        try {
+                            return TimestampData.fromTimestamp(((TIMESTAMP) val).timestampValue());
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
+                            throw new UnsupportedTypeException(
+                                    "Unsupported type:" + type + ",value:" + val);
+                        }
                     }
                 };
             case CHAR:
@@ -99,7 +119,7 @@ public class OracleRowConverter
             case VARBINARY:
                 return val -> (byte[]) val;
             default:
-                throw new UnsupportedOperationException("Unsupported type:" + type);
+                throw new UnsupportedTypeException("Unsupported type:" + type);
         }
     }
 

@@ -18,18 +18,11 @@
 
 package com.dtstack.flinkx.connector.oracle.sink;
 
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
-
-import com.dtstack.flinkx.util.TableUtil;
-
-import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
+import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * company www.dtstack.com

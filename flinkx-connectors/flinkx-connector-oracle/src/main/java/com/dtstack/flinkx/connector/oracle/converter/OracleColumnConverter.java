@@ -18,32 +18,33 @@
 
 package com.dtstack.flinkx.connector.oracle.converter;
 
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
-import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.*;
-import io.vertx.core.json.JsonArray;
-
-import oracle.sql.TIMESTAMP;
-
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.BigDecimalColumn;
+import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimestampColumn;
+import oracle.sql.TIMESTAMP;
+
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalTime;
 
+
+/**
+ * company www.dtstack.com
+ *
+ * @author jier
+ */
 public class OracleColumnConverter
         extends JdbcColumnConverter{
 

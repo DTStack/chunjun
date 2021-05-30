@@ -18,18 +18,12 @@
 
 package com.dtstack.flinkx.connector.oracle.source;
 
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
 import com.dtstack.flinkx.util.TableUtil;
-
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
 
 /**
  * company www.dtstack.com

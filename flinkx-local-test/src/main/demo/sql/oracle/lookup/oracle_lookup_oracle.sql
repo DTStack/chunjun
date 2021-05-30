@@ -34,7 +34,7 @@ CREATE TABLE source
 ) WITH (
       'connector' = 'oracle-x',
       'url' = 'jdbc:oracle:thin:@172.16.100.243:1521:orcl',
-      'table-name' = 'oracle_all_type_source',
+      'table-name' = 'oracle_all_type_lookup',
       'username' = 'oracle',
       'password' = 'oracle',
       'scan.fetch-size' = '2',
@@ -83,8 +83,8 @@ CREATE TABLE side
       'table-name' = 'oracle_all_type_lookup',
       'username' = 'oracle',
       'password' = 'oracle',
---       'lookup.cache-type' = 'lru'
-      'lookup.cache-type' = 'all'
+      'lookup.cache-type' = 'lru'
+--       'lookup.cache-type' = 'all'
       );
 
 CREATE TABLE sink

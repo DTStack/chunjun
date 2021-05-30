@@ -100,17 +100,16 @@
             },{
               "name": "t_varchar2",
               "type": "string"
-            }],
-            "splitPk": "",
-            "fetchSize": 1024,
-            "queryTimeOut": 1000,
-            "requestAccumulatorInterval": 2
+            }]
           },
           "name": "oraclereader"
         },
         "writer": {
           "name": "oraclewriter",
           "parameter": {
+            "mode": "update",
+            "updateKey": ["id"],
+            "allReplace": true,
             "username": "oracle",
             "password": "oracle",
             "connection": [
@@ -119,7 +118,6 @@
                 "table": ["oracle_all_type_sink"]
               }
             ],
-            "writeMode": "insert",
             "column": [{
               "name": "id",
               "type": "decimal"
@@ -210,8 +208,7 @@
             },{
               "name": "t_varchar2",
               "type": "string"
-            }],
-            "batchSize": 1024
+            }]
           }
         }
       }
