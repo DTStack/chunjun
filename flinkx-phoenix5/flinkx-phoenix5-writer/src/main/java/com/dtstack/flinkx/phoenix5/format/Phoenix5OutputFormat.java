@@ -27,6 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
+import org.apache.flink.util.FlinkUserCodeClassLoader;
 import org.apache.phoenix.query.QueryServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +69,7 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
             String[] alwaysParentFirstPatterns = new String[2];
             alwaysParentFirstPatterns[0] = "org.apache.flink";
             alwaysParentFirstPatterns[1] = "com.dtstack.flinkx";
-            URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns);
+            URLClassLoader childFirstClassLoader = FlinkUserCodeClassLoaders.childFirst(needJar.toArray(new URL[0]), parentClassLoader, alwaysParentFirstPatterns, FlinkUserCodeClassLoader.NOOP_EXCEPTION_HANDLER,true);
 
             ClassUtil.forName(driverName, childFirstClassLoader);
             if(StringUtils.isNotEmpty(username)){

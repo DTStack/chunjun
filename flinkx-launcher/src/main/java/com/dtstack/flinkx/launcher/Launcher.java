@@ -95,7 +95,7 @@ public class Launcher {
                 ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
                 argList.add("-monitor");
                 argList.add(clusterClient.getWebInterfaceURL());
-                ClientUtils.submitJob(clusterClient, buildJobGraph(launcherOptions, argList.toArray(new String[0])));
+                /*ClientUtils*/clusterClient.submitJob(buildJobGraph(launcherOptions, argList.toArray(new String[0])));
                 break;
             case yarnPer:
                 String confProp = launcherOptions.getConfProp();
@@ -108,7 +108,7 @@ public class Launcher {
                 }
                 argList.add("-monitor");
                 argList.add("");
-                PerJobSubmitter.submit(launcherOptions, new JobGraph(), argList.toArray(new String[0]));
+                PerJobSubmitter.submit(launcherOptions, new JobGraph("per-job"), argList.toArray(new String[0]));
         }
     }
 
