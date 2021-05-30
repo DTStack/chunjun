@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.binlog.source;
+package com.dtstack.flinkx.connector.pgwal.source;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.formats.json.TimestampFormat;
@@ -29,52 +29,51 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
-import com.dtstack.flinkx.connector.binlog.converter.BinlogRowConverter;
-import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormatBuilder;
+import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
+import com.dtstack.flinkx.connector.pgwal.converter.PGWalRowConverter;
+import com.dtstack.flinkx.connector.pgwal.inputformat.PGWalInputFormatBuilder;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+import com.google.common.base.Preconditions;
 
 /**
- * @author chuixue
- * @create 2021-04-09 09:20
- * @description
+ *
  **/
-
-public class BinlogDynamicTableSource implements ScanTableSource {
+public class PGWalDynamicTableSource implements ScanTableSource {
     private final TableSchema schema;
-    private final BinlogConf binlogConf;
+    private final PGWalConf conf;
     private final TimestampFormat timestampFormat;
 
-    public BinlogDynamicTableSource(TableSchema schema, BinlogConf binlogConf, TimestampFormat timestampFormat) {
+    public PGWalDynamicTableSource(TableSchema schema, PGWalConf conf, TimestampFormat timestampFormat) {
         this.schema = schema;
-        this.binlogConf = binlogConf;
+        this.conf = conf;
         this.timestampFormat = timestampFormat;
     }
 
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
+        Preconditions.checkArgument(schema.toRowDataType().getLogicalType() instanceof RowType, "schema cannot cast to RowType");
         final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
-        BinlogInputFormatBuilder builder = new BinlogInputFormatBuilder();
-        builder.setBinlogConf(binlogConf);
-        builder.setRowConverter(new BinlogRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat));
+        PGWalInputFormatBuilder builder = new PGWalInputFormatBuilder();
+        builder.setConf(conf);
+        builder.setRowConverter(new PGWalRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat));
 
         return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new BinlogDynamicTableSource(
+        return new PGWalDynamicTableSource(
                 this.schema,
-                this.binlogConf,
+                this.conf,
                 this.timestampFormat);
     }
 
     @Override
     public String asSummaryString() {
-        return "BinlogDynamicTableSource:";
+        return "PGWalDynamicTableSource:";
     }
 
     @Override

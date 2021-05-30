@@ -37,7 +37,7 @@
 
 
 - **tableList**
-  - 描述：需要解析的数据表，格式为schema.table
+  - 描述：需要解析的数据表，格式为schema.changeLog
   - 必选：否
   - 默认值：无
 
@@ -94,7 +94,7 @@
 {
     "type":"update",
     "schema":"dbo",
-    "table":"customers",
+    "changeLog":"customers",
     "lsn":207967352,
     "ts": 1576487525488,
     "ingestion":1475129582923642,
@@ -107,7 +107,7 @@ pavingData为false时：
 {
     "type":"update",
     "schema":"dbo",
-    "table":"customers",
+    "changeLog":"customers",
     "lsn":207967352,
     "ts": 1576487525488,
     "ingestion":1481628798880038,
@@ -204,7 +204,7 @@ PostgreSQL 实时采集是基于 PostgreSQL的逻辑复制以及逻辑解码功�
 ```json
 {"id":"schema1.test1",
  "schema":"schema1",
-"table":"test1",
+"changeLog":"test1",
  "columnList":[
    {"name":"id","type":"int4","index":0},
    {"name":"name","type":"varchar","index":1}
@@ -377,18 +377,18 @@ conn.createStatement()
                 }
                 //解码为table对象 具体信息为库 表 字段信息 WAL id等
                 //然后就可以对其进行处理了
-                Table table = decoder.decode(buffer);
-                if(StringUtils.isBlank(table.getId())){
+                Table changeLog = decoder.decode(buffer);
+                if(StringUtils.isBlank(changeLog.getId())){
                     continue;
                 }
-                String type = table.getType().name().toLowerCase();
+                String type = changeLog.getType().name().toLowerCase();
                 if(!cat.contains(type)){
                     continue;
                 }
-                if(!tableSet.contains(table.getId())){
+                if(!tableSet.contains(changeLog.getId())){
                     continue;
                 }
-                LOG.trace("table = {}",gson.toJson(table));
+                LOG.trace("changeLog = {}",gson.toJson(changeLog));
                 ...............
             }
         }
