@@ -492,6 +492,8 @@ public class Main {
         Optional<Boolean> checkpointEnabled =
                 StreamEnvConfigManagerUtil.isCheckpointEnabled(properties);
         if (checkpointEnabled.get()) {
+            StreamEnvConfigManagerUtil.getTolerableCheckpointFailureNumber(properties)
+                    .ifPresent(env.getCheckpointConfig()::setTolerableCheckpointFailureNumber);
             StreamEnvConfigManagerUtil.getCheckpointInterval(properties)
                     .ifPresent(env::enableCheckpointing);
             StreamEnvConfigManagerUtil.getCheckpointMode(properties)

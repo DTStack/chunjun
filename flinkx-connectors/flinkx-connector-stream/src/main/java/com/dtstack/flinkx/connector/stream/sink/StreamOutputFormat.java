@@ -26,7 +26,6 @@ import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
 import com.dtstack.flinkx.connector.stream.util.TablePrintUtil;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -70,11 +69,10 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public FormatState getFormatState() throws Exception {
+    protected void preCommit() {
         if (lastRow != null) {
             TablePrintUtil.printTable(lastRow, getFieldNames(lastRow));
         }
-        return super.getFormatState();
     }
 
     public String[] getFieldNames(RowData rowData) {
@@ -97,8 +95,8 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public void notifyCheckpointComplete(long checkpointId) {
-        // do nothing
+    protected void commit(long checkpointId) {
+
     }
 
     @Override

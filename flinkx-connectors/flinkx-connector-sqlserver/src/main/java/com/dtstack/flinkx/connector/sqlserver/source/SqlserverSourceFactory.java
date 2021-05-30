@@ -16,42 +16,36 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.gbase.source;
-
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+package com.dtstack.flinkx.connector.sqlserver.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.gbase.GbaseDialect;
-import com.dtstack.flinkx.connector.gbase.converter.GbaseRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+import com.dtstack.flinkx.connector.sqlserver.SqlServerDialect;
+import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * @author tiezhu
- * @since 2021/5/10 5:27 下午
+ * Company：www.dtstack.com
+ *
+ * @author shitou
+ * @date 2021/5/19 15:31
  */
-public class GbaseSourceFactory extends JdbcSourceFactory {
+public class SqlserverSourceFactory extends JdbcSourceFactory {
 
-    public GbaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public SqlserverSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env){
         super(syncConf, env);
-        super.jdbcDialect = new GbaseDialect();
-        // 避免result.next阻塞
-        if (jdbcConf.isPolling()
-                && StringUtils.isEmpty(jdbcConf.getStartLocation())
-                && jdbcConf.getFetchSize() == 0) {
-            jdbcConf.setFetchSize(1000);
-        }
+        jdbcDialect = new SqlServerDialect(jdbcConf.isWithNoLock());
     }
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new GbaseInputFormat());
+        return new JdbcInputFormatBuilder(new SqlserverInputFormat());
     }
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return GbaseRawTypeConverter::apply;
+        return SqlserverRawTypeConverter::apply;
     }
 }

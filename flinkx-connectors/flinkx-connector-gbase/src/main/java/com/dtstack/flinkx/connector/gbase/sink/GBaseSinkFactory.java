@@ -19,8 +19,8 @@
 package com.dtstack.flinkx.connector.gbase.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.gbase.GbaseDialect;
-import com.dtstack.flinkx.connector.gbase.converter.GbaseRawTypeConverter;
+import com.dtstack.flinkx.connector.gbase.GBaseDialect;
+import com.dtstack.flinkx.connector.gbase.converter.GBaseRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.converter.RawTypeConverter;
@@ -29,20 +29,20 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
  * @author tiezhu
  * @since 2021/5/10 5:16 下午
  */
-public class GbaseSinkFactory extends JdbcSinkFactory {
+public class GBaseSinkFactory extends JdbcSinkFactory {
 
-    public GbaseSinkFactory(SyncConf syncConf) {
+    public GBaseSinkFactory(SyncConf syncConf) {
         super(syncConf);
-        super.jdbcDialect = new GbaseDialect();
+        super.jdbcDialect = new GBaseDialect();
     }
 
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new GbaseOutputFormat());
+        return new JdbcOutputFormatBuilder(new GBaseOutputFormat());
     }
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return GbaseRawTypeConverter::apply;
+        return GBaseRawTypeConverter::apply;
     }
 }

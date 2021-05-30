@@ -30,13 +30,13 @@ import java.util.stream.Collectors;
  * @author tiezhu
  * @since 2021/5/8 4:11 下午
  */
-public class GbaseDialect implements JdbcDialect {
+public class GBaseDialect implements JdbcDialect {
 
     private static final String GBASE_QUOTATION_MASK = "`";
 
     @Override
     public String dialectName() {
-        return "Gbase";
+        return "GBase";
     }
 
     @Override

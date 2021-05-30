@@ -16,84 +16,84 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.gbase.converter;
-
-import org.apache.flink.table.api.DataTypes;
-import org.apache.flink.table.types.DataType;
+package com.dtstack.flinkx.connector.sqlserver.converter;
 
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+import org.apache.flink.table.api.DataTypes;
+import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
 /**
- * @author tiezhu
- * @since 2021/5/10 5:24 下午
+ * Company：www.dtstack.com
+ *
+ * @author shitou
+ * @date 2021/5/19 14:26
  */
-public class GbaseRawTypeConverter {
+public class SqlserverRawTypeConverter {
 
-    public static DataType apply(String type) {
+    /**
+     * Reference from https://www.sqlservertutorial.net/sql-server-basics/sql-server-data-types/
+     *
+     * @param type
+     *
+     * @return
+     *
+     * @throws UnsupportedTypeException
+     */
+    public static DataType apply(String type) throws UnsupportedTypeException {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
                 return DataTypes.BOOLEAN();
+            case "BIGINT":
+                return DataTypes.BIGINT();
             case "TINYINT":
                 return DataTypes.TINYINT();
-            case "SMALLINT":
-            case "MEDIUMINT":
             case "INT":
-            case "INTEGER":
-            case "INT24":
-            case "SERIAL":
+            case "SMALLINT":
+            case "INT IDENTITY":
                 return DataTypes.INT();
-            case "BIGINT":
-            case "INT8":
-            case "BIGSERIAL":
-            case "SERIAL8":
-                return DataTypes.BIGINT();
             case "REAL":
-            case "FLOAT":
-            case "SMALLFLOAT":
                 return DataTypes.FLOAT();
-            case "DECIMAL":
-            case "DEC":
-            case "NUMERIC":
-            case "MONEY":
-                // TODO 精度应该可以动态传进来？
-                return DataTypes.DECIMAL(38, 18);
-            case "DOUBLE":
-            case "PRECISION":
+            case "FLOAT":
                 return DataTypes.DOUBLE();
+            case "DECIMAL":
+            case "NUMERIC":
+                return DataTypes.DECIMAL(1, 0);
             case "CHAR":
             case "VARCHAR":
-            case "TINYTEXT":
+            case "VARCHAR(MAX)":
             case "TEXT":
-            case "MEDIUMTEXT":
-            case "LVARCHAR":
-            case "LONGTEXT":
-            case "JSON":
-            case "ENUM":
-            case "CHARACTER":
-            case "VARYING":
+            case "XML":
+                return DataTypes.STRING();
             case "NCHAR":
-            case "SET":
+            case "NVARCHAR":
+            case "NVARCHAR(MAX)":
+            case "NTEXT":
+                return DataTypes.STRING();
+// For net.sourceforge.jtds.jdbc.JtdsResultSet ,datetime2 type is String
+            case "DATETIME2":
+                return DataTypes.STRING();
+            case "UNIQUEIDENTIFIER":
                 return DataTypes.STRING();
             case "DATE":
-            case "YEAR":
                 return DataTypes.DATE();
+// For net.sourceforge.jtds.jdbc.JtdsResultSet ,time type is String
             case "TIME":
-                return DataTypes.TIME();
-            case "TIMESTAMP":
+                return DataTypes.STRING();
             case "DATETIME":
+            case "SMALLDATETIME":
+//            case "DATETIMEOFFSET": is unsupported
                 return DataTypes.TIMESTAMP();
-            case "TINYBLOB":
-            case "BLOB":
-            case "MEDIUMBLOB":
-            case "LONGBLOB":
             case "BINARY":
             case "VARBINARY":
-            case "GEOMETRY":
-                // BYTES 底层调用的是VARBINARY最大长度
+            case "IMAGE":
+            case "TIMESTAMP":
+                // BYTES bottom call is the maximum length of VARBINARY
                 return DataTypes.BYTES();
-
+            case "MONEY":
+            case "SMALLMONEY":
+                return DataTypes.DECIMAL(1, 0);
             default:
                 throw new UnsupportedTypeException(type);
         }

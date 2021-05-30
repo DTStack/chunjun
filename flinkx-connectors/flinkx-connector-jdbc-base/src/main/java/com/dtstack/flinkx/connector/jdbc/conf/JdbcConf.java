@@ -88,7 +88,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private int batchSize = 1024;
     private List<String> updateKey;
     /** 定时器定时写到数据库的时间 */
-    private long flushIntervalMills;
+    private long flushIntervalMills = 10000L;
     /** upsert 写数据库时，是否null覆盖原来的值 */
     private boolean allReplace = false;
 
