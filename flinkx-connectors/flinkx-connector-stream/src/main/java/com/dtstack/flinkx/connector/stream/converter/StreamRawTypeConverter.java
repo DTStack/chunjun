@@ -52,6 +52,7 @@ public class StreamRawTypeConverter {
             case "DECIMAL":
                 return DataTypes.DECIMAL(38, 18);
 
+            case "STRING":
             case "CHAR":
             case "CHARACTER":
                 return DataTypes.STRING();
