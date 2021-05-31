@@ -361,10 +361,9 @@ public class Main {
                             options.getMode(),
                             options.getPluginLoadMode()),
                     "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
-            FactoryUtil.setPluginPath(
-                    StringUtils.isNotEmpty(options.getPluginRoot())
-                            ? options.getPluginRoot()
-                            : options.getRemotePluginPath());
+            FactoryUtil.setLocalPluginPath(options.getPluginRoot());
+            FactoryUtil.setRemotePluginPath(options.getRemotePluginPath());
+            FactoryUtil.setPluginLoadMode(options.getPluginLoadMode());
             FactoryUtil.setEnv(env);
             FactoryUtil.setConnectorLoadMode(options.getConnectorLoadMode());
         }
