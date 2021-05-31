@@ -39,8 +39,6 @@ import java.sql.SQLException;
  */
 public class ClickhouseInputFormat extends JdbcInputFormat {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(ClickhouseInputFormat.class);
-
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
@@ -55,7 +53,6 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
             return ClickhouseUtil.getConnection(
                     jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
         } catch (SQLException e) {
-            LOG.error("", e);
             throw new RuntimeException(e);
         }
     }

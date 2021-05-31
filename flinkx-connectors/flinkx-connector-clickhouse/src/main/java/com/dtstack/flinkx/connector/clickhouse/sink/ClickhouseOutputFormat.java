@@ -38,8 +38,6 @@ import java.sql.SQLException;
  */
 public class ClickhouseOutputFormat extends JdbcOutputFormat {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(ClickhouseOutputFormat.class);
-
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
@@ -54,7 +52,6 @@ public class ClickhouseOutputFormat extends JdbcOutputFormat {
             return ClickhouseUtil.getConnection(
                     jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
         } catch (SQLException e) {
-            LOG.error("", e);
             throw new RuntimeException(e);
         }
     }
