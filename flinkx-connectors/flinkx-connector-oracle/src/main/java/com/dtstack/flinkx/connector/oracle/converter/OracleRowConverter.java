@@ -78,19 +78,16 @@ public class OracleRowConverter
             case BIGINT:
                 return val -> val;
             case DECIMAL:
-                return val -> {
-                    if(val instanceof BigInteger){
-                        // sometime decimal will return cast to BigInteger in lookup
-                        BigDecimal bigDecimal = new BigDecimal((BigInteger) val);
-                        return DecimalData.fromBigDecimal(bigDecimal,
-                                bigDecimal.precision(),
-                                bigDecimal.scale());
-                    }else{
-                        return DecimalData.fromBigDecimal((BigDecimal) val,
-                                ((BigDecimal) val).precision(),
-                                (((BigDecimal) val).scale()));
-                    }
-                };
+                final int precision = ((DecimalType) type).getPrecision();
+                final int scale = ((DecimalType) type).getScale();
+                // using decimal(20, 0) to support db type bigint unsigned, user should define
+                // decimal(20, 0) in SQL,
+                // but other precision like decimal(30, 0) can work too from lenient consideration.
+                return val ->
+                        val instanceof BigInteger
+                                ? DecimalData.fromBigDecimal(
+                                new BigDecimal((BigInteger) val, 0), precision, scale)
+                                : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
                 return val -> ((Timestamp) val).getNanos();
             case TIME_WITHOUT_TIME_ZONE:
@@ -123,61 +120,4 @@ public class OracleRowConverter
         }
     }
 
-    @Override
-    protected ISerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
-            LogicalType type) {
-        switch (type.getTypeRoot()) {
-            case BOOLEAN:
-                return (val, index, statement) ->
-                        statement.setBoolean(index, val.getBoolean(index));
-            case TINYINT:
-                return (val, index, statement) -> statement.setByte(index, val.getByte(index));
-            case SMALLINT:
-                return (val, index, statement) -> statement.setShort(index, val.getShort(index));
-            case INTEGER:
-            case INTERVAL_YEAR_MONTH:
-                return (val, index, statement) -> statement.setInt(index, val.getInt(index));
-            case BIGINT:
-            case INTERVAL_DAY_TIME:
-                return (val, index, statement) -> statement.setLong(index, val.getLong(index));
-            case FLOAT:
-                return (val, index, statement) -> statement.setFloat(index, val.getFloat(index));
-            case DOUBLE:
-                return (val, index, statement) -> statement.setDouble(index, val.getDouble(index));
-            case CHAR:
-            case VARCHAR:
-                // value is BinaryString
-                return (val, index, statement) ->
-                        statement.setString(index, val.getString(index).toString());
-            case BINARY:
-            case VARBINARY:
-                return (val, index, statement) -> statement.setBytes(index, val.getBinary(index));
-            case DATE:
-                return (val, index, statement) ->
-                        statement.setDate(
-                                index, Date.valueOf(LocalDate.ofEpochDay(val.getInt(index))));
-            case TIME_WITHOUT_TIME_ZONE:
-                return (val, index, statement) ->
-                        statement.setTime(
-                                index,
-                                Time.valueOf(
-                                        LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L)));
-            case TIMESTAMP_WITH_TIME_ZONE:
-            case TIMESTAMP_WITHOUT_TIME_ZONE:
-                final int timestampPrecision = ((TimestampType) type).getPrecision();
-                return (val, index, statement) ->
-                        statement.setTimestamp(
-                                index, val.getTimestamp(index, timestampPrecision).toTimestamp());
-            case DECIMAL:
-                final int decimalPrecision = ((DecimalType) type).getPrecision();
-                final int decimalScale = ((DecimalType) type).getScale();
-                return (val, index, statement) ->
-                        statement.setBigDecimal(
-                                index,
-                                val.getDecimal(index, decimalPrecision, decimalScale)
-                                        .toBigDecimal());
-            default:
-                throw new UnsupportedOperationException("Unsupported type:" + type);
-        }
-    }
 }
