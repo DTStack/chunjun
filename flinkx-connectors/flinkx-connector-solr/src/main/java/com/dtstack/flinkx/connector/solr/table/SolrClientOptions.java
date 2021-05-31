@@ -16,32 +16,33 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.security;
+package com.dtstack.flinkx.connector.solr.table;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 /**
- * @author tiezhu
- * @since 2021/6/28 星期一
+ * @author Ada Wong
+ * @program flinkx
+ * @create 2021/06/15
  */
-public class KerberosOptions {
+public class SolrClientOptions {
 
-    public static final ConfigOption<String> PRINCIPAL =
-            ConfigOptions.key("principal")
+    public static final ConfigOption<String> ZK_HOSTS =
+            ConfigOptions.key("zk-hosts")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("Kerberos principal");
+                    .withDescription("zookeeper hosts. e.g. host1:2181,hosts:2181");
 
-    public static final ConfigOption<String> KEYTAB =
-            ConfigOptions.key("keytab")
+    public static final ConfigOption<String> ZK_CHROOT =
+            ConfigOptions.key("zk-chroot")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("Kerberos keytab");
+                    .withDescription("zookeeper chroot");
 
-    public static final ConfigOption<String> KRB5_CONF =
-            ConfigOptions.key("krb5conf")
+    public static final ConfigOption<String> COLLECTION =
+            ConfigOptions.key("collection")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("Kerberos krb5 conf");
+                    .withDescription("Solr collection");
 }

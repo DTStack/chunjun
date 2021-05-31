@@ -50,6 +50,8 @@ public class KerberosConfig implements Serializable {
         judgeAndSetKrbEnabled();
     }
 
+    public KerberosConfig() {}
+
     public String getPrincipal() {
         return principal;
     }
