@@ -19,11 +19,8 @@
 package com.dtstack.flinkx.connector.oracle.table;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.oracle.OracleDialect;
-
-import com.dtstack.flinkx.connector.oracle.source.OracleDynamicTableSource;
 
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -51,28 +48,5 @@ public class OracleDynamicTableFactory extends JdbcDynamicTableFactory {
         return new OracleDialect();
     }
 
-    @Override
-    public DynamicTableSource createDynamicTableSource(Context context) {
-        final FactoryUtil.TableFactoryHelper helper =
-                FactoryUtil.createTableFactoryHelper(this, context);
-        // 1.所有的requiredOptions和optionalOptions参数
-        final ReadableConfig config = helper.getOptions();
-
-        // 2.参数校验
-        helper.validate();
-        validateConfigOptions(config);
-
-        // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        JdbcDialect jdbcDialect = getDialect();
-
-        return new OracleDynamicTableSource(
-                getSourceConnectionConf(helper.getOptions()),
-                getJdbcLookupConf(
-                        helper.getOptions(), context.getObjectIdentifier().getObjectName()),
-                physicalSchema,
-                jdbcDialect);
-    }
 
 }

@@ -83,6 +83,8 @@ public class JdbcDynamicTableSource
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
+        jdbcConf.getProperties().setProperty("useCursorFetch", "true");
+
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return ParallelAsyncTableFunctionProvider.of(
                     new JdbcLruTableFunction(

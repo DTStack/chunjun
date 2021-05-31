@@ -1,5 +1,7 @@
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
@@ -61,10 +63,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         try {
             for (int i = 0; i < lookupConf.getMaxRetryTimes(); i++) {
                 try {
-                    connection = getConn(
-                            jdbcConf.getJdbcUrl(),
-                            jdbcConf.getUsername(),
-                            jdbcConf.getPassword());
+                    connection = JdbcUtil.getConnection(jdbcConf,jdbcDialect);
                     break;
                 } catch (Exception e) {
                     if (i == lookupConf.getMaxRetryTimes() - 1) {
@@ -129,25 +128,4 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         }
     }
 
-    /**
-     * get jdbc connection
-     *
-     * @param dbUrl
-     * @param userName
-     * @param password
-     *
-     * @return
-     */
-    protected Connection getConn(String dbUrl, String userName, String password) {
-        try {
-            Class.forName(jdbcDialect.defaultDriverName().get());
-            //add param useCursorFetch=true
-            Map<String, String> addParams = Maps.newHashMap();
-            addParams.put("useCursorFetch", "true");
-            String targetDbUrl = DtStringUtil.addJdbcParam(dbUrl, addParams, true);
-            return DriverManager.getConnection(targetDbUrl, userName, password);
-        } catch (Exception e) {
-            throw new RuntimeException("", e);
-        }
-    }
 }
