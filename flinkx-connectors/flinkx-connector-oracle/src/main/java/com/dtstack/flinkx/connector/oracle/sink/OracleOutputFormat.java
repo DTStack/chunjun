@@ -31,7 +31,6 @@ import com.dtstack.flinkx.util.TableUtil;
  */
 public class OracleOutputFormat extends JdbcOutputFormat {
 
-
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
@@ -40,5 +39,4 @@ public class OracleOutputFormat extends JdbcOutputFormat {
                         column, columnType, OracleRawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
-
 }

@@ -35,8 +35,6 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
  */
 public class OracleSourceFactory extends JdbcSourceFactory {
 
-    private static final int DEFAULT_FETCH_SIZE = 0;
-
     public OracleSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         super.jdbcDialect = new OracleDialect();
@@ -45,11 +43,6 @@ public class OracleSourceFactory extends JdbcSourceFactory {
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new OracleInputFormat());
-    }
-
-    @Override
-    protected int getDefaultFetchSize() {
-        return DEFAULT_FETCH_SIZE;
     }
 
     @Override

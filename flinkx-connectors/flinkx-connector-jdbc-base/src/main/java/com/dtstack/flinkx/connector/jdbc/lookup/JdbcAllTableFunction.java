@@ -10,13 +10,11 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.util.DtStringUtil;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -61,26 +59,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         Connection connection = null;
 
         try {
-            for (int i = 0; i < lookupConf.getMaxRetryTimes(); i++) {
-                try {
-                    connection = JdbcUtil.getConnection(jdbcConf,jdbcDialect);
-                    break;
-                } catch (Exception e) {
-                    if (i == lookupConf.getMaxRetryTimes() - 1) {
-                        throw new RuntimeException("", e);
-                    }
-                    try {
-                        String connInfo = "url:" + jdbcConf.getJdbcUrl() + ";userName:"
-                                + jdbcConf.getUsername() + ",pwd:"
-                                + jdbcConf.getPassword();
-                        LOG.warn("get conn fail, wait for 5 sec and try again, connInfo:"
-                                + connInfo);
-                        Thread.sleep(5 * 1000);
-                    } catch (InterruptedException e1) {
-                        LOG.error("", e1);
-                    }
-                }
-            }
+            connection = JdbcUtil.getConnection(jdbcConf,jdbcDialect);
             queryAndFillData(tmpCache, connection);
         } catch (Exception e) {
             LOG.error("", e);

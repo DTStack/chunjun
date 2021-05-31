@@ -48,7 +48,6 @@ import java.time.LocalTime;
 public class OracleColumnConverter
         extends JdbcColumnConverter{
 
-
     public OracleColumnConverter(RowType rowType) {
         super(rowType);
     }

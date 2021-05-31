@@ -32,7 +32,6 @@ import com.dtstack.flinkx.util.TableUtil;
  */
 public class OracleInputFormat extends JdbcInputFormat {
 
-
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
@@ -41,6 +40,4 @@ public class OracleInputFormat extends JdbcInputFormat {
                         column, columnType, OracleRawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
-
-
 }

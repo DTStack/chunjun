@@ -58,38 +58,6 @@ public class OracleDialect implements JdbcDialect {
         return Optional.of("oracle.jdbc.OracleDriver");
     }
 
-
-    @Override
-    public String getSelectFromStatement(
-            String schemaName,
-            String tableName,
-            String customSql,
-            String[] selectFields,
-            String where) {
-        String selectExpressions =
-                Arrays.stream(selectFields)
-                        .map(this::quoteIdentifier)
-                        .collect(Collectors.joining(", "));
-        StringBuilder sql = new StringBuilder(128);
-        sql.append("SELECT ");
-        if (StringUtils.isNotBlank(customSql)) {
-            sql.append("* FROM (")
-                    .append(customSql)
-                    .append(") ")
-                    .append(JdbcUtil.TEMPORARY_TABLE_NAME);
-        } else {
-            sql.append(selectExpressions).append(" FROM ");
-            if (StringUtils.isNotBlank(schemaName)) {
-                sql.append(quoteIdentifier(schemaName)).append(" .");
-            }
-            sql.append(quoteIdentifier(tableName));
-        }
-        if (StringUtils.isNotBlank(where)) {
-            sql.append(" WHERE ").append(where);
-        }
-        return sql.toString();
-    }
-
     @Override
     public Optional<String> getReplaceStatement(
             String schema,
@@ -140,7 +108,6 @@ public class OracleDialect implements JdbcDialect {
         return Optional.of(mergeIntoSql.toString());
     }
 
-
     @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(
             RowType rowType) {
@@ -152,8 +119,6 @@ public class OracleDialect implements JdbcDialect {
             RowType rowType) {
         return new OracleColumnConverter(rowType);
     }
-
-
 
     /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */
     public String buildDualQueryStatement(String[] column) {
@@ -189,23 +154,15 @@ public class OracleDialect implements JdbcDialect {
      */
     private String buildConnectString(boolean allReplace, String col) {
         return allReplace
-                ? quoteIdentifier("T1")
-                + "."
+                ? "T1."
                 + quoteIdentifier(col)
-                + " = "
-                + quoteIdentifier("T2")
-                + "."
+                + " = T2."
                 + quoteIdentifier(col)
-                : quoteIdentifier("T1")
-                + "."
+                : "T1."
                 + quoteIdentifier(col)
-                + " =NVL("
-                + quoteIdentifier("T2")
-                + "."
+                + " =NVL(T2."
                 + quoteIdentifier(col)
-                + ","
-                + quoteIdentifier("T1")
-                + "."
+                + ",T1."
                 + quoteIdentifier(col)
                 + ")";
     }

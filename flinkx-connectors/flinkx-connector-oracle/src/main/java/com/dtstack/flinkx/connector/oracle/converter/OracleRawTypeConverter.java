@@ -41,7 +41,6 @@ public class OracleRawTypeConverter {
             .compile(TIMESTAMP)
             .asPredicate();
 
-
     /**
      * 将Oracle数据库中的类型，转换成flink的DataType类型。
      *
@@ -61,7 +60,6 @@ public class OracleRawTypeConverter {
             case "VARCHAR":
             case "VARCHAR2":
             case "NCHAR":
-            case "LONG":
             case "NVARCHAR2":
                 return DataTypes.STRING();
             case "INT":
@@ -77,6 +75,8 @@ public class OracleRawTypeConverter {
                 return DataTypes.BYTES();
             case "BINARY_FLOAT":
                 return DataTypes.FLOAT();
+            case "LONG":
+                // when mode is update and allReplace is false, LONG type is not support
             case "BLOB":
                 throw new UnsupportedTypeException(type);
             default:
@@ -88,6 +88,4 @@ public class OracleRawTypeConverter {
                 throw new UnsupportedTypeException(type);
         }
     }
-
-
 }

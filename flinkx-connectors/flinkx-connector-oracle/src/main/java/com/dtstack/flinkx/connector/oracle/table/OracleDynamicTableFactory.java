@@ -41,6 +41,4 @@ public class OracleDynamicTableFactory extends JdbcDynamicTableFactory {
     protected JdbcDialect getDialect() {
         return new OracleDialect();
     }
-
-
 }
