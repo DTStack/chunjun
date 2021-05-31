@@ -24,7 +24,6 @@ import com.dtstack.flinkx.connector.sqlserver.SqlServerDialect;
 import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.TableUtil;
-import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,9 +44,9 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
-        LogicalType rowType =
+        RowType rowType =
                 TableUtil.createRowType(column, columnType, SqlserverRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
+        setRowConverter(jdbcDialect.getColumnConverter(rowType));
 
         Statement statement = null;
         String sql = ((SqlServerDialect)jdbcDialect).getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());

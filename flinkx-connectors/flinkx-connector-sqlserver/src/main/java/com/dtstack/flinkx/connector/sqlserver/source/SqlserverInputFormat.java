@@ -24,7 +24,6 @@ import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverte
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.util.TableUtil;
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.sql.Timestamp;
@@ -41,10 +40,10 @@ public class SqlserverInputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
-        LogicalType rowType =
+        RowType rowType =
                 TableUtil.createRowType(
                     column, columnType, SqlserverRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter((RowType) rowType));
+        setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 
 

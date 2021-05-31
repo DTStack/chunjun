@@ -30,7 +30,7 @@ import com.dtstack.flinkx.connector.sqlserver.SqlServerDialect;
  */
 public class SqlserverDynamicTableFactory extends JdbcDynamicTableFactory {
 
-    private static final String IDENTIFIER = "SqlServer-x";
+    private static final String IDENTIFIER = "sqlserver-x";
 
     @Override
     public String factoryIdentifier() {

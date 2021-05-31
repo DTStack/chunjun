@@ -26,7 +26,7 @@ CREATE TABLE source
 --    col_binary     bytes,
     col_varbinary  varbinary
 )with(
-   'connector'='SqlServer-x',
+   'connector'='sqlserver-x',
    'username'='username',
    'password'='password',
    'url' = 'jdbc:jtds:sqlserver://localhost:1433;databaseName=db_test;useLOBs=false',

@@ -21,12 +21,15 @@
 		<module>flinkx-connector-postgresql</module>
 		<module>flinkx-connector-gbase</module>
         <module>flinkx-connector-hbase-base</module>
+		<module>flinkx-connector-clickhouse</module>
+		<module>flinkx-connector-sqlserver</module>
+
 		<module>flinkx-connector-sqlserver</module>
 		<module>flinkx-connector-oracle</module>
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
-        <module>flinkx-connector-clickhouse</module>
 	</modules>
+
 
     <dependencies>
         <dependency>
