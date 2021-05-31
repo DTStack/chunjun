@@ -22,12 +22,6 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.oracle.OracleDialect;
 
-import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
-import org.apache.flink.table.connector.source.DynamicTableSource;
-import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
-
 /**
  * company www.dtstack.com
  *
