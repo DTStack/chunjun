@@ -43,7 +43,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.PASSWORD;
@@ -51,7 +53,10 @@ import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.SCHEMA
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.TABLE_NAME;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.URL;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.USERNAME;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.LOOKUP_ASYNCPOOLSIZE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DRUID_PREFIX;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.VERTX_PREFIX;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.VERTX_WORKER_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.getLibConfMap;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_ALLREPLACE;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
@@ -89,7 +94,6 @@ import static org.apache.flink.util.Preconditions.checkState;
  */
 public abstract class JdbcDynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
-
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
         final FactoryUtil.TableFactoryHelper helper =
@@ -98,18 +102,22 @@ public abstract class JdbcDynamicTableFactory
         final ReadableConfig config = helper.getOptions();
 
         // 2.参数校验
-        helper.validate();
+        helper.validateExcept(VERTX_PREFIX, DRUID_PREFIX);
         validateConfigOptions(config);
-
         // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         JdbcDialect jdbcDialect = getDialect();
 
+        final Map<String, Object> druidConf =
+                getLibConfMap(context.getCatalogTable().getOptions(), DRUID_PREFIX);
+
         return new JdbcDynamicTableSource(
                 getSourceConnectionConf(helper.getOptions()),
                 getJdbcLookupConf(
-                        helper.getOptions(), context.getObjectIdentifier().getObjectName()),
+                        helper.getOptions(),
+                        context.getObjectIdentifier().getObjectName(),
+                        druidConf),
                 physicalSchema,
                 jdbcDialect);
     }
@@ -144,6 +152,7 @@ public abstract class JdbcDynamicTableFactory
         conf.setJdbcUrl(readableConfig.get(URL));
         conf.setTable(Arrays.asList(readableConfig.get(TABLE_NAME)));
         conf.setSchema(readableConfig.get(SCHEMA));
+        conf.setAllReplace(readableConfig.get(SINK_ALLREPLACE));
 
         jdbcConf.setUsername(readableConfig.get(USERNAME));
         jdbcConf.setPassword(readableConfig.get(PASSWORD));
@@ -162,9 +171,10 @@ public abstract class JdbcDynamicTableFactory
         return jdbcConf;
     }
 
-    protected LookupConf getJdbcLookupConf(ReadableConfig readableConfig, String tableName) {
+    protected LookupConf getJdbcLookupConf(ReadableConfig readableConfig, String tableName, Map<String, Object> druidConf) {
         return JdbcLookupConf.build()
-                .setAsyncPoolSize(readableConfig.get(LOOKUP_ASYNCPOOLSIZE))
+                .setDruidConf(druidConf)
+                .setAsyncPoolSize(readableConfig.get(VERTX_WORKER_POOL_SIZE))
                 .setTableName(tableName)
                 .setPeriod(readableConfig.get(LOOKUP_CACHE_PERIOD))
                 .setCacheSize(readableConfig.get(LOOKUP_CACHE_MAX_ROWS))

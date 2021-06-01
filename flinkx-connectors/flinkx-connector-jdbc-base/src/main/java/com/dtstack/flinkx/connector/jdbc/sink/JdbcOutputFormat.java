@@ -276,7 +276,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                                     jdbcConf.getTable(),
                                     column.toArray(new String[0]),
                                     jdbcConf.getUpdateKey().toArray(new String[0]),
-                                    jdbcConf.isAllReplace())
+                                    jdbcConf.getAllReplace())
                             .get();
         } else {
             throw new IllegalArgumentException("Unknown write mode:" + jdbcConf.getMode());

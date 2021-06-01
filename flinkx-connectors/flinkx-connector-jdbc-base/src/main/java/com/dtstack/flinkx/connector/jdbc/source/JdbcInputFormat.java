@@ -140,7 +140,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                         //重新连接后还是不可用则认为数据库异常，任务失败
                         if(!dbConn.isValid(3)){
                             String message = String.format("cannot connect to %s, username = %s, please check %s is available.", jdbcConf.getJdbcUrl(), jdbcConf.getJdbcUrl(), jdbcDialect.dialectName());
-                            LOG.error(message);
                             throw new RuntimeException(message);
                         }
                     }
@@ -653,7 +652,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     resultSet,
                     GsonUtil.GSON.toJson(columnType),
                     ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
             throw new RuntimeException(message);
         }
     }
