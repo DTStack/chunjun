@@ -56,8 +56,6 @@ import java.time.LocalTime;
 public class OracleRowConverter
         extends JdbcRowConverter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(OracleColumnConverter.class);
-
     private static final long serialVersionUID = 1L;
 
     public OracleRowConverter(RowType rowType) {
@@ -109,7 +107,6 @@ public class OracleRowConverter
                         try {
                             return TimestampData.fromTimestamp(((TIMESTAMP) val).timestampValue());
                         } catch (SQLException e) {
-                            LOG.error("this value is not correct,val [{}]\n{}", val, ExceptionUtil.getErrorMessage(e));
                             throw new UnsupportedTypeException(
                                     "Unsupported type:" + type + ",value:" + val);
                         }
