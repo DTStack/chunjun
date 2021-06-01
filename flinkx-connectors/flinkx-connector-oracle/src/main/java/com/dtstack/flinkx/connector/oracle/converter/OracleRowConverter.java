@@ -96,22 +96,21 @@ public class OracleRowConverter
                                 new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
-                return val -> Long.valueOf(((Timestamp) val).getTime()/1000).intValue();
+                return val -> Long.valueOf(((Timestamp) val).getTime() / 1000).intValue();
             case TIME_WITHOUT_TIME_ZONE:
                 return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
                         / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> {
-                    if(val instanceof String){
+                    if (val instanceof String) {
                         // oracle.sql.TIMESTAMP will return cast to String in lookup
                         return TimestampData.fromTimestamp(Timestamp.valueOf((String) val));
-                    }else {
+                    } else {
                         try {
                             return TimestampData.fromTimestamp(((TIMESTAMP) val).timestampValue());
                         } catch (SQLException e) {
-                            LOG.error("this value is not correct,val [{}]:",val);
-                            LOG.error(ExceptionUtil.getErrorMessage(e));
+                            LOG.error("this value is not correct,val [{}]\n{}", val, ExceptionUtil.getErrorMessage(e));
                             throw new UnsupportedTypeException(
                                     "Unsupported type:" + type + ",value:" + val);
                         }

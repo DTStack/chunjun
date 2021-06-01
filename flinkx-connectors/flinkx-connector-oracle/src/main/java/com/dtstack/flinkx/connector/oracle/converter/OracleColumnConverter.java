@@ -50,7 +50,7 @@ import java.time.LocalTime;
  * @author jier
  */
 public class OracleColumnConverter
-        extends JdbcColumnConverter{
+        extends JdbcColumnConverter {
 
     private static final Logger LOG = LoggerFactory.getLogger(OracleColumnConverter.class);
 
@@ -83,16 +83,19 @@ public class OracleColumnConverter
                 return val -> new TimestampColumn((Timestamp) val);
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
-                        new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
+                        new BigDecimalColumn(
+                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> {
                     try {
                         return new TimestampColumn(((TIMESTAMP) val).timestampValue());
                     } catch (SQLException e) {
-                        LOG.error("this value is not correct,val [{}]:",val);
-                        LOG.error(ExceptionUtil.getErrorMessage(e));
-                        throw new UnsupportedOperationException("Unsupported type:" + type+",value:"+val);
+                        LOG.error(
+                                "this value is not correct,val [{}]\n{}", val, ExceptionUtil.getErrorMessage(e));
+                        throw new UnsupportedOperationException(
+                                "Unsupported type:" + type + ",value:" + val);
                     }
                 };
             case BINARY:
