@@ -503,6 +503,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      */
     public synchronized FormatState getFormatState() throws Exception {
         formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setMetric(outputMetric.getMetricCounters());
         LOG.info("format state:{}", formatState.getState());
         // not EXACTLY_ONCE model,Does not interact with the db
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
@@ -514,10 +515,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             } finally {
                 flushEnable.compareAndSet(true, false);
             }
-        }
-
-        if (formatState != null) {
-            formatState.setMetric(outputMetric.getMetricCounters());
         }
         return formatState;
     }
