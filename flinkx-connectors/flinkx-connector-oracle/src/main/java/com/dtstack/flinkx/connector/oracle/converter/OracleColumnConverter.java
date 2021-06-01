@@ -90,6 +90,7 @@ public class OracleColumnConverter
                     try {
                         return new TimestampColumn(((TIMESTAMP) val).timestampValue());
                     } catch (SQLException e) {
+                        LOG.error("this value is not correct,val [{}]:",val);
                         LOG.error(ExceptionUtil.getErrorMessage(e));
                         throw new UnsupportedOperationException("Unsupported type:" + type+",value:"+val);
                     }

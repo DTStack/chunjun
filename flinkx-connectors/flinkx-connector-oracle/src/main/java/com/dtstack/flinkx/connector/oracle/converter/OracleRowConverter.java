@@ -110,6 +110,7 @@ public class OracleRowConverter
                         try {
                             return TimestampData.fromTimestamp(((TIMESTAMP) val).timestampValue());
                         } catch (SQLException e) {
+                            LOG.error("this value is not correct,val [{}]:",val);
                             LOG.error(ExceptionUtil.getErrorMessage(e));
                             throw new UnsupportedTypeException(
                                     "Unsupported type:" + type + ",value:" + val);
