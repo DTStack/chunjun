@@ -100,8 +100,8 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public void notifyCheckpointAborted(long checkpointId) {
-        // do nothing
+    protected void rollback(long checkpointId) {
+
     }
 
     public void setStreamSinkConf(StreamSinkConf streamSinkConf) {

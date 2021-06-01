@@ -136,6 +136,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     protected transient BaseMetric outputMetric;
     /** cp和flush互斥条件 */
     protected transient AtomicBoolean flushEnable;
+    /** 当前事务的条数 */
+    protected long rowsOfCurrentTransaction;
 
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
@@ -503,11 +505,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         // not EXACTLY_ONCE model,Does not interact with the db
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
             try {
+                LOG.info("getFormatState:Start preCommit, rowsOfCurrentTransaction: {}", rowsOfCurrentTransaction);
                 preCommit();
             } catch (Exception e) {
-                LOG.error("executeBatch error, e = {}", ExceptionUtil.getErrorMessage(e));
+                LOG.error("preCommit error, e = {}", ExceptionUtil.getErrorMessage(e));
+            } finally {
+                flushEnable.compareAndSet(true, false);
             }
-            flushEnable.compareAndSet(true, false);
         }
 
         if (formatState != null) {
@@ -560,10 +564,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      *
      * @param checkpointId
      */
-    public synchronized void notifyCheckpointComplete(long checkpointId) throws Exception{
+    public synchronized void notifyCheckpointComplete(long checkpointId) {
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
             try {
                 commit(checkpointId);
+                LOG.info("notifyCheckpointComplete:Commit success , checkpointId:{}", checkpointId);
+            } catch (Exception e) {
+                LOG.error("commit error, e = {}", ExceptionUtil.getErrorMessage(e));
             } finally {
                 flushEnable.compareAndSet(false, true);
             }
@@ -582,11 +589,26 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      *
      * @param checkpointId
      */
-    public void notifyCheckpointAborted(long checkpointId) throws Exception {
+    public synchronized void notifyCheckpointAborted(long checkpointId) {
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
-            flushEnable.compareAndSet(false, true);
+            try{
+                rollback(checkpointId);
+                LOG.info("notifyCheckpointAborted:rollback success , checkpointId:{}", checkpointId);
+            } catch (Exception e) {
+                LOG.error("rollback error, e = {}", ExceptionUtil.getErrorMessage(e));
+            } finally{
+                flushEnable.compareAndSet(false, true);
+            }
         }
     }
+
+    /**
+     * rollback data
+     * @param checkpointId
+     * @throws Exception
+     */
+    protected abstract void rollback(long checkpointId) throws Exception;
+
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;

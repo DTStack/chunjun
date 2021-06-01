@@ -75,9 +75,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     /** 用户脚本中填写的字段类型集合 */
     protected List<String> columnType;
 
-    protected long rowsOfCurrentTransaction;
-
-
     @Override
     public void initializeGlobal(int parallelism) {
         executeBatch(jdbcConf.getPreSql());
@@ -194,7 +191,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void preCommit() throws Exception{
-        LOG.info("getFormatState:Start commit connection, rowsOfCurrentTransaction: {}", rowsOfCurrentTransaction);
         if (jdbcConf.getRestoreColumnIndex() > -1) {
             formatState.setState(((GenericRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex()));
         }
@@ -213,16 +209,14 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             rowsOfCurrentTransaction = 0;
             snapshotWriteCounter.add(rowsOfCurrentTransaction);
             fieldNamedPreparedStatement.clearBatch();
-            LOG.info("notifyCheckpointComplete:Commit connection success , checkpointId:{}", checkpointId);
         } catch (Exception e) {
             dbConn.rollback();
-            LOG.error("commit transaction error, e = {}", ExceptionUtil.getErrorMessage(e));
             throw e;
         }
     }
 
     @Override
-    public void notifyCheckpointAborted(long checkpointId) throws Exception {
+    protected void rollback(long checkpointId) throws Exception {
         dbConn.rollback();
     }
 
