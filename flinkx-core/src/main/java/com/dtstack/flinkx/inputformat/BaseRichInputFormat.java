@@ -37,6 +37,7 @@ import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.ByteRateLimiter;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,6 +134,12 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         }
 
         openInternal(inputSplit);
+
+        LOG.info(
+                "[{}] open successfully, inputSplit = {}, FlinkX config: \n{} ",
+                this.getClass().getSimpleName(),
+                inputSplit,
+                GsonUtil.GSON.toJson(config));
     }
 
     @Override

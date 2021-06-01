@@ -40,6 +40,7 @@ import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -203,22 +204,17 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             initErrorLimiter();
             initDirtyDataManager();
         }
-
-        LOG.info("taskNumber[{}] open start, checkpointEnabled:{}, "
-                        + "jobName:{}, jobId:{}, numTasks:{}, format State:{}, "
-                        + "checkpointMode:{}, flushIntervalMills:{}, batchSize:{}, lastRow:{}",
-                taskNumber,
-                checkpointEnabled,
-                jobName,
-                jobId,
-                numTasks,
-                formatState.getState(),
-                checkpointMode,
-                flushIntervalMills,
-                batchSize,
-                lastRow);
         openInternal(taskNumber, numTasks);
         this.startTime = System.currentTimeMillis();
+
+        LOG.info(
+                "[{}] open successfully, checkpointMode = {}, checkpointEnabled = {}, flushIntervalMills = {}, batchSize = {}, FlinkX config: \n{} ",
+                this.getClass().getSimpleName(),
+                checkpointMode,
+                checkpointEnabled,
+                flushIntervalMills,
+                batchSize,
+                GsonUtil.GSON.toJson(config));
     }
 
     @Override
