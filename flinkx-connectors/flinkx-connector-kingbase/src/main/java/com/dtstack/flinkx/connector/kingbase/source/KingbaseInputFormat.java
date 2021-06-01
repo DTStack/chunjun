@@ -41,6 +41,8 @@ import java.util.List;
  */
 public class KingbaseInputFormat extends JdbcInputFormat {
 
+    public static final long serialVersionUID = 2L;
+
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
@@ -55,7 +57,10 @@ public class KingbaseInputFormat extends JdbcInputFormat {
         try {
             List<FieldConf> fieldList = jdbcConf.getColumn();
 
-            Pair<List<String>, List<String>> pair = KingbaseUtils.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
+            Pair<List<String>, List<String>> pair = KingbaseUtils.getTableMetaData(
+                    jdbcConf.getSchema(),
+                    jdbcConf.getTable(),
+                    dbConn);
             List<String> fullColumn = pair.getLeft();
             List<String> fullColumnType = pair.getRight();
 
@@ -75,11 +80,11 @@ public class KingbaseInputFormat extends JdbcInputFormat {
                 }
             }
         } catch (SQLException e) {
-            String message = String.format("error to analyzeSchema, resultSet = %s, finalFieldTypes = %s, e = %s",
+            String message = String.format(
+                    "error to analyzeSchema, resultSet = %s, finalFieldTypes = %s, e = %s",
                     resultSet,
                     GsonUtil.GSON.toJson(columnType),
                     ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
             throw new RuntimeException(message);
         }
     }

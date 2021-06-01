@@ -18,15 +18,12 @@
 package com.dtstack.flinkx.connector.kingbase.util;
 
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-
-import static com.dtstack.flinkx.connector.kingbase.util.KingbaseConstants.INSERT_SQL_MODE_TYPE;
 
 /**
  * @description:
@@ -36,17 +33,21 @@ import static com.dtstack.flinkx.connector.kingbase.util.KingbaseConstants.INSER
  */
 public class KingbaseUtils {
 
-
     /**
      * get table metadata with tableName and schemaName.
+     *
      * @param schemaName
      * @param tableName
      * @param dbConn
+     *
      * @return
+     *
      * @throws SQLException
      */
-    public static Pair<List<String>, List<String>> getTableMetaData(String schemaName, String tableName, Connection dbConn) throws SQLException {
+    public static Pair<List<String>, List<String>> getTableMetaData(
+            String schemaName,
+            String tableName,
+            Connection dbConn) throws SQLException {
         return JdbcUtil.getTableMetaData(StringUtils.upperCase(schemaName), StringUtils.upperCase(tableName), dbConn);
     }
-
 }

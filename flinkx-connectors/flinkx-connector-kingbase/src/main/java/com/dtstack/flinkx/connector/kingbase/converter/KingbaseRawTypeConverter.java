@@ -17,10 +17,10 @@
  */
 package com.dtstack.flinkx.connector.kingbase.converter;
 
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
+
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -31,11 +31,13 @@ import java.util.Locale;
  * @author: lany
  * @create: 2021/05/13 20:10
  */
-public class KingbaseRawTypeConverter  {
+public class KingbaseRawTypeConverter {
 
     /**
      * @param type
+     *
      * @return
+     *
      * @throws SQLException
      */
     public static DataType apply(String type) {
@@ -85,5 +87,4 @@ public class KingbaseRawTypeConverter  {
                 throw new UnsupportedTypeException(type);
         }
     }
-
 }

@@ -25,12 +25,9 @@ package com.dtstack.flinkx.connector.kingbase.util;
  */
 public class KingbaseConstants {
 
-    public static final String INSERT_SQL_MODE_TYPE = "copy";
-
     public static final String DRIVER = "com.kingbase8.Driver";
 
     public static final String URL_PREFIX = "jdbc:kingbase8:";
 
     public static final String IDENTIFIER = "kingbase-x";
-
 }

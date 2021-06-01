@@ -40,5 +40,4 @@ public class KingbaseDynamicTableFactory extends JdbcDynamicTableFactory {
     protected JdbcDialect getDialect() {
         return new KingbaseDialect();
     }
-
 }

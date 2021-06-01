@@ -47,7 +47,9 @@ public class KingbaseColumnConverter extends JdbcColumnConverter {
 
     /**
      * override reason: tinying type in KingBase is byte type, couldn't case int.
+     *
      * @param type
+     *
      * @return
      */
     @Override
@@ -75,7 +77,8 @@ public class KingbaseColumnConverter extends JdbcColumnConverter {
                 return val -> new BigDecimalColumn(Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
-                        new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
+                        new BigDecimalColumn(
+                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn((Timestamp) val);

@@ -44,10 +44,13 @@ import java.util.Objects;
  */
 public class KingbaseOutputFormat extends JdbcOutputFormat {
 
+    protected static final long serialVersionUID = 2L;
+
     /**
      * override reason: The Kingbase meta-database is case sensitive。
      * If you use a lowercase table name, it will not be able to query the table metadata.
      * so we convert the table and schema name to uppercase.
+     *
      * @param taskNumber
      * @param numTasks
      */
@@ -60,15 +63,18 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
 
-            Pair<List<String>, List<String>> pair = KingbaseUtils.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
+            Pair<List<String>, List<String>> pair = KingbaseUtils.getTableMetaData(
+                    jdbcConf.getSchema(),
+                    jdbcConf.getTable(),
+                    dbConn);
             List<String> fullColumn = pair.getLeft();
             List<String> fullColumnType = pair.getRight();
 
             List<FieldConf> fieldList = jdbcConf.getColumn();
-            if(fieldList.size() == 1 && Objects.equals(fieldList.get(0).getName(), "*")){
+            if (fieldList.size() == 1 && Objects.equals(fieldList.get(0).getName(), "*")) {
                 column = fullColumn;
                 columnType = fullColumnType;
-            }else{
+            } else {
                 column = new ArrayList<>(fieldList.size());
                 columnType = new ArrayList<>(fieldList.size());
                 for (FieldConf fieldConf : fieldList) {
@@ -111,5 +117,4 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
                 TableUtil.createRowType(column, columnType, KingbaseRawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
-
 }

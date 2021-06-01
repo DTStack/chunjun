@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.flinkx.connector.kingbase;
 
 import org.apache.flink.table.types.logical.LogicalType;
@@ -23,14 +22,12 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.kingbase.converter.KingbaseColumnConverter;
 import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRowConverter;
 import com.dtstack.flinkx.connector.kingbase.util.KingbaseConstants;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import io.vertx.core.json.JsonArray;
-import org.apache.commons.lang3.StringUtils;
 
 import java.sql.ResultSet;
 import java.util.Arrays;
@@ -71,67 +68,78 @@ public class KingbaseDialect implements JdbcDialect {
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
+            RowType rowType) {
         return new KingbaseColumnConverter(rowType);
     }
 
     @Override
-    public Optional<String> getUpsertStatement(String schema, String tableName, String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
-
-        String updateClause  =
-                Arrays.stream(fieldNames)
-                        .map(f -> quoteIdentifier(f) + "=EXCLUDED." + quoteIdentifier(f))
-                        .collect(Collectors.joining(", "));
-
+    public Optional<String> getUpsertStatement(
+            String schema,
+            String tableName,
+            String[] fieldNames,
+            String[] uniqueKeyFields,
+            boolean allReplace) {
         String uniqueColumns =
                 Arrays.stream(uniqueKeyFields)
-                .map(this::quoteIdentifier)
-                .collect(Collectors.joining(", "));
-
-        return Optional.of(
-                getInsertIntoStatement( schema, tableName, fieldNames)
-                        + "ON CONFLICT "
-                        + uniqueColumns
-                        + " DO UPDATE SET  "
-                        + updateClause
-        );
-
-    }
-
-    @Override
-    public String getSelectFromStatement(
-            String schemaName,
-            String tableName,
-            String customSql,
-            String[] selectFields,
-            String where) {
-        String selectExpressions =
-                Arrays.stream(selectFields)
                         .map(this::quoteIdentifier)
                         .collect(Collectors.joining(", "));
-        StringBuilder sql = new StringBuilder(128);
-        sql.append("SELECT ");
-        if(StringUtils.isNotBlank(customSql)){
-            sql.append("* FROM (")
-                    .append(customSql)
-                    .append(") ")
-                    .append(JdbcUtil.TEMPORARY_TABLE_NAME);
-        }else{
-            sql.append(selectExpressions)
-                    .append(" FROM ");
-            if(StringUtils.isNotBlank(schemaName)){
-                sql.append(quoteIdentifier(schemaName))
-                        .append(" .");
-            }
-            sql.append(quoteIdentifier(tableName));
-        }
-        if(StringUtils.isNotBlank(where)){
-            sql.append(" WHERE ")
-                    .append(where);
-        }
-        return sql.toString();
+        String updateClause = buildUpdateClause(fieldNames, allReplace);
+
+        return Optional.of(
+                getInsertIntoStatement(schema, tableName, fieldNames)
+                        + " ON CONFLICT ("
+                        + uniqueColumns
+                        + ") DO UPDATE SET  "
+                        + updateClause
+        );
     }
 
+    /**
+     * if allReplace is true: use ISNULL() FUNCTION to handle null values.
+     * For example: SET dname = isnull(EXCLUDED.dname,t1.dname)
+     * else allReplace is false: SET dname = EXCLUDED.dname
+     * @param fieldNames
+     * @param allReplace
+     * @return
+     */
+    private String buildUpdateClause(String[] fieldNames, boolean allReplace) {
+        String updateClause;
+        if (allReplace) {
+            updateClause = Arrays.stream(fieldNames)
+                    .map(f -> quoteIdentifier(f) + "=ISNULL(EXCLUDED." + quoteIdentifier(f) + ", t1." + quoteIdentifier(f)+")")
+                    .collect(Collectors.joining(", "));
+        } else {
+            updateClause = Arrays.stream(fieldNames)
+                    .map(f -> quoteIdentifier(f) + "=EXCLUDED." + quoteIdentifier(f))
+                    .collect(Collectors.joining(", "));
+        }
+        return updateClause;
+    }
 
-
+    /**
+     * override: add alias for table which is used in upsert statement
+     * @param schema
+     * @param tableName
+     * @param fieldNames
+     * @return
+     */
+    @Override
+    public String getInsertIntoStatement(String schema, String tableName, String[] fieldNames) {
+        String columns =
+                Arrays.stream(fieldNames)
+                        .map(this::quoteIdentifier)
+                        .collect(Collectors.joining(", "));
+        String placeholders =
+                Arrays.stream(fieldNames).map(f -> ":" + f).collect(Collectors.joining(", "));
+        return "INSERT INTO "
+                + buildTableInfoWithSchema(schema, tableName)
+                + " t1 "
+                + "("
+                + columns
+                + ")"
+                + " VALUES ("
+                + placeholders
+                + ")";
+    }
 }

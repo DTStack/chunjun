@@ -41,6 +41,7 @@ import java.sql.Timestamp;
  */
 public class KingbaseRowConverter extends JdbcRowConverter {
 
+    private static final long serialVersionUID = 2L;
 
     public KingbaseRowConverter(RowType rowType) {
         super(rowType);
@@ -48,7 +49,9 @@ public class KingbaseRowConverter extends JdbcRowConverter {
 
     /**
      * override reason: tinying type in KingBase is byte type, couldn't case int.
+     *
      * @param type
+     *
      * @return
      */
     @Override
@@ -100,5 +103,4 @@ public class KingbaseRowConverter extends JdbcRowConverter {
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
     }
-
 }
