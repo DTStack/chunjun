@@ -21,6 +21,8 @@ package com.dtstack.flinkx.connector.oracle.converter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.ISerializationConverter;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
@@ -34,6 +36,9 @@ import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import oracle.sql.TIMESTAMP;
 
 import org.apache.flink.table.types.logical.TimestampType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -51,6 +56,8 @@ import java.time.LocalTime;
  */
 public class OracleRowConverter
         extends JdbcRowConverter {
+
+    private static final Logger LOG = LoggerFactory.getLogger(OracleColumnConverter.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -102,8 +109,8 @@ public class OracleRowConverter
                     }else {
                         try {
                             return TimestampData.fromTimestamp(((TIMESTAMP) val).timestampValue());
-                        } catch (SQLException throwables) {
-                            throwables.printStackTrace();
+                        } catch (SQLException e) {
+                            LOG.error(ExceptionUtil.getErrorMessage(e));
                             throw new UnsupportedTypeException(
                                     "Unsupported type:" + type + ",value:" + val);
                         }

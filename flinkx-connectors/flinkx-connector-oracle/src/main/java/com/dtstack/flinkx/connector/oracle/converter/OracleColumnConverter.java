@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.oracle.converter;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
+
+import com.dtstack.flinkx.util.ZkHelper;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -32,6 +36,8 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import oracle.sql.TIMESTAMP;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -47,6 +53,8 @@ import java.time.LocalTime;
  */
 public class OracleColumnConverter
         extends JdbcColumnConverter{
+
+    private static final Logger LOG = LoggerFactory.getLogger(OracleColumnConverter.class);
 
     public OracleColumnConverter(RowType rowType) {
         super(rowType);
@@ -83,8 +91,8 @@ public class OracleColumnConverter
                 return val -> {
                     try {
                         return new TimestampColumn(((TIMESTAMP) val).timestampValue());
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
+                    } catch (SQLException e) {
+                        LOG.error(ExceptionUtil.getErrorMessage(e));
                         throw new UnsupportedOperationException("Unsupported type:" + type+",value:"+val);
                     }
                 };
