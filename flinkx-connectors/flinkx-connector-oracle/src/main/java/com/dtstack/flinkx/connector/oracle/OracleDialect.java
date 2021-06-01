@@ -23,7 +23,6 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.oracle.converter.OracleColumnConverter;
 import com.dtstack.flinkx.connector.oracle.converter.OracleRowConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
