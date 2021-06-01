@@ -113,8 +113,15 @@ public class ClassUtil {
                 return Long.class;
 
             case "varchar":
+            case "varchar(max)":
             case "char":
             case "text":
+            case "xml":
+            case "nchar":
+            case "nvarchar":
+            case "nvarchar(max)":
+            case "ntext":
+            case "uniqueidentifier":
             case "string":
             case "character_varying":
             case "character":
@@ -135,6 +142,8 @@ public class ClassUtil {
                 return Date.class;
 
             case "datetime":
+            case "datetime2":
+            case "smalldatetime":
             case "timestamp":
                 return Timestamp.class;
 
@@ -144,6 +153,7 @@ public class ClassUtil {
             case "decimal":
             case "decimalunsigned":
             case "money":
+            case "smallmoney":
             case "numeric":
                 return BigDecimal.class;
             default:

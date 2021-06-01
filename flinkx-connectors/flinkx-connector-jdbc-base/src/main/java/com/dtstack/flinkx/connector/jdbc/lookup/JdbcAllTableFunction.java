@@ -1,5 +1,7 @@
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
@@ -8,13 +10,11 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.util.DtStringUtil;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -34,7 +34,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
 
     private final JdbcConf jdbcConf;
     private final String query;
-    private final JdbcDialect jdbcDialect;
+    protected final JdbcDialect jdbcDialect;
 
     public JdbcAllTableFunction(
             JdbcConf jdbcConf,
@@ -59,29 +59,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         Connection connection = null;
 
         try {
-            for (int i = 0; i < lookupConf.getMaxRetryTimes(); i++) {
-                try {
-                    connection = getConn(
-                            jdbcConf.getJdbcUrl(),
-                            jdbcConf.getUsername(),
-                            jdbcConf.getPassword());
-                    break;
-                } catch (Exception e) {
-                    if (i == lookupConf.getMaxRetryTimes() - 1) {
-                        throw new RuntimeException("", e);
-                    }
-                    try {
-                        String connInfo = "url:" + jdbcConf.getJdbcUrl() + ";userName:"
-                                + jdbcConf.getUsername() + ",pwd:"
-                                + jdbcConf.getPassword();
-                        LOG.warn("get conn fail, wait for 5 sec and try again, connInfo:"
-                                + connInfo);
-                        Thread.sleep(5 * 1000);
-                    } catch (InterruptedException e1) {
-                        LOG.error("", e1);
-                    }
-                }
-            }
+            connection = JdbcUtil.getConnection(jdbcConf,jdbcDialect);
             queryAndFillData(tmpCache, connection);
         } catch (Exception e) {
             LOG.error("", e);
@@ -129,25 +107,4 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         }
     }
 
-    /**
-     * get jdbc connection
-     *
-     * @param dbUrl
-     * @param userName
-     * @param password
-     *
-     * @return
-     */
-    protected Connection getConn(String dbUrl, String userName, String password) {
-        try {
-            Class.forName(jdbcDialect.defaultDriverName().get());
-            //add param useCursorFetch=true
-            Map<String, String> addParams = Maps.newHashMap();
-            addParams.put("useCursorFetch", "true");
-            String targetDbUrl = DtStringUtil.addJdbcParam(dbUrl, addParams, true);
-            return DriverManager.getConnection(targetDbUrl, userName, password);
-        } catch (Exception e) {
-            throw new RuntimeException("", e);
-        }
-    }
 }
