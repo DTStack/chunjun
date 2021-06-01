@@ -20,8 +20,6 @@ package com.dtstack.flinkx.connector.oracle.converter;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
 
-import com.dtstack.flinkx.util.ZkHelper;
-
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
