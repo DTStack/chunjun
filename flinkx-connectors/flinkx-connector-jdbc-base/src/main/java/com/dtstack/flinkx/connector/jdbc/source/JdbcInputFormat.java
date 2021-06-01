@@ -190,7 +190,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     endLocationAccumulator.add(new BigInteger(location));
                 }
 
-                LOG.trace("update endLocationAccumulator, current Location = {}", location);
+                LOG.debug("update endLocationAccumulator, current Location = {}", location);
             }
 
             hasNext = resultSet.next();
@@ -568,7 +568,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void queryForPolling(String startLocation) throws SQLException {
-        LOG.trace("polling startLocation = {}", startLocation);
+        LOG.debug("polling startLocation = {}", startLocation);
         boolean isNumber = StringUtils.isNumeric(startLocation);
         switch (type) {
             case TIMESTAMP:
@@ -666,7 +666,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     private void queryStartLocation() throws SQLException {
         StringBuilder builder = new StringBuilder(128);
         builder.append(jdbcConf.getQuerySql())
-                .append("ORDER BY ")
+                .append(" ORDER BY ")
                 .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL)
                 .append(jdbcConf.getIncreColumn())
                 .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL);
@@ -703,7 +703,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         builder.append(jdbcConf.getQuerySql())
                 .append("and ")
                 .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
-                .append(" > ? ORDER BY \"")
+                .append(" > ? ORDER BY ")
+                .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL)
                 .append(jdbcConf.getIncreColumn())
                 .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL);
         jdbcConf.setQuerySql(builder.toString());

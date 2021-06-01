@@ -57,6 +57,7 @@ import com.dtstack.flinkx.parser.SqlParser;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MathUtil;
 import com.dtstack.flinkx.util.PluginUtil;
 import com.dtstack.flinkx.util.PrintUtil;
@@ -152,7 +153,7 @@ public class Main {
                 try {
                     PrintUtil.printResult(v.getAccumulators().get());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOG.error("error to execute sql job, e = {}", ExceptionUtil.getErrorMessage(e));
                 }
             });
         }
