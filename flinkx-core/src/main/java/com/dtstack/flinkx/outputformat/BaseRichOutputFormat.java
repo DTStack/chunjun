@@ -256,8 +256,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 this.scheduler.shutdown();
             }
             // when exist data
-            if (rows.size() != 0) {
+            int size = rows.size();
+            if (size != 0) {
                 writeRecordInternal();
+                numWriteCounter.add(size);
             }
 
             if (durationCounter != null) {
