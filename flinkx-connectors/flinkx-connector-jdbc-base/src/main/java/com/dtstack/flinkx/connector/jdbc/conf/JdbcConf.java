@@ -369,7 +369,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.restoreColumnType = restoreColumnType;
     }
 
-    public boolean isAllReplace() {
+    public boolean getAllReplace() {
         return allReplace;
     }
 

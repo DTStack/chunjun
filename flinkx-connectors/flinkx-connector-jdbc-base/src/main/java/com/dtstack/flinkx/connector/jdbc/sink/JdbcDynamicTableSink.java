@@ -99,7 +99,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         jdbcConf.setColumn(columnList);
         jdbcConf.setMode((CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey())) ? EWriteMode.INSERT
                 .name() : EWriteMode.UPDATE.name());
-        jdbcConf.setUpdateKey(jdbcConf.getUpdateKey());
 
         builder.setJdbcDialect(jdbcDialect);
         builder.setBatchSize(jdbcConf.getBatchSize());
