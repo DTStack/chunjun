@@ -28,7 +28,8 @@ CREATE TABLE sink
     dtdate    date,
     dttime    time
 ) WITH (
-      'connector' = 'stream-x'
+      'connector' = 'stream-x',
+      'print' = 'true'
       );
 
 insert into sink
