@@ -60,10 +60,10 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
     private static final Logger LOG = LoggerFactory.getLogger(DtInputFormatSourceFunction.class);
 
-	private TypeInformation<OUT> typeInfo;
+	private final TypeInformation<OUT> typeInfo;
 	private transient TypeSerializer<OUT> serializer;
 
-	private InputFormat<OUT, InputSplit> format;
+	private final InputFormat<OUT, InputSplit> format;
 
 	private transient InputSplitProvider provider;
 	private transient Iterator<InputSplit> splitIterator;
@@ -237,7 +237,7 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 	public void snapshotState(FunctionSnapshotContext context) throws Exception {
         FormatState formatState = ((BaseRichInputFormat) format).getFormatState();
         if (formatState != null){
-            LOG.info("InputFormat format state:{}", formatState.toString());
+            LOG.info("InputFormat format state:{}", formatState);
             unionOffsetStates.clear();
             unionOffsetStates.add(formatState);
         }
@@ -245,21 +245,18 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
 	@Override
 	public void initializeState(FunctionInitializationContext context) throws Exception {
-	    LOG.info("Start initialize input format state");
 		OperatorStateStore stateStore = context.getOperatorStateStore();
+	    LOG.info("Start initialize input format state, is restored:{}", context.isRestored());
         unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
 				LOCATION_STATE_NAME,
 				TypeInformation.of(new TypeHint<FormatState>() {})));
-
-        LOG.info("Is restored:{}", context.isRestored());
 		if (context.isRestored()){
 			formatStateMap = new HashMap<>(16);
 			for (FormatState formatState : unionOffsetStates.get()) {
 				formatStateMap.put(formatState.getNumOfSubTask(), formatState);
-				LOG.info("Input format state into:{}", formatState.toString());
+				LOG.info("Input format state into:{}", formatState);
 			}
 		}
-
         LOG.info("End initialize input format state");
 	}
 

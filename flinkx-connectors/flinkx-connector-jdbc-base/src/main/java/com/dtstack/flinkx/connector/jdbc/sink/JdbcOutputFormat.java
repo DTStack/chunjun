@@ -93,8 +93,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
 
-            Pair<List<String>, List<String>> pair =
-                    JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
+            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
             List<String> fullColumn = pair.getLeft();
             List<String> fullColumnType = pair.getRight();
 

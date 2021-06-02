@@ -40,7 +40,7 @@ import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -208,13 +208,14 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.startTime = System.currentTimeMillis();
 
         LOG.info(
-                "[{}] open successfully, checkpointMode = {}, checkpointEnabled = {}, flushIntervalMills = {}, batchSize = {}, FlinkX config: \n{} ",
+                "[{}] open successfully, \ncheckpointMode = {}, \ncheckpointEnabled = {}, \nflushIntervalMills = {}, \nbatchSize = {}, \n[{}]: \n{} ",
                 this.getClass().getSimpleName(),
                 checkpointMode,
                 checkpointEnabled,
                 flushIntervalMills,
                 batchSize,
-                GsonUtil.GSON.toJson(config));
+                config.getClass().getSimpleName(),
+                JsonUtil.toPrintJson(config));
     }
 
     @Override

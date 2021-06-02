@@ -36,15 +36,15 @@ import java.util.Date;
  */
 public class StringColumn extends AbstractBaseColumn {
 
-    private SimpleDateFormat formatter;
+    private String format;
 
     public StringColumn(String data) {
         super(data);
     }
 
-    public StringColumn(final String data, SimpleDateFormat formatter) {
+    public StringColumn(final String data, String format) {
         super(data);
-        this.formatter = formatter;
+        this.format = format;
     }
 
     @Override
@@ -74,6 +74,7 @@ public class StringColumn extends AbstractBaseColumn {
             } catch (UnsupportedOperationException e) {
                 //doNothing
             }
+            SimpleDateFormat formatter = DateUtil.buildDateFormatter(format);
             if (time != null) {
                 Date date = new Date(time);
                 return formatter.parse(formatter.format(date));
