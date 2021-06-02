@@ -18,20 +18,6 @@
 
 package com.dtstack.flinkx.connector.jdbc.source;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
-import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
-import com.dtstack.flinkx.enums.CacheType;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
-
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -44,6 +30,19 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
+
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
+import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
+import com.dtstack.flinkx.enums.CacheType;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -137,6 +136,7 @@ public class JdbcDynamicTableSource
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
+        builder.setNumPartitions(jdbcConf.getParallelism() == null ? 1 : jdbcConf.getParallelism());
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),

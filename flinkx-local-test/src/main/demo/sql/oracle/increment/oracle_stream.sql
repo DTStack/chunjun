@@ -108,8 +108,8 @@ CREATE TABLE source
       'scan.fetch-size' = '2',
       'scan.query-timeout' = '10',
       'scan.start-location' = '1000',
-      'scan.partition.column' = 'id',
-      'scan.partition.column-type' = 'decimal'
+      'scan.increment.column' = 'id',
+      'scan.increment.column-type' = 'decimal'
       );
 
 CREATE TABLE sink

@@ -251,9 +251,11 @@ public final class FactoryUtil {
         } catch (Throwable t) {
             throw new ValidationException(
                     String.format(
-                            "Unable to create a sink for writing table '%s'.\n\n"
+                            "%s \n\n"
+                                    + "Unable to create a sink for writing table '%s'.\n\n"
                                     + "Table options are:\n\n"
                                     + "%s",
+                            t.getMessage(),
                             objectIdentifier.asSummaryString(),
                             catalogTable.getOptions().entrySet().stream()
                                     .map(e -> stringifyOption(e.getKey(), e.getValue()))
