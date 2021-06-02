@@ -33,11 +33,19 @@ CREATE TABLE source
       'connector' = 'kingbase-x',
       'url' = 'jdbc:kingbase8://localhost:54321/MOWEN',
       'schema' = 'public',
-      'table-name' = 'type_test',
+      'table-name' = 'type_test1',
       'username' = 'SYSTEM',
       'password' = '123456QWE'
+
+      ,'scan.parallelism' = '2' -- 并行度大于1时，必须指定scan.partition.column
       ,'scan.fetch-size' = '2'
       ,'scan.query-timeout' = '10'
+
+      ,'scan.partition.column' = 'did' -- 多并行度读取的切分字段
+
+      ,'scan.increment.column' = 'did' -- 增量字段
+      ,'scan.increment.column-type' = 'int' -- 增量字段类型
+      ,'scan.start-location' = '88' --增量字段开始位置
       );
 
 CREATE TABLE sink

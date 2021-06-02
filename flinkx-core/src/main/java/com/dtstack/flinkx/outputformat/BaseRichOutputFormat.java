@@ -140,6 +140,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     /** 当前事务的条数 */
     protected long rowsOfCurrentTransaction;
 
+    /** A collection of field names filled in user scripts with constants removed */
+    protected List<String> columnNameList = new ArrayList<>();
+    /** A collection of field types filled in user scripts with constants removed */
+    protected List<String> columnTypeList = new ArrayList<>();
+
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
     protected LongCounter bytesWriteCounter;

@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -41,13 +40,11 @@ public class KingbaseUtils {
      * @param dbConn
      *
      * @return
-     *
-     * @throws SQLException
      */
     public static Pair<List<String>, List<String>> getTableMetaData(
             String schemaName,
             String tableName,
-            Connection dbConn) throws SQLException {
+            Connection dbConn) {
         return JdbcUtil.getTableMetaData(StringUtils.upperCase(schemaName), StringUtils.upperCase(tableName), dbConn);
     }
 }

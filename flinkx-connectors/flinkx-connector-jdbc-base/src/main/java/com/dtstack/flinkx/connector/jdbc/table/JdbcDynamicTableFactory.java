@@ -28,7 +28,6 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
-import org.apache.commons.lang3.StringUtils;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
@@ -36,8 +35,13 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.SourceConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -115,7 +119,9 @@ public abstract class JdbcDynamicTableFactory
                         context.getObjectIdentifier().getObjectName(),
                         druidConf),
                 physicalSchema,
-                jdbcDialect);
+                jdbcDialect,
+                getInputFormatBuilder()
+                );
     }
 
     @Override
@@ -137,7 +143,8 @@ public abstract class JdbcDynamicTableFactory
         return new JdbcDynamicTableSink(
                 getSinkConnectionConf(helper.getOptions(), physicalSchema),
                 jdbcDialect,
-                physicalSchema);
+                physicalSchema,
+                getOutputFormatBuilder());
     }
 
     protected JdbcConf getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
@@ -329,5 +336,23 @@ public abstract class JdbcDynamicTableFactory
      */
     protected int getDefaultFetchSize(){
         return SCAN_DEFAULT_FETCH_SIZE.defaultValue();
+    }
+
+    /**
+     * 获取JDBC插件的具体inputFormatBuilder
+     *
+     * @return JdbcInputFormatBuilder
+     */
+    protected JdbcInputFormatBuilder getInputFormatBuilder() {
+        return new JdbcInputFormatBuilder(new JdbcInputFormat());
+    }
+
+    /**
+     * 获取JDBC插件的具体outputFormatBuilder
+     *
+     * @return JdbcOutputFormatBuilder
+     */
+    protected JdbcOutputFormatBuilder getOutputFormatBuilder() {
+        return new JdbcOutputFormatBuilder(new JdbcOutputFormat());
     }
 }

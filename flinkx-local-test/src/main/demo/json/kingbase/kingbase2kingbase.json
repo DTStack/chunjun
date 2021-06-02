@@ -80,7 +80,7 @@
                   "jdbc:kingbase8://localhost:54321/MOWEN"
                 ],
                 "table": [
-                  "type_test"
+                  "type_test1"
                 ]
               }
             ]

@@ -19,22 +19,13 @@ package com.dtstack.flinkx.connector.kingbase.sink;
 
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRawTypeConverter;
 import com.dtstack.flinkx.connector.kingbase.util.KingbaseUtils;
-import com.dtstack.flinkx.enums.EWriteMode;
-import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @description:
@@ -46,75 +37,25 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
 
     protected static final long serialVersionUID = 2L;
 
+
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) {
+        super.openInternal(taskNumber, numTasks);
+        // create row converter
+        RowType rowType =
+                TableUtil.createRowType(columnNameList, columnTypeList, KingbaseRawTypeConverter::apply);
+        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+    }
+
     /**
      * override reason: The Kingbase meta-database is case sensitive。
      * If you use a lowercase table name, it will not be able to query the table metadata.
      * so we convert the table and schema name to uppercase.
-     *
-     * @param taskNumber
-     * @param numTasks
      */
     @Override
-    protected void openInternal(int taskNumber, int numTasks) {
-
-        try {
-            dbConn = getConnection();
-
-            //默认关闭事务自动提交，手动控制事务
-            dbConn.setAutoCommit(false);
-
-            Pair<List<String>, List<String>> pair = KingbaseUtils.getTableMetaData(
-                    jdbcConf.getSchema(),
-                    jdbcConf.getTable(),
-                    dbConn);
-            List<String> fullColumn = pair.getLeft();
-            List<String> fullColumnType = pair.getRight();
-
-            List<FieldConf> fieldList = jdbcConf.getColumn();
-            if (fieldList.size() == 1 && Objects.equals(fieldList.get(0).getName(), "*")) {
-                column = fullColumn;
-                columnType = fullColumnType;
-            } else {
-                column = new ArrayList<>(fieldList.size());
-                columnType = new ArrayList<>(fieldList.size());
-                for (FieldConf fieldConf : fieldList) {
-                    column.add(fieldConf.getName());
-                    for (int i = 0; i < fullColumn.size(); i++) {
-                        if (fieldConf.getName().equalsIgnoreCase(fullColumn.get(i))) {
-                            columnType.add(fullColumnType.get(i));
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
-                List<String> updateKey = jdbcConf.getUpdateKey();
-                if (CollectionUtils.isEmpty(updateKey)) {
-                    List<String> tableIndex =
-                            JdbcUtil.getTableIndex(
-                                    jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-                    jdbcConf.setUpdateKey(tableIndex);
-                    LOG.info("updateKey = {}", JsonUtil.toPrintJson(tableIndex));
-                }
-            }
-
-
-            fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(
-                    dbConn,
-                    prepareTemplates(),
-                    this.column.toArray(new String[0]));
-
-            LOG.info("subTask[{}}] wait finished", taskNumber);
-        } catch (SQLException sqe) {
-            throw new IllegalArgumentException("open() failed.", sqe);
-        } finally {
-            JdbcUtil.commit(dbConn);
-        }
-
-        // create row converter
-        RowType rowType =
-                TableUtil.createRowType(column, columnType, KingbaseRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+    protected Pair<List<String>, List<String>> getTableMetaData() {
+        return KingbaseUtils.getTableMetaData(jdbcConf.getSchema(),
+                jdbcConf.getTable(),
+                dbConn);
     }
 }

@@ -20,17 +20,12 @@ package com.dtstack.flinkx.connector.kingbase.source;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRawTypeConverter;
 import com.dtstack.flinkx.connector.kingbase.util.KingbaseUtils;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,44 +43,14 @@ public class KingbaseInputFormat extends JdbcInputFormat {
         super.openInternal(inputSplit);
         RowType rowType =
                 TableUtil.createRowType(
-                        column, columnType, KingbaseRawTypeConverter::apply);
+                        columnNameList, columnTypeList, KingbaseRawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 
     @Override
-    protected void analyzeMetaData() {
-        try {
-            List<FieldConf> fieldList = jdbcConf.getColumn();
-
-            Pair<List<String>, List<String>> pair = KingbaseUtils.getTableMetaData(
-                    jdbcConf.getSchema(),
-                    jdbcConf.getTable(),
-                    dbConn);
-            List<String> fullColumn = pair.getLeft();
-            List<String> fullColumnType = pair.getRight();
-
-            column = new ArrayList<>(fieldList.size());
-            columnType = new ArrayList<>(fieldList.size());
-            for (FieldConf fieldConf : jdbcConf.getColumn()) {
-                column.add(fieldConf.getName());
-                for (int i = 0; i < fullColumn.size(); i++) {
-                    if (fieldConf.getName().equalsIgnoreCase(fullColumn.get(i))) {
-                        if (fieldConf.getValue() != null) {
-                            columnType.add("VARCHAR");
-                        } else {
-                            columnType.add(fullColumnType.get(i));
-                        }
-                        break;
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            String message = String.format(
-                    "error to analyzeSchema, resultSet = %s, finalFieldTypes = %s, e = %s",
-                    resultSet,
-                    GsonUtil.GSON.toJson(columnType),
-                    ExceptionUtil.getErrorMessage(e));
-            throw new RuntimeException(message);
-        }
+    protected Pair<List<String>, List<String>> getTableMetaData() {
+        return KingbaseUtils.getTableMetaData(jdbcConf.getSchema(),
+                jdbcConf.getTable(),
+                dbConn);
     }
 }

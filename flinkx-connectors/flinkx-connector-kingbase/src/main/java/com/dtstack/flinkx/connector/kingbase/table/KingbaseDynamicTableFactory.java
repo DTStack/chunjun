@@ -18,8 +18,12 @@
 package com.dtstack.flinkx.connector.kingbase.table;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.kingbase.KingbaseDialect;
+import com.dtstack.flinkx.connector.kingbase.source.KingbaseInputFormat;
 
 import static com.dtstack.flinkx.connector.kingbase.util.KingbaseConstants.IDENTIFIER;
 
@@ -39,5 +43,15 @@ public class KingbaseDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     protected JdbcDialect getDialect() {
         return new KingbaseDialect();
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getInputFormatBuilder() {
+        return new JdbcInputFormatBuilder(new KingbaseInputFormat());
+    }
+
+    @Override
+    protected JdbcOutputFormatBuilder getOutputFormatBuilder() {
+        return new JdbcOutputFormatBuilder(new JdbcOutputFormat());
     }
 }
