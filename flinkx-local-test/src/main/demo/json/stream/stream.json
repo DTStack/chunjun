@@ -30,7 +30,7 @@
             "column": [
               {
                 "name": "id",
-                "type": "int"
+                "type": "id"
               },
               {
                 "name": "name",
