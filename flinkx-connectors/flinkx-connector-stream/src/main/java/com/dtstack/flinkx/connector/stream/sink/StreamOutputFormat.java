@@ -51,13 +51,14 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData rowData) {
         try {
             GenericRowData genericRowData = new GenericRowData(rowData.getArity());
+            @SuppressWarnings("unchecked")
             GenericRowData row = (GenericRowData) rowConverter.toExternal(rowData, genericRowData);
             if (streamConf.getPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames(rowData));
             }
             lastRow = row;
         } catch (Exception e) {
-            LOG.error("row = {}, e = {}", rowData, ExceptionUtil.getErrorMessage(e));
+            LOG.error("write single record error, row = {}, e = {}", rowData, ExceptionUtil.getErrorMessage(e));
         }
     }
 

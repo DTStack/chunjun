@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.element.column;
 
 import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
@@ -43,13 +44,11 @@ public class BytesColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public int getByteSize(Object data) {
-        return null == data ? 0 : ((byte[])data).length;
-    }
-
-    @Override
     public Boolean asBoolean() {
-        throw new RuntimeException(String.format("byte[][\"%s\"]can not cast to Boolean.", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Bytes", "Boolean", this.asString());
     }
 
     @Override
@@ -70,11 +69,17 @@ public class BytesColumn extends AbstractBaseColumn {
 
     @Override
     public BigDecimal asBigDecimal() {
-        throw new RuntimeException(String.format("byte[][\"%s\"]can not cast to BigDecimal.", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Bytes", "BigDecimal", this.asString());
     }
 
     @Override
     public Timestamp asTimestamp() {
-        throw new RuntimeException(String.format("byte[][\"%s\"]can not cast to Timestamp.", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Bytes", "Timestamp", this.asString());
     }
 }
