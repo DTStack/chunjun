@@ -37,7 +37,6 @@ public class StreamConf extends FlinkxCommonConf {
 
     //writer
     private boolean print = false;
-    private String writeDelimiter = "|";
 
     public List<Long> getSliceRecordCount() {
         return sliceRecordCount;
@@ -63,21 +62,12 @@ public class StreamConf extends FlinkxCommonConf {
         this.print = print;
     }
 
-    public String getWriteDelimiter() {
-        return writeDelimiter;
-    }
-
-    public void setWriteDelimiter(String writeDelimiter) {
-        this.writeDelimiter = writeDelimiter;
-    }
-
     @Override
     public String toString() {
         return "StreamConf{" +
                 "sliceRecordCount=" + sliceRecordCount +
                 ", column=" + column +
                 ", print=" + print +
-                ", writeDelimiter='" + writeDelimiter + '\'' +
                 '}';
     }
 }

@@ -49,7 +49,7 @@
           "name": "streamwriter"
         },
         "transformer": {
-          "transformSql": "select id,name, NOW() from sourceTable where CHAR_LENGTH(name) < 5 and CHAR_LENGTH(content) < 5"
+          "transformSql": "select id,name, NOW() from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
         }
       }
     ],
