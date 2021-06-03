@@ -37,7 +37,7 @@ public class MysqlOutputFormat extends JdbcOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
-        RowType rowType = TableUtil.createRowType(column, columnType, MysqlRawTypeConverter::apply);
+        RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, MysqlRawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 }

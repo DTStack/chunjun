@@ -196,6 +196,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
     }
 
+
     @Override
     public FormatState getFormatState() {
         super.getFormatState();
@@ -615,11 +616,29 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * init columnNameList、 columnTypeList and hasConstantField
      */
     protected void initColumnList() {
+        Pair<List<String>, List<String>> pair = getTableMetaData();
+
         List<FieldConf> fieldList = jdbcConf.getColumn();
-        Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
         List<String> fullColumnList = pair.getLeft();
         List<String> fullColumnTypeList = pair.getRight();
+        handleColumnList(fieldList, fullColumnList, fullColumnTypeList);
+    }
 
+    /**
+     * for override. because some databases have case-sensitive metadata。
+     * @return
+     */
+    protected Pair<List<String>, List<String>> getTableMetaData() {
+        return JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
+    }
+
+    /**
+     * detailed logic for handling column
+     * @param fieldList
+     * @param fullColumnList
+     * @param fullColumnTypeList
+     */
+    protected void handleColumnList(List<FieldConf> fieldList, List<String> fullColumnList, List<String> fullColumnTypeList) {
         if(fieldList.size() == 1 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())){
             columnNameList = fullColumnList;
             columnTypeList = fullColumnTypeList;

@@ -15,27 +15,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.dtstack.flinkx.connector.postgresql.sink;
+package com.dtstack.flinkx.connector.kingbase.sink;
 
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.postgresql.converter.PostgresqlRawTypeConverter;
+import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRawTypeConverter;
+import com.dtstack.flinkx.connector.kingbase.util.KingbaseUtils;
 import com.dtstack.flinkx.util.TableUtil;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.List;
 
 /**
- * @program: flinkx
- * @author: wuren
- * @create: 2021/04/28
+ * @description:
+ * @program: flinkx-all
+ * @author: lany
+ * @create: 2021/05/13 20:10
  */
-public class PostgresqlOutputFormat extends JdbcOutputFormat {
+public class KingbaseOutputFormat extends JdbcOutputFormat {
+
+    protected static final long serialVersionUID = 2L;
+
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
+        // create row converter
         RowType rowType =
-                TableUtil.createRowType(columnNameList, columnTypeList, PostgresqlRawTypeConverter::apply);
+                TableUtil.createRowType(columnNameList, columnTypeList, KingbaseRawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
+    }
+
+    /**
+     * override reason: The Kingbase meta-database is case sensitive。
+     * If you use a lowercase table name, it will not be able to query the table metadata.
+     * so we convert the table and schema name to uppercase.
+     */
+    @Override
+    protected Pair<List<String>, List<String>> getTableMetaData() {
+        return KingbaseUtils.getTableMetaData(jdbcConf.getSchema(),
+                jdbcConf.getTable(),
+                dbConn);
     }
 }

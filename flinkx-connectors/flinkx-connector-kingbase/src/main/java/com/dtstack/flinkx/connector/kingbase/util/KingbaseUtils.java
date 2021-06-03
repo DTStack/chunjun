@@ -15,27 +15,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.connector.kingbase.util;
 
-package com.dtstack.flinkx.connector.postgresql.sink;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
-import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.postgresql.converter.PostgresqlRawTypeConverter;
-import com.dtstack.flinkx.util.TableUtil;
+import java.sql.Connection;
+import java.util.List;
 
 /**
- * @program: flinkx
- * @author: wuren
- * @create: 2021/04/28
+ * @description:
+ * @program: flinkx-all
+ * @author: lany
+ * @create: 2021/05/20 19:12
  */
-public class PostgresqlOutputFormat extends JdbcOutputFormat {
+public class KingbaseUtils {
 
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) {
-        super.openInternal(taskNumber, numTasks);
-        RowType rowType =
-                TableUtil.createRowType(columnNameList, columnTypeList, PostgresqlRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+    /**
+     * get table metadata with tableName and schemaName.
+     *
+     * @param schemaName
+     * @param tableName
+     * @param dbConn
+     *
+     * @return
+     */
+    public static Pair<List<String>, List<String>> getTableMetaData(
+            String schemaName,
+            String tableName,
+            Connection dbConn) {
+        return JdbcUtil.getTableMetaData(StringUtils.upperCase(schemaName), StringUtils.upperCase(tableName), dbConn);
     }
 }

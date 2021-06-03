@@ -57,17 +57,20 @@ public class JdbcDynamicTableSource
     protected TableSchema physicalSchema;
     protected final String dialectName;
     protected final JdbcDialect jdbcDialect;
+    protected final JdbcInputFormatBuilder builder;
 
     public JdbcDynamicTableSource(
             JdbcConf jdbcConf,
             LookupConf lookupConf,
             TableSchema physicalSchema,
-            JdbcDialect jdbcDialect) {
+            JdbcDialect jdbcDialect,
+            JdbcInputFormatBuilder builder) {
         this.jdbcConf = jdbcConf;
         this.lookupConf = lookupConf;
         this.physicalSchema = physicalSchema;
         this.jdbcDialect = jdbcDialect;
         this.dialectName = jdbcDialect.dialectName();
+        this.builder = builder;
     }
 
     @Override
@@ -109,7 +112,7 @@ public class JdbcDynamicTableSource
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
-        JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(new JdbcInputFormat());
+        JdbcInputFormatBuilder builder = this.builder;
         String[] fieldNames = physicalSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
         int index = 0;
@@ -162,7 +165,7 @@ public class JdbcDynamicTableSource
 
     @Override
     public DynamicTableSource copy() {
-        return new JdbcDynamicTableSource(jdbcConf, lookupConf, physicalSchema, jdbcDialect);
+        return new JdbcDynamicTableSource(jdbcConf, lookupConf, physicalSchema, jdbcDialect, builder);
     }
 
     @Override
