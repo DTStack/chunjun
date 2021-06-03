@@ -18,12 +18,6 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.enums.EWriteMode;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -33,6 +27,12 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.CollectionUtil;
+
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.enums.EWriteMode;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,7 +104,7 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         builder.setBatchSize(jdbcConf.getBatchSize());
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
-        builder.setFlushIntervalMillse(jdbcConf.getFlushIntervalMills());
+        builder.setFlushIntervalMills(jdbcConf.getFlushIntervalMills());
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()),
                 jdbcConf.getParallelism());

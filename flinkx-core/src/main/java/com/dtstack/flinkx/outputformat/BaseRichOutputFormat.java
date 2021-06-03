@@ -39,6 +39,7 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
@@ -388,10 +389,12 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                     }
                     try {
                         if(!rows.isEmpty()){
+                            int size = rows.size();
                             writeRecordInternal();
+                            numWriteCounter.add(size);
                         }
                     } catch (Exception e) {
-                        throw new RuntimeException("Writing records failed.", e);
+                        throw new FlinkxRuntimeException("Writing records failed.", e);
                     }
                 }
             }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);

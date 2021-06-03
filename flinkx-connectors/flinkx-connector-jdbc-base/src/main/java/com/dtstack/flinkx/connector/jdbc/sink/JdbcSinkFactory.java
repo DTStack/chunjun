@@ -69,7 +69,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
         builder.setBatchSize(jdbcConf.getBatchSize());
-        builder.setFlushIntervalMillse(jdbcConf.getFlushIntervalMills());
+        builder.setFlushIntervalMills(jdbcConf.getFlushIntervalMills());
         return createOutput(dataSet, builder.finish());
     }
 

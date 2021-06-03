@@ -556,7 +556,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void queryForPolling(String startLocation) throws SQLException {
-        LOG.debug("polling startLocation = {}", startLocation);
+        //每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
+        if ((System.currentTimeMillis() - startTime) % 300000 <= jdbcConf.getPollingInterval()) {
+            LOG.info("polling startLocation = {}", startLocation);
+        }else{
+            LOG.debug("polling startLocation = {}", startLocation);
+        }
+
         boolean isNumber = StringUtils.isNumeric(startLocation);
         switch (type) {
             case TIMESTAMP:
