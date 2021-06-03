@@ -18,14 +18,11 @@
 package com.dtstack.flinkx.conf;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.util.ClassUtil;
-import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -50,7 +47,7 @@ public class FieldConf implements Serializable {
     /** 字段常量值 */
     private String value;
     /** 如果字段是时间字符串，可以指定时间的格式，将字段类型转为日期格式返回 */
-    private SimpleDateFormat timeFormat;
+    private String format;
     /** 字段分隔符 */
     private String splitter;
     /** 是否为分区字段 */
@@ -124,7 +121,7 @@ public class FieldConf implements Serializable {
 
         Object format = map.get("format");
         if(format != null && String.valueOf(format).trim().length() > 0){
-            field.setTimeFormat(DateUtil.buildDateFormatter(String.valueOf(format)));
+            field.setFormat(String.valueOf(format));
         }
 
         Object splitter = map.get("splitter");
@@ -189,12 +186,12 @@ public class FieldConf implements Serializable {
         this.value = value;
     }
 
-    public SimpleDateFormat getTimeFormat() {
-        return timeFormat;
+    public String getFormat() {
+        return format;
     }
 
-    public void setTimeFormat(SimpleDateFormat timeFormat) {
-        this.timeFormat = timeFormat;
+    public void setFormat(String format) {
+        this.format = format;
     }
 
     public String getSplitter() {
@@ -236,7 +233,7 @@ public class FieldConf implements Serializable {
                 ", type='" + type + '\'' +
                 ", index=" + index +
                 ", value='" + value + '\'' +
-                ", timeFormat=" + timeFormat +
+                ", format=" + format +
                 ", splitter='" + splitter + '\'' +
                 ", isPart=" + isPart +
                 ", notNull=" + notNull +

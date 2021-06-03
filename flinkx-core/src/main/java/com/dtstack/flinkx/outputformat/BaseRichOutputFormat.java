@@ -39,7 +39,9 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -136,6 +138,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     protected transient BaseMetric outputMetric;
     /** cp和flush互斥条件 */
     protected transient AtomicBoolean flushEnable;
+    /** 当前事务的条数 */
+    protected long rowsOfCurrentTransaction;
+
+    /** A collection of field names filled in user scripts with constants removed */
+    protected List<String> columnNameList = new ArrayList<>();
+    /** A collection of field types filled in user scripts with constants removed */
+    protected List<String> columnTypeList = new ArrayList<>();
 
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
@@ -201,22 +210,18 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             initErrorLimiter();
             initDirtyDataManager();
         }
-
-        LOG.info("taskNumber[{}] open start, checkpointEnabled:{}, "
-                        + "jobName:{}, jobId:{}, numTasks:{}, format State:{}, "
-                        + "checkpointMode:{}, flushIntervalMills:{}, batchSize:{}, lastRow:{}",
-                taskNumber,
-                checkpointEnabled,
-                jobName,
-                jobId,
-                numTasks,
-                formatState.getState(),
-                checkpointMode,
-                flushIntervalMills,
-                batchSize,
-                lastRow);
         openInternal(taskNumber, numTasks);
         this.startTime = System.currentTimeMillis();
+
+        LOG.info(
+                "[{}] open successfully, \ncheckpointMode = {}, \ncheckpointEnabled = {}, \nflushIntervalMills = {}, \nbatchSize = {}, \n[{}]: \n{} ",
+                this.getClass().getSimpleName(),
+                checkpointMode,
+                checkpointEnabled,
+                flushIntervalMills,
+                batchSize,
+                config.getClass().getSimpleName(),
+                JsonUtil.toPrintJson(config));
     }
 
     @Override
@@ -254,8 +259,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 this.scheduler.shutdown();
             }
             // when exist data
-            if (rows.size() != 0) {
+            int size = rows.size();
+            if (size != 0) {
                 writeRecordInternal();
+                numWriteCounter.add(size);
             }
 
             if (durationCounter != null) {
@@ -387,10 +394,12 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                     }
                     try {
                         if(!rows.isEmpty()){
+                            int size = rows.size();
                             writeRecordInternal();
+                            numWriteCounter.add(size);
                         }
                     } catch (Exception e) {
-                        throw new RuntimeException("Writing records failed.", e);
+                        throw new FlinkxRuntimeException("Writing records failed.", e);
                     }
                 }
             }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
@@ -499,19 +508,18 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      */
     public synchronized FormatState getFormatState() throws Exception {
         formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setMetric(outputMetric.getMetricCounters());
         LOG.info("format state:{}", formatState.getState());
         // not EXACTLY_ONCE model,Does not interact with the db
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
             try {
+                LOG.info("getFormatState:Start preCommit, rowsOfCurrentTransaction: {}", rowsOfCurrentTransaction);
                 preCommit();
             } catch (Exception e) {
-                LOG.error("executeBatch error, e = {}", ExceptionUtil.getErrorMessage(e));
+                LOG.error("preCommit error, e = {}", ExceptionUtil.getErrorMessage(e));
+            } finally {
+                flushEnable.compareAndSet(true, false);
             }
-            flushEnable.compareAndSet(true, false);
-        }
-
-        if (formatState != null) {
-            formatState.setMetric(outputMetric.getMetricCounters());
         }
         return formatState;
     }
@@ -560,10 +568,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      *
      * @param checkpointId
      */
-    public synchronized void notifyCheckpointComplete(long checkpointId) throws Exception{
+    public synchronized void notifyCheckpointComplete(long checkpointId) {
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
             try {
                 commit(checkpointId);
+                LOG.info("notifyCheckpointComplete:Commit success , checkpointId:{}", checkpointId);
+            } catch (Exception e) {
+                LOG.error("commit error, e = {}", ExceptionUtil.getErrorMessage(e));
             } finally {
                 flushEnable.compareAndSet(false, true);
             }
@@ -582,11 +593,26 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      *
      * @param checkpointId
      */
-    public void notifyCheckpointAborted(long checkpointId) throws Exception {
+    public synchronized void notifyCheckpointAborted(long checkpointId) {
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
-            flushEnable.compareAndSet(false, true);
+            try{
+                rollback(checkpointId);
+                LOG.info("notifyCheckpointAborted:rollback success , checkpointId:{}", checkpointId);
+            } catch (Exception e) {
+                LOG.error("rollback error, e = {}", ExceptionUtil.getErrorMessage(e));
+            } finally{
+                flushEnable.compareAndSet(false, true);
+            }
         }
     }
+
+    /**
+     * rollback data
+     * @param checkpointId
+     * @throws Exception
+     */
+    protected abstract void rollback(long checkpointId) throws Exception;
+
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;

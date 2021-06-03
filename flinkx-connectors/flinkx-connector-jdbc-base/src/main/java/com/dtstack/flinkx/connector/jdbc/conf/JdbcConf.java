@@ -66,8 +66,6 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private String startLocation;
     /** 轮询时间间隔 */
     private long pollingInterval = 5000;
-    /** 发送查询累加器请求的间隔时间，单位秒 */
-    private int requestAccumulatorInterval = 2;
     /** restore字段名称 */
     private String restoreColumn;
     /** restore字段类型 */
@@ -111,6 +109,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     public void setJdbcUrl(String url){
         connection.get(0).putJdbcUrl(url);
     }
+
 
 
     public List<String> getFullColumn() {
@@ -289,14 +288,6 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.pollingInterval = pollingInterval;
     }
 
-    public int getRequestAccumulatorInterval() {
-        return requestAccumulatorInterval;
-    }
-
-    public void setRequestAccumulatorInterval(int requestAccumulatorInterval) {
-        this.requestAccumulatorInterval = requestAccumulatorInterval;
-    }
-
     public boolean isUseMaxFunc() {
         return useMaxFunc;
     }
@@ -369,7 +360,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.restoreColumnType = restoreColumnType;
     }
 
-    public boolean isAllReplace() {
+    public boolean getAllReplace() {
         return allReplace;
     }
 
@@ -383,5 +374,44 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
 
     public void setFlushIntervalMills(long flushIntervalMills) {
         this.flushIntervalMills = flushIntervalMills;
+    }
+
+    @Override
+    public String toString() {
+        return "JdbcConf{" +
+                "fullColumn=" + fullColumn +
+                ", insertSqlMode='" + insertSqlMode + '\'' +
+                ", withNoLock=" + withNoLock +
+                ", column=" + column +
+                ", properties=" + properties +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", connection=" + connection +
+                ", where='" + where + '\'' +
+                ", customSql='" + customSql + '\'' +
+                ", orderByColumn='" + orderByColumn + '\'' +
+                ", querySql='" + querySql + '\'' +
+                ", splitPk='" + splitPk + '\'' +
+                ", fetchSize=" + fetchSize +
+                ", queryTimeOut=" + queryTimeOut +
+                ", increment=" + increment +
+                ", polling=" + polling +
+                ", increColumn='" + increColumn + '\'' +
+                ", increColumnIndex=" + increColumnIndex +
+                ", increColumnType='" + increColumnType + '\'' +
+                ", startLocation='" + startLocation + '\'' +
+                ", pollingInterval=" + pollingInterval +
+                ", restoreColumn='" + restoreColumn + '\'' +
+                ", restoreColumnType='" + restoreColumnType + '\'' +
+                ", restoreColumnIndex=" + restoreColumnIndex +
+                ", useMaxFunc=" + useMaxFunc +
+                ", mode='" + mode + '\'' +
+                ", preSql=" + preSql +
+                ", postSql=" + postSql +
+                ", batchSize=" + batchSize +
+                ", updateKey=" + updateKey +
+                ", flushIntervalMills=" + flushIntervalMills +
+                ", allReplace=" + allReplace +
+                '}';
     }
 }

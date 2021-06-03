@@ -15,7 +15,7 @@
     <properties>
 		<!-- TODO 升级4.0？-->
 		<vertx.version>3.9.7</vertx.version>
-		<druid.version>1.2.5</druid.version>
+		<druid.version>1.2.6</druid.version>
 	</properties>
 
     <dependencies>
@@ -44,5 +44,5 @@
 			<artifactId>druid</artifactId>
 			<version>${druid.version}</version>
 		</dependency>
-    </dependencies>
+	</dependencies>
 </project>

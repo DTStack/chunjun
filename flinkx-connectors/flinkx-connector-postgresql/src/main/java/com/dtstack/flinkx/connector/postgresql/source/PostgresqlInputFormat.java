@@ -36,7 +36,7 @@ public class PostgresqlInputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
         RowType rowType =
-                TableUtil.createRowType(column, columnType, PostgresqlRawTypeConverter::apply);
+                TableUtil.createRowType(columnNameList, columnTypeList, PostgresqlRawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 }

@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
@@ -38,11 +42,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
-
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.table.types.logical.RowType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,14 +62,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DEFAULT_DB_CONN_POOL_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DEFAULT_IDLE_CONNECTION_TEST_PEROID;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DEFAULT_TEST_CONNECTION_ON_CHECKIN;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DRUID_PREFIX;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DT_PROVIDER_CLASS;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.ERRORLOG_PRINTNUM;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.MAX_DB_CONN_POOL_SIZE_LIMIT;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.MAX_TASK_QUEUE_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.PREFERRED_TEST_QUERY_SQL;
 
 /**
  * @author chuixue
@@ -132,7 +129,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         asyncPoolSize = asyncPoolSize > 0 ? asyncPoolSize : defaultAsyncPoolSize;
 
         VertxOptions vertxOptions = new VertxOptions();
-        JsonObject jdbcConfig = buildJdbcConfig();
+        JsonObject jdbcConfig = createJdbcConfig(((JdbcLookupConf) lookupConf).getDruidConf());
         System.setProperty("vertx.disableFileCPResolving", "true");
         vertxOptions
                 .setEventLoopPoolSize(DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE.defaultValue())
@@ -400,21 +397,15 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
      *
      * @return
      */
-    public JsonObject buildJdbcConfig() {
-        JsonObject clientConfig = new JsonObject();
-        clientConfig.put("url", jdbcConf.getJdbcUrl())
-                .put("driver_class", jdbcDialect.defaultDriverName().get())
-                .put("max_pool_size", asyncPoolSize)
-                .put("user", jdbcConf.getUsername())
-                .put("password", jdbcConf.getPassword())
+    public JsonObject createJdbcConfig(Map<String, Object> druidConfMap) {
+        JsonObject clientConfig = new JsonObject(druidConfMap);
+        clientConfig
+                .put(DRUID_PREFIX + "url", jdbcConf.getJdbcUrl())
+                .put(DRUID_PREFIX + "username", jdbcConf.getUsername())
+                .put(DRUID_PREFIX + "password", jdbcConf.getPassword())
+                .put(DRUID_PREFIX + "driverClassName", jdbcDialect.defaultDriverName().get())
                 .put("provider_class", DT_PROVIDER_CLASS.defaultValue())
-                .put("preferred_test_query", PREFERRED_TEST_QUERY_SQL.defaultValue())
-                .put(
-                        "idle_connection_test_period",
-                        DEFAULT_IDLE_CONNECTION_TEST_PEROID.defaultValue())
-                .put(
-                        "test_connection_on_checkin",
-                        DEFAULT_TEST_CONNECTION_ON_CHECKIN.defaultValue());
+                .put(DRUID_PREFIX + "maxActive", asyncPoolSize);
 
         return clientConfig;
     }

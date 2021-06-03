@@ -36,7 +36,7 @@ public class OracleOutputFormat extends JdbcOutputFormat {
         super.openInternal(taskNumber, numTasks);
         RowType rowType =
                 TableUtil.createRowType(
-                        column, columnType, OracleRawTypeConverter::apply);
+                        columnNameList, columnTypeList, OracleRawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 }

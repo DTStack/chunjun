@@ -35,7 +35,7 @@ public class PostgresqlOutputFormat extends JdbcOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
         RowType rowType =
-                TableUtil.createRowType(column, columnType, PostgresqlRawTypeConverter::apply);
+                TableUtil.createRowType(columnNameList, columnTypeList, PostgresqlRawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 }

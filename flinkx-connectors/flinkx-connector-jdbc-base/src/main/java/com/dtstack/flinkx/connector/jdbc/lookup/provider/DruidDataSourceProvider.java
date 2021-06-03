@@ -18,18 +18,16 @@
 
 package com.dtstack.flinkx.connector.jdbc.lookup.provider;
 
+import org.apache.flink.shaded.guava18.com.google.common.base.CaseFormat;
+
 import com.alibaba.druid.pool.DruidDataSource;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.jdbc.spi.DataSourceProvider;
 
 import javax.sql.DataSource;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * @program: flinkx
@@ -38,46 +36,19 @@ import java.util.Map;
  */
 public class DruidDataSourceProvider implements DataSourceProvider {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DruidDataSourceProvider.class);
-
     @Override
     public DataSource getDataSource(JsonObject config) {
-        DruidDataSource ds = new DruidDataSource();
-
-        Method[] methods = DruidDataSource.class.getMethods();
-        Map<String, Method> methodMap = new HashMap<>();
-        for (Method method : methods) {
-            methodMap.put(method.getName(), method);
-        }
-
+        DruidDataSource dataSource = new DruidDataSource();
+        Properties props = new Properties();
         for (Map.Entry<String, Object> entry : config) {
-            String name = entry.getKey();
-
-            if ("provider_class".equals(name)) {
-                continue;
-            }
-
-            String methodName = "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
-
-            try {
-                Class paramClazz = entry.getValue().getClass();
-                if (paramClazz.equals(Integer.class)) {
-                    paramClazz = int.class;
-                } else if (paramClazz.equals(Long.class)) {
-                    paramClazz = long.class;
-                } else if (paramClazz.equals(Boolean.class)) {
-                    paramClazz = boolean.class;
-                }
-                Method method = DruidDataSource.class.getMethod(methodName, paramClazz);
-                method.invoke(ds, entry.getValue());
-            } catch (NoSuchMethodException e) {
-                LOG.warn("no such method:" + methodName);
-                LOG.warn(entry.getValue().getClass());
-            } catch (InvocationTargetException | IllegalAccessException e) {
-                throw new RuntimeException(e);
+            String key = entry.getKey();
+            if (!"provider_class".equals(key)) {
+                String formattedName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+                props.setProperty(formattedName, entry.getValue().toString());
             }
         }
-        return ds;
+        dataSource.configFromPropety(props);
+        return dataSource;
     }
 
     @Override

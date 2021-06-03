@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.oracle.converter;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -32,6 +34,8 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import oracle.sql.TIMESTAMP;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -46,7 +50,7 @@ import java.time.LocalTime;
  * @author jier
  */
 public class OracleColumnConverter
-        extends JdbcColumnConverter{
+        extends JdbcColumnConverter {
 
     public OracleColumnConverter(RowType rowType) {
         super(rowType);
@@ -77,15 +81,17 @@ public class OracleColumnConverter
                 return val -> new TimestampColumn((Timestamp) val);
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
-                        new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
+                        new BigDecimalColumn(
+                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> {
                     try {
                         return new TimestampColumn(((TIMESTAMP) val).timestampValue());
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                        throw new UnsupportedOperationException("Unsupported type:" + type+",value:"+val);
+                    } catch (SQLException e) {
+                        throw new UnsupportedOperationException(
+                                "Unsupported type:" + type + ",value:" + val);
                     }
                 };
             case BINARY:

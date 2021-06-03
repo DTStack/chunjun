@@ -21,6 +21,8 @@ package com.dtstack.flinkx.connector.oracle.converter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.ISerializationConverter;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
@@ -35,13 +37,15 @@ import oracle.sql.TIMESTAMP;
 
 import org.apache.flink.table.types.logical.TimestampType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**
@@ -89,21 +93,20 @@ public class OracleRowConverter
                                 new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
-                return val -> Long.valueOf(((Timestamp) val).getTime()/1000).intValue();
+                return val -> Long.valueOf(((Timestamp) val).getTime() / 1000).intValue();
             case TIME_WITHOUT_TIME_ZONE:
                 return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
                         / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> {
-                    if(val instanceof String){
+                    if (val instanceof String) {
                         // oracle.sql.TIMESTAMP will return cast to String in lookup
                         return TimestampData.fromTimestamp(Timestamp.valueOf((String) val));
-                    }else {
+                    } else {
                         try {
                             return TimestampData.fromTimestamp(((TIMESTAMP) val).timestampValue());
-                        } catch (SQLException throwables) {
-                            throwables.printStackTrace();
+                        } catch (SQLException e) {
                             throw new UnsupportedTypeException(
                                     "Unsupported type:" + type + ",value:" + val);
                         }

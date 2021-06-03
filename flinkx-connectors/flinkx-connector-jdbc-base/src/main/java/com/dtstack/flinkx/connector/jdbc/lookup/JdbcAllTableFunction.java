@@ -1,13 +1,12 @@
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.google.common.collect.Maps;

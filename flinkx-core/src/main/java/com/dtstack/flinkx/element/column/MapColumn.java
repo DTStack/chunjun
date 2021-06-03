@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.element.column;
 
 import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.throwable.CastException;
 import com.dtstack.flinkx.util.JsonUtil;
 
 import java.math.BigDecimal;
@@ -39,11 +40,6 @@ public class MapColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public int getByteSize(Object data) {
-        return null == data ? 0 : JsonUtil.toJson(data).getBytes(StandardCharsets.UTF_8).length;
-    }
-
-    @Override
     public String asString() {
         if (null == data) {
             return null;
@@ -53,7 +49,10 @@ public class MapColumn extends AbstractBaseColumn {
 
     @Override
     public Date asDate() {
-        throw new RuntimeException(String.format("Map[\"%s\"]can not cast to Date.", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Map", "Date", this.asString());
     }
 
     @Override
@@ -66,16 +65,25 @@ public class MapColumn extends AbstractBaseColumn {
 
     @Override
     public Boolean asBoolean() {
-        throw new RuntimeException(String.format("Map[\"%s\"] can not cast to Boolean.", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Map", "Boolean", this.asString());
     }
 
     @Override
     public BigDecimal asBigDecimal() {
-        throw new RuntimeException(String.format("Map[\"%s\"]can not cast to BigDecimal.", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Map", "BigDecimal", this.asString());
     }
 
     @Override
     public Timestamp asTimestamp() {
-        throw new RuntimeException(String.format("Map[\"%s\"]can not cast to Timestamp", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Map", "Timestamp", this.asString());
     }
 }

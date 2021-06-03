@@ -18,16 +18,13 @@
 
 package com.dtstack.flinkx.connector.clickhouse.source;
 
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.connector.clickhouse.converter.ClickhouseRawTypeConverter;
 import com.dtstack.flinkx.connector.clickhouse.util.ClickhouseUtil;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.util.TableUtil;
-
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -43,7 +40,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
         RowType rowType =
-                TableUtil.createRowType(column, columnType, ClickhouseRawTypeConverter::apply);
+                TableUtil.createRowType(columnNameList, columnTypeList, ClickhouseRawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 
