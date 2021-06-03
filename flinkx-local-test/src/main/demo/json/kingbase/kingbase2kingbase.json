@@ -1,0 +1,181 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "kingbasereader",
+          "parameter": {
+            "column": [
+              {
+                "name": "code",
+                "type": "char"
+              },
+              {
+                "name": "title",
+                "type": "varchar"
+              },
+              {
+                "name": "did",
+                "type": "integer"
+              },
+              {
+                "name": "t_bigint",
+                "type": "bigint"
+              },
+              {
+                "name": "t_smallint",
+                "type": "smallint"
+              },
+              {
+                "name": "data_prod",
+                "type": "date"
+              },
+              {
+                "name": "timestamp_prod",
+                "type": "timestamp"
+              },
+              {
+                "name": "time_prod",
+                "type": "time"
+              },
+              {
+                "name": "t_double",
+                "type": "double"
+              },
+              {
+                "name": "t_numeric",
+                "type": "numeric"
+              },
+              {
+                "name": "t_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "t_tinyint",
+                "type": "tinyint"
+              },
+              {
+                "name": "t_real",
+                "type": "real"
+              },
+              {
+                "name": "t_text",
+                "type": "text"
+              },
+              {
+                "name": "t_float",
+                "type": "float"
+              },
+              {
+                "name": "kind",
+                "type": "varchar"
+              }
+            ],
+            "username": "SYSTEM",
+            "password": "123456QWE",
+            "schema" : "public",
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:kingbase8://localhost:54321/MOWEN"
+                ],
+                "table": [
+                  "type_test1"
+                ]
+              }
+            ]
+          }
+        },
+        "writer": {
+          "name": "kingbasewriter",
+          "parameter": {
+            "username": "SYSTEM",
+            "password": "123456QWE",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:kingbase8://localhost:54321/MOWEN",
+                "table": [
+                  "type_test_copy"
+                ]
+              }
+            ],
+            "schema" : "public",
+            "writeMode": "insert",
+            "column": [
+              {
+                "name": "code",
+                "type": "char"
+              },
+              {
+                "name": "title",
+                "type": "varchar"
+              },
+              {
+                "name": "did",
+                "type": "integer"
+              },
+              {
+                "name": "t_bigint",
+                "type": "bigint"
+              },
+              {
+                "name": "t_smallint",
+                "type": "smallint"
+              },
+              {
+                "name": "data_prod",
+                "type": "date"
+              },
+              {
+                "name": "timestamp_prod",
+                "type": "timestamp"
+              },
+              {
+                "name": "time_prod",
+                "type": "time"
+              },
+              {
+                "name": "t_double",
+                "type": "double"
+              },
+              {
+                "name": "t_numeric",
+                "type": "numeric"
+              },
+              {
+                "name": "t_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "t_tinyint",
+                "type": "tinyint"
+              },
+              {
+                "name": "t_real",
+                "type": "real"
+              },
+              {
+                "name": "t_text",
+                "type": "text"
+              },
+              {
+                "name": "t_float",
+                "type": "float"
+              },
+              {
+                "name": "kind",
+                "type": "varchar"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

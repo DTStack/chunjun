@@ -70,10 +70,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected transient Connection dbConn;
     protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
 
-    /** 用户脚本中填写的字段名称集合 */
-    protected List<String> column;
-    /** 用户脚本中填写的字段类型集合 */
-    protected List<String> columnType;
+
 
     @Override
     public void initializeGlobal(int parallelism) {
@@ -89,32 +86,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) {
         try {
             dbConn = getConnection();
-
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
-
-            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-            List<String> fullColumn = pair.getLeft();
-            List<String> fullColumnType = pair.getRight();
-
-            List<FieldConf> fieldList = jdbcConf.getColumn();
-            if(fieldList.size() == 1 && Objects.equals(fieldList.get(0).getName(), "*")){
-                column = fullColumn;
-                columnType = fullColumnType;
-            }else{
-                column = new ArrayList<>(fieldList.size());
-                columnType = new ArrayList<>(fieldList.size());
-                for (FieldConf fieldConf : fieldList) {
-                    column.add(fieldConf.getName());
-                    for (int i = 0; i < fullColumn.size(); i++) {
-                        if (fieldConf.getName().equalsIgnoreCase(fullColumn.get(i))) {
-                            columnType.add(fullColumnType.get(i));
-                            break;
-                        }
-                    }
-                }
-            }
-
+            initColumnList();
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
                 List<String> updateKey = jdbcConf.getUpdateKey();
                 if (CollectionUtils.isEmpty(updateKey)) {
@@ -126,17 +100,62 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }
             }
 
-
             fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(
                     dbConn,
                     prepareTemplates(),
-                    this.column.toArray(new String[0]));
+                    this.columnNameList.toArray(new String[0]));
 
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
         } finally {
             JdbcUtil.commit(dbConn);
+        }
+    }
+
+    /**
+     * init columnNameList、 columnTypeList and hasConstantField
+     */
+    protected void initColumnList() {
+        Pair<List<String>, List<String>> pair = getTableMetaData();
+
+        List<FieldConf> fieldList = jdbcConf.getColumn();
+        List<String> fullColumnList = pair.getLeft();
+        List<String> fullColumnTypeList = pair.getRight();
+        handleColumnList(fieldList, fullColumnList, fullColumnTypeList);
+    }
+
+    /**
+     * for override. because some databases have case-sensitive metadata。
+     * @return
+     */
+    protected Pair<List<String>, List<String>> getTableMetaData() {
+        return JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
+    }
+
+    /**
+     * detailed logic for handling column
+     * @param fieldList
+     * @param fullColumnList
+     * @param fullColumnTypeList
+     */
+    protected void handleColumnList(List<FieldConf> fieldList, List<String> fullColumnList, List<String> fullColumnTypeList) {
+        if(fieldList.size() == 1 && Objects.equals(fieldList.get(0).getName(), "*")){
+            columnNameList = fullColumnList;
+            columnTypeList = fullColumnTypeList;
+            return;
+        }
+
+        columnNameList = new ArrayList<>(fieldList.size());
+        columnTypeList = new ArrayList<>(fieldList.size());
+        for (FieldConf fieldConf : fieldList) {
+            columnNameList.add(fieldConf.getName());
+            for (int i = 0; i < fullColumnList.size(); i++) {
+                if (fieldConf.getName().equalsIgnoreCase(fullColumnList.get(i))) {
+                    columnTypeList.add(fullColumnTypeList.get(i));
+                    break;
+                }
+            }
         }
     }
 
@@ -252,14 +271,14 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     jdbcDialect.getInsertIntoStatement(
                             jdbcConf.getSchema(),
                             jdbcConf.getTable(),
-                            column.toArray(new String[0]));
+                            columnNameList.toArray(new String[0]));
         } else if (EWriteMode.REPLACE.name().equalsIgnoreCase(jdbcConf.getMode())) {
             singleSql =
                     jdbcDialect
                             .getReplaceStatement(
                                     jdbcConf.getSchema(),
                                     jdbcConf.getTable(),
-                                    column.toArray(new String[0]))
+                                    columnNameList.toArray(new String[0]))
                             .get();
         } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())) {
             singleSql =
@@ -267,7 +286,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                             .getUpsertStatement(
                                     jdbcConf.getSchema(),
                                     jdbcConf.getTable(),
-                                    column.toArray(new String[0]),
+                                    columnNameList.toArray(new String[0]),
                                     jdbcConf.getUpdateKey().toArray(new String[0]),
                                     jdbcConf.getAllReplace())
                             .get();
@@ -309,7 +328,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
      */
     protected Object getField(Row row, int index) {
         Object field = row.getField(index);
-        String type = columnType.get(index);
+        String type = columnTypeList.get(index);
 
         //field为空字符串，且写入目标类型不为字符串类型的字段，则将object设置为null
         if (field instanceof String

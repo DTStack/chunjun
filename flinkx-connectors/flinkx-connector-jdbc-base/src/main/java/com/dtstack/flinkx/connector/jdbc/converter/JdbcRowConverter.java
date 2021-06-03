@@ -33,9 +33,9 @@ import org.apache.flink.table.types.utils.TypeConversions;
 
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import io.vertx.core.json.JsonArray;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
+import io.vertx.core.json.JsonArray;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

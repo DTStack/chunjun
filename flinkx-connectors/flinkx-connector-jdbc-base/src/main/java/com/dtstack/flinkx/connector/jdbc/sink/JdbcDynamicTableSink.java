@@ -18,12 +18,6 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.enums.EWriteMode;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -33,6 +27,12 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.CollectionUtil;
+
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.enums.EWriteMode;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,15 +51,18 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
     private final JdbcDialect jdbcDialect;
     private final TableSchema tableSchema;
     private final String dialectName;
+    private final JdbcOutputFormatBuilder builder;
 
     public JdbcDynamicTableSink(
             JdbcConf jdbcConf,
             JdbcDialect jdbcDialect,
-            TableSchema tableSchema) {
+            TableSchema tableSchema,
+            JdbcOutputFormatBuilder builder) {
         this.jdbcConf = jdbcConf;
         this.jdbcDialect = jdbcDialect;
         this.tableSchema = tableSchema;
         this.dialectName = jdbcDialect.dialectName();
+        this.builder = builder;
     }
 
     @Override
@@ -87,7 +90,7 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
-        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(new JdbcOutputFormat());
+        JdbcOutputFormatBuilder builder = this.builder;
 
         String[] fieldNames = tableSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
@@ -115,7 +118,8 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         return new JdbcDynamicTableSink(
                 jdbcConf,
                 jdbcDialect,
-                tableSchema);
+                tableSchema,
+                builder);
     }
 
     @Override
