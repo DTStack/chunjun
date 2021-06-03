@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.connector.jdbc.conf;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import java.io.Serializable;
@@ -39,7 +38,6 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     /** for sqlserver */
     private boolean withNoLock;
     //common
-    private List<FieldConf> column;
     private Properties properties;
     //reader
     private String username;
@@ -83,10 +81,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private String mode = "INSERT";
     private List<String> preSql;
     private List<String> postSql;
-    private int batchSize = 1024;
     private List<String> updateKey;
-    /** 定时器定时写到数据库的时间 */
-    private long flushIntervalMills = 10000L;
     /** upsert 写数据库时，是否null覆盖原来的值 */
     private boolean allReplace = false;
 
@@ -110,7 +105,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         connection.get(0).putJdbcUrl(url);
     }
 
-
+    //------------------- getter、setter -------------------
 
     public List<String> getFullColumn() {
         return fullColumn;
@@ -134,14 +129,6 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
 
     public void setWithNoLock(boolean withNoLock) {
         this.withNoLock = withNoLock;
-    }
-
-    public List<FieldConf> getColumn() {
-        return column;
-    }
-
-    public void setColumn(List<FieldConf> column) {
-        this.column = column;
     }
 
     public Properties getProperties() {
@@ -288,6 +275,30 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.pollingInterval = pollingInterval;
     }
 
+    public String getRestoreColumn() {
+        return restoreColumn;
+    }
+
+    public void setRestoreColumn(String restoreColumn) {
+        this.restoreColumn = restoreColumn;
+    }
+
+    public String getRestoreColumnType() {
+        return restoreColumnType;
+    }
+
+    public void setRestoreColumnType(String restoreColumnType) {
+        this.restoreColumnType = restoreColumnType;
+    }
+
+    public int getRestoreColumnIndex() {
+        return restoreColumnIndex;
+    }
+
+    public void setRestoreColumnIndex(int restoreColumnIndex) {
+        this.restoreColumnIndex = restoreColumnIndex;
+    }
+
     public boolean isUseMaxFunc() {
         return useMaxFunc;
     }
@@ -320,14 +331,6 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.postSql = postSql;
     }
 
-    public int getBatchSize() {
-        return batchSize;
-    }
-
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
-    }
-
     public List<String> getUpdateKey() {
         return updateKey;
     }
@@ -336,44 +339,12 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.updateKey = updateKey;
     }
 
-    public String getRestoreColumn() {
-        return restoreColumn;
-    }
-
-    public void setRestoreColumn(String restoreColumn) {
-        this.restoreColumn = restoreColumn;
-    }
-
-    public int getRestoreColumnIndex() {
-        return restoreColumnIndex;
-    }
-
-    public void setRestoreColumnIndex(int restoreColumnIndex) {
-        this.restoreColumnIndex = restoreColumnIndex;
-    }
-
-    public String getRestoreColumnType() {
-        return restoreColumnType;
-    }
-
-    public void setRestoreColumnType(String restoreColumnType) {
-        this.restoreColumnType = restoreColumnType;
-    }
-
-    public boolean getAllReplace() {
+    public boolean isAllReplace() {
         return allReplace;
     }
 
     public void setAllReplace(boolean allReplace) {
         this.allReplace = allReplace;
-    }
-
-    public long getFlushIntervalMills() {
-        return flushIntervalMills;
-    }
-
-    public void setFlushIntervalMills(long flushIntervalMills) {
-        this.flushIntervalMills = flushIntervalMills;
     }
 
     @Override
@@ -382,7 +353,6 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
                 "fullColumn=" + fullColumn +
                 ", insertSqlMode='" + insertSqlMode + '\'' +
                 ", withNoLock=" + withNoLock +
-                ", column=" + column +
                 ", properties=" + properties +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
@@ -408,9 +378,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
                 ", mode='" + mode + '\'' +
                 ", preSql=" + preSql +
                 ", postSql=" + postSql +
-                ", batchSize=" + batchSize +
                 ", updateKey=" + updateKey +
-                ", flushIntervalMills=" + flushIntervalMills +
                 ", allReplace=" + allReplace +
                 '}';
     }
