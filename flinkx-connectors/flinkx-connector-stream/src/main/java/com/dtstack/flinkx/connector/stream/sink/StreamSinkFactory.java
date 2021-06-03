@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.connector.stream.sink;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -23,43 +24,54 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
-import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
+import com.dtstack.flinkx.connector.stream.converter.StreamRawTypeConverter;
+import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
 /**
- * Date: 2021/04/07
- * Company: www.dtstack.com
+ * Date: 2021/04/07 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class StreamSinkFactory extends SinkFactory {
-    private final StreamSinkConf streamSinkConf;
+
+    private final StreamConf streamConf;
 
     public StreamSinkFactory(SyncConf config) {
         super(config);
-        streamSinkConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getWriter().getParameter()), StreamSinkConf.class);
-        streamSinkConf.setColumn(config.getWriter().getFieldList());
-        super.initFlinkxCommonConf(streamSinkConf);
+        streamConf =
+                GsonUtil.GSON.fromJson(
+                        GsonUtil.GSON.toJson(config.getWriter().getParameter()),
+                        StreamConf.class);
+        streamConf.setColumn(config.getWriter().getFieldList());
+        super.initFlinkxCommonConf(streamConf);
     }
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
-        builder.setStreamSinkConf(streamSinkConf);
+        builder.setStreamConf(streamConf);
         AbstractRowConverter converter;
-        if(useAbstractBaseColumn){
+        if (useAbstractBaseColumn) {
             converter = new StreamColumnConverter();
-        }else{
-            final RowType rowType = (RowType) TableUtil.getDataType(streamSinkConf.getColumn()).getLogicalType();
+        } else {
+            final RowType rowType =
+                    TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());
             converter = new StreamRowConverter(rowType);
         }
 
         builder.setConverter(converter);
         return createOutput(dataSet, builder.finish());
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return StreamRawTypeConverter::apply;
     }
 }

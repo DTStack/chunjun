@@ -55,13 +55,19 @@ CREATE TABLE source
       'username' = 'root',
       'password' = 'admin123'
 
-      ,'scan.partition.column' = 'id'
-      ,'scan.polling-interval' = '3000'
-      ,'scan.start-location' = '20'
+      ,'scan.parallelism' = '1' -- 间隔轮训不支持多并行度
+      ,'scan.partition.column' = 'id' -- 多并行度读取的切分字段
 
+      ,'scan.increment.column' = 'id' -- 增量字段
+      ,'scan.increment.column-type' = 'int'  -- 增量字段类型
+      ,'scan.start-location' = '109' --增量字段开始位置,如果不指定则先查询所有并查询scan.increment.column最大值作为下次起始位置
 
-      ,'scan.fetch-size' = '2'
-      ,'scan.query-timeout' = '10'
+      ,'scan.fetch-size' = '2' -- fetch抓取的条数,防止一次抓取太多
+      ,'scan.query-timeout' = '10' -- 数据库抓取超时时间
+      ,'scan.polling-interval' = '3000' --间隔轮训时间
+
+      ,'scan.restore.columnname' = 'id' -- 续跑字段
+      ,'scan.restore.columntype' = 'int' -- 续跑字段类型
       );
 
 CREATE TABLE sink

@@ -33,9 +33,9 @@ import org.apache.flink.table.types.utils.TypeConversions;
 
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import io.vertx.core.json.JsonArray;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
+import io.vertx.core.json.JsonArray;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -122,6 +122,8 @@ public class JdbcRowConverter
             case DOUBLE:
             case INTERVAL_YEAR_MONTH:
             case INTERVAL_DAY_TIME:
+            case INTEGER:
+            case BIGINT:
                 return val -> val;
             case TINYINT:
                 return val -> ((Integer) val).byteValue();
@@ -130,10 +132,6 @@ public class JdbcRowConverter
                 // since
                 // JDBC 1.0 use int type for small values.
                 return val -> val instanceof Integer ? ((Integer) val).shortValue() : val;
-            case INTEGER:
-                return val -> val;
-            case BIGINT:
-                return val -> val;
             case DECIMAL:
                 final int precision = ((DecimalType) type).getPrecision();
                 final int scale = ((DecimalType) type).getScale();

@@ -24,9 +24,11 @@ package com.dtstack.flinkx.throwable;
  */
 public class CastException extends FlinkxRuntimeException {
 
-    private static final long serialVersionUID = -9060426163742606365L;
+    public CastException(String beforeType, String afterType, String stringValue) {
+        super(String.format("%s[%s] can not cast to %s.", beforeType, stringValue, afterType));
+    }
 
-    public CastException(Class<?> before, Class<?> after) {
-        super(String.format("%s can not cast to %s", before.getName(), after.getName()));
+    public CastException(String message) {
+        super(message);
     }
 }

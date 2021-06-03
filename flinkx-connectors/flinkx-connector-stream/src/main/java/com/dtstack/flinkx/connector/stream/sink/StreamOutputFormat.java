@@ -22,11 +22,10 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.util.TablePrintUtil;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -40,7 +39,7 @@ import java.util.List;
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
     // streamSinkConf属性
-    private StreamSinkConf streamSinkConf;
+    private StreamConf streamConf;
     private GenericRowData lastRow;
 
     @Override
@@ -52,13 +51,14 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData rowData) {
         try {
             GenericRowData genericRowData = new GenericRowData(rowData.getArity());
+            @SuppressWarnings("unchecked")
             GenericRowData row = (GenericRowData) rowConverter.toExternal(rowData, genericRowData);
-            if (streamSinkConf.getPrint()) {
+            if (streamConf.getPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames(rowData));
             }
             lastRow = row;
         } catch (Exception e) {
-            LOG.error("row = {}, e = {}", rowData, ExceptionUtil.getErrorMessage(e));
+            LOG.error("write single record error, row = {}, e = {}", rowData, ExceptionUtil.getErrorMessage(e));
         }
     }
 
@@ -70,11 +70,10 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public FormatState getFormatState() throws Exception {
+    protected void preCommit() {
         if (lastRow != null) {
             TablePrintUtil.printTable(lastRow, getFieldNames(lastRow));
         }
-        return super.getFormatState();
     }
 
     public String[] getFieldNames(RowData rowData) {
@@ -83,7 +82,7 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
             fieldNames = ((ColumnRowData) rowData).getHeaders();
         }
         if(fieldNames == null){
-            List<FieldConf> fieldConfList = streamSinkConf.getColumn();
+            List<FieldConf> fieldConfList = streamConf.getColumn();
             if (CollectionUtils.isNotEmpty(fieldConfList)) {
                 fieldNames = fieldConfList.stream().map(FieldConf::getName).toArray(String[]::new);
             }
@@ -97,16 +96,16 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    public void notifyCheckpointComplete(long checkpointId) {
-        // do nothing
+    protected void commit(long checkpointId) {
+
     }
 
     @Override
-    public void notifyCheckpointAborted(long checkpointId) {
-        // do nothing
+    protected void rollback(long checkpointId) {
+
     }
 
-    public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
-        this.streamSinkConf = streamSinkConf;
+    public void setStreamConf(StreamConf streamConf) {
+        this.streamConf = streamConf;
     }
 }
