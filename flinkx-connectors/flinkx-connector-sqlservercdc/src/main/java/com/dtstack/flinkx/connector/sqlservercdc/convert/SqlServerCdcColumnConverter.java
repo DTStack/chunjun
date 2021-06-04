@@ -34,19 +34,15 @@ import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.StringUtil;
 import com.google.common.collect.Maps;
 
-
-import org.apache.commons.net.ntp.TimeStamp;
-
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.sql.Date;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -216,7 +212,8 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
             case "INTEGER":
                 return (IDeserializationConverter<Integer, AbstractBaseColumn>) BigDecimalColumn::new;
             case "FLOAT":
-                return (IDeserializationConverter<Double, AbstractBaseColumn>) val -> (new BigDecimalColumn(val.toString()));
+            case "REAL":
+                return (IDeserializationConverter<Object, AbstractBaseColumn>) val -> (new BigDecimalColumn(val.toString()));
             case "BIGINT":
                 return (IDeserializationConverter<Long, AbstractBaseColumn>) BigDecimalColumn::new;
             case "DECIMAL":
@@ -230,7 +227,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "DATE":
             case "TIME":
-                return (IDeserializationConverter<Date, AbstractBaseColumn>) val ->{
+                return (IDeserializationConverter<? extends Date, AbstractBaseColumn>) val ->{
                     Timestamp timestamp = new Timestamp(val.getTime());
                     return new TimestampColumn(timestamp);
                 };

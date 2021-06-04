@@ -21,9 +21,6 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.sql.Date;
-import java.sql.Time;
 import java.sql.Timestamp;
 
 /**

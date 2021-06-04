@@ -159,10 +159,10 @@ public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerC
                     return TimestampData.fromInstant(
                             LocalDateTime.of(localDate, localTime).toInstant(ZoneOffset.UTC));
                 };
-            case FLOAT:
-                return (IDeserializationConverter<Double, Float>) val -> Float.valueOf(val.toString());
             case DOUBLE:
-                return (IDeserializationConverter<String, Double>) Double::parseDouble;
+                return (IDeserializationConverter<Double, Double>) val -> Double.valueOf(val);
+            case FLOAT:
+                return (IDeserializationConverter<Float, Float>) val -> Float.valueOf(val);
             case CHAR:
             case VARCHAR:
                 return (IDeserializationConverter<String, StringData>) StringData::fromString;
