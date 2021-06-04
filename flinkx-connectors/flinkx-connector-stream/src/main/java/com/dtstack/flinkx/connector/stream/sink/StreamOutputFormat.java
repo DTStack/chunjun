@@ -40,7 +40,6 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
 
     // streamSinkConf属性
     private StreamConf streamConf;
-    private GenericRowData lastRow;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
@@ -50,9 +49,8 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(RowData rowData) {
         try {
-            GenericRowData genericRowData = new GenericRowData(rowData.getArity());
             @SuppressWarnings("unchecked")
-            GenericRowData row = (GenericRowData) rowConverter.toExternal(rowData, genericRowData);
+            RowData row = (RowData)rowConverter.toExternal(rowData, new GenericRowData(rowData.getArity()));
             if (streamConf.getPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames(rowData));
             }
