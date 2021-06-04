@@ -98,6 +98,7 @@ public class KafkaUtil {
                 break;
             case LATEST:
                 props.put("auto.offset.reset", "latest");
+                break;
         }
         return props;
     }

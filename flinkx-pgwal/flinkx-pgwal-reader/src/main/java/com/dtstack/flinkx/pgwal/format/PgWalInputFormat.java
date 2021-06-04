@@ -57,6 +57,7 @@ public class PgWalInputFormat extends BaseRichInputFormat {
     protected String slotName;
     protected boolean allowCreateSlot;
     protected boolean temporary;
+    private String publicationName;
 
     private PgConnection conn;
     private volatile long startLsn;
@@ -64,6 +65,9 @@ public class PgWalInputFormat extends BaseRichInputFormat {
     private transient BlockingQueue<Map<String, Object>> queue;
     private transient ExecutorService executor;
     private volatile boolean running = false;
+    private int connectionTimeoutSecond;
+    private int socketTimeoutSecond;
+    private int loginTimeoutSecond;
 
     @Override
     public void openInputFormat() throws IOException{
@@ -80,11 +84,16 @@ public class PgWalInputFormat extends BaseRichInputFormat {
         }
         LOG.info("PgWalInputFormat openInternal split number:{} start...", inputSplit.getSplitNumber());
         try {
-            conn = PgWalUtil.getConnection(url, username, password);
+            conn = PgWalUtil.getConnection(url, username, password, connectionTimeoutSecond, socketTimeoutSecond, loginTimeoutSecond);
             if(StringUtils.isBlank(slotName)){
                 slotName = PgWalUtil.SLOT_PRE + jobId;
             }
-            PgRelicationSlot availableSlot = PgWalUtil.checkPostgres(conn, allowCreateSlot, slotName, tableList);
+            if(StringUtils.isEmpty(publicationName)) {
+                publicationName = PgWalUtil.PUBLICATION_NAME;
+                LOG.info("provide the default publication name : {}" , publicationName);
+            }
+            PgWalUtil.checkPublicationName(conn, publicationName);
+            PgRelicationSlot availableSlot = PgWalUtil.checkPostgres(conn, allowCreateSlot, slotName, tableList, publicationName);
             if(availableSlot == null){
                 PgWalUtil.createSlot(conn, slotName, temporary);
             }
@@ -198,5 +207,53 @@ public class PgWalInputFormat extends BaseRichInputFormat {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public String getPublicationName() {
+        return publicationName;
+    }
+
+    public void setPublicationName(String publicationName) {
+        this.publicationName = publicationName;
+    }
+
+    public void setConnectionTimeoutSecond(int connectionTimeoutSecond) {
+        this.connectionTimeoutSecond = connectionTimeoutSecond;
+    }
+
+    public void setSocketTimeoutSecond(int socketTimeoutSecond) {
+        this.socketTimeoutSecond = socketTimeoutSecond;
+    }
+
+    public void setLoginTimeoutSecond(int loginTimeoutSecond) {
+        this.loginTimeoutSecond = loginTimeoutSecond;
+    }
+
+    public int getConnectionTimeoutSecond() {
+        return connectionTimeoutSecond;
+    }
+
+    public int getSocketTimeoutSecond() {
+        return socketTimeoutSecond;
+    }
+
+    public int getLoginTimeoutSecond() {
+        return loginTimeoutSecond;
+    }
+
+    public void setConnection(PgConnection connection) {
+        this.conn = connection;
+    }
+
+    public void setTableList(List<String> tableList) {
+        this.tableList = tableList;
+    }
+
+    public void setCat(String cat) {
+        this.cat = cat;
+    }
+
+    public void setStartLsn(long currentLsn) {
+        this.startLsn = currentLsn;
     }
 }

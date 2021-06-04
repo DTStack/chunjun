@@ -32,10 +32,13 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,6 +61,7 @@ public class LogParser {
     public static Pattern toDatePattern = Pattern.compile("(?i)(?<toDate>(TO_DATE\\('(?<datetime>(.*?))',\\s+'YYYY-MM-DD HH24:MI:SS'\\)))");
     //TO_TIMESTAMP函数值匹配
     public static Pattern timeStampPattern = Pattern.compile("(?i)(?<toTimeStamp>(TO_TIMESTAMP\\('(?<datetime>(.*?))'\\)))");
+    public static Pattern hexToRawPattern = Pattern.compile("(?i)(?<hexToRaw>(HEXTORAW\\('(?<raw>(.*?))'\\)))");
 
 
     public static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
@@ -142,7 +146,7 @@ public class LogParser {
         });
     }
 
-    public QueueData parse(QueueData pair) throws JSQLParserException {
+    public QueueData parse(QueueData pair) throws JSQLParserException, DecoderException, UnsupportedEncodingException {
         Map<String, Object> logData = pair.getData();
         String schema = MapUtils.getString(logData, "schema");
         String tableName = MapUtils.getString(logData, "tableName");
@@ -150,7 +154,7 @@ public class LogParser {
         String sqlLog = MapUtils.getString(logData, "sqlLog");
         LOG.debug("before alter sqlLog, sqlLog = {}",sqlLog);
         String sqlRedo = sqlLog.replace("IS NULL", "= NULL");
-        sqlRedo = parseToTimeStamp(parseToDate(sqlRedo));
+        sqlRedo = parseHexToRaw(parseToTimeStamp(parseToDate(sqlRedo)));
 
         Timestamp timestamp = (Timestamp)MapUtils.getObject(logData, "opTime");
 
@@ -179,6 +183,10 @@ public class LogParser {
             parseUpdateStmt((Update) stmt, beforeDataMap, afterDataMap, sqlRedo);
         }else if (stmt instanceof Delete){
             parseDeleteStmt((Delete) stmt, beforeDataMap, afterDataMap);
+        }
+
+        if(LOG.isDebugEnabled()){
+            printDelay(message);
         }
 
         if (config.getPavingData()) {
@@ -231,6 +239,23 @@ public class LogParser {
         return replace(redoLog, replaceData);
     }
 
+    /**
+     *
+     * HEXTORAW('e59388e593883132e381ae')格式解析
+     * @param redoLog
+     * @return
+     */
+    private String parseHexToRaw(String redoLog) throws DecoderException, UnsupportedEncodingException {
+        Matcher matcher = hexToRawPattern.matcher(redoLog);
+        HashMap<String, String> replaceData = new HashMap<>(8);
+        while (matcher.find()) {
+            String key = matcher.group("hexToRaw");
+            String value = new String(Hex.decodeHex(matcher.group("raw").toCharArray()), "UTF-8");
+            replaceData.put(key, value);
+        }
+        return replace(redoLog, replaceData);
+    }
+
 
     private String replace(String redoLog, HashMap<String, String> replaceData) {
         if (MapUtils.isNotEmpty(replaceData)) {
@@ -243,5 +268,21 @@ public class LogParser {
         }
         return redoLog;
     }
+
+
+    /**
+     * 打印flinkx延迟时间
+     * @param message
+     */
+    private void printDelay(Map<String, Object> message) {
+        //flinkx处理时间
+        long ts = Long.parseLong(message.get("ts").toString());
+        long res = ts >> 22;
+
+        long opTime = ((Timestamp) message.get("opTime")).getTime();
+
+        LOG.debug("scn {} ,delay {} ms", message.get("scn"), res - opTime);
+    }
+
 
 }

@@ -35,7 +35,9 @@ public class PluginNameConstants {
     public static final String MYSQL_READER = "mysqlreader";
     public static final String ODPS_READER = "odpsreader";
     public static final String ORACLE_READER = "oraclereader";
+    public static final String ORACLE9_READER = "oracle9reader";
     public static final String POSTGRESQL_READER = "postgresqlreader";
+    public static final String PGWAL_READER = "pgwalreader";
     public static final String SQLSERVER_READER = "sqlserverreader";
     public static final String GBASE_READER = "gbasereader";
     public static final String KUDU_READER = "kudureader";
@@ -51,6 +53,16 @@ public class PluginNameConstants {
     public static final String PHOENIX_READER = "phoenixreader";
     public static final String EMQX_READER = "emqxreader";
     public static final String DM_READER = "dmreader";
+    public static final String METADATATIDB_READER = "metadatatidbreader";
+    public static final String METADATAORACLE_READER = "metadataoraclereader";
+    public static final String METADATAMYSQL_READER = "metadatamysqlreader";
+    public static final String METADATASQLSERVER_READER = "metadatasqlserverreader";
+    public static final String METADATAPHOENIX_READER = "metadataphoenix5reader";
+    public static final String METADATAHBASE_READER = "metadatahbasereader";
+    public static final String METADATAES6_READER = "metadataes6reader";
+    public static final String METADATAVERTICA_READER = "metadataverticareader";
+    public static final String METADATAPGSQL_READER = "metadatapostgresqlreader";
+    public static final String METADATAKAFKA_READER = "metadatakafkareader";
     public static final String GREENPLUM_READER = "greenplumreader";
     public static final String PHOENIX5_READER = "phoenix5reader";
     public static final String KINGBASE_READER = "kingbasereader";
@@ -68,6 +80,7 @@ public class PluginNameConstants {
     public static final String MYSQL_WRITER = "mysqlwriter";
     public static final String ODPS_WRITER = "odpswriter";
     public static final String ORACLE_WRITER = "oraclewriter";
+    public static final String ORACLE9_WRITER = "oracle9writer";
     public static final String POSTGRESQL_WRITER = "postgresqlwriter";
     public static final String REDIS_WRITER = "rediswriter";
     public static final String SQLSERVER_WRITER = "sqlserverwriter";

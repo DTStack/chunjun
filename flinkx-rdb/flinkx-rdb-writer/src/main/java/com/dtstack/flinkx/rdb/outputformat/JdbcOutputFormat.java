@@ -151,7 +151,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks){
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = DbUtil.getConnection(dbUrl, username, password);
+            dbConn = getConnection();
 
             //默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
@@ -196,6 +196,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         ResultSet rs = null;
         try {
             stmt = dbConn.createStatement();
+            stmt.setQueryTimeout(databaseInterface.getQueryTimeout());
             rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
@@ -452,6 +453,15 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     /**
+     * 获取jdbc链接
+     * @return
+     * @throws SQLException
+     */
+    public Connection getConnection() throws SQLException {
+        return DbUtil.getConnection(dbUrl, username, password);
+    }
+
+    /**
      * 获取table名称，如果table是schema.table格式，可重写此方法 只返回table
      * @return
      */
@@ -461,5 +471,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     public void setSchema(String schema){
         this.schema = schema;
+    }
+
+    public String getMode() {
+        return mode;
     }
 }

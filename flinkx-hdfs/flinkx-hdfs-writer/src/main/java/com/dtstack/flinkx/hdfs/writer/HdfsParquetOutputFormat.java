@@ -240,7 +240,13 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                 break;
             case "float" : group.add(colName,Float.parseFloat(val));break;
             case "double" : group.add(colName,Double.parseDouble(val));break;
-            case "binary" :group.add(colName,Binary.fromString(val));break;
+            case "binary" :
+                if(valObj instanceof byte[]){
+                    group.add(colName, Binary.fromReusedByteArray((byte[]) valObj));
+                }else{
+                    group.add(colName, Binary.fromString(val));
+                }
+                break;
             case "char" :
             case "varchar" :
             case "string" :

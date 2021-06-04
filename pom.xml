@@ -21,6 +21,7 @@
         <module>flinkx-mysql</module>
         <module>flinkx-polardb</module>
         <module>flinkx-oracle</module>
+        <module>flinkx-oracle9</module>
         <module>flinkx-sqlserver</module>
         <module>flinkx-postgresql</module>
         <module>flinkx-db2</module>
@@ -60,6 +61,30 @@
         <module>flinkx-restapi</module>
         <module>flinkx-sqlservercdc</module>
         <module>flinkx-oraclelogminer</module>
+        <module>flinkx-pgwal</module>
+
+        <!--******元数据******-->
+        <module>flinkx-metadata-hive</module>
+        <module>flinkx-metadata-hive1</module>
+        <module>flinkx-metadata-hive2</module>
+        <module>flinkx-metadata-tidb</module>
+        <module>flinkx-metadata-oracle</module>
+        <module>flinkx-metadata-mysql</module>
+        <module>flinkx-metadata-sqlserver</module>
+        <module>flinkx-metadata-base</module>
+        <module>flinkx-metadata-rdb</module>
+        <module>flinkx-metadata-phoenix5</module>
+        <module>flinkx-metadata-hbase</module>
+        <module>flinkx-metadata-vertica</module>
+        <module>flinkx-metadata-kafka</module>
+        <!--        <module>flinkx-metadata-es6</module>-->
+        <module>flinkx-solr</module>
+
+        <module>flinkx-s3</module>
+
+        <module>flinkx-restapi</module>
+        <module>flinkx-websocket</module>
+        <module>flinkx-socket</module>
     </modules>
 
     <properties>
@@ -137,6 +162,22 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>3.0.0</version>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -146,6 +187,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -188,6 +230,30 @@
                     <destDir>flinkx-java-docs</destDir>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>4.0.4</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <dateFormat>yyyy.MM.dd HH:mm:ss</dateFormat>
+                    <runOnlyOnce>true</runOnlyOnce>
+                    <injectIntoSysProperties>true</injectIntoSysProperties>
+                    <injectAllReactorProjects>true</injectAllReactorProjects>
+                    <gitDescribe>
+                        <always>false</always>
+                        <dirty>-dirty</dirty>
+                        <forceLongFormat>false</forceLongFormat>
+                    </gitDescribe>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -206,5 +272,13 @@
             </plugin>
         </plugins>
     </reporting>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
 </project>

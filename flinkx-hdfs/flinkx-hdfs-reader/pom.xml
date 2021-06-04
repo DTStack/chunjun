@@ -98,7 +98,7 @@ under the License.
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                    <shadedPattern>shade.hdfs.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.thirdparty</pattern>

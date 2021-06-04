@@ -19,7 +19,6 @@
 
 package com.dtstack.flinkx.kudu.core;
 
-import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
@@ -44,8 +43,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author jiangbo
@@ -53,9 +50,7 @@ import java.util.regex.Pattern;
  */
 public class KuduUtil {
 
-    private static String FILTER_SPLIT_REGEX = "(?i)\\s+and\\s+";
-    private static String EXPRESS_REGEX = "(?<column>[^\\=|\\s]+)+\\s*(?<op>[\\>|\\<|\\=]+)\\s*(?<value>.*)";
-    private static Pattern EXPRESS_PATTERN = Pattern.compile(EXPRESS_REGEX);
+    private static final String FILTER_SPLIT_REGEX = "(?i)\\s+and\\s+";
 
     public final static String AUTHENTICATION_TYPE = "Kerberos";
 
@@ -92,9 +87,7 @@ public class KuduUtil {
     }
 
     public static List<KuduScanToken> getKuduScanToken(KuduConfig config, List<MetaColumn> columns, String filterString, Map<String,Object> hadoopConfig) throws IOException{
-        try (
-                KuduClient client = getKuduClient(config, hadoopConfig)
-        ) {
+        try (KuduClient client = getKuduClient(config, hadoopConfig)) {
             KuduTable kuduTable = client.openTable(config.getTable());
 
             List<String> columnNames = new ArrayList<>(columns.size());
@@ -177,28 +170,50 @@ public class KuduUtil {
     }
 
     public static ExpressResult parseExpress(String express, Map<String, Type> nameTypeMap){
-        Matcher matcher = EXPRESS_PATTERN.matcher(express.trim());
-        if (matcher.find()) {
-            String column = matcher.group("column");
-            String op = matcher.group("op");
-            String value = matcher.group("value");
-
-            Type type = nameTypeMap.get(column.trim());
-            if(type == null){
-                throw new IllegalArgumentException("Can not find column:" + column + " from column list");
-            }
-
-            ColumnSchema columnSchema = new ColumnSchema.ColumnSchemaBuilder(column, type).build();
-
-            ExpressResult result = new ExpressResult();
-            result.setColumnSchema(columnSchema);
-            result.setOp(getOp(op));
-            result.setValue(getValue(value, type));
-
-            return result;
-        } else {
+        String column;
+        String value;
+        String opStr;
+        KuduPredicate.ComparisonOp op;
+        if(express.contains("=")){
+            opStr = "=";
+            op = KuduPredicate.ComparisonOp.EQUAL;
+        }else if(express.contains(">")){
+            opStr = ">";
+            op = KuduPredicate.ComparisonOp.GREATER;
+        }else if(express.contains(">=")){
+            opStr = ">=";
+            op = KuduPredicate.ComparisonOp.GREATER_EQUAL;
+        }else if(express.contains("<")){
+            opStr = "<";
+            op = KuduPredicate.ComparisonOp.LESS;
+        }else if(express.contains("<=")){
+            opStr = "<=";
+            op = KuduPredicate.ComparisonOp.LESS_EQUAL;
+        }else{
             throw new IllegalArgumentException("Illegal filter express:" + express);
         }
+
+        //必须类似是[column > value]格式
+        String[] split = express.split(opStr);
+        if(split.length != 2){
+            throw new IllegalArgumentException("Illegal filter express:" + express);
+        }
+        column = split[0].trim();
+        value = split[1].trim();
+
+        Type type = nameTypeMap.get(column);
+        if(type == null){
+            throw new IllegalArgumentException("Can not find column:" + column + " from column list");
+        }
+
+        ColumnSchema columnSchema = new ColumnSchema.ColumnSchemaBuilder(column, type).build();
+
+        ExpressResult result = new ExpressResult();
+        result.setColumnSchema(columnSchema);
+        result.setOp(op);
+        result.setValue(getValue(value, type));
+
+        return result;
     }
 
     public static Object getValue(String value, Type type){
@@ -238,18 +253,6 @@ public class KuduUtil {
         }
 
         return objValue;
-    }
-
-    private static KuduPredicate.ComparisonOp getOp(String opExpress){
-        switch (opExpress){
-            case "=" : return KuduPredicate.ComparisonOp.EQUAL;
-            case ">" : return KuduPredicate.ComparisonOp.GREATER;
-            case ">=" : return KuduPredicate.ComparisonOp.GREATER_EQUAL;
-            case "<" : return KuduPredicate.ComparisonOp.LESS;
-            case "<=" : return KuduPredicate.ComparisonOp.LESS_EQUAL;
-            default:
-                throw new IllegalArgumentException("Comparison express only support '=','>','>=','<','<='");
-        }
     }
 
     public static class ExpressResult{

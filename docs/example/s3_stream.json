@@ -1,0 +1,65 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "accessKey": "test_accessKey",
+            "secretKey": "test_secretKey",
+            "region": "cn-northwest-1",
+            "bucket": "test_bucket",
+            "object": ["dt/test/csv/people_withTime.csv"],
+            "column": [
+              {
+                "name": "id",
+                "index": 0,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "index": 1,
+                "type": "string"
+              },
+              {
+                "name": "uuid",
+                "index": 2,
+                "type": "string"
+              },
+              {
+                "name": "create_time",
+                "index": 3,
+                "type": "datetime",
+                "format": "yyyy/MM/dd hh:mm:ss"
+              }
+            ],
+            "encoding": "UTF-8",
+            "fieldDelimiter": "\u0001",
+            "isFirstLineHeader": true
+          },
+          "name": "s3reader"
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "log": {
+        "isLogger": true,
+        "level": "debug",
+        "path": "/data/jier/flinkx/logs/",
+        "pattern": ""
+      }
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "accessKey": "test_accessKey",
+            "secretKey": "test_secretKey",
+            "region": "cn-northwest-1",
+            "bucket": "test_bucket",
+            "object": ["dt/test/csv/people_withTime.csv"],
+            "column": [
+              {
+                "name": "id",
+                "index": 0,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "index": 1,
+                "type": "string"
+              },
+              {
+                "name": "uuid",
+                "index": 2,
+                "type": "string"
+              },
+              {
+                "name": "create_time",
+                "index": 3,
+                "type": "datetime",
+                "format": "yyyy/MM/dd hh:mm:ss"
+              }
+            ],
+            "encoding": "UTF-8",
+            "fieldDelimiter": "\u0001",
+            "isFirstLineHeader": true
+          },
+          "name": "s3reader"
+        },
+        "writer": {
+          "name" : "hivewriter",
+          "parameter" : {
+            "jdbcUrl" : "jdbc:hive2://localhost:10004/s3_test",
+            "username" : "",
+            "password" : "",
+            "fileType" : "text",
+            "fieldDelimiter" : "\u0001",
+            "writeMode" : "overwrite",
+            "compress" : "",
+            "charsetName" : "UTF-8",
+            "maxFileSize" : 1073741824,
+            "tablesColumn" : "{\"people_time\":[{\"key\":\"id\",\"type\":\"int\"},{\"key\":\"name\",\"type\":\"string\"},{\"key\":\"uuid\",\"type\":\"string\"},{\"key\":\"create_time\",\"type\":\"timestamp\"}]}",
+            "defaultFS" : "hdfs://ns1",
+            "hadoopConfig" : {
+              "dfs.ha.namenodes.ns1": "nn1,nn2",
+              "dfs.namenode.rpc-address.ns1.nn2": "localhost:9000",
+              "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns1.nn1": "localhost1:9000",
+              "dfs.nameservices": "ns1"
+            }
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "log": {
+        "isLogger": false,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

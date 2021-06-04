@@ -25,6 +25,7 @@ import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
+import org.apache.hadoop.hive.serde2.io.ShortWritable;
 import org.apache.hadoop.hive.serde2.io.TimestampWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
@@ -81,6 +82,16 @@ public class HdfsUtil {
             ret = ((FloatWritable) writable).get();
         }else if (writable instanceof BooleanWritable){
             ret = ((BooleanWritable) writable).get();
+        }else if (writable instanceof BytesWritable){
+            BytesWritable bytesWritable = (BytesWritable) writable;
+            byte[] bytes = bytesWritable.getBytes();
+            //org.apache.hadoop.io.BytesWritable.setSize方法中扩容导致byte[]末尾自动补0，这里需要把末尾的0去掉才能得到真正的byte[]
+            ret = new byte[bytesWritable.getLength()];
+            System.arraycopy(bytes, 0, ret, 0, bytesWritable.getLength());
+        }else if (writable instanceof HiveDecimalWritable){
+            ret = ((HiveDecimalWritable) writable).getHiveDecimal().bigDecimalValue();
+        }else if (writable instanceof ShortWritable){
+            ret = ((ShortWritable) writable).get();
         }else  {
             ret = writable.toString();
         }

@@ -265,7 +265,11 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
                 recordList.add(DateUtil.columnToTimestamp(column,null));
                 break;
             case BINARY:
-                recordList.add(new BytesWritable(rowData.getBytes(StandardCharsets.UTF_8)));
+                if(column instanceof  byte[]){
+                    recordList.add(new BytesWritable((byte[])column));
+                }else{
+                    recordList.add(new BytesWritable(rowData.getBytes(StandardCharsets.UTF_8)));
+                }
                 break;
             default:
                 throw new IllegalArgumentException();

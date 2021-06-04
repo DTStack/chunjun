@@ -223,7 +223,10 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 case "bigint" : data = currentLine.getLong(index,0);break;
                 case "float" : data = currentLine.getFloat(index,0);break;
                 case "double" : data = currentLine.getDouble(index,0);break;
-                case "binary" :data = currentLine.getBinary(index,0);break;
+                case "binary" :
+                    Binary binaryData = currentLine.getBinary(index, 0);
+                    data = binaryData.getBytes();
+                    break;
                 case "char" :
                 case "varchar" :
                 case "string" : data = currentLine.getString(index,0);break;
@@ -305,18 +308,18 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         currentFileIndex = 0;
     }
 
-    private String longToDecimalStr(long value,int scale){
+    private BigDecimal longToDecimalStr(long value,int scale){
         BigInteger bi = BigInteger.valueOf(value);
         BigDecimal bg = new BigDecimal(bi, scale);
 
-        return bg.toString();
+        return bg;
     }
 
-    private String binaryToDecimalStr(Binary binary,int scale){
+    private BigDecimal binaryToDecimalStr(Binary binary,int scale){
         BigInteger bi = new BigInteger(binary.getBytes());
         BigDecimal bg = new BigDecimal(bi,scale);
 
-        return bg.toString();
+        return bg;
     }
 
     private static List<String> getAllPartitionPath(String tableLocation, FileSystem fs, PathFilter pathFilter) throws IOException {

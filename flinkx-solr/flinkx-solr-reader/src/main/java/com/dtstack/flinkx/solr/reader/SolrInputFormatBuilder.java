@@ -1,0 +1,86 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.dtstack.flinkx.solr.reader;
+
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.reader.MetaColumn;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The builder class of SolrInputFormat
+ *
+ * Company: www.dtstack.com
+ * @author shifang
+ */
+public class SolrInputFormatBuilder extends BaseRichInputFormatBuilder {
+
+    private SolrInputFormat format;
+
+    public SolrInputFormatBuilder() {
+        super.format = format = new SolrInputFormat();
+    }
+
+    public SolrInputFormatBuilder setAddress(String address) {
+        format.address = address;
+        return this;
+    }
+
+
+    public SolrInputFormatBuilder setFilters(List<String> filters) {
+        format.filters = filters;
+        return this;
+    }
+
+    public SolrInputFormatBuilder setColumnNames(List<String> columnNames) {
+        format.columnNames = columnNames;
+        return this;
+    }
+
+    public SolrInputFormatBuilder setColumns(List<MetaColumn> columns) {
+        format.metaColumns = columns;
+        return this;
+    }
+
+
+    public SolrInputFormatBuilder setBatchSize(Integer batchSize){
+        if(batchSize != null && batchSize > 0){
+            format.batchSize = batchSize;
+        }
+        return this;
+    }
+
+    @Override
+    protected void checkFormat() {
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
+
+        if (format.batchSize > ConstantValue.MAX_BATCH_SIZE) {
+            throw new IllegalArgumentException("批量读取数量不能大于[200000]条");
+        }
+
+        if (StringUtils.isBlank(format.address)) {
+            throw new IllegalArgumentException("solr address is must");
+        }
+    }
+}
