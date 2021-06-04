@@ -93,7 +93,13 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-postgres</artifactId>
+			<artifactId>flinkx-connector-postgresql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-kingbase</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -111,7 +117,19 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-oracle</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-binlog</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-oracle</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -121,6 +139,11 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-sqlserver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 </project>

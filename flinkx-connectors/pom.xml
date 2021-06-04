@@ -18,9 +18,13 @@
         <module>flinkx-connector-stream</module>
 		<module>flinkx-connector-jdbc-base</module>
 		<module>flinkx-connector-mysql</module>
-		<module>flinkx-connector-postgres</module>
+		<module>flinkx-connector-postgresql</module>
 		<module>flinkx-connector-gbase</module>
         <module>flinkx-connector-hbase-base</module>
+		<module>flinkx-connector-kingbase</module>
+		<module>flinkx-connector-clickhouse</module>
+		<module>flinkx-connector-sqlserver</module>
+		<module>flinkx-connector-oracle</module>
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>

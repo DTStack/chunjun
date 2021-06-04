@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.clickhouse.converter;
 
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
@@ -42,7 +44,7 @@ public class ClickhouseRawTypeConverter {
      *
      * @throws SQLException
      */
-    public static DataType apply(String type) throws SQLException {
+    public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
@@ -115,7 +117,7 @@ public class ClickhouseRawTypeConverter {
             case "NULL":
                 return DataTypes.NULL();
             default:
-                throw new SQLException("不支持" + type + "类型");
+                throw new UnsupportedTypeException(type);
         }
     }
 }

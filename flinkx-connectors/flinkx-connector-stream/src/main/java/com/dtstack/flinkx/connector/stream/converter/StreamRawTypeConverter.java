@@ -52,6 +52,8 @@ public class StreamRawTypeConverter {
             case "DECIMAL":
                 return DataTypes.DECIMAL(38, 18);
 
+            case "STRING":
+            case "VARCHAR":
             case "CHAR":
             case "CHARACTER":
                 return DataTypes.STRING();
@@ -68,7 +70,7 @@ public class StreamRawTypeConverter {
                 return DataTypes.BOOLEAN();
 
             default:
-                throw new UnsupportedTypeException(type);
+                return DataTypes.STRING();
         }
     }
 }

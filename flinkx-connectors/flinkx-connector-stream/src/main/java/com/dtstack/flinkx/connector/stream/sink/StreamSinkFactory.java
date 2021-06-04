@@ -24,7 +24,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
 import com.dtstack.flinkx.connector.stream.converter.StreamRawTypeConverter;
 import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
@@ -40,28 +40,29 @@ import com.dtstack.flinkx.util.TableUtil;
  * @author tudou
  */
 public class StreamSinkFactory extends SinkFactory {
-    private final StreamSinkConf streamSinkConf;
+
+    private final StreamConf streamConf;
 
     public StreamSinkFactory(SyncConf config) {
         super(config);
-        streamSinkConf =
+        streamConf =
                 GsonUtil.GSON.fromJson(
                         GsonUtil.GSON.toJson(config.getWriter().getParameter()),
-                        StreamSinkConf.class);
-        streamSinkConf.setColumn(config.getWriter().getFieldList());
-        super.initFlinkxCommonConf(streamSinkConf);
+                        StreamConf.class);
+        streamConf.setColumn(config.getWriter().getFieldList());
+        super.initFlinkxCommonConf(streamConf);
     }
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
-        builder.setStreamSinkConf(streamSinkConf);
+        builder.setStreamConf(streamConf);
         AbstractRowConverter converter;
         if (useAbstractBaseColumn) {
             converter = new StreamColumnConverter();
         } else {
             final RowType rowType =
-                    TableUtil.createRowType(streamSinkConf.getColumn(), getRawTypeConverter());
+                    TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());
             converter = new StreamRowConverter(rowType);
         }
 

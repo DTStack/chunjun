@@ -18,9 +18,9 @@
 package com.dtstack.flinkx.element.column;
 
 import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -57,37 +57,54 @@ public class BigDecimalColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public int getByteSize(Object data) {
-        return null == data ? 0 : data.toString().getBytes(StandardCharsets.UTF_8).length;
-    }
-
-    @Override
     public String asString() {
+        if (null == data) {
+            return null;
+        }
+
         return data.toString();
     }
 
     @Override
     public Date asDate() {
-        return null;
+        if (null == data) {
+            return null;
+        }
+        BigDecimal bigDecimal = (BigDecimal) data;
+        return new Date(bigDecimal.longValue());
     }
 
     @Override
     public byte[] asBytes() {
-        return new byte[0];
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("BigDecimal", "Bytes", this.asString());
     }
 
     @Override
     public Boolean asBoolean() {
-        return null;
+        if (null == data) {
+            return null;
+        }
+        BigDecimal bigDecimal = (BigDecimal) data;
+        return bigDecimal.compareTo(BigDecimal.ZERO) != 0;
     }
 
     @Override
     public BigDecimal asBigDecimal() {
+        if (null == data) {
+            return null;
+        }
         return (BigDecimal)data;
     }
 
     @Override
     public Timestamp asTimestamp() {
-        return null;
+        if (null == data) {
+            return null;
+        }
+        BigDecimal bigDecimal = (BigDecimal) data;
+        return new Timestamp(bigDecimal.longValue());
     }
 }

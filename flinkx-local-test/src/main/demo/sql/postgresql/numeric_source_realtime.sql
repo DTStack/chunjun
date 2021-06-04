@@ -20,7 +20,7 @@ CREATE TABLE source_pg
     'table-name' = 'dim_numeric',
     'username' = 'postgres',
     'password' = 'root',
-    'scan.partition.column' = 'val_int',
+    'scan.increment.column' = 'val_int',
     'scan.polling-interval' = '3000',
     'scan.start-location' = '1',
     'scan.fetch-size' = '2',

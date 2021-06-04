@@ -31,7 +31,7 @@ public class JdbcSinkOptions {
     public static final ConfigOption<Integer> SINK_BUFFER_FLUSH_MAX_ROWS =
             ConfigOptions.key("sink.buffer-flush.max-rows")
                     .intType()
-                    .defaultValue(1000)
+                    .defaultValue(1024)
                     .withDescription(
                             "the flush max size (includes all append, upsert and delete records), over this number"
                                     + " of records, will flush data. The default value is 100.");
@@ -53,7 +53,7 @@ public class JdbcSinkOptions {
     public static final ConfigOption<Boolean> SINK_ALLREPLACE =
             ConfigOptions.key("sink.allReplace")
                     .booleanType()
-                    .defaultValue(true)
+                    .defaultValue(false)
                     .withDescription("the max retry times if writing records to database failed.");
 
     public static final ConfigOption<Integer> SINK_PARALLELISM =

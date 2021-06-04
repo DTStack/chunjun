@@ -18,19 +18,17 @@
 
 package com.dtstack.flinkx.connector.stream.sink;
 
-import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
-
-import org.apache.flink.table.types.logical.RowType;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,11 +42,11 @@ import java.util.stream.Collectors;
 
 public class StreamDynamicTableSink implements DynamicTableSink {
 
-    private StreamSinkConf sinkConf;
+    private StreamConf sinkConf;
     private DataType type;
     private final TableSchema tableSchema;
 
-    public StreamDynamicTableSink(StreamSinkConf sinkConf, DataType type, TableSchema tableSchema) {
+    public StreamDynamicTableSink(StreamConf sinkConf, DataType type, TableSchema tableSchema) {
         this.sinkConf = sinkConf;
         this.type = type;
         this.tableSchema = tableSchema;
@@ -64,7 +62,6 @@ public class StreamDynamicTableSink implements DynamicTableSink {
         final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
         // 一些其他参数的封装,如果有
-        sinkConf.setPrint(true);
         List<FieldConf> fieldList = Arrays
                 .stream(tableSchema.getFieldNames())
                 .map(e -> {
@@ -77,7 +74,7 @@ public class StreamDynamicTableSink implements DynamicTableSink {
         sinkConf.setColumn(fieldList);
 
         StreamOutputFormatBuilder builder =new StreamOutputFormatBuilder();
-        builder.setStreamSinkConf(sinkConf);
+        builder.setStreamConf(sinkConf);
         builder.setConverter(new StreamRowConverter(rowType));
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), null);

@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.outputformat;
 
-import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.api.common.io.FinalizeOnMaster;
@@ -40,7 +39,9 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -58,8 +59,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Abstract Specification for all the OutputFormat defined in flinkx plugins
- * <p>
- * Company: www.dtstack.com
+ *
+ * <p>Company: www.dtstack.com
+ *
+ * <p>NOTE Four situations for checkpoint(cp):
+ * 1).Turn off cp, batch and timing directly submitted to the database
+ *
+ * 2).Turn on cp and in AT_LEAST_ONCE model, batch and timing directly commit to the db .
+ *    snapshotState、notifyCheckpointComplete、notifyCheckpointAborted Does not interact with the db
+ *
+ * 3).Turn on cp and in EXACTLY_ONCE model, batch and timing pre commit to the db .
+ *    snapshotState pre commit、notifyCheckpointComplete real commit、notifyCheckpointAborted rollback
+ *
+ * 4).Turn on cp and in EXACTLY_ONCE model, when cp time out snapshotState、notifyCheckpointComplete may never call,
+ *    Only call notifyCheckpointAborted.this maybe a problem ,should make users perceive
+ *
  *
  * @author huyifan.zju@163.com
  */
@@ -91,10 +105,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     /**
      * 虽然开启cp，是否采用定时器和一定条数让下游数据可见。
-     * EXACTLY_ONCE：否。
-     * AT_LEAST_ONCE：只要数据条数或者超时即可见
+     * EXACTLY_ONCE：否，遵循两阶段提交协议。
+     * AT_LEAST_ONCE：是，只要数据条数或者到达定时时间即可见
      */
-    protected String checkpointMode;
+    protected CheckpointingMode checkpointMode;
     /** 定时提交数据服务 */
     protected transient ScheduledExecutorService scheduler;
     /** 定时提交数据服务返回结果 */
@@ -124,6 +138,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     protected transient BaseMetric outputMetric;
     /** cp和flush互斥条件 */
     protected transient AtomicBoolean flushEnable;
+    /** 当前事务的条数 */
+    protected long rowsOfCurrentTransaction;
+
+    /** A collection of field names filled in user scripts with constants removed */
+    protected List<String> columnNameList = new ArrayList<>();
+    /** A collection of field types filled in user scripts with constants removed */
+    protected List<String> columnTypeList = new ArrayList<>();
 
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
@@ -162,17 +183,20 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      */
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
-        LOG.info("subtask[{}] open start", taskNumber);
         this.taskNumber = taskNumber;
         this.numTasks = numTasks;
         this.context = (StreamingRuntimeContext) getRuntimeContext();
         this.checkpointEnabled = context.isCheckpointingEnabled();
-        this.rows = new ArrayList<>(1024);
+        this.batchSize = config.getBatchSize();
+        this.rows = new ArrayList<>(batchSize);
+        this.flushIntervalMills = config.getFlushIntervalMills();
         this.flushEnable = new AtomicBoolean(true);
 
-        ExecutionConfig executionConfig = context.getExecutionConfig();
-        checkpointMode = executionConfig.getGlobalJobParameters().toMap()
-                .getOrDefault("sql.checkpoint.mode", CheckpointingMode.EXACTLY_ONCE.toString());
+        checkpointMode =
+                context.getCheckpointMode() == null
+                        ? CheckpointingMode.AT_LEAST_ONCE
+                        : context.getCheckpointMode();
+
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
         if(vars != null){
             jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");
@@ -188,9 +212,18 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             initErrorLimiter();
             initDirtyDataManager();
         }
-
         openInternal(taskNumber, numTasks);
         this.startTime = System.currentTimeMillis();
+
+        LOG.info(
+                "[{}] open successfully, \ncheckpointMode = {}, \ncheckpointEnabled = {}, \nflushIntervalMills = {}, \nbatchSize = {}, \n[{}]: \n{} ",
+                this.getClass().getSimpleName(),
+                checkpointMode,
+                checkpointEnabled,
+                flushIntervalMills,
+                batchSize,
+                config.getClass().getSimpleName(),
+                JsonUtil.toPrintJson(config));
     }
 
     @Override
@@ -217,7 +250,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     @Override
     public synchronized void close() throws IOException {
-        LOG.info("subtask[{}] close()", taskNumber);
+        LOG.info("taskNumber[{}] close()", taskNumber);
 
         try {
             if (closed) {
@@ -228,8 +261,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 this.scheduler.shutdown();
             }
             // when exist data
-            if (rows.size() != 0) {
+            int size = rows.size();
+            if (size != 0) {
                 writeRecordInternal();
+                numWriteCounter.add(size);
             }
 
             if (durationCounter != null) {
@@ -348,10 +383,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     }
 
     /**
-     * 开启定时提交数据
+     * Turn on timed submission,Each result table is opened separately
      */
     private void initTimingSubmitTask() {
         if (batchSize > 1 && flushIntervalMills > 0) {
+            LOG.info("initTimingSubmitTask() ,initialDelay:{}, delay:{}, MILLISECONDS", flushIntervalMills, flushIntervalMills);
             this.scheduler = new ScheduledThreadPoolExecutor(1, new DTThreadFactory("timer-data-write-thread"));
             this.scheduledFuture = this.scheduler.scheduleWithFixedDelay(() -> {
                 synchronized (BaseRichOutputFormat.this) {
@@ -360,10 +396,12 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                     }
                     try {
                         if(!rows.isEmpty()){
+                            int size = rows.size();
                             writeRecordInternal();
+                            numWriteCounter.add(size);
                         }
                     } catch (Exception e) {
-                        throw new RuntimeException("Writing records failed.", e);
+                        throw new FlinkxRuntimeException("Writing records failed.", e);
                     }
                 }
             }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
@@ -471,12 +509,28 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @return
      */
     public synchronized FormatState getFormatState() throws Exception {
-        flushEnable.compareAndSet(true,false);
-        if (formatState != null) {
-            formatState.setMetric(outputMetric.getMetricCounters());
+        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setMetric(outputMetric.getMetricCounters());
+        LOG.info("format state:{}", formatState.getState());
+        // not EXACTLY_ONCE model,Does not interact with the db
+        if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
+            try {
+                LOG.info("getFormatState:Start preCommit, rowsOfCurrentTransaction: {}", rowsOfCurrentTransaction);
+                preCommit();
+            } catch (Exception e) {
+                LOG.error("preCommit error, e = {}", ExceptionUtil.getErrorMessage(e));
+            } finally {
+                flushEnable.compareAndSet(true, false);
+            }
         }
         return formatState;
     }
+
+    /**
+     * pre commit data
+     * @throws Exception
+     */
+    protected abstract void preCommit() throws Exception;
 
     /**
      * 写出单条数据
@@ -516,27 +570,54 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      *
      * @param checkpointId
      */
-    public synchronized void notifyCheckpointComplete(long checkpointId) throws Exception{
-        flushEnable.compareAndSet(false,true);
+    public synchronized void notifyCheckpointComplete(long checkpointId) {
+        if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
+            try {
+                commit(checkpointId);
+                LOG.info("notifyCheckpointComplete:Commit success , checkpointId:{}", checkpointId);
+            } catch (Exception e) {
+                LOG.error("commit error, e = {}", ExceptionUtil.getErrorMessage(e));
+            } finally {
+                flushEnable.compareAndSet(false, true);
+            }
+        }
     }
+
+    /**
+     * commit data
+     * @param checkpointId
+     * @throws Exception
+     */
+    protected abstract void commit(long checkpointId) throws Exception;
 
     /**
      * checkpoint失败时操作
      *
      * @param checkpointId
      */
-    public abstract void notifyCheckpointAborted(long checkpointId) throws Exception;
+    public synchronized void notifyCheckpointAborted(long checkpointId) {
+        if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
+            try{
+                rollback(checkpointId);
+                LOG.info("notifyCheckpointAborted:rollback success , checkpointId:{}", checkpointId);
+            } catch (Exception e) {
+                LOG.error("rollback error, e = {}", ExceptionUtil.getErrorMessage(e));
+            } finally{
+                flushEnable.compareAndSet(false, true);
+            }
+        }
+    }
+
+    /**
+     * rollback data
+     * @param checkpointId
+     * @throws Exception
+     */
+    protected abstract void rollback(long checkpointId) throws Exception;
+
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;
-    }
-
-    public int getBatchSize() {
-        return batchSize;
-    }
-
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
     }
 
     public String getFormatId() {
@@ -561,10 +642,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     public void setConfig(FlinkxCommonConf config) {
         this.config = config;
-    }
-
-    public void setFlushIntervalMills(long flushIntervalMills) {
-        this.flushIntervalMills = flushIntervalMills;
     }
 
     public void setRowConverter(AbstractRowConverter rowConverter) {

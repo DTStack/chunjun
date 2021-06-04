@@ -27,6 +27,7 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
@@ -57,6 +58,12 @@ public abstract class JdbcSinkFactory extends SinkFactory {
                         .create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), JdbcConf.class);
+        int batchSize = syncConf.getWriter().getIntVal("batchSize", JdbcSinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS.defaultValue());
+        jdbcConf.setBatchSize(batchSize);
+        long flushIntervalMills = syncConf
+                .getWriter()
+                .getLongVal("flushIntervalMills", JdbcSinkOptions.SINK_BUFFER_FLUSH_INTERVAL.defaultValue());
+        jdbcConf.setFlushIntervalMills(flushIntervalMills);
         jdbcConf.setColumn(syncConf.getWriter().getFieldList());
         Properties properties = syncConf.getWriter().getProperties("properties", null);
         jdbcConf.setProperties(properties);
@@ -68,7 +75,6 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         JdbcOutputFormatBuilder builder = getBuilder();
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
-        builder.setBatchSize(jdbcConf.getBatchSize());
         return createOutput(dataSet, builder.finish());
     }
 
