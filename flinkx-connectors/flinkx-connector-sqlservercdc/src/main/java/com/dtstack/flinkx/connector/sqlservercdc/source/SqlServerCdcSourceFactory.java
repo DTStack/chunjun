@@ -20,8 +20,11 @@ package com.dtstack.flinkx.connector.sqlservercdc.source;
 import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
 
 import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcColumnConverter;
+import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcRawTypeConverter;
 import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
 import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
+
+import com.dtstack.flinkx.converter.RawTypeConverter;
 
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -60,11 +63,16 @@ public class SqlservercdcSourceFactory extends SourceFactory {
         if (useAbstractBaseColumn) {
             rowConverter = new SqlServerCdcColumnConverter(sqlServerCdcConf.isPavingData(), sqlServerCdcConf.isSplitUpdate());
         } else {
-            final RowType rowType = (RowType) TableUtil.getDataType(sqlServerCdcConf.getColumn()).getLogicalType();
+            final RowType rowType = (RowType) TableUtil.createRowType(sqlServerCdcConf.getColumn(),getRawTypeConverter());
             TimestampFormat format = "sql".equalsIgnoreCase(sqlServerCdcConf.getTimestampFormat()) ? TimestampFormat.SQL : TimestampFormat.ISO_8601;
             rowConverter = new SqlServerCdcRowConverter(rowType, format);
         }
         builder.setRowConverter(rowConverter);
         return createInput(builder.finish());
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return SqlServerCdcRawTypeConverter::apply;
     }
 }
