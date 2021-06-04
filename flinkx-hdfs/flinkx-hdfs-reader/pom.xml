@@ -59,7 +59,7 @@ under the License.
         <dependency>
             <artifactId>httpclient</artifactId>
             <groupId>org.apache.httpcomponents</groupId>
-            <version>4.5.2</version>
+            <version>4.5.13</version>
         </dependency>
 
     </dependencies>
