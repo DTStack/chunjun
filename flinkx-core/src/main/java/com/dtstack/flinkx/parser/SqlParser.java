@@ -24,6 +24,7 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import com.dtstack.flinkx.exception.DtSqlParserException;
 import com.dtstack.flinkx.util.DtStringUtil;
+import com.dtstack.flinkx.util.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -68,8 +69,8 @@ public class SqlParser {
         sql = DtStringUtil.dealSqlComment(sql);
 
         StatementSet statement = tableEnvironment.createStatementSet();
-
-        List<String> sqlArr = DtStringUtil.splitIgnoreQuota(sql, SQL_DELIMITER);
+        Splitter splitter = new Splitter(SQL_DELIMITER);
+        List<String> sqlArr = splitter.splitEscaped(sql);
         sqlArr = removeAddFileAndJarStmt(sqlArr);
         for (String childSql : sqlArr) {
             if (Strings.isNullOrEmpty(childSql.trim())) {
