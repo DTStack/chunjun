@@ -42,15 +42,15 @@ public class MqttConnectUtil {
      * get MqttClient
      *
      * @param emqxConf conf
-     * @param ClientId id
+     * @param clientId id
      * @return MqttClient
      * @throws MqttException connect failed
      */
-    public static MqttClient getMqttClient(EmqxConf emqxConf, String ClientId) {
+    public static MqttClient getMqttClient(EmqxConf emqxConf, String clientId) {
         MqttClient client = null;
         for (int i = 0; i <= 2; i++) {
             try {
-                client = new MqttClient(emqxConf.getBroker(), ClientId);
+                client = new MqttClient(emqxConf.getBroker(), clientId);
                 MqttConnectOptions options = new MqttConnectOptions();
                 options.setCleanSession(emqxConf.isCleanSession());
                 if (StringUtils.isNotBlank(emqxConf.getUsername())) {
@@ -59,7 +59,7 @@ public class MqttConnectUtil {
                 }
                 options.setAutomaticReconnect(true);
 
-                LOG.info("connect " + i + " times.");
+                LOG.info("connect " + (i + 1) + " times.");
                 client.connect(options);
                 LOG.info("emqx is connected = {} ", client.isConnected());
 
