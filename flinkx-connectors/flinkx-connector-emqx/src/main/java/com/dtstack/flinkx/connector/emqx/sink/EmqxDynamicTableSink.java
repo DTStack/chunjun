@@ -73,7 +73,7 @@ public class EmqxDynamicTableSink implements DynamicTableSink {
         builder.setConverter(new EmqxRowConverter(rowType));
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()),
-                emqxConf.getParallelism());
+                1);
     }
 
     @Override

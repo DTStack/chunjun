@@ -46,6 +46,7 @@ public class EmqxSourceFactory extends SourceFactory {
                         JsonUtil.toJson(syncConf.getReader().getParameter()), EmqxConf.class);
         emqxConf.setColumn(syncConf.getReader().getFieldList());
         super.initFlinkxCommonConf(emqxConf);
+        emqxConf.setParallelism(1);
     }
 
     @Override
