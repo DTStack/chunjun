@@ -216,10 +216,20 @@ public final class ColumnRowData implements RowData, Serializable {
         return null;
     }
 
+    public String getString() {
+        StringBuilder sb = new StringBuilder();
+        return buildString(sb);
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(kind.shortString()).append("(");
+        sb.append(kind.shortString());
+        return buildString(sb);
+    }
+
+    private String buildString(StringBuilder sb){
+        sb.append("(");
         for (int i = 0; i < columnList.size(); i++) {
             if (i != 0) {
                 sb.append(",");
