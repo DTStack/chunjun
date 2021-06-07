@@ -47,6 +47,12 @@ public class FlinkxCommonConf implements Serializable {
     private boolean checkFormat = true;
     /** 并行度 */
     private Integer parallelism = 1;
+    /** table field column conf */
+    private List<FieldConf> column;
+    /** Number of batches written */
+    private int batchSize = 1;
+    /** Time when the timer is regularly written to the database */
+    private long flushIntervalMills = 10000L;
 
     public long getSpeedBytes() {
         return speedBytes;
@@ -112,17 +118,44 @@ public class FlinkxCommonConf implements Serializable {
         this.parallelism = parallelism;
     }
 
+    public List<FieldConf> getColumn() {
+        return column;
+    }
+
+    public void setColumn(List<FieldConf> column) {
+        this.column = column;
+    }
+
+    public int getBatchSize() {
+        return batchSize;
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+    }
+
+    public long getFlushIntervalMills() {
+        return flushIntervalMills;
+    }
+
+    public void setFlushIntervalMills(long flushIntervalMills) {
+        this.flushIntervalMills = flushIntervalMills;
+    }
+
     @Override
     public String toString() {
         return "FlinkxCommonConf{" +
-                "bytes=" + speedBytes +
-                ", record=" + errorRecord +
-                ", percentage=" + errorPercentage +
+                "speedBytes=" + speedBytes +
+                ", errorRecord=" + errorRecord +
+                ", errorPercentage=" + errorPercentage +
                 ", dirtyDataPath='" + dirtyDataPath + '\'' +
                 ", dirtyDataHadoopConf=" + dirtyDataHadoopConf +
                 ", fieldNameList=" + fieldNameList +
                 ", checkFormat=" + checkFormat +
                 ", parallelism=" + parallelism +
+                ", column=" + column +
+                ", batchSize=" + batchSize +
+                ", flushIntervalMills=" + flushIntervalMills +
                 '}';
     }
 }

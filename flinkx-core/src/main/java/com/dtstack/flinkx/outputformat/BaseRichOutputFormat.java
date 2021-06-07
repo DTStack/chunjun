@@ -187,7 +187,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.numTasks = numTasks;
         this.context = (StreamingRuntimeContext) getRuntimeContext();
         this.checkpointEnabled = context.isCheckpointingEnabled();
-        this.rows = new ArrayList<>(1024);
+        this.batchSize = config.getBatchSize();
+        this.rows = new ArrayList<>(batchSize);
+        this.flushIntervalMills = config.getFlushIntervalMills();
         this.flushEnable = new AtomicBoolean(true);
 
         checkpointMode =
@@ -618,14 +620,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.formatState = formatState;
     }
 
-    public int getBatchSize() {
-        return batchSize;
-    }
-
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
-    }
-
     public String getFormatId() {
         return formatId;
     }
@@ -648,10 +642,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     public void setConfig(FlinkxCommonConf config) {
         this.config = config;
-    }
-
-    public void setFlushIntervalMills(long flushIntervalMills) {
-        this.flushIntervalMills = flushIntervalMills;
     }
 
     public void setRowConverter(AbstractRowConverter rowConverter) {
