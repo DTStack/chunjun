@@ -15,13 +15,13 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-jdbc-base</artifactId>
+			<artifactId>flinkx-connector-postgresql</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.pivotal</groupId>
 			<artifactId>greenplum-jdbc</artifactId>
-			<version>5.1.4</version>
+			<version>5.1.4.000275</version>
 		</dependency>
 	</dependencies>
 

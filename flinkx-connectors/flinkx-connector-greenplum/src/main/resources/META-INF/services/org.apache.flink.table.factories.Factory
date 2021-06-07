@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-com.dtstack.flinkx.connector.oracle.table.OracleDynamicTableFactory
+com.dtstack.flinkx.connector.greenplum.table.GreenplumDynamicTableFactory

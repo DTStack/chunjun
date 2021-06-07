@@ -20,22 +20,17 @@ package com.dtstack.flinkx.connector.greenplum.table;
 
 import com.dtstack.flinkx.connector.greenplum.GreenplumDialect;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
+import com.dtstack.flinkx.connector.postgresql.table.PostgresqlDynamicTableFactory;
 
 /**
  * company www.dtstack.com
  *
  * @author jier
  */
-public class GreenplumDynamicTableFactory extends JdbcDynamicTableFactory {
+public class GreenplumDynamicTableFactory extends PostgresqlDynamicTableFactory {
 
     /** 通过该值查找具体插件 */
     private static final String IDENTIFIER = "greenplum-x";
-
-    @Override
-    public String factoryIdentifier() {
-        return IDENTIFIER;
-    }
 
     @Override
     protected JdbcDialect getDialect() {
