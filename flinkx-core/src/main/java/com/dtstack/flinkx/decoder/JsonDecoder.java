@@ -21,6 +21,7 @@ import com.dtstack.flinkx.util.GsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -30,7 +31,10 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class JsonDecoder implements IDecode {
+public class JsonDecoder implements IDecode, Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private static Logger LOG = LoggerFactory.getLogger(JsonDecoder.class);
 
     private static final String KEY_MESSAGE = "message";
