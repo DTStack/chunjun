@@ -66,7 +66,9 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() {}
+    protected void writeMultipleRecordsInternal() {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     protected void closeInternal() {
