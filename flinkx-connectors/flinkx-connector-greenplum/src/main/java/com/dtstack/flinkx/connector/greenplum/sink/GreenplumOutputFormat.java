@@ -16,29 +16,26 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.greenplum.table;
+package com.dtstack.flinkx.connector.greenplum.sink;
 
-import com.dtstack.flinkx.connector.greenplum.GreenplumDialect;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
+import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.connector.greenplum.converter.GreenplumRawTypeConverter;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * company www.dtstack.com
  *
  * @author jier
  */
-public class GreenplumDynamicTableFactory extends JdbcDynamicTableFactory {
-
-    /** 通过该值查找具体插件 */
-    private static final String IDENTIFIER = "greenplum-x";
+public class GreenplumOutputFormat extends JdbcOutputFormat {
 
     @Override
-    protected JdbcDialect getDialect() {
-        return new GreenplumDialect();
-    }
-
-    @Override
-    public String factoryIdentifier() {
-        return IDENTIFIER;
+    protected void openInternal(int taskNumber, int numTasks) {
+        super.openInternal(taskNumber, numTasks);
+        RowType rowType =
+                TableUtil.createRowType(columnNameList, columnTypeList, GreenplumRawTypeConverter::apply);
+        setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 }

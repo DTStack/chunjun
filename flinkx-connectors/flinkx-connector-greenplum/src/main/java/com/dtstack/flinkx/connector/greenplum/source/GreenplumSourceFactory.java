@@ -16,29 +16,36 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.greenplum.table;
+package com.dtstack.flinkx.connector.greenplum.source;
 
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.greenplum.GreenplumDialect;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
+import com.dtstack.flinkx.connector.greenplum.converter.GreenplumRawTypeConverter;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 
 /**
  * company www.dtstack.com
  *
  * @author jier
  */
-public class GreenplumDynamicTableFactory extends JdbcDynamicTableFactory {
+public class GreenplumSourceFactory extends JdbcSourceFactory {
 
-    /** 通过该值查找具体插件 */
-    private static final String IDENTIFIER = "greenplum-x";
-
-    @Override
-    protected JdbcDialect getDialect() {
-        return new GreenplumDialect();
+    public GreenplumSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+        super(syncConf, env);
+        super.jdbcDialect = new GreenplumDialect();
     }
 
     @Override
-    public String factoryIdentifier() {
-        return IDENTIFIER;
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new GreenplumInputFormat());
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return GreenplumRawTypeConverter::apply;
     }
 }

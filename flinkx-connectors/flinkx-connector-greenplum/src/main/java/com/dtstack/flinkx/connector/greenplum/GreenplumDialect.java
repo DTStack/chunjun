@@ -48,4 +48,21 @@ public class GreenplumDialect extends PostgresqlDialect {
         return Optional.of(DRIVER);
     }
 
+    @Override
+    public Optional<String> getUpsertStatement(
+            String schema,
+            String tableName,
+            String[] fieldNames,
+            String[] uniqueKeyFields,
+            boolean allReplace) {
+        throw new RuntimeException("Greenplum does not support upsert sql");
+    }
+
+    @Override
+    public Optional<String> getReplaceStatement(
+            String schema,
+            String tableName,
+            String[] fieldNames) {
+        throw new RuntimeException("Greenplum does not support replace sql");
+    }
 }
