@@ -105,7 +105,7 @@ public class EmqxDynamicTableSource implements ScanTableSource {
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
                 false,
-                emqxConf.getParallelism());
+                1);
     }
 
     @Override

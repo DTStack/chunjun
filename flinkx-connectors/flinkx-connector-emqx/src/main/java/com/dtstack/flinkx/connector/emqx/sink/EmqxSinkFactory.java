@@ -46,6 +46,7 @@ public class EmqxSinkFactory extends SinkFactory {
                         JsonUtil.toJson(syncConf.getWriter().getParameter()), EmqxConf.class);
         emqxConf.setColumn(syncConf.getReader().getFieldList());
         super.initFlinkxCommonConf(emqxConf);
+        emqxConf.setParallelism(1);
     }
 
     @Override
