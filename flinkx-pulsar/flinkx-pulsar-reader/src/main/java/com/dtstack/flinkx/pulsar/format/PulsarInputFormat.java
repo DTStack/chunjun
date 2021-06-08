@@ -40,6 +40,7 @@ public class PulsarInputFormat extends BaseRichInputFormat {
     protected String fieldDelimiter;
     protected boolean blankIgnore;
     protected int timeout;
+    protected String pulsarServiceUrl;
     protected List<MetaColumn> metaColumns;
     protected Map<String, Object> consumerSettings;
 
@@ -148,6 +149,10 @@ public class PulsarInputFormat extends BaseRichInputFormat {
 
     public int getTimeout() {
         return timeout;
+    }
+
+    public String getPulsarServiceUrl() {
+        return pulsarServiceUrl;
     }
 
     public Map<String, Object> getConsumerSettings() {
