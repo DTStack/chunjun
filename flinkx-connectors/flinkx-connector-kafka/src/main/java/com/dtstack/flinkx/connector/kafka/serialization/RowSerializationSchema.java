@@ -17,17 +17,16 @@
  */
 package com.dtstack.flinkx.connector.kafka.serialization;
 
-import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.Collector;
 
-import com.dtstack.flinkx.connector.kafka.source.Calculate;
-import com.dtstack.flinkx.connector.kafka.source.DynamicKafkaDeserializationSchemaWrapper;
+import com.dtstack.flinkx.connector.kafka.sink.DynamicKafkaSerializationSchema;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import javax.annotation.Nullable;
 
 /**
  * Date: 2021/03/04
@@ -35,42 +34,41 @@ import java.nio.charset.StandardCharsets;
  *
  * @author tudou
  */
-public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaWrapper {
+public class RowSerializationSchema extends DynamicKafkaSerializationSchema {
+
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private static final long serialVersionUID = 1L;
     /** kafka converter */
-    private final AbstractRowConverter converter;
+    private final AbstractRowConverter<String, Object, ProducerRecord, String> converter;
 
-    public RowDeserializationSchema(
-            AbstractRowConverter converter,
-            Calculate calculate) {
+    public RowSerializationSchema(String topic, AbstractRowConverter converter) {
         super(
-                1,
+                topic,
                 null,
                 null,
                 null,
-                null,
-                false,
                 null,
                 null,
                 false,
-                calculate);
+                null,
+                false);
         this.converter = converter;
     }
 
     @Override
-    public void open(DeserializationSchema.InitializationContext context) {
+    public void open(SerializationSchema.InitializationContext context) throws Exception {
 
     }
 
     @Override
-    public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector) throws IOException {
-        String msg = new String(record.value(), StandardCharsets.UTF_8);
+    public ProducerRecord<byte[], byte[]> serialize(RowData element, @Nullable Long timestamp) {
         try {
-            collector.collect(converter.toInternal(msg));
+            return converter.toExternal(element, null);
         } catch (Exception e) {
-            // todo kafka 比较特殊这里直接对接脏数据即可
-            LOG.error(msg + ":" + e.getMessage());
+            // todo kafka比较特殊，这里直接记录脏数据。
+            LOG.error(e.getMessage());
         }
+        return null;
     }
 }

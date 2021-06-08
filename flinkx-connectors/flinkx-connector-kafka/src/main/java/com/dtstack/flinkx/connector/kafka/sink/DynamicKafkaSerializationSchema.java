@@ -40,7 +40,7 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 
 /** A specific {@link KafkaSerializationSchema} for {@link org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicSink}. */
-class DynamicKafkaSerializationSchema
+public class DynamicKafkaSerializationSchema
         implements KafkaSerializationSchema<RowData>, KafkaContextAware<RowData> {
 
     private static final long serialVersionUID = 1L;
@@ -78,7 +78,7 @@ class DynamicKafkaSerializationSchema
 
     private transient RuntimeContext runtimeContext;
 
-    DynamicKafkaSerializationSchema(
+    public DynamicKafkaSerializationSchema(
             String topic,
             @Nullable FlinkKafkaPartitioner<RowData> partitioner,
             @Nullable SerializationSchema<RowData> keySerialization,

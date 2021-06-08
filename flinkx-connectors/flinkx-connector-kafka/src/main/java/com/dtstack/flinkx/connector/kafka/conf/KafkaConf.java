@@ -19,7 +19,6 @@ package com.dtstack.flinkx.connector.kafka.conf;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
-import com.dtstack.flinkx.connector.kafka.enums.FormatType;
 
 import java.util.List;
 import java.util.Map;
@@ -35,14 +34,10 @@ import java.util.UUID;
 
 public class KafkaConf extends FlinkxCommonConf {
 
-    /** kafka地址 */
-    private String bootstrapServers;
     /** source 读取数据的格式 */
     private String codec = "text";
     /** kafka topic */
     private String topic;
-    /** 是否开启topic正则匹配 */
-    private Boolean topicIsPattern = false;
     /** 默认需要一个groupId */
     private String groupId = UUID.randomUUID().toString().replace("-", "");
     /** kafka启动模式 */
@@ -53,32 +48,10 @@ public class KafkaConf extends FlinkxCommonConf {
     private long timestamp = -1L;
     /** kafka其他原生参数 */
     private Map<String, String> consumerSettings;
-    /** 数据格式的类型 */
-    private String sourceDataType = FormatType.DT_NEST.name();
-    /** sourceDataType为csv时才生效 */
-    private String schemaInfo;
-    /** csv字段默认分隔符 */
-    private String fieldDelimiter = ",";
-    /**kafka地址*/
-    private String brokerList;
-    /**是否开启按照key分区写入partition*/
-    private String enableKeyPartition;
-    /**对应的enableKeyPartition的key*/
-    private String partitionKeys;
-    /**kafka其他原生参数*/
+    /** kafka其他原生参数 */
     private Map<String, String> producerSettings;
-    /**字段映射配置。从reader插件传递到writer插件的的数据只包含其value属性，配置该参数后可将其还原成键值对类型json字符串输出。*/
+    /** 字段映射配置。从reader插件传递到writer插件的的数据只包含其value属性，配置该参数后可将其还原成键值对类型json字符串输出。 */
     private List<String> tableFields;
-    /**结果数据的写入方式*/
-    private String sinkDataType = FormatType.JSON.name();
-
-    public String getBootstrapServers() {
-        return bootstrapServers;
-    }
-
-    public void setBootstrapServers(String bootstrapServers) {
-        this.bootstrapServers = bootstrapServers;
-    }
 
     public String getCodec() {
         return codec;
@@ -94,14 +67,6 @@ public class KafkaConf extends FlinkxCommonConf {
 
     public void setTopic(String topic) {
         this.topic = topic;
-    }
-
-    public Boolean getTopicIsPattern() {
-        return topicIsPattern;
-    }
-
-    public void setTopicIsPattern(Boolean topicIsPattern) {
-        this.topicIsPattern = topicIsPattern;
     }
 
     public String getGroupId() {
@@ -144,54 +109,6 @@ public class KafkaConf extends FlinkxCommonConf {
         this.consumerSettings = consumerSettings;
     }
 
-    public String getSourceDataType() {
-        return sourceDataType;
-    }
-
-    public void setSourceDataType(String sourceDataType) {
-        this.sourceDataType = sourceDataType;
-    }
-
-    public String getSchemaInfo() {
-        return schemaInfo;
-    }
-
-    public void setSchemaInfo(String schemaInfo) {
-        this.schemaInfo = schemaInfo;
-    }
-
-    public String getFieldDelimiter() {
-        return fieldDelimiter;
-    }
-
-    public void setFieldDelimiter(String fieldDelimiter) {
-        this.fieldDelimiter = fieldDelimiter;
-    }
-
-    public String getBrokerList() {
-        return brokerList;
-    }
-
-    public void setBrokerList(String brokerList) {
-        this.brokerList = brokerList;
-    }
-
-    public String getEnableKeyPartition() {
-        return enableKeyPartition;
-    }
-
-    public void setEnableKeyPartition(String enableKeyPartition) {
-        this.enableKeyPartition = enableKeyPartition;
-    }
-
-    public String getPartitionKeys() {
-        return partitionKeys;
-    }
-
-    public void setPartitionKeys(String partitionKeys) {
-        this.partitionKeys = partitionKeys;
-    }
-
     public Map<String, String> getProducerSettings() {
         return producerSettings;
     }
@@ -208,35 +125,18 @@ public class KafkaConf extends FlinkxCommonConf {
         this.tableFields = tableFields;
     }
 
-    public String getSinkDataType() {
-        return sinkDataType;
-    }
-
-    public void setSinkDataType(String sinkDataType) {
-        this.sinkDataType = sinkDataType;
-    }
-
     @Override
     public String toString() {
         return "KafkaConf{" +
-                "bootstrapServers='" + bootstrapServers + '\'' +
                 ", codec='" + codec + '\'' +
                 ", topic='" + topic + '\'' +
-                ", topicIsPattern=" + topicIsPattern +
                 ", groupId='" + groupId + '\'' +
                 ", mode=" + mode +
                 ", offset='" + offset + '\'' +
                 ", timestamp=" + timestamp +
                 ", consumerSettings=" + consumerSettings +
-                ", sourceDataType='" + sourceDataType + '\'' +
-                ", schemaInfo='" + schemaInfo + '\'' +
-                ", fieldDelimiter='" + fieldDelimiter + '\'' +
-                ", brokerList='" + brokerList + '\'' +
-                ", enableKeyPartition='" + enableKeyPartition + '\'' +
-                ", partitionKeys='" + partitionKeys + '\'' +
                 ", producerSettings=" + producerSettings +
                 ", tableFields=" + tableFields +
-                ", sinkDataType='" + sinkDataType + '\'' +
                 '}';
     }
 }
