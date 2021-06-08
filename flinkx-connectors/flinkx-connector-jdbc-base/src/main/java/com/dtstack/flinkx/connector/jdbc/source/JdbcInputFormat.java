@@ -31,6 +31,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metrics.BigIntegerAccmulator;
 import com.dtstack.flinkx.metrics.StringAccumulator;
@@ -42,7 +43,6 @@ import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Date;
@@ -159,7 +159,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public RowData nextRecordInternal(RowData rowData) throws IOException {
+    public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         if (!hasNext) {
             return null;
         }
@@ -189,10 +189,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             hasNext = resultSet.next();
             lastRow = finalRowData;
             return finalRowData;
-        } catch (SQLException se) {
-            throw new IOException("Couldn't read data - " + se.getMessage(), se);
-        } catch (Exception npe) {
-            throw new IOException("Couldn't access resultSet", npe);
+        } catch (Exception se) {
+            throw new ReadRecordException("", se, 0, rowData);
         }
     }
 

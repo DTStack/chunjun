@@ -35,7 +35,6 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -56,8 +55,9 @@ import static com.dtstack.flinkx.connector.kafka.option.KafkaOptions.DEFAULT_COD
  * @author chuixue
  * @create 2021-06-07 15:51
  * @description
- **/
-public class KafkaColumnConverter extends AbstractRowConverter<String, Object, ProducerRecord, String> {
+ */
+public class KafkaColumnConverter
+        extends AbstractRowConverter<String, Object, ProducerRecord, String> {
 
     /** source kafka msg decode */
     private IDecode decode;
@@ -80,21 +80,21 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, P
         // Only json need to extract the fields
         if (!CollectionUtils.isEmpty(kafkaConf.getColumn())
                 && DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
-            List<String> typeList = kafkaConf.getColumn()
-                    .stream()
-                    .map(FieldConf::getType)
-                    .collect(Collectors.toList());
+            List<String> typeList =
+                    kafkaConf.getColumn().stream()
+                            .map(FieldConf::getType)
+                            .collect(Collectors.toList());
             this.toInternalConverters = new IDeserializationConverter[typeList.size()];
             for (int i = 0; i < typeList.size(); i++) {
-                toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
+                toInternalConverters[i] =
+                        wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
             }
         }
     }
 
     @Override
     protected ISerializationConverter wrapIntoNullableExternalConverter(
-            ISerializationConverter ISerializationConverter,
-            String type) {
+            ISerializationConverter ISerializationConverter, String type) {
         return null;
     }
 
@@ -124,36 +124,31 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, P
     @Override
     public ProducerRecord toExternal(RowData rowData, ProducerRecord output) throws Exception {
         Map<String, Object> map;
-        try {
-            int arity = rowData.getArity();
-            ColumnRowData row = (ColumnRowData) rowData;
+        int arity = rowData.getArity();
+        ColumnRowData row = (ColumnRowData) rowData;
 
-            if (kafkaConf.getTableFields() != null
-                    && kafkaConf.getTableFields().size() >= arity
-                    && !(row.getField(0) instanceof MapColumn)) {
-                map = new LinkedHashMap<>((arity << 2) / 3);
-                for (int i = 0; i < arity; i++) {
-                    map.put(
-                            kafkaConf.getTableFields().get(i),
-                            org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
-                }
-            } else {
-                if (arity == 1) {
-                    Object obj = row.getField(0);
-                    if (obj instanceof MapColumn) {
-                        map = (Map<String, Object>) ((MapColumn) obj).getData();
-                    } else if (obj instanceof StringColumn) {
-                        map = jsonDecoder.decode(obj.toString());
-                    } else {
-                        map = Collections.singletonMap("message", row.toString());
-                    }
+        if (kafkaConf.getTableFields() != null
+                && kafkaConf.getTableFields().size() >= arity
+                && !(row.getField(0) instanceof MapColumn)) {
+            map = new LinkedHashMap<>((arity << 2) / 3);
+            for (int i = 0; i < arity; i++) {
+                map.put(
+                        kafkaConf.getTableFields().get(i),
+                        org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
+            }
+        } else {
+            if (arity == 1) {
+                Object obj = row.getField(0);
+                if (obj instanceof MapColumn) {
+                    map = (Map<String, Object>) ((MapColumn) obj).getData();
+                } else if (obj instanceof StringColumn) {
+                    map = jsonDecoder.decode(obj.toString());
                 } else {
                     map = Collections.singletonMap("message", row.toString());
                 }
+            } else {
+                map = Collections.singletonMap("message", row.toString());
             }
-        } catch (Exception e) {
-            // todo 数据处理异常异常信息不够
-            throw new WriteRecordException(e.getMessage(), e);
         }
         byte[] bytes = MapUtil.writeValueAsString(map).getBytes(StandardCharsets.UTF_8);
         return new ProducerRecord<>(kafkaConf.getTopic(), bytes, bytes);

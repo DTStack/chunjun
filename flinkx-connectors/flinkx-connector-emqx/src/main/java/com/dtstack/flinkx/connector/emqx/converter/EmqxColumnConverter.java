@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.emqx.converter;
 
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -28,12 +31,7 @@ import com.dtstack.flinkx.decoder.TextDecoder;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.MapUtil;
-
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.Collections;
@@ -87,39 +85,34 @@ public class EmqxColumnConverter
 
     @Override
     public MqttMessage toExternal(RowData rowData, MqttMessage output) throws Exception {
-        try {
-            Map<String, Object> map;
-            int arity = rowData.getArity();
-            ColumnRowData row = (ColumnRowData) rowData;
+        Map<String, Object> map;
+        int arity = rowData.getArity();
+        ColumnRowData row = (ColumnRowData) rowData;
 
-            if (emqxConf.getTableFields() != null
-                    && emqxConf.getTableFields().size() >= arity
-                    && !(row.getField(0) instanceof MapColumn)) {
-                map = new LinkedHashMap<>((arity << 2) / 3);
-                for (int i = 0; i < arity; i++) {
-                    map.put(
-                            emqxConf.getTableFields().get(i),
-                            org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
-                }
-            } else if (arity == 1) {
-                Object obj = row.getField(0);
-                if (obj instanceof MapColumn) {
-                    map = (Map<String, Object>) ((MapColumn) obj).getData();
-                } else if (obj instanceof StringColumn) {
-                    map = jsonDecoder.decode(obj.toString());
-                } else {
-                    map = Collections.singletonMap("message", row.getString());
-                }
+        if (emqxConf.getTableFields() != null
+                && emqxConf.getTableFields().size() >= arity
+                && !(row.getField(0) instanceof MapColumn)) {
+            map = new LinkedHashMap<>((arity << 2) / 3);
+            for (int i = 0; i < arity; i++) {
+                map.put(
+                        emqxConf.getTableFields().get(i),
+                        org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
+            }
+        } else if (arity == 1) {
+            Object obj = row.getField(0);
+            if (obj instanceof MapColumn) {
+                map = (Map<String, Object>) ((MapColumn) obj).getData();
+            } else if (obj instanceof StringColumn) {
+                map = jsonDecoder.decode(obj.toString());
             } else {
                 map = Collections.singletonMap("message", row.getString());
             }
-
-            MqttMessage message = new MqttMessage(MapUtil.writeValueAsString(map).getBytes());
-            return message;
-        } catch (Exception e) {
-            // todo 数据处理异常异常信息不够
-            throw new WriteRecordException(e.getMessage(), e);
+        } else {
+            map = Collections.singletonMap("message", row.getString());
         }
+
+        MqttMessage message = new MqttMessage(MapUtil.writeValueAsString(map).getBytes());
+        return message;
     }
 
     @Override

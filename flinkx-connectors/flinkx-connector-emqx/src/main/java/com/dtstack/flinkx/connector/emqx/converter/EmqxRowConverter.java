@@ -30,11 +30,9 @@ import org.apache.flink.table.types.logical.TimestampType;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.JsonUtil;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.Time;
@@ -80,7 +78,7 @@ public class EmqxRowConverter extends AbstractRowConverter<String, Object, Objec
     }
 
     @Override
-    public RowData toInternal(String input) throws IOException {
+    public RowData toInternal(String input) throws Exception {
         return valueDeserialization.deserialize(input.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -91,16 +89,11 @@ public class EmqxRowConverter extends AbstractRowConverter<String, Object, Objec
 
     @Override
     public Object toExternal(RowData rowData, Object output) throws Exception {
-        try {
-            GenericRowData genericRowData = new GenericRowData(rowData.getArity());
-            for (int index = 0; index < rowData.getArity(); index++) {
-                toExternalConverters[index].serialize(rowData, index, genericRowData);
-            }
-            return new MqttMessage(JsonUtil.toBytes(genericRowData.toString()));
-        } catch (Exception e) {
-            // todo 数据处理异常异常信息不够
-            throw new WriteRecordException(e.getMessage(), e);
+        GenericRowData genericRowData = new GenericRowData(rowData.getArity());
+        for (int index = 0; index < rowData.getArity(); index++) {
+            toExternalConverters[index].serialize(rowData, index, genericRowData);
         }
+        return new MqttMessage(JsonUtil.toBytes(genericRowData.toString()));
     }
 
     @Override

@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.emqx.sink;
 
+import com.dtstack.flinkx.exception.WriteRecordException;
+
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
@@ -52,7 +54,7 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeSingleRecordInternal(RowData rowData) {
+    protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
             MqttMessage message = (MqttMessage) rowConverter.toExternal(rowData, null);
             message.setQos(emqxConf.getQos());
@@ -60,8 +62,7 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
         } catch (MqttException e) {
             throw new RuntimeException(e);
         } catch (Exception e) {
-            // todo 这里需要往上抛，并且这里要将两个异常分开
-            LOG.error(e.getMessage());
+            throw new WriteRecordException("", e, 0, rowData);
         }
     }
 

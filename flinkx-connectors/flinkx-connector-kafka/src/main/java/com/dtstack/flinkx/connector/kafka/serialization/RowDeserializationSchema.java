@@ -64,7 +64,7 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaW
     }
 
     @Override
-    public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector) throws IOException {
+    public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector) {
         String msg = new String(record.value(), StandardCharsets.UTF_8);
         try {
             collector.collect(converter.toInternal(msg));

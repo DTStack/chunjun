@@ -84,7 +84,7 @@ public class JdbcColumnConverter
     }
 
     @Override
-    public RowData toInternalLookup(JsonArray jsonArray) throws Exception {
+    public RowData toInternalLookup(JsonArray jsonArray) {
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = jsonArray.getValue(pos);
