@@ -16,38 +16,34 @@
  * limitations under the License.
  */
 
+package com.dtstack.flinkx.sql.parser;
 
-package com.dtstack.flinkx.parser;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.net.URL;
 import java.util.List;
 
 /**
- * 解析flink sql
- * sql 只支持 insert 开头的
- * Date: 2018/6/22
- * Company: www.dtstack.com
- *
- * @author xuchao
+ * @author Ada Wong
+ * @program flinkx
+ * @create 2021/06/08
  */
-
-public class InsertSqlParser implements IParser {
-
-    public static InsertSqlParser newInstance() {
-        return new InsertSqlParser();
-    }
+public class InsertStmtParser extends AbstractStmtParser {
 
     @Override
-    public boolean verify(String sql) {
+    public boolean canHandle(String sql) {
         return StringUtils.isNotBlank(sql) && sql.trim().toLowerCase().startsWith("insert");
     }
 
     @Override
-    public void execSql(String sql, StreamTableEnvironment tableEnvironment, StatementSet statementSet, List<URL> jarUrlList) {
+    public void execStmt(
+            String sql,
+            StreamTableEnvironment tableEnvironment,
+            StatementSet statementSet,
+            List<URL> jarUrlList) {
         statementSet.addInsertSql(sql);
     }
 }

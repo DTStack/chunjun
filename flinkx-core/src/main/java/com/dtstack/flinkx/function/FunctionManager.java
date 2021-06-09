@@ -20,6 +20,8 @@
 package com.dtstack.flinkx.function;
 
 
+import com.dtstack.flinkx.throwable.FlinkxSqlParseException;
+
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.functions.AggregateFunction;
@@ -42,18 +44,18 @@ public class FunctionManager {
     private static final Logger logger = LoggerFactory.getLogger(FunctionManager.class);
 
     /**
-     * TABLE|SCALA|AGGREGATE
+     * TABLE|SCALAR|AGGREGATE
      * 注册UDF到table env
      */
     public static void registerUDF(String type, String classPath, String funcName, TableEnvironment tableEnv, ClassLoader classLoader) {
-        if ("SCALA".equalsIgnoreCase(type)) {
-            registerScalaUDF(classPath, funcName, tableEnv, classLoader);
+        if ("SCALAR".equalsIgnoreCase(type)) {
+            registerScalarUDF(classPath, funcName, tableEnv, classLoader);
         } else if ("TABLE".equalsIgnoreCase(type)) {
             registerTableUDF(classPath, funcName, tableEnv, classLoader);
         } else if ("AGGREGATE".equalsIgnoreCase(type)) {
             registerAggregateUDF(classPath, funcName, tableEnv, classLoader);
         } else {
-            throw new RuntimeException("not support of UDF which is not in (TABLE, SCALA, AGGREGATE)");
+            throw new FlinkxSqlParseException("not support of UDF which is not in (TABLE, SCALAR, AGGREGATE)");
         }
     }
 
@@ -64,12 +66,12 @@ public class FunctionManager {
      * @param funcName
      * @param tableEnv
      */
-    public static void registerScalaUDF(String classPath, String funcName, TableEnvironment tableEnv, ClassLoader classLoader) {
+    public static void registerScalarUDF(String classPath, String funcName, TableEnvironment tableEnv, ClassLoader classLoader) {
         try {
             ScalarFunction udfFunc = Class.forName(classPath, false, classLoader)
                 .asSubclass(ScalarFunction.class).newInstance();
             tableEnv.registerFunction(funcName, udfFunc);
-            logger.info("register scala function:{} success.", funcName);
+            logger.info("register scalar function:{} success.", funcName);
         } catch (Exception e) {
             logger.error("", e);
             throw new RuntimeException("register UDF exception:", e);

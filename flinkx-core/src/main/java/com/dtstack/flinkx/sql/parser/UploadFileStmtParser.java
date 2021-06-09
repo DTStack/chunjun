@@ -16,8 +16,7 @@
  * limitations under the License.
  */
 
-
-package com.dtstack.flinkx.parser;
+package com.dtstack.flinkx.sql.parser;
 
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
@@ -27,35 +26,29 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * parser create tmp table sql
- * Date: 2018/6/26
- * Company: www.dtstack.com
+ * Remove add file and jar with statment etc. add file /etc/krb5.conf, add jar xxx.jar; This
+ * statement is userd to upload files.
  *
- * @author yanxi
+ * @author Ada Wong
+ * @program flinkx
+ * @create 2021/06/08
  */
-public class CreateTmpTableParser implements IParser {
+public class UploadFileStmtParser extends AbstractStmtParser {
 
-    //select table tableName as select
-    private static final String TEMPORARY_STR = "(?i)create\\s+(temporary\\s+)?view\\s+(if\\s+not\\s+exists\\s+)?([^\\s]+)\\s+as\\s+select\\s+(.*)";
+    private static final Pattern ADD_FILE_AND_JAR_PATTERN =
+            Pattern.compile("(?i).*add\\s+file\\s+.+|(?i).*add\\s+jar\\s+.+");
 
-    private static final String EMPTY_STR = "(?i)^\\screate\\s+view\\s+(\\S+)\\s*\\((.+)\\)$";
-
-    private static final Pattern TEMPORARYVIEW = Pattern.compile(TEMPORARY_STR);
-
-    public static CreateTmpTableParser newInstance() {
-        return new CreateTmpTableParser();
+    @Override
+    public boolean canHandle(String stmt) {
+        return ADD_FILE_AND_JAR_PATTERN.matcher(stmt).find();
     }
 
     @Override
-    public boolean verify(String sql) {
-        if (Pattern.compile(EMPTY_STR).matcher(sql).find()) {
-            return true;
-        }
-        return TEMPORARYVIEW.matcher(sql).find();
-    }
-
-    @Override
-    public void execSql(String sql, StreamTableEnvironment tableEnvironment, StatementSet statementSet, List<URL> jarUrlList) {
-        tableEnvironment.executeSql(sql);
+    public void execStmt(
+            String stmt,
+            StreamTableEnvironment tEnv,
+            StatementSet statementSet,
+            List<URL> jarUrlList) {
+        // do nothing.
     }
 }

@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
+package com.dtstack.flinkx.sql.parser;
 
-package com.dtstack.flinkx.parser;
+import org.apache.flink.table.api.StatementSet;
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.function.FunctionManager;
-import org.apache.flink.table.api.StatementSet;
-import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
+import com.dtstack.flinkx.throwable.FlinkxSqlParseException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -32,40 +33,44 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * parser register udf sql
- * Date: 2018/6/26
- * Company: www.dtstack.com
- *
- * @author xuchao
+ * @author Ada Wong
+ * @program flinkx
+ * @create 2021/06/08
  */
+public class CreateFunctionStmtParser extends AbstractStmtParser {
 
-public class CreateFuncParser implements IParser {
-
-    private static final String FUNC_PATTERN_STR = "(?i)\\s*create\\s+(scala|table|aggregate)\\s+function\\s+(\\S+)\\s+WITH\\s+(\\S+)";
+    private static final String FUNC_PATTERN_STR =
+            "(?i)\\s*CREATE\\s+(scalar|table|aggregate)\\s+FUNCTION\\s+(\\S+)\\s+WITH\\s+(\\S+)";
 
     private static final Pattern FUNC_PATTERN = Pattern.compile(FUNC_PATTERN_STR);
 
-    public static CreateFuncParser newInstance() {
-        return new CreateFuncParser();
+    @Override
+    public boolean canHandle(String stmt) {
+        return FUNC_PATTERN.matcher(stmt).find();
     }
 
     @Override
-    public boolean verify(String sql) {
-        return FUNC_PATTERN.matcher(sql).find();
-    }
-
-    @Override
-    public void execSql(String sql, StreamTableEnvironment tableEnvironment, StatementSet statementSet, List<URL> jarUrlList) throws InvocationTargetException, IllegalAccessException {
-        if (FUNC_PATTERN.matcher(sql).find()) {
-            Matcher matcher = FUNC_PATTERN.matcher(sql);
+    public void execStmt(
+            String stmt,
+            StreamTableEnvironment tEnv,
+            StatementSet statementSet,
+            List<URL> jarUrlList) {
+        if (FUNC_PATTERN.matcher(stmt).find()) {
+            Matcher matcher = FUNC_PATTERN.matcher(stmt);
             if (matcher.find()) {
                 String type = matcher.group(1);
                 String funcName = matcher.group(2);
                 String className = matcher.group(3);
 
                 ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
-                URLClassLoader classLoader = ClassLoaderManager.loadExtraJar(jarUrlList, (URLClassLoader) currentClassLoader);
-                FunctionManager.registerUDF(type, className, funcName, tableEnvironment, classLoader);
+                try {
+                    URLClassLoader classLoader =
+                            ClassLoaderManager.loadExtraJar(
+                                    jarUrlList, (URLClassLoader) currentClassLoader);
+                    FunctionManager.registerUDF(type, className, funcName, tEnv, classLoader);
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    throw new FlinkxSqlParseException(e);
+                }
             }
         }
     }
