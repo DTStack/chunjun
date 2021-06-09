@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx;
 
+
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -53,9 +54,9 @@ import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.exec.ExecuteProcessHelper;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.parser.SqlParser;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.sql.parser.SqlParser;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MathUtil;

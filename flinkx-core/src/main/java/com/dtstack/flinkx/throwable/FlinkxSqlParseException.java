@@ -22,20 +22,20 @@ package com.dtstack.flinkx.throwable;
  * @author tiezhu
  * @since 2021/4/28 4:16 下午
  */
-public class FlinkxParseException extends FlinkxRuntimeException {
+public class FlinkxSqlParseException extends FlinkxRuntimeException {
 
     private static final long serialVersionUID = 140340324748507369L;
 
-    public FlinkxParseException(String sql) {
+    public FlinkxSqlParseException(String sql) {
 
         super(String.format("Parse SQL fail! Current SQL : \n%s", sql));
     }
 
-    public FlinkxParseException(Throwable cause) {
+    public FlinkxSqlParseException(Throwable cause) {
         super(cause);
     }
 
-    public FlinkxParseException(String sql, Throwable cause) {
+    public FlinkxSqlParseException(String sql, Throwable cause) {
         super(String.format("Parse SQL fail! Current SQL : \n%s", sql), cause);
     }
 }
