@@ -490,52 +490,12 @@
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-sqlserver-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kingbase-reader</artifactId>
             <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-kingbase-writer</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-phoenix5-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-hbase-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.dtstack.flinkx</groupId>-->
-<!--            <artifactId>flinkx-metadata-es6-reader</artifactId>-->
-<!--            <version>1.6</version>-->
-<!--        </dependency>-->
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-vertica-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-socket-reader</artifactId>
-            <version>1.6</version>
-        </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.dtstack.flinkx</groupId>-->
-<!--            <artifactId>flinkx-metadata-postgresql-reader</artifactId>-->
-<!--            <version>1.6</version>-->
-<!--        </dependency>-->
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metadata-kafka-reader</artifactId>
             <version>1.6</version>
         </dependency>
     </dependencies>

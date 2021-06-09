@@ -61,30 +61,7 @@
         <module>flinkx-restapi</module>
         <module>flinkx-sqlservercdc</module>
         <module>flinkx-oraclelogminer</module>
-        <module>flinkx-pgwal</module>
-
-        <!--******元数据******-->
-        <module>flinkx-metadata-hive</module>
-        <module>flinkx-metadata-hive1</module>
-        <module>flinkx-metadata-hive2</module>
-        <module>flinkx-metadata-tidb</module>
-        <module>flinkx-metadata-oracle</module>
-        <module>flinkx-metadata-mysql</module>
-        <module>flinkx-metadata-sqlserver</module>
-        <module>flinkx-metadata-base</module>
-        <module>flinkx-metadata-rdb</module>
-        <module>flinkx-metadata-phoenix5</module>
-        <module>flinkx-metadata-hbase</module>
-        <module>flinkx-metadata-vertica</module>
-        <module>flinkx-metadata-kafka</module>
-        <!--        <module>flinkx-metadata-es6</module>-->
-        <module>flinkx-solr</module>
-
         <module>flinkx-s3</module>
-
-        <module>flinkx-restapi</module>
-        <module>flinkx-websocket</module>
-        <module>flinkx-socket</module>
     </modules>
 
     <properties>
@@ -162,22 +139,6 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>3.0.0</version>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <version>${powermock.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito2</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
