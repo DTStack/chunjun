@@ -67,7 +67,7 @@ public class SqlParser {
                                 stmtParser.handleStmt(stmt, tableEnvironment, statement, urlList);
                             } catch (Exception e) {
                                 // TODO 和 DtSqlParserException 要替换成 FlinkxSqlParseException 合并
-                                throw new DtSqlParserException(stmt, e.getMessage());
+                                throw new DtSqlParserException(stmt, e.getMessage(), e);
                             }
                         });
 
