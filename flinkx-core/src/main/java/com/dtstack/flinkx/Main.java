@@ -88,6 +88,7 @@ import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_FAILUREINTERV
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_FAILURERATE;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_RESTARTATTEMPTS;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_STRATEGY;
+import static org.apache.flink.table.api.config.TableConfigOptions.TABLE_DYNAMIC_TABLE_OPTIONS_ENABLED;
 
 /**
  * The main class entry
@@ -322,12 +323,11 @@ public class Main {
      */
     private static StreamTableEnvironment createStreamTableEnvironment(
             StreamExecutionEnvironment env) {
-        // use blink and stream mode
-        EnvironmentSettings settings =
-                EnvironmentSettings.newInstance().useBlinkPlanner().inStreamingMode().build();
-
-        TableConfig tableConfig = new TableConfig();
-        return StreamTableEnvironmentImpl.create(env, settings, tableConfig);
+        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
+        Configuration configuration = tEnv.getConfig().getConfiguration();
+        // Iceberg need this config setting up true.
+        configuration.setBoolean(TABLE_DYNAMIC_TABLE_OPTIONS_ENABLED.key(), true);
+        return tEnv;
     }
 
     /**
