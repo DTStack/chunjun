@@ -42,7 +42,8 @@ public class LocalTest {
     public static void main(String[] args) throws Exception {
         Properties confProperties = new Properties();
         String userDir = System.getProperty("user.dir");
-        String jobPath = userDir + "/flinkx-local-test/src/main/demo/sql/oracle/oracle_oracle.sql";
+
+        String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
         String flinkxPluginPath = userDir + "/flinkxplugins";
 
         // 任务配置参数

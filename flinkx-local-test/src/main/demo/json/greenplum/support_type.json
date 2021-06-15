@@ -92,7 +92,7 @@
               "connection": [
                 {
                   "jdbcUrl": [
-                    "jdbc:pivotal:greenplum://172.16.100.243:5432;DatabaseName=postgres"
+                    "jdbc:pivotal:greenplum://localhost:5432;DatabaseName=postgres"
                   ],
                   "table": [
                     "greenplum_all_type"
@@ -108,7 +108,7 @@
               "password": "gpadmin",
               "connection": [
                 {
-                  "jdbcUrl": "jdbc:pivotal:greenplum://172.16.100.243:5432;DatabaseName=postgres",
+                  "jdbcUrl": "jdbc:pivotal:greenplum://localhost:5432;DatabaseName=postgres",
                   "table": [
                     "greenplum_all_type_result"
                   ]

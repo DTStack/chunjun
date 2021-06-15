@@ -22,7 +22,7 @@ CREATE TABLE source_greenplum
     t_varchar   String
 ) WITH (
     'connector' = 'greenplum-x',
-    'url' = 'jdbc:pivotal:greenplum://172.16.100.243:5432;DatabaseName=postgres',
+    'url' = 'jdbc:pivotal:greenplum://localhost:5432;DatabaseName=postgres',
     'table-name' = 'greenplum_all_type',
     'username' = 'gpadmin',
     'password' = 'gpadmin',
@@ -53,7 +53,7 @@ CREATE TABLE sink_greenplum (
     t_varchar   String
 ) WITH (
       'connector' = 'greenplum-x',
-      'url' = 'jdbc:pivotal:greenplum://172.16.100.243:5432;DatabaseName=postgres',
+      'url' = 'jdbc:pivotal:greenplum://localhost:5432;DatabaseName=postgres',
       'table-name' = 'greenplum_all_type_result',
       'username' = 'gpadmin',
       'password' = 'gpadmin',
