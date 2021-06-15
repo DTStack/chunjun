@@ -25,8 +25,8 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.util.TablePrintUtil;
 import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
@@ -47,7 +47,7 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeSingleRecordInternal(RowData rowData) {
+    protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
             @SuppressWarnings("unchecked")
             RowData row = (RowData)rowConverter.toExternal(rowData, new GenericRowData(rowData.getArity()));
@@ -56,12 +56,12 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
             }
             lastRow = row;
         } catch (Exception e) {
-            LOG.error("write single record error, row = {}, e = {}", rowData, ExceptionUtil.getErrorMessage(e));
+            throw new WriteRecordException("", e, 0, rowData);
         }
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() {
+    protected void writeMultipleRecordsInternal() throws Exception{
         for (RowData row : rows) {
             writeSingleRecordInternal(row);
         }
