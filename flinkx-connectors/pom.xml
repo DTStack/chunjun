@@ -26,6 +26,7 @@
 		<module>flinkx-connector-clickhouse</module>
 		<module>flinkx-connector-sqlserver</module>
 		<module>flinkx-connector-oracle</module>
+		<module>flinkx-connector-greenplum</module>
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
