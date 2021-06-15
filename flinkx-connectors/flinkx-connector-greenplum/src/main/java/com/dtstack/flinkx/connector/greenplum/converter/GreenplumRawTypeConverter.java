@@ -95,36 +95,6 @@ public class GreenplumRawTypeConverter {
             case "BOOLEAN":
             case "BOOL":
                 return DataTypes.BOOLEAN();
-
-                // 以下类型无法支持
-                // Enumerated Types
-
-                // Geometric Types
-                //            case "POINT":
-                //            case "LINE":
-                //            case "LSEG":
-                //            case "BOX":
-                //            case "PATH":
-                //            case "POLYGON":
-                //            case "CIRCLE":
-
-                // Network Address Types
-
-                // Bit String Types
-                //            case "BIT":
-                //                return DataTypes.BOOLEAN();
-                //            case "BIT VARYING":
-                //                return DataTypes.STRING();
-                //
-                //            case "XML":
-                //                return DataTypes.STRING();
-                //
-                //                // JSON Types
-                //            case "JSON":
-                //            case "JSONB":
-                //            case "JSONPATH":
-                //                return DataTypes.STRING();
-
             default:
                 throw new UnsupportedTypeException(type);
         }
