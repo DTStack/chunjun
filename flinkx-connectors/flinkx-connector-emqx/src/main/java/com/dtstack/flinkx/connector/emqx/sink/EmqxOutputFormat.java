@@ -76,15 +76,6 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
         MqttConnectUtil.close(client);
     }
 
-    @Override
-    protected void preCommit() {}
-
-    @Override
-    protected void commit(long checkpointId) {}
-
-    @Override
-    protected void rollback(long checkpointId) {}
-
     public EmqxConf getEmqxConf() {
         return emqxConf;
     }

@@ -532,7 +532,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * pre commit data
      * @throws Exception
      */
-    protected abstract void preCommit() throws Exception;
+    protected void preCommit() throws Exception{}
 
     /**
      * 写出单条数据
@@ -590,7 +590,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected abstract void commit(long checkpointId) throws Exception;
+    protected void commit(long checkpointId) throws Exception{}
 
     /**
      * checkpoint失败时操作
@@ -615,7 +615,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected abstract void rollback(long checkpointId) throws Exception;
+    protected void rollback(long checkpointId) throws Exception{}
 
 
     public void setRestoreState(FormatState formatState) {
