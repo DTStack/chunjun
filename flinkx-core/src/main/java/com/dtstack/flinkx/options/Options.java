@@ -302,5 +302,4 @@ public class Options {
     public void setJobType(String jobType) {
         this.jobType = jobType;
     }
-
 }
