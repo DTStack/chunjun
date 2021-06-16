@@ -29,44 +29,24 @@ import org.apache.commons.lang3.StringUtils;
 public enum ClusterMode {
 
     /**
-     * Applications executed in the local
+     * 本地模式运行
      */
     local(0 , "local"),
 
     /**
-     * Applications executed in the standalone
+     * flink集群 standalone模式
      */
     standalone(1, "standalone"),
 
     /**
-     * Applications executed in the yarn session
+     * 在已经启动在yarn上的flink session里上运行
      */
-    yarnSession(2, "yarn-session"),
+    yarn(2, "yarn"),
 
     /**
-     * Applications executed in the yarn perjob
+     * 在yarn上单独启动flink session运行
      */
-    yarnPerJob(3, "yarn-per-job"),
-
-    /**
-     * Applications executed in the yarn application
-     */
-    yarnApplication(4, "yarn-application"),
-
-    /**
-     * Applications executed in the kubernetes session
-     */
-    kubernetesSession(5, "kubernetes-session"),
-
-    /**
-     * Applications executed in the kubernetes perjob
-     */
-    kubernetesPerJob(6, "kubernetes-per-job"),
-
-    /**
-     * Applications executed in the kubernetes application
-     */
-    kubernetesApplication(7, "kubernetes-application");
+    yarnPer(3, "yarnPer");
 
     private int type;
 
@@ -83,14 +63,8 @@ public enum ClusterMode {
         }
         switch (name){
             case "standalone": return standalone;
-            case "yarn":
-            case "yarn-session": return yarnSession;
-            case "yarnPer":
-            case "yarn-per-job": return yarnPerJob;
-            case "yarn-application": return yarnApplication;
-            case "kubernetes-session": return kubernetesSession;
-            case "kubernetes-per-job": return kubernetesPerJob;
-            case "kubernetes-application": return kubernetesApplication;
+            case "yarn": return yarn;
+            case "yarnPer": return yarnPer;
             default: return local;
         }
     }
