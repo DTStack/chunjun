@@ -22,8 +22,9 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.google.common.base.Strings;
 
 /**
- * Kerberos of certain connectors could be enabled, it should use or extends this class.
- * e.g. KuduInputFormat class can combine it.
+ * Kerberos of certain connectors could be enabled, it should use or extends this class. e.g.
+ * KuduInputFormat class can combine it.
+ *
  * @author Ada Wong
  * @program flinkx
  * @create 2021/06/15
