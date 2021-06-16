@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -324,10 +325,10 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                     return;
                 }
 
-                List<JsonArray> cacheContent = Lists.newArrayList();
+                List<JsonArray> cacheContent = new ArrayList<>();
                 int resultSize = rs.result().getResults().size();
                 if (resultSize > 0) {
-                    List<RowData> rowList = Lists.newArrayList();
+                    List<RowData> rowList = new ArrayList<>();
 
                     for (JsonArray line : rs.result().getResults()) {
                         try {
