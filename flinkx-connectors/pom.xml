@@ -30,6 +30,7 @@
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
+		<module>flinkx-connector-elasticsearch5</module>
 	</modules>
 
 
