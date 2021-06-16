@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.inputformat;
 
+import com.dtstack.flinkx.exception.ReadRecordException;
+
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -173,11 +175,16 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     }
 
     @Override
-    public RowData nextRecord(RowData rowData) throws IOException {
+    public RowData nextRecord(RowData rowData) {
         if(byteRateLimiter != null) {
             byteRateLimiter.acquire();
         }
-        RowData internalRow = nextRecordInternal(rowData);
+        RowData internalRow = null;
+        try{
+            internalRow = nextRecordInternal(rowData);
+        } catch (ReadRecordException e){
+            // todo 脏数据记录
+        }
         if(internalRow != null){
             updateDuration();
             if (numReadCounter != null) {
@@ -368,9 +375,9 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
      *
      * @param rowData 需要创建和填充的数据
      * @return 读取的数据
-     * @throws IOException 读取异常
+     * @throws ReadRecordException 读取异常
      */
-    protected abstract RowData nextRecordInternal(RowData rowData) throws IOException;
+    protected abstract RowData nextRecordInternal(RowData rowData) throws ReadRecordException;
 
     /**
      * 由子类实现，关闭资源

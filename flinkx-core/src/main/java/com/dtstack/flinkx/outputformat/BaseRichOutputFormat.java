@@ -39,7 +39,6 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
@@ -401,7 +400,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                             numWriteCounter.add(size);
                         }
                     } catch (Exception e) {
-                        throw new FlinkxRuntimeException("Writing records failed.", e);
+                        LOG.error("Writing records failed. {}", e.getMessage());
                     }
                 }
             }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
@@ -420,6 +419,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         try {
             writeSingleRecordInternal(rowData);
         } catch (WriteRecordException e) {
+            // todo 脏数据记录
             updateDirtyDataMsg(rowData, e);
             if (LOG.isTraceEnabled()) {
                 LOG.trace("write error rowData, rowData = {}, e = {}", rowData.toString(), ExceptionUtil.getErrorMessage(e));
@@ -437,8 +437,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             } catch (Exception e) {
                 //批量写异常转为单条写
                 rows.forEach(this::writeSingleRecord);
+            } finally {
+                // Data is either recorded dirty data or written normally
+                rows.clear();
             }
-            rows.clear();
         }
     }
 

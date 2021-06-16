@@ -80,7 +80,8 @@ public class JdbcSourceOptions {
             ConfigOptions.key("scan.query-timeout")
                     .intType()
                     .defaultValue(1)
-                    .withDescription("scan parallelism.");
+                    .withDescription(
+                            "The new query timeout limit in seconds; zero means there is no limit; Default value 1s");
 
     public static final ConfigOption<Integer> SCAN_FETCH_SIZE =
             ConfigOptions.key("scan.fetch-size")

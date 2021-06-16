@@ -23,6 +23,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -58,11 +59,11 @@ public class StreamInputFormat extends BaseRichInputFormat {
 
     @Override
     @SuppressWarnings("all")
-    public RowData nextRecordInternal(RowData rowData) {
+    public RowData nextRecordInternal(RowData rowData) throws ReadRecordException{
         try {
             rowData = rowConverter.toInternal(rowData);
         } catch (Exception e) {
-            LOG.error("", e);
+            throw new ReadRecordException("", e, 0, rowData);
         }
         return rowData;
     }
