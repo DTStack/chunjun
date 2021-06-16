@@ -116,11 +116,6 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
     }
 
     @Override
-    public RowData toInternalLookup(RowData input) {
-        return null;
-    }
-
-    @Override
     public RowData toExternal(RowData rowData, RowData output) {
         return rowData;
     }

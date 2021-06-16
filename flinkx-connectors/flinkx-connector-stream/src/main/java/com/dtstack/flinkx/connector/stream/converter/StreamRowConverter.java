@@ -88,11 +88,6 @@ public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, R
     }
 
     @Override
-    public RowData toInternalLookup(RowData input) {
-        return null;
-    }
-
-    @Override
     public RowData toExternal(RowData rowData, RowData output) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, output);

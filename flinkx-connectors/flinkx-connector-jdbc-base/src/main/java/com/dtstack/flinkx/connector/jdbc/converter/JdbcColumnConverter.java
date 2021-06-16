@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.connector.jdbc.converter;
 
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -81,16 +80,6 @@ public class JdbcColumnConverter
             data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
         }
         return data;
-    }
-
-    @Override
-    public RowData toInternalLookup(JsonArray jsonArray) {
-        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
-        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
-            Object field = jsonArray.getValue(pos);
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
-        }
-        return genericRowData;
     }
 
     @Override

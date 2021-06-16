@@ -28,7 +28,6 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.util.JsonUtil;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -83,22 +82,12 @@ public class EmqxRowConverter extends AbstractRowConverter<String, Object, Objec
     }
 
     @Override
-    public RowData toInternalLookup(Object input) {
-        return null;
-    }
-
-    @Override
     public Object toExternal(RowData rowData, Object output) throws Exception {
         GenericRowData genericRowData = new GenericRowData(rowData.getArity());
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, genericRowData);
         }
         return new MqttMessage(JsonUtil.toBytes(genericRowData.toString()));
-    }
-
-    @Override
-    protected IDeserializationConverter createInternalConverter(LogicalType type) {
-        return null;
     }
 
     @Override
