@@ -22,31 +22,55 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.google.common.base.Strings;
 
 /**
- * Kerberos of certain connectors could be enabled, it should be implements this interface.
- * e.g. HBaseConf class in HBase connector.
+ * Kerberos of certain connectors could be enabled, it should use or extends this class.
+ * e.g. KuduInputFormat class can combine it.
  * @author Ada Wong
  * @program flinkx
  * @create 2021/06/15
  */
-public interface KerberosConfig {
+public class KerberosConfig {
 
-    String getPrincipal();
+    protected boolean enableKrb;
+    protected String principal;
+    protected String keytab;
+    protected String krb5conf;
 
-    void setPrincipal(String principal);
+    public KerberosConfig(String principal, String keytab, String krb5conf) {
+        this.principal = principal;
+        this.keytab = keytab;
+        this.krb5conf = krb5conf;
+        judgeAndSetKrbEnabled();
+    }
 
-    String getKeytab();
+    public String getPrincipal() {
+        return principal;
+    }
 
-    void setKeytab(String keytab);
+    public void setPrincipal(String principal) {
+        this.principal = principal;
+    }
 
-    String getKrb5conf();
+    public String getKeytab() {
+        return keytab;
+    }
 
-    void setKrb5conf(String krb5conf);
+    public void setKeytab(String keytab) {
+        this.keytab = keytab;
+    }
 
-    boolean isEnableKrb();
+    public String getKrb5conf() {
+        return krb5conf;
+    }
 
-    void setEnableKrb(boolean enableKrb);
+    public void setKrb5conf(String krb5conf) {
+        this.krb5conf = krb5conf;
+    }
 
-    default void judgeKrbEnable() {
+    public boolean isEnableKrb() {
+        return enableKrb;
+    }
+
+    protected void judgeAndSetKrbEnabled() {
         boolean allSet =
                 !Strings.isNullOrEmpty(getPrincipal())
                         && !Strings.isNullOrEmpty(getKeytab())
@@ -58,9 +82,9 @@ public interface KerberosConfig {
                         && Strings.isNullOrEmpty(getKrb5conf());
 
         if (allSet) {
-            setEnableKrb(true);
+            this.enableKrb = true;
         } else if (allNotSet) {
-            setEnableKrb(false);
+            this.enableKrb = false;
         } else {
             throw new FlinkxRuntimeException(
                     "Missing kerberos parameter! all kerberos params must be set, or all kerberos params are not set");
