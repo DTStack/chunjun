@@ -54,24 +54,7 @@ public class KerberosUtils {
         LOG.info("Kerberos login with principal: {} and keytab: {}", principal, keytabPath);
         System.setProperty(KRB5_CONF_KEY, krb5confPath);
         // 不刷新会读/etc/krb5.conf
-        try {
-            Config.refresh();
-            // TODO 目前用反射，看看能不能取消反射。
-            //            KerberosName.resetDefaultRealm();
-            Field defaultRealmField = KerberosName.class.getDeclaredField("defaultRealm");
-            defaultRealmField.setAccessible(true);
-            defaultRealmField.set(
-                    null,
-                    org.apache.hadoop.security.authentication.util.KerberosUtil.getDefaultRealm());
-        } catch (KrbException
-                | NoSuchFieldException
-                | ClassNotFoundException
-                | NoSuchMethodException
-                | IllegalAccessException
-                | InvocationTargetException e) {
-            LOG.warn(
-                    "resetting default realm failed, current default realm will still be used.", e);
-        }
+        refresh(krb5confPath);
         // TODO 尚未探索出此选项的意义，以后研究明白方可打开
         //        System.setProperty(SUBJECT_ONLY_KEY, FALSE_STR);
         Configuration configuration = new Configuration();
@@ -90,5 +73,16 @@ public class KerberosUtils {
                 org.apache.flink.runtime.security.KerberosUtils.keytabEntry(keytab, principal);
         currentConfig.addAppConfigurationEntry(name, krb5Entry);
         javax.security.auth.login.Configuration.setConfiguration(currentConfig);
+    }
+
+    public static void refresh(String krb5confPath) {
+        System.setProperty(KRB5_CONF_KEY, krb5confPath);
+        try {
+            Config.refresh();
+            KerberosName.resetDefaultRealm();
+        } catch (KrbException e) {
+            LOG.warn(
+                    "resetting default realm failed, current default realm will still be used.", e);
+        }
     }
 }
