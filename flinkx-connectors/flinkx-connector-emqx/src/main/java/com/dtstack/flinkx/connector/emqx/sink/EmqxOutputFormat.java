@@ -31,7 +31,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.time.LocalTime;
 
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.CLIENT_ID_WRITER;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.CLIENT_ID_WRITER;
 
 /**
  * @author chuixue
@@ -56,7 +56,7 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
-            MqttMessage message = (MqttMessage) rowConverter.toExternal(rowData, null);
+            MqttMessage message = (MqttMessage) rowConverter.toExternal(rowData, new MqttMessage());
             message.setQos(emqxConf.getQos());
             client.publish(emqxConf.getTopic(), message);
         } catch (MqttException e) {

@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.DEFAULT_CODEC;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.DEFAULT_CODEC;
 
 /**
  * @author chuixue
@@ -98,7 +98,7 @@ public class EmqxColumnConverter
             map = Collections.singletonMap("message", row.getString());
         }
 
-        MqttMessage message = new MqttMessage(MapUtil.writeValueAsString(map).getBytes());
-        return message;
+        output.setPayload(MapUtil.writeValueAsString(map).getBytes());
+        return output;
     }
 }

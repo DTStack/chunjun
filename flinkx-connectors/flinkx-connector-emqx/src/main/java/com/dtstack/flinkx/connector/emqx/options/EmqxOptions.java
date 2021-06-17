@@ -16,12 +16,10 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.emqx.option;
+package com.dtstack.flinkx.connector.emqx.options;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
-
-import static org.apache.flink.table.factories.FactoryUtil.FORMAT_SUFFIX;
 
 /**
  * @author chuixue

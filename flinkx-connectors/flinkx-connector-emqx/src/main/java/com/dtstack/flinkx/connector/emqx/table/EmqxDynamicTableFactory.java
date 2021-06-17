@@ -39,13 +39,13 @@ import com.dtstack.flinkx.connector.emqx.source.EmqxDynamicTableSource;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.BROKER;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.FORMAT;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.ISCLEANSESSION;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.PASSWORD;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.QOS;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.TOPIC;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.USERNAME;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.BROKER;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.FORMAT;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.ISCLEANSESSION;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.PASSWORD;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.QOS;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.TOPIC;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.USERNAME;
 
 /**
  * @author chuixue

@@ -43,7 +43,7 @@ import java.time.LocalTime;
  * @create 2021-06-02 09:34
  * @description
  */
-public class EmqxRowConverter extends AbstractRowConverter<String, Object, Object, LogicalType> {
+public class EmqxRowConverter extends AbstractRowConverter<String, Object, MqttMessage, LogicalType> {
 
     /** DeserializationSchema Instead of source */
     private DeserializationSchema<RowData> valueDeserialization;
@@ -82,12 +82,13 @@ public class EmqxRowConverter extends AbstractRowConverter<String, Object, Objec
     }
 
     @Override
-    public Object toExternal(RowData rowData, Object output) throws Exception {
+    public MqttMessage toExternal(RowData rowData, MqttMessage output) throws Exception {
         GenericRowData genericRowData = new GenericRowData(rowData.getArity());
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, genericRowData);
         }
-        return new MqttMessage(JsonUtil.toBytes(genericRowData.toString()));
+        output.setPayload(JsonUtil.toBytes(genericRowData.toString()));
+        return output;
     }
 
     @Override
