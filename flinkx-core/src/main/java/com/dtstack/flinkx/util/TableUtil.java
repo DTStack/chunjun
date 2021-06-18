@@ -19,7 +19,6 @@ package com.dtstack.flinkx.util;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
-import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.TableColumn;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.data.RowData;
@@ -28,11 +27,9 @@ import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,14 +47,20 @@ public class TableUtil {
      * @param fieldList 任务参数实体类
      * @return TypeInformation
      */
-    public static TypeInformation<RowData> getTypeInformation(List<FieldConf> fieldList) {
+    public static TypeInformation<RowData> getTypeInformation(List<FieldConf> fieldList, RawTypeConverter converter) {
         List<String> fieldName = fieldList.stream().map(FieldConf::getName).collect(Collectors.toList());
         if (fieldName.size() == 0) {
             return new GenericTypeInfo<>(RowData.class);
         }
-        Class<?>[] fieldClasses = fieldList.stream().map(FieldConf::getFieldClass).toArray(Class[]::new);
-        DataType[] dataTypes = DataTypeUtil.getFieldTypes(Arrays.asList(fieldClasses));
+
         String[] fieldNames = fieldList.stream().map(FieldConf::getName).toArray(String[]::new);
+        String[] fieldTypes = fieldList.stream().map(FieldConf::getType).toArray(String[]::new);
+        TableSchema.Builder builder = TableSchema.builder();
+        for (int i = 0; i < fieldTypes.length; i++) {
+            DataType dataType = converter.apply(fieldTypes[i]);
+            builder.add(TableColumn.physical(fieldNames[i], dataType));
+        }
+        DataType[] dataTypes = builder.build().toRowDataType().getChildren().toArray(new DataType[]{});
 
         return getTypeInformation(dataTypes, fieldNames);
     }
@@ -87,39 +90,21 @@ public class TableUtil {
     }
 
     /**
-     * 获取DataType
-     * @param fieldList
-     * @return
-     */
-    public static DataType getDataType(List<FieldConf> fieldList){
-        Class<?>[] fieldClasses = fieldList.stream().map(FieldConf::getFieldClass).toArray(Class[]::new);
-        DataType[] dataTypes = DataTypeUtil.getFieldTypes(Arrays.asList(fieldClasses));
-        String[] fieldNames = fieldList.stream().map(FieldConf::getName).toArray(String[]::new);
-        DataTypes.Field[] fields = new DataTypes.Field[fieldList.size()];
-        for (int i = 0; i < fieldList.size(); i++) {
-            fields[i] = DataTypes.FIELD(fieldNames[i], dataTypes[i]);
-        }
-        // The row should be never null.
-        return DataTypes.ROW(fields).notNull();
-    }
-
-    /**
      * only using in data sync/integration
      *
      * @param fieldNames field Names
      * @param types field types
      * @return
      */
-    public static LogicalType createRowType(
-            List<String> fieldNames, List<String> types, RawTypeConverter converter)
-            throws SQLException {
+    public static RowType createRowType(
+            List<String> fieldNames, List<String> types, RawTypeConverter converter) {
         TableSchema.Builder builder = TableSchema.builder();
         for (int i = 0; i < types.size(); i++) {
             DataType dataType = converter.apply(types.get(i));
             builder.add(TableColumn.physical(fieldNames.get(i), dataType));
         }
 
-        return builder.build().toRowDataType().getLogicalType();
+        return (RowType) builder.build().toRowDataType().getLogicalType();
     }
 
     /**
@@ -128,18 +113,15 @@ public class TableUtil {
      * @param fields List<FieldConf>, field information name, type etc.
      * @return
      */
-    public static LogicalType createRowType(List<FieldConf> fields, RawTypeConverter converter)
-            throws SQLException {
-        ArrayList<String> fieldNames = new ArrayList<>();
-        fields.stream().map(x -> fieldNames.add(x.getName()));
-        ArrayList<String> types = new ArrayList<>();
-        fields.stream().map(x -> fieldNames.add(x.getType()));
+    public static RowType createRowType(List<FieldConf> fields, RawTypeConverter converter) {
+        String[] fieldNames = fields.stream().map(FieldConf::getName).toArray(String[]::new);
+        String[] fieldTypes = fields.stream().map(FieldConf::getType).toArray(String[]::new);
         TableSchema.Builder builder = TableSchema.builder();
-        for (int i = 0; i < types.size(); i++) {
-            DataType dataType = converter.apply(types.get(i));
-            builder.add(TableColumn.physical(fieldNames.get(i), dataType));
+        for (int i = 0; i < fieldTypes.length; i++) {
+            DataType dataType = converter.apply(fieldTypes[i]);
+            builder.add(TableColumn.physical(fieldNames[i], dataType));
         }
 
-        return builder.build().toRowDataType().getLogicalType();
+        return (RowType) builder.build().toRowDataType().getLogicalType();
     }
 }

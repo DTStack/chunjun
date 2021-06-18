@@ -76,9 +76,10 @@
 		<flink.version>1.12.2</flink.version>
         <scala.binary.version>2.12</scala.binary.version>
         <prometheus.version>0.8.1</prometheus.version>
-        <hadoop.version>2.7.3</hadoop.version>
+        <hadoop.version>2.7.5</hadoop.version>
         <http.version>4.5.3</http.version>
-    </properties>
+		<guava.version>19.0</guava.version>
+	</properties>
 
     <dependencies>
         <dependency>
@@ -110,8 +111,16 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

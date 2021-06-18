@@ -18,8 +18,7 @@
 
 package com.dtstack.flinkx.connector.stream.sink;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
-
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 
 /**
@@ -36,9 +35,9 @@ public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = format = new StreamOutputFormat();
     }
 
-    public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
-        super.setConfig(streamSinkConf);
-        format.setStreamSinkConf(streamSinkConf);
+    public void setStreamConf(StreamConf streamConf) {
+        super.setConfig(streamConf);
+        format.setStreamConf(streamConf);
     }
 
     @Override

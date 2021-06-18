@@ -1,9 +1,10 @@
 package com.dtstack.flinkx.connector.mysql.converter;
 
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import java.sql.SQLException;
 import java.util.Locale;
 
 /**
@@ -17,14 +18,8 @@ public class MysqlRawTypeConverter {
      * 将MySQL数据库中的类型，转换成flink的DataType类型。
      * 转换关系参考 com.mysql.jdbc.MysqlDefs 类里面的信息。
      * com.mysql.jdbc.ResultSetImpl.getObject(int)
-     *
-     * @param type
-     *
-     * @return
-     *
-     * @throws SQLException
      */
-    public static DataType apply(String type) throws SQLException {
+    public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
                 return DataTypes.BOOLEAN();
@@ -43,8 +38,7 @@ public class MysqlRawTypeConverter {
                 return DataTypes.FLOAT();
             case "DECIMAL":
             case "NUMERIC":
-                // TODO 精度应该可以动态传进来？
-                return DataTypes.DECIMAL(38, 18);
+                return DataTypes.DECIMAL(1, 0);
             case "DOUBLE":
                 return DataTypes.DOUBLE();
             case "CHAR":
@@ -82,7 +76,7 @@ public class MysqlRawTypeConverter {
                 return DataTypes.BYTES();
 
             default:
-                throw new SQLException("不支持" + type + "类型");
+                throw new UnsupportedTypeException(type);
         }
     }
 }

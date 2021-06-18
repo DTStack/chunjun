@@ -15,12 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.connector.mysql.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.mysql.MysqlDialect;
+import com.dtstack.flinkx.connector.mysql.converter.MysqlRawTypeConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 
 /**
  * Date: 2021/04/13 Company: www.dtstack.com
@@ -37,5 +40,10 @@ public class MysqlSinkFactory extends JdbcSinkFactory {
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
         return new JdbcOutputFormatBuilder(new MysqlOutputFormat());
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return MysqlRawTypeConverter::apply;
     }
 }

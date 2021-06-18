@@ -31,7 +31,6 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>19.0</version>
         </dependency>
 
         <dependency>
@@ -311,7 +310,18 @@
             <version>2.6</version>
         </dependency>
 
-
+		<!-- Iceberg metastore-->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-sql-connector-hive-2.3.6_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+		<!-- DTStack package iceberg master branch end of efaad97 commit -->
+		<dependency>
+			<groupId>com.dtstack.iceberg</groupId>
+			<artifactId>iceberg-flink-runtime</artifactId>
+			<version>0.12.efaad97</version>
+		</dependency>
     </dependencies>
 
     <build>

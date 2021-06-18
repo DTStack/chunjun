@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.connector.jdbc;
 
+import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.api.ValidationException;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -25,11 +30,6 @@ import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.table.api.TableSchema;
-import org.apache.flink.table.api.ValidationException;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
@@ -259,8 +259,11 @@ public interface JdbcDialect extends Serializable {
                     .append(" FROM ")
                     .append(buildTableInfoWithSchema(schemaName, tableName));
         }
+        sql.append(" WHERE ");
         if (StringUtils.isNotBlank(where)) {
-            sql.append(" WHERE ").append(where);
+            sql.append(where);
+        }else{
+            sql.append(" 1=1 ");
         }
         return sql.toString();
     }

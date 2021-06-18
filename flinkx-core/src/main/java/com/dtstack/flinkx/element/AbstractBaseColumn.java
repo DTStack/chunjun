@@ -31,49 +31,111 @@ import java.util.Date;
 public abstract class AbstractBaseColumn implements Serializable {
     private static final long serialVersionUID = 1L;
     protected Object data;
-    protected int byteSize;
 
     public AbstractBaseColumn(final Object data) {
         this.data = data;
-        this.byteSize = getByteSize(data);
     }
 
-    public abstract int getByteSize(Object data);
-
+    /**
+     * Convert data to Boolean type
+     * @return
+     */
     public abstract Boolean asBoolean();
 
+    /**
+     * Convert data to byte[] type
+     * @return
+     */
     public abstract byte[] asBytes();
 
+    /**
+     * Convert data to String type
+     * @return
+     */
     public abstract String asString();
 
+    /**
+     * Convert data to BigDecimal type
+     * @return
+     */
     public abstract BigDecimal asBigDecimal();
 
+    /**
+     * Convert data to Timestamp type
+     * @return
+     */
     public abstract Timestamp asTimestamp();
 
-    public short asShort(){
+    /**
+     * Convert data to short type
+     * @return
+     */
+    public Short asShort(){
+        if(null == data){
+            return null;
+        }
         return this.asBigDecimal().shortValue();
     }
 
-    public int asInt() {
+    /**
+     * Convert data to int type
+     * @return
+     */
+    public Integer asInt() {
+        if(null == data){
+            return null;
+        }
         return this.asBigDecimal().intValue();
     }
 
-    public long asLong() {
+    /**
+     * Convert data to long type
+     * @return
+     */
+    public Long asLong() {
+        if(null == data){
+            return null;
+        }
         return this.asBigDecimal().longValue();
     }
 
-    public float asFloat() {
+    /**
+     * Convert data to float type
+     * @return
+     */
+    public Float asFloat() {
+        if(null == data){
+            return null;
+        }
         return this.asBigDecimal().floatValue();
     }
 
-    public double asDouble(){
+    /**
+     * Convert data to double type
+     * @return
+     */
+    public Double asDouble(){
+        if(null == data){
+            return null;
+        }
         return this.asBigDecimal().doubleValue();
     }
 
+    /**
+     * Convert data to Date type
+     * @return
+     */
     public Date asDate() {
+        if(null == data){
+            return null;
+        }
         return new Date(this.asTimestamp().getTime());
     }
 
+    /**
+     * Convert data to Binary byte[] type
+     * @return
+     */
     public byte[] asBinary() {
         return this.asBytes();
     }
@@ -84,14 +146,6 @@ public abstract class AbstractBaseColumn implements Serializable {
 
     public void setData(Object data) {
         this.data = data;
-    }
-
-    public int getByteSize() {
-        return byteSize;
-    }
-
-    public void setByteSize(int byteSize) {
-        this.byteSize = byteSize;
     }
 
     @Override

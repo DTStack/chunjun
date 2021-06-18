@@ -33,56 +33,56 @@ public class JdbcSourceOptions {
                     .stringType()
                     .noDefaultValue()
                     .withDescription("restore.columnname.");
+
     public static final ConfigOption<String> SCAN_RESTORE_COLUMNTYPE =
             ConfigOptions.key("scan.restore.columntype")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("restore.columntype.");
+
     public static final ConfigOption<String> SCAN_PARTITION_COLUMN =
             ConfigOptions.key("scan.partition.column")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("the column name used for partitioning the input.");
-    public static final ConfigOption<String> SCAN_PARTITION_COLUMN_TYPE =
-            ConfigOptions.key("scan.partition.column-type")
+
+    public static final ConfigOption<String> SCAN_INCREMENT_COLUMN =
+            ConfigOptions.key("scan.increment.column")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("scan.increment.column.");
+
+    public static final ConfigOption<String> SCAN_INCREMENT_COLUMN_TYPE =
+            ConfigOptions.key("scan.increment.column-type")
                     .stringType()
                     .defaultValue("int")
-                    .withDescription("scan.partition.column-type.");
+                    .withDescription("scan.increment.column-type.");
+
     public static final ConfigOption<Integer> SCAN_POLLING_INTERVAL =
             ConfigOptions.key("scan.polling-interval")
                     .intType()
                     .defaultValue(0)
                     .withDescription("scan.polling-interval");
+
     public static final ConfigOption<String> SCAN_START_LOCATION =
             ConfigOptions.key("scan.start-location")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("scan.start-location");
+
     public static final ConfigOption<Integer> SCAN_PARALLELISM =
             ConfigOptions.key("scan.parallelism")
                     .intType()
                     .defaultValue(null)
                     .withDescription("scan parallelism.");
+
     public static final ConfigOption<Integer> SCAN_QUERY_TIMEOUT =
             ConfigOptions.key("scan.query-timeout")
                     .intType()
                     .defaultValue(1)
-                    .withDescription("scan parallelism.");
-    public static final ConfigOption<Integer> SCAN_PARTITION_NUM =
-            ConfigOptions.key("scan.partition.num")
-                    .intType()
-                    .noDefaultValue()
-                    .withDescription("the number of partitions.");
-    public static final ConfigOption<Long> SCAN_PARTITION_LOWER_BOUND =
-            ConfigOptions.key("scan.partition.lower-bound")
-                    .longType()
-                    .noDefaultValue()
-                    .withDescription("the smallest value of the first partition.");
-    public static final ConfigOption<Long> SCAN_PARTITION_UPPER_BOUND =
-            ConfigOptions.key("scan.partition.upper-bound")
-                    .longType()
-                    .noDefaultValue()
-                    .withDescription("the largest value of the last partition.");
+                    .withDescription(
+                            "The new query timeout limit in seconds; zero means there is no limit; Default value 1s");
+
     public static final ConfigOption<Integer> SCAN_FETCH_SIZE =
             ConfigOptions.key("scan.fetch-size")
                     .intType()
@@ -91,6 +91,7 @@ public class JdbcSourceOptions {
                             "gives the reader a hint as to the number of rows that should be fetched, from"
                                     + " the database when reading per round trip. If the value specified is zero, then the hint is ignored. The"
                                     + " default value is zero.");
+
     public static final ConfigOption<Integer> SCAN_DEFAULT_FETCH_SIZE =
             ConfigOptions.key("scan.default-fetch-size")
                     .intType()
@@ -99,11 +100,4 @@ public class JdbcSourceOptions {
                             "gives the reader a hint as to the number of rows that should be fetched, from"
                                     + " the database when reading per round trip. If the value specified is zero, then the hint is ignored. The"
                                     + " default value is 1024.");
-    public static final ConfigOption<Boolean> SCAN_AUTO_COMMIT =
-            ConfigOptions.key("scan.auto-commit")
-                    .booleanType()
-                    .defaultValue(true)
-                    .withDescription(
-                            "sets whether the driver is in auto-commit mode. The default value is true, per"
-                                    + " the JDBC spec.");
 }

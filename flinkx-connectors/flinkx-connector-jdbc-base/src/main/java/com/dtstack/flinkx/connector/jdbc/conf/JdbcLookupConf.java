@@ -20,6 +20,8 @@ package com.dtstack.flinkx.connector.jdbc.conf;
 
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 
+import java.util.Map;
+
 /**
  * @author chuixue
  * @create 2021-04-10 22:10
@@ -29,12 +31,22 @@ public class JdbcLookupConf extends LookupConf {
     /** vertx pool size */
     protected int asyncPoolSize = 5;
 
+    public Map<String, Object> getDruidConf() {
+        return druidConf;
+    }
+
+    protected Map<String, Object> druidConf;
     public int getAsyncPoolSize() {
         return asyncPoolSize;
     }
 
     public JdbcLookupConf setAsyncPoolSize(int asyncPoolSize) {
         this.asyncPoolSize = asyncPoolSize;
+        return this;
+    }
+
+    public JdbcLookupConf setDruidConf(Map<String, Object> druidConf) {
+        this.druidConf = druidConf;
         return this;
     }
 

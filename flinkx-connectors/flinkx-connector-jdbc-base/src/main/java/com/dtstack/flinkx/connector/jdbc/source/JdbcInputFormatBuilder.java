@@ -67,6 +67,9 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (StringUtils.isEmpty(conf.getSplitPk()) && format.getNumPartitions() > 1){
             sb.append("Must specify the split column when the channel is greater than 1;\n");
         }
+        if (conf.isPolling() && format.getNumPartitions() > 1){
+            sb.append("Interval polling task parallelism cannot be greater than 1;\n");
+        }
         if (conf.getFetchSize() > ConstantValue.MAX_BATCH_SIZE) {
             sb.append("The number of fetchSize must be less than [200000];\n");
         }

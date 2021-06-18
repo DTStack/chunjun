@@ -47,22 +47,14 @@ public class OperatorConf implements Serializable {
     private List<FieldConf> fieldList;
     /** fieldNameList */
     private List<String> fieldNameList;
-    /** fieldTypeList */
-    private List<String> fieldTypeList;
-    /** fieldClassList */
-    private List<Class> fieldClassList;
 
     public List<FieldConf> getFieldList(){
         if(fieldList == null){
             List list = (List) parameter.get(ConfigConstant.KEY_COLUMN);
             fieldList = FieldConf.getFieldList(list);
             fieldNameList = new ArrayList<>(fieldList.size());
-            fieldTypeList = new ArrayList<>(fieldList.size());
-            fieldClassList = new ArrayList<>(fieldList.size());
             for (FieldConf field : fieldList) {
                 fieldNameList.add(field.getName());
-                fieldTypeList.add(field.getType());
-                fieldClassList.add(field.getFieldClass());
             }
         }
         return fieldList;
@@ -70,14 +62,6 @@ public class OperatorConf implements Serializable {
 
     public List<String> getFieldNameList() {
         return fieldNameList;
-    }
-
-    public List<String> getFieldTypeList() {
-        return fieldTypeList;
-    }
-
-    public List<Class> getFieldClassList() {
-        return fieldClassList;
     }
 
     public String getName() {
@@ -136,7 +120,42 @@ public class OperatorConf implements Serializable {
         if(ret instanceof BigDecimal) {
             return ((BigDecimal)ret).intValue();
         }
-        throw new RuntimeException(String.format("cant't %s from %s to int, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
+        throw new RuntimeException(String.format("can't %s from %s to int, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
+    }
+
+    /**
+     * 从parameter中获取指定key的value，若无则返回defaultValue
+     * @param key
+     * @param defaultValue
+     * @return
+     */
+    public long getLongVal(String key, long defaultValue) {
+        Object ret = parameter.get(key);
+        if(ret == null) {
+            return defaultValue;
+        }
+        if(ret instanceof Integer) {
+            return ((Integer) ret).longValue();
+        }
+        if(ret instanceof String) {
+            return Long.parseLong((String) ret);
+        }
+        if(ret instanceof Long) {
+            return (Long)ret;
+        }
+        if(ret instanceof Float) {
+            return ((Float)ret).longValue();
+        }
+        if(ret instanceof Double) {
+            return ((Double)ret).longValue();
+        }
+        if(ret instanceof BigInteger) {
+            return ((BigInteger)ret).longValue();
+        }
+        if(ret instanceof BigDecimal) {
+            return ((BigDecimal)ret).longValue();
+        }
+        throw new RuntimeException(String.format("can't %s from %s to long, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
     }
 
     public boolean getBooleanVal(String key, boolean defaultValue) {
@@ -147,7 +166,7 @@ public class OperatorConf implements Serializable {
         if (ret instanceof Boolean) {
             return (Boolean) ret;
         }
-        throw new RuntimeException(String.format("cant't %s from %s to boolean, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
+        throw new RuntimeException(String.format("can't %s from %s to boolean, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
     }
 
     /**

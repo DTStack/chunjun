@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.connector.jdbc.conf;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import java.io.Serializable;
@@ -39,7 +38,6 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     /** for sqlserver */
     private boolean withNoLock;
     //common
-    private List<FieldConf> column;
     private Properties properties;
     //reader
     private String username;
@@ -66,8 +64,6 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private String startLocation;
     /** 轮询时间间隔 */
     private long pollingInterval = 5000;
-    /** 发送查询累加器请求的间隔时间，单位秒 */
-    private int requestAccumulatorInterval = 2;
     /** restore字段名称 */
     private String restoreColumn;
     /** restore字段类型 */
@@ -85,10 +81,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private String mode = "INSERT";
     private List<String> preSql;
     private List<String> postSql;
-    private int batchSize = 1024;
     private List<String> updateKey;
-    /** 定时器定时写到数据库的时间 */
-    private long flushIntervalMills;
     /** upsert 写数据库时，是否null覆盖原来的值 */
     private boolean allReplace = false;
 
@@ -112,6 +105,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         connection.get(0).putJdbcUrl(url);
     }
 
+    //------------------- getter、setter -------------------
 
     public List<String> getFullColumn() {
         return fullColumn;
@@ -135,14 +129,6 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
 
     public void setWithNoLock(boolean withNoLock) {
         this.withNoLock = withNoLock;
-    }
-
-    public List<FieldConf> getColumn() {
-        return column;
-    }
-
-    public void setColumn(List<FieldConf> column) {
-        this.column = column;
     }
 
     public Properties getProperties() {
@@ -289,12 +275,28 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.pollingInterval = pollingInterval;
     }
 
-    public int getRequestAccumulatorInterval() {
-        return requestAccumulatorInterval;
+    public String getRestoreColumn() {
+        return restoreColumn;
     }
 
-    public void setRequestAccumulatorInterval(int requestAccumulatorInterval) {
-        this.requestAccumulatorInterval = requestAccumulatorInterval;
+    public void setRestoreColumn(String restoreColumn) {
+        this.restoreColumn = restoreColumn;
+    }
+
+    public String getRestoreColumnType() {
+        return restoreColumnType;
+    }
+
+    public void setRestoreColumnType(String restoreColumnType) {
+        this.restoreColumnType = restoreColumnType;
+    }
+
+    public int getRestoreColumnIndex() {
+        return restoreColumnIndex;
+    }
+
+    public void setRestoreColumnIndex(int restoreColumnIndex) {
+        this.restoreColumnIndex = restoreColumnIndex;
     }
 
     public boolean isUseMaxFunc() {
@@ -329,44 +331,12 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.postSql = postSql;
     }
 
-    public int getBatchSize() {
-        return batchSize;
-    }
-
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
-    }
-
     public List<String> getUpdateKey() {
         return updateKey;
     }
 
     public void setUpdateKey(List<String> updateKey) {
         this.updateKey = updateKey;
-    }
-
-    public String getRestoreColumn() {
-        return restoreColumn;
-    }
-
-    public void setRestoreColumn(String restoreColumn) {
-        this.restoreColumn = restoreColumn;
-    }
-
-    public int getRestoreColumnIndex() {
-        return restoreColumnIndex;
-    }
-
-    public void setRestoreColumnIndex(int restoreColumnIndex) {
-        this.restoreColumnIndex = restoreColumnIndex;
-    }
-
-    public String getRestoreColumnType() {
-        return restoreColumnType;
-    }
-
-    public void setRestoreColumnType(String restoreColumnType) {
-        this.restoreColumnType = restoreColumnType;
     }
 
     public boolean isAllReplace() {
@@ -377,11 +347,39 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.allReplace = allReplace;
     }
 
-    public long getFlushIntervalMills() {
-        return flushIntervalMills;
-    }
-
-    public void setFlushIntervalMills(long flushIntervalMills) {
-        this.flushIntervalMills = flushIntervalMills;
+    @Override
+    public String toString() {
+        return "JdbcConf{" +
+                "fullColumn=" + fullColumn +
+                ", insertSqlMode='" + insertSqlMode + '\'' +
+                ", withNoLock=" + withNoLock +
+                ", properties=" + properties +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", connection=" + connection +
+                ", where='" + where + '\'' +
+                ", customSql='" + customSql + '\'' +
+                ", orderByColumn='" + orderByColumn + '\'' +
+                ", querySql='" + querySql + '\'' +
+                ", splitPk='" + splitPk + '\'' +
+                ", fetchSize=" + fetchSize +
+                ", queryTimeOut=" + queryTimeOut +
+                ", increment=" + increment +
+                ", polling=" + polling +
+                ", increColumn='" + increColumn + '\'' +
+                ", increColumnIndex=" + increColumnIndex +
+                ", increColumnType='" + increColumnType + '\'' +
+                ", startLocation='" + startLocation + '\'' +
+                ", pollingInterval=" + pollingInterval +
+                ", restoreColumn='" + restoreColumn + '\'' +
+                ", restoreColumnType='" + restoreColumnType + '\'' +
+                ", restoreColumnIndex=" + restoreColumnIndex +
+                ", useMaxFunc=" + useMaxFunc +
+                ", mode='" + mode + '\'' +
+                ", preSql=" + preSql +
+                ", postSql=" + postSql +
+                ", updateKey=" + updateKey +
+                ", allReplace=" + allReplace +
+                '}';
     }
 }

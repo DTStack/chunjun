@@ -30,19 +30,19 @@ import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metrics.BigIntegerAccmulator;
 import com.dtstack.flinkx.metrics.StringAccumulator;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Date;
@@ -81,11 +81,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected int columnCount;
     protected RowData lastRow = null;
 
-    /** 用户脚本中填写的字段名称集合 */
-    protected List<String> column = new ArrayList<>();
-    /** 用户脚本中填写的字段类型集合 */
-    protected List<String> columnType = new ArrayList<>();
-
     protected StringAccumulator maxValueAccumulator;
     protected BigIntegerAccmulator endLocationAccumulator;
     protected BigIntegerAccmulator startLocationAccumulator;
@@ -95,15 +90,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     @Override
     public void openInternal(InputSplit inputSplit) {
-        LOG.info("inputSplit = {}", inputSplit);
         initMetric(inputSplit);
         if (!canReadData(inputSplit)) {
             LOG.warn("Not read data when the start location are equal to end location");
             hasNext = false;
             return;
         }
-        jdbcConf.setQuerySql(buildQuerySql(inputSplit));
         try {
+            dbConn = getConnection();
+            dbConn.setAutoCommit(false);
+            initColumnList();
+            jdbcConf.setQuerySql(buildQuerySql(inputSplit));
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
             if (!resultSet.isClosed()) {
                 columnCount = resultSet.getMetaData().getColumnCount();
@@ -111,10 +108,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
         }
-
-        checkSize(columnCount, jdbcConf.getColumn());
-
-        LOG.info("JdbcInputFormat[{}]open: end", jobName);
     }
 
     @Override
@@ -140,7 +133,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                         //重新连接后还是不可用则认为数据库异常，任务失败
                         if(!dbConn.isValid(3)){
                             String message = String.format("cannot connect to %s, username = %s, please check %s is available.", jdbcConf.getJdbcUrl(), jdbcConf.getJdbcUrl(), jdbcDialect.dialectName());
-                            LOG.error(message);
                             throw new RuntimeException(message);
                         }
                     }
@@ -167,15 +159,16 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    public RowData nextRecordInternal(RowData rowData) throws IOException {
+    public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         if (!hasNext) {
             return null;
         }
         try {
             // todo 抽到DB2插件里面
 //            updateColumnCount();
+            @SuppressWarnings("unchecked")
             RowData rawRowData = rowConverter.toInternal(resultSet);
-            RowData finalRowData = loadConstantData(rawRowData);
+            RowData finalRowData = loadConstantData(rawRowData, jdbcConf.getColumn());
 
             boolean isUpdateLocation = jdbcConf.isPolling() || (jdbcConf.isIncrement() && !jdbcConf.isUseMaxFunc());
             if (isUpdateLocation) {
@@ -190,18 +183,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     endLocationAccumulator.add(new BigInteger(location));
                 }
 
-                LOG.trace("update endLocationAccumulator, current Location = {}", location);
+                LOG.debug("update endLocationAccumulator, current Location = {}", location);
             }
 
             hasNext = resultSet.next();
             lastRow = finalRowData;
             return finalRowData;
-        } catch (SQLException se) {
-            throw new IOException("Couldn't read data - " + se.getMessage(), se);
-        } catch (Exception npe) {
-            throw new IOException("Couldn't access resultSet", npe);
+        } catch (Exception se) {
+            throw new ReadRecordException("", se, 0, rowData);
         }
     }
+
 
     @Override
     public FormatState getFormatState() {
@@ -385,11 +377,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @return 构建的sql字符串
      */
     protected String buildQuerySql(InputSplit inputSplit) {
-        String[] fieldNames = jdbcConf
-                .getColumn()
-                .stream()
-                .map(FieldConf::getName)
-                .toArray(String[]::new);
         List<String> whereList = new ArrayList<>();
 
         //1、TODO 分片SQL，先跳过
@@ -437,7 +424,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     .append(" ASC");
         }
 
-        String querySql = jdbcDialect.getSelectFromStatement(jdbcConf.getSchema(), jdbcConf.getTable(), jdbcConf.getCustomSql(), fieldNames, sql.toString());
+        String querySql = jdbcDialect.getSelectFromStatement(jdbcConf.getSchema(), jdbcConf.getTable(), jdbcConf.getCustomSql(), columnNameList.toArray(new String[0]), sql.toString());
 
         LOG.warn("Executing sql is: '{}'", querySql);
         return querySql;
@@ -568,7 +555,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void queryForPolling(String startLocation) throws SQLException {
-        LOG.trace("polling startLocation = {}", startLocation);
+        //每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
+        if ((System.currentTimeMillis() - startTime) % 300000 <= jdbcConf.getPollingInterval()) {
+            LOG.info("polling startLocation = {}", startLocation);
+        }else{
+            LOG.debug("polling startLocation = {}", startLocation);
+        }
+
         boolean isNumber = StringUtils.isNumeric(startLocation);
         switch (type) {
             case TIMESTAMP:
@@ -598,10 +591,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void executeQuery(String startLocation) throws SQLException {
-        dbConn = getConnection();
-        analyzeMetaData();
-        // 部分驱动需要关闭事务自动提交，fetchSize参数才会起作用
-        dbConn.setAutoCommit(false);
         if (jdbcConf.isPolling()) {
             if (StringUtils.isBlank(startLocation)) {
                 //从数据库中获取起始位置
@@ -622,39 +611,62 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     /**
-     * 提取将json脚本中的常量字段
-     * 例如：{ "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
+     * init columnNameList、 columnTypeList and hasConstantField
      */
-    protected void analyzeMetaData() {
-        try {
-            List<FieldConf> fieldList = jdbcConf.getColumn();
+    protected void initColumnList() {
+        Pair<List<String>, List<String>> pair = getTableMetaData();
 
-            Pair<List<String>, List<String>> pair = JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-            List<String> fullColumn = pair.getLeft();
-            List<String> fullColumnType = pair.getRight();
+        List<FieldConf> fieldList = jdbcConf.getColumn();
+        List<String> fullColumnList = pair.getLeft();
+        List<String> fullColumnTypeList = pair.getRight();
+        handleColumnList(fieldList, fullColumnList, fullColumnTypeList);
+    }
 
-            column = new ArrayList<>(fieldList.size());
-            columnType = new ArrayList<>(fieldList.size());
-            for (FieldConf fieldConf : jdbcConf.getColumn()) {
-                column.add(fieldConf.getName());
-                for (int i = 0; i < fullColumn.size(); i++) {
-                    if (fieldConf.getName().equalsIgnoreCase(fullColumn.get(i))) {
-                        if (fieldConf.getValue() != null) {
-                            columnType.add("VARCHAR");
-                        } else {
-                            columnType.add(fullColumnType.get(i));
-                        }
+    /**
+     * for override. because some databases have case-sensitive metadata。
+     * @return
+     */
+    protected Pair<List<String>, List<String>> getTableMetaData() {
+        return JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
+    }
+
+    /**
+     * detailed logic for handling column
+     * @param fieldList
+     * @param fullColumnList
+     * @param fullColumnTypeList
+     */
+    protected void handleColumnList(List<FieldConf> fieldList, List<String> fullColumnList, List<String> fullColumnTypeList) {
+        if(fieldList.size() == 1 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())){
+            columnNameList = fullColumnList;
+            columnTypeList = fullColumnTypeList;
+            return;
+        }
+
+        columnNameList = new ArrayList<>(fieldList.size());
+        columnTypeList = new ArrayList<>(fieldList.size());
+
+        for (FieldConf fieldConf : jdbcConf.getColumn()) {
+            if(fieldConf.getValue() == null){
+                boolean find = false;
+                String name = fieldConf.getName();
+                for (int i = 0; i <fullColumnList.size(); i++) {
+                    if(name.equalsIgnoreCase(fullColumnList.get(i))){
+                        columnNameList.add(name);
+                        columnTypeList.add(fullColumnTypeList.get(i));
+                        find = true;
                         break;
                     }
                 }
+                if(!find){
+                    throw new FlinkxRuntimeException(
+                            String.format(
+                                    "can not find field:[%s] in columnNameList:[%s]",
+                                    name, GsonUtil.GSON.toJson(fullColumnList)));
+                }
+            }else{
+                super.hasConstantField = true;
             }
-        } catch (SQLException e) {
-            String message = String.format("error to analyzeSchema, resultSet = %s, finalFieldTypes = %s, e = %s",
-                    resultSet,
-                    GsonUtil.GSON.toJson(columnType),
-                    ExceptionUtil.getErrorMessage(e));
-            LOG.error(message);
-            throw new RuntimeException(message);
         }
     }
 
@@ -666,10 +678,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     private void queryStartLocation() throws SQLException {
         StringBuilder builder = new StringBuilder(128);
         builder.append(jdbcConf.getQuerySql())
-                .append("ORDER BY ")
-                .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL)
-                .append(jdbcConf.getIncreColumn())
-                .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL);
+                .append(" ORDER BY ")
+                .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+                .append(" ASC");
         ps = dbConn.prepareStatement(builder.toString(), resultSetType, resultSetConcurrency);
         ps.setFetchSize(jdbcConf.getFetchSize());
         //第一次查询数据库中增量字段的最大值
@@ -701,11 +712,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         //查询到数据，更新querySql
         builder = new StringBuilder(128);
         builder.append(jdbcConf.getQuerySql())
-                .append("and ")
+                .append(" AND ")
                 .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
-                .append(" > ? ORDER BY \"")
-                .append(jdbcConf.getIncreColumn())
-                .append(ConstantValue.DOUBLE_QUOTE_MARK_SYMBOL);
+                .append(" > ? ORDER BY ")
+                .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+                .append(" ASC");
         jdbcConf.setQuerySql(builder.toString());
         ps = dbConn.prepareStatement(jdbcConf.getQuerySql(), resultSetType, resultSetConcurrency);
         ps.setFetchDirection(ResultSet.FETCH_REVERSE);
@@ -740,24 +751,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     /**
-     * 校验columnCount和metaColumns的长度是否相等
-     *
-     * @param columnCount
-     * @param metaColumns
-     */
-    protected void checkSize(int columnCount, List<FieldConf> metaColumns) {
-        if (!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())
-                && columnCount != metaColumns.size()) {
-            String message = String.format("error config: column = %s, column size = %s, but columns size for query result is %s. And the query sql is %s.",
-                    GsonUtil.GSON.toJson(metaColumns),
-                    metaColumns.size(),
-                    columnCount,
-                    jdbcConf.getQuerySql());
-            throw new RuntimeException(message);
-        }
-    }
-
-    /**
      * 兼容db2 在间隔轮训场景 且第一次读取时没有任何数据
      * 在openInternal方法调用时 由于数据库没有数据，db2会自动关闭resultSet，因此只有在间隔轮训中某次读取到数据之后，进行更新columnCount
      *
@@ -773,32 +766,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 columnCount = columnCount - 1;
             }
         }
-    }
-
-    /**
-     * 填充常量 { "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
-     *
-     * @param rawRowData
-     * @return
-     */
-    protected RowData loadConstantData(RowData rawRowData) {
-        if(!(rawRowData instanceof ColumnRowData)){
-            return rawRowData;
-        }
-        int len = columnType.size();
-        List<FieldConf> fieldConfList = jdbcConf.getColumn();
-        ColumnRowData finalRowData = new ColumnRowData(len);
-        for (int i = 0; i < len; i++) {
-            String val = fieldConfList.get(i).getValue();
-            // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
-            if (val != null) {
-                String value = StringUtil.string2col(val, fieldConfList.get(i).getType(), fieldConfList.get(i).getTimeFormat()).toString();
-                finalRowData.addField(new StringColumn(value));
-            } else {
-                finalRowData.addField(((ColumnRowData) rawRowData).getField(i));
-            }
-        }
-        return finalRowData;
     }
 
     public JdbcConf getJdbcConf() {

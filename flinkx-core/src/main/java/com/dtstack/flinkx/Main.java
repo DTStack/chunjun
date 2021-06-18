@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx;
 
+
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -53,10 +54,11 @@ import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.exec.ExecuteProcessHelper;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.parser.SqlParser;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.sql.parser.SqlParser;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MathUtil;
 import com.dtstack.flinkx.util.PluginUtil;
 import com.dtstack.flinkx.util.PrintUtil;
@@ -86,6 +88,7 @@ import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_FAILUREINTERV
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_FAILURERATE;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_RESTARTATTEMPTS;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_STRATEGY;
+import static org.apache.flink.table.api.config.TableConfigOptions.TABLE_DYNAMIC_TABLE_OPTIONS_ENABLED;
 
 /**
  * The main class entry
@@ -152,7 +155,7 @@ public class Main {
                 try {
                     PrintUtil.printResult(v.getAccumulators().get());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOG.error("error to execute sql job, e = {}", ExceptionUtil.getErrorMessage(e));
                 }
             });
         }
@@ -320,12 +323,11 @@ public class Main {
      */
     private static StreamTableEnvironment createStreamTableEnvironment(
             StreamExecutionEnvironment env) {
-        // use blink and stream mode
-        EnvironmentSettings settings =
-                EnvironmentSettings.newInstance().useBlinkPlanner().inStreamingMode().build();
-
-        TableConfig tableConfig = new TableConfig();
-        return StreamTableEnvironmentImpl.create(env, settings, tableConfig);
+        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
+        Configuration configuration = tEnv.getConfig().getConfiguration();
+        // Iceberg need this config setting up true.
+        configuration.setBoolean(TABLE_DYNAMIC_TABLE_OPTIONS_ENABLED.key(), true);
+        return tEnv;
     }
 
     /**
@@ -492,6 +494,8 @@ public class Main {
         Optional<Boolean> checkpointEnabled =
                 StreamEnvConfigManagerUtil.isCheckpointEnabled(properties);
         if (checkpointEnabled.get()) {
+            StreamEnvConfigManagerUtil.getTolerableCheckpointFailureNumber(properties)
+                    .ifPresent(env.getCheckpointConfig()::setTolerableCheckpointFailureNumber);
             StreamEnvConfigManagerUtil.getCheckpointInterval(properties)
                     .ifPresent(env::enableCheckpointing);
             StreamEnvConfigManagerUtil.getCheckpointMode(properties)
