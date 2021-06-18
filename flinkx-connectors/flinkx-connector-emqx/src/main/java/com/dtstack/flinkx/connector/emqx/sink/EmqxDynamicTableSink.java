@@ -28,13 +28,9 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.connector.emqx.converter.EmqxRowConverter;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.dtstack.flinkx.connector.emqx.util.DataTypeConventerUtil.createValueFormatProjection;
 
@@ -69,17 +65,6 @@ public class EmqxDynamicTableSink implements DynamicTableSink {
     @Override
     public SinkRuntimeProvider getSinkRuntimeProvider(Context runtimeProviderContext) {
         EmqxOutputFormatBuilder builder = new EmqxOutputFormatBuilder();
-        String[] fieldNames = physicalSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        int index = 0;
-        for (String name : fieldNames) {
-            FieldConf field = new FieldConf();
-            field.setName(name);
-            field.setIndex(index++);
-            columnList.add(field);
-        }
-        emqxConf.setColumn(columnList);
-
         builder.setEmqxConf(emqxConf);
         builder.setConverter(
                 new EmqxRowConverter(
