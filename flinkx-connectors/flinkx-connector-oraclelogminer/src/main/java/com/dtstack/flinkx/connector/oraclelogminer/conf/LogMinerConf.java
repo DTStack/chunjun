@@ -48,6 +48,9 @@ public class LogMinerConf extends FlinkxCommonConf {
 
     private String timestampFormat = "sql";
 
+    /** 设置DateTimeFormatter的pattern **/
+    private String timezonePattern = "'Z'";
+
     private String cat = "UPDATE,INSERT,DELETE";
 
     /**
@@ -207,6 +210,14 @@ public class LogMinerConf extends FlinkxCommonConf {
 
     public void setTimestampFormat(String timestampFormat) {
         this.timestampFormat = timestampFormat;
+    }
+
+    public String getTimezonePattern() {
+        return timezonePattern;
+    }
+
+    public void setTimezonePattern(String timezonePattern) {
+        this.timezonePattern = timezonePattern;
     }
 
     public boolean isPavingData() {

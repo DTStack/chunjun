@@ -60,13 +60,14 @@ public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, Logi
     private final TimestampFormat timestampFormat;
 
 
-    public LogMinerRowConverter(RowType rowType, TimestampFormat timestampFormat) {
+    public LogMinerRowConverter(RowType rowType, TimestampFormat timestampFormat,String timeZonePattern) {
         super.fieldNameList = rowType.getFieldNames();
         this.timestampFormat = timestampFormat;
         super.converters = new IDeserializationConverter[rowType.getFieldCount()];
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             super.converters[i] = createInternalConverter(rowType.getTypeAt(i));
         }
+        resetTimeZoneFormatter(timeZonePattern);
     }
 
     @Override

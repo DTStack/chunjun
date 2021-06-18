@@ -17,23 +17,25 @@
  */
 package com.dtstack.flinkx.connector.oraclelogminer.source;
 
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
-import com.dtstack.flinkx.connector.oraclelogminer.converter.LogMinerColumnConverter;
-import com.dtstack.flinkx.connector.oraclelogminer.converter.LogMinerRowConverter;
-import com.dtstack.flinkx.connector.oraclelogminer.inputformat.OracleLogMinerInputFormatBuilder;
-import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.source.SourceFactory;
-import com.dtstack.flinkx.util.JsonUtil;
-import com.dtstack.flinkx.util.TableUtil;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.flinkx.connector.oraclelogminer.converter.LogMinerColumnConverter;
+import com.dtstack.flinkx.connector.oraclelogminer.converter.LogMinerRowConverter;
+import com.dtstack.flinkx.connector.oraclelogminer.converter.OracleRawTypeConverter;
+import com.dtstack.flinkx.connector.oraclelogminer.inputformat.OracleLogMinerInputFormatBuilder;
+import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.TableUtil;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @company: www.dtstack.com
@@ -70,11 +72,16 @@ public class OraclelogminerSourceFactory extends SourceFactory {
         if (useAbstractBaseColumn) {
             rowConverter = new LogMinerColumnConverter(logMinerConf.isPavingData(), logMinerConf.isSplitUpdate());
         } else {
-            final RowType rowType = (RowType) TableUtil.getDataType(logMinerConf.getColumn()).getLogicalType();
+            final RowType rowType = TableUtil.createRowType(logMinerConf.getColumn(), getRawTypeConverter());
             TimestampFormat format = "sql".equalsIgnoreCase(logMinerConf.getTimestampFormat()) ? TimestampFormat.SQL : TimestampFormat.ISO_8601;
-            rowConverter = new LogMinerRowConverter(rowType, format);
+            rowConverter = new LogMinerRowConverter(rowType, format, logMinerConf.getTimezonePattern());
         }
         builder.setRowConverter(rowConverter);
         return createInput(builder.finish());
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return OracleRawTypeConverter::apply;
     }
 }

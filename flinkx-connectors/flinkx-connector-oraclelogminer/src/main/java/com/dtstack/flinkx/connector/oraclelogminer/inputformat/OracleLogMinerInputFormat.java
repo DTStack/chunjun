@@ -87,7 +87,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected RowData nextRecordInternal(RowData rowData) throws IOException {
+    protected RowData nextRecordInternal(RowData rowData)  {
         return logMinerListener.getData();
 
     }

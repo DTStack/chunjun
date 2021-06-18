@@ -96,5 +96,9 @@ public class LogminerOptions {
                     .defaultValue(false)
                     .withDescription("Oracle LogMiner supportAutoAddLog.");
 
-
+    public static final ConfigOption<String> TIMEZONE_PATTERN =
+            ConfigOptions.key("timezonePattern")
+                    .stringType()
+                    .defaultValue("'Z'")
+                    .withDescription("Oracle LogMiner timezonePattern. ");
 }

@@ -71,14 +71,14 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
                     .append(SQL_TIME_FORMAT)
                     .toFormatter();
     protected static final DateTimeFormatter ISO8601_TIMESTAMP_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-    protected static final DateTimeFormatter SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
+    protected static DateTimeFormatter SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
             new DateTimeFormatterBuilder()
                     .append(DateTimeFormatter.ISO_LOCAL_DATE)
                     .appendLiteral(' ')
                     .append(SQL_TIME_FORMAT)
                     .appendPattern("'Z'")
                     .toFormatter();
-    protected static final DateTimeFormatter ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
+    protected static DateTimeFormatter ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
             new DateTimeFormatterBuilder()
                     .append(DateTimeFormatter.ISO_LOCAL_DATE)
                     .appendLiteral('T')
@@ -157,5 +157,26 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
             genericRowData.setField(i, value);
         }
         return genericRowData;
+    }
+
+    /**
+     * 根据配置更新Formatter
+     * @param pattern
+     */
+    protected void resetTimeZoneFormatter(String pattern) {
+        SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
+                new DateTimeFormatterBuilder()
+                        .append(DateTimeFormatter.ISO_LOCAL_DATE)
+                        .appendLiteral(' ')
+                        .append(SQL_TIME_FORMAT)
+                        .appendPattern(pattern)
+                        .toFormatter();
+        ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
+                new DateTimeFormatterBuilder()
+                        .append(DateTimeFormatter.ISO_LOCAL_DATE)
+                        .appendLiteral('T')
+                        .append(DateTimeFormatter.ISO_LOCAL_TIME)
+                        .appendPattern(pattern)
+                        .toFormatter();
     }
 }

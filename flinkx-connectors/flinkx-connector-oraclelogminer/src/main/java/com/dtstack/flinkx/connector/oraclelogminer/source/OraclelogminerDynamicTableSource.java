@@ -45,11 +45,13 @@ public class OraclelogminerDynamicTableSource implements ScanTableSource {
     private final TableSchema schema;
     private final LogMinerConf logMinerConf;
     private final TimestampFormat timestampFormat;
+    private final String timezonePattern;
 
-    public OraclelogminerDynamicTableSource(TableSchema schema, LogMinerConf logMinerConf, TimestampFormat timestampFormat) {
+    public OraclelogminerDynamicTableSource(TableSchema schema, LogMinerConf logMinerConf, TimestampFormat timestampFormat,String timezonePattern ) {
         this.schema = schema;
         this.logMinerConf = logMinerConf;
         this.timestampFormat = timestampFormat;
+        this.timezonePattern = timezonePattern;
     }
 
     @Override
@@ -59,7 +61,7 @@ public class OraclelogminerDynamicTableSource implements ScanTableSource {
 
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
         builder.setLogMinerConfig(logMinerConf);
-        builder.setRowConverter(new LogMinerRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat));
+        builder.setRowConverter(new LogMinerRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat, timezonePattern));
 
         return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
@@ -69,7 +71,8 @@ public class OraclelogminerDynamicTableSource implements ScanTableSource {
         return new OraclelogminerDynamicTableSource(
                 this.schema,
                 this.logMinerConf,
-                this.timestampFormat);
+                this.timestampFormat,
+                this.timezonePattern);
     }
 
     @Override

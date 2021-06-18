@@ -67,6 +67,7 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         options.add(LogminerOptions.LISTENER_TABLE);
         options.add(LogminerOptions.QUERY_TIMEOUT);
         options.add(LogminerOptions.SUPPORT_AUTO_LOG);
+        options.add(LogminerOptions.TIMEZONE_PATTERN);
         options.add(JsonOptions.TIMESTAMP_FORMAT);
         return options;
     }
@@ -84,9 +85,8 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         // 3.封装参数
         TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         LogMinerConf logMinerConf = getLogMinerConf(config);
-
         return new OraclelogminerDynamicTableSource(
-                physicalSchema, logMinerConf, JsonOptions.getTimestampFormat(config));
+                physicalSchema, logMinerConf, JsonOptions.getTimestampFormat(config),config.get(LogminerOptions.TIMEZONE_PATTERN));
     }
 
     /**
@@ -115,6 +115,7 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         logMinerConf.setQueryTimeout(config.get(LogminerOptions.QUERY_TIMEOUT));
         logMinerConf.setSupportAutoAddLog(config.get(LogminerOptions.SUPPORT_AUTO_LOG));
 
+        logMinerConf.setTimezonePattern(config.get(LogminerOptions.TIMEZONE_PATTERN));
 
         logMinerConf.setPavingData(true);
         logMinerConf.setSplitUpdate(true);

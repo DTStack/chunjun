@@ -87,17 +87,13 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         if (Objects.isNull(converters) || Objects.isNull(metadata)
                 || beforeColumnList.size() != converters.length
                 || !beforeColumnList.stream().map(EventRowData::getName).collect(Collectors.toCollection(HashSet::new)).containsAll(metadata.getFieldList())) {
-            try {
-                Pair<List<String>, List<String>> latestMetaData = JdbcUtil.getTableMetaData(schema, table, connection.getConnection());
-                converters = latestMetaData.getRight().stream().map(x -> wrapIntoNullableInternalConverter(createInternalConverter(x))).toArray(IDeserializationConverter[]::new);
+            Pair<List<String>, List<String>> latestMetaData = JdbcUtil.getTableMetaData(schema, table, connection.getConnection());
+            converters = latestMetaData.getRight().stream().map(x -> wrapIntoNullableInternalConverter(createInternalConverter(x))).toArray(IDeserializationConverter[]::new);
 
-                metadata = new TableMetaData(schema, table, latestMetaData.getLeft(), latestMetaData.getRight());
-                super.cdcConverterCacheMap.put(key, converters);
-                tableMetaDataCacheMap.put(key, metadata);
+            metadata = new TableMetaData(schema, table, latestMetaData.getLeft(), latestMetaData.getRight());
+            super.cdcConverterCacheMap.put(key, converters);
+            tableMetaDataCacheMap.put(key, metadata);
 
-            } catch (SQLException e) {
-                throw new RuntimeException("get table " + table + " metadata failed", e);
-            }
         }
 
 
@@ -212,19 +208,13 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         switch (substring.toUpperCase(Locale.ENGLISH)) {
             case "NUMBER":
             case "SMALLINT":
-            case "MEDIUMINT":
             case "INT":
             case "INTEGER":
-            case "INT24":
             case "FLOAT":
-            case "DOUBLE":
-            case "REAL":
-            case "BIGINT":
             case "DECIMAL":
             case "NUMERIC":
             case "BINARY_FLOAT":
             case "BINARY_DOUBLE":
-                //1.223E-002 科学技术法 但是会有精度问题
                 return (IDeserializationConverter<String, AbstractBaseColumn>) BigDecimalColumn::new;
             case "CHAR":
             case "NCHAR":
@@ -232,12 +222,14 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
             case "ROWID":
             case "VARCHAR2":
             case "VARCHAR":
-                // oracle里的long 可以插入字符串
             case "LONG":
             case "RAW":
             case "LONG RAW":
             case "INTERVAL YEAR":
             case "INTERVAL DAY":
+            case "BLOB":
+            case "CLOB":
+            case "NCLOB":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
                     val = LogParser.parseString(val);
                     return new StringColumn(val);
@@ -245,18 +237,11 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
             case "DATE":
             case "TIMESTAMP":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
-                    //如果包含时区会携带时区信息 无法转为timestamp '2021-05-17 15:08:27.000000 上午 +08:00'
-                    if (type.contains("WITH TIME ZONE")) {
-                        throw new UnsupportedOperationException("Unsupported type:" + type);
-                    } else {
-                        val = LogParser.parseTime(val);
-                        return new TimestampColumn(DateUtil.getTimestampFromStr(val));
-                    }
+                    val = LogParser.parseTime(val);
+                    return new TimestampColumn(DateUtil.getTimestampFromStr(val));
                 };
-            case "BLOB":
-            case "CLOB":
-            case "NCLOB":
             case "BFILE":
+            case "XMLTYPE":
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
