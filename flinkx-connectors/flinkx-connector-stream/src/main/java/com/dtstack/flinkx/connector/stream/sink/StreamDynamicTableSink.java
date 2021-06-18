@@ -77,7 +77,7 @@ public class StreamDynamicTableSink implements DynamicTableSink {
         builder.setStreamConf(sinkConf);
         builder.setConverter(new StreamRowConverter(rowType));
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), null);
+        return  SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), sinkConf.getParallelism());
     }
 
     @Override

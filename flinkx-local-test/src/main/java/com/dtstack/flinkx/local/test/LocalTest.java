@@ -43,7 +43,7 @@ public class LocalTest {
         Properties confProperties = new Properties();
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
+        String jobPath = userDir + "/flinkx-local-test/src/main/demo/sql/db2/db2_scan_sink.sql";
         String flinkxPluginPath = userDir + "/flinkxplugins";
 
         // 任务配置参数

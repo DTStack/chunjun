@@ -26,10 +26,11 @@
 		<module>flinkx-connector-clickhouse</module>
 		<module>flinkx-connector-sqlserver</module>
 		<module>flinkx-connector-oracle</module>
+		<module>flinkx-connector-db2</module>
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
-	</modules>
+    </modules>
 
 
     <dependencies>

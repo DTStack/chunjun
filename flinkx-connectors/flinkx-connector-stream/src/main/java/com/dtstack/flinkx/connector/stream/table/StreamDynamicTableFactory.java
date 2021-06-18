@@ -38,6 +38,7 @@ import java.util.Set;
 
 import static com.dtstack.flinkx.connector.stream.options.StreamOptions.NUMBER_OF_ROWS;
 import static com.dtstack.flinkx.connector.stream.options.StreamOptions.PRINT;
+import static com.dtstack.flinkx.connector.stream.options.StreamOptions.SINK_PARALLELISM;
 
 /**
  * @author chuixue
@@ -62,6 +63,7 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
         Set<ConfigOption<?>> options = new HashSet<>();
         options.add(NUMBER_OF_ROWS);
         options.add(PRINT);
+        options.add(SINK_PARALLELISM);
         return options;
     }
 
@@ -77,6 +79,7 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
         // 3.封装参数
         StreamConf sinkConf = new StreamConf();
         sinkConf.setPrint(config.get(PRINT));
+        sinkConf.setParallelism(config.get(SINK_PARALLELISM));
 
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
