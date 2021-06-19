@@ -70,7 +70,7 @@ public class SqlServerDialect implements JdbcDialect {
     }
 
     @Override
-    public String getSelectFromStatement(String schemaName, String tableName, String customSql, String[] selectFields, String where) {
+    public String getSelectFromStatement(String schemaName, String tableName, String customSql, String[] selectFields, String where, String orderBy) {
         String selectExpressions =
             Arrays.stream(selectFields)
                 .map(this::quoteIdentifier)
@@ -94,6 +94,10 @@ public class SqlServerDialect implements JdbcDialect {
 
         if (StringUtils.isNotBlank(where)) {
             sql.append(" WHERE ").append(where);
+        }
+
+        if(StringUtils.isNotBlank(orderBy)){
+            sql.append(" ").append(orderBy);
         }
         return sql.toString();
     }

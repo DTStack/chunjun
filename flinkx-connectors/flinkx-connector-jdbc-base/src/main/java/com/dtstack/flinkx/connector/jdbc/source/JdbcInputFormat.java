@@ -419,17 +419,23 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             whereList.add(jdbcConf.getWhere());
         }
 
-        StringBuilder sql = new StringBuilder(128);
-        sql.append(String.join(" AND ", whereList.toArray(new String[0])));
+        StringBuilder whereCondition = new StringBuilder(128);
+        whereCondition.append(String.join(" AND ", whereList.toArray(new String[0])));
 
+        StringBuilder orderByInfo = new StringBuilder(128);
         if ((Objects.nonNull(jdbcConf.getParallelism()) && jdbcConf.getParallelism() > 1)
                 && StringUtils.isNotBlank(jdbcConf.getSplitPk())) {
-            sql.append(" ORDER BY ")
+            orderByInfo.append(" ORDER BY ")
                     .append(jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()))
                     .append(" ASC");
         }
 
-        String querySql = jdbcDialect.getSelectFromStatement(jdbcConf.getSchema(), jdbcConf.getTable(), jdbcConf.getCustomSql(), columnNameList.toArray(new String[0]), sql.toString());
+        String querySql = jdbcDialect.getSelectFromStatement(jdbcConf.getSchema(),
+                jdbcConf.getTable(),
+                jdbcConf.getCustomSql(),
+                columnNameList.toArray(new String[0]),
+                whereCondition.toString(),
+                orderByInfo.toString());
 
         LOG.warn("Executing sql is: '{}'", querySql);
         return querySql;

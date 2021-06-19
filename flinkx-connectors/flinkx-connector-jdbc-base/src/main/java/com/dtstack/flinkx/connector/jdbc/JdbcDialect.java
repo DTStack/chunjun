@@ -242,7 +242,8 @@ public interface JdbcDialect extends Serializable {
             String tableName,
             String customSql,
             String[] selectFields,
-            String where) {
+            String where,
+            String orderBy) {
         String selectExpressions =
                 Arrays.stream(selectFields)
                         .map(this::quoteIdentifier)
@@ -259,12 +260,18 @@ public interface JdbcDialect extends Serializable {
                     .append(" FROM ")
                     .append(buildTableInfoWithSchema(schemaName, tableName));
         }
+
         sql.append(" WHERE ");
         if (StringUtils.isNotBlank(where)) {
             sql.append(where);
         }else{
             sql.append(" 1=1 ");
         }
+
+        if(StringUtils.isNotBlank(orderBy)){
+            sql.append(" ").append(orderBy);
+        }
+
         return sql.toString();
     }
 
