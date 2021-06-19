@@ -50,17 +50,17 @@ CREATE TABLE source
     atinyint    tinyint
 ) WITH (
       'connector' = 'db2-x',
-      'url' = 'jdbc:mysql://k3:3306/tiezhu',
-      'table-name' = 'flink_type',
-      'username' = 'root',
-      'password' = 'admin123'
+      'url' = 'jdbc:db2://172.16.101.246:50002/DT_TEST',
+      'table-name' = 'flink_dim',
+      'username' = 'db2inst1',
+      'password' = 'dtstack1'
 
       ,'scan.parallelism' = '1' -- 间隔轮训不支持多并行度
       ,'scan.partition.column' = 'id' -- 多并行度读取的切分字段
 
       ,'scan.increment.column' = 'id' -- 增量字段
       ,'scan.increment.column-type' = 'int'  -- 增量字段类型
-      ,'scan.start-location' = '109' --增量字段开始位置,如果不指定则先查询所有并查询scan.increment.column最大值作为下次起始位置
+      ,'scan.start-location' = '1' --增量字段开始位置,如果不指定则先查询所有并查询scan.increment.column最大值作为下次起始位置
 
       ,'scan.fetch-size' = '2' -- fetch抓取的条数,防止一次抓取太多
       ,'scan.query-timeout' = '10' -- 数据库抓取超时时间

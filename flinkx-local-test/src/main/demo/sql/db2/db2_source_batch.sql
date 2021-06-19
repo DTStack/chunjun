@@ -50,10 +50,10 @@ CREATE TABLE source
     atinyint    tinyint
 ) WITH (
       'connector' = 'db2-x',
-      'url' = 'jdbc:mysql://xxx:3306/test',
-      'table-name' = 'flink_type',
-      'username' = 'root',
-      'password' = 'root'
+      'url' = 'jdbc:db2://172.16.101.246:50002/DT_TEST',
+      'table-name' = 'flink_dim',
+      'username' = 'db2inst1',
+      'password' = 'dtstack1'
 
       ,'scan.parallelism' = '2' -- 并行度大于1时，必须指定scan.partition.column
       ,'scan.fetch-size' = '2'
@@ -63,7 +63,7 @@ CREATE TABLE source
 
       ,'scan.increment.column' = 'id' -- 增量字段
       ,'scan.increment.column-type' = 'int' -- 增量字段类型
-      ,'scan.start-location' = '109' --增量字段开始位置
+      ,'scan.start-location' = '0' --增量字段开始位置
       );
 
 CREATE TABLE sink

@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<properties>
-		<db2.version>3.72.44</db2.version>
+		<db2.version>db2jcc4</db2.version>
 	</properties>
 
 	<artifactId>flinkx-connector-db2</artifactId>
@@ -23,7 +23,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.ibm.db2</groupId>
+			<groupId>com.ibm.db2.jcc</groupId>
 			<artifactId>db2jcc</artifactId>
 			<version>${db2.version}</version>
 		</dependency>
