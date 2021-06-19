@@ -21,19 +21,21 @@ package com.dtstack.flinkx.connector.jdbc.sink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.TableUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
@@ -43,8 +45,6 @@ import java.util.Properties;
  * @author tudou
  */
 public abstract class JdbcSinkFactory extends SinkFactory {
-
-    protected static final Logger LOG = LoggerFactory.getLogger(JdbcSinkFactory.class);
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
@@ -75,6 +75,15 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         JdbcOutputFormatBuilder builder = getBuilder();
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
+
+        AbstractRowConverter rowConverter = null;
+        // 同步任务使用transform
+        if (!useAbstractBaseColumn){
+            final RowType rowType = TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
+            rowConverter = new JdbcRowConverter(rowType);
+        }
+        builder.setRowConverter(rowConverter);
+
         return createOutput(dataSet, builder.finish());
     }
 

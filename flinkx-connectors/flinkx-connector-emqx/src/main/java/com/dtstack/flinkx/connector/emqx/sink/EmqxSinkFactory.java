@@ -56,6 +56,9 @@ public class EmqxSinkFactory extends SinkFactory {
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
+        if (!useAbstractBaseColumn) {
+            throw new UnsupportedOperationException("Emqx not support transform");
+        }
         EmqxOutputFormatBuilder builder = new EmqxOutputFormatBuilder();
         builder.setEmqxConf(emqxConf);
         builder.setConverter(new EmqxColumnConverter(emqxConf));
