@@ -32,6 +32,7 @@ import com.dtstack.flinkx.util.TableUtil;
  */
 public class MysqlInputFormat extends JdbcInputFormat {
 
+
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);

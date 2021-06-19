@@ -96,17 +96,22 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             hasNext = false;
             return;
         }
+
+        String querySQL = null;
         try {
             dbConn = getConnection();
             dbConn.setAutoCommit(false);
             initColumnList();
-            jdbcConf.setQuerySql(buildQuerySql(inputSplit));
+            querySQL = buildQuerySql(inputSplit);
+            jdbcConf.setQuerySql(querySQL);
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
             if (!resultSet.isClosed()) {
                 columnCount = resultSet.getMetaData().getColumnCount();
             }
         } catch (SQLException se) {
-            throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
+            String expMsg =  se.getMessage();
+            querySQL = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;
+            throw new IllegalArgumentException("open() failed." + querySQL, se);
         }
     }
 

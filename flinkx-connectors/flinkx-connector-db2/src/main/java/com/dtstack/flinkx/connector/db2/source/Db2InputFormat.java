@@ -39,8 +39,9 @@ public class Db2InputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
-        RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, Db2RawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+        //TODO 暂时不设置,需要思考结构上如何设计
+        //RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, Db2RawTypeConverter::apply);
+        //setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 
     @Override
