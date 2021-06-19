@@ -27,11 +27,7 @@ import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.types.logical.utils.LogicalTypeChecks;
 import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.util.Preconditions;
 
@@ -43,9 +39,8 @@ import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
-import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.hasRoot;
+import static com.dtstack.flinkx.connector.emqx.util.DataTypeConventerUtil.createValueFormatProjection;
 
 /**
  * @author chuixue
@@ -116,15 +111,5 @@ public class EmqxDynamicTableSource implements ScanTableSource {
     @Override
     public String asSummaryString() {
         return "emqx";
-    }
-
-    private static int[] createValueFormatProjection(DataType physicalDataType) {
-        final LogicalType physicalType = physicalDataType.getLogicalType();
-        Preconditions.checkArgument(
-                hasRoot(physicalType, LogicalTypeRoot.ROW), "Row data type expected.");
-        final int physicalFieldCount = LogicalTypeChecks.getFieldCount(physicalType);
-        final IntStream physicalFields = IntStream.range(0, physicalFieldCount);
-
-        return physicalFields.toArray();
     }
 }
