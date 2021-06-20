@@ -1,0 +1,215 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.dtstack.flinkx.connector.hdfs.converter;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.element.column.BigDecimalColumn;
+import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+import com.dtstack.flinkx.util.ColumnTypeUtil;
+import com.dtstack.flinkx.util.DateUtil;
+import org.apache.hadoop.hive.common.type.HiveDecimal;
+import org.apache.hadoop.hive.serde2.io.DateWritable;
+import org.apache.parquet.example.data.Group;
+import org.apache.parquet.io.api.Binary;
+
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * Date: 2021/06/16
+ * Company: www.dtstack.com
+ *
+ * @author tudou
+ */
+public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, RowData, Group, String> {
+
+    private List<String> columnNameList;
+    private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
+
+    public HdfsParquetColumnConverter(List<FieldConf> fieldConfList) {
+        super(fieldConfList.size());
+        for (int i = 0; i < fieldConfList.size(); i++) {
+            String type = fieldConfList.get(i).getType();
+            int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
+            int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
+            if (left > 0 && right > 0){
+                type = type.substring(0, left);
+            }
+            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(type));
+            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(type), type);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public RowData toInternal(RowData input) {
+        GenericRowData row = new GenericRowData(input.getArity());
+        if(input instanceof GenericRowData){
+            GenericRowData genericRowData = (GenericRowData) input;
+            for (int i = 0; i < input.getArity(); i++) {
+                row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
+            }
+        }else{
+            throw new FlinkxRuntimeException("Error RowData type, RowData:[" + input + "] should be instance of GenericRowData.");
+        }
+        return row;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Group toExternal(RowData rowData, Group group) throws Exception {
+        for (int index = 0; index < rowData.getArity(); index++) {
+            toExternalConverters[index].serialize(rowData, index, group);
+        }
+        return group;
+    }
+
+    @Override
+    public RowData toInternalLookup(RowData input) {
+        throw new FlinkxRuntimeException("HDFS Connector doesn't support Lookup Table Function.");
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected ISerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, String type) {
+        return (val, index, rowData) -> {
+            if (val == null || val.isNullAt(index)) {
+                rowData.setField(index, null);
+            } else {
+                serializationConverter.serialize(val, index, rowData);
+            }
+        };
+    }
+
+    @Override
+    @SuppressWarnings("all")
+    protected IDeserializationConverter createInternalConverter(String type) {
+        switch (type.toUpperCase(Locale.ENGLISH)) {
+            case "BOOLEAN":
+                return (IDeserializationConverter<Boolean, AbstractBaseColumn>) BooleanColumn::new;
+            case "TINYINT":
+            case "SMALLINT":
+            case "INT":
+                return (IDeserializationConverter<Integer, AbstractBaseColumn>) BigDecimalColumn::new;
+            case "BIGINT":
+                return (IDeserializationConverter<Long, AbstractBaseColumn>) BigDecimalColumn::new;
+            case "FLOAT":
+                return (IDeserializationConverter<Float, AbstractBaseColumn>) BigDecimalColumn::new;
+            case "DOUBLE":
+                return (IDeserializationConverter<Double, AbstractBaseColumn>) BigDecimalColumn::new;
+            case "DECIMAL":
+                return (IDeserializationConverter<BigDecimal, AbstractBaseColumn>) BigDecimalColumn::new;
+            case "STRING":
+            case "VARCHAR":
+            case "CHAR":
+                return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
+            case "TIMESTAMP":
+                return (IDeserializationConverter<Timestamp, AbstractBaseColumn>) TimestampColumn::new;
+            case "DATE":
+                return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
+            case "BINARY":
+                return (IDeserializationConverter<byte[], AbstractBaseColumn>) BytesColumn::new;
+            case "ARRAY":
+            case "MAP":
+            case "STRUCT":
+            case "UNION":
+            default:
+                throw new UnsupportedTypeException("Unsupported type:" + type);
+        }
+    }
+
+    @Override
+    protected ISerializationConverter<Group> createExternalConverter(String type) {
+        switch (type.toUpperCase(Locale.ENGLISH)) {
+            case "BOOLEAN":
+                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getBoolean(index));
+            case "TINYINT":
+            case "SMALLINT":
+            case "INT":
+                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getInt(index));
+            case "BIGINT":
+                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getLong(index));
+            case "FLOAT":
+                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getFloat(index));
+            case "DOUBLE":
+                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getDouble(index));
+            case "DECIMAL":
+                return (rowData, index, group) -> {
+                    ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(columnNameList.get(index));
+                    HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData.getString(index).toString()));
+                    hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
+                    if(hiveDecimal == null){
+                        String msg = String.format("第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)", index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
+                        throw new WriteRecordException(msg, new IllegalArgumentException());
+                    }
+                    group.add(columnNameList.get(index), HdfsUtil.decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
+                };
+            case "STRING":
+            case "VARCHAR":
+            case "CHAR":
+                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getString(index).toString());
+            case "TIMESTAMP":
+                return (rowData, index, group) -> {
+                    Timestamp timestamp = rowData.getTimestamp(index, 3).toTimestamp();
+                    byte[] dst = HdfsUtil.longToByteArray(timestamp.getTime());
+                    group.add(columnNameList.get(index), Binary.fromConstantByteArray(dst));
+                };
+            case "DATE":
+                return (rowData, index, group) -> {
+                    Date date = Date.valueOf(LocalDate.ofEpochDay(rowData.getInt(index)));
+                    group.add(columnNameList.get(index), DateWritable.dateToDays(date));
+                };
+            case "BINARY":
+                return (rowData, index, group) -> group.add(columnNameList.get(index), Binary.fromString(rowData.getString(index).toString()));
+            case "ARRAY":
+            case "MAP":
+            case "STRUCT":
+            case "UNION":
+            default:
+                throw new UnsupportedTypeException("Unsupported type:" + type);
+        }
+    }
+
+    public void setColumnNameList(List<String> columnNameList) {
+        this.columnNameList = columnNameList;
+    }
+
+    public void setDecimalColInfo(Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo) {
+        this.decimalColInfo = decimalColInfo;
+    }
+}

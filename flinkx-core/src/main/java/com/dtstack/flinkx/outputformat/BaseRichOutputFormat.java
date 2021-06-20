@@ -509,9 +509,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @return
      */
     public synchronized FormatState getFormatState() throws Exception {
-        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
-        formatState.setMetric(outputMetric.getMetricCounters());
-        LOG.info("format state:{}", formatState.getState());
         // not EXACTLY_ONCE model,Does not interact with the db
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
             try {
@@ -523,6 +520,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 flushEnable.compareAndSet(true, false);
             }
         }
+        //set metric after preCommit
+        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setMetric(outputMetric.getMetricCounters());
+        LOG.info("format state:{}", formatState.getState());
         return formatState;
     }
 
