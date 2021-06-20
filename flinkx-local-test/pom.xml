@@ -150,10 +150,16 @@
 			<artifactId>flinkx-connector-emqx</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-greenplum</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-hdfs</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

@@ -121,7 +121,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         try {
             return createInputSplitsInternal(minNumSplits);
         } catch (Exception e){
-            LOG.warn("error to create InputSplits, e = {}", ExceptionUtil.getErrorMessage(e));
+            LOG.warn("error to create InputSplits", e);
             return new ErrorInputSplit[]{new ErrorInputSplit(ExceptionUtil.getErrorMessage(e))};
         }
     }

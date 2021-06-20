@@ -21,12 +21,16 @@ package com.dtstack.flinkx.outputformat;
 
 import org.apache.flink.table.data.RowData;
 
+import com.dtstack.flinkx.conf.BaseFileConf;
+import com.dtstack.flinkx.enums.SizeUnitType;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.sink.WriteMode;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author jiangbo
@@ -34,444 +38,218 @@ import java.io.IOException;
  */
 public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
-    protected String currentBlockFileNamePrefix;
-
-    protected String currentBlockFileName;
-
-    protected long sumRowsOfBlock;
-
-    protected long rowsOfCurrentBlock;
-
-    protected  long maxFileSize;
-
-    protected long flushInterval = 0;
-
-    protected static final String APPEND_MODE = "APPEND";
-
-    protected static final String DATA_SUBDIR = ".data";
-
-    protected static final String FINISHED_SUBDIR = ".finished";
-
-    protected static final String ACTION_FINISHED = ".action_finished";
-
-    protected static final String RESTART_FILE_NAME_SUFFIX = "restart";
-
-    protected static final String JOB_ID_DELIMITER = "_";
-
-    protected static final int SECOND_WAIT = 30;
-
-    protected static final String SP = "/";
-
-    protected String charsetName = "UTF-8";
-
+    protected static final String TMP_DIR_NAME = ".data";
+    protected BaseFileConf baseFileConf;
+    /** The first half of the file name currently written */
+    protected String currentFileNamePrefix;
+    /** Full file name */
+    protected String currentFileName;
+    /** Data file write path */
     protected String outputFilePath;
-
-    protected String path;
-
-    protected String fileName;
-
+    /** Temporary data file write path,  outputFilePath + /.data */
     protected String tmpPath;
-
-    protected String finishedPath;
-
-    protected String actionFinishedTag;
-
-    /** 写入模式 */
-    protected String writeMode;
-
-    /** 压缩方式 */
-    protected String compress;
-
-    protected boolean readyCheckpoint;
-
-    protected int blockIndex = 0;
-
-    protected boolean makeDir = true;
-
-    private long nextNumForCheckDataSize = 1000;
-
-    private long lastWriteSize;
-
+    protected long sumRowsOfBlock;
+    protected long rowsOfCurrentBlock;
+    /** Current file index number */
+    protected int currentFileIndex = 0;
+    protected List<String> preCommitFilePathList = new ArrayList<>();
+    protected long nextNumForCheckDataSize = 5000;
     protected long lastWriteTime = System.currentTimeMillis();
 
     @Override
     public void initializeGlobal(int parallelism) {
-        //TODO
-        //1、创建.data目录或者删除.data目录中的数据
-        //2、overwrite模式将原有数据移动至创建的.temData目录中
+        if(WriteMode.OVERWRITE.name().equalsIgnoreCase(baseFileConf.getWriteMode())){
+            //Overwrite mode and not delete the data directory first when restoring from a checkpoint
+            deleteDataDir();
+        }else{
+            deleteTmpDataDir();
+        }
+        checkOutputDir();
     }
 
     @Override
     public void finalizeGlobal(int parallelism) {
-        //TODO
-        //1、将.data目录中的数据文件移动到正式目录中，删除.data目录
-        //2、删除.temData目录
+        moveAllTmpDataFileToDir();
     }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        initFileIndex();
-        initPath();
-        openSource();
-        actionBeforeWriteData();
-
-        nextBlock();
-    }
-
-    protected void initPath(){
-        if(StringUtils.isNotBlank(fileName)) {
-            outputFilePath = path + SP + fileName;
-        } else {
-            outputFilePath = path;
-        }
-
-        currentBlockFileNamePrefix = taskNumber + "." + jobId;
-        tmpPath = outputFilePath + SP + DATA_SUBDIR;
-        finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
-        actionFinishedTag = tmpPath + SP + ACTION_FINISHED + "_" + jobId;
-
-        LOG.info("Channel:[{}], currentBlockFileNamePrefix:[{}], tmpPath:[{}], finishedPath:[{}]",
-                taskNumber, currentBlockFileNamePrefix, tmpPath, finishedPath);
-    }
-
-    protected void initFileIndex() {
         if (null != formatState && formatState.getFileIndex() > -1) {
-            blockIndex = formatState.getFileIndex() + 1;
+            currentFileIndex = formatState.getFileIndex() + 1;
         }
+        LOG.info("Start current File Index:{}", currentFileIndex);
 
-        LOG.info("Start block index:{}", blockIndex);
+        //The file name here is actually the partition name
+        if(StringUtils.isNotBlank(baseFileConf.getFileName())) {
+            outputFilePath = baseFileConf.getPath() + File.separatorChar + baseFileConf.getFileName();
+        } else {
+            outputFilePath = baseFileConf.getPath();
+        }
+        currentFileNamePrefix = jobId + "_" + taskNumber;
+        tmpPath = outputFilePath + File.separatorChar + TMP_DIR_NAME;
+
+        LOG.info("Channel:[{}], currentFileNamePrefix:[{}]", taskNumber, currentFileNamePrefix);
+
+        openSource();
     }
 
-    protected void actionBeforeWriteData(){
-        if(taskNumber > 0){
-            waitForActionFinishedBeforeWrite();
-            return;
-        }
+    protected void nextBlock(){
+        currentFileName = currentFileNamePrefix + "_" + currentFileIndex + getExtension();
+    }
 
-        checkOutputDir();
-
-        try{
-            // 覆盖模式并且不是从检查点恢复时先删除数据目录
-            boolean isCoverageData = !APPEND_MODE.equalsIgnoreCase(writeMode) && (formatState == null || formatState.getState() == null);
-            if(isCoverageData){
-                coverageData();
-            }
-
-            // 处理上次任务因异常失败产生的脏数据
-            if (formatState != null) {
-                cleanDirtyData();
-            }
-        } catch (Exception e){
-            LOG.error("e = {}", ExceptionUtil.getErrorMessage(e));
-            throw new RuntimeException(e);
-        }
-
-        try {
-            LOG.info("Delete [.data] dir before write records");
-            clearTemporaryDataFiles();
-        } catch (Exception e) {
-            LOG.warn("Clean temp dir error before write records:{}", e.getMessage());
-        } finally {
-            createActionFinishedTag();
-        }
+    @Override
+    protected void writeMultipleRecordsInternal() {
+        throw new UnsupportedOperationException("Does not support batch write");
     }
 
     @Override
     public void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
-//        if (config.getRestore().isRestore() && !config.getRestore().isStream()){
-//            if(lastRow != null){
-//                readyCheckpoint = !ObjectUtils.equals(lastRow.getField(config.getRestore().getRestoreColumnIndex()),
-//                        ((GenericRowData)rowData).getField(config.getRestore().getRestoreColumnIndex()));
-//            }
-//        }
-
-        checkSize();
-
         writeSingleRecordToFile(rowData);
-
+        rowsOfCurrentBlock++;
+        checkCurrentFileSize();
+        lastRow = rowData;
         lastWriteTime = System.currentTimeMillis();
     }
 
-    private void checkSize() {
+    private void checkCurrentFileSize() {
         if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
             return;
         }
-
-        if(getCurrentFileSize() > maxFileSize){
-            try {
-                flushData();
-                LOG.info("Flush data by check file size");
-            } catch (Exception e){
-                throw new RuntimeException("Flush data error", e);
-            }
-
-            lastWriteSize = bytesWriteCounter.getLocalValue();
+        long currentFileSize = getCurrentFileSize();
+        LOG.info("current file: {}, size = {}", currentFileName, SizeUnitType.readableFileSize(currentFileSize));
+        if (currentFileSize > baseFileConf.getMaxFileSize()) {
+            flushData();
         }
-
-        nextNumForCheckDataSize = getNextNumForCheckDataSize();
-    }
-
-    private long getCurrentFileSize(){
-        return  (long)(getDeviation() * (bytesWriteCounter.getLocalValue() - lastWriteSize));
-    }
-
-    private long getNextNumForCheckDataSize(){
         long totalBytesWrite = bytesWriteCounter.getLocalValue();
         long totalRecordWrite = numWriteCounter.getLocalValue();
 
         float eachRecordSize = (totalBytesWrite * getDeviation()) / totalRecordWrite;
 
-        long currentFileSize = getCurrentFileSize();
-        long recordNum = (long)((maxFileSize - currentFileSize) / eachRecordSize);
-
-        return totalRecordWrite + recordNum;
+        long recordNum = (long)((baseFileConf.getMaxFileSize() - currentFileSize) / eachRecordSize);
+        nextNumForCheckDataSize = totalRecordWrite + recordNum;
     }
 
-    protected void nextBlock(){
-//        if (config.getRestore().isRestore()){
-//            currentBlockFileName = "." + currentBlockFileNamePrefix + "." + blockIndex + getExtension();
-//        } else {
-//            currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex + getExtension();
-//        }
-        currentBlockFileName = currentBlockFileNamePrefix + "." + blockIndex + getExtension();
-    }
-
-    @Override
-    public FormatState getFormatState() throws Exception{
-//        if (!config.getRestore().isRestore() || lastRow == null){
-//            return null;
-//        }
-
-//        if (config.getRestore().isStream() || readyCheckpoint){
-//            try{
-//                flushData();
-//                lastWriteSize = bytesWriteCounter.getLocalValue();
-//            } catch (Exception e){
-//                throw new RuntimeException("Flush data error when create snapshot:", e);
-//            }
-//
-//            try{
-//                if (sumRowsOfBlock != 0) {
-//                    moveTemporaryDataFileToDirectory();
-//                }
-//            } catch (Exception e){
-//                throw new RuntimeException("Move temporary file to data directory error when create snapshot:", e);
-//            }
-//
-//            snapshotWriteCounter.add(sumRowsOfBlock);
-//            numWriteCounter.add(sumRowsOfBlock);
-//            formatState.setNumberWrite(numWriteCounter.getLocalValue());
-//            if (!config.getRestore().isStream()){
-//                formatState.setState(lastRow.getField(config.getRestore().getRestoreColumnIndex()));
-//            }
-//            sumRowsOfBlock = 0;
-//            formatState.setJobId(jobId);
-//            formatState.setFileIndex(blockIndex-1);
-//            LOG.info("jobId = {}, blockIndex = {}", jobId, blockIndex);
-//
-//            super.getFormatState();
-//            return formatState;
-//        }
-
-        //todo 通道文件压缩，标记需要移动到正式目录的数据文件，并将数据文件移动到正式目录
-
-        return null;
-    }
-
-    /**
-     * checkpoint成功时操作
-     * @param checkpointId
-     */
-    @Override
-    public void notifyCheckpointComplete(long checkpointId){
-        //todo 移动成功，清空标记
-    };
-
-    /**
-     * checkpoint失败时操作
-     * @param checkpointId
-     */
-    @Override
-    public void notifyCheckpointAborted(long checkpointId){
-        //todo 根据标记检测是否已经有文件被移动到正式目录，若有，则移动回.data目录，然后清空标记
-    };
-
-    @Override
-    public void closeInternal() throws IOException {
-        readyCheckpoint = false;
-        //最后触发一次 block文件重命名，为 .data 目录下的文件移动到数据目录做准备
-//        if(isTaskEndsNormally()){
-//            flushData();
-            //restore == false 需要主动执行
-//            if (!config.getRestore().isRestore()) {
-//                moveTemporaryDataBlockFileToDirectory();
-//            }
-//        }
-        numWriteCounter.add(sumRowsOfBlock);
-    }
-
-//    @Override
-    protected void afterCloseInternal()  {
-        try {
-//            if(!isTaskEndsNormally()){
-//                return;
-//            }
-
-//            if (!config.getRestore().isStream()) {
-//                createFinishedTag();
-//
-//                if(taskNumber == 0) {
-//                    waitForAllTasksToFinish();
-//
-//                    //正常被close，触发 .data 目录下的文件移动到数据目录
-//                    moveAllTemporaryDataFileToDirectory();
-//
-//                    LOG.info("The task ran successfully,clear temporary data files");
-//                    closeSource();
-//                    clearTemporaryDataFiles();
-//                }
-//            }else{
-//                closeSource();
-//            }
-        } catch(Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    @Override
-    public void tryCleanupOnError() throws Exception {
-//        if(!config.getRestore().isRestore()) {
-//            LOG.info("Clean temporary data in method tryCleanupOnError");
-//            clearTemporaryDataFiles();
-//        }
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void flushData() throws IOException{
+    public void flushData(){
         if (rowsOfCurrentBlock != 0) {
             flushDataInternal();
-//            if (config.getRestore().isRestore()) {
-//                moveTemporaryDataBlockFileToDirectory();
-//                sumRowsOfBlock += rowsOfCurrentBlock;
-//                LOG.info("flush file:{} rows:{} sumRowsOfBlock:{}", currentBlockFileName, rowsOfCurrentBlock, sumRowsOfBlock);
-//            }
+            sumRowsOfBlock += rowsOfCurrentBlock;
+            LOG.info("flush file:{}, rowsOfCurrentBlock = {}, sumRowsOfBlock = {}", currentFileName, rowsOfCurrentBlock, sumRowsOfBlock);
             rowsOfCurrentBlock = 0;
         }
     }
 
-    public long getLastWriteTime() {
-        return lastWriteTime;
+    @Override
+    protected void preCommit() {
+        flushData();
+        if (sumRowsOfBlock != 0) {
+            preCommitFilePathList = copyTmpDataFileToDir();
+        }
+
+        snapshotWriteCounter.add(sumRowsOfBlock);
+        sumRowsOfBlock = 0;
+        formatState.setJobId(jobId);
+        formatState.setFileIndex(currentFileIndex - 1);
+        LOG.info("jobId = {}, blockIndex = {}", jobId, currentFileIndex);
+    }
+
+    @Override
+    protected void commit(long checkpointId) {
+        deleteTmpDataFiles();
+        preCommitFilePathList.clear();
+    }
+
+    @Override
+    protected void rollback(long checkpointId) {
+        deleteDirDataFiles(preCommitFilePathList);
+    }
+
+    @Override
+    public void closeInternal() throws IOException {
+        flushData();
+        snapshotWriteCounter.add(sumRowsOfBlock);
+        sumRowsOfBlock = 0;
+        closeSource();
     }
 
     /**
-     * 清除脏数据文件
-     */
-    protected abstract void cleanDirtyData();
-
-    /**
-     * 写数据前由第一个通道完成指定操作之后调用此方法创建结束标制通知其它通道开始写数据
-     */
-    protected abstract void createActionFinishedTag();
-
-    /**
-     * 等待第一个通道完成写数据前的操作
-     */
-    protected abstract void waitForActionFinishedBeforeWrite();
-
-    /**
-     * flush数据到存储介质
-     *
-     * @throws IOException 输出异常
-     */
-    protected abstract void flushDataInternal() throws IOException;
-
-    /**
-     * 单条数据写入文件
-     *
-     * @param rowData 要写入的数据
-     * @throws WriteRecordException 脏数据异常
-     */
-    protected abstract void writeSingleRecordToFile(RowData rowData) throws WriteRecordException;
-
-    /**
-     * 每个通道写完数据后关闭资源前创建结束标制
-     *
-     * @throws IOException 创建异常
-     */
-    protected abstract void createFinishedTag() throws IOException;
-
-    /**
-     * 移动临时数据文件
-     */
-    protected abstract void moveTemporaryDataBlockFileToDirectory();
-
-    /**
-     * 等待所有通道操作完成
-     *
-     * @throws IOException 超时异常
-     */
-    protected abstract void waitForAllTasksToFinish() throws IOException;
-
-    /**
-     * 覆盖数据操作
-     *
-     * @throws IOException 删除数据异常
-     */
-    protected abstract void coverageData() throws IOException;
-
-    /**
-     * 移动所有的临时数据文件
-     *
-     * @throws IOException 重命名文件异常
-     */
-    protected abstract void moveTemporaryDataFileToDirectory() throws IOException;
-
-    /**
-     * 正常被close，触发 .data 目录下的文件移动到数据目录
-     *
-     * @throws IOException 重命名文件异常
-     */
-    protected abstract void moveAllTemporaryDataFileToDirectory() throws IOException;
-
-    /**
-     * 检查写入路径是否存在，是否为目录
+     * Check whether the writing path exists and whether it is a directory
      */
     protected abstract void checkOutputDir();
 
     /**
-     * 打开资源
-     *
-     * @throws IOException 打开连接异常
+     * Overwrite mode to clear the data file directory
      */
-    protected abstract void openSource() throws IOException;
+    protected abstract void deleteDataDir();
 
     /**
-     * 关闭资源
-     *
-     * @throws IOException 关闭连接异常
+     * Clear temporary data files
      */
-    protected abstract void closeSource() throws IOException;
+    protected abstract void deleteTmpDataDir();
 
     /**
-     * 清除临时数据文件
-     *
-     * @throws IOException 删除数据异常
+     * Open resource
      */
-    protected abstract void clearTemporaryDataFiles() throws IOException;
+    protected abstract void openSource();
 
     /**
-     * 获取文件压缩比
-     * @return 压缩比 < 1
-     */
-    public abstract float getDeviation();
-
-    /**
-     * 获取文件后缀
+     * Get file suffix
      *
      * @return .gz
      */
     protected abstract String getExtension();
+
+    /**
+     * Get the actual size of the file currently written
+     * @return
+     */
+    protected abstract long getCurrentFileSize();
+
+    /**
+     * Write single data to file
+     *
+     * @param rowData Data to be written
+     * @throws WriteRecordException Dirty data abnormal
+     */
+    protected abstract void writeSingleRecordToFile(RowData rowData) throws WriteRecordException;
+
+    /**
+     * flush data to storage media
+     */
+    protected abstract void flushDataInternal();
+
+    /**
+     * copy the temporary data file corresponding to the channel index to the official path
+     * @return pre Commit File Path List
+     */
+    protected abstract List<String> copyTmpDataFileToDir();
+
+    /**
+     * Delete the data file corresponding to the channel index in the temporary directory
+     */
+    protected abstract void deleteTmpDataFiles();
+
+    /**
+     * Delete the data files submitted in the pre-submission phase under the official directory
+     */
+    protected abstract void deleteDirDataFiles(List<String> preCommitFilePathList);
+
+    /**
+     * It is closed normally, triggering files in the .data directory to move to the data directory
+     */
+    protected abstract void moveAllTmpDataFileToDir();
+
+    /**
+     * close Source
+     */
+    protected abstract void closeSource();
+
+    /**
+     * Get file compression ratio
+     * @return 压缩比 < 1
+     */
+    public abstract float getDeviation();
+
+    public long getLastWriteTime() {
+        return lastWriteTime;
+    }
 }
