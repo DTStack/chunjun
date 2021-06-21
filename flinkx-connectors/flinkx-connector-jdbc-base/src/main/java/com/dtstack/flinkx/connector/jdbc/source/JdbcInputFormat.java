@@ -122,15 +122,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
         JdbcInputSplit[] splits;
-        String endLocation = null;
-        if (jdbcConf.isIncrement() && !jdbcConf.isPolling() && jdbcConf.isUseMaxFunc()) {
-            //如果不是轮询任务，则只能是增量任务，若useMaxFunc设置为true，则去数据库查询当前增量字段的最大值 并设置所有分片的endLocation为最大值
-            endLocation = getMaxValueFromDb();
-        }
 
-
-        if (jdbcConf.isSplitByKey() && jdbcConf.getSplitStrategy().equalsIgnoreCase("range")) {
-            Pair<Object, Object> splitRangeFromDb = getSplitRangeFromDb(endLocation);
+        //间隔轮训 & 增量同步不支持分片
+        if (!jdbcConf.isIncrement() && jdbcConf.isSplitByKey() && jdbcConf.getSplitStrategy().equalsIgnoreCase("range")) {
+            Pair<Object, Object> splitRangeFromDb = getSplitRangeFromDb();
             BigInteger left = NumberUtils.createBigInteger(splitRangeFromDb.getLeft().toString());
             BigInteger right = NumberUtils.createBigInteger(splitRangeFromDb.getRight().toString());
             LOG.info("create split,the splitKey range is {} --> {}", left, right);
@@ -162,13 +157,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     if (i == minNumSplits - 1) {
                         end = null;
                     }
-                    splits[i] = new JdbcInputSplit(i, numPartitions, i, jdbcConf.getStartLocation(), endLocation,start.toString(), Objects.isNull(end) ? null : end.toString());
+                    splits[i] = new JdbcInputSplit(i, numPartitions, i, jdbcConf.getStartLocation(), null,start.toString(), Objects.isNull(end) ? null : end.toString());
                 }
             }
         }else{
             splits = new JdbcInputSplit[minNumSplits];
             for (int i = 0; i < minNumSplits; i++) {
-                splits[i] = new JdbcInputSplit(i, numPartitions, i, jdbcConf.getStartLocation(), endLocation,null, null);
+                splits[i] = new JdbcInputSplit(i, numPartitions, i, jdbcConf.getStartLocation(), null,null, null);
             }
         }
 
@@ -302,8 +297,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             }
         } else if (jdbcConf.isUseMaxFunc()) {
             //如果不是轮询任务，则只能是增量任务，若useMaxFunc设置为true，endLocation设置为数据库中查询的最大值
-            //创建分片的时候赋值endLocation
-            //getMaxValue(inputSplit);
+            getMaxValue(inputSplit);
             String endLocation = ((JdbcInputSplit) inputSplit).getEndLocation();
             endLocationAccumulator.add(new BigInteger(StringUtil.stringToTimestampStr(endLocation, type)));
         } else {
@@ -409,7 +403,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      *
      * @return
      */
-    private  Pair<Object, Object> getSplitRangeFromDb(String incrementEndLocation) {
+    private  Pair<Object, Object> getSplitRangeFromDb() {
         Pair<Object, Object> splitPkRange = null;
         Connection conn = null;
         Statement st = null;
@@ -417,55 +411,33 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         try {
             long startTime = System.currentTimeMillis();
 
-            List<String> whereList = new ArrayList<>();
-
-            String startSql = buildStartLocationSql(
-                    jdbcConf.getIncreColumnType(),
-                    jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                    jdbcConf.getStartLocation(),
-                    jdbcConf.isUseMaxFunc());
-
-
-            if (StringUtils.isNotEmpty(startSql)) {
-                whereList.add( startSql );
-            }
-
-
-            if (StringUtils.isNotBlank(incrementEndLocation)) {
-                String filterSql = buildFilterSql(
-                        "<",
-                        incrementEndLocation,
-                        jdbcConf.getIncreColumn(),
-                        jdbcConf.getIncreColumnType(),
-                        false);
-                whereList.add(filterSql);
-            }
-
+            /** 构建where条件 **/
+           String whereFilter = "";
             if (StringUtils.isNotBlank(jdbcConf.getWhere())) {
-                whereList.add(jdbcConf.getWhere());
+                whereFilter = whereFilter + " WHERE " + jdbcConf.getWhere();
             }
-
 
             String querySplitRangeSql;
             if (StringUtils.isNotEmpty(jdbcConf.getCustomSql())) {
                 querySplitRangeSql = String.format(
-                        "SELECT max(%s.%s) as max_value, min(%s.%s) as min_value FROM ( %s ) %s",
+                        "SELECT max(%s.%s) as max_value, min(%s.%s) as min_value FROM ( %s ) %s %s",
                         JdbcUtil.TEMPORARY_TABLE_NAME,
                         jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()),
                         JdbcUtil.TEMPORARY_TABLE_NAME,
                         jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()),
                         jdbcConf.getCustomSql(),
-                        JdbcUtil.TEMPORARY_TABLE_NAME);
-                if (CollectionUtils.isNotEmpty(whereList)) {
-                    querySplitRangeSql = querySplitRangeSql + " WHERE " + (String.join(" AND ", whereList.toArray(new String[0])));
-                }
+                        JdbcUtil.TEMPORARY_TABLE_NAME,
+                        whereFilter);
+
             } else {
+                //rowNum字段作为splitKey
                 if (addRowNumColumn(jdbcConf.getSplitPk())) {
-                    StringBuilder customTableBuilder = new StringBuilder(128).append("SELECT ") .append(getRowNumColumn(jdbcConf.getSplitPk()) )
-                            .append( " FROM ") .append(jdbcDialect.buildTableInfoWithSchema(jdbcConf.getSchema(),jdbcConf.getTable()));
-                    if (CollectionUtils.isNotEmpty(whereList)) {
-                        customTableBuilder.append(" WHERE ").append(String.join(" AND ", whereList.toArray(new String[0])));
-                    }
+                    StringBuilder customTableBuilder = new StringBuilder(128)
+                            .append("SELECT ")
+                            .append(getRowNumColumn(jdbcConf.getSplitPk()) )
+                            .append( " FROM ")
+                            .append(jdbcDialect.buildTableInfoWithSchema(jdbcConf.getSchema(),jdbcConf.getTable()))
+                            .append(whereFilter);
 
                     querySplitRangeSql = String.format(
                             "SELECT max(%s) as max_value, min(%s) as min_value FROM (%s)tmp",
@@ -474,18 +446,14 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                             customTableBuilder.toString());
                 } else {
                     querySplitRangeSql = String.format(
-                            "SELECT max(%s) as max_value, min(%s) as min_value FROM %s",
+                            "SELECT max(%s) as max_value, min(%s) as min_value FROM %s %s",
                             jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()),
                             jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()),
-                            jdbcDialect.buildTableInfoWithSchema(jdbcConf.getSchema(),jdbcConf.getTable()));
+                            jdbcDialect.buildTableInfoWithSchema(jdbcConf.getSchema(),jdbcConf.getTable()),
+                            whereFilter);
 
-                    if (CollectionUtils.isNotEmpty(whereList)) {
-                        querySplitRangeSql = querySplitRangeSql + " WHERE " + (String.join(" AND ", whereList.toArray(new String[0])));
-                    }
                 }
             }
-
-
 
             LOG.info(String.format("Query SplitRange sql is '%s'", querySplitRangeSql));
 
@@ -494,15 +462,14 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             st.setQueryTimeout(jdbcConf.getQueryTimeOut());
             rs = st.executeQuery(querySplitRangeSql);
             if (rs.next()) {
-                splitPkRange = new ImmutablePair<Object, Object>(
-                        String.valueOf(rs.getObject("min_value")), String.valueOf(rs.getObject("max_value")));
+                splitPkRange = new ImmutablePair<Object, Object>(String.valueOf(rs.getObject("min_value")), String.valueOf(rs.getObject("max_value")));
             }
 
             LOG.info(String.format("Takes [%s] milliseconds to get the SplitRange value [%s]", System.currentTimeMillis() - startTime, splitPkRange));
 
             return splitPkRange;
         } catch (Throwable e) {
-            throw new RuntimeException("Get SplitRange value from " + jdbcConf.getTable() + " error", e);
+            throw new FlinkxRuntimeException("Get SplitRange value from " + jdbcConf.getTable() + " error", e);
         } finally {
             JdbcUtil.closeDbResources(rs, st, conn, false);
         }
@@ -617,7 +584,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                         .append(" ORDER BY ")
                         .append(jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()))
                         .append(" ASC");
-                //like 'SELECT * FROM (SELECT "id", "name" FROM "table") flinkx_tmp WHERE id >= 1 and id <10 ORDER BY FLINKX_ROWNUM ASC'
+                //like 'SELECT * FROM (SELECT "id", "name" FROM "table") flinkx_tmp WHERE id >= 1 and id <10 ORDER BY id ASC'
                 querySql = jdbcDialect.getSelectFromStatement(jdbcConf.getSchema(), jdbcConf.getTable(), jdbcConf.getCustomSql(), columnNameList.toArray(new String[0]), whereSql.toString());
             }
         }else{

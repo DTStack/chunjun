@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -358,7 +359,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     }
 
     public boolean isSplitByKey() {
-        return getParallelism() > 1 && StringUtils.isNotEmpty(splitPk);
+        return Objects.nonNull(getParallelism()) && getParallelism() > 1 && StringUtils.isNotEmpty(splitPk);
     }
     @Override
     public String toString() {
