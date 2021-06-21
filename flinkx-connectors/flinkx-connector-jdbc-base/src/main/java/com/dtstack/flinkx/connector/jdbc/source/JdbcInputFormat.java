@@ -139,11 +139,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 BigInteger remainder = endAndStartGap.remainder(BigInteger.valueOf(minNumSplits));
                 if (step.compareTo(BigInteger.ZERO) == 0) {
                     //left = right时，step和remainder都为0
-                   if(remainder.compareTo(BigInteger.ZERO) == 0){
-                       minNumSplits =1;
-                   }else{
-                       minNumSplits = remainder.intValue();
-                   }
+                    if(remainder.compareTo(BigInteger.ZERO) == 0){
+                        minNumSplits =1;
+                    }else{
+                        minNumSplits = remainder.intValue();
+                    }
                 }
 
                 splits = new JdbcInputSplit[minNumSplits];
@@ -153,17 +153,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     start = end;
                     end = start.add(step);
                     end = end.add((remainder.compareTo(BigInteger.valueOf(i)) > 0) ? BigInteger.ONE : BigInteger.ZERO);
-                    //最后一个分片范围是>=start 其余分片范围是 >=start && < end
+                    //分片范围是 splitPk >=start and splitPk < end 最后一个分片范围是splitPk >= start
                     if (i == minNumSplits - 1) {
                         end = null;
                     }
-                    splits[i] = new JdbcInputSplit(i, numPartitions, i, jdbcConf.getStartLocation(), null,start.toString(), Objects.isNull(end) ? null : end.toString());
+                    splits[i] = new JdbcInputSplit(i, numPartitions, i, jdbcConf.getStartLocation(), null, start.toString(), Objects.isNull(end) ? null : end.toString());
                 }
             }
         }else{
             splits = new JdbcInputSplit[minNumSplits];
             for (int i = 0; i < minNumSplits; i++) {
-                splits[i] = new JdbcInputSplit(i, numPartitions, i, jdbcConf.getStartLocation(), null,null, null);
+                splits[i] = new JdbcInputSplit(i, numPartitions, i, jdbcConf.getStartLocation(), null, null, null);
             }
         }
 
@@ -412,7 +412,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             long startTime = System.currentTimeMillis();
 
             /** 构建where条件 **/
-           String whereFilter = "";
+            String whereFilter = "";
             if (StringUtils.isNotBlank(jdbcConf.getWhere())) {
                 whereFilter = whereFilter + " WHERE " + jdbcConf.getWhere();
             }
@@ -569,8 +569,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                         .append(ROW_NUM_COLUMN_ALIAS)
                         .append(" ASC");
                 //like 'SELECT * FROM (SELECT "id", "name", rownum as FLINKX_ROWNUM FROM "table" WHERE "id"  >  2) flinkx_tmp WHERE FLINKX_ROWNUM >= 1  and FLINKX_ROWNUM < 10 ORDER BY FLINKX_ROWNUM ASC'
-                querySql = jdbcDialect.getSelectFromStatement(jdbcConf.getSchema(), jdbcConf.getTable(),tempQuerySql, columnNameList.toArray(new String[0]), sql.toString());
-              }else{
+                querySql = jdbcDialect.getSelectFromStatement(jdbcConf.getSchema(), jdbcConf.getTable(), tempQuerySql, columnNameList.toArray(new String[0]), sql.toString());
+            }else{
 
                 if(jdbcConf.getSplitStrategy().equalsIgnoreCase("range")){
                     whereList.add(jdbcDialect.getSplitRangeFilter(jdbcInputSplit, jdbcConf.getSplitPk()));

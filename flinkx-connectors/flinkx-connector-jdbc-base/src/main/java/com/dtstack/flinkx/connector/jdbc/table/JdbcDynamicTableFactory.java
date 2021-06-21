@@ -71,6 +71,7 @@ import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COL
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN_TYPE;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARALLELISM;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_COLUMN;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_STRATEGY;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_POLLING_INTERVAL;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_QUERY_TIMEOUT;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNNAME;
