@@ -71,6 +71,7 @@ import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_I
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_INCREMENT_COLUMN_TYPE;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARALLELISM;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_COLUMN;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_STRATEGY;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_POLLING_INTERVAL;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_QUERY_TIMEOUT;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_RESTORE_COLUMNNAME;
@@ -208,6 +209,7 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
 
         jdbcConf.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
+        jdbcConf.setSplitStrategy(readableConfig.get(SCAN_PARTITION_STRATEGY));
 
         jdbcConf.setIncreColumn(readableConfig.get(SCAN_INCREMENT_COLUMN));
         jdbcConf.setIncreColumnType(readableConfig.get(SCAN_INCREMENT_COLUMN_TYPE));
@@ -242,6 +244,7 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(SCHEMA);
 
         optionalOptions.add(SCAN_PARTITION_COLUMN);
+        optionalOptions.add(SCAN_PARTITION_STRATEGY);
         optionalOptions.add(SCAN_INCREMENT_COLUMN);
         optionalOptions.add(SCAN_INCREMENT_COLUMN_TYPE);
         optionalOptions.add(SCAN_POLLING_INTERVAL);

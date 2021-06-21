@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.connector.jdbc.conf;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -48,6 +49,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private String orderByColumn;
     private String querySql;
     private String splitPk;
+    private String splitStrategy = "range";
     private int fetchSize = 0;
     private int queryTimeOut = 0;
     /** 是否为增量任务 */
@@ -347,6 +349,17 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.allReplace = allReplace;
     }
 
+    public String getSplitStrategy() {
+        return splitStrategy;
+    }
+
+    public void setSplitStrategy(String splitStrategy) {
+        this.splitStrategy = splitStrategy;
+    }
+
+    public boolean isSplitByKey() {
+        return getParallelism() > 1 && StringUtils.isNotEmpty(splitPk);
+    }
     @Override
     public String toString() {
         return "JdbcConf{" +
@@ -362,6 +375,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
                 ", orderByColumn='" + orderByColumn + '\'' +
                 ", querySql='" + querySql + '\'' +
                 ", splitPk='" + splitPk + '\'' +
+                ", splitStrategy='" + splitStrategy + '\'' +
                 ", fetchSize=" + fetchSize +
                 ", queryTimeOut=" + queryTimeOut +
                 ", increment=" + increment +

@@ -46,6 +46,12 @@ public class JdbcSourceOptions {
                     .noDefaultValue()
                     .withDescription("the column name used for partitioning the input.");
 
+    public static final ConfigOption<String> SCAN_PARTITION_STRATEGY =
+            ConfigOptions.key("scan.partition.strategy")
+                    .stringType()
+                    .defaultValue("range")
+                    .withDescription("the partitionStrategy for the input.");
+
     public static final ConfigOption<String> SCAN_INCREMENT_COLUMN =
             ConfigOptions.key("scan.increment.column")
                     .stringType()
