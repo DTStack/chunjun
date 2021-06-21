@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.inputformat;
 
-import com.dtstack.flinkx.exception.ReadRecordException;
-
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -36,6 +34,7 @@ import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
