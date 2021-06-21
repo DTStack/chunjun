@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc.options;
+package com.dtstack.flinkx.source.options;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -26,7 +26,7 @@ import org.apache.flink.configuration.ConfigOptions;
  * @create 2021-04-10 16:19
  * @description
  **/
-public class JdbcSourceOptions {
+public class SourceOptions {
     // read config options
     public static final ConfigOption<String> SCAN_RESTORE_COLUMNNAME =
             ConfigOptions.key("scan.restore.columnname")
