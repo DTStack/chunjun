@@ -120,7 +120,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
             });
 
             final RowType rowType = TableUtil.createRowType(fieldList, getRawTypeConverter());
-            rowConverter = new JdbcRowConverter(rowType);
+            rowConverter = jdbcDialect.getRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);
 

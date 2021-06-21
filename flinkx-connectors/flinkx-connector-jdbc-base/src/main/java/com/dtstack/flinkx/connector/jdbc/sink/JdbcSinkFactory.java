@@ -80,7 +80,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         // 同步任务使用transform
         if (!useAbstractBaseColumn){
             final RowType rowType = TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
-            rowConverter = new JdbcRowConverter(rowType);
+            rowConverter = jdbcDialect.getRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);
 
