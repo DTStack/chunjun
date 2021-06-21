@@ -15,50 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.sink;
+
+package com.dtstack.flinkx.connector.cassandra.optinos;
 
 /**
- * @author jiangbo
- * @date 2018/6/6 14:05
+ * @author tiezhu
+ * @since 2021/6/21 星期一
  */
-public enum WriteMode {
-
-    /**
-     * 用于关系数据库的直接写入
-     */
-    INSERT("insert"),
-
-    /**
-     * 用于关系数据库的更新操作
-     */
-    UPDATE("update"),
-
-    /**
-     * 用于MySQL的替换操作
-     */
-    REPLACE("replace"),
-
-    /**
-     * 用于文件的覆盖
-     */
-    OVERWRITE("overwrite"),
-
-    /**
-     * 用于文件的追加
-     */
-    APPEND("append"),
-
-    UPSERT("upsert"),
-
-    ;
-
-    private final String mode;
-
-    WriteMode(String mode) {
-        this.mode = mode;
-    }
-
-    public String getMode() {
-        return mode;
-    }
+public class CassandraLookupOptions extends CassandraCommonOptions{
 }

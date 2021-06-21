@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>flinkx-connectors</artifactId>
+		<groupId>com.dtstack.flinkx</groupId>
+		<version>1.12-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>flinkx-connector-cassandra</artifactId>
+	<name>FlinkX : Connectors : Cassandra</name>
+
+	<properties>
+		<cassandra.driver.version>3.11.0</cassandra.driver.version>
+		<cassandra.test.version>4.3.1.0</cassandra.test.version>
+	</properties>
+
+	<dependencies>
+
+		<!-- https://mvnrepository.com/artifact/com.datastax.cassandra/cassandra-driver-core -->
+		<dependency>
+			<groupId>com.datastax.cassandra</groupId>
+			<artifactId>cassandra-driver-core</artifactId>
+			<version>${cassandra.driver.version}</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.cassandraunit/cassandra-unit -->
+		<dependency>
+			<groupId>org.cassandraunit</groupId>
+			<artifactId>cassandra-unit</artifactId>
+			<version>${cassandra.test.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.4</version>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<!-- here the phase you need -->
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<copy todir="${basedir}/../../flinkxplugins/cassandra">
+									<fileset dir="target/">
+										<include name="${artifactId}-${project.version}.jar"/>
+									</fileset>
+								</copy>
+								<!--suppress UnresolvedMavenProperty -->
+								<move
+									file="${basedir}/../../flinkxplugins/cassandra/${artifactId}-${project.version}.jar"
+									tofile="${basedir}/../../flinkxplugins/cassandra/${artifactId}-${git.branch}.jar"/>
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

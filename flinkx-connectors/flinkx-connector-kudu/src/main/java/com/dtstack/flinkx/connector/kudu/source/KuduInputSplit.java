@@ -15,50 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.sink;
+
+package com.dtstack.flinkx.connector.kudu.source;
+
+import org.apache.flink.core.io.InputSplit;
 
 /**
- * @author jiangbo
- * @date 2018/6/6 14:05
+ * @author tiezhu
+ * @since 2021/6/9 星期三
  */
-public enum WriteMode {
+public class KuduInputSplit implements InputSplit {
+    private final byte[] token;
 
-    /**
-     * 用于关系数据库的直接写入
-     */
-    INSERT("insert"),
+    private final int splitNumber;
 
-    /**
-     * 用于关系数据库的更新操作
-     */
-    UPDATE("update"),
-
-    /**
-     * 用于MySQL的替换操作
-     */
-    REPLACE("replace"),
-
-    /**
-     * 用于文件的覆盖
-     */
-    OVERWRITE("overwrite"),
-
-    /**
-     * 用于文件的追加
-     */
-    APPEND("append"),
-
-    UPSERT("upsert"),
-
-    ;
-
-    private final String mode;
-
-    WriteMode(String mode) {
-        this.mode = mode;
+    public KuduInputSplit(byte[] token, int splitNumber) {
+        this.token = token;
+        this.splitNumber = splitNumber;
     }
 
-    public String getMode() {
-        return mode;
+    @Override
+    public int getSplitNumber() {
+        return splitNumber;
+    }
+
+    public byte[] getToken() {
+        return token;
     }
 }

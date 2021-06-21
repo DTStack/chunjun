@@ -141,7 +141,7 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-oracle</artifactId>
+			<artifactId>flinkx-connector-kudu</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

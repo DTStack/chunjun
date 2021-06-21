@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.stream.converter;
 
+import com.dtstack.flinkx.element.column.ByteColumn;
+
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -72,6 +74,7 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
             case "BOOLEAN":
                 return val -> new BooleanColumn(JMockData.mock(boolean.class));
             case "TINYINT":
+            case "BYTE":
                 return val -> new BigDecimalColumn(JMockData.mock(byte.class));
             case "CHAR":
             case "CHARACTER":
