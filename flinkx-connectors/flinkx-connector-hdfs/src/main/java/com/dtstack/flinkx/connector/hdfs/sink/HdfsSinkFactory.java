@@ -23,6 +23,7 @@ import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -49,21 +50,19 @@ public class HdfsSinkFactory extends SinkFactory {
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
-        //        StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
-        //        builder.setStreamConf(streamConf);
-        //        AbstractRowConverter converter;
-        //        if (useAbstractBaseColumn) {
-        //            converter = new StreamColumnConverter();
-        //        } else {
-        //            final RowType rowType =
-        //                    TableUtil.createRowType(streamConf.getColumn(),
-        // getRawTypeConverter());
-        //            converter = new StreamRowConverter(rowType);
-        //        }
-        //
-        //        builder.setConverter(converter);
-        //        return createOutput(dataSet, builder.finish());
-        return null;
+        HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(hdfsConf.getFileType());
+        builder.setHdfsConf(hdfsConf);
+        AbstractRowConverter converter;
+//        if (useAbstractBaseColumn) {
+//            converter = new StreamColumnConverter();
+//        } else {
+//            final RowType rowType =
+//                    TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());
+//            converter = new StreamRowConverter(rowType);
+//        }
+
+//        builder.setConverter(converter);
+        return createOutput(dataSet, builder.finish());
     }
 
     @Override

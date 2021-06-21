@@ -174,7 +174,7 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
                     HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData.getString(index).toString()));
                     hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
                     if(hiveDecimal == null){
-                        String msg = String.format("第[%s]个数据数据[%s]precision和scale和元数据不匹配:decimal(%s, %s)", index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
+                        String msg = String.format("The [%s] data data [%s] precision and scale do not match the metadata:decimal(%s, %s)", index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
                         throw new WriteRecordException(msg, new IllegalArgumentException());
                     }
                     group.add(columnNameList.get(index), HdfsUtil.decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));

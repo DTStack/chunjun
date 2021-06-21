@@ -17,11 +17,10 @@
  */
 package com.dtstack.flinkx.connector.hdfs.sink;
 
+import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
-import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,21 +44,25 @@ public class HdfsOutputFormatBuilder extends BaseRichOutputFormatBuilder {
             default:
                 format = new HdfsTextOutputFormat();
         }
+        super.format = format;
+    }
 
-        super.setFormat(format);
+    public void setHdfsConf(HdfsConf hdfsConf) {
+        super.setConfig(hdfsConf);
+        format.setHdfsConf(hdfsConf);
     }
 
     @Override
     protected void checkFormat() {
         StringBuilder errorMessage = new StringBuilder(256);
-
-        if (format.getPath() == null || format.getPath().length() == 0) {
+        HdfsConf hdfsConf = format.getHdfsConf();
+        if (StringUtils.isBlank(hdfsConf.getPath())) {
             errorMessage.append("No path supplied. \n");
         }
 
-        if (StringUtils.isBlank(format.defaultFs)) {
+        if (StringUtils.isBlank(hdfsConf.getDefaultFS())) {
             errorMessage.append("No defaultFS supplied. \n");
-        }else if (!format.defaultFs.startsWith(ConstantValue.PROTOCOL_HDFS)) {
+        }else if (!hdfsConf.getDefaultFS().startsWith(ConstantValue.PROTOCOL_HDFS)) {
             errorMessage.append("defaultFS should start with hdfs:// \n");
         }
         if(StringUtils.isNotBlank(errorMessage)){

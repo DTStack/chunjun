@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.connector.hdfs.sink;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.hdfs.CompressType;
+import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
@@ -45,14 +45,11 @@ import java.util.stream.Collectors;
  */
 public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
-    private static final int FILE_NAME_PART_SIZE = 3;
-
     protected FileSystem fs;
     protected HdfsConf hdfsConf;
 
     protected List<String> fullColumnNameList;
     protected List<String> fullColumnTypeList;
-    protected int[] colIndices;
     protected Configuration conf;
     protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
     protected CompressType compressType;
@@ -78,19 +75,6 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
             fullColumnTypeList = hdfsConf.getFullColumnType();
         }else{
             fullColumnTypeList = hdfsConf.getColumn().stream().map(FieldConf::getType).collect(Collectors.toList());
-        }
-        colIndices = new int[hdfsConf.getColumn().size()];
-        for(int i = 0; i < hdfsConf.getColumn().size(); ++i) {
-            int j = 0;
-            for(; j < fullColumnNameList.size(); ++j) {
-                if(hdfsConf.getColumn().get(i).getName().equalsIgnoreCase(fullColumnNameList.get(j))) {
-                    colIndices[i] = j;
-                    break;
-                }
-            }
-            if(j == hdfsConf.getColumn().size()) {
-                colIndices[i] = -1;
-            }
         }
         compressType = getCompressType();
         super.openInternal(taskNumber, numTasks);
@@ -267,5 +251,13 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         } catch (IOException e) {
             throw new FlinkxRuntimeException("cannot delete directory: " + path, e);
         }
+    }
+
+    public HdfsConf getHdfsConf() {
+        return hdfsConf;
+    }
+
+    public void setHdfsConf(HdfsConf hdfsConf) {
+        this.hdfsConf = hdfsConf;
     }
 }

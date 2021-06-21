@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.hdfs.sink;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.hdfs.CompressType;
+import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsParquetColumnConverter;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsParquetRowConverter;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;

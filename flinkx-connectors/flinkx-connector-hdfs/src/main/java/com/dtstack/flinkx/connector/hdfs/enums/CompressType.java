@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.connector.hdfs;
+package com.dtstack.flinkx.connector.hdfs.enums;
 
 import org.apache.commons.lang.StringUtils;
 
