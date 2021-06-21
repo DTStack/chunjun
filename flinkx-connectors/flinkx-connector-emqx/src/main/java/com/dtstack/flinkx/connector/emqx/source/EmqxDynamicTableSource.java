@@ -31,14 +31,10 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.connector.emqx.converter.EmqxRowConverter;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.dtstack.flinkx.connector.emqx.util.DataTypeConventerUtil.createValueFormatProjection;
 
@@ -76,17 +72,6 @@ public class EmqxDynamicTableSource implements ScanTableSource {
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
         EmqxInputFormatBuilder builder = new EmqxInputFormatBuilder();
-        String[] fieldNames = physicalSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        int index = 0;
-        for (String name : fieldNames) {
-            FieldConf field = new FieldConf();
-            field.setName(name);
-            field.setIndex(index++);
-            columnList.add(field);
-        }
-        emqxConf.setColumn(columnList);
-
         builder.setEmqxConf(emqxConf);
         builder.setRowConverter(
                 new EmqxRowConverter(
