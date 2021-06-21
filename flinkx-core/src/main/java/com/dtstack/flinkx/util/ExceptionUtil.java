@@ -39,6 +39,7 @@ public class ExceptionUtil {
 
         try (StringWriter stringWriter = new StringWriter();
                 PrintWriter writer = new PrintWriter(stringWriter)) {
+            e.printStackTrace(writer);
             writer.flush();
             stringWriter.flush();
             StringBuffer buffer = stringWriter.getBuffer();

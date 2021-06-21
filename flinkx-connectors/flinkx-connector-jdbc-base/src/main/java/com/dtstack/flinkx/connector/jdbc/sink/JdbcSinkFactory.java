@@ -28,8 +28,6 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
-import com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -38,6 +36,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.Properties;
+
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 
 /**
  * Date: 2021/04/13 Company: www.dtstack.com
@@ -58,11 +59,11 @@ public abstract class JdbcSinkFactory extends SinkFactory {
                         .create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), JdbcConf.class);
-        int batchSize = syncConf.getWriter().getIntVal("batchSize", JdbcSinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS.defaultValue());
+        int batchSize = syncConf.getWriter().getIntVal("batchSize", SINK_BUFFER_FLUSH_MAX_ROWS.defaultValue());
         jdbcConf.setBatchSize(batchSize);
         long flushIntervalMills = syncConf
                 .getWriter()
-                .getLongVal("flushIntervalMills", JdbcSinkOptions.SINK_BUFFER_FLUSH_INTERVAL.defaultValue());
+                .getLongVal("flushIntervalMills", SINK_BUFFER_FLUSH_INTERVAL.defaultValue());
         jdbcConf.setFlushIntervalMills(flushIntervalMills);
         jdbcConf.setColumn(syncConf.getWriter().getFieldList());
         Properties properties = syncConf.getWriter().getProperties("properties", null);
@@ -80,7 +81,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         // 同步任务使用transform
         if (!useAbstractBaseColumn){
             final RowType rowType = TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
-            rowConverter = new JdbcRowConverter(rowType);
+            rowConverter = jdbcDialect.getRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);
 
