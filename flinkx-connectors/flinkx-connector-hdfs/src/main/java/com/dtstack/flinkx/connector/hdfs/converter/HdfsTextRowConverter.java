@@ -149,7 +149,7 @@ public class HdfsTextRowConverter extends AbstractRowConverter<RowData, RowData,
             case TIME_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
             default:
-                throw new UnsupportedTypeException("Unsupported type: " + type);
+                throw new UnsupportedTypeException(type);
         }
     }
 
@@ -194,7 +194,7 @@ public class HdfsTextRowConverter extends AbstractRowConverter<RowData, RowData,
             case TIME_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
             default:
-                throw new UnsupportedTypeException("Unsupported type: " + type);
+                throw new UnsupportedTypeException(type);
         }
     }
 }

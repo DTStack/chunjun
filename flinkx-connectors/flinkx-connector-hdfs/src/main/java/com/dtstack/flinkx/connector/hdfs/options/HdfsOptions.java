@@ -76,8 +76,6 @@ public class HdfsOptions extends BaseFileOptions {
     }
 
     private static boolean hasHadoopConfig(Map<String, String> tableOptions) {
-        return tableOptions.keySet().stream().anyMatch((k) -> {
-            return k.startsWith("properties.");
-        });
+        return tableOptions.keySet().stream().anyMatch((k) -> k.startsWith("properties."));
     }
 }

@@ -147,7 +147,7 @@ public class HdfsOrcColumnConverter extends AbstractRowConverter<RowData, RowDat
             case "STRUCT":
             case "UNION":
             default:
-                throw new UnsupportedTypeException("Unsupported type:" + type);
+                throw new UnsupportedTypeException(type);
         }
     }
 
@@ -194,7 +194,7 @@ public class HdfsOrcColumnConverter extends AbstractRowConverter<RowData, RowDat
             case "STRUCT":
             case "UNION":
             default:
-                throw new UnsupportedTypeException("Unsupported type:" + type);
+                throw new UnsupportedTypeException(type);
         }
     }
 

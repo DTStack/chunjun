@@ -87,7 +87,7 @@ public class HdfsRawTypeConverter {
             case "STRUCT":
             case "UNION":
             default:
-                throw new UnsupportedTypeException("Unsupported type:" + type);
+                throw new UnsupportedTypeException(type);
         }
     }
 }

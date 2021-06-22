@@ -53,7 +53,7 @@ public class HdfsOrcInputSplit implements InputSplit {
         ByteArrayInputStream bais = new ByteArrayInputStream(orcSplitData);
         DataInputStream dis = new DataInputStream(bais);
         OrcSplit orcSplit = new OrcSplit(null, 0, 0, null, null
-                , false, false,new ArrayList());
+                , false, false, new ArrayList<>());
         orcSplit.readFields(dis);
         bais.close();
         dis.close();

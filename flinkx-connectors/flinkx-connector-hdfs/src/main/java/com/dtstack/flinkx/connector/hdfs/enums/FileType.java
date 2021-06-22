@@ -45,7 +45,7 @@ public enum FileType {
             case "parquet":
                 return PARQUET;
             default:
-                throw new UnsupportedTypeException("Unsupported fileType:" + fileType);
+                throw new UnsupportedTypeException(fileType);
         }
     }
 }

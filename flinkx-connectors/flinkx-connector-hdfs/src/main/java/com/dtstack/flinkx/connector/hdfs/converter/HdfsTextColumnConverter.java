@@ -123,13 +123,12 @@ public class HdfsTextColumnConverter extends AbstractRowConverter<RowData, RowDa
             case "DATE":
                 return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
             case "BINARY":
-//                return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new BytesColumn(val.getBytes(StandardCharsets.UTF_8));
             case "ARRAY":
             case "MAP":
             case "STRUCT":
             case "UNION":
             default:
-                throw new UnsupportedTypeException("Unsupported type:" + type);
+                throw new UnsupportedTypeException(type);
         }
     }
 
@@ -167,7 +166,7 @@ public class HdfsTextColumnConverter extends AbstractRowConverter<RowData, RowDa
             case "STRUCT":
             case "UNION":
             default:
-                throw new UnsupportedTypeException("Unsupported type:" + type);
+                throw new UnsupportedTypeException(type);
         }
     }
 }
