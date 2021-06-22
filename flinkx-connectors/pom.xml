@@ -27,6 +27,7 @@
 		<module>flinkx-connector-sqlserver</module>
 		<module>flinkx-connector-oracle</module>
 		<module>flinkx-connector-greenplum</module>
+		<module>flinkx-connector-hdfs</module>
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>

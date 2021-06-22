@@ -41,6 +41,7 @@ public class LocalTest {
 
     public static void main(String[] args) throws Exception {
         Properties confProperties = new Properties();
+//        confProperties.setProperty("flink.checkpoint.interval", "10000");
         String userDir = System.getProperty("user.dir");
 
         String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
