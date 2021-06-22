@@ -115,10 +115,7 @@ public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, R
                 // Converter for small type that casts value to int and then return short value,
                 // since
                 // JDBC 1.0 use int type for small values.
-                return val ->
-                        val instanceof Integer
-                                ? JMockData.mock(int.class).shortValue()
-                                : JMockData.mock(int.class);
+                return val -> JMockData.mock(int.class).shortValue();
             case INTEGER:
                 return val -> JMockData.mock(int.class);
             case BIGINT:

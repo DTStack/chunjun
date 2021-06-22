@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.hdfs.sink;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author tudou
  */
-public class HdfsOutputFormatBuilder extends BaseRichOutputFormatBuilder {
+public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
     private final BaseHdfsOutputFormat format;
 
     public HdfsOutputFormatBuilder(String fileType) {
@@ -44,11 +44,11 @@ public class HdfsOutputFormatBuilder extends BaseRichOutputFormatBuilder {
             default:
                 format = new HdfsTextOutputFormat();
         }
-        super.format = format;
+        super.setFormat(format);
     }
 
     public void setHdfsConf(HdfsConf hdfsConf) {
-        super.setConfig(hdfsConf);
+        super.setBaseFileConf(hdfsConf);
         format.setHdfsConf(hdfsConf);
     }
 

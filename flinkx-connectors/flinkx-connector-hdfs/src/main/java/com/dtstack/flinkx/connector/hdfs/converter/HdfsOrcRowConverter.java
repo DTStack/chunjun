@@ -35,12 +35,12 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
+import org.apache.hadoop.io.BytesWritable;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Date: 2021/06/16
@@ -48,7 +48,7 @@ import java.util.List;
  *
  * @author tudou
  */
-public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, List<Object>, LogicalType> {
+public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, Object[], LogicalType> {
 
     public HdfsOrcRowConverter(RowType rowType) {
         super(rowType);
@@ -75,11 +75,11 @@ public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, 
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<Object> toExternal(RowData rowData, List<Object> list) throws Exception {
+    public Object[] toExternal(RowData rowData, Object[] data) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, list);
+            toExternalConverters[index].serialize(rowData, index, data);
         }
-        return list;
+        return data;
     }
 
     @Override
@@ -89,15 +89,13 @@ public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, 
 
     @Override
     @SuppressWarnings("unchecked")
-    protected ISerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(
+    protected ISerializationConverter<Object[]> wrapIntoNullableExternalConverter(
             ISerializationConverter serializationConverter, LogicalType type) {
-        return (val, index, rowData) -> {
-            if (val == null
-                    || val.isNullAt(index)
-                    || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
-                rowData.setField(index, null);
+        return (rowData, index, data) -> {
+            if (rowData == null || rowData.isNullAt(index) || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
+                data[index] = null;
             } else {
-                serializationConverter.serialize(val, index, rowData);
+                serializationConverter.serialize(rowData, index, data);
             }
         };
     }
@@ -149,42 +147,44 @@ public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, 
     }
 
     @Override
-    protected ISerializationConverter<List<Object>> createExternalConverter(LogicalType type) {
+    protected ISerializationConverter<Object[]> createExternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case NULL:
-                return (rowData, index, list) -> list.set(index, null);
+                return (rowData, index, data) -> data[index] = null;
             case BOOLEAN:
-                return (rowData, index, list) -> list.set(index, rowData.getBoolean(index));
+                return (rowData, index, data) -> data[index] = rowData.getBoolean(index);
             case TINYINT:
-                return (rowData, index, list) -> list.set(index, rowData.getByte(index));
+                return (rowData, index, data) -> data[index] = rowData.getByte(index);
             case SMALLINT:
-                return (rowData, index, list) -> list.set(index, rowData.getShort(index));
+                return (rowData, index, data) -> data[index] = rowData.getShort(index);
             case INTEGER:
-                return (rowData, index, list) -> list.set(index, rowData.getInt(index));
+                return (rowData, index, data) -> data[index] = rowData.getInt(index);
             case BIGINT:
-                return (rowData, index, list) -> list.set(index, rowData.getLong(index));
+                return (rowData, index, data) -> data[index] = rowData.getLong(index);
             case DATE:
-                return (rowData, index, list) -> {
-                    list.set(index, Date.valueOf(LocalDate.ofEpochDay(rowData.getInt(index))));
+                return (rowData, index, data) -> {
+                    data[index] = Date.valueOf(LocalDate.ofEpochDay(rowData.getInt(index)));
                 };
             case FLOAT:
-                return (rowData, index, list) -> list.set(index, rowData.getFloat(index));
+                return (rowData, index, data) -> data[index] = rowData.getFloat(index);
             case DOUBLE:
-                return (rowData, index, list) -> list.set(index, rowData.getDouble(index));
+                return (rowData, index, data) -> data[index] = rowData.getDouble(index);
             case CHAR:
             case VARCHAR:
-                return (rowData, index, list) -> list.set(index, rowData.getString(index).toString());
+                return (rowData, index, data) -> data[index] = rowData.getString(index).toString();
             case DECIMAL:
-                return (rowData, index, list) -> {
-                    HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData.getString(index).toString()));
-                    hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, ((DecimalType)type).getPrecision(), ((DecimalType)type).getScale());
-                    list.set(index, new HiveDecimalWritable(hiveDecimal));
+                return (rowData, index, data) -> {
+                    int precision = ((DecimalType) type).getPrecision();
+                    int scale = ((DecimalType) type).getScale();
+                    HiveDecimal hiveDecimal = HiveDecimal.create(rowData.getDecimal(index, precision, scale).toBigDecimal());
+                    hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, precision, scale);
+                    data[index] = new HiveDecimalWritable(hiveDecimal);
                 };
             case BINARY:
             case VARBINARY:
-                return (rowData, index, list) -> list.set(index, rowData.getBinary(index));
+                return (rowData, index, data) -> data[index] = new BytesWritable(rowData.getBinary(index));
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return (rowData, index, list) -> list.set(index, rowData.getTimestamp(index, ((TimestampType)type).getPrecision()).toTimestamp());
+                return (rowData, index, data) -> data[index] = rowData.getTimestamp(index, ((TimestampType)type).getPrecision()).toTimestamp();
             case INTERVAL_DAY_TIME:
             case INTERVAL_YEAR_MONTH:
             case ARRAY:

@@ -34,6 +34,8 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.DateUtil;
 
+import java.sql.Date;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -43,7 +45,7 @@ import java.util.Locale;
  *
  * @author tudou
  */
-public class HdfsTextColumnConverter extends AbstractRowConverter<RowData, RowData, List<String>, String> {
+public class HdfsTextColumnConverter extends AbstractRowConverter<RowData, RowData, String[], String> {
 
     public HdfsTextColumnConverter(List<FieldConf> fieldConfList) {
         super(fieldConfList.size());
@@ -76,11 +78,11 @@ public class HdfsTextColumnConverter extends AbstractRowConverter<RowData, RowDa
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<String> toExternal(RowData rowData, List<String> list) throws Exception {
+    public String[] toExternal(RowData rowData, String[] data) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, list);
+            toExternalConverters[index].serialize(rowData, index, data);
         }
-        return list;
+        return data;
     }
 
     @Override
@@ -90,12 +92,12 @@ public class HdfsTextColumnConverter extends AbstractRowConverter<RowData, RowDa
 
     @Override
     @SuppressWarnings("unchecked")
-    protected ISerializationConverter<List<String>> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, String type) {
-        return (rowData, index, list) -> {
+    protected ISerializationConverter<String[]> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, String type) {
+        return (rowData, index, data) -> {
             if (rowData == null || rowData.isNullAt(index)) {
-                list.set(index, null);
+                data[index] = null;
             } else {
-                serializationConverter.serialize(rowData, index, list);
+                serializationConverter.serialize(rowData, index, data);
             }
         };
     }
@@ -132,7 +134,40 @@ public class HdfsTextColumnConverter extends AbstractRowConverter<RowData, RowDa
     }
 
     @Override
-    protected ISerializationConverter<List<String>> createExternalConverter(String type) {
-        return (rowData, index, list) -> list.set(index, rowData.getString(index).toString());
+    protected ISerializationConverter<String[]> createExternalConverter(String type) {
+        switch (type.toUpperCase(Locale.ENGLISH)) {
+            case "BOOLEAN":
+                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getBoolean(index));
+            case "TINYINT":
+                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getByte(index));
+            case "SMALLINT":
+                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getShort(index));
+            case "INT":
+                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getInt(index));
+            case "BIGINT":
+                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getLong(index));
+            case "FLOAT":
+                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getFloat(index));
+            case "DOUBLE":
+                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getDouble(index));
+            case "DECIMAL":
+                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getDecimal(index, 38, 18));
+            case "STRING":
+            case "VARCHAR":
+            case "CHAR":
+                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getString(index));
+            case "TIMESTAMP":
+                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getTimestamp(index, 6));
+            case "DATE":
+                return (rowData, index, data) -> data[index] = String.valueOf(new Date(rowData.getTimestamp(index, 6).getMillisecond()));
+            case "BINARY":
+                return (rowData, index, data) -> data[index] = Arrays.toString(rowData.getBinary(index));
+            case "ARRAY":
+            case "MAP":
+            case "STRUCT":
+            case "UNION":
+            default:
+                throw new UnsupportedTypeException("Unsupported type:" + type);
+        }
     }
 }

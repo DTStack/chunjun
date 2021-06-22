@@ -38,14 +38,12 @@ import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
-import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.io.api.Binary;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -106,12 +104,12 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
 
     @Override
     @SuppressWarnings("unchecked")
-    protected ISerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, String type) {
-        return (val, index, rowData) -> {
-            if (val == null || val.isNullAt(index)) {
-                rowData.setField(index, null);
+    protected ISerializationConverter<Group> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, String type) {
+        return (rowData, index, group) -> {
+            if (rowData == null || rowData.isNullAt(index)) {
+                //do nothing
             } else {
-                serializationConverter.serialize(val, index, rowData);
+                serializationConverter.serialize(rowData, index, group);
             }
         };
     }
@@ -171,7 +169,7 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
             case "DECIMAL":
                 return (rowData, index, group) -> {
                     ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(columnNameList.get(index));
-                    HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData.getString(index).toString()));
+                    HiveDecimal hiveDecimal = HiveDecimal.create(rowData.getDecimal(index, decimalInfo.getPrecision(), decimalInfo.getScale()).toBigDecimal());
                     hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
                     if(hiveDecimal == null){
                         String msg = String.format("The [%s] data data [%s] precision and scale do not match the metadata:decimal(%s, %s)", index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
@@ -185,15 +183,12 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
                 return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getString(index).toString());
             case "TIMESTAMP":
                 return (rowData, index, group) -> {
-                    Timestamp timestamp = rowData.getTimestamp(index, 3).toTimestamp();
+                    Timestamp timestamp = rowData.getTimestamp(index, 6).toTimestamp();
                     byte[] dst = HdfsUtil.longToByteArray(timestamp.getTime());
                     group.add(columnNameList.get(index), Binary.fromConstantByteArray(dst));
                 };
             case "DATE":
-                return (rowData, index, group) -> {
-                    Date date = Date.valueOf(LocalDate.ofEpochDay(rowData.getInt(index)));
-                    group.add(columnNameList.get(index), DateWritable.dateToDays(date));
-                };
+                return (rowData, index, group) -> new Date(rowData.getTimestamp(index, 6).getMillisecond());
             case "BINARY":
                 return (rowData, index, group) -> group.add(columnNameList.get(index), Binary.fromString(rowData.getString(index).toString()));
             case "ARRAY":

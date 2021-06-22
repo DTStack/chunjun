@@ -23,6 +23,8 @@ import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
+import com.dtstack.flinkx.connector.hdfs.converter.HdfsRawTypeConverter;
+import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
@@ -40,10 +42,7 @@ public class HdfsSinkFactory extends SinkFactory {
 
     public HdfsSinkFactory(SyncConf config) {
         super(config);
-        hdfsConf =
-                GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(config.getWriter().getParameter()),
-                        HdfsConf.class);
+        hdfsConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getWriter().getParameter()),HdfsConf.class);
         hdfsConf.setColumn(config.getWriter().getFieldList());
         super.initFlinkxCommonConf(hdfsConf);
     }
@@ -52,21 +51,19 @@ public class HdfsSinkFactory extends SinkFactory {
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(hdfsConf.getFileType());
         builder.setHdfsConf(hdfsConf);
-        AbstractRowConverter converter;
-//        if (useAbstractBaseColumn) {
-//            converter = new StreamColumnConverter();
-//        } else {
-//            final RowType rowType =
-//                    TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());
-//            converter = new StreamRowConverter(rowType);
-//        }
+        AbstractRowConverter rowConverter =
+                HdfsUtil.createRowConverter(
+                        useAbstractBaseColumn,
+                        hdfsConf.getFileType(),
+                        hdfsConf.getColumn(),
+                        getRawTypeConverter());
 
-//        builder.setConverter(converter);
+        builder.setRowConverter(rowConverter);
         return createOutput(dataSet, builder.finish());
     }
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return null;
+        return HdfsRawTypeConverter::apply;
     }
 }

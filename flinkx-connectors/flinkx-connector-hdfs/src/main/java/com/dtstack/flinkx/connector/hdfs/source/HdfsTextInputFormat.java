@@ -25,6 +25,7 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.InputSplit.HdfsTextInputSplit;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.io.LongWritable;
@@ -106,39 +107,38 @@ public class HdfsTextInputFormat extends BaseHdfsInputFormat {
 
     @Override
     @SuppressWarnings("unchecked")
-    public RowData nextRecordInternal(RowData rowData) throws IOException {
-        String line = new String(((Text)value).getBytes(), 0, ((Text)value).getLength(), hdfsConf.getEncoding());
-        String[] fields = StringUtils.splitPreserveAllTokens(line, hdfsConf.getFieldDelimiter());
-
-        List<FieldConf> fieldConfList = hdfsConf.getColumn();
-        GenericRowData genericRowData;
-        if (fieldConfList.size() == 1 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())){
-            genericRowData = new GenericRowData(fields.length);
-            for (int i = 0; i < fields.length; i++) {
-                genericRowData.setField(i, fields[i]);
-            }
-        } else {
-            genericRowData = new GenericRowData(fieldConfList.size());
-            for (int i = 0; i < fieldConfList.size(); i++) {
-                FieldConf fieldConf = fieldConfList.get(i);
-                Object value = null;
-                if(fieldConf.getValue() != null){
-                    value = fieldConf.getValue();
-                } else if(fieldConf.getIndex() != null && fieldConf.getIndex() < fields.length){
-                    String strVal = fields[fieldConf.getIndex()];
-                    if (!HdfsUtil.NULL_VALUE.equals(strVal)){
-                        value = strVal;
-                    }
-                }
-
-                genericRowData.setField(i, value);
-            }
-        }
+    public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         try {
+            String line = new String(((Text)value).getBytes(), 0, ((Text)value).getLength(), hdfsConf.getEncoding());
+            String[] fields = StringUtils.splitPreserveAllTokens(line, hdfsConf.getFieldDelimiter());
+
+            List<FieldConf> fieldConfList = hdfsConf.getColumn();
+            GenericRowData genericRowData;
+            if (fieldConfList.size() == 1 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())){
+                genericRowData = new GenericRowData(fields.length);
+                for (int i = 0; i < fields.length; i++) {
+                    genericRowData.setField(i, fields[i]);
+                }
+            } else {
+                genericRowData = new GenericRowData(fieldConfList.size());
+                for (int i = 0; i < fieldConfList.size(); i++) {
+                    FieldConf fieldConf = fieldConfList.get(i);
+                    Object value = null;
+                    if(fieldConf.getValue() != null){
+                        value = fieldConf.getValue();
+                    } else if(fieldConf.getIndex() != null && fieldConf.getIndex() < fields.length){
+                        String strVal = fields[fieldConf.getIndex()];
+                        if (!HdfsUtil.NULL_VALUE.equals(strVal)){
+                            value = strVal;
+                        }
+                    }
+
+                    genericRowData.setField(i, value);
+                }
+            }
             return rowConverter.toInternal(genericRowData);
         }catch (Exception e){
-            LOG.error("can not read new record", e);
-            throw new IOException(e);
+            throw new ReadRecordException("", e, 0, rowData);
         }
     }
 }

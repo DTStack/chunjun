@@ -20,23 +20,15 @@ package com.dtstack.flinkx.connector.hdfs.source;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
-import com.dtstack.flinkx.connector.hdfs.converter.HdfsOrcColumnConverter;
-import com.dtstack.flinkx.connector.hdfs.converter.HdfsOrcRowConverter;
-import com.dtstack.flinkx.connector.hdfs.converter.HdfsParquetColumnConverter;
-import com.dtstack.flinkx.connector.hdfs.converter.HdfsParquetRowConverter;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsRawTypeConverter;
-import com.dtstack.flinkx.connector.hdfs.converter.HdfsTextColumnConverter;
-import com.dtstack.flinkx.connector.hdfs.converter.HdfsTextRowConverter;
-import com.dtstack.flinkx.connector.hdfs.enums.FileType;
+import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.GsonUtil;
-import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * Date: 2021/06/08
@@ -58,31 +50,12 @@ public class HdfsSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         HdfsInputFormatBuilder builder = new HdfsInputFormatBuilder(hdfsConf.getFileType());
         builder.setHdfsConf(hdfsConf);
-        AbstractRowConverter rowConverter;
-        if (useAbstractBaseColumn) {
-            switch(FileType.getByName(hdfsConf.getFileType())) {
-                case ORC:
-                    rowConverter = new HdfsOrcColumnConverter(hdfsConf.getColumn());
-                    break;
-                case PARQUET:
-                    rowConverter = new HdfsParquetColumnConverter(hdfsConf.getColumn());
-                    break;
-                default:
-                    rowConverter = new HdfsTextColumnConverter(hdfsConf.getColumn());
-            }
-        } else {
-            RowType rowType = TableUtil.createRowType(hdfsConf.getColumn(), getRawTypeConverter());
-            switch(FileType.getByName(hdfsConf.getFileType())) {
-                case ORC:
-                    rowConverter = new HdfsOrcRowConverter(rowType);
-                    break;
-                case PARQUET:
-                    rowConverter = new HdfsParquetRowConverter(rowType);
-                    break;
-                default:
-                    rowConverter = new HdfsTextRowConverter(rowType);
-            }
-        }
+        AbstractRowConverter rowConverter =
+                HdfsUtil.createRowConverter(
+                        useAbstractBaseColumn,
+                        hdfsConf.getFileType(),
+                        hdfsConf.getColumn(),
+                        getRawTypeConverter());
 
         builder.setRowConverter(rowConverter);
         return createInput(builder.finish());

@@ -199,7 +199,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
         if(vars != null){
             jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");
-            jobId = vars.get(Metrics.JOB_NAME);
+            jobId = vars.get(Metrics.JOB_ID);
         }
 
         initStatisticsAccumulator();

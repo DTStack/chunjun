@@ -20,11 +20,12 @@ package com.dtstack.flinkx.connector.hdfs.sink;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsParquetColumnConverter;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsParquetRowConverter;
+import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
+import com.dtstack.flinkx.enums.SizeUnitType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
@@ -140,7 +141,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        LOG.info("Close current parquet record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+        LOG.info("Close current parquet record writer, write data size:[{}]", SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
         try {
             if (writer != null){
                 writer.close();

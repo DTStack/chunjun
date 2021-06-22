@@ -38,6 +38,7 @@ public class BaseFileConf extends FlinkxCommonConf{
     private String compress;
     private String encoding = StandardCharsets.UTF_8.name();
     private long maxFileSize = ConstantValue.STORE_SIZE_G;
+    private long nextCheckRows = 5000;
 
     public String getPath() {
         return path;
@@ -87,6 +88,14 @@ public class BaseFileConf extends FlinkxCommonConf{
         this.maxFileSize = maxFileSize;
     }
 
+    public long getNextCheckRows() {
+        return nextCheckRows;
+    }
+
+    public void setNextCheckRows(long nextCheckRows) {
+        this.nextCheckRows = nextCheckRows;
+    }
+
     @Override
     public String toString() {
         return "BaseFileConf{" +
@@ -96,6 +105,7 @@ public class BaseFileConf extends FlinkxCommonConf{
                 ", compress='" + compress + '\'' +
                 ", encoding='" + encoding + '\'' +
                 ", maxFileSize=" + maxFileSize +
+                ", nextCheckRows=" + nextCheckRows +
                 '}';
     }
 }

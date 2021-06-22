@@ -18,8 +18,9 @@
 package com.dtstack.flinkx.connector.hdfs.sink;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
+import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
@@ -32,6 +33,7 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +66,11 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 LOG.warn("", e);
             }
         }
+        super.openInternal(taskNumber, numTasks);
+    }
 
+    @Override
+    protected void initVariableFields(){
         if (CollectionUtils.isNotEmpty(hdfsConf.getFullColumnName())) {
             fullColumnNameList = hdfsConf.getFullColumnName();
         }else{
@@ -77,7 +83,8 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
             fullColumnTypeList = hdfsConf.getColumn().stream().map(FieldConf::getType).collect(Collectors.toList());
         }
         compressType = getCompressType();
-        super.openInternal(taskNumber, numTasks);
+        super.initVariableFields();
+
     }
 
     @Override
@@ -126,9 +133,13 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected long getCurrentFileSize(){
-        String path = tmpPath + currentFileName;
+        String path = tmpPath + File.separatorChar + currentFileName;
         try {
-            return fs.getFileStatus(new Path(path)).getLen();
+            if(hdfsConf.getMaxFileSize() > ConstantValue.STORE_SIZE_G){
+                return fs.getFileStatus(new Path(path)).getLen();
+            }else{
+                return fs.open(new Path(path)).available();
+            }
         }catch (IOException e){
             throw new FlinkxRuntimeException("can't get file size from hdfs, file = " + path, e);
         }
@@ -157,32 +168,14 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
-    protected void deleteTmpDataFiles() {
-        String filePrefix = jobId + "_" + taskNumber;
-        PathFilter pathFilter = path -> path.getName().startsWith(filePrefix);
-        Path tmpDir = new Path(tmpPath);
+    protected void deleteDataFiles(List<String> preCommitFilePathList, String path) {
         String currentFilePath = "";
         try {
-            FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
-            for (FileStatus dataFile : dataFiles) {
-                currentFilePath = dataFile.getPath().getName();
-                fs.delete(dataFile.getPath(), true);
-                LOG.info("delete temp file:{}", currentFilePath);
-            }
-        }catch (Exception e){
-            throw new FlinkxRuntimeException(String.format("can't delete temp file:[%s]", currentFilePath), e);
-        }
-    }
-
-    @Override
-    protected void deleteDirDataFiles(List<String> preCommitFilePathList) {
-        String currentFilePath = "";
-        try {
-            for (String path : this.preCommitFilePathList) {
-                currentFilePath = path;
-                Path commitFilePath = new Path(path);
+            for (String fileName : this.preCommitFilePathList) {
+                currentFilePath = path + File.separatorChar + fileName;
+                Path commitFilePath = new Path(currentFilePath);
                 fs.delete(commitFilePath, true);
-                LOG.info("delete commit file:{}", path);
+                LOG.info("delete file:{}", currentFilePath);
             }
         }catch (IOException e){
             throw new FlinkxRuntimeException(String.format("can't delete commit file:[%s]", currentFilePath), e);
@@ -196,16 +189,16 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         }
         String currentFilePath = "";
         try {
-            PathFilter pathFilter = path -> !path.getName().startsWith(jobId);
             Path dir = new Path(outputFilePath);
             Path tmpDir = new Path(tmpPath);
 
-            FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
+            FileStatus[] dataFiles = fs.listStatus(tmpDir);
             for (FileStatus dataFile : dataFiles) {
                 currentFilePath = dataFile.getPath().getName();
                 fs.rename(dataFile.getPath(), dir);
                 LOG.info("move temp file:{} to dir:{}", dataFile.getPath(), dir);
             }
+            fs.delete(tmpDir, true);
         } catch (IOException e) {
             throw new FlinkxRuntimeException(String.format("can't move file:[%s] to dir:[%s]", currentFilePath, outputFilePath), e);
         }

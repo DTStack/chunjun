@@ -25,6 +25,7 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.InputSplit.HdfsOrcInputSplit;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.Path;
@@ -217,7 +218,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
     @Override
     @SuppressWarnings("unchecked")
-    public RowData nextRecordInternal(RowData rowData) throws IOException {
+    public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         List<FieldConf> fieldConfList = hdfsConf.getColumn();
         GenericRowData genericRowData;
         if (fieldConfList.size() == 1 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())){
@@ -246,8 +247,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         try {
             return rowConverter.toInternal(genericRowData);
         }catch (Exception e){
-            LOG.error("can not read new record", e);
-            throw new IOException(e);
+            throw new ReadRecordException("", e, 0, rowData);
         }
     }
 }

@@ -94,14 +94,14 @@ public class HdfsParquetRowConverter extends AbstractRowConverter<RowData, RowDa
 
     @Override
     @SuppressWarnings("unchecked")
-    protected ISerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, LogicalType type) {
-        return (val, index, rowData) -> {
-            if (val == null
-                    || val.isNullAt(index)
+    protected ISerializationConverter<Group> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, LogicalType type) {
+        return (rowData, index, group) -> {
+            if (rowData == null
+                    || rowData.isNullAt(index)
                     || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
-                rowData.setField(index, null);
+                //do nothing
             } else {
-                serializationConverter.serialize(val, index, rowData);
+                serializationConverter.serialize(rowData, index, group);
             }
         };
     }

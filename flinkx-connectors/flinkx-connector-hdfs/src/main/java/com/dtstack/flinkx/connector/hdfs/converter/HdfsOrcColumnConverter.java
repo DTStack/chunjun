@@ -37,11 +37,11 @@ import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
+import org.apache.hadoop.io.BytesWritable;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -52,7 +52,7 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class HdfsOrcColumnConverter extends AbstractRowConverter<RowData, RowData, List<Object>, String> {
+public class HdfsOrcColumnConverter extends AbstractRowConverter<RowData, RowData, Object[], String> {
 
     private List<String> ColumnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
@@ -88,11 +88,11 @@ public class HdfsOrcColumnConverter extends AbstractRowConverter<RowData, RowDat
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<Object> toExternal(RowData rowData, List<Object> list) throws Exception {
+    public Object[] toExternal(RowData rowData, Object[] data) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, list);
+            toExternalConverters[index].serialize(rowData, index, data);
         }
-        return list;
+        return data;
     }
 
     @Override
@@ -102,14 +102,12 @@ public class HdfsOrcColumnConverter extends AbstractRowConverter<RowData, RowDat
 
     @Override
     @SuppressWarnings("unchecked")
-    protected ISerializationConverter<GenericRowData> wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter, String type) {
-        return (val, index, rowData) -> {
-            if (val == null
-                    || val.isNullAt(index)) {
-                rowData.setField(index, null);
+    protected ISerializationConverter<Object[]> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, String type) {
+        return (rowData, index, data) -> {
+            if (rowData == null || rowData.isNullAt(index)) {
+                data[index] = null;
             } else {
-                serializationConverter.serialize(val, index, rowData);
+                serializationConverter.serialize(rowData, index, data);
             }
         };
     }
@@ -154,24 +152,24 @@ public class HdfsOrcColumnConverter extends AbstractRowConverter<RowData, RowDat
     }
 
     @Override
-    protected ISerializationConverter<List<Object>> createExternalConverter(String type) {
+    protected ISerializationConverter<Object[]> createExternalConverter(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BOOLEAN":
-                return (rowData, index, list) -> list.set(index, rowData.getBoolean(index));
+                return (rowData, index, data) -> data[index] = rowData.getBoolean(index);
             case "TINYINT":
-                return (rowData, index, list) -> list.set(index, rowData.getByte(index));
+                return (rowData, index, data) -> data[index] = rowData.getByte(index);
             case "SMALLINT":
-                return (rowData, index, list) -> list.set(index, rowData.getShort(index));
+                return (rowData, index, data) -> data[index] = rowData.getShort(index);
             case "INT":
-                return (rowData, index, list) -> list.set(index, rowData.getInt(index));
+                return (rowData, index, data) -> data[index] = rowData.getInt(index);
             case "BIGINT":
-                return (rowData, index, list) -> list.set(index, rowData.getLong(index));
+                return (rowData, index, data) -> data[index] = rowData.getLong(index);
             case "FLOAT":
-                return (rowData, index, list) -> list.set(index, rowData.getFloat(index));
+                return (rowData, index, data) -> data[index] = rowData.getFloat(index);
             case "DOUBLE":
-                return (rowData, index, list) -> list.set(index, rowData.getDouble(index));
+                return (rowData, index, data) -> data[index] = rowData.getDouble(index);
             case "DECIMAL":
-                return (rowData, index, list) -> {
+                return (rowData, index, data) -> {
                     ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(ColumnNameList.get(index));
                     HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData.getString(index).toString()));
                     hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
@@ -179,18 +177,18 @@ public class HdfsOrcColumnConverter extends AbstractRowConverter<RowData, RowDat
                         String msg = String.format("The [%s] data data [%s] precision and scale do not match the metadata:decimal(%s, %s)", index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
                         throw new WriteRecordException(msg, new IllegalArgumentException());
                     }
-                    list.set(index, new HiveDecimalWritable(hiveDecimal));
+                    data[index] = new HiveDecimalWritable(hiveDecimal);
                 };
             case "STRING":
             case "VARCHAR":
             case "CHAR":
-                return (rowData, index, list) -> list.set(index, rowData.getString(index).toString());
+                return (rowData, index, data) -> data[index] = rowData.getString(index).toString();
             case "TIMESTAMP":
-                return (rowData, index, list) -> list.set(index, rowData.getTimestamp(index, 3).toTimestamp());
+                return (rowData, index, data) -> data[index] = rowData.getTimestamp(index, 6).toTimestamp();
             case "DATE":
-                return (rowData, index, list) -> list.set(index, Date.valueOf(LocalDate.ofEpochDay(rowData.getInt(index))));
+                return (rowData, index, data) -> data[index] = new Date(rowData.getTimestamp(index, 6).getMillisecond());
             case "BINARY":
-                return (rowData, index, list) -> list.set(index, rowData.getBinary(index));
+                return (rowData, index, data) -> data[index] = new BytesWritable(rowData.getBinary(index));
             case "ARRAY":
             case "MAP":
             case "STRUCT":

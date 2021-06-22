@@ -23,6 +23,7 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
+import com.dtstack.flinkx.enums.SizeUnitType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -33,8 +34,6 @@ import org.apache.hadoop.fs.Path;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Date: 2021/06/09
@@ -78,7 +77,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        LOG.info("Close current text stream, write data size:[{}]", bytesWriteCounter.getLocalValue());
+        LOG.info("Close current text stream, write data size:[{}]", SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
 
         try {
             if (stream != null){
@@ -97,9 +96,9 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
         if(stream == null){
             nextBlock();
         }
-        List<String> list = new ArrayList<>(hdfsConf.getColumn().size());
+        String[] data = new String[hdfsConf.getColumn().size()];
         try {
-            list = (List<String>)rowConverter.toExternal(rowData, list);
+            data = (String[])rowConverter.toExternal(rowData, data);
         } catch(Exception e) {
             throw new WriteRecordException("can't parse rowData", e, -1, rowData);
         }
@@ -107,7 +106,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
         String[] result = new String[fullColumnNameList.size()];
         for (int i = 0; i < hdfsConf.getColumn().size(); i++) {
             FieldConf fieldConf = hdfsConf.getColumn().get(i);
-            result[fieldConf.getIndex()] = list.get(i);
+            result[fieldConf.getIndex()] = data[i];
         }
         String line = String.join(hdfsConf.getFieldDelimiter(), result);
 

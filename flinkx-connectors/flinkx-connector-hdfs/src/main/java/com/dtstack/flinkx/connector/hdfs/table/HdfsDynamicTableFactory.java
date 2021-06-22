@@ -29,6 +29,7 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
+import com.dtstack.flinkx.connector.hdfs.sink.HdfsDynamicTableSink;
 import com.dtstack.flinkx.connector.hdfs.source.HdfsDynamicTableSource;
 import com.dtstack.flinkx.table.options.BaseFileOptions;
 
@@ -70,6 +71,7 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         options.add(HdfsOptions.COMPRESS);
         options.add(HdfsOptions.ENCODING);
         options.add(HdfsOptions.MAX_FILE_SIZE);
+        options.add(HdfsOptions.NEXT_CHECK_ROWS);
         return options;
     }
 
@@ -92,7 +94,19 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
 
     @Override
     public DynamicTableSink createDynamicTableSink(Context context) {
-        return null;
+        final FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
+        // 1.所有的requiredOptions和optionalOptions参数
+        final ReadableConfig config = helper.getOptions();
+
+        // 2.参数校验
+        helper.validateExcept("properties.");
+
+        // 3.封装参数
+        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        HdfsConf hdfsConf = getHdfsConf(config);
+        hdfsConf.setHadoopConfig(HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
+
+        return new HdfsDynamicTableSink(hdfsConf, physicalSchema);
     }
 
     /**
@@ -109,6 +123,7 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         hdfsConf.setCompress(config.get(BaseFileOptions.COMPRESS));
         hdfsConf.setEncoding(config.get(BaseFileOptions.ENCODING));
         hdfsConf.setMaxFileSize(config.get(BaseFileOptions.MAX_FILE_SIZE));
+        hdfsConf.setNextCheckRows(config.get(BaseFileOptions.NEXT_CHECK_ROWS));
 
         hdfsConf.setDefaultFS(config.get(HdfsOptions.DEFAULT_FS));
         hdfsConf.setFileType(config.get(HdfsOptions.FILE_TYPE));

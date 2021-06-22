@@ -62,4 +62,10 @@ public class BaseFileOptions {
                     .longType()
                     .defaultValue(1073741824L)
                     .withDescription("The maximum size of a single file written to hdfs, in bytes");
+
+    public static final ConfigOption<Long> NEXT_CHECK_ROWS =
+            ConfigOptions.key("nextCheckRows")
+                    .longType()
+                    .defaultValue(5000L)
+                    .withDescription("The number of data written in the next file size check");
 }

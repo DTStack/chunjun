@@ -20,11 +20,12 @@ package com.dtstack.flinkx.connector.hdfs.sink;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsOrcColumnConverter;
+import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.enums.SizeUnitType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
@@ -145,7 +146,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     public void flushDataInternal() {
-        LOG.info("Close current orc record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+        LOG.info("Close current orc record writer, write data size:[{}]", SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
 
         try {
             if (recordWriter != null){
@@ -164,16 +165,16 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             nextBlock();
         }
 
-        List<Object> list = new ArrayList<>(hdfsConf.getColumn().size());
+        Object[] data = new Object[hdfsConf.getColumn().size()];
         try {
-            list = (List<Object>)rowConverter.toExternal(rowData, list);
+            data = (Object[])rowConverter.toExternal(rowData, data);
         } catch (Exception e) {
             String errorMessage = HdfsUtil.parseErrorMsg(String.format("writer hdfs error，rowData:{%s}", rowData), ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException(errorMessage, e, -1, rowData);
         }
 
         try {
-            this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(list, this.inspector));
+            this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(data, this.inspector));
             rowsOfCurrentBlock++;
             lastRow = rowData;
         } catch(IOException e) {

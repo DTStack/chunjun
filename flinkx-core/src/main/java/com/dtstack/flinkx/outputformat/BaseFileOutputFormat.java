@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.outputformat;
 
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
@@ -53,11 +54,12 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     /** Current file index number */
     protected int currentFileIndex = 0;
     protected List<String> preCommitFilePathList = new ArrayList<>();
-    protected long nextNumForCheckDataSize = 5000;
+    protected long nextNumForCheckDataSize;
     protected long lastWriteTime = System.currentTimeMillis();
 
     @Override
     public void initializeGlobal(int parallelism) {
+        initVariableFields();
         if(WriteMode.OVERWRITE.name().equalsIgnoreCase(baseFileConf.getWriteMode())){
             //Overwrite mode and not delete the data directory first when restoring from a checkpoint
             deleteDataDir();
@@ -69,7 +71,14 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void finalizeGlobal(int parallelism) {
+        initVariableFields();
         moveAllTmpDataFileToDir();
+    }
+
+    @Override
+    public void open(int taskNumber, int numTasks) throws IOException {
+        super.open(taskNumber, numTasks);
+        checkpointMode = CheckpointingMode.EXACTLY_ONCE;
     }
 
     @Override
@@ -79,17 +88,21 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         }
         LOG.info("Start current File Index:{}", currentFileIndex);
 
+        currentFileNamePrefix = jobId + "_" + taskNumber;
+        LOG.info("Channel:[{}], currentFileNamePrefix:[{}]", taskNumber, currentFileNamePrefix);
+
+        initVariableFields();
+    }
+
+    protected void initVariableFields(){
         //The file name here is actually the partition name
         if(StringUtils.isNotBlank(baseFileConf.getFileName())) {
             outputFilePath = baseFileConf.getPath() + File.separatorChar + baseFileConf.getFileName();
         } else {
             outputFilePath = baseFileConf.getPath();
         }
-        currentFileNamePrefix = jobId + "_" + taskNumber;
         tmpPath = outputFilePath + File.separatorChar + TMP_DIR_NAME;
-
-        LOG.info("Channel:[{}], currentFileNamePrefix:[{}]", taskNumber, currentFileNamePrefix);
-
+        nextNumForCheckDataSize = baseFileConf.getNextCheckRows();
         openSource();
     }
 
@@ -116,17 +129,11 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
             return;
         }
         long currentFileSize = getCurrentFileSize();
-        LOG.info("current file: {}, size = {}", currentFileName, SizeUnitType.readableFileSize(currentFileSize));
         if (currentFileSize > baseFileConf.getMaxFileSize()) {
             flushData();
         }
-        long totalBytesWrite = bytesWriteCounter.getLocalValue();
-        long totalRecordWrite = numWriteCounter.getLocalValue();
-
-        float eachRecordSize = (totalBytesWrite * getDeviation()) / totalRecordWrite;
-
-        long recordNum = (long)((baseFileConf.getMaxFileSize() - currentFileSize) / eachRecordSize);
-        nextNumForCheckDataSize = totalRecordWrite + recordNum;
+        nextNumForCheckDataSize += baseFileConf.getNextCheckRows();
+        LOG.info("current file: {}, size = {}, nextNumForCheckDataSize = {}", currentFileName, SizeUnitType.readableFileSize(currentFileSize), nextNumForCheckDataSize);
     }
 
     public void flushData(){
@@ -149,18 +156,18 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         sumRowsOfBlock = 0;
         formatState.setJobId(jobId);
         formatState.setFileIndex(currentFileIndex - 1);
-        LOG.info("jobId = {}, blockIndex = {}", jobId, currentFileIndex);
     }
 
     @Override
     protected void commit(long checkpointId) {
-        deleteTmpDataFiles();
+        deleteDataFiles(preCommitFilePathList, tmpPath);
         preCommitFilePathList.clear();
     }
 
     @Override
     protected void rollback(long checkpointId) {
-        deleteDirDataFiles(preCommitFilePathList);
+        deleteDataFiles(preCommitFilePathList, outputFilePath);
+        preCommitFilePathList.clear();
     }
 
     @Override
@@ -224,14 +231,9 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     protected abstract List<String> copyTmpDataFileToDir();
 
     /**
-     * Delete the data file corresponding to the channel index in the temporary directory
-     */
-    protected abstract void deleteTmpDataFiles();
-
-    /**
      * Delete the data files submitted in the pre-submission phase under the official directory
      */
-    protected abstract void deleteDirDataFiles(List<String> preCommitFilePathList);
+    protected abstract void deleteDataFiles(List<String> preCommitFilePathList, String path);
 
     /**
      * It is closed normally, triggering files in the .data directory to move to the data directory
@@ -251,5 +253,9 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     public long getLastWriteTime() {
         return lastWriteTime;
+    }
+
+    public void setBaseFileConf(BaseFileConf baseFileConf) {
+        this.baseFileConf = baseFileConf;
     }
 }
