@@ -19,6 +19,7 @@ package com.dtstack.flinkx.connector.hdfs.converter;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.TimestampData;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
@@ -38,6 +39,7 @@ import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
+import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.io.api.Binary;
 
@@ -183,14 +185,17 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
                 return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getString(index).toString());
             case "TIMESTAMP":
                 return (rowData, index, group) -> {
-                    Timestamp timestamp = rowData.getTimestamp(index, 6).toTimestamp();
-                    byte[] dst = HdfsUtil.longToByteArray(timestamp.getTime());
-                    group.add(columnNameList.get(index), Binary.fromConstantByteArray(dst));
+                    TimestampData timestampData = rowData.getTimestamp(index, 6);
+                    group.add(columnNameList.get(index), HdfsUtil.timestampToInt96(timestampData));
                 };
             case "DATE":
-                return (rowData, index, group) -> new Date(rowData.getTimestamp(index, 6).getMillisecond());
+                return (rowData, index, group) -> {
+                    TimestampData timestampData = rowData.getTimestamp(index, 6);
+                    Date date = Date.valueOf(timestampData.toLocalDateTime().toLocalDate());
+                    group.add(columnNameList.get(index), DateWritable.dateToDays(date));
+                };
             case "BINARY":
-                return (rowData, index, group) -> group.add(columnNameList.get(index), Binary.fromString(rowData.getString(index).toString()));
+                return (rowData, index, group) -> group.add(columnNameList.get(index), Binary.fromReusedByteArray(rowData.getBinary(index)));
             case "ARRAY":
             case "MAP":
             case "STRUCT":

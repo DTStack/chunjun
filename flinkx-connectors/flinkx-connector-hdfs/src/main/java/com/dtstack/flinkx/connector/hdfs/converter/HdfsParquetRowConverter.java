@@ -26,6 +26,7 @@ import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
 
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -181,20 +182,20 @@ public class HdfsParquetRowConverter extends AbstractRowConverter<RowData, RowDa
                 return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getString(index).toString());
             case DECIMAL:
                 return (rowData, index, group) -> {
-                    HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData.getString(index).toString()));
                     int precision = ((DecimalType) type).getPrecision();
                     int scale = ((DecimalType) type).getScale();
+                    HiveDecimal hiveDecimal = HiveDecimal.create((rowData.getDecimal(index, precision, scale).toBigDecimal()));
                     hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, precision, scale);
                     group.add(columnNameList.get(index), HdfsUtil.decimalToBinary(hiveDecimal, precision, scale));
 
                 };
             case BINARY:
             case VARBINARY:
-            return (rowData, index, group) -> group.add(columnNameList.get(index), Binary.fromString(rowData.getString(index).toString()));
+            return (rowData, index, group) -> group.add(columnNameList.get(index), Binary.fromReusedByteArray(rowData.getBinary(index)));
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (rowData, index, group) -> {
-                    Date date = Date.valueOf(LocalDate.ofEpochDay(rowData.getInt(index)));
-                    group.add(columnNameList.get(index), DateWritable.dateToDays(date));
+                    TimestampData timestampData = rowData.getTimestamp(index, ((TimestampType) type).getPrecision());
+                    group.add(columnNameList.get(index), HdfsUtil.timestampToInt96(timestampData));
                 };
             case INTERVAL_DAY_TIME:
             case INTERVAL_YEAR_MONTH:

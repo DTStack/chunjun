@@ -25,6 +25,7 @@ import com.dtstack.flinkx.connector.hdfs.converter.HdfsParquetRowConverter;
 import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.SizeUnitType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
@@ -51,6 +52,7 @@ import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -201,7 +203,12 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         Types.MessageTypeBuilder typeBuilder = Types.buildMessage();
         for (int i = 0; i < fullColumnNameList.size(); i++) {
             String name = fullColumnNameList.get(i);
-            String colType = fullColumnTypeList.get(i).toLowerCase();
+            String colType = fullColumnTypeList.get(i).toLowerCase(Locale.ENGLISH);
+            int left = colType.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
+            int right = colType.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
+            if (left > 0 && right > 0){
+                colType = colType.substring(0, left);
+            }
             switch (colType){
                 case "tinyint" :
                 case "smallint" :

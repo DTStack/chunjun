@@ -21,6 +21,7 @@ import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.BinaryType;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import java.util.Locale;
@@ -33,7 +34,16 @@ import java.util.Locale;
  */
 public class HdfsRawTypeConverter {
     public static DataType apply(String type) throws UnsupportedTypeException {
-        switch (type.toUpperCase(Locale.ENGLISH)) {
+        type = type.toUpperCase(Locale.ENGLISH);
+        int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
+        int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
+        String leftStr = type;
+        String rightStr = null;
+        if (left > 0 && right > 0){
+            leftStr = type.substring(0, left);
+            rightStr = type.substring(left + 1, type.length() - 1);
+        }
+        switch (leftStr) {
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
             case "TINYINT":
@@ -49,6 +59,12 @@ public class HdfsRawTypeConverter {
             case "DOUBLE":
                 return DataTypes.DOUBLE();
             case "DECIMAL":
+                if(rightStr != null){
+                    String[] split = rightStr.split(ConstantValue.COMMA_SYMBOL);
+                    if(split.length == 2){
+                        return DataTypes.DECIMAL(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+                    }
+                }
                 return DataTypes.DECIMAL(38, 18);
             case "STRING":
             case "VARCHAR":
@@ -57,7 +73,13 @@ public class HdfsRawTypeConverter {
             case "BINARY":
                 return DataTypes.BINARY(BinaryType.DEFAULT_LENGTH);
             case "TIMESTAMP":
-                return DataTypes.TIMESTAMP();
+                if(rightStr != null){
+                    String[] split = rightStr.split(ConstantValue.COMMA_SYMBOL);
+                    if(split.length == 1){
+                        return DataTypes.TIMESTAMP(Integer.parseInt(split[0]));
+                    }
+                }
+                return DataTypes.TIMESTAMP(6);
             case "DATE":
                 return DataTypes.DATE();
             case "ARRAY":

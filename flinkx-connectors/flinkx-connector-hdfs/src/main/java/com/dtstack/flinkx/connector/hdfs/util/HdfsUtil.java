@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.connector.hdfs.util;
 
+import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.FieldConf;
@@ -51,7 +52,13 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.parquet.io.api.Binary;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.sql.Timestamp;
 import java.util.List;
+
+import static org.apache.flink.formats.parquet.vector.reader.TimestampColumnReader.MILLIS_IN_DAY;
+import static org.apache.flink.formats.parquet.vector.reader.TimestampColumnReader.NANOS_PER_SECOND;
 
 /**
  * Date: 2021/06/09
@@ -203,6 +210,25 @@ public class HdfsUtil {
         System.arraycopy(julianDaysBytes, 0, dst, 8, 4);
 
         return dst;
+    }
+
+    public static Binary timestampToInt96(TimestampData timestampData) {
+        int julianDay;
+        long nanosOfDay;
+
+        // Use UTC timezone or local timezone to the conversion between epoch time and LocalDateTime.
+        // Hive 0.x/1.x/2.x use local timezone. But Hive 3.x use UTC timezone.
+        Timestamp timestamp = timestampData.toTimestamp();
+        long mills = timestamp.getTime();
+        julianDay = (int) ((mills / MILLIS_IN_DAY) + JULIAN_EPOCH_OFFSET_DAYS);
+        nanosOfDay = ((mills % MILLIS_IN_DAY) / 1000) * NANOS_PER_SECOND + timestamp.getNanos();
+
+        ByteBuffer buf = ByteBuffer.allocate(12);
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.putLong(nanosOfDay);
+        buf.putInt(julianDay);
+        buf.flip();
+        return Binary.fromConstantByteBuffer(buf);
     }
 
     private static byte[] getBytes(long i) {
