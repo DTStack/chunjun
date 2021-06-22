@@ -1,0 +1,195 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "db2reader",
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "money",
+                "type": "decimal"
+              },
+              {
+                "name": "datethree",
+                "type": "timestamp"
+              },
+              {
+                "name": "datesix",
+                "type": "timestamp"
+              },
+              {
+                "name": "phone",
+                "type": "bigint"
+              },{
+                "name": "wechat",
+                "type": "varchar"
+              },{
+                "name": "income",
+                "type": "decimal"
+              },{
+                "name": "birthday",
+                "type": "timestamp"
+              },{
+                "name": "dtdate",
+                "type": "date"
+              },{
+                "name": "dttime",
+                "type": "time"
+              },{
+                "name": "today",
+                "type": "date"
+              },{
+                "name": "timecurrent",
+                "type": "time"
+              },{
+                "name": "dateone",
+                "type": "timestamp"
+              },{
+                "name": "aboolean",
+                "type": "smallint"
+              },{
+                "name": "adouble",
+                "type": "double"
+              },{
+                "name": "afloat",
+                "type": "float"
+              },{
+                "name": "achar",
+                "type": "char"
+              },{
+                "name": "abinary",
+                "type": "blob"
+              },{
+                "name": "atinyint",
+                "type": "smallint"
+              }
+            ],
+            "customSql": "",
+            "where": "id > 2",
+            "splitPk": "id",
+            "increColumn": "id",
+            "startLocation": "2",
+            "polling": true,
+            "pollingInterval": 3000,
+            "queryTimeOut": 1000,
+            "username": "db2inst1",
+            "password": "dtstack1",
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:db2://172.16.101.246:50002/DT_TEST"
+                ],
+                "table": [
+                  "sync_source"
+                ]
+              }
+            ]
+          }
+        },
+        "writer": {
+          "name": "db2writer",
+          "parameter": {
+            "username": "db2inst1",
+            "password": "dtstack1",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:db2://172.16.101.246:50002/DT_TEST",
+                "table": [
+                  "sync_sink"
+                ]
+              }
+            ],
+            "writeMode": "insert",
+            "flushIntervalMills":"3000",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "money",
+                "type": "decimal"
+              },
+              {
+                "name": "datethree",
+                "type": "timestamp"
+              },
+              {
+                "name": "datesix",
+                "type": "timestamp"
+              },
+              {
+                "name": "phone",
+                "type": "bigint"
+              },{
+                "name": "wechat",
+                "type": "varchar"
+              },{
+                "name": "income",
+                "type": "decimal"
+              },{
+                "name": "birthday",
+                "type": "timestamp"
+              },{
+                "name": "dtdate",
+                "type": "date"
+              },{
+                "name": "dttime",
+                "type": "time"
+              },{
+                "name": "today",
+                "type": "date"
+              },{
+                "name": "timecurrent",
+                "type": "time"
+              },{
+                "name": "dateone",
+                "type": "timestamp"
+              },{
+                "name": "aboolean",
+                "type": "smallint"
+              },{
+                "name": "adouble",
+                "type": "double"
+              },{
+                "name": "afloat",
+                "type": "float"
+              },{
+                "name": "achar",
+                "type": "char"
+              },{
+                "name": "abinary",
+                "type": "blob"
+              },{
+                "name": "atinyint",
+                "type": "smallint"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "restoreColumnName": "id"
+      },
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

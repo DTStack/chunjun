@@ -19,9 +19,15 @@ package com.dtstack.flinkx.connector.db2.sink;
 
 import com.dtstack.flinkx.connector.db2.converter.Db2RawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
 import org.apache.flink.table.types.logical.RowType;
+
+import java.util.List;
 
 /**
  * Company: www.dtstack.com
@@ -34,5 +40,12 @@ public class Db2OutputFormat extends JdbcOutputFormat {
         super.openInternal(taskNumber, numTasks);
         RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, Db2RawTypeConverter::apply);
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
+    }
+
+    @Override
+    protected Pair<List<String>, List<String>> getTableMetaData() {
+        return JdbcUtil.getTableMetaData(StringUtils.upperCase(jdbcConf.getSchema()),
+                StringUtils.upperCase(jdbcConf.getTable()),
+                dbConn);
     }
 }
