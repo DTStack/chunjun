@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.jdbc.util;
 
+import com.dtstack.flinkx.connector.jdbc.JdbcDialectWrapper;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.CollectionUtil;
 
@@ -123,6 +125,10 @@ public class JdbcUtil {
         }
     }
 
+    public static Connection getConnection(JdbcConf conf, org.apache.flink.connector.jdbc.dialect.JdbcDialect dialect) {
+        return getConnection(conf, new JdbcDialectWrapper(dialect));
+    }
+
     /**
      * get full column name and type from database
      * @param schema schema
@@ -149,10 +155,11 @@ public class JdbcUtil {
     }
 
     /**
-     * @param tableName
-     * @param dbConn
-     * @return
-     * @throws SQLException
+     * get full column name and type from database
+     * @param schema schema
+     * @param tableName tableName
+     * @param dbConn jdbc Connection
+     * @return fullColumnList and fullColumnTypeList
      */
     public static List<String> getTableIndex(String schema, String tableName, Connection dbConn) throws SQLException {
         ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, tableName, true, false);

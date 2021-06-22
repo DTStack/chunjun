@@ -1,21 +1,19 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ *    Copyright 2021 the original author or authors.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
-package com.dtstack.flinkx.connector.binlog.converter;
+package com.dtstack.flinkx.connector.pgwal.converter;
 
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableException;
@@ -28,11 +26,10 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
+import com.dtstack.flinkx.connector.pgwal.util.ChangeLog;
+import com.dtstack.flinkx.connector.pgwal.util.ColumnInfo;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.google.common.collect.Maps;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -43,20 +40,17 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
+import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2021/04/29
- * Company: www.dtstack.com
  *
- * @author tudou
  */
-public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, LogicalType> {
+public class PGWalRowConverter extends AbstractCDCRowConverter<ChangeLog, LogicalType> {
     private final TimestampFormat timestampFormat;
 
-    public BinlogRowConverter(RowType rowType, TimestampFormat timestampFormat) {
+    public PGWalRowConverter(RowType rowType, TimestampFormat timestampFormat) {
         super.fieldNameList = rowType.getFieldNames();
         this.timestampFormat = timestampFormat;
         super.converters = new IDeserializationConverter[rowType.getFieldCount()];
@@ -66,50 +60,41 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
     }
 
     @Override
-    public LinkedList<RowData> toInternal(BinlogEventRow binlogEventRow){
-        LinkedList<RowData> result = new LinkedList<>();
-        CanalEntry.RowChange rowChange = binlogEventRow.getRowChange();
-        String eventType = rowChange.getEventType().toString();
-        for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-            List<CanalEntry.Column> beforeColumnsList = rowData.getBeforeColumnsList();
-            Map<Object, Object> beforeMap = Maps.newHashMapWithExpectedSize(beforeColumnsList.size());
-            for (CanalEntry.Column column : beforeColumnsList) {
-                if (!column.getIsNull()) {
-                    beforeMap.put(column.getName(), column.getValue());
-                }
-            }
-            List<CanalEntry.Column> afterColumnsList = rowData.getAfterColumnsList();
-            Map<Object, Object> afterMap = Maps.newHashMapWithExpectedSize(afterColumnsList.size());
-            for (CanalEntry.Column column : afterColumnsList) {
-                if (!column.getIsNull()) {
-                    afterMap.put(column.getName(), column.getValue());
-                }
-            }
-
-            switch (eventType){
-                case "INSERT":
-                    RowData insert = createRowDataByConverters(fieldNameList, converters, afterMap);
-                    insert.setRowKind(RowKind.INSERT);
-                    result.add(insert);
-                    break;
-                case "DELETE":
-                    RowData delete = createRowDataByConverters(fieldNameList, converters, beforeMap);
-                    delete.setRowKind(RowKind.DELETE);
-                    result.add(delete);
-                    break;
-                case "UPDATE":
-                    RowData updateBefore = createRowDataByConverters(fieldNameList, converters, beforeMap);
-                    updateBefore.setRowKind(RowKind.UPDATE_BEFORE);
-                    result.add(updateBefore);
-
-                    RowData updateAfter = createRowDataByConverters(fieldNameList, converters, afterMap);
-                    updateAfter.setRowKind(RowKind.UPDATE_AFTER);
-                    result.add(updateAfter);
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Unsupported eventType: " + eventType);
-            }
+    public LinkedList<RowData> toInternal(ChangeLog changeLog) {
+        Map<Object, Object> beforeMap = new HashMap<>(25);
+        Map<Object, Object> afterMap = new HashMap<>(25);
+        int i = 0;
+        for (ColumnInfo column : changeLog.getColumnList()) {
+            beforeMap.put(column.getName(), changeLog.getOldData()[i]);
+            afterMap.put(column.getName(), changeLog.getNewData()[i]);
+            i++;
         }
+
+        LinkedList<RowData> result = new LinkedList<>();
+        switch (changeLog.getType().name()) {
+            case "INSERT":
+                RowData insert = createRowDataByConverters(fieldNameList, converters, afterMap);
+                insert.setRowKind(RowKind.INSERT);
+                result.add(insert);
+                break;
+            case "DELETE":
+                RowData delete = createRowDataByConverters(fieldNameList, converters, beforeMap);
+                delete.setRowKind(RowKind.DELETE);
+                result.add(delete);
+                break;
+            case "UPDATE":
+                RowData updateBefore = createRowDataByConverters(fieldNameList, converters, beforeMap);
+                updateBefore.setRowKind(RowKind.UPDATE_BEFORE);
+                result.add(updateBefore);
+
+                RowData updateAfter = createRowDataByConverters(fieldNameList, converters, afterMap);
+                updateAfter.setRowKind(RowKind.UPDATE_AFTER);
+                result.add(updateAfter);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported eventType: " + changeLog.getType());
+        }
+
         return result;
     }
 
@@ -133,7 +118,7 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
             case DATE:
                 return (IDeserializationConverter<String, Integer>) val -> {
                     LocalDate date = DateTimeFormatter.ISO_LOCAL_DATE.parse(val).query(TemporalQueries.localDate());
-                    return (int)date.toEpochDay();
+                    return (int) date.toEpochDay();
                 };
             case TIME_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<String, Integer>) val -> {
@@ -144,7 +129,7 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<String, TimestampData>) val -> {
                     TemporalAccessor parsedTimestamp;
-                    switch(this.timestampFormat) {
+                    switch (this.timestampFormat) {
                         case SQL:
                             parsedTimestamp = SQL_TIMESTAMP_FORMAT.parse(val);
                             break;
@@ -192,13 +177,13 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
                 return (IDeserializationConverter<String, StringData>) StringData::fromString;
             case DECIMAL:
                 return (IDeserializationConverter<String, DecimalData>) val -> {
-                    final int precision = ((DecimalType)type).getPrecision();
-                    final int scale = ((DecimalType)type).getScale();
+                    final int precision = ((DecimalType) type).getPrecision();
+                    final int scale = ((DecimalType) type).getScale();
                     return DecimalData.fromBigDecimal(new BigDecimal(val), precision, scale);
                 };
             case BINARY:
             case VARBINARY:
-                return (IDeserializationConverter<String, byte[]>) val ->val.getBytes(StandardCharsets.UTF_8);
+                return (IDeserializationConverter<String, byte[]>) val -> val.getBytes(StandardCharsets.UTF_8);
 //            case ARRAY:
 //            case MAP:
 //            case MULTISET:
