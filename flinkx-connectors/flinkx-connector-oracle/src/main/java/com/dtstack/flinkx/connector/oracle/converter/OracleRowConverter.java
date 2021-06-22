@@ -21,6 +21,8 @@ package com.dtstack.flinkx.connector.oracle.converter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.ISerializationConverter;
 
+import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
 
 import org.apache.flink.table.data.DecimalData;
@@ -40,6 +42,10 @@ import org.apache.flink.table.types.logical.TimestampType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
@@ -114,10 +120,50 @@ public class OracleRowConverter
                 };
             case CHAR:
             case VARCHAR:
-                return val -> StringData.fromString(val.toString());
+                return val -> {
+                    if (val instanceof oracle.sql.CLOB) {
+                        oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
+                        BufferedReader bf = null;
+                        try {
+                            bf = new BufferedReader(clob.getCharacterStream());
+                            StringBuilder stringBuilder = new StringBuilder();
+                            String line;
+                            while ((line = bf.readLine()) != null) {
+                                stringBuilder.append(line);
+                            }
+                            return StringData.fromString(stringBuilder.toString());
+                        } catch (SQLException | IOException e) {
+                            throw new UnsupportedOperationException(
+                                    "Unsupported type:" + type + ",value:" + val);
+                        } finally {
+                            if (bf != null) {
+                                try {
+                                    bf.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    } else {
+                        return StringData.fromString(val.toString());
+                    }
+                };
             case BINARY:
             case VARBINARY:
-                return val -> (byte[]) val;
+                return val -> {
+                    if (val instanceof oracle.sql.BLOB) {
+                        oracle.sql.BLOB blob = (oracle.sql.BLOB) val;
+                        try {
+                            byte[] bytes = toByteArray(blob);
+                            return bytes;
+                        } catch (SQLException | IOException e) {
+                            throw new UnsupportedOperationException(
+                                    "Unsupported type:" + type + ",value:" + val);
+                        }
+                    } else {
+                        return (byte[]) val;
+                    }
+                };
             default:
                 throw new UnsupportedTypeException("Unsupported type:" + type);
         }
@@ -182,6 +228,34 @@ public class OracleRowConverter
             case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
+        }
+    }
+
+    private byte[] toByteArray(oracle.sql.BLOB fromBlob) throws SQLException, IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        InputStream is = fromBlob.getBinaryStream();
+        try {
+            byte[] buf = new byte[4000];
+            for (; ; ) {
+                int dataSize = is.read(buf);
+                if (dataSize == -1)
+                    break;
+                baos.write(buf, 0, dataSize);
+            }
+            return baos.toByteArray();
+        } finally {
+            try {
+                baos.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
         }
     }
 }

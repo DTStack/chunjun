@@ -19,6 +19,10 @@
 
 package com.dtstack.flinkx.connector.oracle.source;
 
+import com.dtstack.flinkx.connector.oracle.converter.OracleUpsertTypeConverter;
+import com.dtstack.flinkx.enums.EWriteMode;
+import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
@@ -47,6 +51,10 @@ public class OracleSourceFactory extends JdbcSourceFactory {
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return OracleRawTypeConverter::apply;
+        if(EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())){
+            return OracleUpsertTypeConverter::apply;
+        }else{
+            return OracleRawTypeConverter::apply;
+        }
     }
 }

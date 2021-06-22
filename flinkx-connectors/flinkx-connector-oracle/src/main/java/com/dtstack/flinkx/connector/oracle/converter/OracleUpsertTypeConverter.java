@@ -19,10 +19,10 @@
 
 package com.dtstack.flinkx.connector.oracle.converter;
 
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
-
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  *
  * @author jier
  */
-public class OracleRawTypeConverter {
+public class OracleUpsertTypeConverter {
 
     private final static String TIMESTAMP = "^TIMESTAMP\\(\\d+\\)";
     private final static Predicate<String> TIMESTAMP_PREDICATE = Pattern
@@ -62,8 +62,6 @@ public class OracleRawTypeConverter {
             case "VARCHAR2":
             case "NCHAR":
             case "NVARCHAR2":
-            case "CLOB":
-            case "LONG":
 //            case "XMLTYPE":
                 return DataTypes.STRING();
             case "INT":
@@ -76,12 +74,14 @@ public class OracleRawTypeConverter {
                 return DataTypes.DATE();
             case "RAW":
             case "LONG RAW":
-            case "BLOB":
                 return DataTypes.BYTES();
             case "BINARY_FLOAT":
                 return DataTypes.FLOAT();
             // when mode is update and allReplace is false, LONG type is not support
-//                throw new UnsupportedTypeException(type);
+            case "CLOB":
+            case "LONG":
+            case "BLOB":
+                throw new UnsupportedTypeException(type);
             default:
                 if (TIMESTAMP_PREDICATE.test(type)) {
                     return DataTypes.TIMESTAMP();

@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.oracle.sink;
 
+import com.dtstack.flinkx.connector.oracle.converter.OracleUpsertTypeConverter;
+import com.dtstack.flinkx.enums.EWriteMode;
+
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
@@ -34,9 +37,14 @@ public class OracleOutputFormat extends JdbcOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
-        RowType rowType =
-                TableUtil.createRowType(
-                        column, columnType, OracleRawTypeConverter::apply);
+        RowType rowType;
+        if(EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())){
+            rowType = TableUtil.createRowType(
+                    column, columnType, OracleUpsertTypeConverter::apply);
+        }else{
+            rowType = TableUtil.createRowType(
+                    column, columnType, OracleRawTypeConverter::apply);
+        }
         setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 }
