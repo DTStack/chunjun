@@ -120,7 +120,42 @@ public class OperatorConf implements Serializable {
         if(ret instanceof BigDecimal) {
             return ((BigDecimal)ret).intValue();
         }
-        throw new RuntimeException(String.format("cant't %s from %s to int, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
+        throw new RuntimeException(String.format("can't %s from %s to int, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
+    }
+
+    /**
+     * 从parameter中获取指定key的value，若无则返回defaultValue
+     * @param key
+     * @param defaultValue
+     * @return
+     */
+    public long getLongVal(String key, long defaultValue) {
+        Object ret = parameter.get(key);
+        if(ret == null) {
+            return defaultValue;
+        }
+        if(ret instanceof Integer) {
+            return ((Integer) ret).longValue();
+        }
+        if(ret instanceof String) {
+            return Long.parseLong((String) ret);
+        }
+        if(ret instanceof Long) {
+            return (Long)ret;
+        }
+        if(ret instanceof Float) {
+            return ((Float)ret).longValue();
+        }
+        if(ret instanceof Double) {
+            return ((Double)ret).longValue();
+        }
+        if(ret instanceof BigInteger) {
+            return ((BigInteger)ret).longValue();
+        }
+        if(ret instanceof BigDecimal) {
+            return ((BigDecimal)ret).longValue();
+        }
+        throw new RuntimeException(String.format("can't %s from %s to long, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
     }
 
     public boolean getBooleanVal(String key, boolean defaultValue) {
@@ -131,7 +166,7 @@ public class OperatorConf implements Serializable {
         if (ret instanceof Boolean) {
             return (Boolean) ret;
         }
-        throw new RuntimeException(String.format("cant't %s from %s to boolean, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
+        throw new RuntimeException(String.format("can't %s from %s to boolean, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
     }
 
     /**

@@ -26,7 +26,7 @@ import org.apache.flink.util.FlinkRuntimeException;
  */
 public class FlinkxRuntimeException extends FlinkRuntimeException {
 
-    private static final long serialVersionUID = 3039510501835182820L;
+    protected static final long serialVersionUID = 1;
 
     /**
      * Creates a new Exception with the given message and null as the cause.

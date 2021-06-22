@@ -28,7 +28,6 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
-import org.apache.flink.util.StringUtils;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
@@ -36,8 +35,13 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.SourceConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcDynamicTableSink;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.PASSWORD;
@@ -58,24 +61,22 @@ import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.VERTX_
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.VERTX_WORKER_POOL_SIZE;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.getLibConfMap;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_ALLREPLACE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_MAX_RETRIES;
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_MAX_RETRIES;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_PARALLELISM;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_AUTO_COMMIT;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_DEFAULT_FETCH_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_FETCH_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARALLELISM;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_COLUMN;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_COLUMN_TYPE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_LOWER_BOUND;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_NUM;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_UPPER_BOUND;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_POLLING_INTERVAL;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_QUERY_TIMEOUT;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_RESTORE_COLUMNNAME;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_RESTORE_COLUMNTYPE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_START_LOCATION;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_DEFAULT_FETCH_SIZE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_FETCH_SIZE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN_TYPE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARALLELISM;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_COLUMN;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_STRATEGY;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_POLLING_INTERVAL;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_QUERY_TIMEOUT;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNNAME;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNTYPE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_START_LOCATION;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
@@ -119,7 +120,9 @@ public abstract class JdbcDynamicTableFactory
                         context.getObjectIdentifier().getObjectName(),
                         druidConf),
                 physicalSchema,
-                jdbcDialect);
+                jdbcDialect,
+                getInputFormatBuilder()
+                );
     }
 
     @Override
@@ -141,7 +144,8 @@ public abstract class JdbcDynamicTableFactory
         return new JdbcDynamicTableSink(
                 getSinkConnectionConf(helper.getOptions(), physicalSchema),
                 jdbcDialect,
-                physicalSchema);
+                physicalSchema,
+                getOutputFormatBuilder());
     }
 
     protected JdbcConf getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
@@ -204,21 +208,23 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE) == 0 ? getDefaultFetchSize() : readableConfig.get(SCAN_FETCH_SIZE));
         jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
 
+        jdbcConf.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
+        jdbcConf.setSplitStrategy(readableConfig.get(SCAN_PARTITION_STRATEGY));
+
+        jdbcConf.setIncreColumn(readableConfig.get(SCAN_INCREMENT_COLUMN));
+        jdbcConf.setIncreColumnType(readableConfig.get(SCAN_INCREMENT_COLUMN_TYPE));
+        jdbcConf.setIncrement(StringUtils.isNotBlank(readableConfig.get(SCAN_INCREMENT_COLUMN)));
+        jdbcConf.setStartLocation(readableConfig.get(SCAN_START_LOCATION));
+
         jdbcConf.setRestoreColumn(readableConfig.get(SCAN_RESTORE_COLUMNNAME));
         jdbcConf.setRestoreColumnType(readableConfig.get(SCAN_RESTORE_COLUMNTYPE));
 
         Optional<Integer> pollingInterval = readableConfig.getOptional(SCAN_POLLING_INTERVAL);
         if (pollingInterval.isPresent() && pollingInterval.get() > 0) {
             jdbcConf.setPolling(true);
-            jdbcConf.setIncrement(true);
-            jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE) == 0 ? SCAN_DEFAULT_FETCH_SIZE.defaultValue() : readableConfig.get(SCAN_FETCH_SIZE));
             jdbcConf.setPollingInterval(pollingInterval.get());
-            jdbcConf.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
-            jdbcConf.setIncreColumnType(readableConfig.get(SCAN_PARTITION_COLUMN_TYPE));
-            jdbcConf.setIncreColumn(readableConfig.get(SCAN_PARTITION_COLUMN));
-            jdbcConf.setStartLocation(readableConfig.get(SCAN_START_LOCATION));
+            jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE) == 0 ? SCAN_DEFAULT_FETCH_SIZE.defaultValue() : readableConfig.get(SCAN_FETCH_SIZE));
         }
-
         return jdbcConf;
     }
 
@@ -238,16 +244,14 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(SCHEMA);
 
         optionalOptions.add(SCAN_PARTITION_COLUMN);
-        optionalOptions.add(SCAN_PARTITION_COLUMN_TYPE);
+        optionalOptions.add(SCAN_PARTITION_STRATEGY);
+        optionalOptions.add(SCAN_INCREMENT_COLUMN);
+        optionalOptions.add(SCAN_INCREMENT_COLUMN_TYPE);
         optionalOptions.add(SCAN_POLLING_INTERVAL);
         optionalOptions.add(SCAN_START_LOCATION);
         optionalOptions.add(SCAN_PARALLELISM);
         optionalOptions.add(SCAN_QUERY_TIMEOUT);
-        optionalOptions.add(SCAN_PARTITION_LOWER_BOUND);
-        optionalOptions.add(SCAN_PARTITION_UPPER_BOUND);
-        optionalOptions.add(SCAN_PARTITION_NUM);
         optionalOptions.add(SCAN_FETCH_SIZE);
-        optionalOptions.add(SCAN_AUTO_COMMIT);
         optionalOptions.add(SCAN_RESTORE_COLUMNNAME);
         optionalOptions.add(SCAN_RESTORE_COLUMNTYPE);
 
@@ -278,9 +282,8 @@ public abstract class JdbcDynamicTableFactory
 
         if (config.getOptional(SCAN_POLLING_INTERVAL).isPresent()
                 && config.getOptional(SCAN_POLLING_INTERVAL).get() > 0) {
-            checkState(
-                    !StringUtils.isNullOrWhitespaceOnly(config.get(SCAN_PARTITION_COLUMN)),
-                    "scan.partition.column can not null or empty in polling-interval mode.");
+            checkState(StringUtils.isNotBlank(config.get(SCAN_INCREMENT_COLUMN)),
+                    "scan.increment.column can not null or empty in polling-interval mode.");
         }
 
         checkAllOrNone(config, new ConfigOption[] {LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
@@ -336,5 +339,23 @@ public abstract class JdbcDynamicTableFactory
      */
     protected int getDefaultFetchSize(){
         return SCAN_DEFAULT_FETCH_SIZE.defaultValue();
+    }
+
+    /**
+     * 获取JDBC插件的具体inputFormatBuilder
+     *
+     * @return JdbcInputFormatBuilder
+     */
+    protected JdbcInputFormatBuilder getInputFormatBuilder() {
+        return new JdbcInputFormatBuilder(new JdbcInputFormat());
+    }
+
+    /**
+     * 获取JDBC插件的具体outputFormatBuilder
+     *
+     * @return JdbcOutputFormatBuilder
+     */
+    protected JdbcOutputFormatBuilder getOutputFormatBuilder() {
+        return new JdbcOutputFormatBuilder(new JdbcOutputFormat());
     }
 }

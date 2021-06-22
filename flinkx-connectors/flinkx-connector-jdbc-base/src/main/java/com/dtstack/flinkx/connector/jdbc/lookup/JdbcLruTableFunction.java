@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
@@ -38,17 +42,13 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
-
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.table.types.logical.RowType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -79,27 +79,19 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcLruTableFunction.class);
-    /**
-     *
-     */
+    /** when network is unhealthy block query */
     private AtomicBoolean connectionStatus = new AtomicBoolean(true);
-    /**
-     *
-     */
+    /** query data thread */
     private transient ThreadPoolExecutor executor;
-    /**
-     *
-     */
+    /** rdb client */
     private transient SQLClient rdbSqlClient;
-    /**
-     *
-     */
+    /** select sql */
     private final String query;
-
+    /** jdbc Dialect */
     private final JdbcDialect jdbcDialect;
-
+    /** jdbc conf */
     private final JdbcConf jdbcConf;
-
+    /** vertx async pool size */
     protected int asyncPoolSize;
 
     public JdbcLruTableFunction(
@@ -333,10 +325,10 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                     return;
                 }
 
-                List<JsonArray> cacheContent = Lists.newArrayList();
+                List<JsonArray> cacheContent = new ArrayList<>();
                 int resultSize = rs.result().getResults().size();
                 if (resultSize > 0) {
-                    List<RowData> rowList = Lists.newArrayList();
+                    List<RowData> rowList = new ArrayList<>();
 
                     for (JsonArray line : rs.result().getResults()) {
                         try {
@@ -346,8 +338,8 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                             }
                             rowList.add(row);
                         } catch (Exception e) {
-                            // todo 在Converter中打印具体异常
-                            LOG.error(e.getMessage() + ":" + line);
+                            // todo 这里需要抽样打印
+                            LOG.error("error:{} \n sql:{} \n data:{}", e.getMessage(), jdbcConf.getQuerySql(), line);
                         }
                     }
 
@@ -376,8 +368,8 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
     @Override
     protected RowData fillData(
-            Object sideInput) throws Exception {
-        return rowConverter.toInternalLookup((JsonArray) sideInput);
+            Object sideInput) {
+        return rowConverter.toInternalLookup(sideInput);
     }
 
     @Override

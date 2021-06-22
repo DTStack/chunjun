@@ -27,28 +27,6 @@ import org.apache.flink.configuration.ConfigOptions;
  * @description
  **/
 public class JdbcSinkOptions {
-    // write config options
-    public static final ConfigOption<Integer> SINK_BUFFER_FLUSH_MAX_ROWS =
-            ConfigOptions.key("sink.buffer-flush.max-rows")
-                    .intType()
-                    .defaultValue(1000)
-                    .withDescription(
-                            "the flush max size (includes all append, upsert and delete records), over this number"
-                                    + " of records, will flush data. The default value is 100.");
-
-    public static final ConfigOption<Long> SINK_BUFFER_FLUSH_INTERVAL =
-            ConfigOptions.key("sink.buffer-flush.interval")
-                    .longType()
-                    .defaultValue(10000L)
-                    .withDescription(
-                            "the flush interval mills, over this time, asynchronous threads will flush data. The "
-                                    + "default value is 1s.");
-
-    public static final ConfigOption<Integer> SINK_MAX_RETRIES =
-            ConfigOptions.key("sink.max-retries")
-                    .intType()
-                    .defaultValue(3)
-                    .withDescription("the max retry times if writing records to database failed.");
 
     public static final ConfigOption<Boolean> SINK_ALLREPLACE =
             ConfigOptions.key("sink.allReplace")

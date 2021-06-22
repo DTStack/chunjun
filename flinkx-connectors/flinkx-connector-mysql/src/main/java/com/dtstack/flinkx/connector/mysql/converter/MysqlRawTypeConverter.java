@@ -21,6 +21,7 @@ public class MysqlRawTypeConverter {
      */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
+            case "BOOLEAN":
             case "BIT":
                 return DataTypes.BOOLEAN();
             case "TINYINT":
@@ -38,11 +39,12 @@ public class MysqlRawTypeConverter {
                 return DataTypes.FLOAT();
             case "DECIMAL":
             case "NUMERIC":
-                return DataTypes.DECIMAL(1, 0);
+                return DataTypes.DECIMAL(38, 18);
             case "DOUBLE":
                 return DataTypes.DOUBLE();
             case "CHAR":
             case "VARCHAR":
+            case "STRING":
                 return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();

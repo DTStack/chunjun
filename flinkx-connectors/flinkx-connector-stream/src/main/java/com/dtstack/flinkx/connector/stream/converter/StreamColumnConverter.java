@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.connector.stream.converter;
 
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -117,20 +116,7 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
     }
 
     @Override
-    public RowData toInternalLookup(RowData input) {
-        return null;
-    }
-
-    @Override
     public RowData toExternal(RowData rowData, RowData output) {
-        ColumnRowData genericRowData = (ColumnRowData) rowData;
-        GenericRowData outputRowData = (GenericRowData) output;
-        for (int pos = 0; pos < rowData.getArity(); pos++) {
-            AbstractBaseColumn field = genericRowData.getField(pos);
-            if (field != null) {
-                outputRowData.setField(pos, field.asString());
-            }
-        }
-        return outputRowData;
+        return rowData;
     }
 }

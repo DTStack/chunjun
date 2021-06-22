@@ -17,6 +17,12 @@
  */
 package com.dtstack.flinkx.connector.binlog.source;
 
+import org.apache.flink.formats.json.TimestampFormat;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
 import com.dtstack.flinkx.connector.binlog.converter.BinlogColumnConverter;
@@ -28,12 +34,6 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
-
-import org.apache.flink.formats.json.TimestampFormat;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
 
 /**
  * @company: www.dtstack.com

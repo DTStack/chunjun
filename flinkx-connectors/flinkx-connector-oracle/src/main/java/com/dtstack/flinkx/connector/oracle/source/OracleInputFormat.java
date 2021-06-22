@@ -41,11 +41,13 @@ public class OracleInputFormat extends JdbcInputFormat {
         RowType rowType;
         if(EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())){
             rowType = TableUtil.createRowType(
-                    column, columnType, OracleUpsertTypeConverter::apply);
+                    columnNameList, columnTypeList, OracleUpsertTypeConverter::apply);
         }else{
             rowType = TableUtil.createRowType(
-                            column, columnType, OracleRawTypeConverter::apply);
+                            columnNameList, columnTypeList, OracleRawTypeConverter::apply);
         }
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
+
+        
     }
 }

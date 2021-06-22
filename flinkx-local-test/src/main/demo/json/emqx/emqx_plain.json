@@ -1,0 +1,31 @@
+{
+  "job": {
+    "content": [{
+      "reader": {
+        "parameter" : {
+          "broker" : "tcp://localhost:1883",
+          "topic" : "cx",
+          "isCleanSession": true,
+          "qos": 2,
+          "codec": "plain"
+        },
+        "name" : "emqxreader"
+      },
+      "writer": {
+        "parameter" : {
+          "broker" : "tcp://localhost:1883",
+          "topic" : "test",
+          "isCleanSession": true,
+          "qos": 2
+        },
+        "name" : "emqxwriter"
+      }
+    } ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

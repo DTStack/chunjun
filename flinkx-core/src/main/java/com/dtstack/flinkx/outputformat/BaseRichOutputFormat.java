@@ -40,7 +40,7 @@ import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -140,6 +140,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     /** 当前事务的条数 */
     protected long rowsOfCurrentTransaction;
 
+    /** A collection of field names filled in user scripts with constants removed */
+    protected List<String> columnNameList = new ArrayList<>();
+    /** A collection of field types filled in user scripts with constants removed */
+    protected List<String> columnTypeList = new ArrayList<>();
+
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
     protected LongCounter bytesWriteCounter;
@@ -181,7 +186,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.numTasks = numTasks;
         this.context = (StreamingRuntimeContext) getRuntimeContext();
         this.checkpointEnabled = context.isCheckpointingEnabled();
-        this.rows = new ArrayList<>(1024);
+        this.batchSize = config.getBatchSize();
+        this.rows = new ArrayList<>(batchSize);
+        this.flushIntervalMills = config.getFlushIntervalMills();
         this.flushEnable = new AtomicBoolean(true);
 
         checkpointMode =
@@ -208,13 +215,14 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.startTime = System.currentTimeMillis();
 
         LOG.info(
-                "[{}] open successfully, checkpointMode = {}, checkpointEnabled = {}, flushIntervalMills = {}, batchSize = {}, FlinkX config: \n{} ",
+                "[{}] open successfully, \ncheckpointMode = {}, \ncheckpointEnabled = {}, \nflushIntervalMills = {}, \nbatchSize = {}, \n[{}]: \n{} ",
                 this.getClass().getSimpleName(),
                 checkpointMode,
                 checkpointEnabled,
                 flushIntervalMills,
                 batchSize,
-                GsonUtil.GSON.toJson(config));
+                config.getClass().getSimpleName(),
+                JsonUtil.toPrintJson(config));
     }
 
     @Override
@@ -387,10 +395,12 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                     }
                     try {
                         if(!rows.isEmpty()){
+                            int size = rows.size();
                             writeRecordInternal();
+                            numWriteCounter.add(size);
                         }
                     } catch (Exception e) {
-                        throw new RuntimeException("Writing records failed.", e);
+                        LOG.error("Writing records failed. {}", e.getMessage());
                     }
                 }
             }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
@@ -409,6 +419,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         try {
             writeSingleRecordInternal(rowData);
         } catch (WriteRecordException e) {
+            // todo 脏数据记录
             updateDirtyDataMsg(rowData, e);
             if (LOG.isTraceEnabled()) {
                 LOG.trace("write error rowData, rowData = {}, e = {}", rowData.toString(), ExceptionUtil.getErrorMessage(e));
@@ -426,8 +437,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             } catch (Exception e) {
                 //批量写异常转为单条写
                 rows.forEach(this::writeSingleRecord);
+            } finally {
+                // Data is either recorded dirty data or written normally
+                rows.clear();
             }
-            rows.clear();
         }
     }
 
@@ -519,7 +532,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * pre commit data
      * @throws Exception
      */
-    protected abstract void preCommit() throws Exception;
+    protected void preCommit() throws Exception{}
 
     /**
      * 写出单条数据
@@ -577,7 +590,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected abstract void commit(long checkpointId) throws Exception;
+    protected void commit(long checkpointId) throws Exception{}
 
     /**
      * checkpoint失败时操作
@@ -602,19 +615,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected abstract void rollback(long checkpointId) throws Exception;
+    protected void rollback(long checkpointId) throws Exception{}
 
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;
-    }
-
-    public int getBatchSize() {
-        return batchSize;
-    }
-
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
     }
 
     public String getFormatId() {
@@ -639,10 +644,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     public void setConfig(FlinkxCommonConf config) {
         this.config = config;
-    }
-
-    public void setFlushIntervalMills(long flushIntervalMills) {
-        this.flushIntervalMills = flushIntervalMills;
     }
 
     public void setRowConverter(AbstractRowConverter rowConverter) {

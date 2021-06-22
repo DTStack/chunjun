@@ -1,16 +1,14 @@
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +16,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -92,7 +91,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
         ResultSet resultSet = statement.executeQuery(query);
 
         while (resultSet.next()) {
-            Map<String, Object> oneRow = Maps.newHashMap();
+            Map<String, Object> oneRow = new HashMap<>();
             // 防止一条数据有问题，后面数据无法加载
             try {
                 GenericRowData rowData = (GenericRowData) rowConverter.toInternal(resultSet);

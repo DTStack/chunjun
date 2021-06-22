@@ -14,6 +14,7 @@
     <packaging>pom</packaging>
 
     <modules>
+		<module>flinkx-connector-emqx</module>
         <module>flinkx-connector-kafka</module>
         <module>flinkx-connector-stream</module>
 		<module>flinkx-connector-jdbc-base</module>
@@ -21,9 +22,11 @@
 		<module>flinkx-connector-postgresql</module>
 		<module>flinkx-connector-gbase</module>
         <module>flinkx-connector-hbase-base</module>
+		<module>flinkx-connector-kingbase</module>
 		<module>flinkx-connector-clickhouse</module>
 		<module>flinkx-connector-sqlserver</module>
 		<module>flinkx-connector-oracle</module>
+		<module>flinkx-connector-greenplum</module>
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>

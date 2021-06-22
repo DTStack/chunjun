@@ -189,7 +189,8 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             }
             keyCollector.buffer.clear();
         } catch (Exception e) {
-            //add metric of dirty data
+            // todo 需要脏数据记录
+            // add metric of dirty data
             if (dirtyDataCounter.getCount() % dataPrintFrequency == 0) {
                 LOG.info("dirtyData: " + new String(record.value(), "UTF-8"));
                 LOG.error("data parse error", e);
