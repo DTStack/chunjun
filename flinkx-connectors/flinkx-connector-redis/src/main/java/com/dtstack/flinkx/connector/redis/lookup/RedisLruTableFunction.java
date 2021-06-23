@@ -48,7 +48,7 @@ import java.util.concurrent.CompletableFuture;
  * @author chuixue
  * @create 2021-06-16 15:17
  * @description
- **/
+ */
 public class RedisLruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 1L;
@@ -59,9 +59,7 @@ public class RedisLruTableFunction extends AbstractLruTableFunction {
     private RedisConf redisConf;
 
     public RedisLruTableFunction(
-            RedisConf redisConf,
-            LookupConf lookupConf,
-            AbstractRowConverter rowConverter) {
+            RedisConf redisConf, LookupConf lookupConf, AbstractRowConverter rowConverter) {
         super(lookupConf, rowConverter);
         this.redisConf = redisConf;
         this.lookupConf = lookupConf;
@@ -77,40 +75,36 @@ public class RedisLruTableFunction extends AbstractLruTableFunction {
     @Override
     public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys) {
         String cacheKey = buildCacheKey(keys);
-        RedisFuture<Map<String, String>> resultFuture = ((RedisHashAsyncCommands) redisKeyAsyncCommands).hgetall(cacheKey);
-        resultFuture.thenAccept(resultValues -> {
-            List<Object> cacheContent = Lists.newArrayList();
-            List<RowData> rowList = Lists.newArrayList();
-            List<Object> results = Lists.newArrayList();
-            if (MapUtils.isNotEmpty(resultValues)) {
-                results.add(resultValues);
-                try {
-                    rowList.addAll(getRows(cacheContent, results));
-                } catch (Exception e) {
-                    // todo 这里需要抽样打印
-                    LOG.error("error:{} \n cacheKey:{} \n data:{}", e.getMessage(), cacheKey, resultValues);
-                }
-                dealCacheData(cacheKey, CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
-                future.complete(rowList);
-            } else {
-                dealMissKey(future);
-                dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
-            }
-        });
+        RedisFuture<Map<String, String>> resultFuture =
+                ((RedisHashAsyncCommands) redisKeyAsyncCommands).hgetall(cacheKey);
+        resultFuture.thenAccept(
+                resultValues -> {
+                    if (MapUtils.isNotEmpty(resultValues)) {
+                        List<Map<String, String>> cacheContent = Lists.newArrayList();
+                        List<RowData> rowList = Lists.newArrayList();
+                        try {
+                            RowData rowData = fillData(resultValues);
+                            if (openCache()) {
+                                cacheContent.add(resultValues);
+                            }
+                            rowList.add(rowData);
+                        } catch (Exception e) {
+                            LOG.error(
+                                    "error:{} \n cacheKey:{} \n data:{}",
+                                    e.getMessage(),
+                                    cacheKey,
+                                    resultValues);
+                        }
+                        dealCacheData(
+                                cacheKey,
+                                CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
+                        future.complete(rowList);
+                    } else {
+                        dealMissKey(future);
+                        dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
+                    }
+                });
     }
-
-    protected List<RowData> getRows(List<Object> cacheContent, List<Object> results) throws Exception {
-        List<RowData> rowList = Lists.newArrayList();
-        for (Object line : results) {
-            RowData row = fillData(line);
-            if (null != cacheContent && openCache()) {
-                cacheContent.add(line);
-            }
-            rowList.add(row);
-        }
-        return rowList;
-    }
-
 
     @Override
     public String buildCacheKey(Object... keys) {
@@ -120,7 +114,7 @@ public class RedisLruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    protected RowData fillData(Object sideInput) throws Exception {
+    protected RowData fillData(Object sideInput) {
         return rowConverter.toInternalLookup(sideInput);
     }
 

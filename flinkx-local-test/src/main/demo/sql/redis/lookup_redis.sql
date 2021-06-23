@@ -63,7 +63,7 @@ CREATE TABLE side
       ,'lookup.cache-type' = 'all' -- 维表缓存类型(NONE、LRU、ALL)，默认LRU
       ,'lookup.cache-period' = '4600000' -- ALL维表每隔多久加载一次数据，默认3600000毫秒
       ,'lookup.cache.max-rows' = '20000' -- lru维表缓存数据的条数，默认10000条
-      ,'lookup.cache.ttl' = '70000' -- lru维表缓存数据的时间，默认60000毫秒
+      ,'lookup.cache.ttl' = '700000' -- lru维表缓存数据的时间，默认60000毫秒
       ,'lookup.fetchSize' = '2000' -- ALL维表每次从数据库加载的条数，默认1000条
       ,'lookup.asyncTimeout' = '30000' -- lru维表缓访问超时时间，默认10000毫秒，暂时没用到
       ,'lookup.parallelism' = '3' -- 维表并行度，默认null

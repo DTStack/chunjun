@@ -56,7 +56,7 @@ CREATE TABLE sink
       ,'maxTotal' = '5' -- 最大连接数 ，默认：8
       ,'maxIdle' = '5' -- 最大空闲连接数，默认：8
       ,'minIdle' = '0' -- 最小空闲连接数 ，默认：0
-      ,'keyExpiredTime' = '1000' -- redis sink的key的过期时间。默认是0（永不过期），单位是s。默认：0
+      -- ,'keyExpiredTime' = '1000' -- redis sink的key的过期时间。默认是0（永不过期），单位是s。默认：0
       ,'sink.parallelism' = '3' -- sink并行度
       );
 

@@ -33,6 +33,7 @@ import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
+import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.JedisCommands;
 
 import java.io.Serializable;
@@ -52,8 +53,10 @@ import java.util.stream.Collectors;
  * @author chuixue
  * @create 2021-06-18 16:36
  * @description
- **/
-public class RedisRowConverter extends AbstractRowConverter<Map<String, String>, RowData, JedisCommands, LogicalType> {
+ */
+public class RedisRowConverter
+        extends AbstractRowConverter<
+                Map<String, String>, Map<String, String>, JedisCommands, LogicalType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -84,8 +87,7 @@ public class RedisRowConverter extends AbstractRowConverter<Map<String, String>,
 
     @Override
     protected ISerializationConverter<List<Object>> wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter,
-            LogicalType type) {
+            ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, result) -> {
             if (val == null
                     || val.isNullAt(index)
@@ -99,13 +101,23 @@ public class RedisRowConverter extends AbstractRowConverter<Map<String, String>,
 
     @Override
     public RowData toInternal(Map<String, String> input) {
+        return getGenericRowData(input);
+    }
+
+    @Override
+    public RowData toInternalLookup(Map<String, String> input) {
+        return getGenericRowData(input);
+    }
+
+    @NotNull
+    private GenericRowData getGenericRowData(Map<String, String> input) {
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
 
         for (String key : input.keySet()) {
-            List<Triplet<String, Integer, LogicalType>> collect = typeIndexList
-                    .stream()
-                    .filter(x -> x.first.equals(key))
-                    .collect(Collectors.toList());
+            List<Triplet<String, Integer, LogicalType>> collect =
+                    typeIndexList.stream()
+                            .filter(x -> x.first.equals(key))
+                            .collect(Collectors.toList());
             Triplet<String, Integer, LogicalType> typeTriplet = collect.get(0);
             genericRowData.setField(
                     typeTriplet.second,
@@ -123,9 +135,12 @@ public class RedisRowConverter extends AbstractRowConverter<Map<String, String>,
             toExternalConverters[index].serialize(rowData, index, fieldValue);
         }
 
-        Map<String, Object> collect = fieldNames
-                .stream()
-                .collect(Collectors.toMap(key -> key, key -> fieldValue.get(fieldNames.indexOf(key))));
+        Map<String, Object> collect =
+                fieldNames.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        key -> key,
+                                        key -> fieldValue.get(fieldNames.indexOf(key))));
         String key = buildCacheKey(collect);
         collect.forEach((field, value) -> jedis.hset(key, field, String.valueOf(value)));
 
@@ -180,12 +195,17 @@ public class RedisRowConverter extends AbstractRowConverter<Map<String, String>,
                 return val ->
                         val instanceof BigInteger
                                 ? DecimalData.fromBigDecimal(
-                                new BigDecimal((BigInteger) val, 0), precision, scale)
-                                : DecimalData.fromBigDecimal(new BigDecimal(String.valueOf(val)), precision, scale);
+                                        new BigDecimal((BigInteger) val, 0), precision, scale)
+                                : DecimalData.fromBigDecimal(
+                                        new BigDecimal(String.valueOf(val)), precision, scale);
             case DATE:
-                return val -> (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
+                return val ->
+                        (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay() / 1_000_000L);
+                return val ->
+                        (int)
+                                ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> TimestampData.fromTimestamp(Timestamp.valueOf(String.valueOf(val)));
@@ -227,25 +247,30 @@ public class RedisRowConverter extends AbstractRowConverter<Map<String, String>,
             case CHAR:
             case VARCHAR:
                 // value is BinaryString
-                return (val, index, result) ->
-                        result.add(val.getString(index).toString());
+                return (val, index, result) -> result.add(val.getString(index).toString());
             case BINARY:
             case VARBINARY:
                 return (val, index, result) -> result.add(val.getBinary(index));
             case DATE:
-                return (val, index, result) -> result.add(Date.valueOf(LocalDate.ofEpochDay(val.getInt(index))));
+                return (val, index, result) ->
+                        result.add(Date.valueOf(LocalDate.ofEpochDay(val.getInt(index))));
             case TIME_WITHOUT_TIME_ZONE:
-                return (val, index, result) -> result.add(Time.valueOf(
-                        LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L)));
+                return (val, index, result) ->
+                        result.add(
+                                Time.valueOf(
+                                        LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L)));
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 final int timestampPrecision = ((TimestampType) type).getPrecision();
-                return (val, index, result) -> result.add(val.getTimestamp(index, timestampPrecision).toTimestamp());
+                return (val, index, result) ->
+                        result.add(val.getTimestamp(index, timestampPrecision).toTimestamp());
             case DECIMAL:
                 final int decimalPrecision = ((DecimalType) type).getPrecision();
                 final int decimalScale = ((DecimalType) type).getScale();
-                return (val, index, result) -> result.add(val.getDecimal(index, decimalPrecision, decimalScale)
-                        .toBigDecimal());
+                return (val, index, result) ->
+                        result.add(
+                                val.getDecimal(index, decimalPrecision, decimalScale)
+                                        .toBigDecimal());
             case ARRAY:
             case MAP:
             case MULTISET:
