@@ -18,7 +18,7 @@
         <module>flinkx-local-test</module>
         <module>flinkx-formats</module>
 
-<!--        &lt;!&ndash;******离线******&ndash;&gt;-->
+        <!--        &lt;!&ndash;******离线******&ndash;&gt;-->
 <!--        <module>flinkx-polardb</module>-->
 <!--        <module>flinkx-oracle</module>-->
 <!--        <module>flinkx-sqlserver</module>-->
