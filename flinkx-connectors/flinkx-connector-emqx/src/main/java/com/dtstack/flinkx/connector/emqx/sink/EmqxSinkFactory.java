@@ -18,14 +18,13 @@
 
 package com.dtstack.flinkx.connector.emqx.sink;
 
-import com.dtstack.flinkx.connector.emqx.converter.EmqxColumnConverter;
-
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
+import com.dtstack.flinkx.connector.emqx.converter.EmqxColumnConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.JsonUtil;
@@ -61,7 +60,7 @@ public class EmqxSinkFactory extends SinkFactory {
         }
         EmqxOutputFormatBuilder builder = new EmqxOutputFormatBuilder();
         builder.setEmqxConf(emqxConf);
-        builder.setConverter(new EmqxColumnConverter(emqxConf));
+        builder.setRowConverter(new EmqxColumnConverter(emqxConf));
         return createOutput(dataSet, builder.finish());
     }
 }

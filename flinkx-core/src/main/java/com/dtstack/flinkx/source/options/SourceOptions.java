@@ -79,7 +79,7 @@ public class SourceOptions {
     public static final ConfigOption<Integer> SCAN_PARALLELISM =
             ConfigOptions.key("scan.parallelism")
                     .intType()
-                    .defaultValue(null)
+                    .defaultValue(1)
                     .withDescription("scan parallelism.");
 
     public static final ConfigOption<Integer> SCAN_QUERY_TIMEOUT =
