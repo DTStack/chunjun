@@ -67,7 +67,7 @@ public class OracleRawTypeConverter {
             case "NUMBER":
             case "DECIMAL":
             case "FLOAT":
-                return DataTypes.DECIMAL(1, 0);
+                return DataTypes.DECIMAL(38, 18);
             case "DATE":
                 return DataTypes.DATE();
             case "RAW":
