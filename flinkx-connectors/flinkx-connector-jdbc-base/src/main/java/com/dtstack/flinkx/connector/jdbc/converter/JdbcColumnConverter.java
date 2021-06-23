@@ -110,6 +110,7 @@ public class JdbcColumnConverter
             case CHAR:
             case VARCHAR:
                 return val -> new StringColumn((String) val);
+            case INTERVAL_YEAR_MONTH:
             case DATE:
             case TIME_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_TIME_ZONE:
@@ -157,6 +158,16 @@ public class JdbcColumnConverter
                 return (val, index, statement) ->
                         statement.setString(
                                 index, ((ColumnRowData) val).getField(index).asString());
+            case INTERVAL_YEAR_MONTH:
+                return (val, index, statement) ->
+                        statement.setInt(
+                                index,
+                                ((ColumnRowData) val)
+                                        .getField(index)
+                                        .asTimestamp()
+                                        .toLocalDateTime()
+                                        .toLocalDate()
+                                        .getYear());
             case DATE:
                 return (val, index, statement) ->
                         statement.setDate(
