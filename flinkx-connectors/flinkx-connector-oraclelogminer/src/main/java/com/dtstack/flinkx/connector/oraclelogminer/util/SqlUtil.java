@@ -127,7 +127,6 @@ public class SqlUtil {
             "       + SYS.DBMS_LOGMNR.no_sql_delimiter " +
             "       + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n" +
             "       + SYS.DBMS_LOGMNR.dict_from_online_catalog " +
-            "       + SYS.DBMS_LOGMNR.string_literals_in_stmt" +
             "   );\n" +
             "END;";
 
@@ -289,7 +288,7 @@ public class SqlUtil {
     public final static String SQL_ALTER_NLS_SESSION_PARAMETERS ="ALTER SESSION SET "
             + "  NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'"
             + "  NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF6'"
-            + "  NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF6 TZH:TZM'";
+            + "  NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF6'";
 
 
     /** 查看用户权限组 **/

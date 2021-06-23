@@ -73,8 +73,7 @@ public class OraclelogminerSourceFactory extends SourceFactory {
             rowConverter = new LogMinerColumnConverter(logMinerConf.isPavingData(), logMinerConf.isSplitUpdate());
         } else {
             final RowType rowType = TableUtil.createRowType(logMinerConf.getColumn(), getRawTypeConverter());
-            TimestampFormat format = "sql".equalsIgnoreCase(logMinerConf.getTimestampFormat()) ? TimestampFormat.SQL : TimestampFormat.ISO_8601;
-            rowConverter = new LogMinerRowConverter(rowType, format, logMinerConf.getTimezonePattern());
+             rowConverter = new LogMinerRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);
         return createInput(builder.finish());

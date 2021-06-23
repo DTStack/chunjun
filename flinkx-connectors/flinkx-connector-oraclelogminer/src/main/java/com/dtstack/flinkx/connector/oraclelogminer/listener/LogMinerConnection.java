@@ -136,9 +136,8 @@ public class LogMinerConnection {
             isOracle10 = oracleVersion == 10;
 
             //设置会话级别的日期格式 否则sql语句会含有todate函数 而不是todate函数计算后的值
-            try (PreparedStatement preparedStatement = connection.prepareStatement(SqlUtil.SQL_ALTER_NLS_SESSION_PARAMETERS)) {
-                preparedStatement.setQueryTimeout(logMinerConf.getQueryTimeout().intValue());
-                preparedStatement.execute();
+            try (CallableStatement callableStatement = connection.prepareCall(SqlUtil.SQL_ALTER_NLS_SESSION_PARAMETERS)) {
+                callableStatement.execute();
             }
 
            LOG.info("get connection successfully, url:{}, username:{}, Oracle version：{}", logMinerConf.getJdbcUrl(), logMinerConf.getUsername(), oracleVersion);

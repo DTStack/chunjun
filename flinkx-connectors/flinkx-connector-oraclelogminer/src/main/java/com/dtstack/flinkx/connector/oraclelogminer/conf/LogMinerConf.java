@@ -48,9 +48,6 @@ public class LogMinerConf extends FlinkxCommonConf {
 
     private String timestampFormat = "sql";
 
-    /** 设置DateTimeFormatter的pattern **/
-    private String timezonePattern = "'Z'";
-
     private String cat = "UPDATE,INSERT,DELETE";
 
     /**
@@ -79,8 +76,6 @@ public class LogMinerConf extends FlinkxCommonConf {
      * Oracle 12c第二个版本之后LogMiner不支持自动添加日志
      */
     private boolean supportAutoAddLog;
-
-    private List<FieldConf> column;
 
     private boolean splitUpdate;
 
@@ -196,28 +191,12 @@ public class LogMinerConf extends FlinkxCommonConf {
         this.password = password;
     }
 
-    public List<FieldConf> getColumn() {
-        return column;
-    }
-
-    public void setColumn(List<FieldConf> column) {
-        this.column = column;
-    }
-
     public String getTimestampFormat() {
         return timestampFormat;
     }
 
     public void setTimestampFormat(String timestampFormat) {
         this.timestampFormat = timestampFormat;
-    }
-
-    public String getTimezonePattern() {
-        return timezonePattern;
-    }
-
-    public void setTimezonePattern(String timezonePattern) {
-        this.timezonePattern = timezonePattern;
     }
 
     public boolean isPavingData() {

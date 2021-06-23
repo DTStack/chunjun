@@ -40,7 +40,12 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQueries;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -235,10 +240,17 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                     return new StringColumn(val);
                 };
             case "DATE":
-            case "TIMESTAMP":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
                     val = LogParser.parseTime(val);
                     return new TimestampColumn(DateUtil.getTimestampFromStr(val));
+                    };
+            case "TIMESTAMP":
+                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> {
+                    val = LogParser.parseTime(val);
+                    TemporalAccessor parse = DateUtil.DATETIME_FORMATTER.parse(val);
+                    LocalTime localTime = parse.query(TemporalQueries.localTime());
+                    LocalDate localDate = parse.query(TemporalQueries.localDate());
+                    return new TimestampColumn(Timestamp.valueOf(LocalDateTime.of(localDate, localTime)));
                 };
             case "BFILE":
             case "XMLTYPE":

@@ -158,25 +158,4 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
         }
         return genericRowData;
     }
-
-    /**
-     * 根据配置更新Formatter
-     * @param pattern
-     */
-    protected void resetTimeZoneFormatter(String pattern) {
-        SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
-                new DateTimeFormatterBuilder()
-                        .append(DateTimeFormatter.ISO_LOCAL_DATE)
-                        .appendLiteral(' ')
-                        .append(SQL_TIME_FORMAT)
-                        .appendPattern(pattern)
-                        .toFormatter();
-        ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
-                new DateTimeFormatterBuilder()
-                        .append(DateTimeFormatter.ISO_LOCAL_DATE)
-                        .appendLiteral('T')
-                        .append(DateTimeFormatter.ISO_LOCAL_TIME)
-                        .appendPattern(pattern)
-                        .toFormatter();
-    }
 }
