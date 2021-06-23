@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.oracle.source;
 
-import com.dtstack.flinkx.connector.oracle.converter.OracleUpsertTypeConverter;
-import com.dtstack.flinkx.enums.EWriteMode;
-
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -38,16 +35,9 @@ public class OracleInputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
-        RowType rowType;
-        if(EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())){
-            rowType = TableUtil.createRowType(
-                    columnNameList, columnTypeList, OracleUpsertTypeConverter::apply);
-        }else{
-            rowType = TableUtil.createRowType(
-                            columnNameList, columnTypeList, OracleRawTypeConverter::apply);
-        }
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-
-        
+        RowType rowType =
+                TableUtil.createRowType(
+                        column, columnType, OracleRawTypeConverter::apply);
+        setRowConverter(jdbcDialect.getColumnConverter(rowType));
     }
 }

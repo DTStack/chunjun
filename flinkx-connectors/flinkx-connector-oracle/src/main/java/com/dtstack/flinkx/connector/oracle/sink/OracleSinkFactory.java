@@ -22,9 +22,7 @@ import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.oracle.OracleDialect;
 import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
-import com.dtstack.flinkx.connector.oracle.converter.OracleUpsertTypeConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
-import com.dtstack.flinkx.enums.EWriteMode;
 
 /**
  * company www.dtstack.com
@@ -45,10 +43,6 @@ public class OracleSinkFactory extends JdbcSinkFactory {
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        if(EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())){
-            return OracleUpsertTypeConverter::apply;
-        }else{
-            return OracleRawTypeConverter::apply;
-        }
+        return OracleRawTypeConverter::apply;
     }
 }

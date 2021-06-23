@@ -37,13 +37,7 @@ import oracle.sql.TIMESTAMP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.sql.Clob;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -82,34 +76,7 @@ public class OracleColumnConverter
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
             case VARCHAR:
-                return val -> {
-                    if (val instanceof oracle.sql.CLOB) {
-                        oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
-                        BufferedReader bf = null;
-                        try {
-                            bf = new BufferedReader(clob.getCharacterStream());
-                            StringBuilder stringBuilder = new StringBuilder();
-                            String line;
-                            while ((line = bf.readLine()) != null) {
-                                stringBuilder.append(line);
-                            }
-                            return new StringColumn(stringBuilder.toString());
-                        } catch (SQLException | IOException e) {
-                            throw new UnsupportedOperationException(
-                                    "Unsupported type:" + type + ",value:" + val);
-                        } finally {
-                            if (bf != null) {
-                                try {
-                                    bf.close();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    } else {
-                        return new StringColumn((String) val);
-                    }
-                };
+                return val -> new StringColumn((String) val);
             case DATE:
                 return val -> new TimestampColumn((Timestamp) val);
             case TIME_WITHOUT_TIME_ZONE:
@@ -129,24 +96,10 @@ public class OracleColumnConverter
                 };
             case BINARY:
             case VARBINARY:
-                return val -> {
-                    if (val instanceof oracle.sql.BLOB) {
-                        oracle.sql.BLOB blob = (oracle.sql.BLOB) val;
-                        try {
-                            byte[] bytes = toByteArray(blob);
-                            return new BytesColumn(bytes);
-                        } catch (SQLException | IOException e) {
-                            throw new UnsupportedOperationException(
-                                    "Unsupported type:" + type + ",value:" + val);
-                        }
-                    } else {
-                        return new BytesColumn((byte[]) val);
-                    }
-                };
+                return val -> new BytesColumn((byte[]) val);
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
-
     }
 
     @Override
@@ -208,35 +161,4 @@ public class OracleColumnConverter
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
     }
-
-
-    private byte[] toByteArray(oracle.sql.BLOB fromBlob) throws SQLException, IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        InputStream is = fromBlob.getBinaryStream();
-        try {
-            byte[] buf = new byte[4000];
-            for (; ; ) {
-                int dataSize = is.read(buf);
-                if (dataSize == -1)
-                    break;
-                baos.write(buf, 0, dataSize);
-            }
-            return baos.toByteArray();
-        } finally {
-            try {
-                baos.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-    }
-
-
 }
