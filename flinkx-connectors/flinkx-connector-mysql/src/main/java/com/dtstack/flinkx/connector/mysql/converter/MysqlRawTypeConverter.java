@@ -51,7 +51,7 @@ public class MysqlRawTypeConverter {
             case "TIME":
                 return DataTypes.TIME();
             case "YEAR":
-                return DataTypes.DATE();
+                return DataTypes.INTERVAL(DataTypes.YEAR());
             case "TIMESTAMP":
             case "DATETIME":
                 return DataTypes.TIMESTAMP();

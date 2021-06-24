@@ -33,15 +33,13 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.dtstack.flinkx.util.DateUtil;
 import io.vertx.core.json.JsonArray;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
 public class JdbcColumnConverter
@@ -112,14 +110,12 @@ public class JdbcColumnConverter
             case CHAR:
             case VARCHAR:
                 return val -> new StringColumn((String) val);
+            case INTERVAL_YEAR_MONTH:
             case DATE:
-                return val -> new BigDecimalColumn(Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
-                return val ->
-                        new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn((Timestamp) val);
+                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
@@ -162,21 +158,34 @@ public class JdbcColumnConverter
                 return (val, index, statement) ->
                         statement.setString(
                                 index, ((ColumnRowData) val).getField(index).asString());
+            case INTERVAL_YEAR_MONTH:
+                return (val, index, statement) ->
+                        statement.setInt(
+                                index,
+                                ((ColumnRowData) val)
+                                        .getField(index)
+                                        .asTimestamp()
+                                        .toLocalDateTime()
+                                        .toLocalDate()
+                                        .getYear());
             case DATE:
                 return (val, index, statement) ->
                         statement.setDate(
                                 index,
-                                Date.valueOf(
-                                        LocalDate.ofEpochDay(
-                                                ((ColumnRowData) val).getField(index).asInt())));
+                                Date.valueOf(((ColumnRowData) val)
+                                        .getField(index)
+                                        .asTimestamp()
+                                        .toLocalDateTime()
+                                        .toLocalDate()));
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTime(
                                 index,
-                                Time.valueOf(
-                                        LocalTime.ofNanoOfDay(
-                                                ((ColumnRowData) val).getField(index).asInt()
-                                                        * 1_000_000L)));
+                                Time.valueOf(((ColumnRowData) val)
+                                        .getField(index)
+                                        .asTimestamp()
+                                        .toLocalDateTime()
+                                        .toLocalTime()));
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->

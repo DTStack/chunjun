@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.sink;
 
+import com.dtstack.flinkx.converter.RawTypeConvertible;
+
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
