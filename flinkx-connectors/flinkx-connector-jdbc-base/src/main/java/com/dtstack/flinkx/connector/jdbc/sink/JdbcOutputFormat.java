@@ -220,7 +220,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void commit(long checkpointId) throws Exception {
+    public void commit(long checkpointId) throws Exception {
         try {
             dbConn.commit();
             snapshotWriteCounter.add(rowsOfCurrentTransaction);
@@ -233,7 +233,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void rollback(long checkpointId) throws Exception {
+    public void rollback(long checkpointId) throws Exception {
         dbConn.rollback();
     }
 

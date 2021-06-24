@@ -499,7 +499,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     /**
      * 更新任务执行时间指标
      */
-    private void updateDuration() {
+    protected void updateDuration() {
         if (durationCounter != null) {
             durationCounter.resetLocal();
             durationCounter.add(System.currentTimeMillis() - startTime);
@@ -591,7 +591,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected void commit(long checkpointId) throws Exception{}
+    public void commit(long checkpointId) throws Exception{}
 
     /**
      * checkpoint失败时操作
@@ -616,7 +616,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected void rollback(long checkpointId) throws Exception{}
+    public void rollback(long checkpointId) throws Exception{}
 
 
     public void setRestoreState(FormatState formatState) {

@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.sink;
 
-import com.dtstack.flinkx.RawTypeConvertible;
-
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -27,6 +25,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.RawTypeConvertible;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
@@ -107,7 +106,6 @@ public abstract class SinkFactory implements RawTypeConvertible {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
-        flinkxCommonConf.setParallelism(
-                speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
+        flinkxCommonConf.setParallelism(speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
     }
 }
