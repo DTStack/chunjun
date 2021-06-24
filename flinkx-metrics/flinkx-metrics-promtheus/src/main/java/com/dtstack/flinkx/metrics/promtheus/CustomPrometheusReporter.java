@@ -16,13 +16,19 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metrics;
+package com.dtstack.flinkx.metrics.promtheus;
+
+import com.dtstack.flinkx.conf.MetricParam;
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.metrics.CustomReporter;
+import com.dtstack.flinkx.metrics.SimpleAccumulatorGauge;
+import io.prometheus.client.Collector;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.exporter.PushGateway;
 
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.accumulators.Accumulator;
-import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.metrics.CharacterFilter;
+import org.apache.flink.configuration.Configuration;;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.Histogram;
@@ -37,10 +43,6 @@ import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.util.AbstractID;
 import org.apache.flink.util.StringUtils;
 
-import com.dtstack.flinkx.constants.Metrics;
-import io.prometheus.client.Collector;
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.exporter.PushGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,13 +56,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * @author jiangbo
  * @date 2020/2/25
  */
-public class CustomPrometheusReporter {
+public class CustomPrometheusReporter extends CustomReporter {
 
     public static Logger LOG = LoggerFactory.getLogger(CustomPrometheusReporter.class);
 
@@ -72,11 +73,7 @@ public class CustomPrometheusReporter {
 
     private boolean deleteOnShutdown;
 
-    private final boolean makeTaskFailedWhenReportFailed;
-
     private Configuration configuration;
-
-    private final RuntimeContext context;
 
     private static final String KEY_HOST = "metrics.reporter.promgateway.host";
     private static final String KEY_PORT = "metrics.reporter.promgateway.port";
@@ -84,13 +81,6 @@ public class CustomPrometheusReporter {
     private static final String KEY_RANDOM_JOB_NAME_SUFFIX = "metrics.reporter.promgateway.randomJobNameSuffix";
     private static final String KEY_DELETE_ON_SHUTDOWN = "metrics.reporter.promgateway.deleteOnShutdown";
 
-    private static final Pattern UN_ALLOWED_CHAR_PATTERN = Pattern.compile("[^a-zA-Z0-9:_]");
-    private static final CharacterFilter CHARACTER_FILTER = new CharacterFilter() {
-        @Override
-        public String filterCharacters(String input) {
-            return replaceInvalidChars(input);
-        }
-    };
 
     private static final char SCOPE_SEPARATOR = '_';
     private static final String SCOPE_PREFIX = "flink" + SCOPE_SEPARATOR;
@@ -99,18 +89,10 @@ public class CustomPrometheusReporter {
 
     private final Map<String, Metric> metricHashMap = new HashMap<>();
 
-    @VisibleForTesting
-    static String replaceInvalidChars(final String input) {
-        // https://prometheus.io/docs/instrumenting/writing_exporters/
-        // Only [a-zA-Z0-9:_] are valid in metric names, any other characters should be sanitized to an underscore.
-        return UN_ALLOWED_CHAR_PATTERN.matcher(input).replaceAll("_");
-    }
 
-    private final CharacterFilter labelValueCharactersFilter = CHARACTER_FILTER;
 
-    public CustomPrometheusReporter(RuntimeContext context, boolean makeTaskFailedWhenReportFailed) {
-        this.context = context;
-        this.makeTaskFailedWhenReportFailed = makeTaskFailedWhenReportFailed;
+    public CustomPrometheusReporter(MetricParam metricParam) {
+        super(metricParam);
         initConfiguration();
     }
 

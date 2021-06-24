@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.inputformat;
 
+import com.dtstack.flinkx.metrics.CustomReporter;
+
+import com.dtstack.flinkx.util.DataSyncFactoryUtil;
+
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -37,7 +41,6 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
-import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.ByteRateLimiter;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -86,7 +89,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     /** 输入指标组 */
     protected transient BaseMetric inputMetric;
     /** 自定义的prometheus reporter，用于提交startLocation和endLocation指标 */
-    protected transient CustomPrometheusReporter customPrometheusReporter;
+    protected transient CustomReporter customReporter;
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
     /** checkpoint状态缓存map */
@@ -165,9 +168,9 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             indexOfSubTask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
         }
 
-        if (useCustomPrometheusReporter()) {
-            customPrometheusReporter = new CustomPrometheusReporter(getRuntimeContext(), makeTaskFailedWhenReportFailed());
-            customPrometheusReporter.open();
+        if (useCustomReporter()) {
+            customReporter = DataSyncFactoryUtil.discoverMetric(config, context, makeTaskFailedWhenReportFailed());
+            customReporter.open();
         }
 
         startTime = System.currentTimeMillis();
@@ -220,16 +223,16 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             accumulatorCollector.close();
         }
 
-        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
-            customPrometheusReporter.report();
+        if (useCustomReporter() && null != customReporter) {
+            customReporter.report();
         }
 
         if(inputMetric != null){
             inputMetric.waitForReportMetrics();
         }
 
-        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
-            customPrometheusReporter.close();
+        if (useCustomReporter() && null != customReporter) {
+            customReporter.close();
         }
 
         isClosed.set(true);
@@ -341,7 +344,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     /**
      * 使用自定义的指标输出器把增量指标打到普罗米修斯
      */
-    protected boolean useCustomPrometheusReporter() {
+    protected boolean useCustomReporter() {
         return false;
     }
 

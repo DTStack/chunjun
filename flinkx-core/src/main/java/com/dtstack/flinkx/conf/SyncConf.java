@@ -177,6 +177,10 @@ public class SyncConf implements Serializable {
         this.remotePluginPath = remotePluginPath;
     }
 
+    public MetricPluginConf getMetricPluginConf() {
+        return job.getSetting().getMetricPluginConf();
+    }
+
     @Override
     public String toString() {
         return "FlinkxConf{" +

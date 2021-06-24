@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -58,9 +59,12 @@ public class PluginUtil {
     public static final String WRITER_SUFFIX = "writer";
     public static final String SINK_SUFFIX = "sink";
     public static final String GENERIC_SUFFIX = "Factory";
+    public static final String METRIC_SUFFIX = "metrics";
     private static final String SP = File.separator;
     private static final Logger LOG = LoggerFactory.getLogger(PluginUtil.class);
     private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connector.";
+    private static final String METRIC_CUSTOM_PREFIX = ".Custom";
+    private static final String METRIC_REPORT_PREFIX = "Report";
 
     private static final String JAR_PREFIX = "flinkx";
 
@@ -156,6 +160,9 @@ public class PluginUtil {
     public static String getPluginClassName(String pluginName, OperatorType operatorType) {
         String pluginClassName;
         switch (operatorType){
+            case metric:
+                pluginClassName = appendMetricClass(pluginName);
+                break;
             case source:
                 String sourceName = pluginName.replace(READER_SUFFIX, SOURCE_SUFFIX);
                 pluginClassName = camelize(sourceName, SOURCE_SUFFIX);
@@ -191,6 +198,14 @@ public class PluginUtil {
         return sb.toString();
     }
 
+    private static String appendMetricClass(String pluginName) {
+        StringBuilder sb = new StringBuilder(32);
+        sb.append(PACKAGE_PREFIX).append(pluginName.toLowerCase(Locale.ENGLISH)).append(METRIC_CUSTOM_PREFIX);
+        sb.append(pluginName.substring(0, 1).toUpperCase()).append(pluginName.substring(1).toLowerCase());
+        sb.append(METRIC_REPORT_PREFIX);
+        return sb.toString();
+    }
+
     /**
      * 将任务所用到的插件包注册到env中
      * @param config
@@ -202,11 +217,15 @@ public class PluginUtil {
         Set<URL> formatsUrlList = getJarFileDirPath(FORMATS_SUFFIX, config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> sourceUrlList = getJarFileDirPath(config.getReader().getName(), config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> sinkUrlList = getJarFileDirPath(config.getWriter().getName(), config.getPluginRoot(), config.getRemotePluginPath());
-
+        Set<URL> metricUrlList = getJarFileDirPath(
+                config.getMetricPluginConf().getPluginName(),
+                config.getPluginRoot() + SP + METRIC_SUFFIX,
+                config.getRemotePluginPath() + SP + METRIC_SUFFIX);
         urlSet.addAll(coreUrlList);
         urlSet.addAll(formatsUrlList);
         urlSet.addAll(sourceUrlList);
         urlSet.addAll(sinkUrlList);
+        urlSet.addAll(metricUrlList);
 
         int i = 0;
         for (URL url : urlSet) {

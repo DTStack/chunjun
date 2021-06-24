@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.conf.MetricParam;
+import com.dtstack.flinkx.metrics.CustomReporter;
+
+import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
@@ -54,6 +59,31 @@ public class DataSyncFactoryUtil {
                                 clazz.getConstructor(
                                         SyncConf.class, StreamExecutionEnvironment.class);
                         return (SourceFactory) constructor.newInstance(config, env);
+                    });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static CustomReporter discoverMetric(FlinkxCommonConf flinkxCommonConf,RuntimeContext context, boolean makeTaskFailedWhenReportFailed) {
+        try {
+            String pluginName;
+            if (flinkxCommonConf.getMetricPluginConf() == null) {
+                pluginName = "promtheus";
+            } else {
+                pluginName = flinkxCommonConf.getMetricPluginConf().getPluginName();
+            }
+            String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.metric);
+            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, flinkxCommonConf.getMetricPluginRoot(), null);
+            MetricParam metricParam = new MetricParam(context,makeTaskFailedWhenReportFailed,flinkxCommonConf.getMetricPluginConf());
+            return ClassLoaderManager.newInstance(
+                    urlList,
+                    cl -> {
+                        Class<?> clazz = cl.loadClass(pluginClassName);
+                        Constructor constructor =
+                                clazz.getConstructor(
+                                        MetricParam.class);
+                        return (CustomReporter) constructor.newInstance(metricParam);
                     });
         } catch (Exception e) {
             throw new RuntimeException(e);
