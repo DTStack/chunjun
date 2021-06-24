@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx;
+package com.dtstack.flinkx.converter;
 
 import com.dtstack.flinkx.converter.RawTypeConverter;
 
