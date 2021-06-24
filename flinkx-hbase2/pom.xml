@@ -14,6 +14,7 @@
     <modules>
         <module>flinkx-hbase-core2</module>
         <module>flinkx-hbase-reader2</module>
+        <module>flinkx-hbase-writer2</module>
     </modules>
 
     <dependencies>
