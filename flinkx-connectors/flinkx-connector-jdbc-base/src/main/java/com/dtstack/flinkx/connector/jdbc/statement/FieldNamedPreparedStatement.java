@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.jdbc.statement;
 
+import java.io.InputStream;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
@@ -248,6 +250,9 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
      */
     void setObject(int fieldIndex, Object x) throws SQLException;
 
+    void setBlob(int fieldIndex, InputStream is) throws SQLException;
+
+    void setClob(int fieldIndex, Reader reader) throws SQLException;
     /**
      * Releases this <code>Statement</code> object's database and JDBC resources immediately instead
      * of waiting for this to happen when it is automatically closed. It is generally good practice
@@ -257,4 +262,5 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
      * @see PreparedStatement#close()
      */
     void close() throws SQLException;
+
 }
