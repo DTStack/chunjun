@@ -106,7 +106,7 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
 
     @Override
     @SuppressWarnings("unchecked")
-    public RowData toInternal(RowData rowData) {
+    public RowData toInternal(RowData rowData) throws Exception {
         ColumnRowData data = new ColumnRowData(toInternalConverters.length);
         for (int i = 0; i < toInternalConverters.length; i++) {
             data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(data));

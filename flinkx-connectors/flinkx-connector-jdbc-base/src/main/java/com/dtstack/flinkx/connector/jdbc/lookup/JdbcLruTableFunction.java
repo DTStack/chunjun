@@ -368,7 +368,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
     @Override
     protected RowData fillData(
-            Object sideInput) {
+            Object sideInput) throws Exception {
         return rowConverter.toInternalLookup(sideInput);
     }
 
