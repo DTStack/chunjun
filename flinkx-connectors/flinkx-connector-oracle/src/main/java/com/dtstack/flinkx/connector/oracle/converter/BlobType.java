@@ -34,7 +34,7 @@ public class BlobType extends LogicalType {
 
     @Override
     public String asSerializableString() {
-        return "Clob-9953";
+        return "Oracle-Blob";
     }
 
     @Override
