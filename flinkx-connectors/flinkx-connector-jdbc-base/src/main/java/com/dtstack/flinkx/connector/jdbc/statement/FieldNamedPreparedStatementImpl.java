@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.connector.jdbc.statement;
 
-import java.io.InputStream;
-import java.io.Reader;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
@@ -181,26 +179,10 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
         }
     }
 
-
-    @Override
-    public void setBlob(int fieldIndex, InputStream is) throws SQLException {
-        for (int index : indexMapping[fieldIndex]) {
-            statement.setBlob(index, is);
-        }
-    }
-
-    @Override
-    public void setClob(int fieldIndex, Reader reader) throws SQLException {
-        for (int index : indexMapping[fieldIndex]) {
-            statement.setClob(index,reader);
-        }
-    }
-
     @Override
     public void close() throws SQLException {
         statement.close();
     }
-
 
     // ----------------------------------------------------------------------------------------
 
