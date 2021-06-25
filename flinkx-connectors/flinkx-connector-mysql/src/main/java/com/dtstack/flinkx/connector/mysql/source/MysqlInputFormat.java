@@ -37,6 +37,6 @@ public class MysqlInputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
         RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, MysqlRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
     }
 }

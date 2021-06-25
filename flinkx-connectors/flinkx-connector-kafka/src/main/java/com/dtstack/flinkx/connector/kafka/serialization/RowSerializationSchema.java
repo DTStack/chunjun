@@ -64,6 +64,7 @@ public class RowSerializationSchema extends DynamicKafkaSerializationSchema {
     @Override
     public ProducerRecord<byte[], byte[]> serialize(RowData element, @Nullable Long timestamp) {
         try {
+            dtNumRecordsOut.inc();
             return converter.toExternal(element, null);
         } catch (Exception e) {
             // todo kafka比较特殊，这里直接记录脏数据。

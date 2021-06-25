@@ -59,7 +59,7 @@ public class SqlserverRawTypeConverter {
                 return DataTypes.DOUBLE();
             case "DECIMAL":
             case "NUMERIC":
-                return DataTypes.DECIMAL(1, 0);
+                return DataTypes.DECIMAL(38, 18);
             case "CHAR":
             case "VARCHAR":
             case "VARCHAR(MAX)":

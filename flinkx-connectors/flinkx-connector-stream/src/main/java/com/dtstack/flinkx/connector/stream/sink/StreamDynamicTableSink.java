@@ -42,8 +42,8 @@ import java.util.stream.Collectors;
 
 public class StreamDynamicTableSink implements DynamicTableSink {
 
-    private StreamConf sinkConf;
-    private DataType type;
+    private final StreamConf sinkConf;
+    private final DataType type;
     private final TableSchema tableSchema;
 
     public StreamDynamicTableSink(StreamConf sinkConf, DataType type, TableSchema tableSchema) {
@@ -75,9 +75,9 @@ public class StreamDynamicTableSink implements DynamicTableSink {
 
         StreamOutputFormatBuilder builder =new StreamOutputFormatBuilder();
         builder.setStreamConf(sinkConf);
-        builder.setConverter(new StreamRowConverter(rowType));
+        builder.setRowConverter(new StreamRowConverter(rowType));
 
-        return  SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), sinkConf.getParallelism());
+        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), sinkConf.getParallelism());
     }
 
     @Override

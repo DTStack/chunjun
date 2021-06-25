@@ -40,7 +40,7 @@ import java.time.LocalTime;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.CLIENT_ID_READER;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.CLIENT_ID_READER;
 
 /**
  * @author chuixue

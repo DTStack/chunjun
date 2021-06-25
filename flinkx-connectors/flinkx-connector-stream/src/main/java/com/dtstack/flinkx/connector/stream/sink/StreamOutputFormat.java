@@ -93,16 +93,6 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         // do nothing
     }
 
-    @Override
-    protected void commit(long checkpointId) {
-
-    }
-
-    @Override
-    protected void rollback(long checkpointId) {
-
-    }
-
     public void setStreamConf(StreamConf streamConf) {
         this.streamConf = streamConf;
     }

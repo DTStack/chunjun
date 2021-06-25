@@ -61,21 +61,22 @@ import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.VERTX_
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.VERTX_WORKER_POOL_SIZE;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.getLibConfMap;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_ALLREPLACE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_MAX_RETRIES;
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_MAX_RETRIES;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_PARALLELISM;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_DEFAULT_FETCH_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_FETCH_SIZE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_INCREMENT_COLUMN;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_INCREMENT_COLUMN_TYPE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARALLELISM;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_PARTITION_COLUMN;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_POLLING_INTERVAL;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_QUERY_TIMEOUT;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_RESTORE_COLUMNNAME;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_RESTORE_COLUMNTYPE;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSourceOptions.SCAN_START_LOCATION;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_DEFAULT_FETCH_SIZE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_FETCH_SIZE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN_TYPE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARALLELISM;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_COLUMN;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_STRATEGY;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_POLLING_INTERVAL;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_QUERY_TIMEOUT;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNNAME;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNTYPE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_START_LOCATION;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
@@ -208,6 +209,7 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
 
         jdbcConf.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
+        jdbcConf.setSplitStrategy(readableConfig.get(SCAN_PARTITION_STRATEGY));
 
         jdbcConf.setIncreColumn(readableConfig.get(SCAN_INCREMENT_COLUMN));
         jdbcConf.setIncreColumnType(readableConfig.get(SCAN_INCREMENT_COLUMN_TYPE));
@@ -242,6 +244,7 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(SCHEMA);
 
         optionalOptions.add(SCAN_PARTITION_COLUMN);
+        optionalOptions.add(SCAN_PARTITION_STRATEGY);
         optionalOptions.add(SCAN_INCREMENT_COLUMN);
         optionalOptions.add(SCAN_INCREMENT_COLUMN_TYPE);
         optionalOptions.add(SCAN_POLLING_INTERVAL);

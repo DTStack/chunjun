@@ -44,7 +44,7 @@ public class SqlserverInputFormat extends JdbcInputFormat {
         RowType rowType =
                 TableUtil.createRowType(
                         columnNameList, columnTypeList, SqlserverRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
     }
 
 

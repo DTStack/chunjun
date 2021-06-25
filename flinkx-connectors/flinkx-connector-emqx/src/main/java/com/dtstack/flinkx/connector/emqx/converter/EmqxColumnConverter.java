@@ -23,8 +23,6 @@ import org.apache.flink.table.types.logical.LogicalType;
 
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.decoder.TextDecoder;
@@ -38,7 +36,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.DEFAULT_CODEC;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.DEFAULT_CODEC;
 
 /**
  * @author chuixue
@@ -73,17 +71,6 @@ public class EmqxColumnConverter
     }
 
     @Override
-    protected ISerializationConverter<MqttMessage> wrapIntoNullableExternalConverter(
-            ISerializationConverter ISerializationConverter, LogicalType type) {
-        return null;
-    }
-
-    @Override
-    public RowData toInternalLookup(Object input) {
-        return null;
-    }
-
-    @Override
     public MqttMessage toExternal(RowData rowData, MqttMessage output) throws Exception {
         Map<String, Object> map;
         int arity = rowData.getArity();
@@ -111,17 +98,7 @@ public class EmqxColumnConverter
             map = Collections.singletonMap("message", row.getString());
         }
 
-        MqttMessage message = new MqttMessage(MapUtil.writeValueAsString(map).getBytes());
-        return message;
-    }
-
-    @Override
-    protected IDeserializationConverter createInternalConverter(LogicalType type) {
-        return null;
-    }
-
-    @Override
-    protected ISerializationConverter createExternalConverter(LogicalType type) {
-        return null;
+        output.setPayload(MapUtil.writeValueAsString(map).getBytes());
+        return output;
     }
 }

@@ -25,6 +25,7 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -34,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -275,6 +277,42 @@ public interface JdbcDialect extends Serializable {
         return sql.toString();
     }
 
+    /** Get select fields and customFields statement by condition fields. Default use SELECT. */
+    default String getSelectFromStatement(
+            String schemaName,
+            String tableName,
+            String customSql,
+            String[] selectFields,
+            String[] selectCustomFields,
+            String where) {
+        String selectExpressions =
+                Arrays.stream(selectFields)
+                        .map(this::quoteIdentifier)
+                        .collect(Collectors.joining(", "));
+        if(Objects.nonNull(selectCustomFields) && selectCustomFields.length > 0 ){
+            selectExpressions = selectExpressions + ", " + String.join(", ", selectCustomFields);
+        }
+        StringBuilder sql = new StringBuilder(128);
+        sql.append("SELECT ");
+        if (StringUtils.isNotBlank(customSql)) {
+            sql.append("* FROM (")
+                    .append(customSql)
+                    .append(") ")
+                    .append(JdbcUtil.TEMPORARY_TABLE_NAME);
+        } else {
+            sql.append(selectExpressions)
+                    .append(" FROM ")
+                    .append(buildTableInfoWithSchema(schemaName, tableName));
+        }
+        sql.append(" WHERE ");
+        if (StringUtils.isNotBlank(where)) {
+            sql.append(where);
+        }else{
+            sql.append(" 1=1 ");
+        }
+        return sql.toString();
+    }
+
     /** build table-info with schema-info and table-name, like 'schema-info.table-name' */
     default String buildTableInfoWithSchema(String schema, String tableName) {
         if (StringUtils.isNotBlank(schema)) {
@@ -283,4 +321,53 @@ public interface JdbcDialect extends Serializable {
             return quoteIdentifier(tableName);
         }
     }
+
+    /**
+     * build row number field
+     */
+    default String getRowNumColumn(String orderBy){
+       throw new UnsupportedOperationException("Not support row_number function");
+    };
+
+    /**
+     * build split filter by range, like 'id >=0 and id < 100'
+     */
+    default String getSplitRangeFilter(JdbcInputSplit split, String splitPkName) {
+        StringBuilder sql = new StringBuilder(128);
+        if (StringUtils.isNotBlank(split.getStartLocationOfSplit())) {
+            StringBuilder filterSql = new StringBuilder(128)
+                    .append(quoteIdentifier(splitPkName))
+                    .append(" >= ")
+                    .append(split.getStartLocationOfSplit());
+            sql.append(filterSql);
+        }
+
+        if (StringUtils.isNotBlank(split.getEndLocationOfSplit())) {
+            StringBuilder filterSql = new StringBuilder(128)
+                    .append(quoteIdentifier(splitPkName))
+                    .append(" < ")
+                    .append(split.getEndLocationOfSplit());
+            if (sql.length() > 0) {
+                sql.append(" AND ").append(filterSql);
+            } else {
+                sql.append(filterSql);
+            }
+        }
+
+        return sql.toString();
+    }
+
+    /**
+     * build split filter by mod, like ' mod(id,2) = 1'
+     */
+    default String getSplitModFilter(JdbcInputSplit split, String splitPkName) {
+        StringBuilder sql = new StringBuilder(128);
+        sql.append(String.format(
+                " mod(%s, %s) = %s",
+                quoteIdentifier(splitPkName),
+                split.getTotalNumberOfSplits(),
+                split.getMod()));
+        return sql.toString();
+    }
+
 }
