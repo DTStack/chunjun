@@ -379,7 +379,9 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             default:
                 throw new UnsupportedOperationException("partitionEnum = " + hiveConf.getPartitionType() + " is undefined!");
         }
-        format.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+        TimeZone timeZone = TimeZone.getDefault();
+        LOG.info("timeZone = {}", timeZone);
+        format.setTimeZone(timeZone);
         return format;
     }
 
