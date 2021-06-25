@@ -147,11 +147,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 ColumnRowData result = new ColumnRowData(fieldConfList.size());
                 for (FieldConf fieldConf : fieldConfList) {
                     Object data = dataMap.get(fieldConf.getName());
-                    if(data != null){
-                        result.addField(HiveUtil.parseDataFromMap(data));
-                    }else{
-                        result.addField(new NullColumn());
-                    }
+                    result.addField(HiveUtil.parseDataFromMap(data));
                 }
                 forwardRowData = result;
             }else if (rowData instanceof ColumnRowData) {

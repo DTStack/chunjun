@@ -28,6 +28,7 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
@@ -253,7 +254,9 @@ public class HiveUtil {
     }
 
     public static AbstractBaseColumn parseDataFromMap(Object data){
-        if(data instanceof String){
+        if(data == null){
+            return new NullColumn();
+        }else if(data instanceof String){
             return new StringColumn((String) data);
         }else if (data instanceof Character){
             return new StringColumn(String.valueOf(data));

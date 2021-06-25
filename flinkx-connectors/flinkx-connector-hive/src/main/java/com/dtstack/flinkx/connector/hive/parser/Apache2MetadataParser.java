@@ -30,8 +30,6 @@ import java.util.Map;
  */
 public class Apache2MetadataParser extends AbstractHiveMetadataParser{
 
-    public Apache2MetadataParser() {}
-
     @Override
     public void fillTableInfo(TableInfo tableInfo, List<Map<String, Object>> result) {
         super.fillTableInfo(tableInfo, result);

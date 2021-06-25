@@ -37,8 +37,6 @@ public class AbstractHiveMetadataParser {
     private static final String ORC_FORMAT = "OrcOutputFormat";
     private static final String PARQUET_FORMAT = "MapredParquetOutputFormat";
 
-    public AbstractHiveMetadataParser() {}
-
     public void fillTableInfo(TableInfo tableInfo, List<Map<String, Object>> result){
         Iterator<Map<String, Object>> iter = result.iterator();
         String colName;
