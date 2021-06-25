@@ -51,14 +51,14 @@ import java.util.stream.Collectors;
 
 
 /**
- * @author chuixue
+ * @author shifang
  * @create 2021-06-07 15:51
  * @description
  */
 public class RestapiColumnConverter
         extends AbstractRowConverter<String, Object, Map<String,Object>, String> {
 
-    /** kafka Conf */
+    /** restapi Conf */
     private HttpRestConfig httpRestConfig;
 
     public RestapiColumnConverter(HttpRestConfig httpRestConfig) {

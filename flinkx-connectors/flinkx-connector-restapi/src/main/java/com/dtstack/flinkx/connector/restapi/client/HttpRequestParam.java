@@ -24,10 +24,6 @@ import com.dtstack.flinkx.util.MapUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.dtstack.flinkx.connector.restapi.common.ParamType.BODY;
-import static com.dtstack.flinkx.connector.restapi.common.ParamType.HEADER;
-import static com.dtstack.flinkx.connector.restapi.common.ParamType.PARAM;
-
 /**
  * HttpRequestParam 一次http请求的所有参数
  *

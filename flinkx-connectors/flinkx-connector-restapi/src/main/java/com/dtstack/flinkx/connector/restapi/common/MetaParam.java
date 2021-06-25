@@ -30,9 +30,11 @@ import java.util.Locale;
 /**
  * 原始header param body配置信息
  *
- * @author dujie
+ * @author shifang
  */
 public class MetaParam implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String key;
     private String value;

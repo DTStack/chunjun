@@ -33,7 +33,7 @@ import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
 
 /**
- * @author : tiezhu
+ * @author : shifang
  * @date : 2020/3/12
  */
 public class MyHttpRequestRetryHandler implements HttpRequestRetryHandler {

@@ -42,7 +42,7 @@ import java.util.Map;
 /**
  * Date: 2021/04/13 Company: www.dtstack.com
  *
- * @author tudou
+ * @author shifang
  */
 public class RestapiSinkFactory extends SinkFactory {
 

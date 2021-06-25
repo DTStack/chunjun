@@ -28,16 +28,16 @@ import java.io.Serializable;
 public class Strategy implements Serializable {
 
     /**
-     * 处理参数
+     * param
      */
     private String key;
     /**
-     * 处理场景
+     * scene
      */
     private String value;
 
     /**
-     * 处理方式
+     * way
      */
     private String handle;
 

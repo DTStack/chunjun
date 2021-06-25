@@ -18,16 +18,12 @@
 package com.dtstack.flinkx.connector.restapi.common;
 
 /**
- * @author : tiezhu
+ * @author : shifang
  * @date : 2020/3/19
  */
 public class RestapiKeys {
-    public static final String KEY_METHOD = "method";
     public static final String KEY_HEADER = "header";
     public static final String KEY_BODY = "body";
     public static final String KEY_PARAMS = "params";
-    public static final String KEY_COLUMN = "column";
-    public static final String KEY_URL = "url";
-    public static final String KEY_BATCH_INTERVAL = "batchInterval";
     public static final String KEY_BATCH = "batchId";
 }

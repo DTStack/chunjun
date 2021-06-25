@@ -35,16 +35,11 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * @author : tiezhu
+ * @author : shifang
  * @date : 2020/3/12
  */
 public class RestapiInputFormat extends BaseRichInputFormat {
 
-
-    /**
-     * 是否是实时任务
-     **/
-    protected boolean isStream;
 
     /**
      * 是否读取结束
@@ -77,7 +72,6 @@ public class RestapiInputFormat extends BaseRichInputFormat {
      * 读取的最新数据，checkpoint时保存
      */
     protected ResponseValue state;
-
 
     @Override
     public void openInputFormat() throws IOException {

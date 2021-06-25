@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * HttpRestConfig
  *
- * @author by dujie@dtstack.com
+ * @author by shifang@dtstack.com
  * @Date 2020/9/28
  */
 public class HttpRestConfig extends FlinkxCommonConf {
@@ -35,25 +35,24 @@ public class HttpRestConfig extends FlinkxCommonConf {
     private static final long serialVersionUID = 1L;
 
     /**
-     * http协议 https/http
+     *  https/http
      **/
     private String protocol = "https";
 
     /**
-     * http请求地址
+     * http address
      **/
     private String url;
 
     /**
-     * http请求方式 post/get
+     * post/get
      **/
     private String requestMode;
 
-    /** 请求参数是嵌套key的切割键 **/
     private String fieldDelimiter = com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
 
     /**
-     * 对返回值的处理 text/json
+     * response text/json
      **/
     private String decode = "text";
 

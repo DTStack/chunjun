@@ -26,15 +26,15 @@ import org.apache.flink.table.types.DataType;
 import java.util.Locale;
 
 /**
- * @author wuren
+ * @author shifang
  * @program flinkx
  * @create 2021/05/24
  */
 public class RestapiRawTypeConverter {
 
     /**
-     * 将MySQL数据库中的类型，转换成flink的DataType类型。 转换关系参考 com.mysql.jdbc.MysqlDefs 类里面的信息。
-     * com.mysql.jdbc.ResultSetImpl.getObject(int)
+     * 将restapi返回的参数根据定义的类型，转换成flink的DataType类型。
+     *
      */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {

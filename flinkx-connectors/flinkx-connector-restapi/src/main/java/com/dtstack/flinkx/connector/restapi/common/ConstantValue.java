@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * 常量
  *
- * @author dujie
+ * @author shifang
  */
 public class ConstantValue {
 

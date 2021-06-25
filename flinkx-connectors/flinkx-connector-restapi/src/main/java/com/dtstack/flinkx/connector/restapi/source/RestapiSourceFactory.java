@@ -48,7 +48,7 @@ import java.util.List;
 
 /**
  * @company: www.dtstack.com
- * @author: toutian
+ * @author: shifang
  * @create: 2019/7/4
  */
 public class RestapiSourceFactory extends SourceFactory {

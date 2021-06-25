@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 /**
  * Metaparam 工具类
  *
- * @author dujie@dtstack.com
+ * @author shifang@dtstack.com
  */
 public class MetaparamUtils {
     public static Pattern valueExpression =

@@ -46,7 +46,7 @@ import java.util.Set;
  * Date: 2021/04/27
  * Company: www.dtstack.com
  *
- * @author tudou
+ * @author shifang
  */
 public class RestapiDynamicTableFactory implements DynamicTableSourceFactory {
     public static final String IDENTIFIER = "restapi-x";

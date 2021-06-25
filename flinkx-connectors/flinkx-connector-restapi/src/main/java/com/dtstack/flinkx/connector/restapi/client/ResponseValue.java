@@ -21,7 +21,7 @@ package com.dtstack.flinkx.connector.restapi.client;
 /**
  * 返回值
  *
- * @author dujie@dtstack.com
+ * @author shifang@dtstack.com
  */
 public class ResponseValue {
 

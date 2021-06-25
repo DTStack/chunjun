@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.restapi.common;
 /**
  * ParamType
  *
- * @author by dujie@dtstack.com
+ * @author by shifang@dtstack.com
  */
 public enum  ParamType {
 

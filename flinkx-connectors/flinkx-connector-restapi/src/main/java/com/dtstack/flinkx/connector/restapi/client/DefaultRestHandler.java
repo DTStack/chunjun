@@ -55,7 +55,7 @@ public class DefaultRestHandler implements RestHandler {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRestHandler.class);
 
     /**
-     * 匹配表达式中的数字或运算符
+     * match number
      */
     public static Pattern p = Pattern.compile("(?<!\\d)-?\\d+(\\.\\d+)?|[+\\-]");
 
@@ -71,7 +71,7 @@ public class DefaultRestHandler implements RestHandler {
             List<MetaParam> metaParams) {
 
 
-        //将原始参数 转换为 HttpRequestParam
+        //origin param converter to  HttpRequestParam
         HttpRequestParam originParam = new HttpRequestParam();
         metaParams.forEach(i -> {
             originParam.putValue(i, restConfig.getFieldDelimiter(), i);

@@ -19,11 +19,11 @@
 package com.dtstack.flinkx.connector.restapi.common;
 
 /**
- * @author : tiezhu
+ * @author : shifang
  * @date : 2020/3/13
  */
 public enum  HttpMethod {
-    // http 请求方式
+    // http request method
     GET,
     POST,
     PUT,

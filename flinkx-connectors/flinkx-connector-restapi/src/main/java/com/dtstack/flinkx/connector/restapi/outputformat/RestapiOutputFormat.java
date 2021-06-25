@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.restapi.outputformat;
 import com.dtstack.flinkx.connector.restapi.common.HttpUtil;
 import com.dtstack.flinkx.connector.restapi.common.RestapiWriterConfig;
 import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.collect.Maps;
@@ -46,9 +45,8 @@ import static com.dtstack.flinkx.connector.restapi.common.RestapiKeys.KEY_BATCH;
 
 
 /**
- * @author : tiezhu
+ * @author : shifang
  * @date : 2020/3/12
- *         当前只考虑了元数据读取，和带有字段名column读取的情况，其他情况暂未考虑
  */
 public class RestapiOutputFormat extends BaseRichOutputFormat {
 
@@ -59,33 +57,33 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
     protected Gson gson;
 
     @Override
-    protected void preCommit() throws Exception {
+    protected void preCommit() {
 
     }
 
     @Override
-    protected void closeInternal() throws IOException {
+    protected void closeInternal() {
 
     }
 
     @Override
-    protected void rollback(long checkpointId) throws Exception {
+    protected void rollback(long checkpointId) {
 
     }
 
     @Override
-    protected void commit(long checkpointId) throws Exception {
+    protected void commit(long checkpointId) {
 
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+    protected void openInternal(int taskNumber, int numTasks) {
         restapiWriterConfig.getParams().put("threadId", UUID.randomUUID().toString().substring(0, 8));
         gson = new GsonBuilder().serializeNulls().create();
     }
 
     @Override
-    protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
+    protected void writeSingleRecordInternal(RowData row) {
         LOG.info("start write single record");
         CloseableHttpClient httpClient = HttpUtil.getHttpClient();
         int index = 0;
@@ -115,13 +113,12 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             LOG.error(ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
         } finally {
-            // 最后不管发送是否成功，都要关闭client
             HttpUtil.closeClient(httpClient);
         }
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
+    protected void writeMultipleRecordsInternal() {
         LOG.info("start write multiple records");
         try {
             CloseableHttpClient httpClient = HttpUtil.getHttpClient();
@@ -154,15 +151,15 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
     private void requestErrorMessage(Exception e, int index, RowData row) {
         if (index < row.getArity()) {
             recordConvertDetailErrorMessage(index, row);
-            LOG.error("添加脏数据:" + ((ColumnRowData) row).getField(index).getData(), e);
+            LOG.error("add dirty data:" + ((ColumnRowData) row).getField(index).getData(), e);
         }
     }
 
-    private Object getDataFromRow(RowData row, List<String> column) throws IOException {
+    private Object getDataFromRow(RowData row, List<String> column) {
         Map<String, Object> columnData = Maps.newHashMap();
         int index = 0;
         if (!column.isEmpty()) {
-            // 如果column不为空，那么将数据和字段名一一对应
+            // if column is not empty ,row one to one column
             for (; index < row.getArity(); index++) {
                 columnData.put(column.get(index), ((ColumnRowData) row).getField(index).getData());
             }
@@ -181,15 +178,14 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             String url) throws IOException {
         LOG.debug("send data:{}", gson.toJson(requestBody));
         HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
-        //设置请求和传输超时时间
+        //set request timeout
         RequestConfig requestConfig = RequestConfig.custom()
                 .setConnectTimeout(DEFAULT_TIME_OUT).setConnectionRequestTimeout(DEFAULT_TIME_OUT)
                 .setSocketTimeout(DEFAULT_TIME_OUT).build();
         request.setConfig(requestConfig);
         CloseableHttpResponse httpResponse = httpClient.execute(request);
-        // 重试之后返回状态码不为200
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            LOG.warn("重试之后当前请求状态码为" + httpResponse.getStatusLine().getStatusCode());
+            LOG.warn("request retry code is " + httpResponse.getStatusLine().getStatusCode());
         }
     }
 }

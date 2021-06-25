@@ -18,47 +18,32 @@
 
 package com.dtstack.flinkx.connector.restapi.convert;
 
+import org.apache.flink.table.data.DecimalData;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.StringData;
+import org.apache.flink.table.types.logical.DecimalType;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.restapi.client.DefaultRestHandler;
 import com.dtstack.flinkx.connector.restapi.common.HttpRestConfig;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
-
 import com.dtstack.flinkx.util.GsonUtil;
-
 import com.dtstack.flinkx.util.MapUtil;
-import com.google.gson.Gson;
-
 import com.google.gson.internal.LinkedTreeMap;
 
-import org.apache.flink.table.api.TableException;
-import org.apache.flink.table.data.DecimalData;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.StringData;
-import org.apache.flink.table.data.TimestampData;
-import org.apache.flink.table.types.logical.DecimalType;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.sql.Date;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
 import java.util.List;
 import java.util.Map;
 
-/** Base class for all converters that convert between JDBC object and Flink internal object. */
+/** Base class for all converters that convert between restapi body and Flink internal object. */
 public class RestapiRowConverter
         extends AbstractRowConverter<String, Object, Object, LogicalType> {
 
@@ -139,12 +124,12 @@ public class RestapiRowConverter
     }
 
     @Override
-    public RowData toInternalLookup(Object input) throws Exception {
+    public RowData toInternalLookup(Object input) {
         return null;
     }
 
     @Override
-    public Object toExternal(RowData rowData, Object output) throws Exception {
+    public Object toExternal(RowData rowData, Object output) {
         return null;
     }
 }

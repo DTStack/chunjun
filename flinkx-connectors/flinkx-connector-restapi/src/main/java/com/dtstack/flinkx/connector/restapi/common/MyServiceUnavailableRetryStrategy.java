@@ -22,7 +22,7 @@ import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * @author : tiezhu
+ * @author : shifang
  * @date : 2020/3/12
  * 自定义httpClient重试策略,默认重试次数为5,重试时间间隔为2s
  */

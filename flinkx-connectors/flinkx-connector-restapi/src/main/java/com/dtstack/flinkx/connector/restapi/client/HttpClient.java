@@ -19,11 +19,8 @@ package com.dtstack.flinkx.connector.restapi.client;
 
 import com.dtstack.flinkx.connector.restapi.common.ConstantValue;
 import com.dtstack.flinkx.connector.restapi.common.HttpRestConfig;
-
 import com.dtstack.flinkx.connector.restapi.common.HttpUtil;
 import com.dtstack.flinkx.connector.restapi.common.MetaParam;
-
-import org.apache.flink.types.Row;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -47,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * httpClient
  *
- * @author by dujie@dtstack.com
+ * @author by shifang@dtstack.com
  * @Date 2020/9/25
  */
 public class HttpClient {
@@ -65,28 +62,27 @@ public class HttpClient {
 
     private final RestHandler restHandler;
 
-    /** 内部重试次数(返回的httpStatus 不是 200 就进行重试) **/
     private int requestRetryTime;
 
-    /** 原始请求body */
+    /** origin body */
     private final List<MetaParam> originalBodyList;
 
-    /** 原始请求param */
+    /** origin param */
     private final List<MetaParam> originalParamList;
 
-    /** 原始请求header */
+    /** origin header */
     private final List<MetaParam> originalHeaderList;
 
     private final List<MetaParam> allMetaParam = new ArrayList<>(32);
 
-    /** 当前请求参数*/
+    /** current request param*/
     private HttpRequestParam currentParam;
 
-    /** 上次请求参数 */
+    /** last request param */
     private HttpRequestParam prevParam;
 
 
-    /** 上一次请求的返回值 */
+    /** last response body */
     private String prevResponse;
 
     private boolean reachEnd;

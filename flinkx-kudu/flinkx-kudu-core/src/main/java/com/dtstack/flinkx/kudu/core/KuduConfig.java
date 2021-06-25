@@ -32,6 +32,7 @@ public class KuduConfig implements Serializable {
      */
     private String masterAddresses;
 
+
     /**
      * 认证方式，如:Kerberos
      */

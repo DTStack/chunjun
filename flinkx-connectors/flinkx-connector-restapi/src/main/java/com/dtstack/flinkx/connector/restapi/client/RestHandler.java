@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * rest请求的执行
  *
- * @author dujie
+ * @author shifang
  */
 public interface RestHandler {
 
