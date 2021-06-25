@@ -201,10 +201,6 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
         statement.close();
     }
 
-    @Override
-    public PreparedStatement getPreparedStatement() {
-        return statement;
-    }
 
     // ----------------------------------------------------------------------------------------
 
