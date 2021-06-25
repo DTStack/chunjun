@@ -23,7 +23,11 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.Deseriali
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.MapperFeature;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.google.common.collect.Lists;
+
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Date: 2021/03/29
@@ -74,8 +78,10 @@ public class JsonUtil {
      */
     public static String toPrintJson(Object obj) {
         try {
+            Map<String, Object> result = objectMapper.readValue(objectMapper.writeValueAsString(obj), HashMap.class);
+            MapUtil.replaceAllElement(result, Lists.newArrayList("pwd", "password"), "******");
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
-        }catch (JsonProcessingException e){
+        }catch (Exception e){
             throw new RuntimeException("error parse [" + obj + "] to json", e);
         }
     }
