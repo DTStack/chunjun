@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.oracle.converter;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -32,13 +34,9 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import oracle.sql.TIMESTAMP;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Time;
@@ -78,26 +76,7 @@ public class OracleColumnConverter
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
             case VARCHAR:
-                return val -> {
-                    if (type instanceof ClobType) {
-                        oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
-                        try (BufferedReader bf = new BufferedReader(clob.getCharacterStream())){
-                            StringBuilder stringBuilder = new StringBuilder();
-                            String next, line = bf.readLine();
-                            for (boolean last = (line == null); !last; line = next) {
-                                last = ((next = bf.readLine()) == null);
-                                if (last) {
-                                    stringBuilder.append(line);
-                                } else {
-                                    stringBuilder.append(line).append("\n");
-                                }
-                            }
-                            return new StringColumn(stringBuilder.toString());
-                        }
-                    } else {
-                        return new StringColumn((String) val);
-                    }
-                };
+                return val -> new StringColumn((String) val);
             case DATE:
                 return val -> new TimestampColumn((Timestamp) val);
             case TIME_WITHOUT_TIME_ZONE:
@@ -107,18 +86,17 @@ public class OracleColumnConverter
                                         / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn(((TIMESTAMP) val).timestampValue());
-            case BINARY:
-            case VARBINARY:
                 return val -> {
-                    if (type instanceof BlobType) {
-                        oracle.sql.BLOB blob = (oracle.sql.BLOB) val;
-                        byte[] bytes = toByteArray(blob);
-                        return new BytesColumn(bytes);
-                    } else {
-                        return new BytesColumn((byte[]) val);
+                    try {
+                        return new TimestampColumn(((TIMESTAMP) val).timestampValue());
+                    } catch (SQLException e) {
+                        throw new UnsupportedOperationException(
+                                "Unsupported type:" + type + ",value:" + val);
                     }
                 };
+            case BINARY:
+            case VARBINARY:
+                return val -> new BytesColumn((byte[]) val);
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
@@ -155,16 +133,11 @@ public class OracleColumnConverter
                                 index, ((ColumnRowData) val).getField(index).asBigDecimal());
             case CHAR:
             case VARCHAR:
-                return (val, index, statement) -> {
-                    if(type instanceof ClobType){
-                        try (StringReader reader = new StringReader(((ColumnRowData) val).getField(index).asString())) {
-                            statement.setClob(index, reader);
-                        }
-                    }else {
+                return (val, index, statement) ->
                         statement.setString(
                                 index, ((ColumnRowData) val).getField(index).asString());
-                    }
-                };
+
+
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTime(
@@ -182,39 +155,10 @@ public class OracleColumnConverter
 
             case BINARY:
             case VARBINARY:
-                return (val, index, statement) -> {
-                    if(type instanceof BlobType){
-                        try(InputStream is = new ByteArrayInputStream(val.getBinary(index))) {
-                            statement.setBlob(index, is);
-                        }
-                    }else {
-                        statement.setBytes(index, val.getBinary(index));
-                    }
-                };
+                return (val, index, statement) ->
+                        statement.setBytes(index, ((ColumnRowData) val).getField(index).asBytes());
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
     }
-
-    private byte[] toByteArray(oracle.sql.BLOB fromBlob) throws SQLException, IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        InputStream is = fromBlob.getBinaryStream();
-        try {
-            byte[] buf = new byte[4000];
-            for (; ; ) {
-                int dataSize = is.read(buf);
-                if (dataSize == -1) {
-                    break;
-                }
-                baos.write(buf, 0, dataSize);
-            }
-            return baos.toByteArray();
-        } finally {
-            baos.close();
-            if (is != null) {
-                is.close();
-            }
-        }
-    }
-
 }
