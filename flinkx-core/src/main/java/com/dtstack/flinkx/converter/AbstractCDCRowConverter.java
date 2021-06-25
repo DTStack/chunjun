@@ -95,7 +95,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * @return
      * @throws Exception
      */
-    public abstract LinkedList<RowData> toInternal(SourceT input);
+    public abstract LinkedList<RowData> toInternal(SourceT input) throws Exception;
 
     /**
      * 将外部数据库类型转换为flink内部类型
@@ -131,7 +131,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      * @return
      */
     @SuppressWarnings("unchecked")
-    protected RowData createRowDataByConverters(List<String> fieldNameList, IDeserializationConverter[] converters, Map<Object, Object> valueMap){
+    protected RowData createRowDataByConverters(List<String> fieldNameList, IDeserializationConverter[] converters, Map<Object, Object> valueMap) throws Exception {
         GenericRowData genericRowData = new GenericRowData(fieldNameList.size());
         for (int i = 0; i <fieldNameList.size(); i++) {
             String fieldName = fieldNameList.get(i);

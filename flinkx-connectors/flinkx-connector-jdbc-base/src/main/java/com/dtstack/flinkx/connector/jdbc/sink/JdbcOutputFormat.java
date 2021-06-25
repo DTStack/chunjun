@@ -173,7 +173,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected String recordConvertDetailErrorMessage(int pos, RowData row) {
+    protected String recordConvertDetailErrorMessage(int pos, Object row) {
         return "\nJdbcOutputFormat [" + jobName + "] writeRecord error: when converting field["+ pos + "] in Row(" + row + ")";
     }
 
