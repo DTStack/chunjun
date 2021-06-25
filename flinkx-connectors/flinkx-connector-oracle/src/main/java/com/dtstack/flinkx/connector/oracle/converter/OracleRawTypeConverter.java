@@ -45,7 +45,6 @@ public class OracleRawTypeConverter {
 
     /**
      * 将Oracle数据库中的类型，转换成flink的DataType类型。
-     * BLOB、CLOB、LONG 在 mode 为 update 的情况下均不支持
      *
      * @param type
      *

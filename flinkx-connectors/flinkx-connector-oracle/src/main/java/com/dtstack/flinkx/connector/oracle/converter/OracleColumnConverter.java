@@ -32,8 +32,6 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import oracle.sql.TIMESTAMP;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -55,9 +53,6 @@ import java.time.LocalTime;
  */
 public class OracleColumnConverter
         extends JdbcColumnConverter {
-
-
-    protected final Logger LOG = LoggerFactory.getLogger(OracleColumnConverter.class);
 
     public OracleColumnConverter(RowType rowType) {
         super(rowType);
