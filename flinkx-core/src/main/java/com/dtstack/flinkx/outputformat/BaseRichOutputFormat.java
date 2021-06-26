@@ -492,7 +492,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param rowData 当前读取的数据
      * @return 脏数据异常信息记录
      */
-    protected String recordConvertDetailErrorMessage(int pos, RowData rowData) {
+    protected String recordConvertDetailErrorMessage(int pos, Object rowData) {
         return String.format("%s WriteRecord error: when converting field[%s] in Row(%s)", getClass().getName(), pos, rowData);
     }
 

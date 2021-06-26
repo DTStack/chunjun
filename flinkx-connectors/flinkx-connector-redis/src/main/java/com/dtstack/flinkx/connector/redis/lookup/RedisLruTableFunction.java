@@ -114,7 +114,7 @@ public class RedisLruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    protected RowData fillData(Object sideInput) {
+    protected RowData fillData(Object sideInput) throws Exception {
         return rowConverter.toInternalLookup(sideInput);
     }
 

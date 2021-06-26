@@ -84,7 +84,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      */
     public abstract RowData toInternal(SourceT input) throws Exception;
 
-    public RowData toInternalLookup(LookupT input) {
+    public RowData toInternalLookup(LookupT input) throws Exception {
         throw new RuntimeException("Subclass need rewriting");
     }
 

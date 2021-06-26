@@ -79,7 +79,7 @@ public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, R
     }
 
     @Override
-    public RowData toInternal(RowData input) {
+    public RowData toInternal(RowData input) throws Exception {
         GenericRowData row = new GenericRowData(input.getArity());
         for (int i = 0; i < input.getArity(); i++) {
             row.setField(i, toInternalConverters[i].deserialize(input));

@@ -92,7 +92,7 @@ public class KafkaColumnConverter
     }
 
     @Override
-    public RowData toInternal(String input) {
+    public RowData toInternal(String input) throws Exception {
         Map<String, Object> result = decode.decode(input);
         ColumnRowData row;
         if (toInternalConverters == null || toInternalConverters.length == 0) {
