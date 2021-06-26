@@ -18,24 +18,26 @@
 
 package com.dtstack.flinkx.connector.kafka.source;
 
-import com.dtstack.flinkx.converter.RawTypeConverter;
-
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.kafka.adapter.StartupModeAdapter;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
+import com.dtstack.flinkx.connector.kafka.converter.KafkaColumnConverter;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
 import com.dtstack.flinkx.connector.kafka.serialization.RowDeserializationSchema;
 import com.dtstack.flinkx.connector.kafka.util.KafkaUtil;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.kafka.common.requests.IsolationLevel;
 
+import java.io.Serializable;
 import java.util.Properties;
 
 /**
@@ -46,6 +48,7 @@ import java.util.Properties;
  */
 public class KafkaSourceFactory extends SourceFactory {
 
+    /** kafka conf */
     protected KafkaConf kafkaConf;
 
     public KafkaSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
@@ -53,18 +56,26 @@ public class KafkaSourceFactory extends SourceFactory {
         Gson gson = new GsonBuilder().registerTypeAdapter(StartupMode.class, new StartupModeAdapter()).create();
         GsonUtil.setTypeAdapter(gson);
         kafkaConf = gson.fromJson(gson.toJson(config.getReader().getParameter()), KafkaConf.class);
+        super.initFlinkxCommonConf(kafkaConf);
     }
 
     @Override
     public DataStream<RowData> createSource() {
+        if (!useAbstractBaseColumn) {
+            throw new UnsupportedOperationException("kafka not support transform");
+        }
         Properties props = new Properties();
         props.put("group.id", kafkaConf.getGroupId());
         props.putAll(kafkaConf.getConsumerSettings());
-        FlinkKafkaConsumer<RowData> consumer = new FlinkKafkaConsumer<>(
-                kafkaConf.getTopic(),
-                new RowDeserializationSchema(kafkaConf.getCodec(), typeInformation),
+        KafkaConsumer consumer = new KafkaConsumer(
+                Lists.newArrayList(kafkaConf.getTopic()),
+                new RowDeserializationSchema(
+                        new KafkaColumnConverter(kafkaConf),
+                        (Calculate & Serializable) (subscriptionState, tp) ->
+                                subscriptionState.partitionLag(
+                                        tp, IsolationLevel.READ_UNCOMMITTED)),
                 props);
-        switch (kafkaConf.getMode()){
+        switch (kafkaConf.getMode()) {
             case EARLIEST:
                 consumer.setStartFromEarliest();
                 break;
@@ -75,7 +86,9 @@ public class KafkaSourceFactory extends SourceFactory {
                 consumer.setStartFromTimestamp(kafkaConf.getTimestamp());
                 break;
             case SPECIFIC_OFFSETS:
-                consumer.setStartFromSpecificOffsets(KafkaUtil.parseSpecificOffsetsString(kafkaConf.getTopic(), kafkaConf.getOffset()));
+                consumer.setStartFromSpecificOffsets(KafkaUtil.parseSpecificOffsetsString(
+                        kafkaConf.getTopic(),
+                        kafkaConf.getOffset()));
             default:
                 consumer.setStartFromGroupOffsets();
                 break;
@@ -86,6 +99,6 @@ public class KafkaSourceFactory extends SourceFactory {
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        throw new UnsupportedOperationException("Kafka" + NO_SUPPORT_MSG);
+        return null;
     }
 }

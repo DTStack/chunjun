@@ -17,16 +17,20 @@
  */
 package com.dtstack.flinkx.connector.kafka.sink;
 
-import com.dtstack.flinkx.converter.RawTypeConverter;
-
+import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.kafka.adapter.StartupModeAdapter;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
+import com.dtstack.flinkx.connector.kafka.converter.KafkaColumnConverter;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
+import com.dtstack.flinkx.connector.kafka.serialization.RowSerializationSchema;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.gson.Gson;
@@ -48,19 +52,48 @@ public class KafkaSinkFactory extends SinkFactory {
         Gson gson = new GsonBuilder().registerTypeAdapter(StartupMode.class, new StartupModeAdapter()).create();
         GsonUtil.setTypeAdapter(gson);
         kafkaConf = gson.fromJson(gson.toJson(config.getWriter().getParameter()), KafkaConf.class);
+        super.initFlinkxCommonConf(kafkaConf);
+    }
+
+    @Override
+    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat outputFormat) {
+        return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
+    }
+
+    @Override
+    protected DataStreamSink<RowData> createOutput(
+            DataStream<RowData> dataSet,
+            OutputFormat outputFormat,
+            String sinkName) {
+        Preconditions.checkNotNull(dataSet);
+        Preconditions.checkNotNull(sinkName);
+
+        Properties props = new Properties();
+        props.putAll(kafkaConf.getProducerSettings());
+
+        KafkaProducer kafkaProducer = new KafkaProducer(
+                kafkaConf.getTopic(),
+                new RowSerializationSchema(kafkaConf.getTopic(), new KafkaColumnConverter(kafkaConf)),
+                props,
+                FlinkKafkaProducer.Semantic.AT_LEAST_ONCE,
+                FlinkKafkaProducer.DEFAULT_KAFKA_PRODUCERS_POOL_SIZE);
+
+        DataStreamSink<RowData> dataStreamSink = dataSet.addSink(kafkaProducer);
+        dataStreamSink.name(sinkName);
+
+        return dataStreamSink;
     }
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
-        Properties props = new Properties();
-        props.putAll(kafkaConf.getProducerSettings());
-//        FlinkKafkaProducer kafkaProducer = new FlinkKafkaProducer(kafkaConf.getTopic(), serializationMetricWrapper, props, Optional.of(new CustomerFlinkPartition<>()), KafkaUtil.getPartitionKeys(kafkaConf.getPartitionKeys()));
-
-        return null;
+        if (!useAbstractBaseColumn) {
+            throw new UnsupportedOperationException("kafka not support transform");
+        }
+        return createOutput(dataSet, null);
     }
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        throw new UnsupportedOperationException("Kafka" + NO_SUPPORT_MSG);
+        return null;
     }
 }

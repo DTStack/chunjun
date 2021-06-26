@@ -154,4 +154,9 @@ public class GBaseDialect implements JdbcDialect {
         }
         return GBASE_QUOTATION_MASK + identifier + GBASE_QUOTATION_MASK;
     }
+
+    @Override
+    public String getRowNumColumn(String orderBy) {
+        return "ROWID as FLINKX_ROWNUM";
+    }
 }

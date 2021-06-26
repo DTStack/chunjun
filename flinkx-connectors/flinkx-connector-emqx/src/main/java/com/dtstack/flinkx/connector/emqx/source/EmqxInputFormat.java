@@ -18,14 +18,14 @@
 
 package com.dtstack.flinkx.connector.emqx.source;
 
-import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
-import com.dtstack.flinkx.connector.emqx.util.MqttConnectUtil;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
+import com.dtstack.flinkx.connector.emqx.util.MqttConnectUtil;
+import com.dtstack.flinkx.exception.ReadRecordException;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -40,7 +40,7 @@ import java.time.LocalTime;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.CLIENT_ID_READER;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.CLIENT_ID_READER;
 
 /**
  * @author chuixue
@@ -131,12 +131,11 @@ public class EmqxInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected RowData nextRecordInternal(RowData rowData) throws IOException {
+    protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         try {
             rowData = rowConverter.toInternal(queue.take());
         } catch (Exception e) {
-            // todo 这里应该是WriteRecordException异常，统一抛到父类脏数据处理,此处父类异常需要修改
-            throw new IOException(e);
+            throw new ReadRecordException("", e, 0, rowData);
         }
         return rowData;
     }

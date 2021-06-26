@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.emqx.sink;
 
+import com.dtstack.flinkx.exception.WriteRecordException;
+
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
@@ -29,7 +31,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.time.LocalTime;
 
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.CLIENT_ID_WRITER;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.CLIENT_ID_WRITER;
 
 /**
  * @author chuixue
@@ -52,16 +54,15 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeSingleRecordInternal(RowData rowData) {
+    protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
-            MqttMessage message = (MqttMessage) rowConverter.toExternal(rowData, null);
+            MqttMessage message = (MqttMessage) rowConverter.toExternal(rowData, new MqttMessage());
             message.setQos(emqxConf.getQos());
             client.publish(emqxConf.getTopic(), message);
         } catch (MqttException e) {
             throw new RuntimeException(e);
         } catch (Exception e) {
-            // todo 这里需要往上抛，并且这里要将两个异常分开
-            LOG.error(e.getMessage());
+            throw new WriteRecordException("", e, 0, rowData);
         }
     }
 
@@ -74,15 +75,6 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
     protected void closeInternal() {
         MqttConnectUtil.close(client);
     }
-
-    @Override
-    protected void preCommit() {}
-
-    @Override
-    protected void commit(long checkpointId) {}
-
-    @Override
-    protected void rollback(long checkpointId) {}
 
     public EmqxConf getEmqxConf() {
         return emqxConf;

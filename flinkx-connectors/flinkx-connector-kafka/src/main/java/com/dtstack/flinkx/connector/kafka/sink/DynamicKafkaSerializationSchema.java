@@ -34,14 +34,18 @@ import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.metrics.MetricConstant;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
 import java.io.Serializable;
 
 /** A specific {@link KafkaSerializationSchema} for {@link org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicSink}. */
-class DynamicKafkaSerializationSchema
+public class DynamicKafkaSerializationSchema
         implements KafkaSerializationSchema<RowData>, KafkaContextAware<RowData> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DynamicKafkaSerializationSchema.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -78,7 +82,7 @@ class DynamicKafkaSerializationSchema
 
     private transient RuntimeContext runtimeContext;
 
-    DynamicKafkaSerializationSchema(
+    public DynamicKafkaSerializationSchema(
             String topic,
             @Nullable FlinkKafkaPartitioner<RowData> partitioner,
             @Nullable SerializationSchema<RowData> keySerialization,
@@ -125,50 +129,56 @@ class DynamicKafkaSerializationSchema
 
     @Override
     public ProducerRecord<byte[], byte[]> serialize(RowData consumedRow, @Nullable Long timestamp) {
-        // shortcut in case no input projection is required
-        if (keySerialization == null && !hasMetadata) {
-            final byte[] valueSerialized = valueSerialization.serialize(consumedRow);
-            dtNumRecordsOut.inc();
-            return new ProducerRecord<>(
-                    topic,
-                    extractPartition(consumedRow, null, valueSerialized),
-                    null,
-                    valueSerialized);
-        }
+        try{
+            // shortcut in case no input projection is required
+            if (keySerialization == null && !hasMetadata) {
+                final byte[] valueSerialized = valueSerialization.serialize(consumedRow);
+                dtNumRecordsOut.inc();
+                return new ProducerRecord<>(
+                        topic,
+                        extractPartition(consumedRow, null, valueSerialized),
+                        null,
+                        valueSerialized);
+            }
 
-        final byte[] keySerialized;
-        if (keySerialization == null) {
-            keySerialized = null;
-        } else {
-            final RowData keyRow = createProjectedRow(consumedRow, RowKind.INSERT, keyFieldGetters);
-            keySerialized = keySerialization.serialize(keyRow);
-        }
-
-        final byte[] valueSerialized;
-        final RowKind kind = consumedRow.getRowKind();
-        final RowData valueRow = createProjectedRow(consumedRow, kind, valueFieldGetters);
-        if (upsertMode) {
-            if (kind == RowKind.DELETE || kind == RowKind.UPDATE_BEFORE) {
-                // transform the message as the tombstone message
-                valueSerialized = null;
+            final byte[] keySerialized;
+            if (keySerialization == null) {
+                keySerialized = null;
             } else {
-                // make the message to be INSERT to be compliant with the INSERT-ONLY format
-                valueRow.setRowKind(RowKind.INSERT);
+                final RowData keyRow = createProjectedRow(consumedRow, RowKind.INSERT, keyFieldGetters);
+                keySerialized = keySerialization.serialize(keyRow);
+            }
+
+            final byte[] valueSerialized;
+            final RowKind kind = consumedRow.getRowKind();
+            final RowData valueRow = createProjectedRow(consumedRow, kind, valueFieldGetters);
+            if (upsertMode) {
+                if (kind == RowKind.DELETE || kind == RowKind.UPDATE_BEFORE) {
+                    // transform the message as the tombstone message
+                    valueSerialized = null;
+                } else {
+                    // make the message to be INSERT to be compliant with the INSERT-ONLY format
+                    valueRow.setRowKind(RowKind.INSERT);
+                    valueSerialized = valueSerialization.serialize(valueRow);
+                }
+            } else {
                 valueSerialized = valueSerialization.serialize(valueRow);
             }
-        } else {
-            valueSerialized = valueSerialization.serialize(valueRow);
+
+            dtNumRecordsOut.inc();
+
+            return new ProducerRecord<>(
+                    topic,
+                    extractPartition(consumedRow, keySerialized, valueSerialized),
+                    readMetadata(consumedRow, KafkaDynamicSink.WritableMetadata.TIMESTAMP),
+                    keySerialized,
+                    valueSerialized,
+                    readMetadata(consumedRow, KafkaDynamicSink.WritableMetadata.HEADERS));
+        } catch (Exception e){
+            // todo 需要脏数据记录
+            LOG.error(e.getMessage());
         }
-
-        dtNumRecordsOut.inc();
-
-        return new ProducerRecord<>(
-                topic,
-                extractPartition(consumedRow, keySerialized, valueSerialized),
-                readMetadata(consumedRow, KafkaDynamicSink.WritableMetadata.TIMESTAMP),
-                keySerialized,
-                valueSerialized,
-                readMetadata(consumedRow, KafkaDynamicSink.WritableMetadata.HEADERS));
+        return null;
     }
 
     @Override

@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.clickhouse;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -61,5 +62,17 @@ public class ClickhouseDialect implements JdbcDialect {
     @Override
     public String getDeleteStatement(String schema, String tableName, String[] conditionFields) {
         throw new RuntimeException("Clickhouse does not support delete sql");
+    }
+
+    @Override
+    public String getSplitModFilter(JdbcInputSplit split, String splitPkName) {
+        StringBuilder sql = new StringBuilder(128);
+        sql.append(String.format(
+                " modulo(%s,%s) = %s",
+                quoteIdentifier(splitPkName),
+                split.getTotalNumberOfSplits(),
+                split.getMod()));
+
+        return sql.toString();
     }
 }

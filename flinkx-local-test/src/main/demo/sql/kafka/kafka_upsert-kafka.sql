@@ -52,7 +52,7 @@ CREATE TABLE result_total_pvuv_min
 ) WITH (
       -- 'connector' = 'stream-x'
 
-      'connector' = 'upsert-kafka'
+      'connector' = 'upsert-kafka-x'
 
       ,'topic' = 'test'
       ,'properties.bootstrap.servers' = 'localhost:9092'

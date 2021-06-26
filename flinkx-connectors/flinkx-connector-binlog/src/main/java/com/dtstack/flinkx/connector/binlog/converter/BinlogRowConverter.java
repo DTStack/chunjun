@@ -66,7 +66,7 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
     }
 
     @Override
-    public LinkedList<RowData> toInternal(BinlogEventRow binlogEventRow){
+    public LinkedList<RowData> toInternal(BinlogEventRow binlogEventRow) throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
         CanalEntry.RowChange rowChange = binlogEventRow.getRowChange();
         String eventType = rowChange.getEventType().toString();

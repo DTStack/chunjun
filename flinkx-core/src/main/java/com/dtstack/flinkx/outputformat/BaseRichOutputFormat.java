@@ -39,7 +39,6 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
@@ -200,7 +199,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
         if(vars != null){
             jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");
-            jobId = vars.get(Metrics.JOB_NAME);
+            jobId = vars.get(Metrics.JOB_ID);
         }
 
         initStatisticsAccumulator();
@@ -401,7 +400,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                             numWriteCounter.add(size);
                         }
                     } catch (Exception e) {
-                        throw new FlinkxRuntimeException("Writing records failed.", e);
+                        LOG.error("Writing records failed. {}", e.getMessage());
                     }
                 }
             }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
@@ -420,6 +419,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         try {
             writeSingleRecordInternal(rowData);
         } catch (WriteRecordException e) {
+            // todo 脏数据记录
             updateDirtyDataMsg(rowData, e);
             if (LOG.isTraceEnabled()) {
                 LOG.trace("write error rowData, rowData = {}, e = {}", rowData.toString(), ExceptionUtil.getErrorMessage(e));
@@ -437,8 +437,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             } catch (Exception e) {
                 //批量写异常转为单条写
                 rows.forEach(this::writeSingleRecord);
+            } finally {
+                // Data is either recorded dirty data or written normally
+                rows.clear();
             }
-            rows.clear();
         }
     }
 
@@ -490,7 +492,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param rowData 当前读取的数据
      * @return 脏数据异常信息记录
      */
-    protected String recordConvertDetailErrorMessage(int pos, RowData rowData) {
+    protected String recordConvertDetailErrorMessage(int pos, Object rowData) {
         return String.format("%s WriteRecord error: when converting field[%s] in Row(%s)", getClass().getName(), pos, rowData);
     }
 
@@ -509,9 +511,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @return
      */
     public synchronized FormatState getFormatState() throws Exception {
-        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
-        formatState.setMetric(outputMetric.getMetricCounters());
-        LOG.info("format state:{}", formatState.getState());
         // not EXACTLY_ONCE model,Does not interact with the db
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
             try {
@@ -523,6 +522,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 flushEnable.compareAndSet(true, false);
             }
         }
+        //set metric after preCommit
+        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setMetric(outputMetric.getMetricCounters());
+        LOG.info("format state:{}", formatState.getState());
         return formatState;
     }
 
@@ -530,7 +533,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * pre commit data
      * @throws Exception
      */
-    protected abstract void preCommit() throws Exception;
+    protected void preCommit() throws Exception{}
 
     /**
      * 写出单条数据
@@ -588,7 +591,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected abstract void commit(long checkpointId) throws Exception;
+    protected void commit(long checkpointId) throws Exception{}
 
     /**
      * checkpoint失败时操作
@@ -613,7 +616,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected abstract void rollback(long checkpointId) throws Exception;
+    protected void rollback(long checkpointId) throws Exception{}
 
 
     public void setRestoreState(FormatState formatState) {

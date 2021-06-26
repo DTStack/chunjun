@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -153,16 +154,19 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         throw new IllegalStateException("A collector is required for deserializing.");
     }
 
+    protected void beforeDeserialize(ConsumerRecord<byte[], byte[]> record) throws UnsupportedEncodingException {
+        if (numInRecord.getCount() % dataPrintFrequency == 0) {
+            LOG.info("receive source data:" + new String(record.value(), "UTF-8"));
+        }
+        numInRecord.inc();
+        numInBytes.inc(record.value().length);
+    }
+
     @Override
     public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector)
             throws Exception {
         try {
-            if (numInRecord.getCount() % dataPrintFrequency == 0) {
-                LOG.info("receive source data:" + new String(record.value(), "UTF-8"));
-            }
-            numInRecord.inc();
-            numInBytes.inc(record.value().length);
-
+            beforeDeserialize(record);
             // shortcut in case no output projection is required,
             // also not for a cartesian product with the keys
             if (keyDeserialization == null && !hasMetadata) {
@@ -189,13 +193,18 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             }
             keyCollector.buffer.clear();
         } catch (Exception e) {
-            //add metric of dirty data
-            if (dirtyDataCounter.getCount() % dataPrintFrequency == 0) {
-                LOG.info("dirtyData: " + new String(record.value(), "UTF-8"));
-                LOG.error("data parse error", e);
-            }
-            dirtyDataCounter.inc();
+            // todo 需要脏数据记录
+            dirtyDataCounter(record, e);
         }
+    }
+
+    protected void dirtyDataCounter(ConsumerRecord<byte[], byte[]> record, Exception e) throws UnsupportedEncodingException {
+        // add metric of dirty data
+        if (dirtyDataCounter.getCount() % dataPrintFrequency == 0) {
+            LOG.info("dirtyData: " + new String(record.value(), "UTF-8"));
+            LOG.error("data parse error", e);
+        }
+        dirtyDataCounter.inc();
     }
 
     @Override

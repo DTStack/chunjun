@@ -55,7 +55,7 @@ public class MysqlBinlogRawTypeConverter {
                 return DataTypes.FLOAT();
             case "DECIMAL":
             case "NUMERIC":
-                return DataTypes.DECIMAL(1, 0);
+                return DataTypes.DECIMAL(38, 18);
             case "DOUBLE":
                 return DataTypes.DOUBLE();
             case "CHAR":

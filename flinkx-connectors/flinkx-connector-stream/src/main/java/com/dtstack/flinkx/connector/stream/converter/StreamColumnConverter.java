@@ -31,7 +31,6 @@ import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
@@ -78,6 +77,7 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
             case "CHARACTER":
                 return val -> new StringColumn(JMockData.mock(char.class).toString());
             case "SHORT":
+            case "SMALLINT":
                 return val -> new BigDecimalColumn(JMockData.mock(short.class));
             case "LONG":
             case "BIGINT":
@@ -89,12 +89,11 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
             case "DECIMAL":
                 return val -> new BigDecimalColumn(JMockData.mock(BigDecimal.class));
             case "DATE":
-                return val -> new BigDecimalColumn(LocalDate.now().toEpochDay());
-            case "TIME":
-                return val -> new BigDecimalColumn((LocalTime.now().toNanoOfDay() / 1_000_000L));
             case "DATETIME":
             case "TIMESTAMP":
                 return val -> new TimestampColumn(System.currentTimeMillis());
+            case "TIME":
+                return val -> new TimestampColumn((LocalTime.now().toNanoOfDay() / 1_000_000L));
             default:
                 return val -> new StringColumn(JMockData.mock(String.class));
         }
@@ -107,17 +106,12 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
 
     @Override
     @SuppressWarnings("unchecked")
-    public RowData toInternal(RowData rowData) {
+    public RowData toInternal(RowData rowData) throws Exception {
         ColumnRowData data = new ColumnRowData(toInternalConverters.length);
         for (int i = 0; i < toInternalConverters.length; i++) {
             data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(data));
         }
         return data;
-    }
-
-    @Override
-    public RowData toInternalLookup(RowData input) {
-        return null;
     }
 
     @Override

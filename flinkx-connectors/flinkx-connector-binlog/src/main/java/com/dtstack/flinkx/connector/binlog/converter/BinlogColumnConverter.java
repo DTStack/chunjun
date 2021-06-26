@@ -59,7 +59,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
 
     @Override
     @SuppressWarnings("unchecked")
-    public LinkedList<RowData> toInternal(BinlogEventRow binlogEventRow){
+    public LinkedList<RowData> toInternal(BinlogEventRow binlogEventRow) throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
         CanalEntry.RowChange rowChange = binlogEventRow.getRowChange();
         String eventType = rowChange.getEventType().toString();
@@ -160,7 +160,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             List<CanalEntry.Column> entryColumnList,
             List<AbstractBaseColumn> columnList,
             List<String> headerList,
-            String after) {
+            String after) throws Exception {
         for (int i = 0; i < entryColumnList.size(); i++) {
             CanalEntry.Column entryColumn = entryColumnList.get(i);
             if (!entryColumn.getIsNull()) {

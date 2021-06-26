@@ -26,11 +26,11 @@ import static com.dtstack.flinkx.util.DtStringUtil.addLineNumber;
  * @description sql解析异常
  */
 public class DtSqlParserException extends RuntimeException {
-    public DtSqlParserException(String sql, String message) {
+    public DtSqlParserException(String sql, String message, Throwable e) {
         super(
                 "\n----------sql start---------\n"
                         + addLineNumber(sql)
                         + "\n----------sql end--------- \n\n"
-                        + message);
+                        + message, e);
     }
 }

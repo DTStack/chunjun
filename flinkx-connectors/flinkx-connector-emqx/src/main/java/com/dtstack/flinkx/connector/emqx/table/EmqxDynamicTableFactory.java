@@ -19,10 +19,13 @@
 package com.dtstack.flinkx.connector.emqx.table;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.DecodingFormat;
+import org.apache.flink.table.connector.format.EncodingFormat;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.data.RowData;
@@ -30,22 +33,26 @@ import org.apache.flink.table.factories.DeserializationFormatFactory;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
+import org.apache.flink.table.factories.SerializationFormatFactory;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.utils.TableSchemaUtils;
+import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.connector.emqx.sink.EmqxDynamicTableSink;
 import com.dtstack.flinkx.connector.emqx.source.EmqxDynamicTableSource;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.BROKER;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.FORMAT;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.ISCLEANSESSION;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.PASSWORD;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.QOS;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.TOPIC;
-import static com.dtstack.flinkx.connector.emqx.option.EmqxOptions.USERNAME;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.BROKER;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.FORMAT;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.ISCLEANSESSION;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.PASSWORD;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.QOS;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.TOPIC;
+import static com.dtstack.flinkx.connector.emqx.options.EmqxOptions.USERNAME;
 
 /**
  * @author chuixue
@@ -70,8 +77,10 @@ public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        final EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat =
+                getValueEncodingFormat(helper);
 
-        return new EmqxDynamicTableSink(physicalSchema, getEmqxConf(config));
+        return new EmqxDynamicTableSink(physicalSchema, getEmqxConf(config), new EncodingFormatWrapper(valueEncodingFormat));
     }
 
     @Override
@@ -110,9 +119,6 @@ public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, Dynam
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> optionalOptions = new HashSet<>();
-        optionalOptions.add(BROKER);
-        optionalOptions.add(TOPIC);
-
         optionalOptions.add(ISCLEANSESSION);
         optionalOptions.add(QOS);
         optionalOptions.add(USERNAME);
@@ -139,5 +145,65 @@ public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, Dynam
                         () ->
                                 helper.discoverDecodingFormat(
                                         DeserializationFormatFactory.class, FORMAT));
+    }
+
+    private static EncodingFormat<SerializationSchema<RowData>> getValueEncodingFormat(
+            FactoryUtil.TableFactoryHelper helper) {
+        return helper.discoverOptionalEncodingFormat(SerializationFormatFactory.class, FORMAT)
+                .orElseGet(
+                        () ->
+                                helper.discoverEncodingFormat(
+                                        SerializationFormatFactory.class, FORMAT));
+    }
+
+    /**
+     * It is used to wrap the encoding format and expose the desired changelog mode. It's only works
+     * for insert-only format.
+     */
+    protected static class EncodingFormatWrapper
+            implements EncodingFormat<SerializationSchema<RowData>> {
+        private final EncodingFormat<SerializationSchema<RowData>> innerEncodingFormat;
+
+        public static final ChangelogMode SINK_CHANGELOG_MODE =
+                ChangelogMode.newBuilder()
+                        .addContainedKind(RowKind.INSERT)
+                        .addContainedKind(RowKind.UPDATE_AFTER)
+                        .addContainedKind(RowKind.DELETE)
+                        .build();
+
+        public EncodingFormatWrapper(
+                EncodingFormat<SerializationSchema<RowData>> innerEncodingFormat) {
+            this.innerEncodingFormat = innerEncodingFormat;
+        }
+
+        @Override
+        public SerializationSchema<RowData> createRuntimeEncoder(
+                DynamicTableSink.Context context, DataType consumedDataType) {
+            return innerEncodingFormat.createRuntimeEncoder(context, consumedDataType);
+        }
+
+        @Override
+        public ChangelogMode getChangelogMode() {
+            return SINK_CHANGELOG_MODE;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+
+            EncodingFormatWrapper that = (EncodingFormatWrapper) obj;
+            return Objects.equals(innerEncodingFormat, that.innerEncodingFormat);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(innerEncodingFormat);
+        }
     }
 }

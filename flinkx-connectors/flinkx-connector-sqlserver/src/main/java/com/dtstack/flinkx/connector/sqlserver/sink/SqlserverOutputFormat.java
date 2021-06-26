@@ -46,7 +46,7 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
         super.openInternal(taskNumber, numTasks);
         RowType rowType =
                 TableUtil.createRowType(columnNameList, columnTypeList, SqlserverRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
 
         Statement statement = null;
         String sql = ((SqlServerDialect)jdbcDialect).getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());

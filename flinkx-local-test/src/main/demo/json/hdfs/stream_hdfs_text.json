@@ -1,0 +1,162 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "sliceRecordCount": ["10000"],
+            "column": [
+              {
+                "name": "id",
+                "type": "id"
+              },
+              {
+                "name": "col_boolean",
+                "type": "boolean"
+              },
+              {
+                "name": "col_tinyint",
+                "type": "tinyint",
+                "value": 1
+              },
+              {
+                "name": "col_smallint",
+                "type": "tinyint",
+                "value": 2
+              },
+              {
+                "name": "col_int",
+                "type": "int"
+              },
+              {
+                "name": "col_bigint",
+                "type": "long"
+              },
+              {
+                "name": "col_float",
+                "type": "float"
+              },
+              {
+                "name": "col_double",
+                "type": "double"
+              },
+              {
+                "name": "col_decimal",
+                "type": "DECIMAL"
+              },
+              {
+                "name": "col_string",
+                "type": "string"
+              },
+              {
+                "name": "col_varchar",
+                "type": "string"
+              },
+              {
+                "name": "col_char",
+                "type": "string"
+              },
+              {
+                "name": "col_timestamp",
+                "type": "timestamp"
+              },
+              {
+                "name": "col_date",
+                "type": "date"
+              }
+            ]
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "name": "hdfswriter",
+          "parameter": {
+            "path": "hdfs://ns/user/hive/warehouse/tudou.db/type_txt",
+            "defaultFS": "hdfs://ns",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "col_boolean",
+                "type": "boolean"
+              },
+              {
+                "name": "col_tinyint",
+                "type": "tinyint"
+              },
+              {
+                "name": "col_smallint",
+                "type": "smallint"
+              },
+              {
+                "name": "col_int",
+                "type": "int"
+              },
+              {
+                "name": "col_bigint",
+                "type": "bigint"
+              },
+              {
+                "name": "col_float",
+                "type": "float"
+              },
+              {
+                "name": "col_double",
+                "type": "double"
+              },
+              {
+                "name": "col_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "col_string",
+                "type": "string"
+              },
+              {
+                "name": "col_varchar",
+                "type": "varchar(255)"
+              },
+              {
+                "name": "col_char",
+                "type": "char(255)"
+              },
+              {
+                "name": "col_timestamp",
+                "type": "timestamp"
+              },
+              {
+                "name": "col_date",
+                "type": "date"
+              }
+            ],
+            "fileType": "text",
+            "maxFileSize": 10485760,
+            "nextCheckRows": 20000,
+            "fieldDelimiter": ",",
+            "encoding": "utf-8",
+            "fileName": "pt=1",
+            "writeMode": "overwrite",
+            "hadoopConfig": {
+              "dfs.ha.namenodes.ns": "nn1,nn2",
+              "fs.defaultFS": "hdfs://ns",
+              "dfs.namenode.rpc-address.ns.nn2": "ip:9000",
+              "dfs.client.failover.proxy.provider.ns": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns.nn1": "ip:9000",
+              "dfs.nameservices": "ns",
+              "fs.hdfs.impl.disable.cache": "true",
+              "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem"
+            }
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

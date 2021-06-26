@@ -44,7 +44,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
         // create row converter
         RowType rowType =
                 TableUtil.createRowType(columnNameList, columnTypeList, KingbaseRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
     }
 
     /**

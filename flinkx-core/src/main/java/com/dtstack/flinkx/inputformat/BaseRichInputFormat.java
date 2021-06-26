@@ -34,6 +34,7 @@ import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
@@ -119,7 +120,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         try {
             return createInputSplitsInternal(minNumSplits);
         } catch (Exception e){
-            LOG.warn("error to create InputSplits, e = {}", ExceptionUtil.getErrorMessage(e));
+            LOG.warn("error to create InputSplits", e);
             return new ErrorInputSplit[]{new ErrorInputSplit(ExceptionUtil.getErrorMessage(e))};
         }
     }
@@ -173,11 +174,17 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     }
 
     @Override
-    public RowData nextRecord(RowData rowData) throws IOException {
+    public RowData nextRecord(RowData rowData) {
         if(byteRateLimiter != null) {
             byteRateLimiter.acquire();
         }
-        RowData internalRow = nextRecordInternal(rowData);
+        RowData internalRow = null;
+        try{
+            internalRow = nextRecordInternal(rowData);
+        } catch (ReadRecordException e){
+            // todo 脏数据记录
+            LOG.error(e.toString());
+        }
         if(internalRow != null){
             updateDuration();
             if (numReadCounter != null) {
@@ -368,9 +375,9 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
      *
      * @param rowData 需要创建和填充的数据
      * @return 读取的数据
-     * @throws IOException 读取异常
+     * @throws ReadRecordException 读取异常
      */
-    protected abstract RowData nextRecordInternal(RowData rowData) throws IOException;
+    protected abstract RowData nextRecordInternal(RowData rowData) throws ReadRecordException;
 
     /**
      * 由子类实现，关闭资源

@@ -27,25 +27,16 @@ import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.types.logical.utils.LogicalTypeChecks;
 import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.connector.emqx.converter.EmqxRowConverter;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.IntStream;
-
-import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.hasRoot;
+import static com.dtstack.flinkx.connector.emqx.util.DataTypeConventerUtil.createValueFormatProjection;
 
 /**
  * @author chuixue
@@ -81,17 +72,6 @@ public class EmqxDynamicTableSource implements ScanTableSource {
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
         EmqxInputFormatBuilder builder = new EmqxInputFormatBuilder();
-        String[] fieldNames = physicalSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        int index = 0;
-        for (String name : fieldNames) {
-            FieldConf field = new FieldConf();
-            field.setName(name);
-            field.setIndex(index++);
-            columnList.add(field);
-        }
-        emqxConf.setColumn(columnList);
-
         builder.setEmqxConf(emqxConf);
         builder.setRowConverter(
                 new EmqxRowConverter(
@@ -105,7 +85,7 @@ public class EmqxDynamicTableSource implements ScanTableSource {
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
                 false,
-                emqxConf.getParallelism());
+                1);
     }
 
     @Override
@@ -116,15 +96,5 @@ public class EmqxDynamicTableSource implements ScanTableSource {
     @Override
     public String asSummaryString() {
         return "emqx";
-    }
-
-    private static int[] createValueFormatProjection(DataType physicalDataType) {
-        final LogicalType physicalType = physicalDataType.getLogicalType();
-        Preconditions.checkArgument(
-                hasRoot(physicalType, LogicalTypeRoot.ROW), "Row data type expected.");
-        final int physicalFieldCount = LogicalTypeChecks.getFieldCount(physicalType);
-        final IntStream physicalFields = IntStream.range(0, physicalFieldCount);
-
-        return physicalFields.toArray();
     }
 }
