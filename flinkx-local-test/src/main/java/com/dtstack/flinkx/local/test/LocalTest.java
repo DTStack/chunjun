@@ -44,7 +44,7 @@ public class LocalTest {
 //        confProperties.setProperty("flink.checkpoint.interval", "10000");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
+        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/elasticsearch7/es2es.json";
         String flinkxPluginPath = userDir + "/flinkxplugins";
 
         // 任务配置参数
