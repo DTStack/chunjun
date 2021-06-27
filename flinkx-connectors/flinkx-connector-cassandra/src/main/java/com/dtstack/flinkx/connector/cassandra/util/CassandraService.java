@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.connector.cassandra.util;
 
-import org.apache.flink.core.io.InputSplit;
-
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -40,6 +38,9 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
+
+import org.apache.flink.core.io.InputSplit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -444,5 +445,15 @@ public class CassandraService {
             splits.add(new CassandraInputSplit());
         }
         return splits.toArray(new CassandraInputSplit[0]);
+    }
+
+    /**
+     * quote cassandra column
+     *
+     * @param column column name
+     * @return column name like "column-name"
+     */
+    public static String quoteColumn(String column) {
+        return "\"" + column + "\"";
     }
 }

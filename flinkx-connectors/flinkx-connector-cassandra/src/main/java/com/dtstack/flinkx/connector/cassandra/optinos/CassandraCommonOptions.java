@@ -133,4 +133,16 @@ public class CassandraCommonOptions {
                     .defaultValue(60 * 1000)
                     .withDescription(
                             "Cassandra params. The timeout of pool operation. The unit of time is milliseconds.");
+
+    public static final ConfigOption<Boolean> ASYNC_WRITE =
+            ConfigOptions.key("asyncWrite")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("Cassandra params. Async write data to databases.");
+
+    public static final ConfigOption<String> WHERE =
+            ConfigOptions.key("where")
+                    .stringType()
+                    .defaultValue(" 1=1 ")
+                    .withDescription("The where clauses of Cassandra select query.");
 }

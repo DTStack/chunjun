@@ -69,8 +69,10 @@ public class CassandraRawTypeConverter {
             case "DATE":
                 return DataTypes.DATE();
             case "TIME":
+            case "TIME_WITHOUT_TIME_ZONE":
                 return DataTypes.TIME();
             case "TIMESTAMP":
+            case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return DataTypes.TIMESTAMP();
             case "BLOB":
             case "JSONB":

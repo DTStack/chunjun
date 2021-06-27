@@ -43,10 +43,6 @@ public class CassandraInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setSourceConf(sourceConf);
     }
 
-    public void setColumns(List<FieldConf> columns) {
-        format.setColumns(columns);
-    }
-
     @Override
     protected void checkFormat() {
         CassandraSourceConf sourceConf = format.getSourceConf();

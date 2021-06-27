@@ -35,10 +35,13 @@ import org.apache.flink.table.functions.FunctionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.dtstack.flinkx.connector.cassandra.util.CassandraService.quoteColumn;
 
 /**
  * @author tiezhu
@@ -55,10 +58,10 @@ public class CassandraAllTableFunction extends AbstractAllTableFunction {
     private transient Session session;
 
     public CassandraAllTableFunction(
-            String[] fieldNames,
-            String[] keyNames,
             CassandraLookupConf lookupConf,
-            AbstractRowConverter<?, ?, ?, ?> rowConverter) {
+            AbstractRowConverter<?, ?, ?, ?> rowConverter,
+            String[] fieldNames,
+            String[] keyNames) {
         super(fieldNames, keyNames, lookupConf, rowConverter);
         this.cassandraLookupConf = lookupConf;
     }
@@ -66,8 +69,6 @@ public class CassandraAllTableFunction extends AbstractAllTableFunction {
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-
-        session = CassandraService.session(cassandraLookupConf.getCommonConf());
     }
 
     @Override
@@ -76,9 +77,17 @@ public class CassandraAllTableFunction extends AbstractAllTableFunction {
                 (Map<String, List<Map<String, Object>>>) cacheRef;
         CassandraCommonConf commonConf = cassandraLookupConf.getCommonConf();
 
+        session = CassandraService.session(commonConf);
+
         String keyspaces = commonConf.getKeyspaces();
         String tableName = commonConf.getTableName();
-        Select select = QueryBuilder.select(Arrays.asList(fieldsName)).from(keyspaces, tableName);
+
+        List<String> quotedColumnNameList = new ArrayList<>();
+        Arrays.stream(fieldsName).forEach(name -> quotedColumnNameList.add(quoteColumn(name)));
+
+        Select select =
+                QueryBuilder.select(quotedColumnNameList.toArray(new String[0]))
+                        .from(keyspaces, tableName);
 
         ResultSet resultSet = session.execute(select);
 

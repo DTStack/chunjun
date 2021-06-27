@@ -20,13 +20,11 @@ package com.dtstack.flinkx.connector.cassandra.source;
 
 import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
 import com.dtstack.flinkx.connector.cassandra.util.CassandraService;
 import com.dtstack.flinkx.exception.ReadRecordException;
@@ -39,7 +37,8 @@ import org.apache.flink.table.data.RowData;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
+
+import static com.dtstack.flinkx.connector.cassandra.util.CassandraService.quoteColumn;
 
 /**
  * @author tiezhu
@@ -48,8 +47,6 @@ import java.util.List;
 public class CassandraInputFormat extends BaseRichInputFormat {
 
     private CassandraSourceConf sourceConf;
-
-    private List<FieldConf> columns;
 
     private transient Session session;
 
@@ -76,19 +73,22 @@ public class CassandraInputFormat extends BaseRichInputFormat {
         String tableName = sourceConf.getTableName();
         String keyspaces = sourceConf.getKeyspaces();
 
+        sourceConf
+                .getColumn()
+                .forEach(fieldConf -> columnNameList.add(quoteColumn(fieldConf.getName())));
+
         Preconditions.checkNotNull(tableName, "table must not null");
         session = CassandraService.session(sourceConf);
 
         String consistency = sourceConf.getConsistency();
         ConsistencyLevel consistencyLevel = CassandraService.consistencyLevel(consistency);
 
-        Select select = QueryBuilder.select(columnNameList).from(keyspaces, tableName);
+        Select select = QueryBuilder.select(columnNameList.toArray()).from(keyspaces, tableName);
         select.setConsistencyLevel(consistencyLevel);
         // TODO where ? group by ? order by ?
 
-        PreparedStatement preparedStatement = session.prepare(select);
         LOG.info("split: {}, {}", split.getMinToken(), split.getMaxToken());
-        ResultSet resultSet = session.execute(preparedStatement.bind());
+        ResultSet resultSet = session.execute(select);
         cursor = resultSet.all().iterator();
     }
 
@@ -96,8 +96,7 @@ public class CassandraInputFormat extends BaseRichInputFormat {
     protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         try {
             Row cqlRow = cursor.next();
-            ColumnDefinitions columnDefinitions = cqlRow.getColumnDefinitions();
-            rowData = rowConverter.toInternal(columnDefinitions);
+            rowData = rowConverter.toInternal(cqlRow);
 
             LOG.info("nextRecordInternal: numReadCounter = {}", numReadCounter.getLocalValue());
         } catch (Exception e) {
@@ -123,13 +122,5 @@ public class CassandraInputFormat extends BaseRichInputFormat {
 
     public void setSourceConf(CassandraSourceConf sourceConf) {
         this.sourceConf = sourceConf;
-    }
-
-    public List<FieldConf> getColumns() {
-        return columns;
-    }
-
-    public void setColumns(List<FieldConf> columns) {
-        this.columns = columns;
     }
 }

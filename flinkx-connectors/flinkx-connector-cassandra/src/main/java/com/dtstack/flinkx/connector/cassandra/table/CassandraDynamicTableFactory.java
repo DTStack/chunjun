@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.connector.cassandra.table;
 
+import com.dtstack.flinkx.connector.cassandra.conf.CassandraLookupConf;
+import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
+
+import com.dtstack.flinkx.connector.cassandra.source.CassandraDynamicTableSource;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -45,15 +50,37 @@ import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOpti
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.PORT;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.TABLE_NAME;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USER_NAME;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraSinkOptions.ASYNC_WRITE;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraSinkOptions.CONNECT_TIMEOUT_MILLISECONDS;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraSinkOptions.CORE_CONNECTIONS_PER_HOST;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraSinkOptions.MAX_CONNECTIONS__PER_HOST;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraSinkOptions.MAX_QUEUE_SIZE;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraSinkOptions.MAX_REQUESTS_PER_CONNECTION;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraSinkOptions.POOL_TIMEOUT_MILLISECONDS;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraSinkOptions.READ_TIME_OUT_MILLISECONDS;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraSinkOptions.USE_SSL;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.ASYNC_WRITE;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CONNECT_TIMEOUT_MILLISECONDS;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CORE_CONNECTIONS_PER_HOST;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.MAX_CONNECTIONS__PER_HOST;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.MAX_QUEUE_SIZE;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.MAX_REQUESTS_PER_CONNECTION;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.POOL_TIMEOUT_MILLISECONDS;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.READ_TIME_OUT_MILLISECONDS;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USE_SSL;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TTL;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TYPE;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
+import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_MAX_RETRIES;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_FETCH_SIZE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN_TYPE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_COLUMN;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_STRATEGY;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_POLLING_INTERVAL;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_QUERY_TIMEOUT;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNNAME;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNTYPE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_START_LOCATION;
 
 /**
  * @author tiezhu
@@ -74,38 +101,32 @@ public class CassandraDynamicTableFactory
 
         // 2.参数校验
         helper.validate();
-        validateConfigOptions(config);
 
         // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        CassandraSinkConf sinkConf = CassandraSinkConf.from(helper.getOptions());
+        CassandraSinkConf sinkConf = CassandraSinkConf.from(config);
 
         return new CassandraDynamicTableSink(sinkConf, physicalSchema);
     }
 
-    private void validateConfigOptions(ReadableConfig config) {
-        Optional<String> host = config.getOptional(HOST);
-        Optional<String> tableName = config.getOptional(TABLE_NAME);
-        StringBuilder stringBuilder = new StringBuilder(256);
-
-        if (host.isPresent() && !host.get().isEmpty()) {
-            stringBuilder.append("Cassandra host can not be empty.\n");
-        }
-
-        if (tableName.isPresent() && !tableName.get().isEmpty()) {
-            stringBuilder.append("Cassandra table-name can not be empty.\n");
-        }
-
-        if (stringBuilder.length() > 0) {
-            throw new NoRestartException(stringBuilder.toString());
-        }
-    }
-
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
-        return null;
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
+
+        final ReadableConfig options = helper.getOptions();
+
+        helper.validate();
+
+        TableSchema tableSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+
+        CassandraSourceConf cassandraSourceConf = CassandraSourceConf.from(options);
+        CassandraLookupConf cassandraLookupConf = CassandraLookupConf.from(options);
+
+        return new CassandraDynamicTableSource(cassandraSourceConf, cassandraLookupConf, tableSchema);
     }
 
     @Override
@@ -145,7 +166,30 @@ public class CassandraDynamicTableFactory
         optionalOptions.add(USE_SSL);
         optionalOptions.add(ASYNC_WRITE);
 
-        // TODO source、 lookup
+        optionalOptions.add(SCAN_PARTITION_COLUMN);
+        optionalOptions.add(SCAN_PARTITION_STRATEGY);
+        optionalOptions.add(SCAN_INCREMENT_COLUMN);
+        optionalOptions.add(SCAN_INCREMENT_COLUMN_TYPE);
+        optionalOptions.add(SCAN_POLLING_INTERVAL);
+        optionalOptions.add(SCAN_START_LOCATION);
+        optionalOptions.add(SCAN_QUERY_TIMEOUT);
+        optionalOptions.add(SCAN_FETCH_SIZE);
+        optionalOptions.add(SCAN_RESTORE_COLUMNNAME);
+        optionalOptions.add(SCAN_RESTORE_COLUMNTYPE);
+
+        optionalOptions.add(LOOKUP_CACHE_PERIOD);
+        optionalOptions.add(LOOKUP_CACHE_MAX_ROWS);
+        optionalOptions.add(LOOKUP_CACHE_TTL);
+        optionalOptions.add(LOOKUP_CACHE_TYPE);
+        optionalOptions.add(LOOKUP_MAX_RETRIES);
+        optionalOptions.add(LOOKUP_ERRORLIMIT);
+        optionalOptions.add(LOOKUP_FETCH_SIZE);
+        optionalOptions.add(LOOKUP_ASYNCTIMEOUT);
+        optionalOptions.add(LOOKUP_PARALLELISM);
+
+        optionalOptions.add(SINK_BUFFER_FLUSH_MAX_ROWS);
+        optionalOptions.add(SINK_BUFFER_FLUSH_INTERVAL);
+        optionalOptions.add(SINK_MAX_RETRIES);
 
         return optionalOptions;
     }

@@ -29,6 +29,8 @@ import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
+import org.apache.flink.table.types.AtomicDataType;
+import org.apache.flink.table.types.logical.NullType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
@@ -66,20 +68,35 @@ public class CassandraDynamicTableSink implements DynamicTableSink {
     @Override
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
         CassandraOutputFormatBuilder builder = new CassandraOutputFormatBuilder();
-        final RowType rowType =
-                TableUtil.createRowType(sinkConf.getColumn(), CassandraRawTypeConverter::apply);
 
         String[] fieldNames = tableSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        for (String name : fieldNames) {
+        List<String> columnNameList = new ArrayList<>();
+
+        for (int index = 0; index < fieldNames.length; index++) {
+            String name = fieldNames[index];
+            columnNameList.add(name);
+
             FieldConf field = new FieldConf();
             field.setName(name);
+            field.setType(
+                    tableSchema
+                            .getFieldDataType(name)
+                            .orElse(new AtomicDataType(new NullType()))
+                            .getLogicalType()
+                            .getTypeRoot()
+                            .name());
+            field.setIndex(index);
             columnList.add(field);
         }
+
         sinkConf.setColumn(columnList);
 
+        final RowType rowType =
+                TableUtil.createRowType(sinkConf.getColumn(), CassandraRawTypeConverter::apply);
+
         builder.setSinkConf(sinkConf);
-        builder.setRowConverter(new CassandraRowConverter(rowType));
+        builder.setRowConverter(new CassandraRowConverter(rowType, columnNameList));
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction(builder.finish()), sinkConf.getParallelism());

@@ -41,6 +41,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * @author tiezhu
@@ -49,8 +50,11 @@ import java.sql.Timestamp;
 public class CassandraColumnConverter
         extends AbstractRowConverter<ResultSet, Row, BoundStatement, LogicalType> {
 
-    public CassandraColumnConverter(RowType rowType) {
+    private final List<String> columnNameList;
+
+    public CassandraColumnConverter(RowType rowType, List<String> columnNameList) {
         super(rowType);
+        this.columnNameList = columnNameList;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters[i] =
                     wrapIntoNullableInternalConverter(

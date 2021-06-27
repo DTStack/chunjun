@@ -37,7 +37,7 @@ import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOpti
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.TABLE_NAME;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USER_NAME;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USE_SSL;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraSinkOptions.ASYNC_WRITE;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.ASYNC_WRITE;
 
 /**
  * @author tiezhu

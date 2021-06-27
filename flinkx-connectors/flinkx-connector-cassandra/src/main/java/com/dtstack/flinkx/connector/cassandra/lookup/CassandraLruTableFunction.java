@@ -49,11 +49,14 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import static com.dtstack.flinkx.connector.cassandra.util.CassandraService.quoteColumn;
 
 /**
  * @author tiezhu
@@ -65,7 +68,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
 
     private static final Logger LOG = LoggerFactory.getLogger(CassandraLruTableFunction.class);
 
-    private CassandraLookupConf cassandraLookupConf;
+    private final CassandraLookupConf cassandraLookupConf;
 
     private transient Cluster cluster;
 
@@ -81,6 +84,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
             String[] fieldNames,
             String[] keyNames) {
         super(lookupConf, rowConverter);
+        this.cassandraLookupConf = (CassandraLookupConf) lookupConf;
         this.fieldNames = fieldNames;
         this.keyNames = keyNames;
     }
@@ -104,10 +108,15 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
         CassandraCommonConf commonConf = cassandraLookupConf.getCommonConf();
         String keyspaces = commonConf.getKeyspaces();
         String tableName = commonConf.getTableName();
-        Select select = QueryBuilder.select(Arrays.asList(fieldNames)).from(keyspaces, tableName);
+
+        List<String> quotedColumnNameList = new ArrayList<>();
+        Arrays.stream(fieldNames).forEach(name -> quotedColumnNameList.add(quoteColumn(name)));
+        Select select =
+                QueryBuilder.select(quotedColumnNameList.toArray(new String[0]))
+                        .from(keyspaces, tableName);
 
         for (int index = 0; index < keyNames.length; index++) {
-            Clause eq = QueryBuilder.eq(keyNames[index], keys[index]);
+            Clause eq = QueryBuilder.eq(quoteColumn(keyNames[index]), keys[index]);
             select.where(eq);
         }
 
@@ -124,7 +133,6 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
                 new FutureCallback<List<Row>>() {
                     @Override
                     public void onSuccess(List<Row> rows) {
-                        cluster.closeAsync();
                         if (rows.size() > 0) {
                             List<Row> cacheContent = Lists.newArrayList();
                             List<RowData> rowList = Lists.newArrayList();

@@ -24,6 +24,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraSinkConf;
@@ -40,6 +41,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static com.dtstack.flinkx.connector.cassandra.util.CassandraService.quoteColumn;
 
 /**
  * @author tiezhu
@@ -75,6 +78,7 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void writeMultipleRecordsInternal() throws Exception {
         if (batchSize > 1) {
             BoundStatement boundStatement = preparedStatement.bind();
@@ -132,6 +136,15 @@ public class CassandraOutputFormat extends BaseRichOutputFormat {
         session = CassandraService.session(sinkConf);
 
         Insert insert = QueryBuilder.insertInto(keyspaces, table);
+
+        TableMetadata metadata =
+                session.getCluster().getMetadata().getKeyspace(keyspaces).getTable(table);
+        metadata.getColumns()
+                .forEach(
+                        columnMetadata ->
+                                insert.value(
+                                        quoteColumn(columnMetadata.getName()),
+                                        QueryBuilder.bindMarker()));
 
         insert.setConsistencyLevel(consistencyLevel);
 

@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.cassandra.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
 import com.dtstack.flinkx.connector.cassandra.converter.CassandraRawTypeConverter;
@@ -31,6 +32,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author tiezhu
@@ -61,11 +65,14 @@ public class CassandraSourceFactory extends SourceFactory {
         CassandraInputFormatBuilder builder = new CassandraInputFormatBuilder();
 
         builder.setSourceConf(sourceConf);
-        builder.setColumns(syncConf.getReader().getFieldList());
+
+        List<FieldConf> fieldConfList = sourceConf.getColumn();
+        List<String> columnNameList = new ArrayList<>();
+        fieldConfList.forEach(fieldConf -> columnNameList.add(fieldConf.getName()));
 
         final RowType rowType =
-                TableUtil.createRowType(sourceConf.getColumn(), getRawTypeConverter());
-        builder.setRowConverter(new CassandraRowConverter(rowType));
+                TableUtil.createRowType(fieldConfList, getRawTypeConverter());
+        builder.setRowConverter(new CassandraRowConverter(rowType, columnNameList));
 
         return createInput(builder.finish());
     }

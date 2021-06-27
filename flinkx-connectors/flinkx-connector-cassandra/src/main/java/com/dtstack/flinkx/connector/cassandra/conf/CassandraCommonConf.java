@@ -18,7 +18,27 @@
 
 package com.dtstack.flinkx.connector.cassandra.conf;
 
+import org.apache.flink.configuration.ReadableConfig;
+
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CLUSTER_NAME;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CONNECT_TIMEOUT_MILLISECONDS;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CONSISTENCY;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CORE_CONNECTIONS_PER_HOST;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.HOST;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.HOST_DISTANCE;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.KEY_SPACES;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.MAX_CONNECTIONS__PER_HOST;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.MAX_QUEUE_SIZE;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.MAX_REQUESTS_PER_CONNECTION;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.PASSWORD;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.POOL_TIMEOUT_MILLISECONDS;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.PORT;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.READ_TIME_OUT_MILLISECONDS;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.TABLE_NAME;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USER_NAME;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USE_SSL;
 
 /**
  * @author tiezhu
@@ -194,5 +214,32 @@ public class CassandraCommonConf extends FlinkxCommonConf {
 
     public void setPoolTimeoutMillis(Integer poolTimeoutMillis) {
         this.poolTimeoutMillis = poolTimeoutMillis;
+    }
+
+    public static CassandraCommonConf from(
+            ReadableConfig readableConfig, CassandraCommonConf conf) {
+        conf.setHost(readableConfig.get(HOST));
+        conf.setPort(readableConfig.get(PORT));
+        conf.setUserName(readableConfig.get(USER_NAME));
+        conf.setPassword(readableConfig.get(PASSWORD));
+        conf.setUseSSL(readableConfig.get(USE_SSL));
+
+        conf.setTableName(readableConfig.get(TABLE_NAME));
+        conf.setKeyspaces(readableConfig.get(KEY_SPACES));
+
+        conf.setHostDistance(readableConfig.get(HOST_DISTANCE));
+        conf.setClusterName(readableConfig.get(CLUSTER_NAME));
+        conf.setConsistency(readableConfig.get(CONSISTENCY));
+
+        conf.setCoreConnectionsPerHost(readableConfig.get(CORE_CONNECTIONS_PER_HOST));
+        conf.setMaxConnectionsPerHost(readableConfig.get(MAX_CONNECTIONS__PER_HOST));
+        conf.setMaxQueueSize(readableConfig.get(MAX_QUEUE_SIZE));
+        conf.setMaxRequestsPerConnection(readableConfig.get(MAX_REQUESTS_PER_CONNECTION));
+
+        conf.setReadTimeoutMillis(readableConfig.get(READ_TIME_OUT_MILLISECONDS));
+        conf.setConnectTimeoutMillis(readableConfig.get(CONNECT_TIMEOUT_MILLISECONDS));
+        conf.setPoolTimeoutMillis(readableConfig.get(POOL_TIMEOUT_MILLISECONDS));
+
+        return conf;
     }
 }

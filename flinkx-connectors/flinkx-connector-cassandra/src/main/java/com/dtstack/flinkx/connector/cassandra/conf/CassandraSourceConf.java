@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.cassandra.conf;
 
+import org.apache.flink.configuration.ReadableConfig;
+
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.WHERE;
+
 /**
  * @author tiezhu
  * @since 2021/6/21 星期一
@@ -31,5 +35,15 @@ public class CassandraSourceConf extends CassandraCommonConf {
 
     public void setWhere(String where) {
         this.where = where;
+    }
+
+    public static CassandraSourceConf from(ReadableConfig readableConfig) {
+        CassandraSourceConf conf =
+                (CassandraSourceConf)
+                        CassandraCommonConf.from(readableConfig, new CassandraSourceConf());
+
+        conf.setWhere(readableConfig.get(WHERE));
+
+        return conf;
     }
 }

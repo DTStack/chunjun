@@ -14,7 +14,6 @@
 
 	<properties>
 		<cassandra.driver.version>3.11.0</cassandra.driver.version>
-		<cassandra.test.version>4.3.1.0</cassandra.test.version>
 	</properties>
 
 	<dependencies>
@@ -24,14 +23,20 @@
 			<groupId>com.datastax.cassandra</groupId>
 			<artifactId>cassandra-driver-core</artifactId>
 			<version>${cassandra.driver.version}</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.cassandraunit/cassandra-unit -->
-		<dependency>
-			<groupId>org.cassandraunit</groupId>
-			<artifactId>cassandra-unit</artifactId>
-			<version>${cassandra.test.version}</version>
-			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>netty-all</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>netty-handler</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 	</dependencies>

@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.cassandra.sink;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraSinkConf;
 import com.dtstack.flinkx.connector.cassandra.converter.CassandraColumnConverter;
@@ -31,6 +32,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author tiezhu
@@ -46,7 +50,7 @@ public class CassandraSinkFactory extends SinkFactory {
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getWriter().getParameter()),
                         CassandraSinkConf.class);
-        sinkConf.setColumn(syncConf.getReader().getFieldList());
+        sinkConf.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(sinkConf);
     }
 
@@ -60,9 +64,12 @@ public class CassandraSinkFactory extends SinkFactory {
         CassandraOutputFormatBuilder builder = new CassandraOutputFormatBuilder();
 
         builder.setSinkConf(sinkConf);
-        final RowType rowType =
-                TableUtil.createRowType(sinkConf.getColumn(), getRawTypeConverter());
-        builder.setRowConverter(new CassandraColumnConverter(rowType));
+        List<FieldConf> fieldConfList = sinkConf.getColumn();
+        List<String> columnNameList = new ArrayList<>();
+        fieldConfList.forEach(fieldConf -> columnNameList.add(fieldConf.getName()));
+
+        final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeConverter());
+        builder.setRowConverter(new CassandraColumnConverter(rowType, columnNameList));
 
         return createOutput(dataSet, builder.finish());
     }
