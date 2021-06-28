@@ -23,6 +23,8 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.time.format.DateTimeFormatter;
@@ -41,6 +43,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author tudou
  */
 public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializable {
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
     protected static final long serialVersionUID = 1L;
 
     // cdc keys
@@ -67,14 +71,14 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
                     .append(SQL_TIME_FORMAT)
                     .toFormatter();
     protected static final DateTimeFormatter ISO8601_TIMESTAMP_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-    protected static final DateTimeFormatter SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
+    protected static DateTimeFormatter SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
             new DateTimeFormatterBuilder()
                     .append(DateTimeFormatter.ISO_LOCAL_DATE)
                     .appendLiteral(' ')
                     .append(SQL_TIME_FORMAT)
                     .appendPattern("'Z'")
                     .toFormatter();
-    protected static final DateTimeFormatter ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
+    protected static DateTimeFormatter ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
             new DateTimeFormatterBuilder()
                     .append(DateTimeFormatter.ISO_LOCAL_DATE)
                     .appendLiteral('T')
@@ -105,6 +109,17 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      */
     protected abstract IDeserializationConverter createInternalConverter(T type);
 
+
+    protected IDeserializationConverter wrapIntoNullableInternalConverter(
+            IDeserializationConverter IDeserializationConverter) {
+        return val -> {
+            if (val == null) {
+                return null;
+            } else {
+                return IDeserializationConverter.deserialize(val);
+            }
+        };
+    }
 
     /**
      * 根据eventType获取RowKind
