@@ -25,7 +25,7 @@ import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 public class PGWalDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     public String factoryIdentifier() {
-        return "PGWalFactory";
+        return "pgwal-x";
     }
 
     @Override

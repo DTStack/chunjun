@@ -3,7 +3,7 @@ CREATE TABLE source
     id             bigint,
     col_bit        boolean
 ) WITH (
-      'connector' = 'PGWalFactory'
+      'connector' = 'pgwal-x'
       ,'username' = 'postgres'
       ,'password' = 'postgres'
       ,'url' = 'jdbc:postgresql://localhost:5432/postgres?useUnicode=true&characterEncoding=utf8'
