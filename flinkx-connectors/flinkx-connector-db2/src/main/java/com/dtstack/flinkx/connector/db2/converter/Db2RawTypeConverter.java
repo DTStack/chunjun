@@ -56,6 +56,7 @@ public class Db2RawTypeConverter {
                 return DataTypes.DOUBLE();
             case "DECIMAL":
             case "NUMERIC":
+            case "DECFLOAT":
                 return DataTypes.DECIMAL(1, 0);
             case "DATE":
                 return DataTypes.DATE();
