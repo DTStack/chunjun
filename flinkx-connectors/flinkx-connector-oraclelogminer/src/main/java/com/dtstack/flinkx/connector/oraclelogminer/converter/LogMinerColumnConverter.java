@@ -76,7 +76,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
 
     @Override
     @SuppressWarnings("unchecked")
-    public LinkedList<RowData> toInternal(EventRow eventRow) {
+    public LinkedList<RowData> toInternal(EventRow eventRow) throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
 
         String eventType = eventRow.getType();
@@ -184,7 +184,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
             List<EventRowData> entryColumnList,
             List<AbstractBaseColumn> columnList,
             List<String> headerList,
-            String prefix) {
+            String prefix) throws Exception {
         for (int i = 0; i < entryColumnList.size(); i++) {
             EventRowData entryColumn = entryColumnList.get(i);
 

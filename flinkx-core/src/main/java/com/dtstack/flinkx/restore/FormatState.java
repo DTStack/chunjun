@@ -30,6 +30,8 @@ import java.util.Map;
  */
 public class FormatState implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     private int numOfSubTask;
 
     private Object state;
