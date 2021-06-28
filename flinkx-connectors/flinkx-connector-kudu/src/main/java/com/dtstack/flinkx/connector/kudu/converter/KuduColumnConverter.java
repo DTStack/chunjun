@@ -18,13 +18,10 @@
 
 package com.dtstack.flinkx.connector.kudu.converter;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
@@ -33,6 +30,10 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
 import org.apache.kudu.client.Operation;
 import org.apache.kudu.client.RowResult;
 
@@ -84,23 +85,12 @@ public class KuduColumnConverter
     @Override
     @SuppressWarnings("unchecked")
     public RowData toInternal(RowResult input) throws Exception {
-        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
+        ColumnRowData data = new ColumnRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = input.getObject(pos);
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
+            data.addField((AbstractBaseColumn) toInternalConverters[pos].deserialize(field));
         }
-        return genericRowData;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public RowData toInternalLookup(RowResult input) {
-        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
-        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
-            Object field = input.getObject(pos);
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
-        }
-        return genericRowData;
+        return data;
     }
 
     @Override

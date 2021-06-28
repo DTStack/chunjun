@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.cassandra.converter;
 
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -31,11 +35,6 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
-
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -150,64 +149,67 @@ public class CassandraColumnConverter
         switch (type.getTypeRoot()) {
             case BOOLEAN:
                 return (val, index, statement) ->
-                        statement.setBool(index, ((ColumnRowData) val).getField(index).asBoolean());
+                        statement.setBool(
+                                columnNameList.get(index),
+                                ((ColumnRowData) val).getField(index).asBoolean());
             case TINYINT:
-                return (val, index, statement) -> statement.setByte(index, val.getByte(index));
+                return (val, index, statement) ->
+                        statement.setByte(columnNameList.get(index), val.getByte(index));
             case SMALLINT:
             case INTEGER:
                 return (val, index, statement) ->
-                        statement.setInt(index, ((ColumnRowData) val).getField(index).asInt());
+                        statement.setInt(
+                                columnNameList.get(index),
+                                ((ColumnRowData) val).getField(index).asInt());
             case FLOAT:
                 return (val, index, statement) ->
-                        statement.setFloat(index, ((ColumnRowData) val).getField(index).asFloat());
+                        statement.setFloat(
+                                columnNameList.get(index),
+                                ((ColumnRowData) val).getField(index).asFloat());
             case DOUBLE:
                 return (val, index, statement) ->
                         statement.setDouble(
-                                index, ((ColumnRowData) val).getField(index).asDouble());
+                                columnNameList.get(index),
+                                ((ColumnRowData) val).getField(index).asDouble());
 
             case BIGINT:
                 return (val, index, statement) ->
-                        statement.setLong(index, ((ColumnRowData) val).getField(index).asLong());
+                        statement.setLong(
+                                columnNameList.get(index),
+                                ((ColumnRowData) val).getField(index).asLong());
             case DECIMAL:
                 return (val, index, statement) ->
                         statement.setDecimal(
-                                index, ((ColumnRowData) val).getField(index).asBigDecimal());
+                                columnNameList.get(index),
+                                ((ColumnRowData) val).getField(index).asBigDecimal());
             case CHAR:
             case VARCHAR:
                 return (val, index, statement) ->
                         statement.setString(
-                                index, ((ColumnRowData) val).getField(index).asString());
+                                columnNameList.get(index),
+                                ((ColumnRowData) val).getField(index).asString());
             case DATE:
                 return (val, index, statement) ->
                         statement.setDate(
-                                index,
+                                columnNameList.get(index),
                                 com.datastax.driver.core.LocalDate.fromMillisSinceEpoch(
                                         ((ColumnRowData) val).getField(index).asInt()));
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTime(
-                                index, ((ColumnRowData) val).getField(index).asInt() * 1_000_000L);
+                                columnNameList.get(index),
+                                ((ColumnRowData) val).getField(index).asInt() * 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTimestamp(
-                                index, ((ColumnRowData) val).getField(index).asTimestamp());
+                                columnNameList.get(index),
+                                ((ColumnRowData) val).getField(index).asTimestamp());
 
             case BINARY:
             case VARBINARY:
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public RowData toInternalLookup(Row input) {
-        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
-        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
-            Object field = input.getObject(pos);
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
-        }
-        return genericRowData;
     }
 }

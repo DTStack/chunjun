@@ -20,19 +20,9 @@ package com.dtstack.flinkx.connector.kudu.conf;
 
 import org.apache.flink.configuration.ReadableConfig;
 
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.ADMIN_OPERATION_TIMEOUT;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.AUTHENTICATION;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.BATCH_SIZE_BYTES;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.FILTER_STRING;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.KEYTAB_FILE;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.MASTER_ADDRESS;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.OPERATION_TIMEOUT;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.PRINCIPAL;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.QUERY_TIMEOUT;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.READ_MODE;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.SCAN_PARALLELISM;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.TABLE_NAME;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.WORKER_COUNT;
 
 /**
  * @author tiezhu

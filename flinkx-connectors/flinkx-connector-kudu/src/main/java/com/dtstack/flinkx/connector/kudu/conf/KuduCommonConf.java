@@ -19,20 +19,20 @@
 package com.dtstack.flinkx.connector.kudu.conf;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.security.KerberosConfig;
 
 import org.apache.flink.configuration.ReadableConfig;
 
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.ADMIN_OPERATION_TIMEOUT;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.AUTHENTICATION;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.ENABLE_KRB;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.KEYTAB_FILE;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.MASTER_ADDRESS;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.OPERATION_TIMEOUT;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.PRINCIPAL;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.QUERY_TIMEOUT;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.SCAN_PARALLELISM;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.TABLE_NAME;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.WORKER_COUNT;
+import static com.dtstack.flinkx.security.KerberosOptions.KEYTAB;
+import static com.dtstack.flinkx.security.KerberosOptions.KRB5_CONF;
+import static com.dtstack.flinkx.security.KerberosOptions.PRINCIPAL;
 
 /**
  * @author tiezhu
@@ -46,16 +46,8 @@ public class KuduCommonConf extends FlinkxCommonConf {
     /** kudu表名 */
     protected String table;
 
-    /** 认证方式，如:Kerberos */
-    protected String authentication;
-
-    protected boolean enableKrb;
-
-    /** 用户名 */
-    protected String principal;
-
-    /** keytab文件路径 */
-    protected String keytabFile;
+    /** kudu kerberos */
+    protected KerberosConfig kerberos;
 
     /** worker线程数，默认为cpu*2 */
     protected Integer workerCount;
@@ -83,30 +75,6 @@ public class KuduCommonConf extends FlinkxCommonConf {
 
     public void setQueryTimeout(Long queryTimeout) {
         this.queryTimeout = queryTimeout;
-    }
-
-    public String getAuthentication() {
-        return authentication;
-    }
-
-    public void setAuthentication(String authentication) {
-        this.authentication = authentication;
-    }
-
-    public String getPrincipal() {
-        return principal;
-    }
-
-    public void setPrincipal(String principal) {
-        this.principal = principal;
-    }
-
-    public String getKeytabFile() {
-        return keytabFile;
-    }
-
-    public void setKeytabFile(String keytabFile) {
-        this.keytabFile = keytabFile;
     }
 
     public String getMasters() {
@@ -141,12 +109,13 @@ public class KuduCommonConf extends FlinkxCommonConf {
         this.adminOperationTimeout = adminOperationTimeout;
     }
 
-    public boolean isEnableKrb() {
-        return enableKrb;
+    public KerberosConfig getKerberos() {
+        kerberos.judgeAndSetKrbEnabled();
+        return kerberos;
     }
 
-    public void setEnableKrb(boolean enableKrb) {
-        this.enableKrb = enableKrb;
+    public void setKerberos(KerberosConfig kerberos) {
+        this.kerberos = kerberos;
     }
 
     public static KuduCommonConf from(ReadableConfig readableConfig, KuduCommonConf conf) {
@@ -155,7 +124,6 @@ public class KuduCommonConf extends FlinkxCommonConf {
         conf.setTable(readableConfig.get(TABLE_NAME));
         conf.setWorkerCount(readableConfig.get(WORKER_COUNT));
         conf.setParallelism(readableConfig.get(SCAN_PARALLELISM));
-        conf.setEnableKrb(readableConfig.get(ENABLE_KRB));
 
         // timeout
         conf.setQueryTimeout(readableConfig.get(QUERY_TIMEOUT));
@@ -163,9 +131,12 @@ public class KuduCommonConf extends FlinkxCommonConf {
         conf.setOperationTimeout(readableConfig.get(OPERATION_TIMEOUT));
 
         // kerberos
-        conf.setAuthentication(readableConfig.get(AUTHENTICATION));
-        conf.setPrincipal(readableConfig.get(PRINCIPAL));
-        conf.setKeytabFile(readableConfig.get(KEYTAB_FILE));
+        String principal = readableConfig.get(PRINCIPAL);
+        String keytab = readableConfig.get(KEYTAB);
+        String krb5Conf = readableConfig.get(KRB5_CONF);
+
+        KerberosConfig kerberosConfig = new KerberosConfig(principal, keytab, krb5Conf);
+        conf.setKerberos(kerberosConfig);
 
         return conf;
     }

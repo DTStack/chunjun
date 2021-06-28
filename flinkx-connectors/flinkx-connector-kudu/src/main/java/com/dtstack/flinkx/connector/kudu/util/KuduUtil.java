@@ -22,8 +22,9 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduCommonConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.security.KerberosConfig;
+import com.dtstack.flinkx.security.KerberosUtils;
 import com.dtstack.flinkx.throwable.NoRestartException;
-import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -67,16 +68,13 @@ public class KuduUtil {
      * Get kudu client with kudu conf
      *
      * @param config kudu conf
-     * @param hadoopConfig Hadoop related information, mainly requires kerberos related verification
-     *     information
      * @return kudu sync client
      */
-    public static KuduClient getKuduClient(
-            KuduCommonConf config, Map<String, Object> hadoopConfig) {
+    public static KuduClient getKuduClient(KuduCommonConf config) {
         try {
-            if (AUTHENTICATION_TYPE.equalsIgnoreCase(config.getAuthentication())
-                    && FileSystemUtil.isOpenKerberos(hadoopConfig)) {
-                UserGroupInformation ugi = FileSystemUtil.getUGI(hadoopConfig, null);
+            KerberosConfig kerberosConfig = config.getKerberos();
+            if (kerberosConfig.isEnableKrb()) {
+                UserGroupInformation ugi = KerberosUtils.loginAndReturnUgi(kerberosConfig);
                 return ugi.doAs(
                         (PrivilegedExceptionAction<KuduClient>)
                                 () -> getKuduClientInternal(config));
@@ -98,9 +96,8 @@ public class KuduUtil {
                 .syncClient();
     }
 
-    public static List<KuduScanToken> getKuduScanToken(
-            KuduSourceConf config, Map<String, Object> hadoopConf) throws IOException {
-        try (KuduClient client = KuduUtil.getKuduClient(config, hadoopConf)) {
+    public static List<KuduScanToken> getKuduScanToken(KuduSourceConf config) throws IOException {
+        try (KuduClient client = KuduUtil.getKuduClient(config)) {
             KuduTable kuduTable = client.openTable(config.getTable());
 
             List<String> columnNameList = new ArrayList<>();

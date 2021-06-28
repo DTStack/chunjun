@@ -68,20 +68,18 @@ public class CassandraRowConverter
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     // 将数据库中的数据类型转化为flink的数据类型 input -> row data
     public RowData toInternal(Row input) throws Exception {
-        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
-        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
-            Object field = input.getObject(pos);
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
-        }
-        return genericRowData;
+        return deserializeInput(input);
     }
 
     @Override
+    public RowData toInternalLookup(Row input) throws Exception {
+        return deserializeInput(input);
+    }
+
     @SuppressWarnings("unchecked")
-    public RowData toInternalLookup(Row input) {
+    private RowData deserializeInput(Row input) throws Exception {
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = input.getObject(pos);

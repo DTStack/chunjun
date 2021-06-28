@@ -38,24 +38,6 @@ public class KuduOptions {
                     .noDefaultValue()
                     .withDescription("Kudu master address. Separated by ','");
 
-    public static final ConfigOption<String> AUTHENTICATION =
-            ConfigOptions.key("authentication")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("Kudu authentication method");
-
-    public static final ConfigOption<String> PRINCIPAL =
-            ConfigOptions.key("principal")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("Kudu kerberos principal");
-
-    public static final ConfigOption<String> KEYTAB_FILE =
-            ConfigOptions.key("keytabFile")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("Kudu kerberos keytab file");
-
     public static final ConfigOption<Integer> WORKER_COUNT =
             ConfigOptions.key("workCount")
                     .intType()

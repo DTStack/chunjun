@@ -5,6 +5,11 @@
         "reader": {
           "name": "kudureader",
           "parameter": {
+            "kerberos": {
+              "principal": "this is principal",
+              "keytab": "this is keytabFile",
+              "krb5Conf": "this is krb5conf"
+            },
             "column": [
               {
                 "name": "int_field",
@@ -46,9 +51,6 @@
             "masters": "172.16.100.109:7051",
             "table": "tiezhu_test_one",
             "readMode": "read_latest",
-            "authentication": "",
-            "principal": "",
-            "keytabFile": "",
             "workerCount": 2,
             "operationTimeout": 30000,
             "adminOperationTimeout": 30000,

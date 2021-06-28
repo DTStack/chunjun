@@ -41,7 +41,6 @@ import org.apache.kudu.client.RowResultIterator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -51,8 +50,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class KuduInputFormat extends BaseRichInputFormat {
 
     private KuduSourceConf sourceConf;
-
-    private Map<String, Object> hadoopConf;
 
     private List<FieldConf> columns;
 
@@ -67,7 +64,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
         LOG.info("execute createInputSplits,minNumSplits:{}", minNumSplits);
-        List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(sourceConf, hadoopConf);
+        List<KuduScanToken> scanTokens = KuduUtil.getKuduScanToken(sourceConf);
         KuduInputSplit[] inputSplits = new KuduInputSplit[scanTokens.size()];
         for (int i = 0; i < scanTokens.size(); i++) {
             inputSplits[i] = new KuduInputSplit(scanTokens.get(i).serialize(), i);
@@ -80,7 +77,7 @@ public class KuduInputFormat extends BaseRichInputFormat {
     protected void openInternal(InputSplit inputSplit) throws IOException {
         super.openInputFormat();
 
-        client = KuduUtil.getKuduClient(sourceConf, hadoopConf);
+        client = KuduUtil.getKuduClient(sourceConf);
 
         LOG.info(
                 "Execute openInternal: splitNumber = {}, indexOfSubtask  = {}",
@@ -159,10 +156,6 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
     public void setSourceConf(KuduSourceConf sourceConf) {
         this.sourceConf = sourceConf;
-    }
-
-    public void setHadoopConf(Map<String, Object> hadoopConf) {
-        this.hadoopConf = hadoopConf;
     }
 
     public void setColumns(List<FieldConf> columns) {

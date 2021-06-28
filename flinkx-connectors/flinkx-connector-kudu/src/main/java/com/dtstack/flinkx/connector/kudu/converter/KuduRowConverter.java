@@ -84,12 +84,12 @@ public class KuduRowConverter
     }
 
     @Override
-    public RowData toInternalLookup(RowResult input) {
+    public RowData toInternalLookup(RowResult input) throws Exception {
         return deserializeInput(input);
     }
 
     @SuppressWarnings("unchecked")
-   private RowData deserializeInput(RowResult input) {
+   private RowData deserializeInput(RowResult input) throws Exception {
        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
            Object field = input.getObject(pos);

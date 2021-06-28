@@ -38,18 +38,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.ADMIN_OPERATION_TIMEOUT;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.AUTHENTICATION;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.BATCH_SIZE_BYTES;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.FILTER_STRING;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.FLUSH_INTERVAL;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.FLUSH_MODE;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.IGNORE_DUPLICATE;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.IGNORE_NOT_FOUND;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.KEYTAB_FILE;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.MASTER_ADDRESS;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.MAX_BUFFER_SIZE;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.OPERATION_TIMEOUT;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.PRINCIPAL;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.QUERY_TIMEOUT;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.READ_MODE;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.SCAN_PARALLELISM;
@@ -64,6 +61,9 @@ import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
+import static com.dtstack.flinkx.security.KerberosOptions.KEYTAB;
+import static com.dtstack.flinkx.security.KerberosOptions.KRB5_CONF;
+import static com.dtstack.flinkx.security.KerberosOptions.PRINCIPAL;
 import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
 import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_MAX_RETRIES;
@@ -140,9 +140,6 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> optionalOptions = new HashSet<>();
 
-        optionalOptions.add(AUTHENTICATION);
-        optionalOptions.add(PRINCIPAL);
-        optionalOptions.add(KEYTAB_FILE);
         optionalOptions.add(WORKER_COUNT);
         optionalOptions.add(OPERATION_TIMEOUT);
         optionalOptions.add(ADMIN_OPERATION_TIMEOUT);
@@ -181,6 +178,11 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         optionalOptions.add(SINK_BUFFER_FLUSH_MAX_ROWS);
         optionalOptions.add(SINK_BUFFER_FLUSH_INTERVAL);
         optionalOptions.add(SINK_MAX_RETRIES);
+
+        // kerberos
+        optionalOptions.add(PRINCIPAL);
+        optionalOptions.add(KRB5_CONF);
+        optionalOptions.add(KEYTAB);
 
         return optionalOptions;
     }

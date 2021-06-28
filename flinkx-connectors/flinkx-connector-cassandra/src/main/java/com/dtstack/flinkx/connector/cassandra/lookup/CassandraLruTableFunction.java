@@ -137,11 +137,16 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
                             List<Row> cacheContent = Lists.newArrayList();
                             List<RowData> rowList = Lists.newArrayList();
                             for (Row line : rows) {
-                                RowData row = fillData(line);
-                                if (openCache()) {
-                                    cacheContent.add(line);
+                                try {
+                                    RowData row = fillData(line);
+                                    if (openCache()) {
+                                        cacheContent.add(line);
+                                    }
+                                    rowList.add(row);
+                                } catch (Exception e) {
+                                    // todo 这里需要抽样打印
+                                    LOG.error("error:{}\n data:{}", e.getMessage(), line);
                                 }
-                                rowList.add(row);
                             }
                             future.complete(rowList);
                             if (openCache()) {
@@ -170,7 +175,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected RowData fillData(Object sideInput) {
+    protected RowData fillData(Object sideInput) throws Exception {
         return rowConverter.toInternalLookup(sideInput);
     }
 

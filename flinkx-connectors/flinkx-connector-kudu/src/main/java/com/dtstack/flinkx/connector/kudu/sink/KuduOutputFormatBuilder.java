@@ -22,8 +22,6 @@ import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Map;
-
 /**
  * @author tiezhu
  * @since 2021/6/21 星期一
@@ -39,10 +37,6 @@ public class KuduOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     public void setSinkConf(KuduSinkConf sinkConf) {
         super.setConfig(sinkConf);
         format.setKuduSinkConf(sinkConf);
-    }
-
-    public void setHadoopConf(Map<String, Object> hadoopConf) {
-        format.setHadoopConf(hadoopConf);
     }
 
     @Override

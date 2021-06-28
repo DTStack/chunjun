@@ -24,7 +24,6 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author tiezhu
@@ -41,10 +40,6 @@ public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder {
     public void setKuduSourceConf(KuduSourceConf conf) {
         super.setConfig(conf);
         format.setSourceConf(conf);
-    }
-
-    public void setHadoopConf(Map<String, Object> hadoopConf) {
-        format.setHadoopConf(hadoopConf);
     }
 
     public void setColumns(List<FieldConf> columns) {

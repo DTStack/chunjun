@@ -39,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -59,8 +58,6 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
     private KuduSession session;
 
     private KuduTable kuduTable;
-
-    private Map<String, Object> hadoopConf;
 
     private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
@@ -114,7 +111,7 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         try {
-            client = KuduUtil.getKuduClient(sinkConf, hadoopConf);
+            client = KuduUtil.getKuduClient(sinkConf);
         } catch (Exception e) {
             throw new NoRestartException("Get KuduClient error", e);
         }
@@ -174,13 +171,5 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
 
     public void setKuduSinkConf(KuduSinkConf sinkConf) {
         this.sinkConf = sinkConf;
-    }
-
-    public Map<String, Object> getHadoopConf() {
-        return hadoopConf;
-    }
-
-    public void setHadoopConf(Map<String, Object> hadoopConf) {
-        this.hadoopConf = hadoopConf;
     }
 }
