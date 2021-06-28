@@ -1,2 +1,0 @@
-com.dtstack.flinkx.connector.api.DebeziumPostgresProcessor
-com.dtstack.flinkx.connector.api.PGCDCServiceProcessor
