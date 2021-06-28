@@ -50,24 +50,26 @@ CREATE TABLE source
     atinyint    tinyint
 ) WITH (
       'connector' = 'mysql-x',
-      'url' = 'jdbc:mysql://k3:3306/tiezhu',
+      'url' = 'jdbc:mysql://localhost:3306/test',
       'table-name' = 'flink_type',
       'username' = 'root',
-      'password' = 'admin123'
+      'password' = 'root'
 
-      ,'scan.parallelism' = '1' -- 间隔轮训不支持多并行度
-      ,'scan.partition.column' = 'id' -- 多并行度读取的切分字段
+      ,'scan.polling-interval' = '3000' --间隔轮训时间。非必填(不填为离线任务)，无默认
 
-      ,'scan.increment.column' = 'id' -- 增量字段
-      ,'scan.increment.column-type' = 'int'  -- 增量字段类型
-      ,'scan.start-location' = '109' --增量字段开始位置,如果不指定则先查询所有并查询scan.increment.column最大值作为下次起始位置
+      ,'scan.parallelism' = '1' -- 间隔轮训目前不支持多并行度
+      ,'scan.fetch-size' = '2' -- 每次从数据库中fetch大小。默认：1024条
+      ,'scan.query-timeout' = '10' -- 数据库连接超时时间。默认：1秒
 
-      ,'scan.fetch-size' = '2' -- fetch抓取的条数,防止一次抓取太多
-      ,'scan.query-timeout' = '10' -- 数据库抓取超时时间
-      ,'scan.polling-interval' = '3000' --间隔轮训时间
+      -- ,'scan.partition.column' = 'id' -- 多并行度读取的切分字段，多并行度下必需要设置，间隔轮询不支持多并行。无默认
+      -- ,'scan.partition.strategy' = 'range' -- 数据分片策略。默认：range
 
-      ,'scan.restore.columnname' = 'id' -- 续跑字段
-      ,'scan.restore.columntype' = 'int' -- 续跑字段类型
+      ,'scan.increment.column' = 'id' -- 增量字段名称，如果配置了该字段，目前并行度只能为1。非必填，无默认
+      ,'scan.increment.column-type' = 'int'  -- 增量字段类型。非必填，无默认
+      ,'scan.start-location' = '10' -- 增量字段开始位置,如果不指定则先同步所有，然后在增量。非必填，无默认
+
+      ,'scan.restore.columnname' = 'id' -- 开启了cp，任务从sp/cp续跑字段名称。如果续跑，则会覆盖scan.start-location开始位置，从续跑点开始。非必填，无默认
+      ,'scan.restore.columntype' = 'int' -- 开启了cp，任务从sp/cp续跑字段类型。非必填，无默认
       );
 
 CREATE TABLE sink

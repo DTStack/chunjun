@@ -1,0 +1,316 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "username": "username",
+            "password": "password",
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:mysql://127.0.0.1:3306/dev"
+                ],
+                "table": [
+                  "test"
+                ]
+              }
+            ],
+            "column": [
+			  {
+                "name": "col_id",
+                "type": "int"
+              },
+              {
+                "name": "col_bit",
+                "type": "bit"
+              },
+			  {
+				"name":"col_bool",
+				"type":"bool"
+			  },
+			  {
+				"name":"col_boolean",
+				"type":"boolean"
+			  },
+			  {
+				"name":"col_smallint",
+				"type":"smallint"
+			  },
+			  {
+				"name":"col_mediumint",
+				"type":"mediumnint"
+			  },
+			  {
+				"name":"col_int",
+				"type":"int"
+			  },
+			  {
+				"name":"col_bigint",
+				"type":"bigint"
+			  },
+			  {
+				"name":"col_integer",
+				"type":"integer"
+			  },
+			  {
+				"name":"col_float",
+				"type":"float"
+			  },
+			  {
+				"name":"col_double",
+				"type":"double"
+			  },
+			  {
+				"name":"col_decimal",
+				"type":"decimal"
+			  },
+			  {
+				"name":"col_date",
+				"type":"date"
+			  },
+			  {
+				"name":"col_time",
+				"type":"time"
+			  },
+			  {
+				"name":"col_datetime",
+				"type":"datetime"
+			  },
+			  {
+				"name":"col_timestamp",
+				"type":"timestamp"
+			  },
+			  {
+				"name":"col_year",
+				"type":"year"
+			  },
+			  {
+				"name":"col_char",
+				"type":"char"
+			  },
+			  {
+				"name":"col_varchar",
+				"type":"varchar"
+			  },
+			  {
+				"name":"col_text",
+				"type":"text"
+			  },
+			  {
+				"name":"col_tinytext",
+				"type":"tinytext"
+			  },
+			  {
+				"name":"col_mediumtext",
+				"type":"mediumtext"
+			  },
+			  {
+				"name":"col_longtext",
+				"type":"longtext"
+			  },
+			  {
+				"name":"col_binary",
+				"type":"binary"
+			  },
+			  {
+				"name":"col_varbinary",
+				"type":"varbinay"
+			  },
+			  {
+				"name":"col_tinyblob",
+				"type":"tinyblob"
+			  },
+			  {
+				"name":"col_blob",
+				"type":"blob"
+			  },
+			  {
+				"name":"col_mediumblob",
+				"type":"mediumblob"
+			  },
+			  {
+				"name":"col_longblob",
+				"type":"longblob"
+			  },
+			  {
+				"name":"col_enum",
+				"type":"enum"
+			  },
+			  {
+				"name":"col_set",
+				"type":"set"
+			  },
+			  {
+				"name":"col_json",
+				"type":"json"
+			  }
+			  
+			  ],
+            "customSql": "",
+            "where": "col_id < 51",
+            "splitPk": "",
+            "queryTimeOut": 1000,
+            "requestAccumulatorInterval": 2
+          },
+          "name": "mysqlreader"
+        },
+        "writer": {
+         "name": "tidbwriter",
+          "parameter": {
+            "username": "username",
+            "password": "password",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:mysql://127.0.0.1:4000/db_dev",
+                "table": ["test"]
+              }
+            ],
+            "preSql": [],
+            "postSql": [],
+            "mode": "insert",
+            "column": [
+			  {
+                "name": "col_id",
+                "type": "int"
+              },
+              {
+                "name": "col_bit",
+                "type": "bit"
+              },
+			  {
+				"name":"col_bool",
+				"type":"bool"
+			  },
+			  {
+				"name":"col_boolean",
+				"type":"boolean"
+			  },
+			  {
+				"name":"col_smallint",
+				"type":"smallint"
+			  },
+			  {
+				"name":"col_mediumint",
+				"type":"mediumnint"
+			  },
+			  {
+				"name":"col_int",
+				"type":"int"
+			  },
+			  {
+				"name":"col_bigint",
+				"type":"bigint"
+			  },
+			  {
+				"name":"col_integer",
+				"type":"integer"
+			  },
+			  {
+				"name":"col_float",
+				"type":"float"
+			  },
+			  {
+				"name":"col_double",
+				"type":"double"
+			  },
+			  {
+				"name":"col_decimal",
+				"type":"decimal"
+			  },
+			  {
+				"name":"col_date",
+				"type":"date"
+			  },
+			  {
+				"name":"col_time",
+				"type":"time"
+			  },
+			  {
+				"name":"col_datetime",
+				"type":"datetime"
+			  },
+			  {
+				"name":"col_timestamp",
+				"type":"timestamp"
+			  },
+			  {
+				"name":"col_year",
+				"type":"year"
+			  },
+			  {
+				"name":"col_char",
+				"type":"char"
+			  },
+			  {
+				"name":"col_varchar",
+				"type":"varchar"
+			  },
+			  {
+				"name":"col_text",
+				"type":"text"
+			  },
+			  {
+				"name":"col_tinytext",
+				"type":"tinytext"
+			  },
+			  {
+				"name":"col_mediumtext",
+				"type":"mediumtext"
+			  },
+			  {
+				"name":"col_longtext",
+				"type":"longtext"
+			  },
+			  {
+				"name":"col_binary",
+				"type":"binary"
+			  },
+			  {
+				"name":"col_varbinary",
+				"type":"varbinay"
+			  },
+			  {
+				"name":"col_tinyblob",
+				"type":"tinyblob"
+			  },
+			  {
+				"name":"col_blob",
+				"type":"blob"
+			  },
+			  {
+				"name":"col_mediumblob",
+				"type":"mediumblob"
+			  },
+			  {
+				"name":"col_longblob",
+				"type":"longblob"
+			  },
+			  {
+				"name":"col_enum",
+				"type":"enum"
+			  },
+			  {
+				"name":"col_set",
+				"type":"set"
+			  },
+			  {
+				"name":"col_json",
+				"type":"json"
+			  }
+			  ],
+            "batchSize": 1024
+          }
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isStream": true
+      },
+      "speed": {
+        "channel": 1
+      }
+    }
+  }
+}

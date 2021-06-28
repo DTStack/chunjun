@@ -73,6 +73,9 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (conf.getFetchSize() > ConstantValue.MAX_BATCH_SIZE) {
             sb.append("The number of fetchSize must be less than [200000];\n");
         }
+        if (conf.isIncrement() && conf.isSplitByKey()) {
+            sb.append("Must specify the channel equals 1 when the task is increment;\n");
+        }
         if(sb.length() > 0){
             throw new IllegalArgumentException(sb.toString());
         }

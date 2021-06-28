@@ -39,7 +39,7 @@ public class StreamOptions {
     public static final ConfigOption<Long> NUMBER_OF_ROWS =
             key("number-of-rows")
                     .longType()
-                    .defaultValue(100L)
+                    .defaultValue(0L)
                     .withDescription(
                             "Total number of rows to emit. By default, the source is unbounded.");
 
@@ -48,4 +48,12 @@ public class StreamOptions {
                     .intType()
                     .defaultValue(null)
                     .withDescription("sink.parallelism.");
+
+    public static final ConfigOption<Long> ROWS_PER_SECOND =
+            key("rows-per-second")
+                    .longType()
+                    .defaultValue(10L)
+                    .withDescription(
+                            "rows-per-second.");
+
 }

@@ -100,17 +100,17 @@ public class RedisRowConverter
     }
 
     @Override
-    public RowData toInternal(Map<String, String> input) {
+    public RowData toInternal(Map<String, String> input) throws Exception {
         return getGenericRowData(input);
     }
 
     @Override
-    public RowData toInternalLookup(Map<String, String> input) {
+    public RowData toInternalLookup(Map<String, String> input) throws Exception {
         return getGenericRowData(input);
     }
 
     @NotNull
-    private GenericRowData getGenericRowData(Map<String, String> input) {
+    private GenericRowData getGenericRowData(Map<String, String> input) throws Exception {
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
 
         for (String key : input.keySet()) {

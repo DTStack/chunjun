@@ -244,6 +244,48 @@ bin/flinkx \
   <img src="images/quick_8.png" />
 </div>
 
+
+### Kubernetes Session模式运行任务
+
+命令示例：
+
+```
+bin/flinkx \
+    -mode kubernetes-session \
+    -job docs/example/stream_stream.json \
+    -jobName kubernetes-job \
+    -jobType sync \
+    -connectorLoadMode classloader \
+    -pluginRoot flinkxplugins \
+    -flinkLibJar $FLINK_HOME/lib \
+    -flinkconf $FLINK_HOME/conf \
+    -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.cluster-id\":\"${cluster_id}\",\"kubernetes.namespace\":\"${namespace}\"}"
+```
+
+需要提前手动在kubernetes上启动kubernetes session
+```
+$FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink-session-test -Dclassloader.resolve-order=parent-first -Dkubernetes.container.image=${image_name}
+```
+
+### Kubernetes Application模式运行任务
+
+命令示例：
+```
+bin/flinkx \
+    -mode kubernetes-application \
+    -job docs/example/stream_stream.json \
+    -jobName kubernetes-job \
+    -jobType sync \
+    -connectorLoadMode classloader \
+    -pluginRoot flinkxplugins \
+    -remotePluginPath /opt/flinkxplugins \
+    -pluginLoadMode classpath \
+    -flinkLibJar $FLINK_HOME/lib \
+    -flinkconf $FLINK_HOME/conf \
+    -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.container.image\":\"${image_name}\",\"kubernetes.namespace\":\"${namespace}\"}"
+```
+
+
 ## 参数说明
 
 | 名称                 | 说明                                                     | 可选值                                                                                                                                                                                                                                         | 是否必填 | 默认值                     |

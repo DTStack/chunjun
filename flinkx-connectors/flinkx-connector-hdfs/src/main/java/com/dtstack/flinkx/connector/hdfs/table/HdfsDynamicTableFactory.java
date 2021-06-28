@@ -63,15 +63,16 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> options = new HashSet<>();
+        options.add(BaseFileOptions.FILE_NAME);
+        options.add(BaseFileOptions.WRITE_MODE);
+        options.add(BaseFileOptions.COMPRESS);
+        options.add(BaseFileOptions.ENCODING);
+        options.add(BaseFileOptions.MAX_FILE_SIZE);
+        options.add(BaseFileOptions.NEXT_CHECK_ROWS);
+
         options.add(HdfsOptions.FILTER_REGEX);
         options.add(HdfsOptions.FIELD_DELIMITER);
         options.add(HdfsOptions.ENABLE_DICTIONARY);
-        options.add(HdfsOptions.FILE_NAME);
-        options.add(HdfsOptions.WRITE_MODE);
-        options.add(HdfsOptions.COMPRESS);
-        options.add(HdfsOptions.ENCODING);
-        options.add(HdfsOptions.MAX_FILE_SIZE);
-        options.add(HdfsOptions.NEXT_CHECK_ROWS);
         return options;
     }
 

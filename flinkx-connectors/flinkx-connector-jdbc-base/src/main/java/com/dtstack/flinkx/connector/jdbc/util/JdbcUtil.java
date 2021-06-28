@@ -152,7 +152,7 @@ public class JdbcUtil {
             rs.close();
             return Pair.of(fullColumnList, fullColumnTypeList);
         }catch (SQLException e){
-            throw new FlinkxRuntimeException(String.format("error to get meta from [%s.%s]", schema, tableName));
+            throw new FlinkxRuntimeException(String.format("error to get meta from [%s.%s]", schema, tableName), e);
         }
     }
 
