@@ -343,17 +343,11 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                         }
                     }
 
-                    if (openCache()) {
-                        putCache(
-                                cacheKey,
-                                CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
-                    }
+                    dealCacheData(cacheKey, CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
                     future.complete(rowList);
                 } else {
                     dealMissKey(future);
-                    if (openCache()) {
-                        putCache(cacheKey, CacheMissVal.getMissKeyObj());
-                    }
+                    dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
                 }
             } finally {
                 // and close the connection
@@ -368,7 +362,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
     @Override
     protected RowData fillData(
-            Object sideInput) {
+            Object sideInput) throws Exception {
         return rowConverter.toInternalLookup(sideInput);
     }
 

@@ -18,27 +18,20 @@
 
 package com.dtstack.flinkx.connector.oracle.converter;
 
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.ISerializationConverter;
-
-import com.dtstack.flinkx.util.ExceptionUtil;
-
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-import oracle.sql.TIMESTAMP;
-
 import org.apache.flink.table.types.logical.TimestampType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+import oracle.sql.TIMESTAMP;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

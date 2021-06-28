@@ -24,6 +24,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.DecimalType;
+import org.apache.flink.table.types.logical.LocalZonedTimestampType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
@@ -79,7 +80,7 @@ public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, R
     }
 
     @Override
-    public RowData toInternal(RowData input) {
+    public RowData toInternal(RowData input) throws Exception {
         GenericRowData row = new GenericRowData(input.getArity());
         for (int i = 0; i < input.getArity(); i++) {
             row.setField(i, toInternalConverters[i].deserialize(input));
@@ -115,10 +116,7 @@ public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, R
                 // Converter for small type that casts value to int and then return short value,
                 // since
                 // JDBC 1.0 use int type for small values.
-                return val ->
-                        val instanceof Integer
-                                ? JMockData.mock(int.class).shortValue()
-                                : JMockData.mock(int.class);
+                return val -> JMockData.mock(int.class).shortValue();
             case INTEGER:
                 return val -> JMockData.mock(int.class);
             case BIGINT:
@@ -142,6 +140,7 @@ public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, R
             case TIME_WITHOUT_TIME_ZONE:
                 return val -> LocalTime.now().get(MILLI_OF_DAY);
             case TIMESTAMP_WITH_TIME_ZONE:
+            case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> TimestampData.fromEpochMillis(System.currentTimeMillis());
             case CHAR:
@@ -198,8 +197,14 @@ public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, R
                                 Time.valueOf(
                                         LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L)));
             case TIMESTAMP_WITH_TIME_ZONE:
+            case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                final int timestampPrecision = ((TimestampType) type).getPrecision();
+                int timestampPrecision;
+                if (type instanceof LocalZonedTimestampType) {
+                    timestampPrecision = ((LocalZonedTimestampType) type).getPrecision();
+                } else {
+                    timestampPrecision = ((TimestampType) type).getPrecision();
+                }
                 return (val, index, rowData) ->
                         rowData.setField(
                                 index, val.getTimestamp(index, timestampPrecision).toTimestamp());

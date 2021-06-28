@@ -14,6 +14,12 @@
 
     <dependencies>
 
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-kubernetes_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-core</artifactId>
@@ -163,19 +169,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../lib/">
-                                    <fileset dir="target/">
-                                        <include name="${project.artifactId}-${project.version}.jar" />
-                                    </fileset>
-                                </copy>
-								<!--suppress UnresolvedMavenProperty -->
-								<move file="${basedir}/../../lib/${project.artifactId}-${project.version}.jar"
-									  tofile="{basedir}/../../lib/${project.artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/target/${artifactId}-${project.version}.jar"
+									  tofile="${basedir}/target/${artifactId}-${git.branch}.jar"/>
+								<copy todir="${basedir}/../lib/"
+									  file="${basedir}/target/${artifactId}-${git.branch}.jar"/>
 								<delete>
-									<!--suppress UnresolvedMavenProperty -->
-									<fileset dir="${basedir}/../../lib/"
-											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}-${git.branch}.jar"/>
+									<fileset dir="${basedir}/../lib"
+											 includes="${artifactId}-*.jar"
+											 excludes="${artifactId}-${git.branch}.jar"/>
 								</delete>
                             </tasks>
                         </configuration>

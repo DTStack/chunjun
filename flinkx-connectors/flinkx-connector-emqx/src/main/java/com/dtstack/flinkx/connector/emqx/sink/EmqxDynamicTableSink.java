@@ -66,7 +66,7 @@ public class EmqxDynamicTableSink implements DynamicTableSink {
     public SinkRuntimeProvider getSinkRuntimeProvider(Context runtimeProviderContext) {
         EmqxOutputFormatBuilder builder = new EmqxOutputFormatBuilder();
         builder.setEmqxConf(emqxConf);
-        builder.setConverter(
+        builder.setRowConverter(
                 new EmqxRowConverter(
                         valueEncodingFormat.createRuntimeEncoder(
                                 runtimeProviderContext,
