@@ -65,11 +65,11 @@ public class KuduSinkFactory extends SinkFactory {
         List<String> columnNames = new ArrayList<>();
 
         builder.setSinkConf(sinkConf);
-        List<FieldConf> fieldConfs = sinkConf.getColumn();
-        fieldConfs.forEach(field -> columnNames.add(field.getName()));
+        List<FieldConf> fieldConfList = sinkConf.getColumn();
+        fieldConfList.forEach(field -> columnNames.add(field.getName()));
 
         final RowType rowType =
-                TableUtil.createRowType(fieldConfs, getRawTypeConverter());
+                TableUtil.createRowType(fieldConfList, getRawTypeConverter());
         builder.setRowConverter(new KuduColumnConverter(rowType, columnNames));
         return createOutput(dataSet, builder.finish());
     }

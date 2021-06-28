@@ -24,8 +24,6 @@ import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.flinkx.connector.kudu.sink.KuduDynamicTableSink;
 import com.dtstack.flinkx.connector.kudu.source.KuduDynamicTableSource;
 
-import com.dtstack.flinkx.source.options.SourceOptions;
-
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -79,7 +77,6 @@ import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_QUERY_TIMEOUT
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNNAME;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNTYPE;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_START_LOCATION;
-import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
  * @author tiezhu
@@ -97,7 +94,6 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         final ReadableConfig options = helper.getOptions();
 
         helper.validate();
-        validateConfigurations(options);
 
         TableSchema tableSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
@@ -115,7 +111,6 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         final ReadableConfig options = helper.getOptions();
 
         helper.validate();
-        validateConfigurations(options);
 
         TableSchema tableSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
@@ -124,27 +119,6 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         KuduLookupConf kuduLookupConf = KuduLookupConf.from(options);
 
         return new KuduDynamicTableSource(kuduSourceConf, kuduLookupConf, tableSchema);
-    }
-
-    /**
-     * Verify some necessary parameters of Kudu config.
-     *
-     * @param config kudu config
-     */
-    private void validateConfigurations(ReadableConfig config) {
-        String master = config.get(MASTER_ADDRESS);
-        checkNotNull(master, "Kudu Master Address can not be empty.");
-
-        String tableName = config.get(TABLE_NAME);
-        checkNotNull(tableName, "Kudu Table Name can not be empty.");
-
-        Integer parallelism = config.get(SCAN_PARALLELISM);
-        if (parallelism < 0) {
-            throw new IllegalArgumentException(
-                    String.format(
-                            "The value of '%s' option shouldn't be negative, but is %s.",
-                            SCAN_PARALLELISM.key(), parallelism));
-        }
     }
 
     @Override
