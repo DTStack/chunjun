@@ -196,7 +196,7 @@ public class LogMinerListener implements Runnable {
         }
     }
 
-    private void processData(QueueData log) throws JSQLParserException {
+    private void processData(QueueData log) throws Exception {
         LinkedList<RowData> rowDatalist = logParser.parse(log, logMinerConnection.isOracle10, rowConverter);
         RowData rowData;
         try {

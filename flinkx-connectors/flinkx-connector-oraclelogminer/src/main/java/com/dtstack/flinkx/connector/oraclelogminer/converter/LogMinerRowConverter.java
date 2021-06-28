@@ -63,7 +63,7 @@ public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, Logi
     }
 
     @Override
-    public LinkedList<RowData> toInternal(EventRow eventRow) {
+    public LinkedList<RowData> toInternal(EventRow eventRow) throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
 
         String eventType = eventRow.getType();

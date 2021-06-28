@@ -150,7 +150,7 @@ public class LogParser {
         });
     }
 
-    public LinkedList<RowData> parse(QueueData pair, boolean isOracle10, AbstractCDCRowConverter rowConverter) throws JSQLParserException {
+    public LinkedList<RowData> parse(QueueData pair, boolean isOracle10, AbstractCDCRowConverter rowConverter) throws Exception {
         ColumnRowData logData = (ColumnRowData) pair.getData();
 
         String schema = logData.getField("schema").asString();
