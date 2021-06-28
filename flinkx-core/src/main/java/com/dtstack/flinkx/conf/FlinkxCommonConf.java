@@ -54,10 +54,13 @@ public class FlinkxCommonConf implements Serializable {
     /** Time when the timer is regularly written to the database */
     private long flushIntervalMills = 10000L;
 
+    /** metrics plugin root */
     private String metricPluginRoot;
 
+    /** metrics plugin name */
     private String metricPluginName;
 
+    /** metrics plugin properties */
     private Map<String,Object> metricProps;
 
     public String getMetricPluginRoot() {
@@ -186,6 +189,9 @@ public class FlinkxCommonConf implements Serializable {
                 ", column=" + column +
                 ", batchSize=" + batchSize +
                 ", flushIntervalMills=" + flushIntervalMills +
+                ", metricPluginRoot='" + metricPluginRoot + '\'' +
+                ", metricPluginName='" + metricPluginName + '\'' +
+                ", metricProps=" + metricProps +
                 '}';
     }
 }

@@ -58,8 +58,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author shifang
- * @date 2021/06/25
+ * @author: shifang
+ * @description promtheus report
+ * @date: 2021/6/28 下午5:09
  */
 public class CustomPromtheusReport extends CustomReporter {
 
@@ -95,6 +96,9 @@ public class CustomPromtheusReport extends CustomReporter {
         initConfiguration();
     }
 
+    /**
+     * init configuration
+     */
     private void initConfiguration() {
         try {
             Class<StreamingRuntimeContext> contextClazz = (Class<StreamingRuntimeContext>) context.getClass();

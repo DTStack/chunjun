@@ -37,7 +37,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * @author: shifang
+ * @description rdb report
+ * @date: 2021/6/28 下午5:09
+ */
 public abstract class CustomRdbReporter extends CustomReporter {
 
 
@@ -48,15 +52,20 @@ public abstract class CustomRdbReporter extends CustomReporter {
     protected transient Connection dbConn;
 
 
-    private List<String> fields = Arrays.asList("job_id","job_name","task_id","task_name","subtask_index");
+    private List<String> fields = Arrays.asList("job_id", "job_name", "task_id", "task_name", "subtask_index");
 
-    private static List<String> columns = Arrays.asList("jobId","jobName","taskId","taskName","taskIndex","metricName","value");;
+    private static List<String> columns = Arrays.asList("jobId",
+            "jobName",
+            "taskId",
+            "taskName",
+            "taskIndex",
+            "metricName",
+            "value");
 
 
     private Map<String, List<String>> metricDimensionValues = Maps.newConcurrentMap();
 
     private Map<String, Accumulator> accumulatorMap = Maps.newConcurrentMap();
-
 
     public CustomRdbReporter(MetricParam metricParam) {
         super(metricParam);
@@ -97,6 +106,9 @@ public abstract class CustomRdbReporter extends CustomReporter {
         metricDimensionValues.putIfAbsent(name, singleValues);
     }
 
+    /**
+     * create metric table
+     */
     public abstract void createTableIfNotExist();
 
     public void report() {

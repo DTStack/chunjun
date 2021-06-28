@@ -21,6 +21,11 @@ package com.dtstack.flinkx.metrics.mysql;
 import com.dtstack.flinkx.conf.MetricParam;
 import com.dtstack.flinkx.metrics.rdb.CustomRdbReporter;
 
+/**
+ * @author: shifang
+ * @description mysql report
+ * @date: 2021/6/28 下午5:09
+ */
 public class CustomMysqlReport extends CustomRdbReporter {
 
     public CustomMysqlReport(MetricParam metricParam) {

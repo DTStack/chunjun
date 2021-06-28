@@ -22,6 +22,7 @@ import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.MetricParam;
 import com.dtstack.flinkx.metrics.CustomReporter;
 
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.lang.StringUtils;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -88,7 +89,7 @@ public class DataSyncFactoryUtil {
                         return (CustomReporter) constructor.newInstance(metricParam);
                     });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new FlinkxRuntimeException(e);
         }
     }
 

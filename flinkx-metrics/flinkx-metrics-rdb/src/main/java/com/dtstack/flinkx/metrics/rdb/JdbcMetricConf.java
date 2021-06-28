@@ -20,6 +20,11 @@ package com.dtstack.flinkx.metrics.rdb;
 import java.io.Serializable;
 import java.util.Map;
 
+/**
+ * @author: shifang
+ * @description jdbc metric conf
+ * @date: 2021/6/28 下午5:09
+ */
 public class JdbcMetricConf implements Serializable {
 
     protected static final long serialVersionUID = 1L;
@@ -92,5 +97,18 @@ public class JdbcMetricConf implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return "JdbcMetricConf{" +
+                "jdbcUrl='" + jdbcUrl + '\'' +
+                ", database='" + database + '\'' +
+                ", schema='" + schema + '\'' +
+                ", table='" + table + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", properties=" + properties +
+                '}';
     }
 }

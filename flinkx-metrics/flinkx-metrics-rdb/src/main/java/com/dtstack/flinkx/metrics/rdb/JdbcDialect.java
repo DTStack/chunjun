@@ -30,7 +30,11 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-/** Handle the SQL dialect of jdbc driver. */
+/**
+ * @author: shifang
+ * @description jdbc dialect interface
+ * @date: 2021/6/28 下午5:09
+ */
 public interface JdbcDialect extends Serializable {
 
     /**
