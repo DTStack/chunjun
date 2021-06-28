@@ -53,15 +53,15 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
                 case UPDATE_AFTER:
                     docWriteRequest = processUpsert(rowData);
                     if (docWriteRequest instanceof IndexRequest) {
-                        client.index((IndexRequest) docWriteRequest);
+                        client.index((IndexRequest) docWriteRequest).actionGet(elasticsearchConf.getActionTimeout());
                     } else {
-                        client.update((UpdateRequest) docWriteRequest);
+                        client.update((UpdateRequest) docWriteRequest).actionGet(elasticsearchConf.getActionTimeout());
                     }
                     break;
                 case DELETE:
                 case UPDATE_BEFORE:
                     docWriteRequest = processDelete(rowData);
-                    client.delete((DeleteRequest) docWriteRequest);
+                    client.delete((DeleteRequest) docWriteRequest).actionGet(elasticsearchConf.getActionTimeout());
                     break;
                 default:
                     throw new RuntimeException("Unsupported row kind.");
@@ -93,7 +93,7 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
             }
 
         }
-        BulkResponse response = client.bulk(bulkRequest).actionGet();
+        BulkResponse response = client.bulk(bulkRequest).actionGet(elasticsearchConf.getActionTimeout());
         if (response.hasFailures()) {
             processFailResponse(response);
         }

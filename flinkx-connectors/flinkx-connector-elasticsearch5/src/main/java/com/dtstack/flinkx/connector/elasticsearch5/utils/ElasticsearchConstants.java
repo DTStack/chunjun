@@ -39,13 +39,8 @@ public interface ElasticsearchConstants {
     /**
      * es default port
      */
-    Integer ES_DEFAULT_PORT = 9200;
+    Integer ES_DEFAULT_PORT = 9300;
 
-    /**
-     * doc id values split
-     */
-    String DEFAULT_DOC_ID_VALUE_SPLIT = "_";
-
-    String IDENTIFIER = "elasticsearch7-x";
+    String IDENTIFIER = "elasticsearch5-x";
 
 }

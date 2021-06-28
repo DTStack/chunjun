@@ -42,11 +42,11 @@ public class Elasticsearch5SourceFactory extends SourceFactory {
 
     private final ElasticsearchConf elasticsearchConf;
 
-    protected Elasticsearch5SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public Elasticsearch5SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         elasticsearchConf =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()), ElasticsearchConf.class);
+                        JsonUtil.toJson(syncConf.getReader().getParameter()), ElasticsearchConf.class);
         elasticsearchConf.setColumn(syncConf.getReader().getFieldList());
         super.initFlinkxCommonConf(elasticsearchConf);
         elasticsearchConf.setParallelism(1);
@@ -55,11 +55,12 @@ public class Elasticsearch5SourceFactory extends SourceFactory {
     @Override
     public DataStream<RowData> createSource() {
         ElasticsearchInputFormatBuilder builder = new ElasticsearchInputFormatBuilder();
+
         builder.setEsConf(elasticsearchConf);
         final RowType rowType = TableUtil.createRowType(
                 elasticsearchConf.getColumn(),
                 getRawTypeConverter());
-        builder.setRowConverter(new ElasticsearchColumnConverter(elasticsearchConf, rowType));
+        builder.setRowConverter(new ElasticsearchColumnConverter(rowType));
         return createInput(builder.finish());
     }
 

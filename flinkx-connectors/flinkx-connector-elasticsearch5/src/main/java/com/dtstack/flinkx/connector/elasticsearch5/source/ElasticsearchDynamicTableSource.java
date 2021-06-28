@@ -84,42 +84,6 @@ public class ElasticsearchDynamicTableSource implements ScanTableSource,Supports
                 1);
     }
 
-   /* @Override
-    public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
-        String[] keyNames = new String[context.getKeys().length];
-        for (int i = 0; i < keyNames.length; i++) {
-            int[] innerKeyArr = context.getKeys()[i];
-            Preconditions.checkArgument(
-                    innerKeyArr.length == 1, "elasticsearch only support non-nested look up keys");
-            keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
-        }
-
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return ParallelAsyncTableFunctionProvider.of(
-                    new ElasticsearchLruTableFunction(
-                            elasticsearchConf,
-                            lookupConf,
-                            physicalSchema.getFieldNames(),
-                            keyNames,
-                            new ElasticsearchRowConverter(rowType)
-                    ),
-                    lookupConf.getParallelism()
-            );
-        }
-
-        return ParallelTableFunctionProvider.of(
-                new ElasticsearchAllTableFunction(
-                        elasticsearchConf,
-                        lookupConf,
-                        physicalSchema.getFieldNames(),
-                        keyNames,
-                        new ElasticsearchRowConverter(rowType)
-                ),
-                lookupConf.getParallelism()
-        );
-    }*/
-
     @Override
     public boolean supportsNestedProjection() {
         return false;

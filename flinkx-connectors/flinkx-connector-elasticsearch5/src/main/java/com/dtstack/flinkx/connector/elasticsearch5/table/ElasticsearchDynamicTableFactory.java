@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.dtstack.flinkx.connector.elasticsearch5.options.DtElasticsearchOptions.ACTION_TIMEOUT_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch5.options.DtElasticsearchOptions.CLUSTER_OPTION;
 import static com.dtstack.flinkx.connector.elasticsearch5.utils.ElasticsearchConstants.IDENTIFIER;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
@@ -58,9 +60,10 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory{
 
     private static final Set<ConfigOption<?>> requiredOptions =
-            Stream.of(HOSTS_OPTION, INDEX_OPTION, DOCUMENT_TYPE_OPTION).collect(Collectors.toSet());
+            Stream.of(HOSTS_OPTION, INDEX_OPTION, DOCUMENT_TYPE_OPTION, CLUSTER_OPTION).collect(Collectors.toSet());
     private static final Set<ConfigOption<?>> optionalOptions =
             Stream.of(
+                    ACTION_TIMEOUT_OPTION,
                     KEY_DELIMITER_OPTION,
                     FAILURE_HANDLER_OPTION,
                     FLUSH_ON_CHECKPOINT_OPTION,
@@ -145,6 +148,8 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
         elasticsearchConf.setIndex(readableConfig.get(INDEX_OPTION));
         elasticsearchConf.setType(readableConfig.get(DOCUMENT_TYPE_OPTION));
         elasticsearchConf.setKeyDelimiter(readableConfig.get(KEY_DELIMITER_OPTION));
+        elasticsearchConf.setCluster(readableConfig.get(CLUSTER_OPTION));
+        elasticsearchConf.setActionTimeout(readableConfig.get(ACTION_TIMEOUT_OPTION));
         String username = readableConfig.get(USERNAME_OPTION);
         String password = readableConfig.get(PASSWORD_OPTION);
         if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {

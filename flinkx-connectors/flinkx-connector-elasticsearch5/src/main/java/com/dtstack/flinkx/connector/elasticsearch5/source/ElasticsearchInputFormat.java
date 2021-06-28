@@ -20,6 +20,8 @@ package com.dtstack.flinkx.connector.elasticsearch5.source;
 
 import com.dtstack.flinkx.connector.elasticsearch5.utils.ElasticsearchRequestHelper;
 
+import com.dtstack.flinkx.connector.elasticsearch5.utils.ElasticsearchUtil;
+
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
@@ -46,6 +48,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @description:
@@ -63,9 +66,6 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
      * Elasticsearch High Level Client
      */
     private transient TransportClient client;
-
-
-    protected int batchSize = 10;
 
     protected String query;
 
@@ -94,7 +94,7 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
         GenericInputSplit genericInputSplit = (GenericInputSplit)inputSplit;
 
-//        rhlClient = ElasticsearchUtil.createClient(elasticsearchConf);
+        client = ElasticsearchUtil.createClient(elasticsearchConf);
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -136,20 +136,21 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
         }
     }
 
-    private void clearScroll() throws IOException{
+    private void clearScroll() {
         if(scrollId == null){
             return;
         }
 
         ClearScrollRequest clearScrollRequest = new ClearScrollRequest();
         clearScrollRequest.addScrollId(scrollId);
-        ClearScrollResponse clearScrollResponse = client.clearScroll(clearScrollRequest).actionGet();
+        ClearScrollResponse clearScrollResponse = client.clearScroll(clearScrollRequest)
+                .actionGet(elasticsearchConf.getActionTimeout());
         boolean succeeded = clearScrollResponse.isSucceeded();
         LOG.info("Clear scroll response:{}", succeeded);
     }
 
     @Override
-    public boolean reachedEnd() throws IOException {
+    public boolean reachedEnd() {
         if(iterator != null && iterator.hasNext()) {
             return false;
         } else {
@@ -157,16 +158,19 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
         }
     }
 
-    private boolean searchScroll() throws IOException {
+    private boolean searchScroll() {
         SearchHit[] searchHits;
+
         if(scrollId == null){
-            SearchResponse searchResponse = client.search(searchRequest).actionGet();
+            SearchResponse searchResponse = client.search(searchRequest).
+                    actionGet(elasticsearchConf.getActionTimeout());
             scrollId = searchResponse.getScrollId();
             searchHits = searchResponse.getHits().getHits();
         } else {
             SearchScrollRequest scrollRequest = new SearchScrollRequest(scrollId);
             scrollRequest.scroll(scroll);
-            SearchResponse searchResponse = client.searchScroll(scrollRequest).actionGet();
+            SearchResponse searchResponse = client.searchScroll(scrollRequest)
+                    .actionGet(elasticsearchConf.getActionTimeout());
             scrollId = searchResponse.getScrollId();
             searchHits = searchResponse.getHits().getHits();
         }
@@ -176,8 +180,8 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
             Map<String,Object> source = searchHit.sourceAsMap();
             resultList.add(source);
         }
-
         iterator = resultList.iterator();
+
         return !iterator.hasNext();
     }
 

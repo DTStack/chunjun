@@ -25,16 +25,17 @@ public class ElasticsearchOutputFormatBuilder extends BaseRichOutputFormatBuilde
     @Override
     protected void checkFormat() {
         ElasticsearchConf esConf = format.getElasticsearchConf();
-        Preconditions.checkNotNull(esConf.getHosts(), "elasticsearch6 type of address is required");
-        Preconditions.checkNotNull(esConf.getIndex(), "elasticsearch6 type of index is required");
-        Preconditions.checkNotNull(esConf.getType(), "elasticsearch6 type of type is required");
+        Preconditions.checkNotNull(esConf.getHosts(), "elasticsearch5 type of address is required");
+        Preconditions.checkNotNull(esConf.getIndex(), "elasticsearch5 type of index is required");
+        Preconditions.checkNotNull(esConf.getType(), "elasticsearch5 type of type is required");
+        Preconditions.checkNotNull(esConf.getCluster(), "elasticsearch5 type of cluster is required");
 
         /**
          * is open basic auth
          */
         if (esConf.isAuthMesh()) {
-            Preconditions.checkNotNull(esConf.getUserName(), "elasticsearch6 type of userName is required");
-            Preconditions.checkNotNull(esConf.getPassword(), "elasticsearch6 type of password is required");
+            Preconditions.checkNotNull(esConf.getUserName(), "elasticsearch5 type of userName is required");
+            Preconditions.checkNotNull(esConf.getPassword(), "elasticsearch5 type of password is required");
         }
     }
 

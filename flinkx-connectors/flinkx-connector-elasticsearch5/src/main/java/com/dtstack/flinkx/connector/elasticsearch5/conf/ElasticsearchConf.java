@@ -33,7 +33,7 @@ public class ElasticsearchConf extends FlinkxCommonConf {
 
     /**
      * elasticsearch address -> ip:port
-     * localhost:9200
+     * localhost:9300
      */
     private List<String> hosts;
 
@@ -53,6 +53,11 @@ public class ElasticsearchConf extends FlinkxCommonConf {
     private List<String> ids;
 
     /**
+     * cluster name for connector es.
+     */
+    private String cluster;
+
+    /**
      * is open basic auth.
      */
     private boolean authMesh = false;
@@ -67,6 +72,14 @@ public class ElasticsearchConf extends FlinkxCommonConf {
      */
     private String password;
 
+    /**
+     * action timeout
+     */
+    private Integer actionTimeout = 2000;
+
+    /**
+     * key delimiter
+     */
     private String keyDelimiter;
 
     public List<String> getHosts() {
@@ -91,6 +104,22 @@ public class ElasticsearchConf extends FlinkxCommonConf {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Integer getActionTimeout() {
+        return actionTimeout;
+    }
+
+    public void setActionTimeout(Integer actionTimeout) {
+        this.actionTimeout = actionTimeout;
+    }
+
+    public String getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(String cluster) {
+        this.cluster = cluster;
     }
 
     public List<String> getIds() {

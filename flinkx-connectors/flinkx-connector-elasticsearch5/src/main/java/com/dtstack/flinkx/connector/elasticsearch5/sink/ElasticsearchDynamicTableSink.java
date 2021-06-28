@@ -42,7 +42,7 @@ public class ElasticsearchDynamicTableSink implements DynamicTableSink {
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
         ElasticsearchOutputFormatBuilder builder = new ElasticsearchOutputFormatBuilder();
-        builder.setRowConverter(new ElasticsearchRowConverter(rowType));
+        builder.setConverter(new ElasticsearchRowConverter(rowType));
         builder.setEsConf(elasticsearchConf);
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()),

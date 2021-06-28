@@ -27,6 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+
+import org.slf4j.LoggerFactory;
+
 import scala.Tuple3;
 
 /**
@@ -36,7 +40,10 @@ import scala.Tuple3;
  * @create: 2021/06/27 23:48
  */
 public class ElasticsearchRowConverter extends AbstractRowConverter<Map<String, Object>, Map<String, Object>, Map<String, Object>, LogicalType> {
-    private List<Tuple3<String, Integer, LogicalType>> typeIndexList = new ArrayList<>();
+    private static final long serialVersionUID = 2L;
+
+    private Logger LOG = LoggerFactory.getLogger(ElasticsearchRowConverter.class);
+    private List<Tuple3<String,Integer, LogicalType>> typeIndexList = new ArrayList<>();
 
     public ElasticsearchRowConverter(RowType rowType) {
         super(rowType);
@@ -76,16 +83,16 @@ public class ElasticsearchRowConverter extends AbstractRowConverter<Map<String, 
 
     @Override
     public RowData toInternalLookup(Map<String, Object> input) throws Exception {
-        return genericRowData(input);
+        return null;
     }
 
     private GenericRowData genericRowData(Map<String, Object> input) throws Exception {
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (String key : input.keySet()) {
-            List<Tuple3<String, Integer, LogicalType>> collect = typeIndexList.stream()
+            List<Tuple3<String,Integer, LogicalType>> collect = typeIndexList.stream()
                     .filter(x -> x._1().equals(key))
                     .collect(Collectors.toList());
-            Tuple3<String, Integer, LogicalType> typeTuple = collect.get(0);
+            Tuple3<String,Integer, LogicalType> typeTuple =  collect.get(0);
             genericRowData.setField(
                     typeTuple._2(),
                     toInternalConverters[typeTuple._2()].deserialize(input.get(key))
@@ -151,23 +158,41 @@ public class ElasticsearchRowConverter extends AbstractRowConverter<Map<String, 
                         val.getBoolean(index)
                 );
             case DATE:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        Date.valueOf(LocalDate.ofEpochDay(val.getInt(index))).toString()
-                );
+                return (val, index, output) -> {
+                    output.put(
+                            typeIndexList.get(index)._1(),
+                            Date.valueOf(LocalDate.ofEpochDay(val.getInt(index))).toString());
+                };
             case TIME_WITHOUT_TIME_ZONE:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        Time.valueOf(
-                                LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L)).toString()
-                );
+                return (val, index, output) -> {
+                    try {
+                        String result = Time.valueOf(
+                                LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L)).toString();
+                        output.put(
+                                typeIndexList.get(index)._1(),
+                                result
+                        );
+                    } catch (Exception e) {
+                        LOG.error("converter error. Value: {}, Type: {}", val, type.getTypeRoot());
+                        throw new RuntimeException("Converter error.",e);
+                    }
+                };
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                final int timestampPrecision = ((TimestampType) type).getPrecision();
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getTimestamp(index, timestampPrecision).toTimestamp().toString()
-                );
+                return (val, index, output) -> {
+                    String result;
+                    try {
+                        final int timestampPrecision = ((TimestampType) type).getPrecision();
+                        result = val.getTimestamp(index, timestampPrecision).toTimestamp().toString();
+                        output.put(
+                                typeIndexList.get(index)._1(),
+                                result
+                        );
+                    } catch (Exception e) {
+                        LOG.error("converter error. Value: {}, Type: {}", val, type.getTypeRoot());
+                        throw new RuntimeException("Converter error.",e);
+                    }
+                };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
@@ -175,6 +200,7 @@ public class ElasticsearchRowConverter extends AbstractRowConverter<Map<String, 
 
     @Override
     protected IDeserializationConverter createInternalConverter(LogicalType type) {
+
         switch (type.getTypeRoot()) {
             case NULL:
                 return val -> null;
@@ -235,5 +261,6 @@ public class ElasticsearchRowConverter extends AbstractRowConverter<Map<String, 
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
+
     }
 }

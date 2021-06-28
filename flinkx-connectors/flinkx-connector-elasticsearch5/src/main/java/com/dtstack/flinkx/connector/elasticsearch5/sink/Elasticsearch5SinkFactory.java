@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.elasticsearch5.sink;
 
+import com.dtstack.flinkx.connector.elasticsearch5.converter.ElasticsearchRawTypeConverter;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
@@ -46,9 +48,9 @@ public class Elasticsearch5SinkFactory extends SinkFactory {
         elasticsearchConf =
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getWriter().getParameter()), ElasticsearchConf.class);
-        elasticsearchConf.setColumn(syncConf.getReader().getFieldList());
+        elasticsearchConf.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(elasticsearchConf);
-//        elasticsearchConf.setParallelism(1);
+        elasticsearchConf.setParallelism(1);
     }
 
     @Override
@@ -58,13 +60,13 @@ public class Elasticsearch5SinkFactory extends SinkFactory {
         final RowType rowType = TableUtil.createRowType(
                 elasticsearchConf.getColumn(),
                 getRawTypeConverter());
-        builder.setRowConverter(new ElasticsearchColumnConverter(elasticsearchConf, rowType));
+        builder.setConverter(new ElasticsearchColumnConverter(rowType));
         return createOutput(dataSet, builder.finish());
     }
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return null;
+        return ElasticsearchRawTypeConverter::apply;
     }
 
 

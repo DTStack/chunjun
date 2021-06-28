@@ -1,20 +1,17 @@
 package com.dtstack.flinkx.connector.elasticsearch5.utils;
 
-import com.dtstack.flinkx.connector.elasticsearch5.conf.ElasticsearchConf;
-
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.streaming.connectors.elasticsearch.util.ElasticsearchUtils;
 import org.apache.flink.table.api.ValidationException;
-
-import com.google.common.base.Preconditions;
-
 import org.apache.flink.util.IOUtils;
 
+import com.dtstack.flinkx.connector.elasticsearch5.conf.ElasticsearchConf;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.network.NetworkModule;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.transport.Netty3Plugin;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.slf4j.Logger;
@@ -22,15 +19,14 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.dtstack.flinkx.connector.elasticsearch5.utils.ElasticsearchConstants.ES_DEFAULT_PORT;
-import static com.dtstack.flinkx.connector.elasticsearch5.utils.ElasticsearchConstants.ES_DEFAULT_SCHEMA;
-import static com.dtstack.flinkx.connector.elasticsearch5.utils.ElasticsearchConstants.SEPARATOR;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
 
 /**
@@ -44,7 +40,36 @@ public class ElasticsearchUtil {
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchUtil.class);
 
     public static TransportClient createClient(ElasticsearchConf elasticsearchConf) {
-        Settings settings = Settings.builder().put(elasticsearchConf)
+
+        Map<String, Object> mapSetting = new HashMap<>();
+        mapSetting.put("cluster.name", elasticsearchConf.getCluster());
+
+        List<InetSocketAddress> transports = new ArrayList<>();
+        for (String address: elasticsearchConf.getHosts()) {
+            String[] infoArray = StringUtils.split(address, ":");
+            String host = infoArray[0];
+            int port = ES_DEFAULT_PORT;
+            if (infoArray.length > 1) {
+                port = Integer.valueOf(infoArray[1].trim());
+            }
+            try {
+                transports.add( new InetSocketAddress(InetAddress.getByName(host), port));
+            } catch (UnknownHostException e) {
+                LOG.error("", e);
+                throw new RuntimeException(e);
+            }
+        }
+
+        boolean authMesh = elasticsearchConf.isAuthMesh();
+        if (authMesh) {
+            String authPassword = elasticsearchConf.getUserName() + ":" + elasticsearchConf.getPassword();
+            mapSetting.put("xpack.security.user", authPassword);
+        }
+
+        Settings settings = Settings.builder().put(mapSetting)
+//        https://stackoverflow.com/questions/43585724/elasticsearch-transport-client-caused-by-java-lang-nosuchmethoderror-io-netty
+                .put(NetworkModule.HTTP_TYPE_KEY, Netty3Plugin.NETTY_HTTP_TRANSPORT_NAME)
+                .put(NetworkModule.TRANSPORT_TYPE_KEY, Netty3Plugin.NETTY_TRANSPORT_NAME)
                 .build();
 
         TransportClient transportClient;
@@ -53,17 +78,15 @@ public class ElasticsearchUtil {
         }else {
             transportClient = new PreBuiltTransportClient(settings);
         }
-        List<InetSocketAddress> hosts = parseAddress(elasticsearchConf.getHosts());
-        for (TransportAddress transport : ElasticsearchUtils.convertInetSocketAddresses(hosts)) {
+
+        for (TransportAddress transport : ElasticsearchUtils.convertInetSocketAddresses(transports)) {
             transportClient.addTransportAddress(transport);
         }
 
         // verify that we actually are connected to a cluster
         if (transportClient.connectedNodes().isEmpty()) {
-
             // close the transportClient here
             IOUtils.closeQuietly(transportClient);
-
             throw new RuntimeException("Elasticsearch client is not connected to any Elasticsearch nodes!");
         }
 
