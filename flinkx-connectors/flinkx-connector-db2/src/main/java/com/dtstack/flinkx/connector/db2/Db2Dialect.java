@@ -17,8 +17,16 @@
  */
 package com.dtstack.flinkx.connector.db2;
 
+import com.dtstack.flinkx.connector.db2.converter.Db2RowConverter;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import io.vertx.core.json.JsonArray;
 
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
+import java.sql.ResultSet;
 import java.util.Optional;
 
 /**
@@ -50,6 +58,11 @@ public class Db2Dialect implements JdbcDialect {
     @Override
     public String quoteIdentifier(String identifier) {
         return identifier;
+    }
+
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(RowType rowType) {
+        return new Db2RowConverter(rowType);
     }
 
 }
