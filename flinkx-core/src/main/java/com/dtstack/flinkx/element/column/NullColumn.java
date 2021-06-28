@@ -18,69 +18,55 @@
 package com.dtstack.flinkx.element.column;
 
 import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
 
 /**
- * Date: 2021/04/27
+ * Date: 2021/04/26
  * Company: www.dtstack.com
  *
  * @author tudou
  */
-public class TimestampColumn extends AbstractBaseColumn {
+public class NullColumn extends AbstractBaseColumn {
 
-    public TimestampColumn(Timestamp data) {
-        super(data);
-    }
-
-    public TimestampColumn(long data) {
-        super(new Timestamp(data));
-    }
-
-    public TimestampColumn(Date data) {
-        super(new Timestamp(data.getTime()));
-    }
-
-    @Override
-    public Boolean asBoolean() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Timestamp", "Boolean", this.asString());
-    }
-
-    @Override
-    public byte[] asBytes() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Timestamp", "Bytes", this.asString());
+    public NullColumn() {
+        super(null);
     }
 
     @Override
     public String asString() {
-        if (null == data) {
-            return null;
-        }
-        return data.toString();
+        return null;
+    }
+
+    @Override
+    public Date asDate() {
+        return null;
+    }
+
+    @Override
+    public byte[] asBytes() {
+        return null;
+    }
+
+    @Override
+    public Boolean asBoolean() {
+        return null;
     }
 
     @Override
     public BigDecimal asBigDecimal() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Timestamp", "BigDecimal", this.asString());
+        return null;
+    }
+
+    @Override
+    public Double asDouble() {
+        return null;
     }
 
     @Override
     public Timestamp asTimestamp() {
-        if (null == data) {
-            return null;
-        }
-        return (Timestamp) data;
+        return null;
     }
 }

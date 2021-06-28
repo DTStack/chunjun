@@ -28,6 +28,7 @@
 		<module>flinkx-connector-oracle</module>
 		<module>flinkx-connector-greenplum</module>
 		<module>flinkx-connector-hdfs</module>
+		<module>flinkx-connector-hive</module>
 		<module>flinkx-connector-redis</module>
 
 		<!--CDC-->

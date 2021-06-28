@@ -62,7 +62,7 @@ public class HdfsRawTypeConverter {
                 if(rightStr != null){
                     String[] split = rightStr.split(ConstantValue.COMMA_SYMBOL);
                     if(split.length == 2){
-                        return DataTypes.DECIMAL(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+                        return DataTypes.DECIMAL(Integer.parseInt(split[0].trim()), Integer.parseInt(split[1].trim()));
                     }
                 }
                 return DataTypes.DECIMAL(38, 18);
@@ -76,7 +76,7 @@ public class HdfsRawTypeConverter {
                 if(rightStr != null){
                     String[] split = rightStr.split(ConstantValue.COMMA_SYMBOL);
                     if(split.length == 1){
-                        return DataTypes.TIMESTAMP(Integer.parseInt(split[0]));
+                        return DataTypes.TIMESTAMP(Integer.parseInt(split[0].trim()));
                     }
                 }
                 return DataTypes.TIMESTAMP(6);
