@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.connector.db2.converter;
 
-import com.dtstack.flinkx.element.column.BigDecimalColumn;
 
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;

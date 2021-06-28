@@ -7,69 +7,69 @@
             "parameter": {
               "column": [
                 {
-                  "name": "id",
+                  "name": "ID",
                   "type": "int"
                 },
                 {
-                  "name": "name",
+                  "name": "NAME",
                   "type": "string"
                 },
                 {
-                  "name": "money",
+                  "name": "MONEY",
                   "type": "decimal"
                 },
                 {
-                  "name": "datethree",
+                  "name": "DATETHREE",
                   "type": "timestamp"
                 },
                 {
-                  "name": "datesix",
+                  "name": "DATESIX",
                   "type": "timestamp"
                 },
                 {
-                  "name": "phone",
+                  "name": "PHONE",
                   "type": "bigint"
                 },{
-                  "name": "wechat",
+                  "name": "WECHAT",
                   "type": "varchar"
                 },{
-                  "name": "income",
+                  "name": "INCOME",
                   "type": "decimal"
                 },{
-                  "name": "birthday",
+                  "name": "BIRTHDAY",
                   "type": "timestamp"
                 },{
-                  "name": "dtdate",
+                  "name": "DTDATE",
                   "type": "date"
                 },{
-                  "name": "dttime",
+                  "name": "DTTIME",
                   "type": "time"
                 },{
-                  "name": "today",
+                  "name": "TODAY",
                   "type": "date"
                 },{
-                  "name": "timecurrent",
+                  "name": "TIMECURRENT",
                   "type": "time"
                 },{
-                  "name": "dateone",
+                  "name": "DATEONE",
                   "type": "timestamp"
                 },{
-                  "name": "aboolean",
+                  "name": "ABOOLEAN",
                   "type": "smallint"
                 },{
-                  "name": "adouble",
+                  "name": "ADOUBLE",
                   "type": "double"
                 },{
-                  "name": "afloat",
-                  "type": "float"
+                  "name": "AFLOAT",
+                  "type": "decimal"
                 },{
-                  "name": "achar",
+                  "name": "ACHAR",
                   "type": "char"
                 },{
-                  "name": "abinary",
+                  "name": "ABINARY",
                   "type": "blob"
                 },{
-                  "name": "atinyint",
+                  "name": "ATINYINT",
                   "type": "smallint"
                 }
               ],
@@ -78,10 +78,10 @@
               "connection": [
                 {
                   "jdbcUrl": [
-                    "jdbc:db2://172.16.101.246:50002/DT_TEST"
+                    "jdbc:db2://localtest:50002/DT_TEST"
                   ],
                   "table": [
-                    "sync_source"
+                    "SYNC_SOURCE"
                   ]
                 }
               ]
@@ -94,78 +94,78 @@
               "password": "dtstack1",
               "connection": [
                 {
-                  "jdbcUrl": "jdbc:db2://172.16.101.246:50002/DT_TEST",
+                  "jdbcUrl": "jdbc:db2://localtest:50002/DT_TEST",
                   "table": [
-                    "sync_sink"
+                    "SYNC_SINK"
                   ]
                 }
               ],
               "writeMode": "insert",
               "column": [
                 {
-                  "name": "id",
+                  "name": "ID",
                   "type": "int"
                 },
                 {
-                  "name": "name",
+                  "name": "NAME",
                   "type": "string"
                 },
                 {
-                  "name": "money",
+                  "name": "MONEY",
                   "type": "decimal"
                 },
                 {
-                  "name": "datethree",
+                  "name": "DATETHREE",
                   "type": "timestamp"
                 },
                 {
-                  "name": "datesix",
+                  "name": "DATESIX",
                   "type": "timestamp"
                 },
                 {
-                  "name": "phone",
+                  "name": "PHONE",
                   "type": "bigint"
                 },{
-                  "name": "wechat",
+                  "name": "WECHAT",
                   "type": "varchar"
                 },{
-                  "name": "income",
+                  "name": "INCOME",
                   "type": "decimal"
                 },{
-                  "name": "birthday",
+                  "name": "BIRTHDAY",
                   "type": "timestamp"
                 },{
-                  "name": "dtdate",
+                  "name": "DTDATE",
                   "type": "date"
                 },{
-                  "name": "dttime",
+                  "name": "DTTIME",
                   "type": "time"
                 },{
-                  "name": "today",
+                  "name": "TODAY",
                   "type": "date"
                 },{
-                  "name": "timecurrent",
+                  "name": "TIMECURRENT",
                   "type": "time"
                 },{
-                  "name": "dateone",
+                  "name": "DATEONE",
                   "type": "timestamp"
                 },{
-                  "name": "aboolean",
+                  "name": "ABOOLEAN",
                   "type": "smallint"
                 },{
-                  "name": "adouble",
+                  "name": "ADOUBLE",
                   "type": "double"
                 },{
-                  "name": "afloat",
+                  "name": "AFLOAT",
                   "type": "float"
                 },{
-                  "name": "achar",
+                  "name": "ACHAR",
                   "type": "char"
                 },{
-                  "name": "abinary",
+                  "name": "ABINARY",
                   "type": "blob"
                 },{
-                  "name": "atinyint",
+                  "name": "ATINYINT",
                   "type": "smallint"
                 }
               ]

@@ -24,61 +24,37 @@ CREATE TABLE source
 
 CREATE TABLE side
 (
-    id          int,
-    name        varchar,
-    money       decimal,
-    dateone     timestamp,
-    age         bigint,
-    datethree   timestamp,
-    datesix     timestamp,
-    phone       bigint,
-    wechat      varchar,
-    income      decimal,
-    birthday    timestamp,
-    dtdate      date,
-    dttime      time,
-    today       date,
-    timecurrent time,
-    aboolean    smallint ,
-    adouble     double,
-    afloat      decimal,
-    achar       char,
-    abinary     BYTES,
-    atinyint    smallint
+    ID          int,
+    NAME        varchar,
+    MONEY       decimal,
+    DATEONE     timestamp,
+    AGE         bigint,
+    DATETHREE   timestamp,
+    DATESIX     timestamp,
+    PHONE       bigint,
+    WECHAT      varchar,
+    INCOME      decimal,
+    BIRTHDAY    timestamp,
+    DTDATE      date,
+    DTTIME      time,
+    TODAY       date,
+    TIMECURRENT time,
+    ABOOLEAN    smallint ,
+    ADOUBLE     double,
+    AFLOAT      decimal,
+    ACHAR       char,
+    ABINARY     BYTES,
+    ATINYINT    smallint
 ) WITH (
       'connector' = 'db2-x',
-      'url' = 'jdbc:db2://172.16.101.246:50002/DT_TEST',
-      'table-name' = 'flink_dim',
+      'url' = 'jdbc:db2://localtest:50002/DT_TEST',
+      'table-name' = 'FLINK_DIM',
       'username' = 'db2inst1',
       'password' = 'dtstack1',
 	  'scan.parallelism' = '2',
-	  'scan.partition.column' = 'id'
+	  'scan.partition.column' = 'ID'
       );
 
-
--- CREATE TABLE `flink_type` (
---                               `id` int(11) DEFAULT NULL,
---                               `name` varchar(255) DEFAULT NULL,
---                               `money` decimal(9,6) DEFAULT NULL,
---                               `age` bigint(20) DEFAULT NULL,
---                               `datethree` timestamp NULL DEFAULT NULL,
---                               `datesix` timestamp NULL DEFAULT NULL,
---                               `phone` bigint(20) DEFAULT NULL,
---                               `wechat` varchar(255) DEFAULT NULL,
---                               `income` decimal(9,6) DEFAULT NULL,
---                               `birthday` timestamp NULL DEFAULT NULL,
---                               `dtdate` date DEFAULT NULL,
---                               `dttime` time DEFAULT NULL,
---                               `today` date DEFAULT NULL,
---                               `timecurrent` time DEFAULT NULL,
---                               `dateone` timestamp NULL DEFAULT NULL,
---                               `aboolean` tinyint(1) DEFAULT '1',
---                               `adouble` double DEFAULT '123.134',
---                               `afloat` float DEFAULT '23.4',
---                               `achar` char(1) DEFAULT 'a',
---                               `abinary` binary(1) DEFAULT '1',
---                               `atinyint` tinyint(4) DEFAULT '12'
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 
 CREATE TABLE sink
 (
@@ -119,23 +95,23 @@ select u.id
      , u.age
      , u.datethree
      , u.datesix
-     , s.phone
-     , s.wechat
-     , s.income
-     , s.birthday
+     , s.PHONE
+     , s.WECHAT
+     , s.INCOME
+     , s.BIRTHDAY
      , u.dtdate
      , u.dttime
-     , s.today
-     , s.timecurrent
-     , s.aboolean
-     , s.adouble
-     , s.afloat
-     , s.achar
-     , s.abinary
-     , s.atinyint
+     , s.TODAY
+     , s.TIMECURRENT
+     , s.ABOOLEAN
+     , s.ADOUBLE
+     , s.AFLOAT
+     , s.ACHAR
+     , s.ABINARY
+     , s.ATINYINT
 from source u
          left join side s
-                   on u.id = s.id;
+                   on u.id = s.ID;
 
 insert into sink
 select *

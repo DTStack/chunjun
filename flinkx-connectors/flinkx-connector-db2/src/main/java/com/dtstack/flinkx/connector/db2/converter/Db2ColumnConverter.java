@@ -47,7 +47,7 @@ public class Db2ColumnConverter extends JdbcColumnConverter {
     }
 
     /**
-     * override reason: tinying type in KingBase is byte type, couldn't case int.
+     * override reason: blob in db2 need use getBytes.
      *
      * @param type
      *
@@ -75,13 +75,6 @@ public class Db2ColumnConverter extends JdbcColumnConverter {
             case VARCHAR:
                 return val -> new StringColumn((String) val);
             case DATE:
-                return val -> {
-                    if(val instanceof Date){
-                       return new BigDecimalColumn(Long.valueOf(((Date) val).getTime() / 1000).intValue());
-                    } else {
-                       return new BigDecimalColumn(Long.valueOf(((Timestamp) val).getTime() / 1000).intValue());
-                    }
-                };
             case TIME_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:

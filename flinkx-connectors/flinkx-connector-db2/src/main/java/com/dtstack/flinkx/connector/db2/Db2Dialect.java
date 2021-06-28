@@ -58,7 +58,7 @@ public class Db2Dialect implements JdbcDialect {
 
     @Override
     public String quoteIdentifier(String identifier) {
-        return identifier;
+        return "\"" + identifier + "\"";
     }
 
     @Override

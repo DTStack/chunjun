@@ -23,60 +23,35 @@ CREATE TABLE source
       ,'json.timestamp-format.standard' = 'SQL'
       );
 
-/*CREATE TABLE flink_dim (
-                           id int DEFAULT NULL,
-                           name varchar(255) DEFAULT NULL,
-                           money decimal(9,6) DEFAULT NULL,
-                           age bigint DEFAULT NULL,
-                           datethree timestamp DEFAULT NULL,
-                           datesix timestamp  DEFAULT NULL,
-                           phone bigint DEFAULT NULL,
-                           wechat varchar(255) DEFAULT NULL,
-                           income decimal(9,6) DEFAULT NULL,
-                           birthday timestamp DEFAULT NULL,
-                           dtdate date DEFAULT NULL,
-                           dttime time DEFAULT NULL,
-                           today date DEFAULT NULL,
-                           timecurrent time DEFAULT NULL,
-                           dateone timestamp  DEFAULT NULL,
-                           aboolean smallint DEFAULT NULL,
-                           adouble double DEFAULT NULL,
-                           afloat float DEFAULT NULL,
-                           achar char(1) DEFAULT NULL,
-                           abinary blob DEFAULT NULL,
-                           atinyint smallint DEFAULT NULL
-)*/
---INSERT INTO flink_out (id, name, money, age, datethree, datesix, phone, wechat, income, birthday, dtdate, dttime, today, timecurrent, dateone) VALUES (100, 'kobe james阿道夫', 30.230000, 30, '2020-03-03 03:03:03', '2020-06-06 06:06:06', 11111111111111, '这是我的wechat', 23.120000, '2020-10-10 10:10:10', '2020-12-12', '12:12:12', '2020-10-10', '10:10:10', '2020-01-01 01:01:01');
---INSERT INTO test.flink_out (id, name, money, age, datethree, datesix, phone, wechat, income, birthday, dtdate, dttime, today, timecurrent, dateone) VALUES (100, 'kobe james阿道夫', 30.230000, 30, '2020-03-03 03:03:03', '2020-06-06 06:06:06', 11111111111111, '这是我的wechat', 23.120000, '2020-10-10 10:10:10', '2020-12-12', '12:12:12', '2020-10-10', '10:10:10', '2020-01-01 01:01:01');
 
 CREATE TABLE side
 (
-    id          int,
-    name        varchar,
-    money       decimal,
-    dateone     timestamp,
-    age         bigint,
-    datethree   timestamp,
-    datesix     timestamp,
-    phone       bigint,
-    wechat      varchar,
-    income      decimal,
-    birthday    timestamp,
-    dtdate      date,
-    dttime      time,
-    today       date,
-    timecurrent time,
-    aboolean    smallint ,
-    adouble     double,
-    afloat      double,
-    achar       char,
-    abinary     BYTES,
-    atinyint    smallint ,
-    PRIMARY KEY (id) NOT ENFORCED
+    ID          int,
+    NAME        varchar,
+    MONEY       decimal,
+    DATEONE     timestamp,
+    AGE         bigint,
+    DATETHREE   timestamp,
+    DATESIX     timestamp,
+    PHONE       bigint,
+    WECHAT      varchar,
+    INCOME      decimal,
+    BIRTHDAY    timestamp,
+    DTDATE      date,
+    DTTIME      time,
+    TODAY       date,
+    TIMECURRENT time,
+    ABOOLEAN    smallint ,
+    ADOUBLE     double,
+    AFLOAT      decimal ,
+    ACHAR       char,
+    ABINARY     BYTES,
+    ATINYINT    smallint ,
+    PRIMARY KEY (ID) NOT ENFORCED
 ) WITH (
       'connector' = 'db2-x',
-      'url' = 'jdbc:db2://172.16.101.246:50002/DT_TEST',
-      'table-name' = 'flink_dim',
+      'url' = 'jdbc:db2://localtest:50002/DT_TEST',
+      'table-name' = 'FLINK_DIM',
       'username' = 'db2inst1',
       'password' = 'dtstack1',
       'lookup.cache-type' = 'all',
@@ -85,27 +60,27 @@ CREATE TABLE side
 
 CREATE TABLE sink
 (
-    id          int,
-    name        varchar,
-    money       decimal,
-    dateone     timestamp,
-    age         bigint,
-    datethree   timestamp,
-    datesix     timestamp,
-    phone       bigint,
-    wechat      varchar,
-    income      decimal,
-    birthday    timestamp,
-    dtdate      date,
-    dttime      time,
-    today       date,
-    timecurrent time,
-    aboolean    smallint,
-    adouble     double,
-    afloat      double,
-    achar       char,
-    abinary     BYTES,
-    atinyint    smallint
+    ID          int,
+    NAME        varchar,
+    MONEY       decimal,
+    DATEONE     timestamp,
+    AGE         bigint,
+    DATETHREE   timestamp,
+    DATESIX     timestamp,
+    PHONE       bigint,
+    WECHAT      varchar,
+    INCOME      decimal,
+    BIRTHDAY    timestamp,
+    DTDATE      date,
+    DTTIME      time,
+    TODAY       date,
+    TIMECURRENT time,
+    ABOOLEAN    smallint,
+    ADOUBLE     double,
+    AFLOAT      decimal ,
+    ACHAR       char,
+    ABINARY     BYTES,
+    ATINYINT    smallint
 ) WITH (
       'connector' = 'stream-x',
 	  'sink.parallelism' = '1'
@@ -121,23 +96,23 @@ select u.id
      , u.age
      , u.datethree
      , u.datesix
-     , s.phone
-     , s.wechat
-     , s.income
-     , s.birthday
+     , s.PHONE
+     , s.WECHAT
+     , s.INCOME
+     , s.BIRTHDAY
      , u.dtdate
      , u.dttime
-     , s.today
-     , s.timecurrent
-     , s.aboolean
-     , s.adouble
-     , s.afloat
-     , s.achar
-     , s.abinary
-     , s.atinyint
+     , s.TODAY
+     , s.TIMECURRENT
+     , s.ABOOLEAN
+     , s.ADOUBLE
+     , s.AFLOAT
+     , s.ACHAR
+     , s.ABINARY
+     , s.ATINYINT
 from source u
          left join side FOR SYSTEM_TIME AS OF u.PROCTIME AS s
-                   on u.id = s.id;
+                   on u.id = s.ID;
 
 insert into sink
 select *
