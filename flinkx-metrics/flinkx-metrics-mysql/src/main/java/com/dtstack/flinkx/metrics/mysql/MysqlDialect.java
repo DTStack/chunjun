@@ -25,7 +25,7 @@ import java.util.Optional;
 
 /**
  * @program: flinkx
- * @author: wuren
+ * @author: shifang
  * @create: 2021/03/17
  */
 public class MysqlDialect implements JdbcDialect {

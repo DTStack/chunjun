@@ -58,8 +58,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author jiangbo
- * @date 2020/2/25
+ * @author shifang
+ * @date 2021/06/25
  */
 public class CustomPromtheusReport extends CustomReporter {
 
@@ -90,18 +90,17 @@ public class CustomPromtheusReport extends CustomReporter {
     private final Map<String, Metric> metricHashMap = new HashMap<>();
 
 
-
     public CustomPromtheusReport(MetricParam metricParam) {
         super(metricParam);
         initConfiguration();
     }
 
-    private void initConfiguration(){
+    private void initConfiguration() {
         try {
-            Class<StreamingRuntimeContext> contextClazz = (Class<StreamingRuntimeContext>)context.getClass();
+            Class<StreamingRuntimeContext> contextClazz = (Class<StreamingRuntimeContext>) context.getClass();
             Field taskEnvironmentField = contextClazz.getDeclaredField("taskEnvironment");
             taskEnvironmentField.setAccessible(true);
-            Environment environment = (Environment)taskEnvironmentField.get(context);
+            Environment environment = (Environment) taskEnvironmentField.get(context);
             this.configuration = environment.getTaskManagerInfo().getConfiguration();
         } catch (Exception e) {
             throw new RuntimeException("获取环境配置出错", e);
@@ -126,14 +125,21 @@ public class CustomPromtheusReport extends CustomReporter {
         }
 
         pushGateway = new PushGateway(host + ':' + port);
-        LOG.info("Configured PrometheusPushGatewayReporter with {host:{}, port:{}, jobName: {}, randomJobNameSuffix:{}, deleteOnShutdown:{}}",
-                host, port, jobName, randomSuffix, deleteOnShutdown);
+        LOG.info(
+                "Configured PrometheusPushGatewayReporter with {host:{}, port:{}, jobName: {}, randomJobNameSuffix:{}, deleteOnShutdown:{}}",
+                host,
+                port,
+                jobName,
+                randomSuffix,
+                deleteOnShutdown);
     }
 
     public void registerMetric(Accumulator accumulator, String name) {
         name = Metrics.METRIC_GROUP_KEY_FLINKX + "_" + name;
         ReporterScopedSettings reporterScopedSettings = new ReporterScopedSettings(0, ',', Collections.emptySet());
-        FrontMetricGroup front = new FrontMetricGroup<AbstractMetricGroup<?>>(reporterScopedSettings, (AbstractMetricGroup)context.getMetricGroup());
+        FrontMetricGroup front = new FrontMetricGroup<AbstractMetricGroup<?>>(
+                reporterScopedSettings,
+                (AbstractMetricGroup) context.getMetricGroup());
         notifyOfAddedMetric(new SimpleAccumulatorGauge<>(accumulator), name, front);
     }
 
@@ -151,7 +157,7 @@ public class CustomPromtheusReport extends CustomReporter {
         }
     }
 
-    public void close(){
+    public void close() {
         if (deleteOnShutdown && pushGateway != null) {
             try {
                 pushGateway.delete(jobName);
@@ -181,7 +187,8 @@ public class CustomPromtheusReport extends CustomReporter {
 
         synchronized (this) {
             if (collectorsWithCountByMetricName.containsKey(scopedMetricName)) {
-                final AbstractMap.SimpleImmutableEntry<Collector, Integer> collectorWithCount = collectorsWithCountByMetricName.get(scopedMetricName);
+                final AbstractMap.SimpleImmutableEntry<Collector, Integer> collectorWithCount = collectorsWithCountByMetricName
+                        .get(scopedMetricName);
                 collector = collectorWithCount.getKey();
                 count = collectorWithCount.getValue();
             } else {
@@ -197,7 +204,9 @@ public class CustomPromtheusReport extends CustomReporter {
                 }
             }
             addMetric(metric, dimensionValues, collector);
-            collectorsWithCountByMetricName.put(scopedMetricName, new AbstractMap.SimpleImmutableEntry<>(collector, count + 1));
+            collectorsWithCountByMetricName.put(
+                    scopedMetricName,
+                    new AbstractMap.SimpleImmutableEntry<>(collector, count + 1));
         }
     }
 
@@ -205,7 +214,12 @@ public class CustomPromtheusReport extends CustomReporter {
         return SCOPE_PREFIX + getLogicalScope(group) + SCOPE_SEPARATOR + CHARACTER_FILTER.filterCharacters(metricName);
     }
 
-    private Collector createCollector(Metric metric, List<String> dimensionKeys, List<String> dimensionValues, String scopedMetricName, String helpString) {
+    private Collector createCollector(
+            Metric metric,
+            List<String> dimensionKeys,
+            List<String> dimensionValues,
+            String scopedMetricName,
+            String helpString) {
         Collector collector;
         if (metric instanceof Gauge || metric instanceof Counter || metric instanceof Meter) {
             collector = io.prometheus.client.Gauge
@@ -215,9 +229,15 @@ public class CustomPromtheusReport extends CustomReporter {
                     .labelNames(toArray(dimensionKeys))
                     .create();
         } else if (metric instanceof Histogram) {
-            collector = new HistogramSummaryProxy((Histogram) metric, scopedMetricName, helpString, dimensionKeys, dimensionValues);
+            collector = new HistogramSummaryProxy(
+                    (Histogram) metric,
+                    scopedMetricName,
+                    helpString,
+                    dimensionKeys,
+                    dimensionValues);
         } else {
-            LOG.warn("Cannot create collector for unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
+            LOG.warn(
+                    "Cannot create collector for unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
                     metric.getClass().getName());
             collector = null;
         }
@@ -234,7 +254,8 @@ public class CustomPromtheusReport extends CustomReporter {
         } else if (metric instanceof Histogram) {
             ((HistogramSummaryProxy) collector).addChild((Histogram) metric, dimensionValues);
         } else {
-            LOG.warn("Cannot add unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
+            LOG.warn(
+                    "Cannot add unknown metric type: {}. This indicates that the metric type is not supported by this reporter.",
                     metric.getClass().getName());
         }
     }
@@ -264,7 +285,8 @@ public class CustomPromtheusReport extends CustomReporter {
                     return ((Boolean) value) ? 1 : 0;
                 }
                 LOG.debug("Invalid type for Gauge {}: {}, only number types and booleans are supported by this reporter.",
-                        gauge, value.getClass().getName());
+                        gauge,
+                        value.getClass().getName());
                 return 0;
             }
         };
@@ -302,7 +324,12 @@ public class CustomPromtheusReport extends CustomReporter {
 
         private final Map<List<String>, Histogram> histogramsByLabelValues = new HashMap<>();
 
-        HistogramSummaryProxy(final Histogram histogram, final String metricName, final String helpString, final List<String> labelNames, final List<String> labelValues) {
+        HistogramSummaryProxy(
+                final Histogram histogram,
+                final String metricName,
+                final String helpString,
+                final List<String> labelNames,
+                final List<String> labelValues) {
             this.metricName = metricName;
             this.helpString = helpString;
             this.labelNamesWithQuantile = addToList(labelNames, "quantile");
@@ -329,9 +356,14 @@ public class CustomPromtheusReport extends CustomReporter {
             histogramsByLabelValues.remove(labelValues);
         }
 
-        private void addSamples(final List<String> labelValues, final Histogram histogram, final List<MetricFamilySamples.Sample> samples) {
+        private void addSamples(
+                final List<String> labelValues,
+                final Histogram histogram,
+                final List<MetricFamilySamples.Sample> samples) {
             samples.add(new MetricFamilySamples.Sample(metricName + "_count",
-                    labelNamesWithQuantile.subList(0, labelNamesWithQuantile.size() - 1), labelValues, histogram.getCount()));
+                    labelNamesWithQuantile.subList(0, labelNamesWithQuantile.size() - 1),
+                    labelValues,
+                    histogram.getCount()));
             for (final Double quantile : QUANTILES) {
                 samples.add(new MetricFamilySamples.Sample(metricName, labelNamesWithQuantile,
                         addToList(labelValues, quantile.toString()),
