@@ -18,13 +18,13 @@
 
 package com.dtstack.flinkx.connector.saphana;
 
+import com.dtstack.flinkx.connector.saphana.converter.SaphanaColumnConverter;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.connector.saphana.converter.SaphanaColumnConverter;
-import com.dtstack.flinkx.connector.saphana.converter.SaphanaRowConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import io.vertx.core.json.JsonArray;
@@ -103,9 +103,8 @@ public class SaphanaDialect implements JdbcDialect {
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(
-            RowType rowType) {
-        return new SaphanaRowConverter(rowType);
+    public String quoteIdentifier(String identifier) {
+        return identifier;
     }
 
     @Override
@@ -113,7 +112,6 @@ public class SaphanaDialect implements JdbcDialect {
             RowType rowType) {
         return new SaphanaColumnConverter(rowType);
     }
-
 
 
     @Override

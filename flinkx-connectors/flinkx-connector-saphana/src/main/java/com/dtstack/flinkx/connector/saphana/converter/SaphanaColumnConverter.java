@@ -18,31 +18,31 @@
 
 package com.dtstack.flinkx.connector.saphana.converter;
 
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.*;
+import com.sap.db.jdbc.HanaClob;
+import io.vertx.core.json.JsonArray;
+
+import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
-import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.BigDecimalColumn;
-import com.dtstack.flinkx.element.column.BooleanColumn;
-import com.dtstack.flinkx.element.column.BytesColumn;
-import com.dtstack.flinkx.element.column.StringColumn;
-import com.dtstack.flinkx.element.column.TimestampColumn;
-
+import java.io.BufferedReader;
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.ResultSet;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
-
-/**
- * company www.dtstack.com
- *
- * @author jier
- */
+/** Base class for all converters that convert between JDBC object and Flink internal object. */
 public class SaphanaColumnConverter
         extends JdbcColumnConverter {
 
@@ -56,8 +56,9 @@ public class SaphanaColumnConverter
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
-                return val -> new BigDecimalColumn(((Integer) val).byteValue());
+                return val -> new BigDecimalColumn(((Short) val).byteValue());
             case SMALLINT:
+                return val -> new BigDecimalColumn(((Short) val));
             case INTEGER:
                 return val -> new BigDecimalColumn((Integer) val);
             case FLOAT:
@@ -70,17 +71,34 @@ public class SaphanaColumnConverter
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
             case VARCHAR:
-                return val -> new StringColumn((String) val);
+                return val -> {
+                    if(type instanceof ClobType){
+                        HanaClob clob = (HanaClob) val;
+                        try (BufferedReader bf = new BufferedReader(clob.getCharacterStream())){
+                            StringBuilder stringBuilder = new StringBuilder();
+                            String next, line = bf.readLine();
+                            for (boolean last = (line == null); !last; line = next) {
+                                last = ((next = bf.readLine()) == null);
+                                if (last) {
+                                    stringBuilder.append(line);
+                                } else {
+                                    stringBuilder.append(line).append("\n");
+                                }
+                            }
+                            return new StringColumn(stringBuilder.toString());
+                        }
+                    }else {
+                        return new StringColumn((String) val);
+                    }
+                };
             case DATE:
-                return val -> new TimestampColumn((Timestamp) val);
+                return val -> new BigDecimalColumn(Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
-                        new BigDecimalColumn(
-                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
-                                        / 1_000_000L);
+                        new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> val;
+                return val -> new TimestampColumn((Timestamp) val);
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
@@ -98,8 +116,10 @@ public class SaphanaColumnConverter
                         statement.setBoolean(
                                 index, ((ColumnRowData) val).getField(index).asBoolean());
             case TINYINT:
-                return (val, index, statement) -> statement.setByte(index, val.getByte(index));
+                return (val, index, statement) -> statement.setShort(index,
+                        (short) (val.getByte(index) & 0xff));
             case SMALLINT:
+                return (val, index, statement) -> statement.setShort(index, val.getShort(index));
             case INTEGER:
                 return (val, index, statement) ->
                         statement.setInt(index, ((ColumnRowData) val).getField(index).asInt());
@@ -123,8 +143,13 @@ public class SaphanaColumnConverter
                 return (val, index, statement) ->
                         statement.setString(
                                 index, ((ColumnRowData) val).getField(index).asString());
-
-
+            case DATE:
+                return (val, index, statement) ->
+                        statement.setDate(
+                                index,
+                                Date.valueOf(
+                                        LocalDate.ofEpochDay(
+                                                ((ColumnRowData) val).getField(index).asInt())));
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTime(
@@ -133,13 +158,6 @@ public class SaphanaColumnConverter
                                         LocalTime.ofNanoOfDay(
                                                 ((ColumnRowData) val).getField(index).asInt()
                                                         * 1_000_000L)));
-            case DATE:
-            case TIMESTAMP_WITH_TIME_ZONE:
-            case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return (val, index, statement) ->
-                        statement.setTimestamp(
-                                index, ((ColumnRowData) val).getField(index).asTimestamp());
-
             case BINARY:
             case VARBINARY:
                 return (val, index, statement) ->

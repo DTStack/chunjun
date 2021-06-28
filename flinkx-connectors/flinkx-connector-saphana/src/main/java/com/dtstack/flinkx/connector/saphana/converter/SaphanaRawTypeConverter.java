@@ -21,7 +21,9 @@ package com.dtstack.flinkx.connector.saphana.converter;
 
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import org.apache.flink.table.api.DataTypes;
+import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -73,8 +75,6 @@ public class SaphanaRawTypeConverter {
                 return DataTypes.FLOAT();
             case "DOUBLE":
                 return DataTypes.DOUBLE();
-            case "FLOAT":
-                return DataTypes.FLOAT();
 
                 //Character String Data Type
             case "VARCHAR":
@@ -91,12 +91,12 @@ public class SaphanaRawTypeConverter {
                 return DataTypes.BYTES();
 
                 //Boolean Data Type
-            case "Boolean":
+            case "BOOLEAN":
                 return DataTypes.BOOLEAN();
 
                 //Large Object (LOB) Data Type
             case "CLOB":
-                return DataTypes.STRING();
+                return new AtomicDataType(new ClobType(true, LogicalTypeRoot.VARCHAR));
             case "NCLOB":
                 return DataTypes.STRING();
             case "TEXT":
