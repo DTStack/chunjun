@@ -42,12 +42,12 @@ CREATE TABLE source
     dttime      time,
     today       date,
     timecurrent time,
-    aboolean    boolean,
+    aboolean    smallint ,
     adouble     double,
-    afloat      float,
+    afloat      double ,
     achar       char,
     abinary     BYTES,
-    atinyint    tinyint
+    atinyint    smallint
 ) WITH (
       'connector' = 'db2-x',
       'url' = 'jdbc:db2://172.16.101.246:50002/DT_TEST',
@@ -87,12 +87,12 @@ CREATE TABLE sink
     dttime      time,
     today       date,
     timecurrent time,
-    aboolean    boolean,
+    aboolean    smallint ,
     adouble     double,
-    afloat      float,
+    afloat      double ,
     achar       char,
     abinary     BYTES,
-    atinyint    tinyint
+    atinyint    smallint
 ) WITH (
       'connector' = 'stream-x'
       );

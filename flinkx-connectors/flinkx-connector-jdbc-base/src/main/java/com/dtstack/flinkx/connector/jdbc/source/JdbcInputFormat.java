@@ -119,8 +119,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             }
         } catch (SQLException se) {
             String expMsg =  se.getMessage();
-            querySQL = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;
-            throw new IllegalArgumentException("open() failed." + querySQL, se);
+            expMsg = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;
+            throw new IllegalArgumentException("open() failed." + expMsg, se);
         }
     }
 

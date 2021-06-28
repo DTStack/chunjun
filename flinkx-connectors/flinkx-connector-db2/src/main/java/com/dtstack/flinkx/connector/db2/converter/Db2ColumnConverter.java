@@ -17,41 +17,38 @@
  */
 package com.dtstack.flinkx.connector.db2.converter;
 
-import com.dtstack.flinkx.element.column.BigDecimalColumn;
-
-import org.apache.flink.table.data.DecimalData;
-import org.apache.flink.table.data.StringData;
-import org.apache.flink.table.data.TimestampData;
-import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.element.column.BigDecimalColumn;
+import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.dtstack.flinkx.util.DateUtil;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.sql.Blob;
 import java.sql.Date;
-import java.sql.Time;
 import java.sql.Timestamp;
 
 /**
- * @description:
- * @program: flinkx-all
- * @author: lany
- * @create: 2021/05/20 17:08
+ * convert db2 type to flink type
+ * Company: www.dtstack.com
+ * @author xuchao
+ * @date 2021-06-15
  */
-public class Db2RowConverter extends JdbcRowConverter {
+public class Db2ColumnConverter extends JdbcColumnConverter {
 
-    private static final long serialVersionUID = 2L;
-
-    public Db2RowConverter(RowType rowType) {
+    public Db2ColumnConverter(RowType rowType) {
         super(rowType);
     }
 
     /**
-     * blob in db2 is not type byte
+     * override reason: tinying type in KingBase is byte type, couldn't case int.
+     *
      * @param type
      *
      * @return
@@ -59,62 +56,49 @@ public class Db2RowConverter extends JdbcRowConverter {
     @Override
     protected IDeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
-            case NULL:
-                return val -> null;
             case BOOLEAN:
-            case FLOAT:
-            case DOUBLE:
-            case INTERVAL_YEAR_MONTH:
-            case INTERVAL_DAY_TIME:
-                return val -> val;
+                return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
+                return val -> new BigDecimalColumn((Byte) val);
             case SMALLINT:
-                return val -> val instanceof Integer ? ((Integer) val).shortValue() : val;
             case INTEGER:
-                return val -> val;
+                return val -> new BigDecimalColumn((Integer) val);
+            case FLOAT:
+                return val -> new BigDecimalColumn((Float) val);
+            case DOUBLE:
+                return val -> new BigDecimalColumn((Double) val);
             case BIGINT:
-                return val -> val;
+                return val -> new BigDecimalColumn((Long) val);
             case DECIMAL:
-                final int precision = ((DecimalType) type).getPrecision();
-                final int scale = ((DecimalType) type).getScale();
-                return val ->
-                        val instanceof BigInteger
-                                ? DecimalData.fromBigDecimal(
-                                new BigDecimal((BigInteger) val, 0), precision, scale)
-                                : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
+                return val -> new BigDecimalColumn((BigDecimal) val);
+            case CHAR:
+            case VARCHAR:
+                return val -> new StringColumn((String) val);
             case DATE:
                 return val -> {
                     if(val instanceof Date){
-                        return Long.valueOf(((Date) val).getTime() / 1000).intValue();
+                       return new BigDecimalColumn(Long.valueOf(((Date) val).getTime() / 1000).intValue());
                     } else {
-                        return Long.valueOf(((Timestamp) val).getTime() / 1000).intValue();
+                       return new BigDecimalColumn(Long.valueOf(((Timestamp) val).getTime() / 1000).intValue());
                     }
                 };
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay() / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> TimestampData.fromTimestamp((Timestamp) val);
-            case CHAR:
-            case VARCHAR:
-                return val -> StringData.fromString(val.toString());
+                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
             case BINARY:
             case VARBINARY:
+
                 return val -> {
                     Blob blob = (com.ibm.db2.jcc.am.c6) val;
                     int length = 0;
                     try{
                         length = (int) blob.length();
-                        return blob.getBytes(1, length);
+                        return new BytesColumn(blob.getBytes(1, length));
                     }catch (Exception e){
                         throw new RuntimeException(e);
                     }
                 };
-            case ARRAY:
-            case ROW:
-            case MAP:
-            case MULTISET:
-            case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
