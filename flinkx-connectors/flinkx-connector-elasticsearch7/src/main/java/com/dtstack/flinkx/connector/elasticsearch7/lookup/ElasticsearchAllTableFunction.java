@@ -32,8 +32,9 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ import java.util.Map;
  */
 public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
 
+    Logger LOG = LoggerFactory.getLogger(ElasticsearchAllTableFunction.class);
     private static final long serialVersionUID = 2L;
 
     private final ElasticsearchConf elasticsearchConf;
@@ -86,18 +88,20 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
             searchHits = searchResponse.getHits().getHits();
             for(SearchHit searchHit : searchHits) {
                 Map<String,Object> oneRow = new HashMap<>();
-                Map<String,Object> source = searchHit.getSourceAsMap();
-                GenericRowData rowData = (GenericRowData) rowConverter.toInternal(source);
-                for (int i = 0; i < fieldsName.length; i++) {
-                    Object object = rowData.getField(i);
-                    oneRow.put(fieldsName[i].trim(), object);
+                Map<String, Object> source = searchHit.getSourceAsMap();;
+                try {
+                    GenericRowData rowData = (GenericRowData) rowConverter.toInternal(source);
+                    for (int i = 0; i < fieldsName.length; i++) {
+                        Object object = rowData.getField(i);
+                        oneRow.put(fieldsName[i].trim(), object);
+                    }
+                    buildCache(oneRow, tmpCache);
+                } catch (Exception e) {
+                    LOG.error("error:{} \n  data:{}", e.getMessage(), source);
                 }
-                buildCache(oneRow, tmpCache);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("", e);
         }
     }
 }

@@ -5,8 +5,8 @@
         "reader": {
           "name": "elasticsearch7reader",
           "parameter": {
-            "hosts": "localhost:9200",
-            "index": "teachers",
+            "hosts": ["localhost:9200"],
+            "index": "mowen",
             "column": [
               {
                 "name": "id",
@@ -23,10 +23,6 @@
               {
                 "name": "wechat",
                 "type": "varchar"
-              },
-              {
-                "name": "income",
-                "type": "decimal"
               },
               {
                 "name": "income",
@@ -71,10 +67,6 @@
                 "type": "decimal"
               },
               {
-                "name": "income",
-                "type": "decimal"
-              },
-              {
                 "name": "birthday",
                 "type": "timestamp"
               },
@@ -87,8 +79,8 @@
                 "type": "time"
               }
             ],
-            "hosts": "localhost:9200",
-            "index": "students_2"
+            "hosts": ["localhost:9200"],
+            "index": "mowen_target"
           },
           "name": "elasticsearch7writer"
         }

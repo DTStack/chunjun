@@ -39,6 +39,8 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +56,7 @@ import java.util.concurrent.CompletableFuture;
 public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 1L;
+    private static Logger LOG = LoggerFactory.getLogger(ElasticsearchLruTableFunction.class);
 
     private ElasticsearchConf elasticsearchConf;
     private final String[] fieldNames;
@@ -94,33 +97,36 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
         rhlClient.searchAsync(searchRequest, RequestOptions.DEFAULT, new ActionListener<SearchResponse>() {
             @Override
             public void onResponse(SearchResponse searchResponse) {
-                SearchHit[] searchHits = searchResponse.getHits().getHits();
-                if (searchHits.length > 0) {
+                try {
+                    SearchHit[] searchHits = searchResponse.getHits().getHits();
+                    if (searchHits.length > 0) {
 
-                    List<Map<String, Object>> cacheContent = Lists.newArrayList();
-                    List<RowData> rowList = Lists.newArrayList();
-                    for (SearchHit searchHit: searchHits) {
-                        Map<String,Object> result = searchHit.getSourceAsMap();
-                        RowData rowData;
-                        try {
-                            rowData = fillData(result);
-                            if (openCache()) {
-                                cacheContent.add(result);
+                        List<Map<String, Object>> cacheContent = Lists.newArrayList();
+                        List<RowData> rowList = Lists.newArrayList();
+                        for (SearchHit searchHit: searchHits) {
+                            Map<String,Object> result = searchHit.getSourceAsMap();
+                            RowData rowData;
+                            try {
+                                rowData = fillData(result);
+                                if (openCache()) {
+                                    cacheContent.add(result);
+                                }
+                                rowList.add(rowData);
+                            } catch (Exception e) {
+                                LOG.error("error:{} \n  data:{}", e.getMessage(), result);
                             }
-                            rowList.add(rowData);
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
+                        dealCacheData(
+                                cacheKey,
+                                CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
+
+                        future.complete(rowList);
+                    } else {
+                        dealMissKey(future);
+                        dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
                     }
-                    dealCacheData(
-                            cacheKey,
-                            CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
-
-                    future.complete(rowList);
-                } else {
-                    dealMissKey(future);
-                    dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
-
+                } catch (Exception e) {
+                    LOG.error("", e);
                 }
             }
 

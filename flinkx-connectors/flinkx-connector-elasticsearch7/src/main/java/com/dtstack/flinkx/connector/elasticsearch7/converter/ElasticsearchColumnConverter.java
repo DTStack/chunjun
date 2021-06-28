@@ -18,38 +18,37 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.converter;
 
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
-
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
-
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-
-import org.apache.flink.table.types.logical.RowType;
-
-import scala.Tuple2;
-import scala.Tuple3;
+import com.dtstack.flinkx.util.DateUtil;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
-import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import scala.Tuple3;
 
 /**
  * @description:
@@ -89,23 +88,31 @@ public class ElasticsearchColumnConverter extends AbstractRowConverter<Map<Strin
     protected ISerializationConverter wrapIntoNullableExternalConverter(
             ISerializationConverter ISerializationConverter,
             LogicalType type) {
-        return super.wrapIntoNullableExternalConverter(ISerializationConverter, type);
+        return (val, index, rowData) -> {
+            if (val == null
+                    || val.isNullAt(index)
+                    || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
+                GenericRowData genericRowData = (GenericRowData) rowData;
+                genericRowData.setField(index, null);
+            } else {
+                ISerializationConverter.serialize(val, index, rowData);
+            }
+        };
     }
 
     @Override
     public RowData toInternal(Map<String, Object> input) throws Exception {
-        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
-        for (String key : input.keySet()) {
+        ColumnRowData columnRowData = new ColumnRowData(rowType.getFieldCount());
+        for (int i = 0; i < toInternalConverters.length; i++) {
+            final int index  = i;
             List<Tuple3<String,Integer, LogicalType>> collect = typeIndexList.stream()
-                    .filter(x -> x._1().equals(key))
+                    .filter(x -> x._2() == index)
                     .collect(Collectors.toList());
             Tuple3<String,Integer, LogicalType> typeTuple =  collect.get(0);
-            genericRowData.setField(
-                    typeTuple._2(),
-                    toInternalConverters[typeTuple._2()].deserialize(input.get(key))
-            );
+            Object field = input.get(typeTuple._1());
+            columnRowData.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
         }
-        return genericRowData;
+        return columnRowData;
     }
 
     @Override
@@ -135,7 +142,7 @@ public class ElasticsearchColumnConverter extends AbstractRowConverter<Map<Strin
             case BIGINT:
                 return val -> new BigDecimalColumn((Long) val);
             case DECIMAL:
-                return val -> new BigDecimalColumn((BigDecimal) val);
+                return val -> new BigDecimalColumn(BigDecimal.valueOf((Double) val) );
             case CHAR:
             case VARCHAR:
                 return val -> new StringColumn((String) val);
@@ -146,7 +153,7 @@ public class ElasticsearchColumnConverter extends AbstractRowConverter<Map<Strin
                         new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn((Timestamp) val);
+                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
@@ -206,7 +213,8 @@ public class ElasticsearchColumnConverter extends AbstractRowConverter<Map<Strin
                     output.put(typeIndexList.get(index)._1(),
                             Date.valueOf(
                                     LocalDate.ofEpochDay(
-                                            ((ColumnRowData) val).getField(index).asInt())));
+                                            ((ColumnRowData) val).getField(index).asInt())).toString()
+                            );
                 };
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, output) -> {
@@ -214,13 +222,14 @@ public class ElasticsearchColumnConverter extends AbstractRowConverter<Map<Strin
                             Time.valueOf(
                                     LocalTime.ofNanoOfDay(
                                             ((ColumnRowData) val).getField(index).asInt()
-                                                    * 1_000_000L)));
+                                                    * 1_000_000L)).toString());
                 };
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, output) -> {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     output.put(typeIndexList.get(index)._1(),
-                            ((ColumnRowData) val).getField(index).asTimestamp());
+                            sdf.format(((ColumnRowData) val).getField(index).asDate()));
                 };
             case BINARY:
             case VARBINARY:

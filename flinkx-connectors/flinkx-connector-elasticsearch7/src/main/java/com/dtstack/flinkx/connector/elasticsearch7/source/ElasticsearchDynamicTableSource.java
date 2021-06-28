@@ -66,7 +66,6 @@ public class ElasticsearchDynamicTableSource implements ScanTableSource, LookupT
         this.physicalSchema = physicalSchema;
         this.elasticsearchConf = elasticsearchConf;
         this.lookupConf = lookupConf;
-
     }
 
     @Override
@@ -76,7 +75,7 @@ public class ElasticsearchDynamicTableSource implements ScanTableSource, LookupT
 
     @Override
     public String asSummaryString() {
-        return "Elasticsearch6 source.";
+        return "Elasticsearch7 source.";
     }
 
     @Override

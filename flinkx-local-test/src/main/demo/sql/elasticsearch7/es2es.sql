@@ -14,14 +14,14 @@ CREATE TABLE es7_source(
   , phone bigint
   , qq varchar
   , wechat varchar
-  , income decimal
+  , income decimal(10,6)
   , birthday timestamp
   , today date
   , timecurrent time )
 WITH(
     'connector' ='elasticsearch7-x',
     'hosts' ='localhost:9200',
-    'index' ='teachers');
+    'index' ='mowen_target');
 
 
 CREATE TABLE es7_sink(
@@ -29,14 +29,14 @@ CREATE TABLE es7_sink(
   , phone bigint
   , qq varchar
   , wechat varchar
-  , income decimal
+  , income decimal(10,6)
   , birthday timestamp
   , today date
   , timecurrent time )
 WITH(
    'connector' ='elasticsearch7-x'
    ,'hosts' ='localhost:9200',
-    'index' ='students_1'
+    'index' ='students_4'
     );
 
 

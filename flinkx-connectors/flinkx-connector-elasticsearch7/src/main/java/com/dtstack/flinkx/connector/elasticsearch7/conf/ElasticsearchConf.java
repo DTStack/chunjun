@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.elasticsearch7.conf;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -28,7 +29,8 @@ import java.util.List;
  * @author: lany
  * @create: 2021/06/16 15:36
  */
-public class ElasticsearchConf extends FlinkxCommonConf {
+public class ElasticsearchConf extends FlinkxCommonConf implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * elasticsearch address -> ip:port
@@ -67,7 +69,6 @@ public class ElasticsearchConf extends FlinkxCommonConf {
     private String password;
 
     private String keyDelimiter;
-
 
     public List<String> getHosts() {
         return hosts;

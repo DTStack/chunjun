@@ -67,9 +67,6 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
      */
     private transient RestHighLevelClient rhlClient;
 
-
-    protected int batchSize = 10;
-
     protected String query;
 
     protected long keepAlive = 1;
@@ -88,7 +85,6 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
         for (int i = 0; i < minNumSplits; i++) {
             splits[i] = new GenericInputSplit(i,minNumSplits);
         }
-
         return splits;
     }
 

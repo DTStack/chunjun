@@ -163,6 +163,7 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
         elasticsearchConf.setIndex(readableConfig.get(INDEX_OPTION));
         elasticsearchConf.setType(readableConfig.get(DOCUMENT_TYPE_OPTION));
         elasticsearchConf.setKeyDelimiter(readableConfig.get(KEY_DELIMITER_OPTION));
+        elasticsearchConf.setBatchSize(readableConfig.get(BULK_FLUSH_MAX_ACTIONS_OPTION));
         String username = readableConfig.get(USERNAME_OPTION);
         String password = readableConfig.get(PASSWORD_OPTION);
         if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {

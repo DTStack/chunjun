@@ -49,7 +49,7 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
         elasticsearchConf =
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getWriter().getParameter()), ElasticsearchConf.class);
-        elasticsearchConf.setColumn(syncConf.getReader().getFieldList());
+        elasticsearchConf.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(elasticsearchConf);
         elasticsearchConf.setParallelism(1);
     }

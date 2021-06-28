@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.converter;
 
+import com.dtstack.flinkx.util.DateUtil;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -38,12 +40,17 @@ import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+
+import org.slf4j.LoggerFactory;
 
 import scala.Tuple3;
 
@@ -55,6 +62,7 @@ import scala.Tuple3;
  */
 public class ElasticsearchRowConverter extends AbstractRowConverter<Map<String, Object>, Map<String, Object>, Map<String, Object>, LogicalType> {
 
+    private Logger LOG = LoggerFactory.getLogger(ElasticsearchRowConverter.class);
     private List<Tuple3<String,Integer, LogicalType>> typeIndexList = new ArrayList<>();
 
     public ElasticsearchRowConverter(RowType rowType) {
@@ -170,23 +178,41 @@ public class ElasticsearchRowConverter extends AbstractRowConverter<Map<String, 
                         val.getBoolean(index)
                 );
             case DATE:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        Date.valueOf(LocalDate.ofEpochDay(val.getInt(index))).toString()
-                );
+                return (val, index, output) -> {
+                    output.put(
+                            typeIndexList.get(index)._1(),
+                            Date.valueOf(LocalDate.ofEpochDay(val.getInt(index))).toString());
+                };
             case TIME_WITHOUT_TIME_ZONE:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        Time.valueOf(
-                                LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L)).toString()
-                );
+                return (val, index, output) -> {
+                    try {
+                        String result = Time.valueOf(
+                                LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L)).toString();
+                        output.put(
+                                typeIndexList.get(index)._1(),
+                                result
+                        );
+                    } catch (Exception e) {
+                        LOG.error("converter error. Value: {}, Type: {}", val, type.getTypeRoot());
+                        throw new RuntimeException("Converter error.",e);
+                    }
+                };
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                final int timestampPrecision = ((TimestampType) type).getPrecision();
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getTimestamp(index, timestampPrecision).toTimestamp().toString()
-                );
+                return (val, index, output) -> {
+                    String result;
+                    try {
+                        final int timestampPrecision = ((TimestampType) type).getPrecision();
+                        result = val.getTimestamp(index, timestampPrecision).toTimestamp().toString();
+                        output.put(
+                                typeIndexList.get(index)._1(),
+                                result
+                        );
+                    } catch (Exception e) {
+                        LOG.error("converter error. Value: {}, Type: {}", val, type.getTypeRoot());
+                        throw new RuntimeException("Converter error.",e);
+                    }
+                };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }

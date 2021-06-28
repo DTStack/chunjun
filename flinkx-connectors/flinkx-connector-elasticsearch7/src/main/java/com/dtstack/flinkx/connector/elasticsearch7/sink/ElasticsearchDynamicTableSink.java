@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.sink;
 
-import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRowConverter;
-
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
@@ -30,6 +26,8 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
+import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRowConverter;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 /**
  * @description:
@@ -78,7 +76,7 @@ public class ElasticsearchDynamicTableSink implements DynamicTableSink {
 
     @Override
     public String asSummaryString() {
-        return "Elasticsearch6 sink";
+        return "Elasticsearch7 sink";
     }
 
 

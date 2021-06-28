@@ -9,8 +9,8 @@ CREATE TABLE k_source
       ,'topic' = 'da'
       ,'properties.bootstrap.servers' = 'localhost:9092'
       ,'properties.group.id' = 'mowen_g'
---       ,'scan.startup.mode' = 'earliest-offset'
-      ,'scan.startup.mode' = 'latest-offset'
+      ,'scan.startup.mode' = 'earliest-offset'
+--       ,'scan.startup.mode' = 'latest-offset'
       ,'format' = 'json'
       ,'json.timestamp-format.standard' = 'SQL'
       );
@@ -21,11 +21,10 @@ CREATE TABLE es_lookup
     id varchar,
     birthday TIMESTAMP
 ) WITH (
-    'connector' ='elasticsearch6-x'
-   ,'hosts' ='localhost:9200',
-    'index' ='testdate8',
-    'document-type' = '_doc',
-    'lookup.cache-type' = 'all'
+    'connector' ='elasticsearch7-x'
+   ,'hosts' = 'localhost:9200',
+    'index' ='testdate9',
+    'lookup.cache-type' = 'lru'
 );
 
 

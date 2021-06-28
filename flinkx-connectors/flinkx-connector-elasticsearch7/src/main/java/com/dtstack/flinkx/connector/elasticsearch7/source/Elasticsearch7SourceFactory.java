@@ -32,6 +32,10 @@ import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
+import org.apache.flink.util.TimeUtils;
+
+import org.elasticsearch.client.common.TimeUtil;
+
 /**
  * @description:
  * @program: flinkx-all
@@ -42,11 +46,11 @@ public class Elasticsearch7SourceFactory extends SourceFactory {
 
     private final ElasticsearchConf elasticsearchConf;
 
-    protected Elasticsearch7SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public Elasticsearch7SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         elasticsearchConf =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()), ElasticsearchConf.class);
+                        JsonUtil.toJson(syncConf.getReader().getParameter()), ElasticsearchConf.class);
         elasticsearchConf.setColumn(syncConf.getReader().getFieldList());
         super.initFlinkxCommonConf(elasticsearchConf);
         elasticsearchConf.setParallelism(1);
