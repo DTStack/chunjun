@@ -187,6 +187,12 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-tidb</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-hive</artifactId>
 			<version>${project.version}</version>
 		</dependency>
