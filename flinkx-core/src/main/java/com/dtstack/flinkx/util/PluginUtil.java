@@ -19,6 +19,8 @@
 
 package com.dtstack.flinkx.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
@@ -60,9 +62,11 @@ public class PluginUtil {
     public static final String SINK_SUFFIX = "sink";
     public static final String GENERIC_SUFFIX = "Factory";
     public static final String METRIC_SUFFIX = "metrics";
+    public static final String DEFAULT_METRIC_PLUGIN = "promtheus";
     private static final String SP = File.separator;
     private static final Logger LOG = LoggerFactory.getLogger(PluginUtil.class);
     private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connector.";
+    private static final String METRIC_PACKAGE_PREFIX = "com.dtstack.flinkx.metrics.";
     private static final String METRIC_CUSTOM_PREFIX = ".Custom";
     private static final String METRIC_REPORT_PREFIX = "Report";
 
@@ -200,7 +204,7 @@ public class PluginUtil {
 
     private static String appendMetricClass(String pluginName) {
         StringBuilder sb = new StringBuilder(32);
-        sb.append(PACKAGE_PREFIX).append(pluginName.toLowerCase(Locale.ENGLISH)).append(METRIC_CUSTOM_PREFIX);
+        sb.append(METRIC_PACKAGE_PREFIX).append(pluginName.toLowerCase(Locale.ENGLISH)).append(METRIC_CUSTOM_PREFIX);
         sb.append(pluginName.substring(0, 1).toUpperCase()).append(pluginName.substring(1).toLowerCase());
         sb.append(METRIC_REPORT_PREFIX);
         return sb.toString();
@@ -217,10 +221,16 @@ public class PluginUtil {
         Set<URL> formatsUrlList = getJarFileDirPath(FORMATS_SUFFIX, config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> sourceUrlList = getJarFileDirPath(config.getReader().getName(), config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> sinkUrlList = getJarFileDirPath(config.getWriter().getName(), config.getPluginRoot(), config.getRemotePluginPath());
+        String pluginName = DEFAULT_METRIC_PLUGIN;
+        if (config.getMetricPluginConf() != null && StringUtils.isNotBlank(config
+                .getMetricPluginConf()
+                .getPluginName())) {
+            pluginName = config.getMetricPluginConf().getPluginName();
+        }
         Set<URL> metricUrlList = getJarFileDirPath(
-                config.getMetricPluginConf().getPluginName(),
+                pluginName,
                 config.getPluginRoot() + SP + METRIC_SUFFIX,
-                config.getRemotePluginPath() + SP + METRIC_SUFFIX);
+                config.getRemotePluginPath());
         urlSet.addAll(coreUrlList);
         urlSet.addAll(formatsUrlList);
         urlSet.addAll(sourceUrlList);

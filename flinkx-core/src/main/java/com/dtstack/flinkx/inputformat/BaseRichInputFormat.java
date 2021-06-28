@@ -169,7 +169,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         }
 
         if (useCustomReporter()) {
-            customReporter = DataSyncFactoryUtil.discoverMetric(config, context, makeTaskFailedWhenReportFailed());
+            customReporter = DataSyncFactoryUtil.discoverMetric(config, getRuntimeContext(), makeTaskFailedWhenReportFailed());
             customReporter.open();
         }
 

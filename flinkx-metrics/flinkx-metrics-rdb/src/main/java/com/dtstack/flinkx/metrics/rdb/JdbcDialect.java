@@ -139,7 +139,7 @@ public interface JdbcDialect extends Serializable {
                         .map(this::quoteIdentifier)
                         .collect(Collectors.joining(", "));
         String placeholders =
-                Arrays.stream(fieldNames).map(f -> ":" + f).collect(Collectors.joining(", "));
+                Arrays.stream(fieldNames).map(f -> "?").collect(Collectors.joining(", "));
         return "INSERT INTO "
                 + buildTableInfoWithSchema(schema, tableName)
                 + "("

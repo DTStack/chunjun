@@ -2,16 +2,18 @@ package com.dtstack.flinkx.conf;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
 
+import java.util.Map;
+
 public class MetricParam {
 
     private RuntimeContext context;
     private boolean makeTaskFailedWhenReportFailed;
-    private MetricPluginConf metricPluginConf;
+    private Map<String,Object> metricPluginConf;
 
     public MetricParam(
             RuntimeContext context,
             boolean makeTaskFailedWhenReportFailed,
-            MetricPluginConf metricPluginConf) {
+            Map<String,Object> metricPluginConf) {
         this.context = context;
         this.makeTaskFailedWhenReportFailed = makeTaskFailedWhenReportFailed;
         this.metricPluginConf = metricPluginConf;
@@ -33,11 +35,11 @@ public class MetricParam {
         this.makeTaskFailedWhenReportFailed = makeTaskFailedWhenReportFailed;
     }
 
-    public MetricPluginConf getMetricPluginConf() {
+    public Map<String, Object> getMetricPluginConf() {
         return metricPluginConf;
     }
 
-    public void setMetricPluginConf(MetricPluginConf metricPluginConf) {
+    public void setMetricPluginConf(Map<String, Object> metricPluginConf) {
         this.metricPluginConf = metricPluginConf;
     }
 }

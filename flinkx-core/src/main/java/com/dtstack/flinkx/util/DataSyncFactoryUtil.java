@@ -22,6 +22,8 @@ import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.MetricParam;
 import com.dtstack.flinkx.metrics.CustomReporter;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -68,14 +70,14 @@ public class DataSyncFactoryUtil {
     public static CustomReporter discoverMetric(FlinkxCommonConf flinkxCommonConf,RuntimeContext context, boolean makeTaskFailedWhenReportFailed) {
         try {
             String pluginName;
-            if (flinkxCommonConf.getMetricPluginConf() == null) {
+            if (StringUtils.isEmpty(flinkxCommonConf.getMetricPluginName())) {
                 pluginName = "promtheus";
             } else {
-                pluginName = flinkxCommonConf.getMetricPluginConf().getPluginName();
+                pluginName = flinkxCommonConf.getMetricPluginName();
             }
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.metric);
             Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, flinkxCommonConf.getMetricPluginRoot(), null);
-            MetricParam metricParam = new MetricParam(context,makeTaskFailedWhenReportFailed,flinkxCommonConf.getMetricPluginConf());
+            MetricParam metricParam = new MetricParam(context,makeTaskFailedWhenReportFailed,flinkxCommonConf.getMetricProps());
             return ClassLoaderManager.newInstance(
                     urlList,
                     cl -> {

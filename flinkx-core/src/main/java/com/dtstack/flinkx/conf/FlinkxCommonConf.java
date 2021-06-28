@@ -54,9 +54,11 @@ public class FlinkxCommonConf implements Serializable {
     /** Time when the timer is regularly written to the database */
     private long flushIntervalMills = 10000L;
 
-    private MetricPluginConf metricPluginConf;
-
     private String metricPluginRoot;
+
+    private String metricPluginName;
+
+    private Map<String,Object> metricProps;
 
     public String getMetricPluginRoot() {
         return metricPluginRoot;
@@ -66,12 +68,20 @@ public class FlinkxCommonConf implements Serializable {
         this.metricPluginRoot = metricPluginRoot;
     }
 
-    public MetricPluginConf getMetricPluginConf() {
-        return metricPluginConf;
+    public String getMetricPluginName() {
+        return metricPluginName;
     }
 
-    public void setMetricPluginConf(MetricPluginConf metricPluginConf) {
-        this.metricPluginConf = metricPluginConf;
+    public void setMetricPluginName(String metricPluginName) {
+        this.metricPluginName = metricPluginName;
+    }
+
+    public Map<String, Object> getMetricProps() {
+        return metricProps;
+    }
+
+    public void setMetricProps(Map<String, Object> metricProps) {
+        this.metricProps = metricProps;
     }
 
     public long getSpeedBytes() {

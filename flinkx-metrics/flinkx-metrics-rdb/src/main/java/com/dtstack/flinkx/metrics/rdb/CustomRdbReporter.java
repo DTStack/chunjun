@@ -4,7 +4,6 @@ import com.dtstack.flinkx.conf.MetricParam;
 import com.dtstack.flinkx.metrics.CustomReporter;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.google.common.collect.Maps;
-import org.apache.commons.compress.utils.Lists;
 
 import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
@@ -44,7 +43,7 @@ public abstract class CustomRdbReporter extends CustomReporter {
     public CustomRdbReporter(MetricParam metricParam) {
         super(metricParam);
         jdbcMetricConf = JsonUtil.toObject(
-                JsonUtil.toJson(metricParam.getMetricPluginConf().getPluginProp()), JdbcMetricConf.class);
+                JsonUtil.toJson(metricParam.getMetricPluginConf()), JdbcMetricConf.class);
 
     }
 
@@ -68,11 +67,11 @@ public abstract class CustomRdbReporter extends CustomReporter {
                 (AbstractMetricGroup) context.getMetricGroup());
         List<String> singleValues = new ArrayList<>();
         Map<String, String> metricMap = front.getAllVariables();
-        Map<String, String> metricFilterMap = front.getAllVariables();
-        for(final Map.Entry<String, String> entry : metricMap.entrySet()){
+        Map<String, String> metricFilterMap = Maps.newHashMap();
+        for (final Map.Entry<String, String> entry : metricMap.entrySet()) {
             String newKey = CHARACTER_FILTER.filterCharacters(entry.getKey().substring(1, entry.getKey().length() - 1));
             String newValue = labelValueCharactersFilter.filterCharacters(entry.getValue());
-            metricFilterMap.putIfAbsent(newKey,newValue);
+            metricFilterMap.putIfAbsent(newKey, newValue);
         }
         fields.forEach(field -> {
             singleValues.add(metricFilterMap.get(field));
@@ -83,11 +82,11 @@ public abstract class CustomRdbReporter extends CustomReporter {
     public abstract void createTableIfNotExist();
 
     public void report() {
-        try (PreparedStatement ps = dbConn.prepareStatement(prepareTemplates());) {
+        try (PreparedStatement ps = dbConn.prepareStatement(prepareTemplates())) {
             dbConn.setAutoCommit(false);
             for (final Map.Entry<String, Accumulator> entry : accumulatorMap.entrySet()) {
                 List<String> dimensionValue = metricDimensionValues.get(entry.getKey());
-                int columnIndex = 0;
+                int columnIndex = 1;
                 for (String value : dimensionValue) {
                     ps.setString(columnIndex, value);
                     columnIndex++;

@@ -1,8 +1,11 @@
 package com.dtstack.flinkx.conf;
 
+import java.io.Serializable;
 import java.util.Map;
 
-public class MetricPluginConf {
+public class MetricPluginConf implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String pluginName;
 
