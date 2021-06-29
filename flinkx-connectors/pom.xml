@@ -38,6 +38,7 @@
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
+        <module>flinkx-connector-sqlservercdc</module>
 		<module>flinkx-connector-oraclelogminer</module>
     </modules>
 
