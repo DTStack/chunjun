@@ -31,6 +31,7 @@ import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
+import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
@@ -59,7 +60,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
 
     @Override
     @SuppressWarnings("unchecked")
-    public LinkedList<RowData> toInternal(BinlogEventRow binlogEventRow){
+    public LinkedList<RowData> toInternal(BinlogEventRow binlogEventRow) throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
         CanalEntry.RowChange rowChange = binlogEventRow.getRowChange();
         String eventType = rowChange.getEventType().toString();
@@ -160,14 +161,16 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             List<CanalEntry.Column> entryColumnList,
             List<AbstractBaseColumn> columnList,
             List<String> headerList,
-            String after) {
+            String after) throws Exception {
         for (int i = 0; i < entryColumnList.size(); i++) {
             CanalEntry.Column entryColumn = entryColumnList.get(i);
             if (!entryColumn.getIsNull()) {
                 AbstractBaseColumn column = converters[i].deserialize(entryColumn.getValue());
                 columnList.add(column);
-                headerList.add(after + entryColumn.getName());
+            }else{
+                columnList.add(new NullColumn());
             }
+            headerList.add(after + entryColumn.getName());
         }
     }
 

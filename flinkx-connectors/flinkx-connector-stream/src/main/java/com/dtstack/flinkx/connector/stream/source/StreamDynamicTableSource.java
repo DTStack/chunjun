@@ -46,13 +46,13 @@ import java.util.stream.Collectors;
 public class StreamDynamicTableSource implements ScanTableSource {
 
     private final TableSchema schema;
-    private final Long numberOfRows;
+    private final StreamConf streamConf;
 
     public StreamDynamicTableSource(
             TableSchema schema,
-            Long numberOfRows) {
+            StreamConf streamConf) {
         this.schema = schema;
-        this.numberOfRows = numberOfRows;
+        this.streamConf = streamConf;
     }
 
     @Override
@@ -72,11 +72,7 @@ public class StreamDynamicTableSource implements ScanTableSource {
                             return fieldConf;
                         })
                 .collect(Collectors.toList());
-        List<Long> sliceRecordCount = new ArrayList<>();
-        sliceRecordCount.add(numberOfRows);
 
-        StreamConf streamConf = new StreamConf();
-        streamConf.setSliceRecordCount(sliceRecordCount);
         streamConf.setColumn(fieldConfList);
 
         StreamInputFormatBuilder builder = new StreamInputFormatBuilder();
@@ -90,7 +86,7 @@ public class StreamDynamicTableSource implements ScanTableSource {
     public DynamicTableSource copy() {
         return new StreamDynamicTableSource(
                 this.schema,
-                this.numberOfRows);
+                this.streamConf);
     }
 
     @Override

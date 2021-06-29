@@ -109,9 +109,11 @@ public class PostgresqlDialect implements JdbcDialect {
             }
             sql.append(quoteIdentifier(tableName));
         }
+
         if (StringUtils.isNotBlank(where)) {
             sql.append(" WHERE ").append(where);
         }
+
         return sql.toString();
     }
 }

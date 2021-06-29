@@ -39,7 +39,6 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
@@ -187,7 +186,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         this.numTasks = numTasks;
         this.context = (StreamingRuntimeContext) getRuntimeContext();
         this.checkpointEnabled = context.isCheckpointingEnabled();
-        this.rows = new ArrayList<>(1024);
+        this.batchSize = config.getBatchSize();
+        this.rows = new ArrayList<>(batchSize);
+        this.flushIntervalMills = config.getFlushIntervalMills();
         this.flushEnable = new AtomicBoolean(true);
 
         checkpointMode =
@@ -198,7 +199,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
         if(vars != null){
             jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");
-            jobId = vars.get(Metrics.JOB_NAME);
+            jobId = vars.get(Metrics.JOB_ID);
         }
 
         initStatisticsAccumulator();
@@ -399,7 +400,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                             numWriteCounter.add(size);
                         }
                     } catch (Exception e) {
-                        throw new FlinkxRuntimeException("Writing records failed.", e);
+                        LOG.error("Writing records failed. {}", e.getMessage());
                     }
                 }
             }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
@@ -418,6 +419,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         try {
             writeSingleRecordInternal(rowData);
         } catch (WriteRecordException e) {
+            // todo 脏数据记录
             updateDirtyDataMsg(rowData, e);
             if (LOG.isTraceEnabled()) {
                 LOG.trace("write error rowData, rowData = {}, e = {}", rowData.toString(), ExceptionUtil.getErrorMessage(e));
@@ -435,8 +437,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             } catch (Exception e) {
                 //批量写异常转为单条写
                 rows.forEach(this::writeSingleRecord);
+            } finally {
+                // Data is either recorded dirty data or written normally
+                rows.clear();
             }
-            rows.clear();
         }
     }
 
@@ -488,14 +492,14 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param rowData 当前读取的数据
      * @return 脏数据异常信息记录
      */
-    protected String recordConvertDetailErrorMessage(int pos, RowData rowData) {
+    protected String recordConvertDetailErrorMessage(int pos, Object rowData) {
         return String.format("%s WriteRecord error: when converting field[%s] in Row(%s)", getClass().getName(), pos, rowData);
     }
 
     /**
      * 更新任务执行时间指标
      */
-    private void updateDuration() {
+    protected void updateDuration() {
         if (durationCounter != null) {
             durationCounter.resetLocal();
             durationCounter.add(System.currentTimeMillis() - startTime);
@@ -507,9 +511,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @return
      */
     public synchronized FormatState getFormatState() throws Exception {
-        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
-        formatState.setMetric(outputMetric.getMetricCounters());
-        LOG.info("format state:{}", formatState.getState());
         // not EXACTLY_ONCE model,Does not interact with the db
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
             try {
@@ -521,6 +522,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 flushEnable.compareAndSet(true, false);
             }
         }
+        //set metric after preCommit
+        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setMetric(outputMetric.getMetricCounters());
+        LOG.info("format state:{}", formatState.getState());
         return formatState;
     }
 
@@ -528,7 +533,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * pre commit data
      * @throws Exception
      */
-    protected abstract void preCommit() throws Exception;
+    protected void preCommit() throws Exception{}
 
     /**
      * 写出单条数据
@@ -586,7 +591,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected abstract void commit(long checkpointId) throws Exception;
+    public void commit(long checkpointId) throws Exception{}
 
     /**
      * checkpoint失败时操作
@@ -611,19 +616,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected abstract void rollback(long checkpointId) throws Exception;
+    public void rollback(long checkpointId) throws Exception{}
 
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;
-    }
-
-    public int getBatchSize() {
-        return batchSize;
-    }
-
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
     }
 
     public String getFormatId() {
@@ -648,10 +645,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     public void setConfig(FlinkxCommonConf config) {
         this.config = config;
-    }
-
-    public void setFlushIntervalMills(long flushIntervalMills) {
-        this.flushIntervalMills = flushIntervalMills;
     }
 
     public void setRowConverter(AbstractRowConverter rowConverter) {

@@ -1,305 +1,192 @@
-# MySQL Writer
+# Mysql Sink
 
-<a name="c6v6n"></a>
-## 一、插件名称
-名称：**mysqlwriter**<br />
-<a name="jVb3v"></a>
-## 二、支持的数据源版本
-**MySQL 5.X**<br />
-<a name="2lzA4"></a>
-## 三、参数说明<br />
+## 一、介绍
+mysql sink
 
+## 二、支持版本
+mysql5.x
+
+
+## 三、插件名称
+| Sync | mysqlsink、mysqlwriter |
+| --- | --- |
+| SQL | mysql-x |
+
+
+## 四、参数说明
+### 1、Sync
+- **connection**
+  - 描述：数据库连接参数，包含jdbcUrl、schema、table等参数
+  - 必选：是
+  - 参数类型：List
+  - 默认值：无
+    ```text
+    "connection": [{
+     "jdbcUrl": ["jdbc:mysql://0.0.0.1:3306/database?useSSL=false"],
+     "table": ["table"],
+     "schema":"public"
+    }]
+    ```
+ <br />
+    
 - **jdbcUrl**
-  - 描述：针对关系型数据库的jdbc连接字符串
+  - 描述：针对关系型数据库的jdbc连接字符串,jdbcUrl参考文档：[MySQL官方文档](http://dev.mysql.com/doc/connector-j/en/connector-j-reference-configuration-properties.html)
   - 必选：是
+  - 参数类型：string
   - 默认值：无
+<br />
 
-
-
-- **username**
-  - 描述：数据源的用户名
-  - 必选：是
-  - 默认值：无
-
-
-
-- **password**
-  - 描述：数据源指定用户名的密码
-  - 必选：是
-  - 默认值：无
-
-
-
-- **column**
-  - 描述：目的表需要写入数据的字段,字段之间用英文逗号分隔。例如: "column": ["id","name","age"]
-  - 必选：是
-  - 默认值：否
-  - 默认值：无
-
-
-
-- **preSql**
-  - 描述：写入数据到目的表前，会先执行这里的一组标准语句
+- **schema**
+  - 描述：数据库schema名
   - 必选：否
+  - 参数类型：string
   - 默认值：无
-
-
-
-- **postSql**
-  - 描述：写入数据到目的表后，会执行这里的一组标准语句
-  - 必选：否
-  - 默认值：无
-
-
+<br />
 
 - **table**
   - 描述：目的表的表名称。目前只支持配置单个表，后续会支持多表
   - 必选：是
+  - 参数类型：List
   - 默认值：无
+<br />
 
+- **username**
+  - 描述：数据源的用户名
+  - 必选：是
+  - 参数类型：String
+  - 默认值：无
+<br />
 
+- **password**
+  - 描述：数据源指定用户名的密码
+  - 必选：是
+  - 参数类型：String
+  - 默认值：无
+<br />
+
+- **column**
+  - 描述：目的表需要写入数据的字段,字段之间用英文逗号分隔。例如: "column": ["id","name","age"] 
+  - 必选：是
+  - 参数类型：List
+  - 默认值：无
+<br />
+
+- **fullcolumn**
+  - 描述：目的表中的所有字段，字段之间用英文逗号分隔。例如: "column": ["id","name","age","hobby"]，如果不配置，将在系统表中获取 
+  - 必选：否
+  - 参数类型：List
+  - 默认值：无
+<br />
+
+- **preSql**
+  - 描述：写入数据到目的表前，会先执行这里的一组标准语句 
+  - 必选：否
+  - 参数类型：List
+  - 默认值：无
+<br />
+
+- **postSql**
+  - 描述：写入数据到目的表后，会执行这里的一组标准语句 
+  - 必选：否
+  - 参数类型：List
+  - 默认值：无
+<br />
 
 - **writeMode**
-  - 描述：控制写入数据到目标表采用 `insert into` 或者 `replace into` 或者 `ON DUPLICATE KEY UPDATE` 语句
+  - 描述：控制写入数据到目标表采用 insert into 或者 replace into 或者 ON DUPLICATE KEY UPDATE 语句 
   - 必选：是
   - 所有选项：insert/replace/update
+  - 参数类型：String
   - 默认值：insert
-
-
+<br />
 
 - **batchSize**
   - 描述：一次性批量提交的记录数大小，该值可以极大减少FlinkX与数据库的网络交互次数，并提升整体吞吐量。但是该值设置过大可能会造成FlinkX运行进程OOM情况
   - 必选：否
+  - 参数类型：int
   - 默认值：1024
-
-
+<br />
 
 - **updateKey**
   - 描述：当写入模式为update和replace时，需要指定此参数的值为唯一索引字段
   - 注意：
     - 如果此参数为空，并且写入模式为update和replace时，应用会自动获取数据库中的唯一索引；
-    - 如果数据表没有唯一索引，但是写入模式配置为update和replace，应用会以insert的方式写入数据；
+    - 如果数据表没有唯一索引，但是写入模式配置为update和replace，应用会以insert的方式写入数据； 
   - 必选：否
+  - 参数类型：Map<String,List>
+    - 示例："updateKey": {"key": ["id"]}
   - 默认值：无
+<br />
+
+### 2、SQL
+- **connector**
+  - 描述：mysql-x
+  - 必选：是
+  - 参数类型：String 
+  - 默认值：无
+<br />
+
+- **url**
+  - 描述：jdbc:mysql://localhost:3306/test
+  - 必选：是
+  - 参数类型：String 
+  - 默认值：无
+<br />
+
+- **table-name**
+  - 描述：表名
+  - 必选：是
+  - 参数类型：String 
+  - 默认值：无：
+<br />
+
+- **username**
+  - 描述：username
+  - 必选：是
+  - 参数类型：String 
+  - 默认值：无
+<br />
+
+- **password**
+  - 描述：password
+  - 必选：是
+  - 参数类型：String 
+  - 默认值：无
+<br />
+
+- **sink.buffer-flush.max-rows**
+  - 描述：批量写数据条数，单位：条
+  - 必选：否
+  - 参数类型：String
+  - 默认值：1024
+<br />
+
+- **sink.buffer-flush.interval**
+  - 描述：批量写时间间隔，单位：毫秒
+  - 必选：否
+  - 参数类型：String
+  - 默认值：10000
+<br />
+
+- **sink.allReplace**
+  - 描述：是否全部替换数据库中的数据(如果数据库中原值不为null,新值为null,如果为true则会替换为null) 
+  - 必选：否
+  - 参数类型：String
+  - 默认值：false
+<br />
+
+- **sink.parallelism**
+  - 描述：写入结果的并行度 
+  - 必选：否
+  - 参数类型：String
+  - 默认值：无
+<br />
+
+## 五、数据类型
+| 支持 | BOOLEAN、TINYINT、SMALLINT、INT、BIGINT、FLOAT、DOUBLE、DECIMAL、STRING、VARCHAR、CHAR、TIMESTAMP、DATE、BINARY |
+| --- | --- |
+| 暂不支持 | ARRAY、MAP、STRUCT、UNION |
 
 
-
-<a name="1LBc2"></a>
-## 四、配置示例
-<a name="L1YSJ"></a>
-#### 1、insert
-```json
-{
-  "job": {
-    "content": [
-      {
-        "reader": {
-          "name": "streamreader",
-          "parameter": {
-            "column": [
-              {
-                "name": "id",
-                "type": "id"
-              },
-              {
-                "name": "user_id",
-                "type": "int"
-              },
-              {
-                "name": "name",
-                "type": "string"
-              }
-            ],
-            "sliceRecordCount" : [ "100"]
-          }
-        },
-        "writer": {
-          "name": "mysqlwriter",
-          "parameter": {
-            "username": "dtstack",
-            "password": "abc123",
-            "connection": [
-              {
-                "jdbcUrl": "jdbc:mysql://kudu3:3306/tudou?useSSL=false",
-                "table": ["kudu"]
-              }
-            ],
-            "preSql": ["truncate table kudu;"],
-            "postSql": ["update kudu set user_id = 1;"],
-            "writeMode": "insert",
-            "column": ["id","user_id","name"],
-            "batchSize": 1024
-          }
-        }
-      }
-    ],
-    "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 0
-      },
-      "errorLimit": {
-        "record": 100
-      },
-      "restore": {
-        "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
-      },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
-      }
-    }
-  }
-}
-```
-<a name="07eFD"></a>
-#### 2、update
-```json
-{
-  "job": {
-    "content": [
-      {
-        "reader": {
-          "name": "streamreader",
-          "parameter": {
-            "column": [
-              {
-                "name": "id",
-                "type": "id"
-              },
-              {
-                "name": "user_id",
-                "type": "int"
-              },
-              {
-                "name": "name",
-                "type": "string"
-              }
-            ],
-            "sliceRecordCount" : [ "100"]
-          }
-        },
-        "writer": {
-          "name": "mysqlwriter",
-          "parameter": {
-            "username": "dtstack",
-            "password": "abc123",
-            "connection": [
-              {
-                "jdbcUrl": "jdbc:mysql://kudu3:3306/tudou?useSSL=false",
-                "table": ["kudu"]
-              }
-            ],
-            "preSql": [],
-            "postSql": [],
-            "writeMode": "update",
-            "updateKey": {"key": ["id"]},
-            "column": ["id","user_id","name"],
-            "batchSize": 1024
-          }
-        }
-      }
-    ],
-    "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 0
-      },
-      "errorLimit": {
-        "record": 1
-      },
-      "restore": {
-        "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
-      },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
-      }
-    }
-  }
-}
-```
-<a name="PXJfz"></a>
-#### 3、replace
-```json
-{
-  "job": {
-    "content": [
-      {
-        "reader": {
-          "name": "streamreader",
-          "parameter": {
-            "column": [
-              {
-                "name": "id",
-                "type": "id"
-              },
-              {
-                "name": "user_id",
-                "type": "int"
-              },
-              {
-                "name": "name",
-                "type": "string"
-              }
-            ],
-            "sliceRecordCount" : [ "100"]
-          }
-        },
-        "writer": {
-          "name": "mysqlwriter",
-          "parameter": {
-            "username": "dtstack",
-            "password": "abc123",
-            "connection": [
-              {
-                "jdbcUrl": "jdbc:mysql://kudu3:3306/tudou?useSSL=false",
-                "table": ["kudu"]
-              }
-            ],
-            "preSql": [],
-            "postSql": [],
-            "writeMode": "replace",
-            "updateKey": {"key": ["id"]},
-            "column": ["id","user_id","name"],
-            "batchSize": 1024
-          }
-        }
-      }
-    ],
-    "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 0
-      },
-      "errorLimit": {
-        "record": 1
-      },
-      "restore": {
-        "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
-      },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
-      }
-    }
-  }
-}
-```
-
-
+## 六、脚本示例
+见项目内`FlinkX : Local : Test`模块中的`demo`文件夹。

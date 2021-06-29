@@ -173,7 +173,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected String recordConvertDetailErrorMessage(int pos, RowData row) {
+    protected String recordConvertDetailErrorMessage(int pos, Object row) {
         return "\nJdbcOutputFormat [" + jobName + "] writeRecord error: when converting field["+ pos + "] in Row(" + row + ")";
     }
 
@@ -194,11 +194,10 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 JdbcUtil.commit(dbConn);
             }
         } catch (Exception e) {
-            LOG.warn("write Multiple Records error, row size = {}, first row = {},  e = {}",
+            LOG.warn("write Multiple Records error, start to rollback connection, row size = {}, first row = {}",
                     rows.size(),
                     rows.size() > 0 ? GsonUtil.GSON.toJson(rows.get(0)) : "null",
-                    ExceptionUtil.getErrorMessage(e));
-            LOG.warn("error to writeMultipleRecords, start to rollback connection, e = {}", ExceptionUtil.getErrorMessage(e));
+                    e);
             JdbcUtil.rollBack(dbConn);
             throw e;
         } finally {
@@ -221,11 +220,11 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void commit(long checkpointId) throws Exception {
+    public void commit(long checkpointId) throws Exception {
         try {
             dbConn.commit();
-            rowsOfCurrentTransaction = 0;
             snapshotWriteCounter.add(rowsOfCurrentTransaction);
+            rowsOfCurrentTransaction = 0;
             fieldNamedPreparedStatement.clearBatch();
         } catch (Exception e) {
             dbConn.rollback();
@@ -234,7 +233,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void rollback(long checkpointId) throws Exception {
+    public void rollback(long checkpointId) throws Exception {
         dbConn.rollback();
     }
 
@@ -288,7 +287,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                                     jdbcConf.getTable(),
                                     columnNameList.toArray(new String[0]),
                                     jdbcConf.getUpdateKey().toArray(new String[0]),
-                                    jdbcConf.getAllReplace())
+                                    jdbcConf.isAllReplace())
                             .get();
         } else {
             throw new IllegalArgumentException("Unknown write mode:" + jdbcConf.getMode());
@@ -353,7 +352,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void closeInternal() {
-        numWriteCounter.add(rowsOfCurrentTransaction);
+        snapshotWriteCounter.add(rowsOfCurrentTransaction);
         try {
             if(fieldNamedPreparedStatement != null){
                 fieldNamedPreparedStatement.close();

@@ -51,13 +51,13 @@ import static com.dtstack.flinkx.metrics.MetricConstant.DT_TOPIC_PARTITION_LAG_G
  */
 public class DynamicKafkaDeserializationSchemaWrapper extends DynamicKafkaDeserializationSchema{
 
-    private static final Logger LOG = LoggerFactory.getLogger(DynamicKafkaDeserializationSchemaWrapper.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(DynamicKafkaDeserializationSchemaWrapper.class);
 
     private static final long serialVersionUID = 2L;
 
     private Calculate calculate;
 
-    DynamicKafkaDeserializationSchemaWrapper(
+    protected DynamicKafkaDeserializationSchemaWrapper(
             int physicalArity,
             @Nullable DeserializationSchema<RowData> keyDeserialization,
             int[] keyProjection,

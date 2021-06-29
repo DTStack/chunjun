@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.decoder;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -26,7 +27,9 @@ import java.util.Map;
  *
  * @author tudou
  */
-public class TextDecoder implements IDecode {
+public class TextDecoder implements IDecode, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Override
     public Map<String, Object> decode(final String message) {

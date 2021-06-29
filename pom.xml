@@ -17,8 +17,9 @@
         <module>flinkx-clients</module>
         <module>flinkx-local-test</module>
         <module>flinkx-formats</module>
+        <module>flinkx-docker</module>
 
-<!--        &lt;!&ndash;******离线******&ndash;&gt;-->
+        <!--        &lt;!&ndash;******离线******&ndash;&gt;-->
 <!--        <module>flinkx-polardb</module>-->
 <!--        <module>flinkx-oracle</module>-->
 <!--        <module>flinkx-sqlserver</module>-->
@@ -76,7 +77,7 @@
 		<flink.version>1.12.2</flink.version>
         <scala.binary.version>2.12</scala.binary.version>
         <prometheus.version>0.8.1</prometheus.version>
-        <hadoop.version>2.7.3</hadoop.version>
+        <hadoop.version>2.7.5</hadoop.version>
         <http.version>4.5.3</http.version>
 		<guava.version>19.0</guava.version>
 	</properties>

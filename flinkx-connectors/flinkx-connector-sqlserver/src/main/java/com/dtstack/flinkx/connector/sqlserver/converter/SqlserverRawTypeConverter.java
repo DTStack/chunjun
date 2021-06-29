@@ -33,7 +33,7 @@ import java.util.Locale;
 public class SqlserverRawTypeConverter {
 
     /**
-     * Reference from https://www.sqlservertutorial.net/sql-server-basics/sql-server-data-types/
+     * Convert the data type in SqlServer to the DataType type in flink
      *
      * @param type
      *
@@ -71,25 +71,21 @@ public class SqlserverRawTypeConverter {
             case "NVARCHAR(MAX)":
             case "NTEXT":
                 return DataTypes.STRING();
-// For net.sourceforge.jtds.jdbc.JtdsResultSet ,datetime2 type is String
+            case "TIME":
             case "DATETIME2":
+            case "DATETIMEOFFSET":
                 return DataTypes.STRING();
             case "UNIQUEIDENTIFIER":
                 return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();
-// For net.sourceforge.jtds.jdbc.JtdsResultSet ,time type is String
-            case "TIME":
-                return DataTypes.STRING();
             case "DATETIME":
             case "SMALLDATETIME":
-//            case "DATETIMEOFFSET": is unsupported
                 return DataTypes.TIMESTAMP();
             case "BINARY":
             case "VARBINARY":
             case "IMAGE":
             case "TIMESTAMP":
-                // BYTES bottom call is the maximum length of VARBINARY
                 return DataTypes.BYTES();
             case "MONEY":
             case "SMALLMONEY":

@@ -1,0 +1,107 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader" : {
+          "parameter" : {
+            "path" : "hdfs://ns/user/hive/warehouse/tudou.db/type_orc/pt=1",
+            "hadoopConfig" : {
+              "hadoop.user.name": "root",
+              "dfs.ha.namenodes.ns": "nn1,nn2",
+              "fs.defaultFS": "hdfs://ns",
+              "dfs.namenode.rpc-address.ns.nn2": "ip:9000",
+              "dfs.client.failover.proxy.provider.ns": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns.nn1": "ip:9000",
+              "dfs.nameservices": "ns",
+              "fs.hdfs.impl.disable.cache": "true",
+              "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem"
+            },
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "col_boolean",
+                "type": "boolean"
+              },
+              {
+                "name": "col_tinyint",
+                "type": "tinyint"
+              },
+              {
+                "name": "col_smallint",
+                "type": "smallint"
+              },
+              {
+                "name": "col_int",
+                "type": "int"
+              },
+              {
+                "name": "col_bigint",
+                "type": "bigint"
+              },
+              {
+                "name": "col_float",
+                "type": "float"
+              },
+              {
+                "name": "col_double",
+                "type": "double"
+              },
+              {
+                "name": "col_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "col_string",
+                "type": "string"
+              },
+              {
+                "name": "col_varchar",
+                "type": "varchar(255)"
+              },
+              {
+                "name": "col_char",
+                "type": "char(255)"
+              },
+              {
+                "name": "col_binary",
+                "type": "binary"
+              },
+              {
+                "name": "col_timestamp",
+                "type": "timestamp"
+              },
+              {
+                "name": "col_date",
+                "type": "date"
+              },
+              {
+                "name": "pt",
+                "type": "string",
+                "isPart": true
+              }
+            ],
+            "defaultFS" : "hdfs://ns",
+            "encoding" : "utf-8",
+            "fileType" : "orc"
+          },
+          "name" : "hdfsreader"
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

@@ -27,6 +27,10 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -356,6 +360,21 @@ public class StringUtil {
             if(i != strings.size()-1){
                 stringBuffer.append(ConstantValue.POINT_SYMBOL);
             }
+        }
+        return stringBuffer.toString();
+    }
+
+    /**
+     * get String from inputStream
+     * @param input inputStream
+     * @return String value
+     * @throws IOException convert exception
+     */
+    public static String inputStream2String(InputStream input) throws IOException {
+        StringBuilder stringBuffer = new StringBuilder();
+        byte[] byt = new byte[1024];
+        for (int i; (i = input.read(byt)) != -1;) {
+            stringBuffer.append(new String(byt, 0, i));
         }
         return stringBuffer.toString();
     }

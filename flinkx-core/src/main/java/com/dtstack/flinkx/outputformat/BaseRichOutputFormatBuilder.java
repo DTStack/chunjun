@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
  * @author huyifan.zju@163.com
  */
 public abstract class BaseRichOutputFormatBuilder {
-
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
     protected BaseRichOutputFormat format;
 
     public void setConfig(FlinkxCommonConf config) {
@@ -43,22 +43,8 @@ public abstract class BaseRichOutputFormatBuilder {
         this.format.initAccumulatorAndDirty = initAccumulatorAndDirty;
     }
 
-    public void setFlushIntervalMills(long flushIntervalMills) {
-        format.setFlushIntervalMills(flushIntervalMills);
-    }
-
-    public void setBatchSize(int batchSize) {
-        format.batchSize = batchSize;
-    }
-
-    public void setConverter(AbstractRowConverter converter) {
-        format.setRowConverter(converter);
-    }
-
-    protected void notSupportBatchWrite(String writerName) {
-        if (this.format.getBatchSize() > 1) {
-            throw new IllegalArgumentException(writerName + "不支持批量写入");
-        }
+    public void setRowConverter(AbstractRowConverter rowConverter) {
+        format.setRowConverter(rowConverter);
     }
 
     /**
@@ -75,7 +61,7 @@ public abstract class BaseRichOutputFormatBuilder {
          * 在不考虑各插件批量写入对内存特殊要求并且只考虑插件缓存这么多条数据的情况下，batchInterval为400000条时出现fullGC，
          * 为了避免fullGC以及OOM，并且保证batchInterval有足够的配置空间，取最大值的一半200000。
          */
-        if (this.format.getBatchSize() > ConstantValue.MAX_BATCH_SIZE) {
+        if (this.format.getConfig().getBatchSize() > ConstantValue.MAX_BATCH_SIZE) {
             throw new IllegalArgumentException("批量写入条数必须小于[200000]条");
         }
 

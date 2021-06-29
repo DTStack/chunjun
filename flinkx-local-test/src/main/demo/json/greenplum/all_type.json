@@ -1,0 +1,359 @@
+{
+    "job": {
+      "content": [
+        {
+          "reader": {
+            "name": "greenplumreader",
+            "parameter": {
+              "column": [
+                {
+                  "name": "t_bool",
+                  "type": "smallserial"
+                },
+                {
+                  "name": "t_bytea",
+                  "type": "integer"
+                },
+                {
+                  "name": "t_char",
+                  "type": "serial"
+                },
+                {
+                  "name": "t_date",
+                  "type": "oid"
+                },
+                {
+                  "name": "t_decimal",
+                  "type": "real"
+                },
+                {
+                  "name": "t_float4",
+                  "type": "double precision"
+                },
+                {
+                  "name": "t_float8",
+                  "type": "double precision"
+                },
+                {
+                  "name": "t_int2",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_int4",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_int8",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_interval",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_json",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_jsonb",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_line",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_lseg",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_maccaddr",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_money",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_numeric",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_path",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_point",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_polygon",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial2",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial4",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial8",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_text",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_time",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timestamp",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timestamptz",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timetz",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_tsquery",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_tsvector",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_txid_snapshot",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_uuid",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_varbit",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_varchar",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_xml",
+                  "type": "numeric"
+                }
+              ],
+              "username": "gpadmin",
+              "password": "gpadmin",
+              "connection": [
+                {
+                  "jdbcUrl": [
+                    "jdbc:pivotal:greenplum://localhost:5432;DatabaseName=postgres"
+                  ],
+                  "table": [
+                    "greenplum_all_type"
+                  ]
+                }
+              ]
+            }
+          },
+          "writer": {
+            "name": "greenplumwriter",
+            "parameter": {
+              "username": "gpadmin",
+              "password": "gpadmin",
+              "connection": [
+                {
+                  "jdbcUrl": "jdbc:pivotal:greenplum://localhost:5432;DatabaseName=postgres",
+                  "table": [
+                    "greenplum_all_type_result"
+                  ]
+                }
+              ],
+              "writeMode": "insert",
+              "column": [
+                {
+                  "name": "t_bit",
+                  "type": "smallint"
+                },
+                {
+                  "name": "t_bool",
+                  "type": "smallserial"
+                },
+                {
+                  "name": "t_box",
+                  "type": "int"
+                },
+                {
+                  "name": "t_bytea",
+                  "type": "integer"
+                },
+                {
+                  "name": "t_char",
+                  "type": "serial"
+                },
+                {
+                  "name": "t_cidr",
+                  "type": "bigint"
+                },
+                {
+                  "name": "t_circle",
+                  "type": "bigserial"
+                },
+                {
+                  "name": "t_date",
+                  "type": "oid"
+                },
+                {
+                  "name": "t_decimal",
+                  "type": "real"
+                },
+                {
+                  "name": "t_float4",
+                  "type": "double precision"
+                },
+                {
+                  "name": "t_float8",
+                  "type": "double precision"
+                },
+                {
+                  "name": "t_inet",
+                  "type": "decimal"
+                },
+                {
+                  "name": "t_int2",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_int4",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_int8",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_interval",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_json",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_jsonb",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_line",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_lseg",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_maccaddr",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_money",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_numeric",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_path",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_point",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_polygon",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial2",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial4",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_serial8",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_text",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_time",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timestamp",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timestamptz",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_timetz",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_tsquery",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_tsvector",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_txid_snapshot",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_uuid",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_varbit",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_varchar",
+                  "type": "numeric"
+                },
+                {
+                  "name": "t_xml",
+                  "type": "numeric"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "setting": {
+        "speed": {
+          "channel": 1,
+          "bytes": 0
+        }
+      }
+    }
+  }

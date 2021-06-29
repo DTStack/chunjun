@@ -1,0 +1,79 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "key1",
+                "type": "string"
+              },
+              {
+                "name": "key2",
+                "type": "string"
+              },
+              {
+                "name": "key3",
+                "type": "datetime"
+              },
+              {
+                "name": "key4",
+                "type": "long"
+              },
+              {
+                "name": "key5",
+                "type": "float"
+              },
+              {
+                "name": "key6",
+                "type": "char"
+              },
+              {
+                "name": "key7",
+                "type": "bigint"
+              },
+              {
+                "name": "key8",
+                "type": "decimal"
+              },
+              {
+                "name": "key9",
+                "type": "date"
+              },
+              {
+                "name": "key10",
+                "type": "time"
+              }
+            ],
+            "sliceRecordCount": [
+              "10"
+            ]
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "parameter": {
+            "hostPort": "localhost:6379",
+            "type": "string",
+            "mode": "set",
+            "keyIndexes": [
+              0,
+              1
+            ],
+            "password": "123456",
+            "database": 0,
+            "timeout": 30000
+          },
+          "name": "rediswriter"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

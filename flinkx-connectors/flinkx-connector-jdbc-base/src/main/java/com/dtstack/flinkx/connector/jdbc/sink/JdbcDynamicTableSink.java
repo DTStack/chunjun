@@ -104,10 +104,8 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
                 .name() : EWriteMode.UPDATE.name());
 
         builder.setJdbcDialect(jdbcDialect);
-        builder.setBatchSize(jdbcConf.getBatchSize());
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
-        builder.setFlushIntervalMills(jdbcConf.getFlushIntervalMills());
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()),
                 jdbcConf.getParallelism());

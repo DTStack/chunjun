@@ -17,17 +17,16 @@
  */
 package com.dtstack.flinkx.connector.kafka.serialization;
 
-import org.apache.flink.api.common.serialization.AbstractDeserializationSchema;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.RowKind;
+import org.apache.flink.util.Collector;
 
-import com.dtstack.flinkx.decoder.DecodeEnum;
-import com.dtstack.flinkx.decoder.IDecode;
-import com.dtstack.flinkx.decoder.JsonDecoder;
-import com.dtstack.flinkx.decoder.TextDecoder;
+import com.dtstack.flinkx.connector.kafka.source.Calculate;
+import com.dtstack.flinkx.connector.kafka.source.DynamicKafkaDeserializationSchemaWrapper;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -36,27 +35,43 @@ import java.nio.charset.StandardCharsets;
  *
  * @author tudou
  */
-public class RowDeserializationSchema extends AbstractDeserializationSchema<RowData> {
-    private static final long serialVersionUID = 1L;
-    private String codec;
-    private transient IDecode decode;
+public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaWrapper {
 
-    public RowDeserializationSchema(String codec, TypeInformation<RowData> typeInfo) {
-        super(typeInfo);
-        this.codec = codec;
+    private static final long serialVersionUID = 1L;
+    /** kafka converter */
+    private final AbstractRowConverter converter;
+
+    public RowDeserializationSchema(
+            AbstractRowConverter converter,
+            Calculate calculate) {
+        super(
+                1,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
+                null,
+                false,
+                calculate);
+        this.converter = converter;
     }
 
     @Override
-    public RowData deserialize(byte[] message) {
-        if(decode == null){
-            if (DecodeEnum.JSON.getName().equalsIgnoreCase(codec)) {
-                decode = new JsonDecoder();
-            } else {
-                decode = new TextDecoder();
-            }
+    public void open(DeserializationSchema.InitializationContext context) {
+
+    }
+
+    @Override
+    public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector) throws UnsupportedEncodingException {
+        try {
+            beforeDeserialize(record);
+            collector.collect(converter.toInternal(new String(record.value(), StandardCharsets.UTF_8)));
+            numInResolveRecord.inc();
+        } catch (Exception e) {
+            // todo kafka 比较特殊这里直接对接脏数据即可
+            dirtyDataCounter(record, e);
         }
-        GenericRowData row = new GenericRowData(RowKind.INSERT, 1);
-        row.setField(0, this.decode.decode(new String(message, StandardCharsets.UTF_8)));
-        return row;
     }
 }

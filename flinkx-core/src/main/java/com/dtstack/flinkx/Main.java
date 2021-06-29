@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx;
 
+
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -53,9 +54,9 @@ import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.exec.ExecuteProcessHelper;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.parser.SqlParser;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.sql.parser.SqlParser;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.MathUtil;
@@ -87,6 +88,7 @@ import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_FAILUREINTERV
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_FAILURERATE;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_RESTARTATTEMPTS;
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_STRATEGY;
+import static org.apache.flink.table.api.config.TableConfigOptions.TABLE_DYNAMIC_TABLE_OPTIONS_ENABLED;
 
 /**
  * The main class entry
@@ -321,12 +323,11 @@ public class Main {
      */
     private static StreamTableEnvironment createStreamTableEnvironment(
             StreamExecutionEnvironment env) {
-        // use blink and stream mode
-        EnvironmentSettings settings =
-                EnvironmentSettings.newInstance().useBlinkPlanner().inStreamingMode().build();
-
-        TableConfig tableConfig = new TableConfig();
-        return StreamTableEnvironmentImpl.create(env, settings, tableConfig);
+        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
+        Configuration configuration = tEnv.getConfig().getConfiguration();
+        // Iceberg need this config setting up true.
+        configuration.setBoolean(TABLE_DYNAMIC_TABLE_OPTIONS_ENABLED.key(), true);
+        return tEnv;
     }
 
     /**
@@ -361,10 +362,9 @@ public class Main {
                             options.getMode(),
                             options.getPluginLoadMode()),
                     "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
-            FactoryUtil.setPluginPath(
-                    StringUtils.isNotEmpty(options.getPluginRoot())
-                            ? options.getPluginRoot()
-                            : options.getRemotePluginPath());
+            FactoryUtil.setLocalPluginPath(options.getPluginRoot());
+            FactoryUtil.setRemotePluginPath(options.getRemotePluginPath());
+            FactoryUtil.setPluginLoadMode(options.getPluginLoadMode());
             FactoryUtil.setEnv(env);
             FactoryUtil.setConnectorLoadMode(options.getConnectorLoadMode());
         }

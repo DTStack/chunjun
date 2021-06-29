@@ -18,14 +18,13 @@
 
 package com.dtstack.flinkx.connector.sqlserver.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.util.TableUtil;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.types.logical.RowType;
 
 import java.sql.Timestamp;
 
@@ -37,14 +36,16 @@ import java.sql.Timestamp;
  */
 public class SqlserverInputFormat extends JdbcInputFormat {
 
+    private static final long serialVersionUID = 1L;
 
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
         RowType rowType =
-                TableUtil.createRowType(
-                        columnNameList, columnTypeList, SqlserverRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+            TableUtil.createRowType(
+                columnNameList, columnTypeList, SqlserverRawTypeConverter::apply);
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
+
     }
 
 
@@ -93,4 +94,5 @@ public class SqlserverInputFormat extends JdbcInputFormat {
 
         return timeStr;
     }
+
 }

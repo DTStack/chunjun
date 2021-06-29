@@ -43,7 +43,7 @@ public class ClickhouseOutputFormat extends JdbcOutputFormat {
         super.openInternal(taskNumber, numTasks);
         RowType rowType =
                 TableUtil.createRowType(columnNameList, columnTypeList, ClickhouseRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
     }
 
     @Override

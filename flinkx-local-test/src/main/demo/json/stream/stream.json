@@ -18,7 +18,8 @@
                 "type": "string"
               }
             ],
-            "sliceRecordCount": ["30"]
+            "sliceRecordCount": ["30"],
+            "permitsPerSecond": 1
           },
           "table": {
             "tableName": "sourceTable"

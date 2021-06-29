@@ -29,5 +29,5 @@ public interface IDeserializationConverter<T, E> extends Serializable {
      * @return
      * @throws Exception
      */
-    E deserialize(T field);
+    E deserialize(T field) throws Exception;
 }
