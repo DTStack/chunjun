@@ -17,6 +17,9 @@
  */
 package com.dtstack.flinkx.connector.kingbase.sink;
 
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import org.apache.commons.lang3.StringUtils;
+
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
@@ -54,8 +57,8 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
      */
     @Override
     protected Pair<List<String>, List<String>> getTableMetaData() {
-        return KingbaseUtils.getTableMetaData(jdbcConf.getSchema(),
-                jdbcConf.getTable(),
-                dbConn);
+        return JdbcUtil.getTableMetaData(
+                StringUtils.upperCase(jdbcConf.getSchema()),
+                StringUtils.upperCase(jdbcConf.getTable()), dbConn);
     }
 }
