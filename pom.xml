@@ -269,5 +269,10 @@
             </plugin>
         </plugins>
     </reporting>
-
+	<repositories>
+		<repository>
+			<id>dtstack-github</id>
+			<url>https://github.com/dtstack/maven-repository/raw/master/</url>
+		</repository>
+	</repositories>
 </project>
