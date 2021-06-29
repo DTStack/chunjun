@@ -38,7 +38,7 @@
         <module>flinkx-ftp</module>
         <module>flinkx-odps</module>
         <module>flinkx-hbase</module>
-<!--        <module>flinkx-phoenix</module>-->
+        <module>flinkx-hbase2</module>
         <module>flinkx-phoenix5</module>
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
