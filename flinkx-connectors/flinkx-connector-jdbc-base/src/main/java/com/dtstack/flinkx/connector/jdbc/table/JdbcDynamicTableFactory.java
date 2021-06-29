@@ -43,16 +43,12 @@ import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -100,7 +96,6 @@ import static org.apache.flink.util.Preconditions.checkState;
  */
 public abstract class JdbcDynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
-    protected static Logger LOG = LoggerFactory.getLogger(JdbcDynamicTableFactory.class);
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
@@ -371,14 +366,8 @@ public abstract class JdbcDynamicTableFactory
 
     /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
     protected void resetTableInfo(JdbcConf jdbcConf){
-        if(StringUtils.isEmpty(jdbcConf.getSchema())){
-            LOG.info("before reset table info,schema: {},table: {}",jdbcConf.getSchema(), jdbcConf.getTable());
-            Pair<String, String> tableAndSchema = JdbcUtil.getTableAndSchema(jdbcConf.getTable(), "\\\"", "\\\"");
-            if(Objects.nonNull(tableAndSchema)){
-                jdbcConf.setSchema(tableAndSchema.getLeft());
-                jdbcConf.setTable(tableAndSchema.getRight());
-                LOG.info("after reset table info,schema: {},table: {}",jdbcConf.getSchema(), jdbcConf.getTable());
-            }
+        if(StringUtils.isBlank(jdbcConf.getSchema())){
+           JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
         }
     }
 }

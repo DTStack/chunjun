@@ -56,7 +56,6 @@ import java.util.Properties;
  * @author huyifan.zju@163.com
  */
 public abstract class JdbcSourceFactory extends SourceFactory {
-    protected static Logger LOG = LoggerFactory.getLogger(JdbcSourceFactory.class);
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
@@ -200,14 +199,8 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
     /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
     protected void resetTableInfo(){
-        if(StringUtils.isEmpty(jdbcConf.getSchema())){
-            LOG.info("before reset table info,schema: {},table: {}",jdbcConf.getSchema(), jdbcConf.getTable());
-            Pair<String, String> tableAndSchema = JdbcUtil.getTableAndSchema(jdbcConf.getTable(),"\\\"", "\\\"");
-            if(Objects.nonNull(tableAndSchema)){
-                jdbcConf.setSchema(tableAndSchema.getLeft());
-                jdbcConf.setTable(tableAndSchema.getRight());
-                LOG.info("after reset table info,schema: {},table: {}",jdbcConf.getSchema(), jdbcConf.getTable());
-            }
+        if(StringUtils.isBlank(jdbcConf.getSchema())){
+            JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
         }
     }
 }

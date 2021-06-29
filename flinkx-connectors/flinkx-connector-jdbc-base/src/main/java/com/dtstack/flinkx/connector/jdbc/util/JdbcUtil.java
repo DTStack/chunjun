@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.nio.charset.StandardCharsets;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -50,7 +49,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -406,22 +404,33 @@ public class JdbcUtil {
     }
 
     /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table **/
-    public static Pair<String, String> getTableAndSchema(String tableName, String leftQuote,String rightQuote) {
-        String pattern = String.format("(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)", leftQuote, rightQuote, leftQuote, rightQuote);
-        Pattern p = Pattern.compile(pattern);
-        Matcher matcher = p.matcher(tableName);
-        if(matcher.find()){
-            String schema = matcher.group("schema");
-            String table = matcher.group("table");
-            return Pair.of(schema, table);
-        }else{
-            String[] split = tableName.split("\\.");
-            if(split.length == 2){
-                String schema = split[0];
-                String table = split[1];
-                return Pair.of(schema, table);
+    public static void resetSchemaAndTable(JdbcConf jdbcConf, String leftQuote, String rightQuote) {
+            LOG.info("before reset table info,schema: {},table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
+            String pattern = String.format(
+                    "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
+                    leftQuote,
+                    rightQuote,
+                    leftQuote,
+                    rightQuote);
+            Pattern p = Pattern.compile(pattern);
+            Matcher matcher = p.matcher(jdbcConf.getTable());
+            String schema = null;
+            String table = null;
+            if (matcher.find()) {
+                schema = matcher.group("schema");
+                table = matcher.group("table");
+            } else {
+                String[] split = jdbcConf.getTable().split("\\.");
+                if (split.length == 2) {
+                    schema = split[0];
+                    table = split[1];
+                }
             }
-        }
-        return null;
+
+            if (StringUtils.isNotBlank(schema)) {
+                jdbcConf.setSchema(schema);
+                jdbcConf.setTable(table);
+                LOG.info("after reset table info,schema: {},table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
+            }
     }
 }

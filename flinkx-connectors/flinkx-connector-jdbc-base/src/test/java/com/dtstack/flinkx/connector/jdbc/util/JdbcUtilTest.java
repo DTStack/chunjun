@@ -17,39 +17,54 @@
  */
 package com.dtstack.flinkx.connector.jdbc.util;
 
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.conf.SourceConnectionConf;
 import com.dtstack.flinkx.constants.ConstantValue;
-import org.apache.commons.lang3.tuple.Pair;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collections;
+
 /**
- *
  * @author dujie
  */
 public class JdbcUtilTest {
+
+    private JdbcConf jdbcConf;
+    private SourceConnectionConf sourceConnectionConf;
+
+    @Before
+    public void setup() {
+        jdbcConf = new JdbcConf();
+        sourceConnectionConf = new SourceConnectionConf();
+        jdbcConf.setConnection(Collections.singletonList(sourceConnectionConf));
+    }
 
     @Test
     public void testGetTableAndSchema1() {
         String schema = "\"schema\"";
         String table = "\"table\"";
-        Pair<String, String> tableAndSchema = JdbcUtil.getTableAndSchema(
-                schema + ConstantValue.POINT_SYMBOL + table,
+        sourceConnectionConf.setTable(Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
+        JdbcUtil.resetSchemaAndTable(jdbcConf,
                 "\\\"", "\\\"");
-        assert tableAndSchema != null;
-        Assert.assertEquals("schema", tableAndSchema.getLeft());
-        Assert.assertEquals("table", tableAndSchema.getRight());
+
+        Assert.assertEquals("schema", jdbcConf.getSchema());
+        Assert.assertEquals("table", jdbcConf.getTable());
     }
 
     @Test
     public void testGetTableAndSchema2() {
         String schema = "schema";
         String table = "table";
-        Pair<String, String> tableAndSchema = JdbcUtil.getTableAndSchema(
-                schema + ConstantValue.POINT_SYMBOL + table,
+        sourceConnectionConf.setTable(Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
+        JdbcUtil.resetSchemaAndTable(
+                jdbcConf,
                 "\\\"", "\\\"");
-        assert tableAndSchema != null;
-        Assert.assertEquals("schema", tableAndSchema.getLeft());
-        Assert.assertEquals("table", tableAndSchema.getRight());
+
+        Assert.assertEquals("schema", jdbcConf.getSchema());
+        Assert.assertEquals("table", jdbcConf.getTable());
     }
 
 
@@ -57,12 +72,14 @@ public class JdbcUtilTest {
     public void testGetTableAndSchema3() {
         String schema = "[schema]";
         String table = "[table]";
-        Pair<String, String> tableAndSchema = JdbcUtil.getTableAndSchema(
-                schema + ConstantValue.POINT_SYMBOL + table,
+
+        sourceConnectionConf.setTable(Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
+        JdbcUtil.resetSchemaAndTable(
+                jdbcConf,
                 "\\[", "\\]");
-        assert tableAndSchema != null;
-        Assert.assertEquals("schema", tableAndSchema.getLeft());
-        Assert.assertEquals("table", tableAndSchema.getRight());
+
+        Assert.assertEquals("schema", jdbcConf.getSchema());
+        Assert.assertEquals("table", jdbcConf.getTable());
     }
 
 
