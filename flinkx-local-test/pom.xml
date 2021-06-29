@@ -118,7 +118,7 @@
 			<artifactId>flinkx-connector-kingbase</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-dm</artifactId>
@@ -218,6 +218,12 @@
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-solr</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-file</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
