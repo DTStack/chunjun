@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.dtstack.flinkx.pulsar.format.Constants.CONSUMER_SUBSCRIPTION_NAME;
-import static com.dtstack.flinkx.pulsar.format.Constants.KEY_PULSAR_SERVICE_URL;
 
 /**
  * The client of pulsar. Avoid confusion to 'org.apache.pulsar.client.api.PulsarClient'
@@ -30,6 +29,7 @@ public class FlinkxPulsarClient implements Runnable {
     private volatile boolean running = true;
     private boolean blankIgnore;
     private int timeout;
+    private String pulsarServiceUrl;
     private IDecode decode;
     private PulsarInputFormat format;
     private Consumer consumer;
@@ -39,18 +39,19 @@ public class FlinkxPulsarClient implements Runnable {
         this.decode = format.getDecode();
         this.blankIgnore = format.getBlankIgnore();
         this.timeout = format.getTimeout();
+        this.pulsarServiceUrl = format.getPulsarServiceUrl();
 
         PulsarClient client;
         try {
             Map<String, Object> consumerSettings = format.getConsumerSettings();
             if (null != format.getToken()) {
                 client = PulsarClient.builder()
-                        .serviceUrl(consumerSettings.get(KEY_PULSAR_SERVICE_URL).toString())
+                        .serviceUrl(pulsarServiceUrl)
                         .authentication(AuthenticationFactory.token(format.getToken()))
                         .build();
             } else {
                 client = PulsarClient.builder()
-                        .serviceUrl(consumerSettings.get(KEY_PULSAR_SERVICE_URL).toString())
+                        .serviceUrl(pulsarServiceUrl)
                         .build();
             }
 
@@ -59,6 +60,7 @@ public class FlinkxPulsarClient implements Runnable {
                     .subscriptionName(CONSUMER_SUBSCRIPTION_NAME)
                     .subscriptionType(SubscriptionType.Failover)
                     .subscriptionInitialPosition(SubscriptionInitialPosition.valueOf(format.getInitialPosition()))
+                    .loadConf(consumerSettings)
                     .subscribe();
         } catch (PulsarClientException e) {
             LOG.error("Pulsar subscribe topic error, topic = {}, e = {}", format.getTopic(), ExceptionUtil.getErrorMessage(e));

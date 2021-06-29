@@ -6,8 +6,9 @@
     - [一、插件名称](#一插件名称)
     - [二、参数说明](#二参数说明)
     - [三、配置示例](#三配置示例)
-        - [1、pulsar-mysql](#1、pulsar-mysql)
-        - [2、Pulsar->Hive](#2、Pulsar->Hive)
+        - [1、pulsar-mysql](#1pulsar-mysql)
+        - [2、Pulsar->Hive](#2Pulsar->Hive)
+        - [3、Pulsar->Pulsar](#3Pulsar->Pulsar)
 
 <!-- /TOC -->
 
@@ -98,6 +99,7 @@ pulsarreader插件目前基于2.5.0版本，以Consumer客户端的方式支持I
    - 默认值：,
 
 <br />
+
 - **blankIgnore**
    - 描述：是否忽略空值消息
    - 必选：否
@@ -106,23 +108,29 @@ pulsarreader插件目前基于2.5.0版本，以Consumer客户端的方式支持I
 
 <br />
 
+- **pulsarServiceUrl**
+  - 描述：pulsar服务地址
+  - 必选：是
+  - 字段类型：String
+  - 默认值："pulsar://localhost:6650"
+
+<br />
+
 - **consumerSettings**
-   - 描述：pulsar连接配置
-   - 必选：是
+   - 描述：pulsar原生配置，参考：[Pulsar-Configure consumer](http://pulsar.apache.org/docs/en/client-libraries-java/#configure-consumer)
+   - 必选：否
    - 字段类型：Map
    - 默认值：无
-   - 注意：consumerSettings必须至少包含`pulsarServiceUrl`参数
    - 如：
 ```json
 {
     "consumerSettings":{
-       "pulsarServiceUrl":"pulsar://localhost:6650"
+       "consumerName":"flinkx"
     }
 }
 ```
 
 <br/>
-
 
 <a name="ftKiS"></a>
 ## 三、配置示例
@@ -137,8 +145,9 @@ pulsarreader插件目前基于2.5.0版本，以Consumer客户端的方式支持I
           "timeout": 10000,
           "blankIgnore": false,
           "column": ["id","name","age"],
+          "pulsarServiceUrl": "pulsar://localhost:6650",
           "consumerSettings": {
-            "pulsarServiceUrl": "pulsar://localhost:6650"
+            "consumerName":"flinkx"
           }
         },
         "name": "pulsarreader"
@@ -185,8 +194,9 @@ pulsarreader插件目前基于2.5.0版本，以Consumer客户端的方式支持I
             "timeout": 10000,
             "blankIgnore": false,
             "column": ["id","name","age"],
+            "pulsarServiceUrl": "pulsar://localhost:6650",
             "consumerSettings": {
-              "pulsarServiceUrl": "pulsar://localhost:6650"
+              "consumerName":"flinkx"
             }
           },
           "name": "pulsarreader"
@@ -212,6 +222,55 @@ pulsarreader插件目前基于2.5.0版本，以Consumer客户端的方式支持I
             }
           },
           "name" : "hivewriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": true,
+        "isStream": true
+      },
+      "speed": {
+        "readerChannel": 3,
+        "writerChannel": 1
+      }
+    }
+  }
+}
+```
+
+### 3、Pulsar->Pulsar
+```json
+{
+  "job": {
+    "content": [
+      {
+        "reader" : {
+          "parameter": {
+            "topic": "persistent://public/default/flinkx_level1",
+            "timeout": 10000,
+            "blankIgnore": false,
+            "codec": "json",
+            "initialPosition": "Earliest",
+            "pulsarServiceUrl": "pulsar://localhost:6650",
+            "consumerSettings": {
+              "consumerName":"flinkx"
+            }
+          },
+          "name": "pulsarreader"
+        },
+        "writer": {
+          "parameter" : {
+            "topic": "persistent://public/default/flinkx_level2",
+            "timeout": 10000,
+            "blankIgnore": false,
+            "tableFields": [],
+            "pulsarServiceUrl": "pulsar://localhost:6650",
+            "producerSettings": {
+              "producerName": "flinkx"
+            }
+          },
+          "name" : "pulsarwriter"
         }
       }
     ],
