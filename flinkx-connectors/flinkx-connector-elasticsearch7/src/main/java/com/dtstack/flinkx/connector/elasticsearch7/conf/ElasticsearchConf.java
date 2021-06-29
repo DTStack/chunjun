@@ -30,7 +30,8 @@ import java.util.List;
  * @create: 2021/06/16 15:36
  */
 public class ElasticsearchConf extends FlinkxCommonConf implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 2L;
 
     /**
      * elasticsearch address -> ip:port
@@ -61,14 +62,14 @@ public class ElasticsearchConf extends FlinkxCommonConf implements Serializable 
     /**
      * basic auth : username
      */
-    private String userName;
+    private String username;
 
     /**
      * basic auth : password
      */
     private String password;
 
-    private String keyDelimiter;
+    private String keyDelimiter = "_";
 
     public List<String> getHosts() {
         return hosts;
@@ -110,12 +111,12 @@ public class ElasticsearchConf extends FlinkxCommonConf implements Serializable 
         this.authMesh = authMesh;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {

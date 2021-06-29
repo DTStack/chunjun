@@ -57,7 +57,9 @@ public class ElasticsearchUtil {
         if (elasticsearchConf.isAuthMesh()) {
             // basic auth
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(elasticsearchConf.getUserName(), elasticsearchConf.getPassword()));
+            credentialsProvider.setCredentials(AuthScope.ANY,
+                    new UsernamePasswordCredentials(elasticsearchConf.getUsername(),
+                    elasticsearchConf.getPassword()));
             restClientBuilder.setHttpClientConfigCallback(httpAsyncClientBuilder ->
                     httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
         }

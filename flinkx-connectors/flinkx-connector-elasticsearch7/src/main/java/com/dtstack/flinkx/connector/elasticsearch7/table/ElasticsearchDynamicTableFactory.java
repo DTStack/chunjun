@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_BULK_FLUSH_MAX_ACTIONS_OPTION;
 import static com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchConstants.IDENTIFIER;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
@@ -84,6 +85,7 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
                     FLUSH_ON_CHECKPOINT_OPTION,
                     BULK_FLASH_MAX_SIZE_OPTION,
                     BULK_FLUSH_MAX_ACTIONS_OPTION,
+                    DT_BULK_FLUSH_MAX_ACTIONS_OPTION,
                     BULK_FLUSH_INTERVAL_OPTION,
                     BULK_FLUSH_BACKOFF_TYPE_OPTION,
                     BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
@@ -167,7 +169,7 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
         String username = readableConfig.get(USERNAME_OPTION);
         String password = readableConfig.get(PASSWORD_OPTION);
         if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
-            elasticsearchConf.setUserName(username);
+            elasticsearchConf.setUsername(username);
             elasticsearchConf.setPassword(password);
             isAuthMesh = true;
         }

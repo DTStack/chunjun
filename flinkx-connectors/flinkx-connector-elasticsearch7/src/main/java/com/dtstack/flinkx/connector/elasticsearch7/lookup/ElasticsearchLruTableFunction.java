@@ -55,8 +55,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
 
-    private static final long serialVersionUID = 1L;
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchLruTableFunction.class);
+    private static final long serialVersionUID = 2L;
 
     private ElasticsearchConf elasticsearchConf;
     private final String[] fieldNames;
