@@ -11,7 +11,7 @@ Hadoop 2.x、Hadoop 3.x
 
 
 ## 三、插件名称
-| Sync | hdfssource、hdfsreader |
+| Sync | hdfssink、hdfswriter |
 | --- | --- |
 | SQL | hdfs-x |
 
