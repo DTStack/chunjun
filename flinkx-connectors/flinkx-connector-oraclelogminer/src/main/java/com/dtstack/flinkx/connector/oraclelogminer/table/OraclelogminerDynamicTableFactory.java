@@ -64,7 +64,7 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         options.add(LogminerOptions.POSITION);
         options.add(LogminerOptions.START_TIME);
         options.add(LogminerOptions.START_SCN);
-        options.add(LogminerOptions.LISTENER_TABLE);
+        options.add(LogminerOptions.TABLE);
         options.add(LogminerOptions.QUERY_TIMEOUT);
         options.add(LogminerOptions.SUPPORT_AUTO_LOG);
         options.add(JsonOptions.TIMESTAMP_FORMAT);
@@ -107,7 +107,7 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         logMinerConf.setStartScn(config.get(LogminerOptions.START_SCN));
 
 
-        logMinerConf.setListenerTables(config.get(LogminerOptions.LISTENER_TABLE));
+        logMinerConf.setListenerTables(config.get(LogminerOptions.TABLE));
         logMinerConf.setCat(config.get(LogminerOptions.CAT));
 
         logMinerConf.setFetchSize(config.get(LogminerOptions.FETCHSIZE));
