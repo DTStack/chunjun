@@ -8,7 +8,7 @@ mysql5.x
 
 
 ## 三、插件名称
-| Sync | mysqlsource、mysqlreader |
+| Sync | mysqlsink、mysqlwriter |
 | --- | --- |
 | SQL | mysql-x |
 
