@@ -60,6 +60,9 @@ Hive 1.x、Hive 2.x
 - **tablesColumn**
   - 描述：写入hive表的表结构信息，**若表不存在则会自动建表**。
   - 示例：
+  - 必选：是
+  - 字段类型：string
+  - 默认值：无
 ```json
 {
     "kudu":[
@@ -78,9 +81,6 @@ Hive 1.x、Hive 2.x
     ]
 }
 ```
-  - 必选：是
-  - 字段类型：string
-  - 默认值：无
 <br />
 
 - **analyticalRules**
