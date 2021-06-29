@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.sqlserver;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +35,7 @@ import java.util.stream.Collectors;
  * @author shitou
  * @date 2021/5/17 11:24
  */
-public class SqlServerDialect implements JdbcDialect {
+public class SqlserverDialect implements JdbcDialect {
 
     private static final String SET_IDENTITY_INSERT_ON_SQL = "IF OBJECTPROPERTY(OBJECT_ID('%s'),'TableHasIdentity')=1 BEGIN SET IDENTITY_INSERT %s ON  END";
 
@@ -48,10 +47,10 @@ public class SqlServerDialect implements JdbcDialect {
     private boolean withNoLock;
 
 
-    public SqlServerDialect() {
+    public SqlserverDialect() {
     }
 
-    public SqlServerDialect(boolean withNoLock) {
+    public SqlserverDialect(boolean withNoLock) {
         this.withNoLock = withNoLock;
     }
 
@@ -190,17 +189,5 @@ public class SqlServerDialect implements JdbcDialect {
 
     public boolean isWithNoLock() {
         return withNoLock;
-    }
-
-
-    @Override
-    public String getSplitModFilter(JdbcInputSplit split, String splitPkName) {
-        StringBuilder sql = new StringBuilder(128);
-        sql.append(String.format(
-                " %s %% %s = %s",
-                quoteIdentifier(splitPkName),
-                split.getTotalNumberOfSplits(),
-                split.getMod()));
-        return sql.toString();
     }
 }
