@@ -241,12 +241,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
                 LOG.debug("update endLocationAccumulator, current Location = {}", location);
             }
-
-            hasNext = resultSet.next();
             lastRow = finalRowData;
             return finalRowData;
         } catch (Exception se) {
             throw new ReadRecordException("", se, 0, rowData);
+        }finally {
+            try {
+                hasNext = resultSet.next();
+            } catch (SQLException e) {
+                LOG.error("can not read next record",e);
+                hasNext = false;
+            }
         }
     }
 

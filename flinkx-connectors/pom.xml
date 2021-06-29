@@ -32,6 +32,7 @@
 		<module>flinkx-connector-hive</module>
 		<module>flinkx-connector-redis</module>
 		<module>flinkx-connector-db2</module>
+		<module>flinkx-connector-dm</module>
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
