@@ -132,6 +132,14 @@ public class JdbcUtil {
      */
     public static Pair<List<String>, List<String>> getTableMetaData(String schema, String tableName, Connection dbConn) {
         try {
+            //check table exists
+            ResultSet tableRs = dbConn.getMetaData().getTables(null, schema, tableName, null);
+            if(!tableRs.next()){
+                String tableInfo = schema == null ? tableName : schema + "." + tableName;
+                throw new FlinkxRuntimeException(String.format("table %s not found.", tableInfo));
+            }
+
+
             ResultSet rs = dbConn.getMetaData().getColumns(null, schema, tableName, null);
             List<String> fullColumnList = new LinkedList<>();
             List<String> fullColumnTypeList = new LinkedList<>();

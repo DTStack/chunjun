@@ -104,17 +104,22 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             hasNext = false;
             return;
         }
+
+        String querySQL = null;
         try {
             dbConn = getConnection();
             dbConn.setAutoCommit(false);
             initColumnList();
-            jdbcConf.setQuerySql(buildQuerySql(inputSplit));
+            querySQL = buildQuerySql(inputSplit);
+            jdbcConf.setQuerySql(querySQL);
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
             if (!resultSet.isClosed()) {
                 columnCount = resultSet.getMetaData().getColumnCount();
             }
         } catch (SQLException se) {
-            throw new IllegalArgumentException("open() failed." + se.getMessage(), se);
+            String expMsg =  se.getMessage();
+            expMsg = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;
+            throw new IllegalArgumentException("open() failed." + expMsg, se);
         }
     }
 
@@ -944,23 +949,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         return true;
     }
 
-    /**
-     * 兼容db2 在间隔轮训场景 且第一次读取时没有任何数据
-     * 在openInternal方法调用时 由于数据库没有数据，db2会自动关闭resultSet，因此只有在间隔轮训中某次读取到数据之后，进行更新columnCount
-     *
-     * @throws SQLException
-     */
-    private void updateColumnCount() throws SQLException {
-        if (columnCount == 0) {
-            columnCount = resultSet.getMetaData().getColumnCount();
-            boolean splitWithRowCol = numPartitions > 1
-                    && StringUtils.isNotEmpty(jdbcConf.getSplitPk())
-                    && jdbcConf.getSplitPk().contains("(");
-            if (splitWithRowCol) {
-                columnCount = columnCount - 1;
-            }
-        }
-    }
 
     /* 是否添加自定义函数column 作为分片key ***/
     protected boolean addRowNumColumn(String splitKey){

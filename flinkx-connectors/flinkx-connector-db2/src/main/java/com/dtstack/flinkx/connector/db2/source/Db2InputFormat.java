@@ -15,28 +15,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.connector.db2.source;
 
-package com.dtstack.flinkx.connector.mysql.source;
+import com.dtstack.flinkx.connector.db2.converter.Db2RawTypeConverter;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
-import com.dtstack.flinkx.connector.mysql.converter.MysqlRawTypeConverter;
-import com.dtstack.flinkx.util.TableUtil;
+import java.util.List;
 
 /**
- * Date: 2021/04/12 Company: www.dtstack.com
- *
- * @author tudou
+ * Company: www.dtstack.com
+ * @author xuchao
+ * @date 2021-06-15
  */
-public class MysqlInputFormat extends JdbcInputFormat {
-
-
+public class Db2InputFormat extends JdbcInputFormat {
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
-        RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, MysqlRawTypeConverter::apply);
+        RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, Db2RawTypeConverter::apply);
         setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
+    }
+
+    @Override
+    protected Pair<List<String>, List<String>> getTableMetaData() {
+
+        return JdbcUtil.getTableMetaData(StringUtils.upperCase(jdbcConf.getSchema()),
+                StringUtils.upperCase(jdbcConf.getTable()),
+                dbConn);
     }
 }

@@ -40,11 +40,13 @@ public class LocalTest {
     public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
 
     public static void main(String[] args) throws Exception {
+        LOG.warn("-----");
         Properties confProperties = new Properties();
 //        confProperties.setProperty("flink.checkpoint.interval", "10000");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
+        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/db2/db2_db2_realtime.json";
+        //String jobPath = userDir + "/flinkx-local-test/src/main/demo/sql/db2/db2_source_realtime.sql";
         String flinkxPluginPath = userDir + "/flinkxplugins";
 
         // 任务配置参数

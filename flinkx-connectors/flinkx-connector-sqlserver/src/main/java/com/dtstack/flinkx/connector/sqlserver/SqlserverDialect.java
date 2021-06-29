@@ -95,6 +95,7 @@ public class SqlserverDialect implements JdbcDialect {
         if (StringUtils.isNotBlank(where)) {
             sql.append(" WHERE ").append(where);
         }
+
         return sql.toString();
     }
 
