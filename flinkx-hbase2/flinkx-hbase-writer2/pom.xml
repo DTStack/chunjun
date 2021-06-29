@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-hbase-reader2</artifactId>
+    <artifactId>flinkx-hbase-writer2</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -39,9 +39,12 @@
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <artifactSet>
                                 <excludes>
+                                    <!--writer must exclude gson-->
+                                    <exclude>com.google.code.gson:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>org.slf4j:slf4j-api</exclude>
+                                    <exclude>log4j:log4j</exclude>
                                     <exclude>ch.qos.logback:*</exclude>
                                 </excludes>
                             </artifactSet>
@@ -83,14 +86,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../syncplugins/hbase2reader">
+                                <copy todir="${basedir}/../../syncplugins/hbase2writer">
                                     <fileset dir="target/">
                                         <include name="${project.name}-${project.version}.jar" />
                                     </fileset>
                                 </copy>
                                 <!--suppress UnresolvedMavenProperty -->
-                                <move file="${basedir}/../../syncplugins/hbase2reader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../syncplugins/hbase2reader/${project.name}-${package.name}.jar" />
+                                <move file="${basedir}/../../syncplugins/hbase2writer/${project.name}-${project.version}.jar"
+                                      tofile="${basedir}/../../syncplugins/hbase2writer/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>
