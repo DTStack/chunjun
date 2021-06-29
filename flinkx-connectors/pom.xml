@@ -33,6 +33,7 @@
 		<module>flinkx-connector-redis</module>
 		<module>flinkx-connector-db2</module>
 		<module>flinkx-connector-dm</module>
+		<module>flinkx-connector-mongodb</module>
 		<module>flinkx-connector-solr</module>
 
 		<!--CDC-->
