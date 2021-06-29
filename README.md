@@ -64,7 +64,7 @@ The following databases are currently supported:
 |                        | Carbondata     | [doc](docs/offline/reader/carbondatareader.md)   | [doc](docs/offline/writer/carbondatawriter.md) |
 |                        | Stream         | [doc](docs/offline/reader/streamreader.md)       | [doc](docs/offline/writer/carbondatawriter.md) |
 |                        | Redis          |                                                  | [doc](docs/offline/writer/rediswriter.md)      |
-|                        | Hive           |                                                  | [doc](docs/offline/writer/hivewriter.md)       |
+|                        | Hive           |                                                  | [doc](docs/offline/writer/HiveSink.md)       |
 | Stream Synchronization | Kafka          | [doc](docs/realTime/reader/kafkareader.md)       | [doc](docs/realTime/writer/kafkawriter.md)     |
 |                        | EMQX           | [doc](docs/realTime/reader/emqxreader.md)        | [doc](docs/realTime/writer/emqxwriter.md)      |
 |                        | RestApi        || [doc](docs/realTime/writer/restapiwriter.md)   |
