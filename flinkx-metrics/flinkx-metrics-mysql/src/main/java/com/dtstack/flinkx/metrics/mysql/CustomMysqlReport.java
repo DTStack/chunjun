@@ -35,6 +35,6 @@ public class CustomMysqlReport extends CustomRdbReporter {
 
     @Override
     public void createTableIfNotExist() {
-
+        //待定
     }
 }

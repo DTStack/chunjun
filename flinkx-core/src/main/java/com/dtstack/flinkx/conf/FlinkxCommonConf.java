@@ -58,7 +58,7 @@ public class FlinkxCommonConf implements Serializable {
     private String metricPluginRoot;
 
     /** metrics plugin name */
-    private String metricPluginName;
+    private String metricPluginName = "promtheus";
 
     /** metrics plugin properties */
     private Map<String,Object> metricProps;

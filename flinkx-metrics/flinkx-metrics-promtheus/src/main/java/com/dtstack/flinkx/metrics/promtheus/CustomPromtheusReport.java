@@ -111,6 +111,7 @@ public class CustomPromtheusReport extends CustomReporter {
         }
     }
 
+    @Override
     public void open() {
         String host = configuration.getString(KEY_HOST, null);
         int port = configuration.getInteger(KEY_PORT, 0);
@@ -138,6 +139,7 @@ public class CustomPromtheusReport extends CustomReporter {
                 deleteOnShutdown);
     }
 
+    @Override
     public void registerMetric(Accumulator accumulator, String name) {
         name = Metrics.METRIC_GROUP_KEY_FLINKX + "_" + name;
         ReporterScopedSettings reporterScopedSettings = new ReporterScopedSettings(0, ',', Collections.emptySet());
@@ -147,6 +149,7 @@ public class CustomPromtheusReport extends CustomReporter {
         notifyOfAddedMetric(new SimpleAccumulatorGauge<>(accumulator), name, front);
     }
 
+    @Override
     public void report() {
         try {
             if (null != pushGateway) {
@@ -161,6 +164,7 @@ public class CustomPromtheusReport extends CustomReporter {
         }
     }
 
+    @Override
     public void close() {
         if (deleteOnShutdown && pushGateway != null) {
             try {

@@ -74,6 +74,7 @@ public abstract class CustomRdbReporter extends CustomReporter {
 
     }
 
+    @Override
     public void close() {
         try {
             if (dbConn != null) {
@@ -86,6 +87,7 @@ public abstract class CustomRdbReporter extends CustomReporter {
 
 
     //如何兼容多并行度的情况下的指标写入,TODO  暂时不考虑
+    @Override
     public void registerMetric(Accumulator accumulator, String name) {
         accumulatorMap.putIfAbsent(name, accumulator);
         ReporterScopedSettings reporterScopedSettings = new ReporterScopedSettings(0, ',', Collections.emptySet());
@@ -111,6 +113,7 @@ public abstract class CustomRdbReporter extends CustomReporter {
      */
     public abstract void createTableIfNotExist();
 
+    @Override
     public void report() {
         try (PreparedStatement ps = dbConn.prepareStatement(prepareTemplates())) {
             dbConn.setAutoCommit(false);
@@ -144,6 +147,7 @@ public abstract class CustomRdbReporter extends CustomReporter {
         return singleSql;
     }
 
+    @Override
     public void open() {
         dbConn = JdbcUtil.getConnection(jdbcMetricConf, jdbcDialect);
         createTableIfNotExist();
