@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.stream.options;
 
 import org.apache.flink.configuration.ConfigOption;
+import org.apache.flink.configuration.ConfigOptions;
 
 import static org.apache.flink.configuration.ConfigOptions.key;
 
@@ -41,6 +42,12 @@ public class StreamOptions {
                     .defaultValue(0L)
                     .withDescription(
                             "Total number of rows to emit. By default, the source is unbounded.");
+
+    public static final ConfigOption<Integer> SINK_PARALLELISM =
+            ConfigOptions.key("sink.parallelism")
+                    .intType()
+                    .defaultValue(null)
+                    .withDescription("sink.parallelism.");
 
     public static final ConfigOption<Long> ROWS_PER_SECOND =
             key("rows-per-second")

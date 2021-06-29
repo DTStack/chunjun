@@ -53,7 +53,7 @@ public class HdfsOptions extends BaseFileOptions {
     public static final ConfigOption<String> FIELD_DELIMITER =
             ConfigOptions.key("fieldDelimiter")
                     .stringType()
-                    .noDefaultValue()
+                    .defaultValue("\001")
                     .withDescription("The separator of the field when fileType is text");
 
     public static final ConfigOption<Boolean> ENABLE_DICTIONARY =
