@@ -63,7 +63,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
 
     @Override
     @SuppressWarnings("unchecked")
-    public LinkedList<RowData> toInternal(SqlServerCdcEventRow sqlServerCdcEventRow) {
+    public LinkedList<RowData> toInternal(SqlServerCdcEventRow sqlServerCdcEventRow) throws Exception{
         LinkedList<RowData> result = new LinkedList<>();
         ChangeTable changeTable = sqlServerCdcEventRow.getChangeTable();
         String eventType = sqlServerCdcEventRow.getType();
@@ -184,7 +184,7 @@ public class SqlServerCdcColumnConverter extends AbstractCDCRowConverter<SqlServ
             List<String> columnsNames,
             List<AbstractBaseColumn> columnList,
             List<String> headerList,
-            String after) {
+            String after) throws Exception{
         for (int i = 0; i < data.length; i++) {
             headerList.add(after + columnsNames.get(i));
             if (data[i] != null) {

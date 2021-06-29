@@ -26,6 +26,8 @@ import com.dtstack.flinkx.connector.sqlservercdc.listener.SqlServerCdcListener;
 
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 
+import com.dtstack.flinkx.exception.ReadRecordException;
+
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
@@ -109,13 +111,13 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
 
 
     @Override
-    protected RowData nextRecordInternal(RowData row) throws IOException {
+    protected RowData nextRecordInternal(RowData row) throws ReadRecordException {
         RowData rowData = null;
         try {
             rowData = queue.take();
         } catch (InterruptedException e) {
             LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
-            throw new IOException(e);
+            throw new ReadRecordException("takeEvent interrupted error", e);
         }
         return rowData;
     }

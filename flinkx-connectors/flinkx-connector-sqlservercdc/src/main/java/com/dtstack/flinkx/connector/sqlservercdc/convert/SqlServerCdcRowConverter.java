@@ -69,7 +69,7 @@ public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerC
     }
 
     @Override
-    public LinkedList<RowData> toInternal(SqlServerCdcEventRow sqlServerCdcEventRow) {
+    public LinkedList<RowData> toInternal(SqlServerCdcEventRow sqlServerCdcEventRow) throws Exception{
         LinkedList<RowData> result = new LinkedList<>();
         ChangeTable changeTable = sqlServerCdcEventRow.getChangeTable();
         String eventType = sqlServerCdcEventRow.getType();
