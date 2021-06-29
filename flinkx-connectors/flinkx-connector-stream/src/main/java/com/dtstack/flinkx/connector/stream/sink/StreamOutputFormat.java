@@ -67,10 +67,6 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    @Override
-    protected void preCommit() {
-    }
-
     public String[] getFieldNames(RowData rowData) {
         String[] fieldNames = null;
         if(rowData instanceof ColumnRowData){
