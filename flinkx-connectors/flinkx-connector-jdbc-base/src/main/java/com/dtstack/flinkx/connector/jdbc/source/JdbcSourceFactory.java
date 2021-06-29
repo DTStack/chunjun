@@ -29,7 +29,7 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.source.SourceFactory;
@@ -40,6 +40,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -53,6 +56,7 @@ import java.util.Properties;
  * @author huyifan.zju@163.com
  */
 public abstract class JdbcSourceFactory extends SourceFactory {
+    protected static Logger LOG = LoggerFactory.getLogger(JdbcSourceFactory.class);
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
@@ -86,6 +90,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         }
         initIncrementConfig(jdbcConf);
         super.initFlinkxCommonConf(jdbcConf);
+        resetTableInfo();
     }
 
     @Override
@@ -189,5 +194,20 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
     protected int getDefaultFetchSize() {
         return DEFAULT_FETCH_SIZE;
+    }
+
+
+
+    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
+    protected void resetTableInfo(){
+        if(StringUtils.isEmpty(jdbcConf.getSchema())){
+            LOG.info("before reset table info,schema: {},table: {}",jdbcConf.getSchema(), jdbcConf.getTable());
+            Pair<String, String> tableAndSchema = JdbcUtil.getTableAndSchema(jdbcConf.getTable(),"\\\"", "\\\"");
+            if(Objects.nonNull(tableAndSchema)){
+                jdbcConf.setSchema(tableAndSchema.getLeft());
+                jdbcConf.setTable(tableAndSchema.getRight());
+                LOG.info("after reset table info,schema: {},table: {}",jdbcConf.getSchema(), jdbcConf.getTable());
+            }
+        }
     }
 }

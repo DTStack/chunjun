@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.constants.ConstantValue;
+import org.apache.commons.lang3.StringUtils;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
@@ -34,7 +40,10 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Properties;
 
 import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
@@ -46,6 +55,7 @@ import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_
  * @author tudou
  */
 public abstract class JdbcSinkFactory extends SinkFactory {
+    protected static Logger LOG = LoggerFactory.getLogger(JdbcSinkFactory.class);
 
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
@@ -69,6 +79,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         Properties properties = syncConf.getWriter().getProperties("properties", null);
         jdbcConf.setProperties(properties);
         super.initFlinkxCommonConf(jdbcConf);
+        resetTableInfo();
     }
 
     @Override
@@ -94,4 +105,18 @@ public abstract class JdbcSinkFactory extends SinkFactory {
      * @return JdbcOutputFormatBuilder
      */
     protected abstract JdbcOutputFormatBuilder getBuilder();
+
+
+    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
+    protected void resetTableInfo(){
+        if(StringUtils.isEmpty(jdbcConf.getSchema())){
+            LOG.info("before reset table info,schema: {},table: {}",jdbcConf.getSchema(), jdbcConf.getTable());
+            Pair<String, String> tableAndSchema = JdbcUtil.getTableAndSchema(jdbcConf.getTable(), "\\\"", "\\\"");
+            if(Objects.nonNull(tableAndSchema)){
+                jdbcConf.setSchema(tableAndSchema.getLeft());
+                jdbcConf.setTable(tableAndSchema.getRight());
+                LOG.info("after reset table info,schema: {},table: {}",jdbcConf.getSchema(), jdbcConf.getTable());
+            }
+        }
+    }
 }
