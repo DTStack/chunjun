@@ -13,7 +13,7 @@ CREATE TABLE source
 ) WITH (
       'connector' = 'stream-x',
       'number-of-rows' = '10', -- 输入条数，默认无限
-      'rows-per-second' = '1' -- 每秒输入条数，默认每秒10条
+      'rows-per-second' = '1' -- 每秒输入条数，默认不限制
       );
 
 CREATE TABLE sink

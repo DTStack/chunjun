@@ -9,7 +9,7 @@ CREATE TABLE source
       ,'username' = 'username'
       ,'password' = 'password'
       ,'cat' = 'insert,delete,update'
-      ,'listenerTables' = 'schema.table'
+      ,'table' = 'schema.table'
       ,'timestamp-format.standard' = 'SQL'
       );
 
