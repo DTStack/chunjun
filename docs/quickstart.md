@@ -36,7 +36,7 @@ sh build/build.sh
 **NOTE:项目中的flinkx-examples模块下提供了大量 [数据同步案例](flinkx-examples/json) 和 [SQL案例](flinkx-examples/sql)**
 
 #### 数据同步任务
-<div id="sync"></div>
+
 首先准备要运行的任务json，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
 
 ```json
@@ -111,7 +111,8 @@ sh build/build.sh
 }
 ```
 #### flinksql任务
-<div id="sql"></div>
+
+***NOTE：flinkX和flinkSql connector[共用](docs/quickstart.md#sync)***<br /><br />
 或者准备要运行的flinksql任务，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
 
 ```sql

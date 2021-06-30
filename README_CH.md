@@ -46,9 +46,9 @@ FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集
 
 - 支持多种运行模式；
 
-- **同步任务支持执行flinksql语法的[transformer](docs/quickstart.md#sync)操作；**
+- **同步任务支持执行flinksql语法的transformer操作；**
 
-- **sql任务支持和flinkSql自带connectors[共用](docs/quickstart.md#sql)；**
+- **sql任务支持和flinkSql自带connectors[共用](docs/conectorShare.md)；**
 
 FlinkX目前支持下面这些数据库：
 

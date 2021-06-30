@@ -35,6 +35,10 @@ FlinkX is a data synchronization tool based on Flink. FlinkX can collect static 
 
 - Multiple running modes: Local,Standalone,Yarn Session,Yarn Per;
 
+- **Synchronization tasks support transformer operations that execute flinksql syntax;**
+
+- **sql task support is [shared](docs/conectorShare.md) with flinkSql's own connectors;**
+
 The following databases are currently supported:
 
 |                        | Database Type  | Source                          | Sink                          | Lookup                          |
