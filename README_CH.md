@@ -82,7 +82,7 @@ FlinkX目前支持下面这些数据库：
 |                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
-
+|                        | Oracle LogMiner | [doc](docs/realTime/reader/logminerreader.md)   |                                            |
 # 快速开始
 
 请点击[快速开始](docs/quickstart.md)
