@@ -152,12 +152,10 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
 <br/>
 
 ### 2、SQL
-除以下两点外，其余参数均与Sync保持一致。
-<br/>
-1.`pavingData`和`splitUpdate`默认为true，且无法修改
-2.`table```略有区别，具体如下
-<br/>
+除以下两点外，其余参数均与Sync保持一致。<BR>
 
+1.` pavingData`和`splitUpdate`默认为true，且无法修改<BR>
+2. `table```略有区别，具体如下<BR>
 
 - **table**
   - 描述：需要解析的数据表。
