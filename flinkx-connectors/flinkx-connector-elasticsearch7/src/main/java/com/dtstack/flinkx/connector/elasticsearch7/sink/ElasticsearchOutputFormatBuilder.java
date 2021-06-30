@@ -51,7 +51,7 @@ public class ElasticsearchOutputFormatBuilder extends BaseRichOutputFormatBuilde
          * is open basic auth
          */
         if (esConf.isAuthMesh()) {
-            Preconditions.checkNotNull(esConf.getUserName(), "elasticsearch7 type of userName is required");
+            Preconditions.checkNotNull(esConf.getUsername(), "elasticsearch7 type of userName is required");
             Preconditions.checkNotNull(esConf.getPassword(), "elasticsearch7 type of password is required");
         }
     }
