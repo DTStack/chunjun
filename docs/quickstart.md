@@ -1,6 +1,6 @@
 ## 下载代码
 
-1.使用git工具把项目clone到本地(**推荐使用1.12_release,可以同时支持同步、flinksql任务**)
+1.使用git工具把项目clone到本地
 
 ```
 git clone https://github.com/DTStack/flinkx.git
@@ -8,9 +8,14 @@ cd flinkx
 ```
 
 ## 编译插件
+在flinkx home目录下执行
 
 ```bash
-mvn clean package -DskipTests
+mvn clean package -DskipTests 
+```
+或者执行
+```bash
+sh build/build.sh
 ```
 
 ## 常见问题
@@ -29,51 +34,86 @@ mvn clean package -DskipTests
 
 ## 运行任务
 **NOTE:项目中的flinkx-examples模块下提供了大量 [数据同步案例](flinkx-examples/json) 和 [SQL案例](flinkx-examples/sql)**
+
 #### 数据同步任务
+<div id="sync"></div>
 首先准备要运行的任务json，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
 
 ```json
 {
-  "job" : {
-    "content" : [ {
-      "reader": {
-        "name": "streamreader",
-        "parameter": {
-          "column": [
-            {
-              "name": "id",
-              "type": "int"
-            },
-            {
-              "name": "name",
-              "type": "string"
-            }
-          ]
-        }
-      },
-      "writer" : {
-        "parameter" : {
-          "print": false
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "id"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "content",
+                "type": "string"
+              }
+            ],
+            "sliceRecordCount": ["30"],
+            "permitsPerSecond": 1
+          },
+          "table": {
+            "tableName": "sourceTable"
+          },
+          "name": "streamreader"
         },
-        "name" : "streamwriter"
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "id"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "content",
+                "type": "timestamp"
+              }
+            ],
+            "print": true
+          },
+          "table": {
+            "tableName": "sinkTable"
+          },
+          "name": "streamwriter"
+        },
+        "transformer": {
+          "transformSql": "select id,name, NOW() from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
+        }
       }
-    } ],
-    "setting" : {
-      "restore" : {
-        "isRestore" : false,
-        "isStream" : false
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 100
       },
-      "errorLimit" : {
-      },
-      "speed" : {
-        "channel" : 1
+      "speed": {
+        "bytes": 0,
+        "channel": 1,
+        "readerChannel": 1,
+        "writerChannel": 1
       }
     }
   }
 }
 ```
 #### flinksql任务
+<div id="sql"></div>
 或者准备要运行的flinksql任务，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
+
 ```sql
 CREATE TABLE source
 (
@@ -113,7 +153,44 @@ CREATE TABLE sink
 insert into sink
 select *
 from source;
+```
+`flinksql`自带`connector`和`flinkX`的`connector`共用：
+```sql
+CREATE TABLE source
+(
+    id        INT,
+    name      STRING,
+    money     DECIMAL(32, 2),
+    dateone   timestamp,
+    age       bigint,
+    datethree timestamp,
+    datesix   timestamp(6),
+    datenigth timestamp(9),
+    dtdate    date,
+    dttime    time
+) WITH (
+      'connector' = 'datagen'
+      );
 
+CREATE TABLE sink
+(
+    id        INT,
+    name      STRING,
+    money     DECIMAL(32, 2),
+    dateone   timestamp,
+    age       bigint,
+    datethree timestamp,
+    datesix   timestamp(6),
+    datenigth timestamp(9),
+    dtdate    date,
+    dttime    time
+) WITH (
+      'connector' = 'stream-x'
+      );
+
+insert into sink
+select *
+from source;
 ```
 
 ### Local模式运行任务
@@ -203,7 +280,7 @@ NOTE:可以先在现在flinkx-clients模块YarnSessionClientUtil类中启动一�
 
 ```bash
 bin/flinkx \
-	-mode yarn \
+	-mode yarn-session \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
 	-pluginRoot flinkxplugins \
@@ -230,7 +307,7 @@ $FLINK_HOME/bin/yarn-session.sh -n 1 -s 1 -jm 1024 -tm 1024
 
 ```bash
 bin/flinkx \
-	-mode yarn \
+	-mode yarn-session \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
 	-flinkconf $FLINK_HOME/conf \
@@ -250,7 +327,7 @@ bin/flinkx \
 
 ```bash
 bin/flinkx \
-	-mode yarnPer \
+	-mode yarn-per-job \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
 	-pluginRoot flinkxplugins \
@@ -265,7 +342,7 @@ bin/flinkx \
 
 ```bash
 bin/flinkx \
-	-mode yarnPer \
+	-mode yarn-per-job \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
 	-pluginRoot flinkxplugins \
