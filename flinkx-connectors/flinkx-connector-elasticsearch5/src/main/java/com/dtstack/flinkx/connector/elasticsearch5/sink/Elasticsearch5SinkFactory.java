@@ -60,7 +60,7 @@ public class Elasticsearch5SinkFactory extends SinkFactory {
         final RowType rowType = TableUtil.createRowType(
                 elasticsearchConf.getColumn(),
                 getRawTypeConverter());
-        builder.setConverter(new ElasticsearchColumnConverter(rowType));
+        builder.setRowConverter(new ElasticsearchColumnConverter(rowType));
         return createOutput(dataSet, builder.finish());
     }
 

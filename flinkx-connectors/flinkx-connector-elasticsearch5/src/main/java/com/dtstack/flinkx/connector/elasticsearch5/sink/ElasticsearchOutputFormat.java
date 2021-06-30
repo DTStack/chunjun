@@ -147,16 +147,6 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    @Override
-    protected void commit(long checkpointId) throws Exception {
-
-    }
-
-    @Override
-    protected void rollback(long checkpointId) throws Exception {
-
-    }
-
     public ElasticsearchConf getElasticsearchConf() {
         return elasticsearchConf;
     }
