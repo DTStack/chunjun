@@ -195,4 +195,4 @@ kafka主流版本
 
 
 ## 六、脚本示例
-见项目内`FlinkX : Local : Test`模块中的`demo`文件夹。
+见项目内`flinkx-examples`文件夹。

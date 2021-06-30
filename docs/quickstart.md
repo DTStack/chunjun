@@ -28,8 +28,9 @@ mvn clean package -DskipTests
 ```
 
 ## 运行任务
+**NOTE:项目中的flinkx-examples模块下提供了大量 [数据同步案例](flinkx-examples/json) 和 [SQL案例](flinkx-examples/sql)**
 #### 数据同步任务
-首先准备要运行的任务json，这里以stream插件为例(**flinkx-local-test模块下有大量案例**)：
+首先准备要运行的任务json，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
 
 ```json
 {
@@ -72,7 +73,7 @@ mvn clean package -DskipTests
 }
 ```
 #### flinksql任务
-或者准备要运行的flinksql任务，这里以stream插件为例(**flinkx-local-test模块下有大量案例**)：
+或者准备要运行的flinksql任务，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
 ```sql
 CREATE TABLE source
 (

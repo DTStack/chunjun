@@ -1,94 +1,52 @@
-# Redis Lookup
+# Mysql Lookup
 
 ## 一、介绍
-redis维表，支持全量和异步方式<br />
+mysql维表，支持全量和异步方式<br />
 全量缓存:将维表数据全部加载到内存中，建议数据量不大使用。<br />
 异步缓存:使用异步方式查询数据，并将查询到的数据使用lru缓存到内存中，建议数据量大使用。
 
 ## 二、支持版本
-主流版本
+mysql5.x
 
 
 ## 三、插件名称
-| SQL | redis-x |
+| SQL | mysql-x |
 | --- | --- |
 
 ## 四、参数说明
 - **connector**
-  - 描述：redis-x
+  - 描述：mysql-x
   - 必选：是
-  - 参数类型：string
+  - 参数类型：String
   - 默认值：无
 <br />
 
 - **url**
-  - 描述：localhost:6379
+  - 描述：jdbc:mysql://localhost:3306/test
   - 必选：是
-  - 参数类型：string
+  - 参数类型：String
   - 默认值：无
 <br />
 
-- **tableName**
-  - 描述：tableName
+- **table-name**
+  - 描述：表名
   - 必选：是
-  - 参数类型：string
+  - 参数类型：String
+  - 默认值：无：
+<br />
+
+- **username**
+  - 描述：username
+  - 必选：是
+  - 参数类型：String
   - 默认值：无
 <br />
 
 - **password**
   - 描述：password
-  - 必选：否
-  - 参数类型：string
+  - 必选：是
+  - 参数类型：String
   - 默认值：无
-<br />
-
-- **redisType**
-  - 描述： redis模式（1 单机，2 哨兵， 3 集群），默认：1
-  - 必选：否
-  - 参数类型：string
-  - 默认值：1
-<br />
-
-- **masterName**
-  - 描述： 主节点名称（哨兵模式下为必填项）
-  - 必选：否
-  - 参数类型：string
-  - 默认值：无
-<br />
-
-- **database**
-  - 描述： redis 的数据库地址，默认：0
-  - 必选：否
-  - 参数类型：string
-  - 默认值：0
-<br />
-
-- **timeout**
-  - 描述：连接超时时间，默认：10000毫秒
-  - 必选：否
-  - 参数类型：string
-  - 默认值：10000
-<br />
-
-- **maxTotal**
-  - 描述：最大连接数 ，默认：8
-  - 必选：否
-  - 参数类型：string
-  - 默认值：8
-<br />
-
-- **maxIdle**
-  - 描述：最大空闲连接数，默认：8
-  - 必选：否
-  - 参数类型：string
-  - 默认值：8
-<br />
-
-- **minIdle**
-  - 描述： 最小空闲连接数 ，默认：0
-  - 必选：否
-  - 参数类型：string
-  - 默认值：0
 <br />
 
 - **lookup.cache-type**
@@ -97,7 +55,7 @@ redis维表，支持全量和异步方式<br />
   - 参数类型：string
   - 默认值：LRU
 <br />
-    
+
 - **lookup.cache-period**
   - 描述：ALL维表每隔多久加载一次数据，默认3600000毫秒(一个小时)
   - 必选：否
@@ -119,13 +77,20 @@ redis维表，支持全量和异步方式<br />
   - 默认值：60000
 <br />
 
+- **lookup.fetchSize**
+  - 描述：ALL维表每次从数据库加载的条数，默认1000条
+  - 必选：否
+  - 参数类型：string
+  - 默认值：1000
+<br />
+
 - **lookup.parallelism**
   - 描述：维表并行度
   - 必选：否
   - 参数类型：string
   - 默认值：无
 <br />
-    
+
 ## 五、数据类型
 | 支持 | BOOLEAN、TINYINT、SMALLINT、INT、BIGINT、FLOAT、DOUBLE、DECIMAL、STRING、VARCHAR、CHAR、TIMESTAMP、DATE、BINARY |
 | --- | --- |
@@ -133,5 +98,4 @@ redis维表，支持全量和异步方式<br />
 
 
 ## 六、脚本示例
-见项目内`FlinkX : Local : Test`模块中的`demo`文件夹。
-
+见项目内`flinkx-examples`文件夹。

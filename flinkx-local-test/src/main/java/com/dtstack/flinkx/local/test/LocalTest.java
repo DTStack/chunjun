@@ -58,8 +58,8 @@ public class LocalTest {
             argsList.add("sync");
             argsList.add("-job");
             argsList.add(content);
-            argsList.add("-flinkconf");
-            argsList.add(System.getProperty("user.dir") + "/flinkconf/");
+//            argsList.add("-flinkconf");
+//            argsList.add(System.getProperty("user.dir") + "/flinkconf/");
 //            argsList.add("-pluginRoot");
 //            argsList.add(flinkxPluginPath);
             argsList.add("-confProp");
