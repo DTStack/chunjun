@@ -35,7 +35,6 @@
 		<module>flinkx-connector-dm</module>
 		<module>flinkx-connector-solr</module>
 		<module>flinkx-connector-file</module>
-		<module>flinkx-connector-file</module>
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
