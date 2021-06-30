@@ -112,7 +112,7 @@ sh build/build.sh
 ```
 #### flinksql任务
 
-***NOTE：flinkX和flinkSql connector[共用](docs/quickstart.md#sync)***<br /><br />
+***NOTE：flinkX和flinkSql connector[共用](docs/conectorShare.md)***<br /><br />
 或者准备要运行的flinksql任务，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
 
 ```sql
