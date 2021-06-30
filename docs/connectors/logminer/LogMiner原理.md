@@ -337,42 +337,7 @@ Flinkx就是在一个循环里 执行上述sql语句查询数据。 查询日志
 ```json
 insert into "TUDOU"."CDC"("ID","USER_ID","NAME","date1") values ('19','1','b',TO_DATE('2021-01-29 11:25:50', 'YYYY-MM-DD HH24:MI:SS'))
 ```
-使用net.sf.jsqlparser.parser.CCJSqlParserUtil 解析之后，flinkx根据paving参数对数据进行操作，
-当pavingData为true时,数据为
-```json
-{
-  "scn": 1977762,
-  "type": "INSERT",
-  "schema": "TUDOU",
-  "table": "CDC",
-  "ts": 6762187276702322688,
-  "opTime": "2021-01-29 11:52:02.0",
-  "after_ID": "19",
-  "after_USER_ID": "1",
-  "after_NAME": "b",
-  "after_date1": "2021-01-29 11:25:50"
-}
-```
-当paving为false时，数据为
-```json
-{
-  "message": {
-    "scn": 1977679,
-    "type": "INSERT",
-    "schema": "TUDOU",
-    "table": "CDC",
-    "ts": 6762186352151891968,
-    "opTime": "2021-01-29 11:52:02.0",
-    "before": {},
-    "after": {
-      "ID": "19",
-      "USER_ID": "1",
-      "NAME": "b",
-      "date1": "2021-01-29 11:25:50"
-    }
-  }
-}
-```
+使用net.sf.jsqlparser.parser.CCJSqlParserUtil 解析上述SQL获取各个字段的值
 
 
 ### Oracle10 和Oracle11的部分区别
