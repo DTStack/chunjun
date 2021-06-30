@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.sqlserver;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -92,10 +93,24 @@ public class SqlserverDialect implements JdbcDialect {
             sql.append(WITH_NO_LOCK);
         }
 
+        sql.append(" WHERE ");
         if (StringUtils.isNotBlank(where)) {
-            sql.append(" WHERE ").append(where);
+            sql.append(where);
+        }else{
+            sql.append(" 1=1 ");
         }
 
+        return sql.toString();
+    }
+
+    @Override
+    public String getSplitModFilter(JdbcInputSplit split, String splitPkName) {
+        StringBuilder sql = new StringBuilder(128);
+        sql.append(String.format(
+            "%s %% %s = %s",
+            quoteIdentifier(splitPkName),
+            split.getTotalNumberOfSplits(),
+            split.getMod()));
         return sql.toString();
     }
 
