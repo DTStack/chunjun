@@ -81,6 +81,9 @@ Please click [General Configuration](docs/generalconfig.md)
 
 Please click [Statistics Metric](docs/statistics.md)
 
+# Iceberg
+Please click [Iceberg](docs/iceberg.md)
+
 # Kerberos
 
 Please click [Kerberos](docs/kerberos.md)

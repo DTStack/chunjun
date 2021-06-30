@@ -92,6 +92,9 @@ FlinkX目前支持下面这些数据库：
 
 请点击[统计指标](docs/statistics.md)
 
+# Iceberg
+请点击 [Iceberg](docs/iceberg.md)
+
 # Kerberos
 
 请点击[Kerberos](docs/kerberos.md)
