@@ -17,15 +17,13 @@
  */
 package com.dtstack.flinkx.connector.kingbase.sink;
 
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRawTypeConverter;
-import com.dtstack.flinkx.connector.kingbase.util.KingbaseUtils;
 import com.dtstack.flinkx.util.TableUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
