@@ -1,18 +1,22 @@
+#LogMiner Source
 
 <!-- TOC -->
 
-- [一、介绍](#一介绍)
-- [二、支持版本](#二支持版本)
-- [三、数据库配置](#三数据库配置)
-- [四、插件名称](#四插件名称)
-- [五、参数说明](#五参数说明)
-  - [1、Sync](#1sync)
-  - [2、SQL](#2sql)
-- [六、数据结构](#六数据结构)
-- [七、数据类型](#七数据类型)
-- [八、脚本示例](#八脚本示例)
+- [LogMiner Source](#logminer-source)
+  - [一、介绍](#一介绍)
+  - [二、支持版本](#二支持版本)
+  - [三、数据库配置](#三数据库配置)
+  - [四、LogMiner原理](#四logminer原理)
+  - [五、插件名称](#五插件名称)
+  - [六、参数说明](#六参数说明)
+    - [1、Sync](#1sync)
+    - [2、SQL](#2sql)
+  - [七、数据结构](#七数据结构)
+  - [八、数据类型](#八数据类型)
+  - [九、脚本示例](#九脚本示例)
 
 <!-- /TOC -->
+
 <br/>
 
 ## 一、介绍
@@ -24,10 +28,14 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
 <br/>
 
 ## 三、数据库配置
-[Oracle配置LogMiner](../other/LogMiner配置.md)
+[Oracle配置LogMiner](LogMiner配置.md)
 <br/>
 
-## 四、插件名称
+## 四、LogMiner原理
+[LogMiner原理](LogMiner原理.md)
+<br/>
+
+## 五、插件名称
 | Sync | oraclelogminerreader、oraclelogminersource |
 | --- | --- |
 | SQL | oraclelogminer-x |
@@ -35,7 +43,7 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
 <br/>
 
 ## 
-## 五、参数说明
+## 六、参数说明
 ### 1、Sync
 
 - **jdbcUrl**
@@ -43,16 +51,16 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
   - 必选：是
   - 参数类型：string
   - 默认值：无
-    
+
 <br/>
-    
+
 
 - **username**
   - 描述：用户名
   - 必选：是
   - 参数类型：string
   - 默认值：无
-  
+
 <br/>
 
 - **password**
@@ -73,7 +81,7 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
 
 
 - **splitUpdate**
-  - 描述：当数据更新类型为update时，是否将update拆分为两条数据，具体见【六、数据结构说明】
+  - 描述：当数据更新类型为update时，是否将update拆分为两条数据，具体见【七、数据结构说明】
   - 必选：否
   - 字段类型：boolean
   - 默认值：false
@@ -166,7 +174,7 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
 
 <br/>
 
-## 六、数据结构
+## 七、数据结构
 在2021-06-29 23:42:19(时间戳：1624981339000)执行：
 ```sql
 INSERT INTO TIEZHU.RESULT1 ("id", "name", "age") VALUES (1, 'a', 12)
@@ -243,7 +251,7 @@ RowData中的数据依次为：
 - opTime：数据库中SQL的执行时间
 - ts：自增ID，不重复，可用于排序，解码后为FlinkX的事件时间，解码规则如下:
   <br/>
-  
+
 ```java
 long id = Long.parseLong("6815665753853923328");
         long res = id >> 22;
@@ -253,8 +261,8 @@ long id = Long.parseLong("6815665753853923328");
 
 <br/>
 
-## 七、数据类型
-| 支持 | NUMBER、SMALLINT、INT INTEGER、FLOAT、DECIMAL、NUMERIC、BINARY_FLOAT、BINARY_DOUBLE | 
+## 八、数据类型
+| 支持 | NUMBER、SMALLINT、INT INTEGER、FLOAT、DECIMAL、NUMERIC、BINARY_FLOAT、BINARY_DOUBLE |
 | -- | -- |
 |  | CHAR、NCHAR、NVARCHAR2、ROWID、VARCHAR2、VARCHAR、LONG、RAW、LONG RAW、INTERVAL YEAR、INTERVAL DAY、BLOB、CLOB、NCLOB |
 |  | DATE、TIMESTAMP、TIMESTAMP WITH LOCAL TIME ZONE、TIMESTAMP WITH TIME ZONE |
@@ -264,5 +272,5 @@ long id = Long.parseLong("6815665753853923328");
 <br/>
 
 
-## 八、脚本示例
+## 九、脚本示例
 见项目内`FlinkX : Local : Test`模块中的`demo`文件夹。
