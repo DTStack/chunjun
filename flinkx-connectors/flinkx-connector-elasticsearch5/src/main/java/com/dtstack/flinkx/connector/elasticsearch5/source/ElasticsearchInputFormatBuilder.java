@@ -53,7 +53,7 @@ public class ElasticsearchInputFormatBuilder extends BaseRichInputFormatBuilder 
          * is open basic auth
          */
         if (esConf.isAuthMesh()) {
-            Preconditions.checkNotNull(esConf.getUserName(), "elasticsearch5 type of userName is required");
+            Preconditions.checkNotNull(esConf.getUsername(), "elasticsearch5 type of userName is required");
             Preconditions.checkNotNull(esConf.getPassword(), "elasticsearch5 type of password is required");
         }
     }

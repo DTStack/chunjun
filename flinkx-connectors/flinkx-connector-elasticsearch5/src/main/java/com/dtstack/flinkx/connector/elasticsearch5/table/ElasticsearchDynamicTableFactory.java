@@ -171,7 +171,7 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
         String username = readableConfig.get(USERNAME_OPTION);
         String password = readableConfig.get(PASSWORD_OPTION);
         if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
-            elasticsearchConf.setUserName(username);
+            elasticsearchConf.setUsername(username);
             elasticsearchConf.setPassword(password);
             isAuthMesh = true;
         }

@@ -31,6 +31,8 @@ import java.util.List;
  */
 public class ElasticsearchConf extends FlinkxCommonConf {
 
+    private static final long serialVersionUID = 2L;
+
     /**
      * elasticsearch address -> ip:port
      * localhost:9300
@@ -65,7 +67,7 @@ public class ElasticsearchConf extends FlinkxCommonConf {
     /**
      * basic auth : username
      */
-    private String userName;
+    private String username;
 
     /**
      * basic auth : password
@@ -138,12 +140,12 @@ public class ElasticsearchConf extends FlinkxCommonConf {
         this.authMesh = authMesh;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {

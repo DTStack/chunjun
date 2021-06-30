@@ -80,7 +80,7 @@ public class ElasticsearchUtil {
 
         boolean authMesh = elasticsearchConf.isAuthMesh();
         if (authMesh) {
-            String authPassword = elasticsearchConf.getUserName() + ":" + elasticsearchConf.getPassword();
+            String authPassword = elasticsearchConf.getUsername() + ":" + elasticsearchConf.getPassword();
             mapSetting.put("xpack.security.user", authPassword);
         }
 
