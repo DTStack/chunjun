@@ -86,7 +86,7 @@ public class RestapiColumnConverter
     }
 
     @Override
-    public RowData toInternal(String input) {
+    public RowData toInternal(String input) throws Exception{
         ColumnRowData row;
         if (httpRestConfig.getDecode().equals(ConstantValue.DEFAULT_DECODE) && toInternalConverters != null
                 && toInternalConverters.length > 0) {

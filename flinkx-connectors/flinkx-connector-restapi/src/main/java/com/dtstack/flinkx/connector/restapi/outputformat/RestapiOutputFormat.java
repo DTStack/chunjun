@@ -67,12 +67,12 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void rollback(long checkpointId) {
+    public void rollback(long checkpointId) {
 
     }
 
     @Override
-    protected void commit(long checkpointId) {
+    public void commit(long checkpointId) {
 
     }
 

@@ -61,15 +61,16 @@ public class RestapiRowConverter
 
 
     @Override
-    public RowData toInternal(String input) {
+    public RowData toInternal(String input) throws Exception {
         Map<String, Object> result = DefaultRestHandler.gson.fromJson(input, GsonUtil.gsonMapTypeToken);
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         List<FieldConf> column = httpRestConfig.getColumn();
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
-            Object value = MapUtil.getValueByKey(result,
+            Object value = MapUtil.getValueByKey(
+                    result,
                     column.get(pos).getName(),
                     httpRestConfig.getFieldDelimiter());
-            if(value instanceof LinkedTreeMap){
+            if (value instanceof LinkedTreeMap) {
                 value = value.toString();
             }
             genericRowData.setField(pos, toInternalConverters[pos].deserialize(value));
