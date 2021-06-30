@@ -112,7 +112,13 @@
 			<artifactId>flinkx-connector-elasticsearch7</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
+		
+        <dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-elasticsearch6</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-postgresql</artifactId>

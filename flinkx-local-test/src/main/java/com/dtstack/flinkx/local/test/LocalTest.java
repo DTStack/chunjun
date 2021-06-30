@@ -31,6 +31,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author jiangbo
@@ -45,7 +46,7 @@ public class LocalTest {
 //        confProperties.setProperty("flink.checkpoint.interval", "10000");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
+        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/socket/socket_stream.json";
         String flinkxPluginPath = userDir + "/flinkxplugins";
 
         // 任务配置参数
