@@ -18,7 +18,11 @@
 package com.dtstack.flinkx.conf;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -157,5 +161,20 @@ public class FlinkxCommonConf implements Serializable {
                 ", batchSize=" + batchSize +
                 ", flushIntervalMills=" + flushIntervalMills +
                 '}';
+    }
+
+    public Map<String, Object> asMap() throws IllegalAccessException {
+        Map<String, Object> params = new HashMap<>();
+        List<Field> fieldList = new ArrayList<>();
+        Class<?> tempClass = this.getClass();
+        while (tempClass != null) {
+            fieldList.addAll(Arrays.asList(tempClass.getDeclaredFields()));
+            tempClass = tempClass.getSuperclass();
+        }
+        for (Field f : fieldList) {
+            f.setAccessible(true);
+            params.put(f.getName(), f.get(this));
+        }
+        return params;
     }
 }

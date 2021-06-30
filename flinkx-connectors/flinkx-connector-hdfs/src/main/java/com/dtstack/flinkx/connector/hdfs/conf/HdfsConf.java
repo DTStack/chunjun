@@ -35,9 +35,9 @@ public class HdfsConf extends BaseFileConf {
     private String defaultFS;
     private String fileType;
     /** hadoop高可用相关配置 **/
-    private Map<String, Object> hadoopConfig = new HashMap<>(2);
+    private Map<String, Object> hadoopConfig = new HashMap<>(16);
     private String filterRegex = "";
-    private String fieldDelimiter;
+    private String fieldDelimiter = "\001";
     private int rowGroupSize = ParquetWriter.DEFAULT_BLOCK_SIZE;
     private boolean enableDictionary = true;
     private List<String> fullColumnName;

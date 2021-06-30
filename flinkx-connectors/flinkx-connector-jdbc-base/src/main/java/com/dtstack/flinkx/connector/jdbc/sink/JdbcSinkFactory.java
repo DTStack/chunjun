@@ -28,12 +28,14 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Properties;
 
@@ -69,6 +71,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         Properties properties = syncConf.getWriter().getProperties("properties", null);
         jdbcConf.setProperties(properties);
         super.initFlinkxCommonConf(jdbcConf);
+        resetTableInfo();
     }
 
     @Override
@@ -94,4 +97,12 @@ public abstract class JdbcSinkFactory extends SinkFactory {
      * @return JdbcOutputFormatBuilder
      */
     protected abstract JdbcOutputFormatBuilder getBuilder();
+
+
+    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
+    protected void resetTableInfo(){
+        if(StringUtils.isBlank(jdbcConf.getSchema())){
+            JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
+        }
+    }
 }

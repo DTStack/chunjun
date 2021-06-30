@@ -31,6 +31,7 @@ import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
+import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
@@ -166,8 +167,10 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             if (!entryColumn.getIsNull()) {
                 AbstractBaseColumn column = converters[i].deserialize(entryColumn.getValue());
                 columnList.add(column);
-                headerList.add(after + entryColumn.getName());
+            }else{
+                columnList.add(new NullColumn());
             }
+            headerList.add(after + entryColumn.getName());
         }
     }
 

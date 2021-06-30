@@ -88,6 +88,31 @@
             </exclusions>
         </dependency>
 
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-runtime_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.jsqlparser</groupId>
+			<artifactId>jsqlparser</artifactId>
+			<version>3.2</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.iceberg</groupId>
+			<artifactId>iceberg-flink-runtime</artifactId>
+			<version>0.12.efaad97</version>
+		</dependency>
+
         <!-- flink sql -->
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -389,22 +414,22 @@
                                 </includes>
                             </artifactSet>
                             <relocations>
-<!--                                <relocation>-->
-<!--                                    <pattern>com.google.common</pattern>-->
-<!--                                    <shadedPattern>shade.core.com.google.common</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>com.google.thirdparty</pattern>-->
-<!--                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>org.apache.http</pattern>-->
-<!--                                    <shadedPattern>shade.core.org.apache.http</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>io.prometheus.client</pattern>-->
-<!--                                    <shadedPattern>shade.core.io.prometheus.client</shadedPattern>-->
-<!--                                </relocation>-->
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.http</pattern>
+                                    <shadedPattern>shade.core.org.apache.http</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.prometheus.client</pattern>
+                                    <shadedPattern>shade.core.io.prometheus.client</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>

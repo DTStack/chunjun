@@ -159,13 +159,13 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void commit(long checkpointId) {
+    public void commit(long checkpointId) {
         deleteDataFiles(preCommitFilePathList, tmpPath);
         preCommitFilePathList.clear();
     }
 
     @Override
-    protected void rollback(long checkpointId) {
+    public void rollback(long checkpointId) {
         deleteDataFiles(preCommitFilePathList, outputFilePath);
         preCommitFilePathList.clear();
     }

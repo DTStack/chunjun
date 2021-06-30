@@ -96,6 +96,11 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         connection.get(0).getTable().set(0,table);
     }
 
+    public void setSchema(String schema){
+        connection.get(0).setSchema(schema);
+    }
+
+
     public String getSchema() {
         return connection.get(0).getSchema();
     }
