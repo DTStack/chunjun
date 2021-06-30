@@ -50,7 +50,7 @@ The following databases are currently supported:
 |                        | Oracle         | [doc](docs/connectors/oracle/oracle-source.md)       | [doc](docs/connectors/oracle/oracle-sink.md)     |[doc](docs/connectors/oracle/oracle-lookup.md)      |
 |                        | SqlServer      | [doc](docs/connectors/sqlserver/sqlserver-source.md)    | [doc](docs/connectors/sqlserver/sqlserver-sink.md)  |[doc](docs/connectors/sqlserver/sqlserver-lookup.md)
 |                        | PostgreSQL     | [doc](docs/connectors/postgres/postgres-source.md) | [doc](docs/connectors/postgres/postgres-sink.md) | [doc](docs/connectors/postgres/postgres-lookup.md) |
-|                        | DB2            | [doc](docs/offline/reader/db2reader.md)          | [doc](docs/offline/writer/db2writer.md)        |
+|                        | DB2            | [doc](docs/connectors/db2/db2-source.md)          | [doc](docs/connectors/db2/db2-sink.md)        | [doc](docs/connectors/db2/db2-lookup.md)
 |                        | ClickHouse     | [doc](docs/connectors/clickhouse/clickhouse-source.md)   | [doc](docs/connectors/clickhouse/clickhouse-sink.md) | [doc](docs/connectors/clickhouse/clickhouse-lookup.md)      |
 |                        | Greenplum      | [doc](docs/connectors/greenplum/greenplum-source.md)    | [doc](docs/connectors/greenplum/greenplum-sink.md)  |
 |                        | KingBase       | [doc](docs/connectors/kingbase/kingbase-source.md)     | [doc](docs/connectors/kingbase/kingbase-sink.md)   |
