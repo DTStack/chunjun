@@ -1,5 +1,5 @@
 # 一、介绍
-ElasticSearch Sink插件支持将数据写入到指定的index中。
+ElasticSearch Source插件支持从现有的ElasticSearch集群读取指定index中的数据。
 ​
 
 # 二、支持版本
@@ -8,10 +8,9 @@ Elasticsearch 6.x
 
 # 三、插件名称
 
-
 | 类型|名称|
-| ---- | ----|
-| Sync | eswriter、essink |
+| --- | --- |
+| Sync | esreader、essource |
 | SQL | elasticsearch6-x |
 
 ​
@@ -47,20 +46,15 @@ Elasticsearch 6.x
    - 参数类型：String
    - 默认值：无
 - batchSize
-   - 描述：批量写入数据的条数
+   - 描述：批量读取数据的条数
    - 必须：否
    - 参数类型：Integer
    - 默认值：1
-- keyDelimiter
-   - 描述：文档id之间的分隔符号，eg:“${col1}_${col2}”
-   - 必须：否
-   - 参数类型：无
-   - 默认值："_"
 - column
    - 描述：需要读取的字段
    - 注意：不支持*格式
    - 格式：
-   
+
 ```
 "column": [{
     "name": "col", -- 字段名称，可使用多级格式查找
@@ -83,10 +77,7 @@ Elasticsearch 6.x
    - 参数类型：String
    - 默认值：无
 - document-type
-   - 描述：指定访问Elasticsearch集群的index下的type名称
-   - 必选：是
-   - 参数类型：String
-   - 默认值：无
+
 - username
    - 描述：开启basic认证之后的用户名
    - 必须：否
@@ -102,11 +93,8 @@ Elasticsearch 6.x
    - 必须：否
    - 参数类型：Integer
    - 默认值：1
-- document-id.key-delimiter
-   - 描述：文档id之间的分隔符号，eg:“${col1}_${col2}”
-   - 必须：否
-   - 参数类型：String
-   - 默认值："_"
+
+​
 
 # 五、数据类型
 
