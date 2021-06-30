@@ -65,7 +65,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         this.jdbcDialect = jdbcDialect;
         Gson gson = new GsonBuilder().registerTypeAdapter(ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf")).create();
         GsonUtil.setTypeAdapter(gson);
-        jdbcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConf.class);
+        jdbcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), getConfClass());
         jdbcConf.setColumn(syncConf.getReader().getFieldList());
 
         Properties properties = syncConf.getWriter().getProperties("properties", null);
@@ -85,6 +85,11 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         super.initFlinkxCommonConf(jdbcConf);
         resetTableInfo();
     }
+
+    protected Class<? extends JdbcConf>  getConfClass() {
+        return JdbcConf.class;
+    }
+
 
     @Override
     public DataStream<RowData> createSource() {
