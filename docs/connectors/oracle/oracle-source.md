@@ -1,7 +1,7 @@
 # Oracle Source
 
 ## 一、介绍
-支持从oracle离线读取，不支持oracle实时间隔轮询读取
+支持从oracle离线读取
 
 ## 二、支持版本
 Oracle 9 及以上
@@ -140,6 +140,20 @@ Oracle 9 及以上
   - 默认值：无
     <br />
 
+- **polling**
+  - 描述：是否开启间隔轮询，开启后会根据pollingInterval轮询间隔时间周期性的从数据库拉取数据。开启间隔轮询还需配置参数pollingInterval，increColumn，可以选择配置参数startLocation。若不配置参数startLocation，任务启动时将会从数据库中查询增量字段最大值作为轮询的起始位置。
+  - 必选：否
+  - 参数类型：Boolean
+  - 默认值：false
+    <br />
+
+- **pollingInterval**
+  - 描述：轮询间隔时间，从数据库中拉取数据的间隔时间，默认为5000毫秒。
+  - 必选：否
+  - 参数类型：long
+  - 默认值：5000
+    <br />    
+
 - **increColumn**
   - 描述：增量字段，可以是对应的增量字段名，也可以是纯数字，表示增量字段在column中的顺序位置（从0开始）
   - 必选：否
@@ -200,6 +214,13 @@ Oracle 9 及以上
 - **password**
   - 描述：password
   - 必选：是
+  - 参数类型：String
+  - 默认值：无
+    <br />
+
+- **scan.polling-interval**
+  - 描述：间隔轮训时间。非必填(不填为离线任务)，无默认
+  - 必选：否
   - 参数类型：String
   - 默认值：无
     <br />
@@ -283,4 +304,4 @@ Oracle 9 及以上
 注意：由于 flink DecimalType 的 PRECISION(1~38) 与 SCALE(0~PRECISION) 限制，oracle 的数值类型的数据在转换时可能会丢失精度
 
 ## 六、脚本示例
-见项目内`FlinkX : Local : Test`模块中的`demo`文件夹。
+见项目内`flinkx-examples`文件夹。
