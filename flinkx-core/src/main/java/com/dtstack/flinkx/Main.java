@@ -310,7 +310,7 @@ public class Main {
         if (StringUtils.equalsIgnoreCase(ClusterMode.local.name(), options.getMode())) {
             env = new MyLocalStreamEnvironment(flinkConf);
         } else {
-            env = StreamExecutionEnvironment.getExecutionEnvironment(flinkConf);
+            env = StreamExecutionEnvironment.getExecutionEnvironment();
         }
         return env;
     }

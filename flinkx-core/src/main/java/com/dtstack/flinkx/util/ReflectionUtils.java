@@ -43,7 +43,6 @@ public class ReflectionUtils {
         for(Class<?> clazz = object.getClass() ; clazz != Object.class ; clazz = clazz.getSuperclass()) {
             try {
                 method = clazz.getDeclaredMethod(methodName, parameterTypes) ;
-                method.setAccessible(true);
                 return method ;
             } catch (Exception e) {
                 //do nothing then can get method from super Class
