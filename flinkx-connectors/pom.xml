@@ -33,12 +33,13 @@
 		<module>flinkx-connector-hdfs</module>
 		<module>flinkx-connector-hive</module>
 		<module>flinkx-connector-redis</module>
+		<module>flinkx-connector-elasticsearch7</module>
 		<module>flinkx-connector-db2</module>
 		<module>flinkx-connector-dm</module>
 		<module>flinkx-connector-mongodb</module>
 		<module>flinkx-connector-solr</module>
 		<module>flinkx-connector-file</module>
-
+		
 		<!--CDC-->
 		<module>flinkx-connector-restapi</module>
 		<module>flinkx-connector-socket</module>
