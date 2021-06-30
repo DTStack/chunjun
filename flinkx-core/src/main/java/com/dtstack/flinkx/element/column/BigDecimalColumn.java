@@ -61,6 +61,10 @@ public class BigDecimalColumn extends AbstractBaseColumn {
         super(new BigDecimal(data));
     }
 
+    public BigDecimalColumn(short data) {
+        super(new BigDecimal(data));
+    }
+
     @Override
     public String asString() {
         if (null == data) {

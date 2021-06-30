@@ -78,8 +78,8 @@ public class LogminerOptions {
                     .defaultValue("")
                     .withDescription("Oracle LogMiner start SCN.");
 
-    public static final ConfigOption<String> LISTENER_TABLE =
-            ConfigOptions.key("listenerTables")
+    public static final ConfigOption<String> TABLE =
+            ConfigOptions.key("table")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("Oracle LogMiner table.");

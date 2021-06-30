@@ -27,6 +27,10 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -46,6 +50,8 @@ import java.util.regex.Pattern;
 public class StringUtil {
 
     public static final int STEP_SIZE = 2;
+
+    public final static char[] hexChars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     /**
      * Handle the escaped escape charactor.
@@ -230,6 +236,21 @@ public class StringUtil {
         return sb.toString();
     }
 
+    /**
+     * 16进制数组 转为hex字符串
+     * @param b
+     * @return
+     */
+    public static String bytesToHexString(byte[] b) {
+        StringBuilder sb = new StringBuilder(b.length * 2);
+        for (byte value : b) {
+            int hexVal = value & 0xFF;
+            sb.append(hexChars[(hexVal & 0xF0) >> 4]);
+            sb.append(hexChars[(hexVal & 0x0F)]);
+        }
+        return sb.toString();
+    }
+
     public static byte[] hexStringToByteArray(String hexString) {
         if (hexString == null) {
             return null;
@@ -339,6 +360,21 @@ public class StringUtil {
             if(i != strings.size()-1){
                 stringBuffer.append(ConstantValue.POINT_SYMBOL);
             }
+        }
+        return stringBuffer.toString();
+    }
+
+    /**
+     * get String from inputStream
+     * @param input inputStream
+     * @return String value
+     * @throws IOException convert exception
+     */
+    public static String inputStream2String(InputStream input) throws IOException {
+        StringBuilder stringBuffer = new StringBuilder();
+        byte[] byt = new byte[1024];
+        for (int i; (i = input.read(byt)) != -1;) {
+            stringBuffer.append(new String(byt, 0, i));
         }
         return stringBuffer.toString();
     }

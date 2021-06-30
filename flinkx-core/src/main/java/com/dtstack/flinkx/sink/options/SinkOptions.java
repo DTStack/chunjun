@@ -22,6 +22,7 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 /**
+ * TODO move to table package
  * @author chuixue
  * @create 2021-06-21 19:41
  * @description
@@ -49,4 +50,10 @@ public class SinkOptions {
                     .intType()
                     .defaultValue(3)
                     .withDescription("the max retry times if writing records to database failed.");
+
+    public static final ConfigOption<Integer> SINK_PARALLELISM =
+            ConfigOptions.key("sink.parallelism")
+                    .intType()
+                    .defaultValue(null)
+                    .withDescription("sink parallelism");
 }
