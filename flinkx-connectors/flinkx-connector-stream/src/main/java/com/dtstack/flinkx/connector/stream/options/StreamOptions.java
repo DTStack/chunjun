@@ -52,7 +52,7 @@ public class StreamOptions {
     public static final ConfigOption<Long> ROWS_PER_SECOND =
             key("rows-per-second")
                     .longType()
-                    .defaultValue(10L)
+                    .defaultValue(0L)
                     .withDescription(
                             "rows-per-second.");
 
