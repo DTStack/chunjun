@@ -1,5 +1,5 @@
 # 一、介绍
-ElasticSearch Lookup插件支持从现有的ElasticSearch集群读取指定index中的数据，并作为维表进行与主表进行关联。目前维表支持全量维表和异步维表。
+ElasticSearch Lookup插件支持从现有的ElasticSearch集群读取指定index中的数据，并作为维表与主表进行关联。目前维表支持全量维表和异步维表。
 
 # 二、支持版本
 
@@ -80,15 +80,12 @@ Elasticsearch 6.x
 
 
 # 五、数据类型
-| ​支持 | BOOLEAN |
+
+|是否支持 | 类型名称 |
 | --- | --- |
-|  | INTEGER |
-|  | DECIMAL |
-|  | TIMESTAMP |
-|  | DOUBLE |
-|  | FLOAT |
-|  | DATE |
-|  | VARCHAR |
+| 支持 |INTEGER,SMALLINT,DECIMAL,TIMESTAM DOUBLE,FLOAT,DATE,VARCHAR,VARCHAR,TIMESTAMP,TIME,BYTE|
+| 不支持 | IP，binary, nested, object|
 
 # 六、脚本示例
-见项目内FlinkX：Local：Test模块中的demo文件夹。
+
+见项目内`flinkx-examples`文件夹。
