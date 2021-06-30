@@ -1,23 +1,65 @@
 {
-  "job" : {
-    "content" : [ {
-      "reader" : {
-        "parameter" : {
-          "url": "mongodb://root:abc123@kudu5:27017/tudou?authSource=admin",
-          "fetchSize": 100,
-          "collectionName" : "tudou",
-          "filter" : "{}",
-          "column" : ["*"]
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "url": "mongodb://localhost:27017/flink_dev?authSource=admin",
+            "fetchSize": 100,
+            "collectionName": "dim_m",
+            "filter": "{}",
+            "column": [
+              {
+                "name": "val_int",
+                "type": "int"
+              },
+              {
+                "name": "val_long",
+                "type": "long"
+              },
+              {
+                "name": "val_double",
+                "type": "double"
+              },
+              {
+                "name": "val_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "_id",
+                "type": "objectId"
+              },
+              {
+                "name": "val_str",
+                "type": "string"
+              },
+              {
+                "name": "val_bindata",
+                "type": "bindata"
+              },
+              {
+                "name": "val_date",
+                "type": "date"
+              },
+              {
+                "name": "val_timestamp",
+                "type": "timestamp"
+              },
+              {
+                "name": "val_bool",
+                "type": "boolean"
+              }
+            ]
+          },
+          "name": "mongodbreader"
         },
-        "name" : "mongodbreader"
-      },
-      "writer": {
-        "name": "streamwriter",
-        "parameter": {
-          "print": true
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
         }
       }
-    }
     ],
     "setting": {
       "speed": {
@@ -33,11 +75,11 @@
         "restoreColumnName": "",
         "restoreColumnIndex": 0
       },
-      "log" : {
+      "log": {
         "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
+        "level": "debug",
+        "path": "",
+        "pattern": ""
       }
     }
   }

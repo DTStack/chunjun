@@ -57,6 +57,7 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
     }
 
     @Override
+    @SuppressWarnings("all")
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
         final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
         String[] fieldNames = tableSchema.getFieldNames();

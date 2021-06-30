@@ -1,0 +1,48 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader" : {
+          "parameter" : {
+            "topic" : "tudou",
+            "codec": "json",
+            "consumerSettings" : {
+              "bootstrap.servers" : "ip:9092"
+            }
+          },
+          "name" : "kafkareader"
+        },
+        "writer": {
+          "name" : "hivewriter",
+          "parameter" : {
+            "jdbcUrl" : "jdbc:hive2://ip:10000/tudou",
+            "fileType" : "parquet",
+            "writeMode" : "overwrite",
+            "compress" : "",
+            "charsetName" : "UTF-8",
+            "tablesColumn" : "{\"type\":[{\"key\":\"id\",\"type\":\"int\"},{\"key\":\"col_boolean\",\"type\":\"boolean\"},{\"key\":\"col_tinyint\",\"type\":\"tinyint\"},{\"key\":\"col_smallint\",\"type\":\"smallint\"},{\"key\":\"col_int\",\"type\":\"int\"},{\"key\":\"col_bigint\",\"type\":\"bigint\"},{\"key\":\"col_float\",\"type\":\"float\"},{\"key\":\"col_double\",\"type\":\"double\"},{\"key\":\"col_decimal\",\"type\":\"decimal\"},{\"key\":\"col_string\",\"type\":\"string\"},{\"key\":\"col_varchar\",\"type\":\"varchar(255)\"},{\"key\":\"col_char\",\"type\":\"varchar(255)\"},{\"key\":\"col_binary\",\"type\":\"binary\"},{\"key\":\"col_timestamp\",\"type\":\"timestamp\"},{\"key\":\"col_date\",\"type\":\"date\"},{\"key\":\"message\",\"type\":\"string\"}]}",
+            "partition" : "pt",
+            "partitionType" : "DAY",
+            "defaultFS" : "hdfs://ns",
+            "hadoopConfig": {
+              "hadoop.user.name": "root",
+              "dfs.ha.namenodes.ns": "nn1,nn2",
+              "fs.defaultFS": "hdfs://ns",
+              "dfs.namenode.rpc-address.ns.nn2": "ip:9000",
+              "dfs.client.failover.proxy.provider.ns": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "dfs.namenode.rpc-address.ns.nn1": "ip:9000",
+              "dfs.nameservices": "ns",
+              "fs.hdfs.impl.disable.cache": "true",
+              "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem"
+            }
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1
+      }
+    }
+  }
+}

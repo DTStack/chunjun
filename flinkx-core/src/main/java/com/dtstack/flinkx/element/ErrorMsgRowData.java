@@ -46,7 +46,7 @@ public class ErrorMsgRowData implements RowData {
 
     @Override
     public RowKind getRowKind() {
-        return null;
+        return RowKind.INSERT;
     }
 
     @Override

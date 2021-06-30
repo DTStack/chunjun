@@ -27,11 +27,21 @@
 		<module>flinkx-connector-sqlserver</module>
 		<module>flinkx-connector-oracle</module>
 		<module>flinkx-connector-greenplum</module>
+		<module>flinkx-connector-tidb</module>
+		<module>flinkx-connector-ftp</module>
 		<module>flinkx-connector-hdfs</module>
+		<module>flinkx-connector-hive</module>
 		<module>flinkx-connector-redis</module>
+		<module>flinkx-connector-db2</module>
+		<module>flinkx-connector-dm</module>
+		<module>flinkx-connector-mongodb</module>
+		<module>flinkx-connector-solr</module>
+		<module>flinkx-connector-file</module>
+		<module>flinkx-connector-file</module>
 
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
+        <module>flinkx-connector-sqlservercdc</module>
 		<module>flinkx-connector-oraclelogminer</module>
     </modules>
 

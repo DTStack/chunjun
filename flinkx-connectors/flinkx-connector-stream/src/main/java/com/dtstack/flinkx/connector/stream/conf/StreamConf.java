@@ -34,9 +34,9 @@ public class StreamConf extends FlinkxCommonConf {
     private List<Long> sliceRecordCount;
 
     //writer
-    private boolean print = false;
+    private boolean print = true;
 
-    private long permitsPerSecond = 10;
+    private long permitsPerSecond = 0;
 
     public List<Long> getSliceRecordCount() {
         return sliceRecordCount;

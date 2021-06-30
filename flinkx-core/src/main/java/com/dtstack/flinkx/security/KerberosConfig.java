@@ -21,6 +21,8 @@ package com.dtstack.flinkx.security;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.google.common.base.Strings;
 
+import java.io.Serializable;
+
 /**
  * Kerberos of certain connectors could be enabled, it should use or extends this class. e.g.
  * KuduInputFormat class can combine it.
@@ -29,12 +31,17 @@ import com.google.common.base.Strings;
  * @program flinkx
  * @create 2021/06/15
  */
-public class KerberosConfig {
+public class KerberosConfig implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     protected boolean enableKrb;
     protected String principal;
     protected String keytab;
     protected String krb5conf;
+
+    // do not delete. Preserving empty parameter construction method for JsonUtil.toObject()
+    public KerberosConfig() {}
 
     public KerberosConfig(String principal, String keytab, String krb5conf) {
         this.principal = principal;
@@ -71,7 +78,7 @@ public class KerberosConfig {
         return enableKrb;
     }
 
-    protected void judgeAndSetKrbEnabled() {
+    public void judgeAndSetKrbEnabled() {
         boolean allSet =
                 !Strings.isNullOrEmpty(getPrincipal())
                         && !Strings.isNullOrEmpty(getKeytab())

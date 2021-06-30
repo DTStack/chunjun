@@ -21,6 +21,9 @@ package com.dtstack.flinkx.util;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -134,4 +137,12 @@ public class StringUtilTest {
         result = StringUtil.col2string(new Date(1584510286187L), "DATETIME");
         Assert.assertEquals(result, "2020-03-18 13:44:46");
     }
+
+    @Test
+    public void InputStream2String() throws IOException {
+        String str = "text1\n newline\n newline2\t\n 中文";
+        InputStream inputStream = new ByteArrayInputStream(str.getBytes());
+        Assert.assertEquals(str, StringUtil.inputStream2String(inputStream));
+    }
+
 }
