@@ -34,6 +34,8 @@ import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.metrics.MetricConstant;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
@@ -42,6 +44,8 @@ import java.io.Serializable;
 /** A specific {@link KafkaSerializationSchema} for {@link org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicSink}. */
 public class DynamicKafkaSerializationSchema
         implements KafkaSerializationSchema<RowData>, KafkaContextAware<RowData> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DynamicKafkaSerializationSchema.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -172,6 +176,7 @@ public class DynamicKafkaSerializationSchema
                     readMetadata(consumedRow, KafkaDynamicSink.WritableMetadata.HEADERS));
         } catch (Exception e){
             // todo 需要脏数据记录
+            LOG.error(e.getMessage());
         }
         return null;
     }

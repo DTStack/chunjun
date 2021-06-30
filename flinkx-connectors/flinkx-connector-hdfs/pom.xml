@@ -67,10 +67,6 @@
 					<groupId>commons-cli</groupId>
 				</exclusion>
 				<exclusion>
-					<artifactId>commons-collections</artifactId>
-					<groupId>commons-collections</groupId>
-				</exclusion>
-				<exclusion>
 					<artifactId>commons-io</artifactId>
 					<groupId>commons-io</groupId>
 				</exclusion>
@@ -166,19 +162,19 @@
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-parquet</artifactId>
-			<version>1.12-SNAPSHOT</version>
+			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-orc</artifactId>
-			<version>1.12-SNAPSHOT</version>
+			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-json</artifactId>
-			<version>1.12-SNAPSHOT</version>
+			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>
     </dependencies>

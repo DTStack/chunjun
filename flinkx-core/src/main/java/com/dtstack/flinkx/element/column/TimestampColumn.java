@@ -22,6 +22,7 @@ import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Date: 2021/04/27
@@ -37,6 +38,10 @@ public class TimestampColumn extends AbstractBaseColumn {
 
     public TimestampColumn(long data) {
         super(new Timestamp(data));
+    }
+
+    public TimestampColumn(Date data) {
+        super(new Timestamp(data.getTime()));
     }
 
     @Override

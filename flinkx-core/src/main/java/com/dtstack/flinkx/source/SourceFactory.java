@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.source;
 
-import com.dtstack.flinkx.RawTypeConvertible;
+import com.dtstack.flinkx.converter.RawTypeConvertible;
 
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;

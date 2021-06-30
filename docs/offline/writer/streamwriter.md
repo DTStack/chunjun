@@ -1,80 +1,47 @@
-# Stream Writer
+# Stream Sink
 
-<a name="LB4vl"></a>
-## 一、 简介
-Stream writer插件仅仅用来测试reader插件的读取效果，处理方式为简单的将读到的数据弃掉，可选择是否通过LOG显示读取到的数据<br />
+## 一、介绍
+控制台显示数据，方便调试
 
-<a name="c6v6n"></a>
-## 二、插件名称
-名称：**streamwriter**<br />
-<a name="VAhCe"></a>
-## 三、 参数说明
+## 二、支持版本
+
+
+
+## 三、插件名称
+| Sync | streamsink、streamwriter |
+| --- | --- |
+| SQL | stream-x |
+
+
+## 四、参数说明
+### 1、Sync
+- **print**
+  - 描述：是否打印
+  - 必选：否
+  - 参数类型：boolean
+  - 默认值：是
+<br />
+
+### 2、SQL
+- **connector**
+  - 描述：stream-x
+  - 必选：是
+  - 参数类型：String
+  - 默认值：无
+<br />
 
 - **print**
-  - 描述：boolean值，表明是否通过LOG INFO打印采集到的数据信息
+  - 描述：是否打印
   - 必选：否
-  - 默认值：false
+  - 参数类型：boolean
+  - 默认值：是
+<br />
+
+## 五、数据类型
+| 支持 | BOOLEAN、TINYINT、SMALLINT、INT、BIGINT、FLOAT、DOUBLE、DECIMAL、STRING、VARCHAR、CHAR、TIMESTAMP、DATE、BINARY |
+| --- | --- |
+| 暂不支持 | ARRAY、MAP、STRUCT、UNION |
 
 
-
-<a name="BG1bt"></a>
-## 四、 配置示例
-```json
-{
-  "job": {
-    "content": [
-      {
-        "reader": {
-          "name": "streamreader",
-          "parameter": {
-            "column": [
-              {
-                "name": "id",
-                "type": "id"
-              },
-              {
-                "name": "user_id",
-                "type": "int"
-              },
-              {
-                "name": "name",
-                "type": "string"
-              }
-            ],
-            "sliceRecordCount" : [ "100"]
-          }
-        },
-        "writer": {
-          "name": "streamwriter",
-          "parameter": {
-            "print": true
-          }
-        }
-      }
-    ],
-    "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 0
-      },
-      "errorLimit": {
-        "record": 1
-      },
-      "restore": {
-        "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
-      },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
-      }
-    }
-  }
-}
-```
-
-
+## 六、脚本示例
+见项目内`FlinkX : Local : Test`模块中的`demo`文件夹。
