@@ -50,7 +50,7 @@ FlinkX目前支持下面这些数据库：
 
 |                        | Database Type  | Reader                          | Writer                          | Lookup                          
 |:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|:-------------------------------:|
-| Batch Synchronization  | MySQL          | [doc](docs/offline/reader/mysqlreader.md)        | [doc](docs/offline/writer/mysqlwriter.md)      |
+| Batch Synchronization  | MySQL          | [doc](docs/offline/reader/mysqlreader.md)        | [doc](docs/offline/writer/mysqlwriter.md)      |[doc](docs/offline/lookup/mysqllookup.md)      |
 |                        | Oracle         | [doc](docs/offline/reader/oraclereader.md)       | [doc](docs/offline/writer/oraclewriter.md)     |
 |                        | SqlServer      | [doc](docs/offline/reader/sqlserverreader.md)    | [doc](docs/offline/writer/sqlserverwriter.md)  |
 |                        | PostgreSQL     | [doc](docs/offline/reader/postgresqlreader.md)   | [doc](docs/offline/writer/postgresqlwriter.md) |
@@ -74,7 +74,7 @@ FlinkX目前支持下面这些数据库：
 |                        | HDFS           | [doc](docs/offline/reader/HdfsSource.md)         | [doc](docs/offline/writer/HdfsSink.md)       |
 |                        | Carbondata     | [doc](docs/offline/reader/carbondatareader.md)   | [doc](docs/offline/writer/carbondatawriter.md) |
 |                        | Stream         | [doc](docs/offline/reader/streamreader.md)       | [doc](docs/offline/writer/streamwriter.md) |
-|                        | Redis          |                                                  | [doc](docs/offline/writer/rediswriter.md)      |
+|                        | Redis          |                                                  | [doc](docs/offline/writer/rediswriter.md)      |[doc](docs/offline/lookup/redislookup.md)      |
 |                        | Hive           |                                                  | [doc](docs/offline/writer/HiveSink.md)       |
 | Stream Synchronization | Kafka          | [doc](docs/realTime/reader/kafkareader.md)       | [doc](docs/realTime/writer/kafkawriter.md)     |
 |                        | EMQX           | [doc](docs/realTime/reader/emqxreader.md)        | [doc](docs/realTime/writer/emqxwriter.md)      |
