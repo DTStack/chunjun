@@ -167,5 +167,5 @@ dirty用于配置脏数据的保存，通常与上文出错控制联合使用。
 }
 ```
 ## 二、SQL
-
+[参考Flink官方文档](https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/table/sql/)
 
