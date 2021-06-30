@@ -28,8 +28,7 @@ FlinkX
 
 # 介绍
 
-FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。**
-同时，FlinkX也是支持原生FlinkSql所有语法和特性的计算框架**，<big>**并且提供了大量[案例](flinkx-examples)**</big>。FlinkX目前包含下面这些特性：
+FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。**同时，FlinkX也是支持原生FlinkSql所有语法和特性的计算框架**，<big>**并且提供了大量[案例](flinkx-examples)**</big>。FlinkX目前包含下面这些特性：
 
 - 大部分插件支持并发读写数据，可以大幅度提高读写速度；
 
@@ -46,6 +45,10 @@ FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集
 - 可以限制脏数据的最大数量；
 
 - 支持多种运行模式；
+
+- **同步任务支持执行flinksql语法的[transformer](docs/quickstart.md#sync)操作；**
+
+- **sql任务支持和flinkSql自带connectors[共用](docs/quickstart.md#sql)；**
 
 FlinkX目前支持下面这些数据库：
 
