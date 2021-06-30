@@ -168,6 +168,6 @@ public class OracleDialect implements JdbcDialect {
 
     @Override
     public String getRowNumColumn(String orderBy) {
-        return "rownum as FLINKX_ROWNUM";
+        return "rownum as " + getRowNumColumnAlias();
     }
 }

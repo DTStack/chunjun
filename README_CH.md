@@ -28,7 +28,7 @@ Flink开发工程师JD要求：<BR>
 
 # 介绍
 
-FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。FlinkX目前包含下面这些特性：
+FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。**同时，FlinkX也是支持原生FlinkSql所有语法和特性的计算框架**。FlinkX目前包含下面这些特性：
 
 - 大部分插件支持并发读写数据，可以大幅度提高读写速度；
 
@@ -48,9 +48,9 @@ FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集
 
 FlinkX目前支持下面这些数据库：
 
-|                        | Database Type  | Reader                          | Writer                          |
-|:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|
-| Batch Synchronization  | MySQL          | [doc](docs/offline/reader/mysqlreader.md)        | [doc](docs/offline/writer/mysqlwriter.md)      |
+|                        | Database Type  | Reader                          | Writer                          | Lookup                          
+|:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|:-------------------------------:|
+| Batch Synchronization  | MySQL          | [doc](docs/offline/reader/mysqlreader.md)        | [doc](docs/offline/writer/mysqlwriter.md)      |[doc](docs/offline/lookup/mysqllookup.md)      |
 |                        | Oracle         | [doc](docs/offline/reader/oraclereader.md)       | [doc](docs/offline/writer/oraclewriter.md)     |
 |                        | SqlServer      | [doc](docs/offline/reader/sqlserverreader.md)    | [doc](docs/offline/writer/sqlserverwriter.md)  |
 |                        | PostgreSQL     | [doc](docs/offline/reader/postgresqlreader.md)   | [doc](docs/offline/writer/postgresqlwriter.md) |
@@ -71,18 +71,18 @@ FlinkX目前支持下面这些数据库：
 |                        | Kudu           | [doc](docs/offline/reader/kudureader.md)         | [doc](docs/offline/writer/kuduwriter.md)       |
 |                        | ElasticSearch  | [doc](docs/offline/reader/es6reader.md)           | [doc](docs/offline/writer/es6writer.md)         |
 |                        | FTP            | [doc](docs/offline/reader/ftpreader.md)          | [doc](docs/offline/writer/ftpwriter.md)        |
-|                        | HDFS           | [doc](docs/offline/reader/hdfsreader.md)         | [doc](docs/offline/writer/hdfswriter.md)       |
+|                        | HDFS           | [doc](docs/offline/reader/HdfsSource.md)         | [doc](docs/offline/writer/HdfsSink.md)       |
 |                        | Carbondata     | [doc](docs/offline/reader/carbondatareader.md)   | [doc](docs/offline/writer/carbondatawriter.md) |
-|                        | Stream         | [doc](docs/offline/reader/streamreader.md)       | [doc](docs/offline/writer/carbondatawriter.md) |
-|                        | Redis          |                                                  | [doc](docs/offline/writer/rediswriter.md)      |
-|                        | Hive           |                                                  | [doc](docs/offline/writer/hivewriter.md)       |
+|                        | Stream         | [doc](docs/offline/reader/streamreader.md)       | [doc](docs/offline/writer/streamwriter.md) |
+|                        | Redis          |                                                  | [doc](docs/offline/writer/rediswriter.md)      |[doc](docs/offline/lookup/redislookup.md)      |
+|                        | Hive           |                                                  | [doc](docs/offline/writer/HiveSink.md)       |
 | Stream Synchronization | Kafka          | [doc](docs/realTime/reader/kafkareader.md)       | [doc](docs/realTime/writer/kafkawriter.md)     |
 |                        | EMQX           | [doc](docs/realTime/reader/emqxreader.md)        | [doc](docs/realTime/writer/emqxwriter.md)      |
 |                        | RestApi        | | [doc](docs/realTime/writer/restapiwriter.md)   |
 |                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
-
+|                        | Oracle LogMiner | [doc](docs/realTime/reader/logminerreader.md)   |                                            |
 # 快速开始
 
 请点击[快速开始](docs/quickstart.md)

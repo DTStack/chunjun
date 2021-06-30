@@ -261,12 +261,14 @@ public interface JdbcDialect extends Serializable {
                     .append(" FROM ")
                     .append(buildTableInfoWithSchema(schemaName, tableName));
         }
+
         sql.append(" WHERE ");
         if (StringUtils.isNotBlank(where)) {
             sql.append(where);
         }else{
             sql.append(" 1=1 ");
         }
+
         return sql.toString();
     }
 
@@ -320,7 +322,14 @@ public interface JdbcDialect extends Serializable {
      */
     default String getRowNumColumn(String orderBy){
        throw new UnsupportedOperationException("Not support row_number function");
-    };
+    }
+
+    /**
+     * get splitKey aliasName
+     */
+    default String getRowNumColumnAlias() {
+        return "FLINKX_ROWNUM";
+    }
 
     /**
      * build split filter by range, like 'id >=0 and id < 100'

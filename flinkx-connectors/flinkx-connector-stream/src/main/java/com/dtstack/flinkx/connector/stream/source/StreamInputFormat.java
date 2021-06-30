@@ -56,7 +56,9 @@ public class StreamInputFormat extends BaseRichInputFormat {
                 && streamConf.getSliceRecordCount().size() > inputSplit.getSplitNumber()) {
             channelRecordNum = streamConf.getSliceRecordCount().get(inputSplit.getSplitNumber());
         }
-        rateLimiter = RateLimiter.create(streamConf.getPermitsPerSecond());
+        if(streamConf.getPermitsPerSecond() > 0){
+            rateLimiter = RateLimiter.create(streamConf.getPermitsPerSecond());
+        }
         LOG.info("The record number of channel:[{}] is [{}]", inputSplit.getSplitNumber(), channelRecordNum);
     }
 
@@ -64,7 +66,9 @@ public class StreamInputFormat extends BaseRichInputFormat {
     @SuppressWarnings("all")
     public RowData nextRecordInternal(RowData rowData) throws ReadRecordException{
         try {
-            rateLimiter.acquire();
+            if (rateLimiter != null) {
+                rateLimiter.acquire();
+            }
             rowData = rowConverter.toInternal(rowData);
         } catch (Exception e) {
             throw new ReadRecordException("", e, 0, rowData);

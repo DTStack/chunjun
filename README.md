@@ -17,7 +17,7 @@ English | [中文](README_CH.md)
 
 # Introduction
 
-FlinkX is a data synchronization tool based on Flink. FlinkX can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. FlinkX currently includes the following features:
+FlinkX is a data synchronization tool based on Flink. FlinkX can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. **At the same time, FlinkX is also a computing framework that supports all the syntax and features of native FlinkSql**. FlinkX currently includes the following features:
 
 - Most plugins support concurrent reading and writing of data, which can greatly improve the speed of reading and writing;
 
@@ -37,9 +37,9 @@ FlinkX is a data synchronization tool based on Flink. FlinkX can collect static 
 
 The following databases are currently supported:
 
-|                        | Database Type  | Reader                          | Writer                          |
-|:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|
-| Batch Synchronization  | MySQL          | [doc](docs/offline/reader/mysqlreader.md)        | [doc](docs/offline/writer/mysqlwriter.md)      |
+|                        | Database Type  | Reader                          | Writer                          | Lookup                          |
+|:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|:-------------------------------:|
+| Batch Synchronization  | MySQL          | [doc](docs/offline/reader/mysqlreader.md)        | [doc](docs/offline/writer/mysqlwriter.md)      |[doc](docs/offline/lookup/mysqllookup.md)      |
 |                        | Oracle         | [doc](docs/offline/reader/oraclereader.md)       | [doc](docs/offline/writer/oraclewriter.md)     |
 |                        | SqlServer      | [doc](docs/offline/reader/sqlserverreader.md)    | [doc](docs/offline/writer/sqlserverwriter.md)  |
 |                        | PostgreSQL     | [doc](docs/offline/reader/postgresqlreader.md)   | [doc](docs/offline/writer/postgresqlwriter.md) |
@@ -60,17 +60,18 @@ The following databases are currently supported:
 |                        | Kudu           | [doc](docs/offline/reader/kudureader.md)         | [doc](docs/offline/writer/kuduwriter.md)       |
 |                        | ElasticSearch  | [doc](docs/offline/reader/es6reader.md)           | [doc](docs/offline/writer/es6writer.md)         |
 |                        | FTP            | [doc](docs/offline/reader/ftpreader.md)          | [doc](docs/offline/writer/ftpwriter.md)        |
-|                        | HDFS           | [doc](docs/offline/reader/hdfsreader.md)         | [doc](docs/offline/writer/hdfswriter.md)       |
+|                        | HDFS           | [doc](docs/offline/reader/HdfsSource.md)         | [doc](docs/offline/writer/HdfsSink.md)       |
 |                        | Carbondata     | [doc](docs/offline/reader/carbondatareader.md)   | [doc](docs/offline/writer/carbondatawriter.md) |
-|                        | Stream         | [doc](docs/offline/reader/streamreader.md)       | [doc](docs/offline/writer/carbondatawriter.md) |
-|                        | Redis          |                                                  | [doc](docs/offline/writer/rediswriter.md)      |
-|                        | Hive           |                                                  | [doc](docs/offline/writer/hivewriter.md)       |
+|                        | Stream         | [doc](docs/offline/reader/streamreader.md)       | [doc](docs/offline/writer/streamwriter.md) |
+|                        | Redis          |                                                  | [doc](docs/offline/writer/rediswriter.md)      |[doc](docs/offline/lookup/redislookup.md)      |
+|                        | Hive           |                                                  | [doc](docs/offline/writer/HiveSink.md)       |
 | Stream Synchronization | Kafka          | [doc](docs/realTime/reader/kafkareader.md)       | [doc](docs/realTime/writer/kafkawriter.md)     |
 |                        | EMQX           | [doc](docs/realTime/reader/emqxreader.md)        | [doc](docs/realTime/writer/emqxwriter.md)      |
 |                        | RestApi        || [doc](docs/realTime/writer/restapiwriter.md)   |
 |                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
+|                        | Oracle LogMiner | [doc](docs/realTime/reader/logminerreader.md)   |                                            |
 
 # Quick Start
 
