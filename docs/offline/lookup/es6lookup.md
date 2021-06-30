@@ -3,14 +3,14 @@ ElasticSearch Source插件支持从现有的ElasticSearch集群读取指定index
 
 # 二、支持版本
 
-Elasticsearch 7.x
+Elasticsearch 6.x
 
 # 三、插件名称
 
 
 |类型|名称|
 | --- | --- |
-| SQL | elasticsearch7-x |
+| SQL | elasticsearch6-x |
 
 
 ​<br />
