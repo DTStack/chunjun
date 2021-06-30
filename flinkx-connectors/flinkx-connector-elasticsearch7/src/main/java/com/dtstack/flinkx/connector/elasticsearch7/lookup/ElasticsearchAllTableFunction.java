@@ -69,17 +69,7 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
                 (Map<String, List<Map<String, Object>>>) cacheRef;
 
         rhlClient = ElasticsearchUtil.createClient(elasticsearchConf);
-
-        SearchSourceBuilder sourceBuilder = ElasticsearchRequestHelper.createSourceBuilder(
-                fieldsName,
-                null,
-                null);
-
-        SearchRequest requestBuilder = ElasticsearchRequestHelper.createSearchRequest(
-                elasticsearchConf.getIndex(),
-                null,
-                sourceBuilder
-        );
+        SearchRequest requestBuilder = buildSearchRequest();
 
         SearchResponse searchResponse;
         SearchHit[] searchHits;
@@ -103,5 +93,23 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
         } catch (Exception e) {
             LOG.error("", e);
         }
+    }
+
+    /**
+     * build search request
+     * @return
+     */
+    private SearchRequest buildSearchRequest() {
+        SearchSourceBuilder sourceBuilder = ElasticsearchRequestHelper.createSourceBuilder(
+                fieldsName,
+                null,
+                null
+        );
+        sourceBuilder.size(lookupConf.getFetchSize());
+        return ElasticsearchRequestHelper.createSearchRequest(
+                elasticsearchConf.getIndex(),
+                null,
+                sourceBuilder
+        );
     }
 }

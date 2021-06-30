@@ -84,16 +84,7 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
     @Override
     public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys) throws Exception {
         String cacheKey = buildCacheKey(keys);
-        SearchSourceBuilder sourceBuilder = ElasticsearchRequestHelper.createSourceBuilder(
-                fieldNames,
-                keyNames,
-                keys
-        );
-        SearchRequest searchRequest = ElasticsearchRequestHelper.createSearchRequest(
-                elasticsearchConf.getIndex(),
-                null,
-                sourceBuilder
-        );
+        SearchRequest searchRequest = buildSearchRequest(keys);
         rhlClient.searchAsync(searchRequest, RequestOptions.DEFAULT, new ActionListener<SearchResponse>() {
             @Override
             public void onResponse(SearchResponse searchResponse) {
@@ -142,5 +133,23 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
         return rowConverter.toInternalLookup(sideInput);
     }
 
+    /**
+     * build search request
+     * @param keys
+     * @return
+     */
+    private SearchRequest buildSearchRequest(Object... keys) {
+        SearchSourceBuilder sourceBuilder = ElasticsearchRequestHelper.createSourceBuilder(
+                fieldNames,
+                keyNames,
+                keys
+        );
+        sourceBuilder.size(lookupConf.getFetchSize());
+        return ElasticsearchRequestHelper.createSearchRequest(
+                elasticsearchConf.getIndex(),
+                null,
+                sourceBuilder
+        );
+    }
 
 }
