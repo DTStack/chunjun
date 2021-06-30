@@ -31,7 +31,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.SynchronousQueue;
 
 /**
  * @author jiangbo
