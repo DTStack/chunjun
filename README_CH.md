@@ -8,27 +8,28 @@ FlinkX
 # 技术交流
 
 - 招聘**Flink研发工程师**，如果有兴趣可以联系思枢（微信号：ysqwhiletrue）<BR>
-Flink开发工程师JD要求：<BR>
-1.负责袋鼠云基于Flink的衍生框架数据同步flinkx和实时计算flinkstreamsql框架的开发；<BR>
-2.调研和把握当前最新大数据实时计算技术，将其中的合适技术引入到平台中，改善产品，提升竞争力；<BR>
-职位要求：<BR>
-1、本科及以上学历，3年及以上的Flink开发经验，精通Java，熟悉Scala、Python优先考虑；<BR>
-2、熟悉Flink原理，有基于Flink做过二次源码的开发，在github上贡献者Flink源码者优先；<BR>
-3、有机器学习、数据挖掘相关经验者优先；<BR>
-4、对新技术有快速学习和上手能力，对代码有一定的洁癖；<BR>
-加分项：<BR>
-1.在GitHub或其他平台上有过开源项目<BR>
-可以添加本人微信号ysqwhiletrue，注明招聘，如有意者发送简历至[sishu@dtstack.com](mailto:sishu@dtstack.com)
+  Flink开发工程师JD要求：<BR>
+  1.负责袋鼠云基于Flink的衍生框架数据同步flinkx和实时计算flinkstreamsql框架的开发；<BR>
+  2.调研和把握当前最新大数据实时计算技术，将其中的合适技术引入到平台中，改善产品，提升竞争力；<BR>
+  职位要求：<BR>
+  1、本科及以上学历，3年及以上的Flink开发经验，精通Java，熟悉Scala、Python优先考虑；<BR>
+  2、熟悉Flink原理，有基于Flink做过二次源码的开发，在github上贡献者Flink源码者优先；<BR>
+  3、有机器学习、数据挖掘相关经验者优先；<BR>
+  4、对新技术有快速学习和上手能力，对代码有一定的洁癖；<BR>
+  加分项：<BR>
+  1.在GitHub或其他平台上有过开源项目<BR>
+  可以添加本人微信号ysqwhiletrue，注明招聘，如有意者发送简历至[sishu@dtstack.com](mailto:sishu@dtstack.com)
 
 - 我们使用[钉钉](https://www.dingtalk.com/)沟通交流，可以搜索群号[**30537511**]或者扫描下面的二维码进入钉钉群
-  
+
   <div align=center>
      <img src=docs/images/ding.jpg width=300 />
    </div>
 
 # 介绍
 
-FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。**同时，FlinkX也是支持原生FlinkSql所有语法和特性的计算框架**，<big>**并且提供了大量[案例](flinkx-examples)**</big>。FlinkX目前包含下面这些特性：
+FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。**
+同时，FlinkX也是支持原生FlinkSql所有语法和特性的计算框架**，<big>**并且提供了大量[案例](flinkx-examples)**</big>。FlinkX目前包含下面这些特性：
 
 - 大部分插件支持并发读写数据，可以大幅度提高读写速度；
 
@@ -48,7 +49,7 @@ FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集
 
 FlinkX目前支持下面这些数据库：
 
-|                        | Database Type  | Source                          | Sink                          | Lookup                          
+|                        | Database Type  | Source                          | Sink                          | Lookup
 |:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|:-------------------------------:|
 | Batch Synchronization  | MySQL          | [doc](docs/connectors/mysql/mysql-source.md)        | [doc](docs/connectors/mysql/mysql-sink.md)      |[doc](docs/connectors/mysql/mysql-lookup.md)      |
 |                        | Oracle         | [doc](docs/connectors/oracle/oracle-source.md)       | [doc](docs/connectors/oracle/oracle-sink.md)     |[doc](docs/connectors/oracle/oracle-lookup.md)      |
@@ -72,12 +73,13 @@ FlinkX目前支持下面这些数据库：
 |                        | ElasticSearch5  | [doc](docs/connectors/elasticsearch5/es5reader.md)           | [doc](docs/connectors/elasticsearch5/es5writer.md)         |
 |                        | ElasticSearch6  | [doc](docs/connectors/elasticsearch6/es6reader.md)           | [doc](docs/connectors/elasticsearch6/es6writer.md)         | [doc](docs/connectors/elasticsearch6/es6lookup.md)
 |                        | ElasticSearch7  | [doc](docs/connectors/elasticsearch7/es7reader.md)           | [doc](docs/connectors/elasticsearch7/es7writer.md)         | [doc](docs/connectors/elasticsearch7/es7lookup.md)
-|                        | FTP            | [doc](docs/offline/reader/ftpreader.md)          | [doc](docs/offline/writer/ftpwriter.md)        | 
+|                        | FTP            | [doc](docs/offline/reader/ftpreader.md)          | [doc](docs/offline/writer/ftpwriter.md)        |
 |                        | HDFS           | [doc](docs/offline/reader/HdfsSource.md)         | [doc](docs/offline/writer/HdfsSink.md)       |
 |                        | Carbondata     | [doc](docs/offline/reader/carbondatareader.md)   | [doc](docs/offline/writer/carbondatawriter.md) |
 |                        | Stream         | [doc](docs/connectors/stream/stream-source.md)       | [doc](docs/connectors/stream/stream-sink.md) |
 |                        | Redis          |                                                  | [doc](docs/connectors/redis/redis-sink.md)      |[doc](docs/connectors/redis/redis-lookup.md)      |
 |                        | Hive           |                                                  | [doc](docs/offline/writer/HiveSink.md)       |
+|                        | Solr          | [doc](docs/connectors/solr/solr-source.md)        | [doc](docs/connectors/solr/solr-sink.md)       |
 | Stream Synchronization | Kafka          | [doc](docs/connectors/kafka/kafka-source.md)       | [doc](docs/connectors/kafka/kafka-sink.md)     |
 |                        | EMQX           | [doc](docs/connectors/emqx/emqx-source.md)        | [doc](docs/connectors/emqx/emqx-sink.md)      |
 |                        | RestApi        | | [doc](docs/realTime/writer/restapiwriter.md)   |
@@ -113,4 +115,5 @@ FlinkX目前支持下面这些数据库：
 
 # License
 
-FlinkX is under the Apache 2.0 license. See the [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) file for details.
+FlinkX is under the Apache 2.0 license. See
+the [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) file for details.
