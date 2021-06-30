@@ -36,7 +36,7 @@ sh build/build.sh
 **NOTE:项目中的flinkx-examples模块下提供了大量 [数据同步案例](flinkx-examples/json) 和 [SQL案例](flinkx-examples/sql)**
 
 #### 数据同步任务
-<div id="sync"></div>
+
 首先准备要运行的任务json，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
 
 ```json
@@ -111,7 +111,8 @@ sh build/build.sh
 }
 ```
 #### flinksql任务
-<div id="sql"></div>
+
+***NOTE：flinkX和flinkSql connector[共用](docs/conectorShare.md)***<br /><br />
 或者准备要运行的flinksql任务，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
 
 ```sql
@@ -148,44 +149,6 @@ CREATE TABLE sink
 ) WITH (
       'connector' = 'stream-x',
       'print' = 'true'
-      );
-
-insert into sink
-select *
-from source;
-```
-`flinksql`自带`connector`和`flinkX`的`connector`共用：
-```sql
-CREATE TABLE source
-(
-    id        INT,
-    name      STRING,
-    money     DECIMAL(32, 2),
-    dateone   timestamp,
-    age       bigint,
-    datethree timestamp,
-    datesix   timestamp(6),
-    datenigth timestamp(9),
-    dtdate    date,
-    dttime    time
-) WITH (
-      'connector' = 'datagen'
-      );
-
-CREATE TABLE sink
-(
-    id        INT,
-    name      STRING,
-    money     DECIMAL(32, 2),
-    dateone   timestamp,
-    age       bigint,
-    datethree timestamp,
-    datesix   timestamp(6),
-    datenigth timestamp(9),
-    dtdate    date,
-    dttime    time
-) WITH (
-      'connector' = 'stream-x'
       );
 
 insert into sink
@@ -383,6 +346,8 @@ bin/flinkx \
 ```
 $FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink-session-test -Dclassloader.resolve-order=parent-first -Dkubernetes.container.image=${image_name}
 ```
+注意：需要提前构建flinkx镜像
+[flinkx镜像构建说明](flinkx-docker/docker/README.md)
 
 ### Kubernetes Application模式运行任务
 
@@ -402,13 +367,14 @@ bin/flinkx \
     -flinkconf $FLINK_HOME/conf \
     -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.container.image\":\"${image_name}\",\"kubernetes.namespace\":\"${namespace}\"}"
 ```
-
+注意：需要提前构建flinkx镜像
+[flinkx镜像构建说明](flinkx-docker/docker/README.md)
 
 ## 参数说明
 
 | 名称                 | 说明                                                     | 可选值                                                                                                                                                                                                                                         | 是否必填 | 默认值                     |
 | ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------- |
-| **mode**          | 执行模式，也就是flink集群的工作模式                                   | 1.**local**: 本地模式<br />2.**standalone**: 独立部署模式的flink集群<br />3.**yarn**: yarn模式的flink集群，需要提前在yarn上启动一个flink session，使用默认名称"Flink session cluster"<br />4.**yarnPer**: yarn模式的flink集群，单独为当前任务启动一个flink session，使用默认名称"Flink per-job cluster" | 否    | local                   |
+| **mode**          | 执行模式，也就是flink集群的工作模式      | 1.**local**: 本地模式<br />2.**standalone**: 独立部署模式的flink集群<br />3.**yarn-session**: yarn-session模式的flink集群，需要提前在yarn上启动一个flink session，使用默认名称"Flink session cluster"<br />4.**yarn-per-job**: yarn模式的flink集群，单独为当前任务启动一个flink session，使用默认名称"Flink per-job cluster"<br />5.**kubernetes-session**: kubernetes session模式提交任务，需要提前在kubernetes上启动flink session <br />6.**kubernetes-application**: kubernetes run application模式提交任务 | 否    | local                   |
 | **jobType**        | 任务类型                 | 1.**sync**:数据同步任务<br />    2.**sql**:flinksql任务                                                                                                                                                                                                                                      | 是    | 无                       |
 | **connectorLoadMode**  | 插件加载方式         | 1.**classloader**:类加载器的方式加载插件,在flinkx-clients模块中Launcher类中可本地、on yarn、on k8s运行<br />    2.**spi**:spi的方式,目前只是在flinkx-local-test模块下的LocalTest类中本地开发调试用                                                                                                                                                                                                                                      | 否    | classloader                       |
 | **job**            | 同步、flinksql任务描述文件的存放路径；该描述文件中使用json、sql存放任务信息                  | 无                                                                                                                                                                                                                                           | 是    | 无                       |

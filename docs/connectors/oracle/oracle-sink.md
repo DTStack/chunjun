@@ -191,4 +191,4 @@ Oracle 9 及以上
 注意：由于 flink DecimalType 的 PRECISION(1~38) 与 SCALE(0~PRECISION) 限制，oracle 的数值类型的数据在转换时可能会丢失精度
 
 ## 六、脚本示例
-见项目内`FlinkX : Local : Test`模块中的`demo`文件夹。
+见项目内`flinkx-examples`文件夹。
