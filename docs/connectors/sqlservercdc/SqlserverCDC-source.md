@@ -212,4 +212,4 @@ System.out.println(sdf.format(res));		//2021-01-28 19:54:21
 
 
 ## 九、脚本示例
-见项目内`FlinkX : Local : Test`模块中的`demo`文件夹。
+见项目内`flinkx-examples`文件夹。
