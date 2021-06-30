@@ -30,11 +30,11 @@ import org.slf4j.LoggerFactory;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class BaseRichInputFormatBuilder<T extends BaseRichInputFormat> {
+public abstract class BaseRichInputFormatBuilder {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    protected T format;
+    protected BaseRichInputFormat format;
 
     public void setConfig(FlinkxCommonConf config) {
         format.setConfig(config);
