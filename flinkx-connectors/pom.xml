@@ -27,6 +27,7 @@
 		<module>flinkx-connector-sqlserver</module>
 		<module>flinkx-connector-oracle</module>
 		<module>flinkx-connector-greenplum</module>
+		<module>flinkx-connector-elasticsearch5</module>
 		<module>flinkx-connector-elasticsearch6</module>
 		<module>flinkx-connector-tidb</module>
 		<module>flinkx-connector-ftp</module>
