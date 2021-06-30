@@ -69,8 +69,10 @@ FlinkX目前支持下面这些数据库：
 |                        | HBase          | [doc](docs/offline/reader/hbasereader.md)        | [doc](docs/offline/writer/hbasewriter.md)      |
 |                        | MongoDB        | [doc](docs/offline/reader/mongodbreader.md)      | [doc](docs/offline/writer/mongodbwriter.md)    |
 |                        | Kudu           | [doc](docs/offline/reader/kudureader.md)         | [doc](docs/offline/writer/kuduwriter.md)       |
-|                        | ElasticSearch  | [doc](docs/offline/reader/es6reader.md)           | [doc](docs/offline/writer/es6writer.md)         |
-|                        | FTP            | [doc](docs/offline/reader/ftpreader.md)          | [doc](docs/offline/writer/ftpwriter.md)        |
+|                        | ElasticSearch5  | [doc](docs/connectors/elasticsearch5/es5reader.md)           | [doc](docs/connectors/elasticsearch5/es5writer.md)         |
+|                        | ElasticSearch6  | [doc](docs/connectors/elasticsearch6/es6reader.md)           | [doc](docs/connectors/elasticsearch6/es6writer.md)         | [doc](docs/connectors/elasticsearch6/es6lookup.md)
+|                        | ElasticSearch7  | [doc](docs/connectors/elasticsearch7/es7reader.md)           | [doc](docs/connectors/elasticsearch7/es7writer.md)         | [doc](docs/connectors/elasticsearch7/es7lookup.md)
+|                        | FTP            | [doc](docs/offline/reader/ftpreader.md)          | [doc](docs/offline/writer/ftpwriter.md)        | 
 |                        | HDFS           | [doc](docs/offline/reader/HdfsSource.md)         | [doc](docs/offline/writer/HdfsSink.md)       |
 |                        | Carbondata     | [doc](docs/offline/reader/carbondatareader.md)   | [doc](docs/offline/writer/carbondatawriter.md) |
 |                        | Stream         | [doc](docs/connectors/stream/stream-source.md)       | [doc](docs/connectors/stream/stream-sink.md) |

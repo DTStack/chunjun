@@ -1,5 +1,5 @@
 # 一、介绍
-ElasticSearch Sink插件支持将数据写入到指定的index中。
+ElasticSearch Source插件支持从现有的ElasticSearch集群读取指定index中的数据。
 ​
 
 # 二、支持版本
@@ -8,10 +8,9 @@ Elasticsearch 7.x
 
 # 三、插件名称
 
-
 | 类型|名称|
-| ---- | ----|
-| Sync | elasticsearch7writer |
+| --- | --- |
+| Sync | elasticsearch7reader |
 | SQL | elasticsearch7-x |
 
 ​
@@ -42,20 +41,15 @@ Elasticsearch 7.x
    - 参数类型：String
    - 默认值：无
 - batchSize
-   - 描述：批量写入数据的条数
+   - 描述：批量读取数据的条数
    - 必须：否
    - 参数类型：Integer
    - 默认值：1
-- keyDelimiter
-   - 描述：文档id之间的分隔符号，eg:“${col1}_${col2}”
-   - 必须：否
-   - 参数类型：无
-   - 默认值："_"
 - column
    - 描述：需要读取的字段
    - 注意：不支持*格式
    - 格式：
-   
+  
 ```
 "column": [{
     "name": "col", -- 字段名称，可使用多级格式查找
@@ -92,14 +86,11 @@ Elasticsearch 7.x
    - 必须：否
    - 参数类型：Integer
    - 默认值：1
-- document-id.key-delimiter
-   - 描述：文档id之间的分隔符号，eg:“${col1}_${col2}”
-   - 必须：否
-   - 参数类型：String
-   - 默认值："_"
+
+​
 
 # 五、数据类型
-| ​支持 | BOOLEAN |
+|支持 | BOOLEAN |
 | --- | --- |
 |  | INTEGER |
 |  | DECIMAL |
@@ -110,4 +101,4 @@ Elasticsearch 7.x
 |  | VARCHAR |
 
 # 六、脚本示例
-见项目内`FlinkX：Local：Test`模块中的`demo文件夹。
+见项目内FlinkX：Local：Test模块中的demo文件夹。

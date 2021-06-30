@@ -1,9 +1,9 @@
 # 一、介绍
-ElasticSearch Sink插件支持将数据写入到指定的index中。
+ElasticSearch Sink插件支持将数据写入到指定的index中去。
 ​
 
 # 二、支持版本
-Elasticsearch 7.x
+Elasticsearch 5.x
 ​
 
 # 三、插件名称
@@ -11,8 +11,8 @@ Elasticsearch 7.x
 
 | 类型|名称|
 | ---- | ----|
-| Sync | elasticsearch7writer |
-| SQL | elasticsearch7-x |
+| Sync | elasticsearch5writer |
+| SQL | elasticsearch5-x |
 
 ​
 
@@ -22,12 +22,22 @@ Elasticsearch 7.x
 ## 1、数据同步
 
 - hosts
-   - 描述：Elasticsearch集群的连接地址。eg: ["localhost:9200"]
+   - 描述：Elasticsearch集群的连接地址。eg: ["localhost:9300"]
    - 必选：是
    - 参数类型：List<String>
    - 默认值：无
 - index
    - 描述：指定访问Elasticsearch集群的index名称
+   - 必选：是
+   - 参数类型：String
+   - 默认值：无
+- type
+   - 描述：指定访问Elasticsearch集群的index下的type名称
+   - 必选：是
+   - 参数类型：String
+   - 默认值：无
+- cluster
+   - 描述：指定访问Elasticsearch的集群名称
    - 必选：是
    - 参数类型：String
    - 默认值：无
@@ -68,7 +78,7 @@ Elasticsearch 7.x
 ## 2、SQL
 
 - hosts
-   - 描述：Elasticsearch集群的连接地址。eg: ["localhost:9200"]
+   - 描述：Elasticsearch集群的连接地址。eg: ["localhost:9300"]
    - 必选：是
    - 参数类型：List<String>
    - 默认值：无
@@ -80,6 +90,16 @@ Elasticsearch 7.x
 - username
    - 描述：开启basic认证之后的用户名
    - 必须：否
+   - 参数类型：String
+   - 默认值：无
+- document-type
+   - 描述：指定访问Elasticsearch集群的index下的type名称
+   - 必选：是
+   - 参数类型：String
+   - 默认值：无
+- cluster
+   - 描述：指定访问Elasticsearch的集群名称
+   - 必选：是
    - 参数类型：String
    - 默认值：无
 - password
@@ -111,3 +131,4 @@ Elasticsearch 7.x
 
 # 六、脚本示例
 见项目内`FlinkX：Local：Test`模块中的`demo文件夹。
+
