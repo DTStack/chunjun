@@ -46,7 +46,6 @@
 		<module>flinkx-connector-binlog</module>
         <module>flinkx-connector-sqlservercdc</module>
 		<module>flinkx-connector-oraclelogminer</module>
-		<module>flinkx-connector-pgwal</module>
     </modules>
 
 
