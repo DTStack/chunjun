@@ -33,7 +33,7 @@ sh build/build.sh
 ```
 
 ## 运行任务
-**NOTE:项目中的flinkx-examples模块下提供了大量 [数据同步案例](flinkx-examples/json) 和 [SQL案例](flinkx-examples/sql)**
+**NOTE:项目中的flinkx-examples模块下提供了大量 [数据同步案例](https://github.com/DTStack/flinkx/tree/1.12_beta/flinkx-examples/json) 和 [SQL案例](https://github.com/DTStack/flinkx/tree/1.12_beta/flinkx-examples/sql)**
 
 #### 数据同步任务
 
@@ -112,7 +112,7 @@ sh build/build.sh
 ```
 #### flinksql任务
 
-***NOTE：flinkX和flinkSql connector[共用](docs/conectorShare.md)***<br /><br />
+***NOTE：flinkX和flinkSql connector[共用](conectorShare.md)***<br /><br />
 或者准备要运行的flinksql任务，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
 
 ```sql
@@ -347,7 +347,7 @@ bin/flinkx \
 $FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink-session-test -Dclassloader.resolve-order=parent-first -Dkubernetes.container.image=${image_name}
 ```
 注意：需要提前构建flinkx镜像
-[flinkx镜像构建说明](flinkx-docker/docker/README.md)
+[flinkx镜像构建说明](https://github.com/DTStack/flinkx/blob/1.12_beta/flinkx-docker/docker/README.md)
 
 ### Kubernetes Application模式运行任务
 
@@ -368,7 +368,7 @@ bin/flinkx \
     -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.container.image\":\"${image_name}\",\"kubernetes.namespace\":\"${namespace}\"}"
 ```
 注意：需要提前构建flinkx镜像
-[flinkx镜像构建说明](flinkx-docker/docker/README.md)
+[flinkx镜像构建说明](https://github.com/DTStack/flinkx/blob/1.12_beta/flinkx-docker/docker/README.md)
 
 ## 参数说明
 
