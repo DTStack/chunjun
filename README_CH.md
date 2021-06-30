@@ -54,7 +54,7 @@ FlinkX目前支持下面这些数据库：
 | Batch Synchronization  | MySQL          | [doc](docs/connectors/mysql/mysql-source.md)        | [doc](docs/connectors/mysql/mysql-sink.md)      |[doc](docs/connectors/mysql/mysql-lookup.md)      |
 |                        | Oracle         | [doc](docs/connectors/oracle/oracle-source.md)       | [doc](docs/connectors/oracle/oracle-sink.md)     |[doc](docs/connectors/oracle/oracle-lookup.md)      |
 |                        | SqlServer      | [doc](docs/offline/reader/sqlserverreader.md)    | [doc](docs/offline/writer/sqlserverwriter.md)  |
-|                        | PostgreSQL     | [doc](docs/offline/reader/postgresqlreader.md)   | [doc](docs/offline/writer/postgresqlwriter.md) |
+|                        | PostgreSQL     | [doc](docs/connectors/postgres/postgres-source.md) | [doc](docs/connectors/postgres/postgres-sink.md) | [doc](docs/connectors/postgres/postgres-lookup.md) |
 |                        | DB2            | [doc](docs/offline/reader/db2reader.md)          | [doc](docs/offline/writer/db2writer.md)        |
 |                        | GBase          | [doc](docs/offline/reader/gbasereader.md)        | [doc](docs/offline/writer/gbasewriter.md)      |
 |                        | ClickHouse     | [doc](docs/offline/reader/clickhousereader.md)   | [doc](docs/offline/writer/clickhousewriter.md) |
