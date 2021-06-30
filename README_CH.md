@@ -28,6 +28,8 @@ FlinkX
 
 # 介绍
 
+*[FlinkX 1.12 新特性](docs/changeLog.md)*
+
 FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。**同时，FlinkX也是支持原生FlinkSql所有语法和特性的计算框架**，<big>**并且提供了大量[案例](flinkx-examples)**</big>。FlinkX目前包含下面这些特性：
 
 - 大部分插件支持并发读写数据，可以大幅度提高读写速度；
@@ -75,7 +77,7 @@ FlinkX目前支持下面这些数据库：
 |                        | Kudu           | [doc](docs/offline/reader/kudureader.md)         | [doc](docs/offline/writer/kuduwriter.md)       |
 |                        | ElasticSearch6  | [doc](docs/connectors/elasticsearch6/es6reader.md)           | [doc](docs/connectors/elasticsearch6/es6writer.md)         | [doc](docs/connectors/elasticsearch6/es6lookup.md)
 |                        | FTP            | [doc](docs/offline/reader/ftpreader.md)          | [doc](docs/offline/writer/ftpwriter.md)        |
-|                        | HDFS           | [doc](docs/offline/reader/HdfsSource.md)         | [doc](docs/offline/writer/HdfsSink.md)       |
+|                        | HDFS           | [doc](docs/connectors/hdfs/hdfs-source.md)         | [doc](docs/offline/writer/HdfsSink.md)       |
 |                        | Carbondata     | [doc](docs/offline/reader/carbondatareader.md)   | [doc](docs/offline/writer/carbondatawriter.md) |
 |                        | Stream         | [doc](docs/connectors/stream/stream-source.md)       | [doc](docs/connectors/stream/stream-sink.md) |
 |                        | Redis          |                                                  | [doc](docs/connectors/redis/redis-sink.md)      |[doc](docs/connectors/redis/redis-lookup.md)      |

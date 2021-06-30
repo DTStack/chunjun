@@ -267,4 +267,4 @@ table1的数据将写入hive表fenzu1里，table2和table3的数据将写入fenz
 
 
 ## 六、脚本示例
-见项目内`FlinkX : Local : Test`模块中的`demo`文件夹。
+见项目内`flinkx-examples`文件夹。

@@ -17,6 +17,8 @@ English | [中文](README_CH.md)
 
 # Introduction
 
+*[FlinkX 1.12 New Features](docs/changeLog.md)*
+
 FlinkX is a data synchronization tool based on Flink. FlinkX can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. **At the same time, FlinkX is also a computing framework that supports all the syntax and features of native FlinkSql** , <big>**And provide a large number of [cases](flinkx-examples)**</big>. FlinkX currently includes the following features:
 
 - Most plugins support concurrent reading and writing of data, which can greatly improve the speed of reading and writing;
@@ -60,15 +62,15 @@ The following databases are currently supported:
 |                        | Kudu           | [doc](docs/offline/reader/kudureader.md)         | [doc](docs/offline/writer/kuduwriter.md)       |
 |                        | ElasticSearch  | [doc](docs/offline/reader/es6reader.md)           | [doc](docs/offline/writer/es6writer.md)         |
 |                        | FTP            | [doc](docs/offline/reader/ftpreader.md)          | [doc](docs/offline/writer/ftpwriter.md)        |
-|                        | HDFS           | [doc](docs/offline/reader/HdfsSource.md)         | [doc](docs/offline/writer/HdfsSink.md)       |
+|                        | HDFS           | [doc](docs/connectors/hdfs/hdfs-source.md)         | [doc](docs/connectors/hdfs/hdfs-sink.md)       |
 |                        | Carbondata     | [doc](docs/offline/reader/carbondatareader.md)   | [doc](docs/offline/writer/carbondatawriter.md) |
 |                        | Stream         | [doc](docs/connectors/stream/stream-source.md)       | [doc](docs/connectors/stream/stream-sink.md) |
 |                        | Redis          |                                                  | [doc](docs/connectors/redis/redis-sink.md)      |[doc](docs/connectors/redis/redis-lookup.md)      |
-|                        | Hive           |                                                  | [doc](docs/offline/writer/HiveSink.md)       |
+|                        | Hive           |                                                  | [doc](docs/connectors/hive/hive-sink.md)       |
 | Stream Synchronization | Kafka          | [doc](docs/connectors/kafka/kafka-source.md)       | [doc](docs/connectors/kafka/kafka-sink.md)     |
 |                        | EMQX           | [doc](docs/connectors/emqx/emqx-source.md)        | [doc](docs/connectors/emqx/emqx-sink.md)      |
 |                        | RestApi        || [doc](docs/realTime/writer/restapiwriter.md)   |
-|                        | MySQL Binlog   | [doc](docs/realTime/reader/BinlogSource.md)      |                                                |
+|                        | MySQL Binlog   | [doc](docs/connectors/binlog/binlog-source.md)      |                                                |
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
 |                        | Oracle LogMiner | [doc](docs/realTime/reader/logminerreader.md)   |                                            |
