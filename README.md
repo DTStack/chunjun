@@ -17,7 +17,7 @@ English | [中文](README_CH.md)
 
 # Introduction
 
-FlinkX is a data synchronization tool based on Flink. FlinkX can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. FlinkX currently includes the following features:
+FlinkX is a data synchronization tool based on Flink. FlinkX can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. **At the same time, FlinkX is also a computing framework that supports all the syntax and features of native FlinkSql**. FlinkX currently includes the following features:
 
 - Most plugins support concurrent reading and writing of data, which can greatly improve the speed of reading and writing;
 

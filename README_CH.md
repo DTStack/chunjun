@@ -28,7 +28,7 @@ Flink开发工程师JD要求：<BR>
 
 # 介绍
 
-FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。FlinkX目前包含下面这些特性：
+FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。**同时，FlinkX也是支持原生FlinkSql所有语法和特性的计算框架**。FlinkX目前包含下面这些特性：
 
 - 大部分插件支持并发读写数据，可以大幅度提高读写速度；
 
