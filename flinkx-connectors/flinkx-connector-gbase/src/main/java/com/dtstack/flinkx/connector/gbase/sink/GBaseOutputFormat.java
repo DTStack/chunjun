@@ -34,6 +34,6 @@ public class GBaseOutputFormat extends JdbcOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
         RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, GBaseRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
     }
 }

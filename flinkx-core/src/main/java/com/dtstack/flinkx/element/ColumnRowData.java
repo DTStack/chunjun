@@ -137,7 +137,7 @@ public final class ColumnRowData implements RowData, Serializable {
 
     @Override
     public boolean isNullAt(int pos) {
-        return this.columnList.get(pos).getData() == null;
+        return this.columnList.get(pos) == null || this.columnList.get(pos).getData() == null;
     }
 
     @Override

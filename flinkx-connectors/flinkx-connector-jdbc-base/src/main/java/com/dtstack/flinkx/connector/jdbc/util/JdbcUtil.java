@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.jdbc.util;
 
+import com.dtstack.flinkx.connector.jdbc.JdbcDialectWrapper;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.CollectionUtil;
 
@@ -50,6 +52,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -59,7 +62,6 @@ import java.util.regex.Pattern;
  * @author huyifan_zju@
  */
 public class JdbcUtil {
-
     /**
      * jdbc连接URL的分割正则，用于获取URL?后的连接参数
      */
@@ -123,6 +125,10 @@ public class JdbcUtil {
         }
     }
 
+    public static Connection getConnection(JdbcConf conf, org.apache.flink.connector.jdbc.dialect.JdbcDialect dialect) {
+        return getConnection(conf, new JdbcDialectWrapper(dialect));
+    }
+
     /**
      * get full column name and type from database
      * @param schema schema
@@ -132,6 +138,14 @@ public class JdbcUtil {
      */
     public static Pair<List<String>, List<String>> getTableMetaData(String schema, String tableName, Connection dbConn) {
         try {
+            //check table exists
+            ResultSet tableRs = dbConn.getMetaData().getTables(null, schema, tableName, null);
+            if(!tableRs.next()){
+                String tableInfo = schema == null ? tableName : schema + "." + tableName;
+                throw new FlinkxRuntimeException(String.format("table %s not found.", tableInfo));
+            }
+
+
             ResultSet rs = dbConn.getMetaData().getColumns(null, schema, tableName, null);
             List<String> fullColumnList = new LinkedList<>();
             List<String> fullColumnTypeList = new LinkedList<>();
@@ -144,15 +158,16 @@ public class JdbcUtil {
             rs.close();
             return Pair.of(fullColumnList, fullColumnTypeList);
         }catch (SQLException e){
-            throw new FlinkxRuntimeException(String.format("error to get meta from [%s.%s]", schema, tableName));
+            throw new FlinkxRuntimeException(String.format("error to get meta from [%s.%s]", schema, tableName), e);
         }
     }
 
     /**
-     * @param tableName
-     * @param dbConn
-     * @return
-     * @throws SQLException
+     * get full column name and type from database
+     * @param schema schema
+     * @param tableName tableName
+     * @param dbConn jdbc Connection
+     * @return fullColumnList and fullColumnTypeList
      */
     public static List<String> getTableIndex(String schema, String tableName, Connection dbConn) throws SQLException {
         ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, tableName, true, false);
@@ -401,5 +416,36 @@ public class JdbcUtil {
         } catch (SQLException throwables) {
             throw new RuntimeException(throwables);
         }
+    }
+
+    /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table **/
+    public static void resetSchemaAndTable(JdbcConf jdbcConf, String leftQuote, String rightQuote) {
+            LOG.info("before reset table info,schema: {},table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
+            String pattern = String.format(
+                    "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
+                    leftQuote,
+                    rightQuote,
+                    leftQuote,
+                    rightQuote);
+            Pattern p = Pattern.compile(pattern);
+            Matcher matcher = p.matcher(jdbcConf.getTable());
+            String schema = null;
+            String table = null;
+            if (matcher.find()) {
+                schema = matcher.group("schema");
+                table = matcher.group("table");
+            } else {
+                String[] split = jdbcConf.getTable().split("\\.");
+                if (split.length == 2) {
+                    schema = split[0];
+                    table = split[1];
+                }
+            }
+
+            if (StringUtils.isNotBlank(schema)) {
+                jdbcConf.setSchema(schema);
+                jdbcConf.setTable(table);
+                LOG.info("after reset table info,schema: {},table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
+            }
     }
 }

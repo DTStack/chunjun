@@ -13,62 +13,10 @@
     <modules>
         <module>flinkx-core</module>
         <module>flinkx-connectors</module>
-
         <module>flinkx-clients</module>
         <module>flinkx-local-test</module>
         <module>flinkx-formats</module>
         <module>flinkx-docker</module>
-
-        <!--        &lt;!&ndash;******离线******&ndash;&gt;-->
-<!--        <module>flinkx-polardb</module>-->
-<!--        <module>flinkx-oracle</module>-->
-<!--        <module>flinkx-sqlserver</module>-->
-<!--        <module>flinkx-postgresql</module>-->
-<!--        <module>flinkx-db2</module>-->
-<!--        <module>flinkx-dm</module>-->
-<!--        <module>flinkx-gbase</module>-->
-<!--        <module>flinkx-clickhouse</module>-->
-<!--        <module>flinkx-saphana</module>-->
-<!--        <module>flinkx-greenplum</module>-->
-<!--        <module>flinkx-kingbase</module>-->
-
-<!--        <module>flinkx-hdfs</module>-->
-<!--        <module>flinkx-hive</module>-->
-<!--        <module>flinkx-es</module>-->
-<!--        <module>flinkx-ftp</module>-->
-<!--        <module>flinkx-odps</module>-->
-<!--        <module>flinkx-hbase</module>-->
-<!--        <module>flinkx-phoenix</module>-->
-<!--        <module>flinkx-phoenix5</module>-->
-<!--        <module>flinkx-carbondata</module>-->
-<!--        <module>flinkx-kudu</module>-->
-<!--        <module>flinkx-cassandra</module>-->
-
-<!--        <module>flinkx-redis</module>-->
-<!--        <module>flinkx-mongodb</module>-->
-
-<!--        &lt;!&ndash;******实时******&ndash;&gt;-->
-<!--                <module>flinkx-emqx</module>-->
-
-<!--        <module>flinkx-sqlservercdc</module>-->
-<!--        <module>flinkx-oraclelogminer</module>-->
-
-<!--        &lt;!&ndash;******元数据******&ndash;&gt;-->
-<!--        <module>flinkx-metadata</module>-->
-<!--        <module>flinkx-metadata-hive2</module>-->
-<!--        <module>flinkx-metadata-hive1</module>-->
-<!--        <module>flinkx-metadata-tidb</module>-->
-<!--        <module>flinkx-metadata-oracle</module>-->
-<!--        <module>flinkx-metadata-mysql</module>-->
-<!--        <module>flinkx-metadata-sqlserver</module>-->
-<!--        <module>flinkx-metadata-phoenix5</module>-->
-<!--        <module>flinkx-metadata-hbase</module>-->
-<!--        <module>flinkx-metadata-vertica</module>-->
-<!--        <module>flinkx-metadata-es6</module>-->
-
-<!--        <module>flinkx-restapi</module>-->
-<!--        <module>flinkx-websocket</module>-->
-<!--        <module>flinkx-socket</module>-->
     </modules>
 
     <properties>
@@ -77,7 +25,7 @@
 		<flink.version>1.12.2</flink.version>
         <scala.binary.version>2.12</scala.binary.version>
         <prometheus.version>0.8.1</prometheus.version>
-        <hadoop.version>2.7.3</hadoop.version>
+        <hadoop.version>2.7.5</hadoop.version>
         <http.version>4.5.3</http.version>
 		<guava.version>19.0</guava.version>
 	</properties>
@@ -269,5 +217,10 @@
             </plugin>
         </plugins>
     </reporting>
-
+	<repositories>
+		<repository>
+			<id>dtstack-github</id>
+			<url>https://github.com/dtstack/maven-repository/raw/master/</url>
+		</repository>
+	</repositories>
 </project>

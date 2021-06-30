@@ -43,14 +43,8 @@ public abstract class BaseRichOutputFormatBuilder {
         this.format.initAccumulatorAndDirty = initAccumulatorAndDirty;
     }
 
-    public void setConverter(AbstractRowConverter converter) {
-        format.setRowConverter(converter);
-    }
-
-    protected void notSupportBatchWrite(String writerName) {
-        if (this.format.getConfig().getBatchSize() > 1) {
-            throw new IllegalArgumentException(writerName + "不支持批量写入");
-        }
+    public void setRowConverter(AbstractRowConverter rowConverter) {
+        format.setRowConverter(rowConverter);
     }
 
     /**

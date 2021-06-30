@@ -21,6 +21,7 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -41,11 +42,11 @@ public class BigDecimalColumn extends AbstractBaseColumn {
     }
 
     public BigDecimalColumn(double data) {
-        super(new BigDecimal(data));
+        super(new BigDecimal(String.valueOf(data)));
     }
 
     public BigDecimalColumn(float data) {
-        super(new BigDecimal(data));
+        super(new BigDecimal(String.valueOf(data)));
     }
 
     public BigDecimalColumn(long data) {
@@ -53,6 +54,14 @@ public class BigDecimalColumn extends AbstractBaseColumn {
     }
 
     public BigDecimalColumn(String data) {
+        super(new BigDecimal(data));
+    }
+
+    public BigDecimalColumn(BigInteger data) {
+        super(new BigDecimal(data));
+    }
+
+    public BigDecimalColumn(short data) {
         super(new BigDecimal(data));
     }
 

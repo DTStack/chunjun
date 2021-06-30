@@ -18,20 +18,21 @@
 
 package com.dtstack.flinkx.connector.emqx.sink;
 
+import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
+import org.apache.flink.table.connector.format.EncodingFormat;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.utils.DataTypeUtils;
+import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.connector.emqx.converter.EmqxRowConverter;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
-import org.apache.flink.table.types.logical.RowType;
-
-import java.util.ArrayList;
-import java.util.List;
+import static com.dtstack.flinkx.connector.emqx.util.DataTypeConventerUtil.createValueFormatProjection;
 
 /**
  * @author chuixue
@@ -42,43 +43,44 @@ public class EmqxDynamicTableSink implements DynamicTableSink {
 
     private final TableSchema physicalSchema;
     private final EmqxConf emqxConf;
+    /** Format for encoding values from emqx. */
+    private final EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat;
 
-    public EmqxDynamicTableSink(TableSchema physicalSchema, EmqxConf emqxConf) {
+    public EmqxDynamicTableSink(
+            TableSchema physicalSchema,
+            EmqxConf emqxConf,
+            EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat) {
         this.physicalSchema = physicalSchema;
         this.emqxConf = emqxConf;
+        this.valueEncodingFormat =
+                Preconditions.checkNotNull(
+                        valueEncodingFormat, "Value encoding format must not be null.");
     }
 
     @Override
     public ChangelogMode getChangelogMode(ChangelogMode requestedMode) {
-        return ChangelogMode.insertOnly();
+        return valueEncodingFormat.getChangelogMode();
     }
 
     @Override
-    public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
-        final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-
+    public SinkRuntimeProvider getSinkRuntimeProvider(Context runtimeProviderContext) {
         EmqxOutputFormatBuilder builder = new EmqxOutputFormatBuilder();
-        String[] fieldNames = physicalSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        int index = 0;
-        for (String name : fieldNames) {
-            FieldConf field = new FieldConf();
-            field.setName(name);
-            field.setIndex(index++);
-            columnList.add(field);
-        }
-        emqxConf.setColumn(columnList);
-
         builder.setEmqxConf(emqxConf);
-        builder.setConverter(new EmqxRowConverter(rowType));
+        builder.setRowConverter(
+                new EmqxRowConverter(
+                        valueEncodingFormat.createRuntimeEncoder(
+                                runtimeProviderContext,
+                                DataTypeUtils.projectRow(
+                                        physicalSchema.toRowDataType(),
+                                        createValueFormatProjection(
+                                                physicalSchema.toRowDataType())))));
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()),
-                1);
+        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()), 1);
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new EmqxDynamicTableSink(physicalSchema, emqxConf);
+        return new EmqxDynamicTableSink(physicalSchema, emqxConf, valueEncodingFormat);
     }
 
     @Override

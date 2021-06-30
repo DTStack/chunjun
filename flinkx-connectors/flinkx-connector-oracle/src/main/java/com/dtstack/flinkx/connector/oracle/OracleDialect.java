@@ -165,4 +165,9 @@ public class OracleDialect implements JdbcDialect {
                 + quoteIdentifier(col)
                 + ")";
     }
+
+    @Override
+    public String getRowNumColumn(String orderBy) {
+        return "rownum as " + getRowNumColumnAlias();
+    }
 }

@@ -20,13 +20,11 @@ package com.dtstack.flinkx.connector.sqlserver.sink;
 
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.connector.sqlserver.SqlServerDialect;
+import com.dtstack.flinkx.connector.sqlserver.SqlserverDialect;
 import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.TableUtil;
 import org.apache.flink.table.types.logical.RowType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,22 +37,22 @@ import java.sql.Statement;
  */
 public class SqlserverOutputFormat extends JdbcOutputFormat {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(SqlserverOutputFormat.class);
+    private static final long serialVersionUID = 1L;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
+
         RowType rowType =
-                TableUtil.createRowType(columnNameList, columnTypeList, SqlserverRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+            TableUtil.createRowType(columnNameList, columnTypeList, SqlserverRawTypeConverter::apply);
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
 
         Statement statement = null;
-        String sql = ((SqlServerDialect)jdbcDialect).getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());
+        String sql = ((SqlserverDialect)jdbcDialect).getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());
         try {
             statement = dbConn.createStatement();
             statement.execute(sql);
         } catch (SQLException e) {
-            LOG.error("error to execute {}", sql);
             throw new FlinkxRuntimeException(e);
         }finally {
             JdbcUtil.closeDbResources(null, statement, null, false);

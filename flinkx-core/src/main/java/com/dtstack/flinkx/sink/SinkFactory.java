@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.sink;
 
-import com.dtstack.flinkx.RawTypeConvertible;
-
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -31,6 +29,7 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.converter.RawTypeConvertible;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
@@ -53,7 +52,6 @@ public abstract class SinkFactory implements RawTypeConvertible {
     protected TypeInformation<RowData> typeInformation;
     protected boolean useAbstractBaseColumn = true;
 
-    @SuppressWarnings("unchecked")
     public SinkFactory(SyncConf syncConf) {
         // 脏数据记录reader中的字段信息
         List<FieldConf> fieldList = syncConf.getWriter().getFieldList();
@@ -79,14 +77,13 @@ public abstract class SinkFactory implements RawTypeConvertible {
      */
     public abstract DataStreamSink<RowData> createSink(DataStream<RowData> dataSet);
 
-    @SuppressWarnings("unchecked")
     protected DataStreamSink<RowData> createOutput(
-            DataStream<RowData> dataSet, OutputFormat outputFormat, String sinkName) {
+            DataStream<RowData> dataSet, OutputFormat<RowData> outputFormat, String sinkName) {
         Preconditions.checkNotNull(dataSet);
         Preconditions.checkNotNull(sinkName);
         Preconditions.checkNotNull(outputFormat);
 
-        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
+        DtOutputFormatSinkFunction<RowData> sinkFunction = new DtOutputFormatSinkFunction<>(outputFormat);
         DataStreamSink<RowData> dataStreamSink = dataSet.addSink(sinkFunction);
         dataStreamSink.name(sinkName);
 
@@ -94,20 +91,18 @@ public abstract class SinkFactory implements RawTypeConvertible {
     }
 
     protected DataStreamSink<RowData> createOutput(
-            DataStream<RowData> dataSet, OutputFormat outputFormat) {
+            DataStream<RowData> dataSet, OutputFormat<RowData> outputFormat) {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
     /**
      * 初始化FlinkxCommonConf
      *
-     * @param flinkxCommonConf
      */
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf) {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
-        flinkxCommonConf.setParallelism(
-                speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
+        flinkxCommonConf.setParallelism(speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
     }
 }

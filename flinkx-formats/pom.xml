@@ -16,6 +16,8 @@
     <modules>
         <module>flinkx-json</module>
         <module>flinkx-csv</module>
+        <module>flinkx-parquet</module>
+        <module>flinkx-orc</module>
     </modules>
 
     <dependencies>

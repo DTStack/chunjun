@@ -173,7 +173,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected String recordConvertDetailErrorMessage(int pos, RowData row) {
+    protected String recordConvertDetailErrorMessage(int pos, Object row) {
         return "\nJdbcOutputFormat [" + jobName + "] writeRecord error: when converting field["+ pos + "] in Row(" + row + ")";
     }
 
@@ -220,11 +220,11 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void commit(long checkpointId) throws Exception {
+    public void commit(long checkpointId) throws Exception {
         try {
             dbConn.commit();
-            rowsOfCurrentTransaction = 0;
             snapshotWriteCounter.add(rowsOfCurrentTransaction);
+            rowsOfCurrentTransaction = 0;
             fieldNamedPreparedStatement.clearBatch();
         } catch (Exception e) {
             dbConn.rollback();
@@ -233,7 +233,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void rollback(long checkpointId) throws Exception {
+    public void rollback(long checkpointId) throws Exception {
         dbConn.rollback();
     }
 
@@ -352,7 +352,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void closeInternal() {
-        numWriteCounter.add(rowsOfCurrentTransaction);
+        snapshotWriteCounter.add(rowsOfCurrentTransaction);
         try {
             if(fieldNamedPreparedStatement != null){
                 fieldNamedPreparedStatement.close();

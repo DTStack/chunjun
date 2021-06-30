@@ -24,7 +24,6 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.decoder.TextDecoder;
@@ -93,13 +92,7 @@ public class KafkaColumnConverter
     }
 
     @Override
-    protected ISerializationConverter wrapIntoNullableExternalConverter(
-            ISerializationConverter ISerializationConverter, String type) {
-        return null;
-    }
-
-    @Override
-    public RowData toInternal(String input) {
+    public RowData toInternal(String input) throws Exception {
         Map<String, Object> result = decode.decode(input);
         ColumnRowData row;
         if (toInternalConverters == null || toInternalConverters.length == 0) {
@@ -114,11 +107,6 @@ public class KafkaColumnConverter
             }
         }
         return row;
-    }
-
-    @Override
-    public RowData toInternalLookup(Object input) {
-        return null;
     }
 
     @Override
@@ -187,10 +175,5 @@ public class KafkaColumnConverter
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
-    }
-
-    @Override
-    protected ISerializationConverter createExternalConverter(String type) {
-        return null;
     }
 }

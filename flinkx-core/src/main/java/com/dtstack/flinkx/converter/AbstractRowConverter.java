@@ -22,6 +22,9 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.sql.ResultSet;
 
@@ -38,6 +41,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * @create: 2021/04/10
  */
 public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implements Serializable {
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private static final long serialVersionUID = 1L;
     protected RowType rowType;
@@ -67,13 +71,20 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
             if (val == null) {
                 return null;
             } else {
-                return IDeserializationConverter.deserialize(val);
+                try {
+                    return IDeserializationConverter.deserialize(val);
+                } catch (Exception e) {
+                    LOG.error("value [{}] convent failed ", val);
+                    throw e;
+                }
             }
         };
     }
 
-    protected abstract ISerializationConverter wrapIntoNullableExternalConverter(
-            ISerializationConverter ISerializationConverter, T type);
+    protected ISerializationConverter wrapIntoNullableExternalConverter(
+            ISerializationConverter ISerializationConverter, T type){
+        return null;
+    }
 
     /**
      * Convert data retrieved from {@link ResultSet} to internal {@link RowData}.
@@ -82,7 +93,9 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      */
     public abstract RowData toInternal(SourceT input) throws Exception;
 
-    public abstract RowData toInternalLookup(LookupT input) throws Exception;
+    public RowData toInternalLookup(LookupT input) throws Exception {
+        throw new RuntimeException("Subclass need rewriting");
+    }
 
     /**
      * BinaryRowData
@@ -99,7 +112,9 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      * @param type
      * @return
      */
-    protected abstract IDeserializationConverter createInternalConverter(T type);
+    protected IDeserializationConverter createInternalConverter(T type){
+        return null;
+    }
 
     /**
      * 将flink内部的数据类型转换为外部数据库系统类型
@@ -107,5 +122,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      * @param type
      * @return
      */
-    protected abstract ISerializationConverter createExternalConverter(T type);
+    protected ISerializationConverter createExternalConverter(T type){
+        return null;
+    }
 }

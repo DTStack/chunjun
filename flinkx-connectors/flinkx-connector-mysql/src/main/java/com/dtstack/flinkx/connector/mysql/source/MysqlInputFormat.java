@@ -32,10 +32,11 @@ import com.dtstack.flinkx.util.TableUtil;
  */
 public class MysqlInputFormat extends JdbcInputFormat {
 
+
     @Override
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
         RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, MysqlRawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
     }
 }

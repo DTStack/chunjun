@@ -20,6 +20,9 @@ package com.dtstack.flinkx.connector.stream.source;
 
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
+
+import org.apache.flink.shaded.curator4.com.google.common.util.concurrent.RateLimiter;
+
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
@@ -33,7 +36,7 @@ import org.apache.commons.collections.CollectionUtils;
  */
 public class StreamInputFormat extends BaseRichInputFormat {
     private StreamConf streamConf;
-
+    private RateLimiter rateLimiter;
     private long recordRead = 0;
     private long channelRecordNum;
 
@@ -53,7 +56,9 @@ public class StreamInputFormat extends BaseRichInputFormat {
                 && streamConf.getSliceRecordCount().size() > inputSplit.getSplitNumber()) {
             channelRecordNum = streamConf.getSliceRecordCount().get(inputSplit.getSplitNumber());
         }
-
+        if(streamConf.getPermitsPerSecond() > 0){
+            rateLimiter = RateLimiter.create(streamConf.getPermitsPerSecond());
+        }
         LOG.info("The record number of channel:[{}] is [{}]", inputSplit.getSplitNumber(), channelRecordNum);
     }
 
@@ -61,6 +66,9 @@ public class StreamInputFormat extends BaseRichInputFormat {
     @SuppressWarnings("all")
     public RowData nextRecordInternal(RowData rowData) throws ReadRecordException{
         try {
+            if (rateLimiter != null) {
+                rateLimiter.acquire();
+            }
             rowData = rowConverter.toInternal(rowData);
         } catch (Exception e) {
             throw new ReadRecordException("", e, 0, rowData);

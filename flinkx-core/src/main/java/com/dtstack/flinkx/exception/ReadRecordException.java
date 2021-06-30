@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.exception;
 
-import org.apache.flink.table.data.RowData;
-
 /**
  * The Exception describing errors when read a record
  *
@@ -29,10 +27,10 @@ import org.apache.flink.table.data.RowData;
 public class ReadRecordException extends Exception {
 
     private final int colIndex;
-    private final RowData rowData;
+    private final Object rowData;
 
 
-    public ReadRecordException(String message, Throwable cause, int colIndex, RowData rowData) {
+    public ReadRecordException(String message, Throwable cause, int colIndex, Object rowData) {
         super(message, cause);
         this.colIndex = colIndex;
         this.rowData = rowData;
@@ -42,7 +40,7 @@ public class ReadRecordException extends Exception {
         return colIndex;
     }
 
-    public RowData getRowData() {
+    public Object getRowData() {
         return rowData;
     }
 

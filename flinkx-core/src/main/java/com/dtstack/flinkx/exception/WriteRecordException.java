@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.exception;
 
-import org.apache.flink.table.data.RowData;
-
 /**
  * The Exception describing errors when writing a record
  *
@@ -29,9 +27,9 @@ import org.apache.flink.table.data.RowData;
 public class WriteRecordException extends Exception {
 
     private final int colIndex;
-    private final RowData rowData;
+    private final Object rowData;
 
-    public WriteRecordException(String message, Throwable cause, int colIndex, RowData rowData) {
+    public WriteRecordException(String message, Throwable cause, int colIndex, Object rowData) {
         super(message, cause);
         this.colIndex = colIndex;
         this.rowData = rowData;
@@ -41,7 +39,7 @@ public class WriteRecordException extends Exception {
         return colIndex;
     }
 
-    public RowData getRowData() {
+    public Object getRowData() {
         return rowData;
     }
 

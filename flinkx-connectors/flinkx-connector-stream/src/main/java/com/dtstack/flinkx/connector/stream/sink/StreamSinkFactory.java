@@ -66,7 +66,7 @@ public class StreamSinkFactory extends SinkFactory {
             converter = new StreamRowConverter(rowType);
         }
 
-        builder.setConverter(converter);
+        builder.setRowConverter(converter);
         return createOutput(dataSet, builder.finish());
     }
 

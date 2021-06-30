@@ -48,10 +48,12 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -82,6 +84,8 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     private AtomicBoolean connectionStatus = new AtomicBoolean(true);
     /** query data thread */
     private transient ThreadPoolExecutor executor;
+    /** vertx */
+    private transient Vertx vertx;
     /** rdb client */
     private transient SQLClient rdbSqlClient;
     /** select sql */
@@ -128,7 +132,8 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 .setWorkerPoolSize(asyncPoolSize)
                 .setFileResolverCachingEnabled(false);
 
-        this.rdbSqlClient = JDBCClient.createNonShared(Vertx.vertx(vertxOptions), jdbcConfig);
+        this.vertx = Vertx.vertx(vertxOptions);
+        this.rdbSqlClient = JDBCClient.createNonShared(vertx, jdbcConfig);
 
         executor = new ThreadPoolExecutor(
                 MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
@@ -324,10 +329,10 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                     return;
                 }
 
-                List<JsonArray> cacheContent = Lists.newArrayList();
+                List<JsonArray> cacheContent = new ArrayList<>();
                 int resultSize = rs.result().getResults().size();
                 if (resultSize > 0) {
-                    List<RowData> rowList = Lists.newArrayList();
+                    List<RowData> rowList = new ArrayList<>();
 
                     for (JsonArray line : rs.result().getResults()) {
                         try {
@@ -342,17 +347,11 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                         }
                     }
 
-                    if (openCache()) {
-                        putCache(
-                                cacheKey,
-                                CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
-                    }
+                    dealCacheData(cacheKey, CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
                     future.complete(rowList);
                 } else {
                     dealMissKey(future);
-                    if (openCache()) {
-                        putCache(cacheKey, CacheMissVal.getMissKeyObj());
-                    }
+                    dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
                 }
             } finally {
                 // and close the connection
@@ -381,7 +380,14 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         if (executor != null) {
             executor.shutdown();
         }
-
+        // 关闭异步连接vertx事件循环线程，因为vertx使用的是非守护线程
+        if (Objects.nonNull(vertx)) {
+            vertx.close(done -> {
+                if (done.failed()) {
+                    LOG.error("vert.x close error. cause by {}", done.cause().getMessage());
+                }
+            });
+        }
     }
 
     /**

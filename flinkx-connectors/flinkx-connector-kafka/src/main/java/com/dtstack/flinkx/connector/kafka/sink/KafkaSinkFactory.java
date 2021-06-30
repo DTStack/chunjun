@@ -86,6 +86,9 @@ public class KafkaSinkFactory extends SinkFactory {
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
+        if (!useAbstractBaseColumn) {
+            throw new UnsupportedOperationException("kafka not support transform");
+        }
         return createOutput(dataSet, null);
     }
 

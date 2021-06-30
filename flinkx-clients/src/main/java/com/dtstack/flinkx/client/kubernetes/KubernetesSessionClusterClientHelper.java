@@ -54,7 +54,7 @@ public class KubernetesSessionClusterClientHelper implements ClusterClientHelper
         Options launcherOptions = jobDeployer.getLauncherOptions();
         List<String> programArgs = jobDeployer.getProgramArgs();
 
-        Configuration configuration = launcherOptions.loadFlinkConfiguration();
+        Configuration configuration = jobDeployer.getEffectiveConfiguration();
 
         String clusterId = configuration.get(KubernetesConfigOptions.CLUSTER_ID);
         if (StringUtils.isBlank(clusterId)) {
