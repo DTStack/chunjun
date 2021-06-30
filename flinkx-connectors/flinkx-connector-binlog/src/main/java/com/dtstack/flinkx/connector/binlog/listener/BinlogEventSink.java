@@ -25,6 +25,7 @@ import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormat;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.element.ErrorMsgRowData;
+import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.collections.CollectionUtils;
@@ -76,7 +77,14 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             String schema = header.getSchemaName();
             String table = header.getTableName();
             long executeTime = header.getExecuteTime();
-            processRowChange(rowChange, schema, table, executeTime);
+            try {
+                processRowChange(rowChange, schema, table, executeTime);
+            } catch (WriteRecordException e) {
+                // todo 脏数据记录
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("write error rowData, rowData = {}, e = {}", e.getRowData().toString(), ExceptionUtil.getErrorMessage(e));
+                }
+            }
         }
         return true;
     }
@@ -89,18 +97,22 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
      * @param executeTime   变更数据的执行时间
      */
     @SuppressWarnings("unchecked")
-    private void processRowChange(CanalEntry.RowChange rowChange, String schema, String table, long executeTime) {
+    private void processRowChange(CanalEntry.RowChange rowChange, String schema, String table, long executeTime) throws WriteRecordException {
         String eventType = rowChange.getEventType().toString();
         List<String> categories = format.getCategories();
         if(CollectionUtils.isNotEmpty(categories) && !categories.contains(eventType)) {
             return;
         }
-
         BinlogEventRow binlogEventRow = new BinlogEventRow(rowChange, schema, table, executeTime);
-        LinkedList<RowData> rowDatalist = rowConverter.toInternal(binlogEventRow);
+        LinkedList<RowData> rowDatalist = null;
+        try{
+            rowDatalist = rowConverter.toInternal(binlogEventRow);
+        }catch (Exception e){
+            throw new WriteRecordException("", e, 0, binlogEventRow);
+        }
         RowData rowData = null;
         try {
-            while ((rowData = rowDatalist.poll()) != null){
+            while (rowDatalist != null && (rowData = rowDatalist.poll()) != null){
                 queue.put(rowData);
             }
         }catch (InterruptedException e){

@@ -311,11 +311,11 @@
         </dependency>
 
 		<!-- Iceberg metastore-->
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-sql-connector-hive-2.3.6_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.apache.flink</groupId>-->
+<!--			<artifactId>flink-sql-connector-hive-2.3.6_${scala.binary.version}</artifactId>-->
+<!--			<version>${flink.version}</version>-->
+<!--		</dependency>-->
 		<!-- DTStack package iceberg master branch end of efaad97 commit -->
 		<dependency>
 			<groupId>com.dtstack.iceberg</groupId>
@@ -331,7 +331,7 @@
 				<groupId>net.alchim31.maven</groupId>
 				<artifactId>scala-maven-plugin</artifactId>
 				<executions>
-					<!-- Run scala compiler in the process-resources phase, so that dependencies on
+					<!-- Run scala compiler in the process-resources phas  e, so that dependencies on
 						scala classes can be resolved later in the (Java) compile phase -->
 					<execution>
 						<id>scala-compile-first</id>
@@ -389,22 +389,22 @@
                                 </includes>
                             </artifactSet>
                             <relocations>
-<!--                                <relocation>-->
-<!--                                    <pattern>com.google.common</pattern>-->
-<!--                                    <shadedPattern>shade.core.com.google.common</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>com.google.thirdparty</pattern>-->
-<!--                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>org.apache.http</pattern>-->
-<!--                                    <shadedPattern>shade.core.org.apache.http</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>io.prometheus.client</pattern>-->
-<!--                                    <shadedPattern>shade.core.io.prometheus.client</shadedPattern>-->
-<!--                                </relocation>-->
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.http</pattern>
+                                    <shadedPattern>shade.core.org.apache.http</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.prometheus.client</pattern>
+                                    <shadedPattern>shade.core.io.prometheus.client</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>

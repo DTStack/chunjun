@@ -26,7 +26,7 @@ import com.dtstack.flinkx.connector.kafka.source.DynamicKafkaDeserializationSche
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -64,13 +64,14 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaW
     }
 
     @Override
-    public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector) {
-        String msg = new String(record.value(), StandardCharsets.UTF_8);
+    public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector) throws UnsupportedEncodingException {
         try {
-            collector.collect(converter.toInternal(msg));
+            beforeDeserialize(record);
+            collector.collect(converter.toInternal(new String(record.value(), StandardCharsets.UTF_8)));
+            numInResolveRecord.inc();
         } catch (Exception e) {
             // todo kafka 比较特殊这里直接对接脏数据即可
-            LOG.error(msg + ":" + e.getMessage());
+            dirtyDataCounter(record, e);
         }
     }
 }

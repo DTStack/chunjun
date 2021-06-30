@@ -74,7 +74,13 @@ public final class FactoryUtil {
     private static final Logger LOG = LoggerFactory.getLogger(FactoryUtil.class);
 
     /** 插件路径 */
-    private static String pluginPath = null;
+    private static String localPluginPath = null;
+
+    /** 远端插件路径 */
+    private static String remotePluginPath = null;
+
+    /** 插件加载类型 */
+    private static String pluginLoadMode = "shipfile";
 
     /** 上下文环境 */
     private static StreamExecutionEnvironment env = null;
@@ -181,8 +187,16 @@ public final class FactoryUtil {
      */
     public static final String FORMAT_SUFFIX = ".format";
 
-    public static void setPluginPath(String pluginPath) {
-        FactoryUtil.pluginPath = pluginPath;
+    public static void setLocalPluginPath(String localPluginPath) {
+        FactoryUtil.localPluginPath = localPluginPath;
+    }
+
+    public static void setRemotePluginPath(String remotePluginPath) {
+        FactoryUtil.remotePluginPath = remotePluginPath;
+    }
+
+    public static void setPluginLoadMode(String pluginLoadMode) {
+        FactoryUtil.pluginLoadMode = pluginLoadMode;
     }
 
     public static void setEnv(StreamExecutionEnvironment env) {
@@ -311,7 +325,7 @@ public final class FactoryUtil {
     public static <T extends Factory> T discoverFactory(
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
         final List<Factory> factories;
-        if (connectorLoadMode.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name())) {
+        if (org.apache.commons.lang3.StringUtils.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name(), connectorLoadMode)) {
             factories = loadFactories(classLoader, factoryClass, factoryIdentifier);
         } else {
             factories = discoverFactories(classLoader);
@@ -578,11 +592,15 @@ public final class FactoryUtil {
             final List<Factory> result = new LinkedList<>();
 
             // 1.通过factoryIdentifier查找jar路径
+            String pluginPath = org.apache.commons.lang3.StringUtils.equalsIgnoreCase(pluginLoadMode, "classpath") ?
+                    remotePluginPath : localPluginPath;
             String pluginJarPath = pluginPath + File.separatorChar + jarDirectorySuffix;
             URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath, factoryIdentifier);
-            URL[] formatsJarUrls = PluginUtil.getPluginJarUrls(pluginPath + File.separatorChar + PluginUtil.FORMATS_SUFFIX, factoryIdentifier);
+            URL[] formatsJarUrls = PluginUtil.getPluginJarUrls(
+                    pluginPath + File.separatorChar + PluginUtil.FORMATS_SUFFIX,
+                    factoryIdentifier);
             List<URL> jarUrlList = Arrays.stream(pluginJarUrls).collect(Collectors.toList());
-            if(formatsJarUrls.length > 0){
+            if (formatsJarUrls.length > 0) {
                 jarUrlList.addAll(Arrays.asList(formatsJarUrls));
             }
             URL[] jarUrls = jarUrlList.toArray(new URL[0]);

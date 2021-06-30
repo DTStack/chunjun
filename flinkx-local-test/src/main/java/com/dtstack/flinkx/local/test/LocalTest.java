@@ -41,7 +41,9 @@ public class LocalTest {
     public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
 
     public static void main(String[] args) throws Exception {
+        LOG.warn("-----");
         Properties confProperties = new Properties();
+//        confProperties.setProperty("flink.checkpoint.interval", "10000");
         String userDir = System.getProperty("user.dir");
 
         String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/socket/socket_stream.json";

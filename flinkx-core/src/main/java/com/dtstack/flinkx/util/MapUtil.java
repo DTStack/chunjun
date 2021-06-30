@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.internal.LinkedHashTreeMap;
 import com.google.gson.internal.LinkedTreeMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.util.StringUtil.escapeExprSpecialWord;
@@ -148,4 +151,18 @@ public class MapUtil {
         return map.get(key);
     }
 
+    public static void replaceAllElement(Map<String, Object> map, final List<String> keys, final Object value) throws JsonProcessingException {
+        Iterator<Map.Entry<String, Object>> entries = map.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry<String, Object> entry = entries.next();
+            if (entry.getValue() instanceof Map) {
+                replaceAllElement((Map<String, Object>) entry.getValue(), keys, value);
+            }
+            for (String key : keys) {
+                if (key.equalsIgnoreCase(entry.getKey())) {
+                    entry.setValue(value);
+                }
+            }
+        }
+    }
 }

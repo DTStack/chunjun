@@ -61,6 +61,9 @@ public class KafkaSourceFactory extends SourceFactory {
 
     @Override
     public DataStream<RowData> createSource() {
+        if (!useAbstractBaseColumn) {
+            throw new UnsupportedOperationException("kafka not support transform");
+        }
         Properties props = new Properties();
         props.put("group.id", kafkaConf.getGroupId());
         props.putAll(kafkaConf.getConsumerSettings());
@@ -86,6 +89,7 @@ public class KafkaSourceFactory extends SourceFactory {
                 consumer.setStartFromSpecificOffsets(KafkaUtil.parseSpecificOffsetsString(
                         kafkaConf.getTopic(),
                         kafkaConf.getOffset()));
+                break;
             default:
                 consumer.setStartFromGroupOffsets();
                 break;

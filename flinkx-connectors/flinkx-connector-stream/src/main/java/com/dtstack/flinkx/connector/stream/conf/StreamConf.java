@@ -34,7 +34,9 @@ public class StreamConf extends FlinkxCommonConf {
     private List<Long> sliceRecordCount;
 
     //writer
-    private boolean print = false;
+    private boolean print = true;
+
+    private long permitsPerSecond = 0;
 
     public List<Long> getSliceRecordCount() {
         return sliceRecordCount;
@@ -52,11 +54,20 @@ public class StreamConf extends FlinkxCommonConf {
         this.print = print;
     }
 
+    public long getPermitsPerSecond() {
+        return permitsPerSecond;
+    }
+
+    public void setPermitsPerSecond(long permitsPerSecond) {
+        this.permitsPerSecond = permitsPerSecond;
+    }
+
     @Override
     public String toString() {
         return "StreamConf{" +
                 "sliceRecordCount=" + sliceRecordCount +
                 ", print=" + print +
+                ", permitsPerSecond=" + permitsPerSecond +
                 '}';
     }
 }

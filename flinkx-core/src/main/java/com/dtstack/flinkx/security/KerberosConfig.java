@@ -21,32 +21,64 @@ package com.dtstack.flinkx.security;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.google.common.base.Strings;
 
+import java.io.Serializable;
+
 /**
- * Kerberos of certain connectors could be enabled, it should be implements this interface.
- * e.g. HBaseConf class in HBase connector.
+ * Kerberos of certain connectors could be enabled, it should use or extends this class. e.g.
+ * KuduInputFormat class can combine it.
+ *
  * @author Ada Wong
  * @program flinkx
  * @create 2021/06/15
  */
-public interface KerberosConfig {
+public class KerberosConfig implements Serializable {
 
-    String getPrincipal();
+    private static final long serialVersionUID = 1L;
 
-    void setPrincipal(String principal);
+    protected boolean enableKrb;
+    protected String principal;
+    protected String keytab;
+    protected String krb5conf;
 
-    String getKeytab();
+    // do not delete. Preserving empty parameter construction method for JsonUtil.toObject()
+    public KerberosConfig() {}
 
-    void setKeytab(String keytab);
+    public KerberosConfig(String principal, String keytab, String krb5conf) {
+        this.principal = principal;
+        this.keytab = keytab;
+        this.krb5conf = krb5conf;
+        judgeAndSetKrbEnabled();
+    }
 
-    String getKrb5conf();
+    public String getPrincipal() {
+        return principal;
+    }
 
-    void setKrb5conf(String krb5conf);
+    public void setPrincipal(String principal) {
+        this.principal = principal;
+    }
 
-    boolean isEnableKrb();
+    public String getKeytab() {
+        return keytab;
+    }
 
-    void setEnableKrb(boolean enableKrb);
+    public void setKeytab(String keytab) {
+        this.keytab = keytab;
+    }
 
-    default void judgeKrbEnable() {
+    public String getKrb5conf() {
+        return krb5conf;
+    }
+
+    public void setKrb5conf(String krb5conf) {
+        this.krb5conf = krb5conf;
+    }
+
+    public boolean isEnableKrb() {
+        return enableKrb;
+    }
+
+    public void judgeAndSetKrbEnabled() {
         boolean allSet =
                 !Strings.isNullOrEmpty(getPrincipal())
                         && !Strings.isNullOrEmpty(getKeytab())
@@ -58,9 +90,9 @@ public interface KerberosConfig {
                         && Strings.isNullOrEmpty(getKrb5conf());
 
         if (allSet) {
-            setEnableKrb(true);
+            this.enableKrb = true;
         } else if (allNotSet) {
-            setEnableKrb(false);
+            this.enableKrb = false;
         } else {
             throw new FlinkxRuntimeException(
                     "Missing kerberos parameter! all kerberos params must be set, or all kerberos params are not set");

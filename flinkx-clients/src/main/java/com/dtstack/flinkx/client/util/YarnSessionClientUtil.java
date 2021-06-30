@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.client.util;
 
+import com.dtstack.flinkx.util.ValueUtil;
+
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.configuration.ConfigConstants;
@@ -28,8 +30,7 @@ import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.flink.yarn.configuration.YarnLogConfigUtil;
 
-import com.dtstack.flinkx.client.YarnConfLoader;
-import com.dtstack.flinkx.client.perJob.FlinkPerJobUtil;
+import com.dtstack.flinkx.client.yarn.YarnConfLoader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -42,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +55,12 @@ import java.util.stream.Collectors;
  * @author tudou
  */
 public class YarnSessionClientUtil {
+
+    public final static int MIN_JM_MEMORY = 768;
+    public final static int MIN_TM_MEMORY = 1024;
+    public final static String JOBMANAGER_MEMORY_MB = "jobmanager.memory.process.size";
+    public final static String TASKMANAGER_MEMORY_MB = "taskmanager.memory.process.size";
+    public final static String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
 
     /**
      * 启动一个flink yarn session
@@ -128,9 +136,33 @@ public class YarnSessionClientUtil {
                 .filter(file -> !file.getName().endsWith("zip"))
                 .collect(Collectors.toList());
         descriptor.addShipFiles(pluginPaths);
-        ClusterSpecification clusterSpecification = FlinkPerJobUtil.createClusterSpecification(null);
+        ClusterSpecification clusterSpecification = createClusterSpecification(null);
         ClusterClient<ApplicationId>  clusterClient = descriptor.deploySessionCluster(clusterSpecification).getClusterClient();
         return clusterClient.getClusterId();
+    }
+
+    public static ClusterSpecification createClusterSpecification(Properties conProp) {
+        int jobManagerMemoryMb = 768;
+        int taskManagerMemoryMb = 1024;
+        int slotsPerTaskManager = 1;
+
+        if (conProp != null) {
+            if (conProp.containsKey(JOBMANAGER_MEMORY_MB)) {
+                jobManagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(JOBMANAGER_MEMORY_MB)));
+            }
+            if (conProp.containsKey(TASKMANAGER_MEMORY_MB)) {
+                taskManagerMemoryMb = Math.max(MIN_TM_MEMORY, ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB)));
+            }
+            if (conProp.containsKey(SLOTS_PER_TASKMANAGER)) {
+                slotsPerTaskManager = ValueUtil.getInt(conProp.get(SLOTS_PER_TASKMANAGER));
+            }
+        }
+
+        return new ClusterSpecification.ClusterSpecificationBuilder()
+                .setMasterMemoryMB(jobManagerMemoryMb)
+                .setTaskManagerMemoryMB(taskManagerMemoryMb)
+                .setSlotsPerTaskManager(slotsPerTaskManager)
+                .createClusterSpecification();
     }
 
     public static void main(String[] args) throws Exception {
