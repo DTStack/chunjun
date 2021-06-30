@@ -83,6 +83,8 @@ FlinkX目前支持下面这些数据库：
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
 |                        | Oracle LogMiner | [doc](docs/realTime/reader/logminerreader.md)   |                                            |
+|                        | Sqlserver CDC | [doc](docs/realTime/reader/sqlservercdcreader.md) |                                                |
+
 # 快速开始
 
 请点击[快速开始](docs/quickstart.md)

@@ -72,6 +72,7 @@ The following databases are currently supported:
 |                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
 |                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
 |                        | Oracle LogMiner | [doc](docs/realTime/reader/logminerreader.md)   |                                            |
+|                        | Sqlserver CDC | [doc](docs/realTime/reader/sqlservercdcreader.md) |                                                |
 
 # Quick Start
 

@@ -23,6 +23,10 @@ import com.dtstack.flinkx.connector.sqlservercdc.entity.TableId;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+import org.apache.commons.collections.CollectionUtils;
+
+import org.apache.flink.util.FlinkRuntimeException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,6 +113,9 @@ public class SqlServerCdcUtil {
      * @throws SQLException
      */
     public static Set<String> checkUnEnabledCdcTables(Connection conn, Collection<String> tableSet) throws SQLException {
+        if (CollectionUtils.isEmpty(tableSet)) {
+            throw new FlinkRuntimeException("tableList param is must");
+        }
         CopyOnWriteArraySet<String> unEnabledCdcTables = new CopyOnWriteArraySet<>(tableSet);
         try (Statement statement = conn.createStatement()) {
             statement.setQueryTimeout(QUERY_TIME_OUT);
