@@ -7,11 +7,11 @@
 - [二、支持版本](#二支持版本)
 - [三、插件名称](#三插件名称)
 - [四、数据库配置](#四数据库配置)
-  - [1 、修改配置文件](#1-修改配置文件)
-  - [2 、添加权限](#2-添加权限)
+  - [1 、修改配置文件](#1修改配置文件)
+  - [2 、添加权限](#2添加权限)
 - [五、参数说明](#五参数说明)
-  - [1 、Sync](#1-sync)
-  - [2 、SQL](#2-sql)
+  - [1 、Sync](#1sync)
+  - [2 、SQL](#2sql)
 - [六、数据结构](#六数据结构)
 - [七、数据类型](#七数据类型)
 - [八、脚本示例](#八脚本示例)
@@ -84,35 +84,35 @@ Binlog为什么需要这些权限：
   - 必选：是
   - 字段类型：string
   - 默认值：无
-
+<br />
 
 - **username**
   - 描述：数据源的用户名
   - 必选：是
   - 字段类型：string
   - 默认值：无
-
+<br />
 
 - **password**
   - 描述：数据源指定用户名的密码
   - 必选：是
   - 字段类型：string
   - 默认值：无
-
+<br />
 
 - **host**
   - 描述：启动MySQL slave的机器ip
   - 必选：是
   - 字段类型：string
   - 默认值：无
-
+<br />
 
 - **port**
   - 描述：启动MySQL slave的端口
   - 必选：否
   - 字段类型：int
   - 默认值：3306
-
+<br />
 
 - **table**
   - 描述：需要解析的数据表。
@@ -120,7 +120,7 @@ Binlog为什么需要这些权限：
   - 必选：否
   - 字段类型：list<string>
   - 默认值：无
-
+<br />
 
 - **filter**
   - 描述：过滤表名的Perl正则表达式
@@ -133,7 +133,7 @@ Binlog为什么需要这些权限：
     - canal schema下所有表： `canal\\..*`
     - canal下的以canal打头的表：`canal\\.canal.*`
     - canal schema下的一张表：`canal.test1`
-
+<br />
 
 - **cat**
   - 描述：需要解析的数据更新类型，包括insert、update、delete三种
@@ -141,7 +141,7 @@ Binlog为什么需要这些权限：
   - 必选：否
   - 字段类型：string
   - 默认值：无
-
+<br />
 
 - **start**
   - 描述：要读取的binlog文件的开始位置
@@ -152,29 +152,28 @@ Binlog为什么需要这些权限：
     - position：文件的指定位置，采集起点从指定文件的指定位置处消费
   - 字段类型：map
   - 默认值：无
-
-
+<br />
 
 - **pavingData**
   - 描述：是否将解析出的json数据拍平，具体见[六、数据结构](#六数据结构)
   - 必选：否
   - 字段类型：boolean
   - 默认值：true
-
+<br />
 
 - **splitUpdate**
   - 描述：当数据更新类型为update时，是否将update拆分为两条数据，具体见[六、数据结构](#六数据结构)
   - 必选：否
   - 字段类型：boolean
   - 默认值：false
-
+<br />
 
 - **timestampFormat**
   - 描述：指定输入输出所使用的timestamp格式，可选值：`SQL`、`ISO_8601`
   - 必选：否
   - 字段类型：string
   - 默认值：SQL
-
+<br />
 
 - **slaveId**
   - 描述：从服务器的ID
@@ -182,28 +181,28 @@ Binlog为什么需要这些权限：
   - 必选：否
   - 字段类型：long
   - 默认值：new Object().hashCode()
-
+<br />
 
 - **connectionCharset**
   - 描述：编码信息
   - 必选：否
   - 字段类型：string
   - 默认值：UTF-8
-
+<br />
 
 - **detectingEnable**
   - 描述：是否开启心跳
   - 必选：否
   - 字段类型：boolean
   - 默认值：true
-
+<br />
 
 - **detectingSQL**
   - 描述：心跳SQL
   - 必选：否
   - 字段类型：string
   - 默认值：SELECT CURRENT_DATE
-
+<br />
 
 
 - **enableTsdb**
@@ -211,21 +210,21 @@ Binlog为什么需要这些权限：
   - 必选：否
   - 字段类型：boolean
   - 默认值：true
-
+<br />
 
 - **bufferSize**
   - 描述：并发缓存大小
   - 注意：必须为2的幂
   - 必选：否
   - 默认值：1024
-
+<br />
 
 - **parallel**
   - 描述：是否开启并行解析binlog日志
   - 必选：否
   - 字段类型：boolean
   - 默认值：true
-
+<br />
 
 - **parallelThreadSize**
   - 描述：并行解析binlog日志线程数
@@ -233,18 +232,20 @@ Binlog为什么需要这些权限：
   - 必选：否
   - 字段类型：int
   - 默认值：2
-
+<br />
 
 - **isGTIDMode**
   - 描述：是否开启gtid模式
   - 必选：否
   - 字段类型：boolean
   - 默认值：false
+<br />
 
 ###  2、SQL
 除以下两点外，其余参数均与Sync保持一致。
-1.`pavingData`和`splitUpdate`默认为true，且无法修改
-2.`table`、`filter`、`start`、`timestampFormat`略有区别，具体如下
+ - 1.`pavingData`和`splitUpdate`默认为true，且无法修改
+
+ - 2.`table`、`filter`、`start`、`timestampFormat`略有区别，具体如下
 
 
 - **table**
@@ -253,7 +254,7 @@ Binlog为什么需要这些权限：
   - 必选：否
   - 字段类型：string
   - 默认值：无
-
+<br />
 
 - **filter**
   - 描述：过滤表名的Perl正则表达式
@@ -262,28 +263,28 @@ Binlog为什么需要这些权限：
   - 字段类型：string
   - 默认值：无
   - 例子：canal schema下的一张表：`canal.test1`
-
+<br />
 
 - **timestamp**
   - 描述：要读取的binlog文件的开始位置，时间戳，采集起点从指定的时间戳处消费；
   - 必选：否
   - 字段类型：string
   - 默认值：无
-
+<br />
 
 - **journalName**
   - 描述：要读取的binlog文件的开始位置，文件名，采集起点从指定文件的起始处消费；
   - 必选：否
   - 字段类型：string
   - 默认值：无
-
+<br />
 
 - **position**
   - 描述：要读取的binlog文件的开始位置，文件的指定位置，采集起点从指定文件的指定位置处消费
   - 必选：否
   - 字段类型：string
   - 默认值：无
-
+<br />
 
 - **timestamp-format.standard**
   - 描述：同Sync中的`timestampFormat`参数，指定输入输出所使用的timestamp格式，可选值：`SQL`、`ISO_8601`
@@ -307,7 +308,7 @@ UPDATE `tudou`.`kudu` SET `id` = 2, `user_id` = 2, `name` = 'b' WHERE `id` = 1 A
 1、pavingData = true, splitUpdate = false
 RowData中的数据依次为：
 ```
-//schema, table, opTime, ts, type, before_id, before_user_id, before_name, after_id, after_user_id, after_name
+//schema, table, ts, opTime, type, before_id, before_user_id, before_name, after_id, after_user_id, after_name
 ["tudou", "kudu", 6760525407742726144, 1577853000000, "INSERT", null, null, null, 1, 1, "a"]
 ["tudou", "kudu", 6760525407742726144, 1577853060000, "DELETE", 1, 1, "a", null, null, null]
 ["tudou", "kudu", 6760525407742726144, 1577853180000, "UPDATE", 1, 1, "a", 2, 2, "b"]
@@ -315,7 +316,7 @@ RowData中的数据依次为：
 2、pavingData = false, splitUpdate = false
 RowData中的数据依次为：
 ```
-//schema, table, opTime, ts, type, before, after
+//schema, table, ts, opTime, type, before, after
 ["tudou", "kudu", 6760525407742726144, 1577853000000, "INSERT", null, {"id":1, "user_id":1, "name":"a"}]
 ["tudou", "kudu", 6760525407742726144, 1577853060000, "DELETE", {"id":1, "user_id":1, "name":"a"}, null]
 ["tudou", "kudu", 6760525407742726144, 1577853180000, "UPDATE", {"id":1, "user_id":1, "name":"a"}, {"id":2, "user_id":2, "name":"b"}]
@@ -323,25 +324,25 @@ RowData中的数据依次为：
 3、pavingData = true, splitUpdate = true
 RowData中的数据依次为：
 ```
-//schema, table, opTime, ts, type, before_id, before_user_id, before_name, after_id, after_user_id, after_name
+//schema, table, ts, opTime, type, before_id, before_user_id, before_name, after_id, after_user_id, after_name
 ["tudou", "kudu", 6760525407742726144, 1577853000000, "INSERT", null, null, null, 1, 1, "a"]
 ["tudou", "kudu", 6760525407742726144, 1577853060000, "DELETE", 1, 1, "a", null, null, null]
 
-//schema, table, opTime, ts, type, before_id, before_user_id, before_name
+//schema, table, ts, opTime, type, before_id, before_user_id, before_name
 ["tudou", "kudu", 6760525407742726144, 1577853180000, "UPDATE_BEFORE", 1, 1, "a"]
 
-//schema, table, opTime, ts, type, after_id, after_user_id, after_name
+//schema, table, ts, opTime, type, after_id, after_user_id, after_name
 ["tudou", "kudu", 6760525407742726144, 1577853180000, "UPDATE_AFTER", 2, 2, "b"]
 ```
 4、pavingData = false, splitUpdate = true
 RowData中的数据依次为：
 ```
-//schema, table, opTime, ts, type, before, after
+//schema, table, ts, opTime, type, before, after
 ["tudou", "kudu", 6760525407742726144, 1577853000000, "INSERT", null, {"id":1, "user_id":1, "name":"a"}]
 ["tudou", "kudu", 6760525407742726144, 1577853060000, "DELETE", {"id":1, "user_id":1, "name":"a"}, null]
-//schema, table, opTime, ts, type, before
+//schema, table, ts, opTime, type, before
 ["tudou", "kudu", 6760525407742726144, 1577853180000, "UPDATE_BEFORE", {"id":1, "user_id":1, "name":"a"}]
-//schema, table, opTime, ts, type, after
+//schema, table, ts, opTime, type, after
 ["tudou", "kudu", 6760525407742726144, 1577853180000, "UPDATE_AFTER", {"id":2, "user_id":2, "name":"b"}]
 ```
 
