@@ -43,8 +43,9 @@ public class LocalTest {
         Properties confProperties = new Properties();
 //        confProperties.setProperty("flink.checkpoint.interval", "10000");
         String userDir = System.getProperty("user.dir");
-
-        String jobPath = userDir + "/flinkx-local-test/src/main/demo/flinksql.sql";
+//        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/saphana/saphana_mysql_num.json";
+        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/saphana/saphana_saphana_lob.json";
+//        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/saphana/mysql_saphana_num.json";
         String flinkxPluginPath = userDir + "/flinkxplugins";
 
         // 任务配置参数

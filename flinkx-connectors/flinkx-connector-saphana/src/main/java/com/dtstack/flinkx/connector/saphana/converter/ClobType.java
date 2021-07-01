@@ -51,7 +51,7 @@ public class ClobType extends LogicalType {
 
     @Override
     public String asSerializableString() {
-        return "Oracle-Clob";
+        return "Saphana-Clob";
     }
 
     @Override

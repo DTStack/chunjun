@@ -88,6 +88,7 @@ public class SaphanaRawTypeConverter {
 
                 //Binary Data Type
             case "VARBINARY":
+                //update mode 时不支持
                 return DataTypes.BYTES();
 
                 //Boolean Data Type
@@ -96,13 +97,10 @@ public class SaphanaRawTypeConverter {
 
                 //Large Object (LOB) Data Type
             case "CLOB":
-                return new AtomicDataType(new ClobType(true, LogicalTypeRoot.VARCHAR));
             case "NCLOB":
-                return DataTypes.STRING();
             case "TEXT":
-                return DataTypes.STRING();
             case "BINTEXT":
-                return DataTypes.STRING();
+                return new AtomicDataType(new ClobType(true, LogicalTypeRoot.VARCHAR));
             default:
                 //Multi-Valued Data Type
                 //  - ARRAY

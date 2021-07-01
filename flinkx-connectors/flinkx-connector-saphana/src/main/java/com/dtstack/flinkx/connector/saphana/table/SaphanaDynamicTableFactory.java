@@ -30,7 +30,7 @@ import com.dtstack.flinkx.connector.saphana.SaphanaDialect;
 public class SaphanaDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** 通过该值查找具体插件 */
-    private static final String IDENTIFIER = "spahana-x";
+    private static final String IDENTIFIER = "saphana-x";
 
     @Override
     public String factoryIdentifier() {
