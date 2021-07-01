@@ -85,10 +85,10 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
 
             int size;
             if(pavingData){
-                //5: type, schema, table, ts, opTime
+                //5: schema, table, ts, opTime，type
                 size = 5 + rowData.getAfterColumnsList().size() + rowData.getBeforeColumnsList().size();
             }else{
-                //7: type, schema, table, ts, opTime, before, after
+                //7: schema, table, ts, opTime，type, before, after
                 size = 7;
             }
 

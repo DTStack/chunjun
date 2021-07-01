@@ -261,12 +261,14 @@ public interface JdbcDialect extends Serializable {
                     .append(" FROM ")
                     .append(buildTableInfoWithSchema(schemaName, tableName));
         }
+
         sql.append(" WHERE ");
         if (StringUtils.isNotBlank(where)) {
             sql.append(where);
         }else{
             sql.append(" 1=1 ");
         }
+
         return sql.toString();
     }
 

@@ -111,15 +111,39 @@
 			<version>${project.version}</version>
 		</dependency>
 
+<!--		<dependency>-->
+<!--			<groupId>com.dtstack.flinkx</groupId>-->
+<!--			<artifactId>flinkx-connector-elasticsearch7</artifactId>-->
+<!--			<version>${project.version}</version>-->
+<!--		</dependency>-->
+
+        <dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-elasticsearch6</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-postgresql</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
+<!--		<dependency>-->
+<!--			<groupId>com.dtstack.flinkx</groupId>-->
+<!--			<artifactId>flinkx-connector-elasticsearch5</artifactId>-->
+<!--			<version>${project.version}</version>-->
+<!--		</dependency>-->
+
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-kingbase</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-dm</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -179,6 +203,12 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-db2</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-greenplum</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -204,6 +234,30 @@
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-redis</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-mongodb</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-solr</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-file</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-ftp</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

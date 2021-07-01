@@ -103,7 +103,6 @@ public class TableUtil {
             DataType dataType = converter.apply(types.get(i));
             builder.add(TableColumn.physical(fieldNames.get(i), dataType));
         }
-
         return (RowType) builder.build().toRowDataType().getLogicalType();
     }
 
