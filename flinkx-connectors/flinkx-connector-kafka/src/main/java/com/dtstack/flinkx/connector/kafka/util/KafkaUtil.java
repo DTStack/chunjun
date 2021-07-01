@@ -17,13 +17,16 @@
  */
 package com.dtstack.flinkx.connector.kafka.util;
 
+import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
+import org.apache.flink.streaming.connectors.kafka.table.KafkaOptions;
+
 import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Date: 2020/12/31
@@ -87,5 +90,31 @@ public class KafkaUtil {
                     .toArray(String[]::new);
         }
         return null;
+    }
+
+    public static Properties getKafkaProperties(Map<String, String> tableOptions) {
+        final Properties kafkaProperties = new Properties();
+        boolean hasKafkaClientProperties = tableOptions.keySet().stream().anyMatch(k -> k.startsWith(KafkaOptions.PROPERTIES_PREFIX));
+        if (hasKafkaClientProperties) {
+            tableOptions.keySet().stream()
+                    .filter(key -> key.startsWith(KafkaOptions.PROPERTIES_PREFIX))
+                    .forEach(
+                            key -> {
+                                final String value = tableOptions.get(key);
+                                final String subKey = key.substring((KafkaOptions.PROPERTIES_PREFIX).length());
+                                kafkaProperties.put(subKey, value);
+                            });
+            String keyDeserializer = tableOptions.get("key.deserializer");
+            if(StringUtils.isNotBlank(keyDeserializer)){
+                kafkaProperties.put("key.deserializer", "com.dtstack.flinkx.connector.kafka.deserializer.DtKafkaDeserializer");
+                kafkaProperties.put("dt.key.deserializer", keyDeserializer);
+            }
+            String valueDeserializer = tableOptions.get("value.deserializer");
+            if(StringUtils.isNotBlank(valueDeserializer)){
+                kafkaProperties.put("value.deserializer", "com.dtstack.flinkx.connector.kafka.deserializer.DtKafkaDeserializer");
+                kafkaProperties.put("dt.value.deserializer", valueDeserializer);
+            }
+        }
+        return kafkaProperties;
     }
 }
