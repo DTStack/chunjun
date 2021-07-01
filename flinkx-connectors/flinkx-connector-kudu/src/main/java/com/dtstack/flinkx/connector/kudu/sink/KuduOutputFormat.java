@@ -29,6 +29,7 @@ import com.dtstack.flinkx.throwable.NoRestartException;
 import org.apache.flink.table.data.RowData;
 
 import org.apache.kudu.client.KuduClient;
+import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduSession;
 import org.apache.kudu.client.KuduTable;
 import org.apache.kudu.client.Operation;
@@ -39,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Locale;
 
 /**
  * @author tiezhu
@@ -59,15 +60,19 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
 
     private KuduTable kuduTable;
 
-    private final AtomicBoolean isClosed = new AtomicBoolean(false);
+    private WriteMode writeMode;
+
+    private SessionConfiguration.FlushMode flushMode;
 
     @Override
     @SuppressWarnings("unchecked")
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
-            Operation operation = toOperation(sinkConf.getWriteMode());
+            Operation operation = toOperation(writeMode);
             rowConverter.toExternal(rowData, operation);
-            session.apply(operation);
+            // 当flush-mode 为 auto_flush_sync 时，session apply 就会将数据写入，同时将response 返回
+            applyOperation(operation);
+            session.flush().forEach(this::dealResponse);
         } catch (Exception e) {
             throw new WriteRecordException(
                     "Kudu output-format writeSingleRecordInternal failed. ", e, 0, rowData);
@@ -99,17 +104,18 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
     @Override
     @SuppressWarnings("unchecked")
     protected void writeMultipleRecordsInternal() throws Exception {
-        // TODO 当session flush-mode 为 auto-flush-sync时，执行apply就会将数据写出
         for (RowData rowData : rows) {
-            Operation operation = toOperation(sinkConf.getWriteMode());
+            Operation operation = toOperation(writeMode);
             rowConverter.toExternal(rowData, operation);
-            session.apply(operation);
+            applyOperation(operation);
         }
         session.flush().forEach(this::dealResponse);
     }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        writeMode = sinkConf.getWriteMode();
+        flushMode = transformFlushMode(sinkConf.getFlushMode());
         try {
             client = KuduUtil.getKuduClient(sinkConf);
         } catch (Exception e) {
@@ -120,7 +126,7 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
         session.setMutationBufferSpace(sinkConf.getMaxBufferSize());
         kuduTable = client.openTable(sinkConf.getTable());
 
-        switch (sinkConf.getFlushMode().toLowerCase()) {
+        switch (flushMode.name().toLowerCase(Locale.ENGLISH)) {
             case "auto_flush_background":
                 LOG.warn(
                         "Unable to determine the order of data at AUTO_FLUSH_BACKGROUND mode. "
@@ -147,22 +153,39 @@ public class KuduOutputFormat extends BaseRichOutputFormat {
         }
     }
 
+    private SessionConfiguration.FlushMode transformFlushMode(String flushMode) {
+        switch (flushMode.toUpperCase(Locale.ENGLISH)) {
+            case "MANUAL_FLUSH":
+                return SessionConfiguration.FlushMode.MANUAL_FLUSH;
+            case "AUTO_FLUSH_BACKGROUND":
+                return SessionConfiguration.FlushMode.AUTO_FLUSH_BACKGROUND;
+            case "AUTO_FLUSH_SYNC":
+            default:
+                return SessionConfiguration.FlushMode.AUTO_FLUSH_SYNC;
+        }
+    }
+
+    private void applyOperation(Operation operation) throws KuduException {
+        if (flushMode.equals(SessionConfiguration.FlushMode.AUTO_FLUSH_SYNC)) {
+            dealResponse(session.apply(operation));
+        } else {
+            session.apply(operation);
+        }
+    }
+
     @Override
     protected void closeInternal() throws IOException {
-        if (isClosed.get()) {
-            return;
-        }
 
         if (session != null && !session.isClosed()) {
             session.flush();
             session.close();
+            session = null;
         }
 
         if (client != null) {
             client.close();
+            client = null;
         }
-
-        isClosed.compareAndSet(false, true);
     }
 
     public KuduSinkConf getKuduSinkConf() {

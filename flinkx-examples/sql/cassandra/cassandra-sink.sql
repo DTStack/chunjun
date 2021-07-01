@@ -1,0 +1,68 @@
+CREATE TABLE source_one
+(
+    id        int,
+    name      varchar,
+    birth     timestamp,
+    todayTime time,
+    todayDate date,
+    PROCTIME AS PROCTIME()
+) WITH (
+      'connector' = 'cassandra-x',
+      'host' = '172.16.100.238,172.16.100.244,172.16.100.67',
+      'port' = '9042',
+      'hostDistance' = 'local',
+      'user-name' = 'cassandra',
+      'password' = 'cassandra',
+      'table-name' = 'one',
+      'keyspaces' = 'tiezhu'
+      );
+
+
+CREATE TABLE side_one
+(
+    id        int,
+    name      varchar,
+    birth     timestamp,
+    todayTime time,
+    todayDate date,
+    PRIMARY KEY (id) NOT ENFORCED
+) WITH (
+      'connector' = 'cassandra-x',
+      'host' = '172.16.100.238,172.16.100.244,172.16.100.67',
+      'port' = '9042',
+      'user-name' = 'cassandra',
+      'password' = 'cassandra',
+      'table-name' = 'one',
+      'keyspaces' = 'tiezhu',
+      'lookup.cache-type' = 'all'
+      );
+
+CREATE TABLE sink_one
+(
+    id        int,
+    name      varchar,
+    birth     timestamp,
+    todayTime time,
+    todayDate date
+) WITH (
+      'connector' = 'cassandra-x',
+      'host' = '172.16.100.238',
+      'port' = '31802',
+      'table-name' = 'one',
+      'keyspaces' = 'tiezhu'
+      );
+
+CREATE VIEW view_out AS
+SELECT u.id        AS id,
+       u.name      AS name,
+       s.birth     AS birth,
+       u.todayTime AS todayTime,
+       s.todayDate AS todayDate
+FROM source_one s
+         JOIN side_one FOR SYSTEM_TIME AS OF s.PROCTIME AS u
+              ON s.id = u.id;
+
+
+INSERT INTO sink_one
+SELECT *
+FROM view_out;

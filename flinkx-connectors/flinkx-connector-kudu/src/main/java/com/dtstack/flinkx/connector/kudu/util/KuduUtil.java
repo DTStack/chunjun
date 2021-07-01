@@ -62,8 +62,6 @@ public class KuduUtil {
 
     private static final Pattern EXPRESS_PATTERN = Pattern.compile(EXPRESS_REGEX);
 
-    public static final String AUTHENTICATION_TYPE = "Kerberos";
-
     /**
      * Get kudu client with kudu conf
      *
@@ -84,6 +82,31 @@ public class KuduUtil {
         } catch (IOException | InterruptedException e) {
             throw new NoRestartException("Create kudu client failed!", e);
         }
+    }
+
+    public static AsyncKuduClient getAsyncKuduClient(KuduCommonConf config) {
+        try {
+            KerberosConfig kerberosConfig = config.getKerberos();
+            if (kerberosConfig.isEnableKrb()) {
+                UserGroupInformation ugi = KerberosUtils.loginAndReturnUgi(kerberosConfig);
+                return ugi.doAs(
+                        (PrivilegedExceptionAction<AsyncKuduClient>)
+                                () -> getAsyncKuduClientInternal(config));
+            } else {
+                return getAsyncKuduClientInternal(config);
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new NoRestartException("Create kudu client failed!", e);
+        }
+    }
+
+    private static AsyncKuduClient getAsyncKuduClientInternal(KuduCommonConf config) {
+        return new AsyncKuduClient.AsyncKuduClientBuilder(
+                        Arrays.asList(config.getMasters().split(",")))
+                .workerCount(config.getWorkerCount())
+                .defaultAdminOperationTimeoutMs(config.getAdminOperationTimeout())
+                .defaultOperationTimeoutMs(config.getOperationTimeout())
+                .build();
     }
 
     private static KuduClient getKuduClientInternal(KuduCommonConf config) {

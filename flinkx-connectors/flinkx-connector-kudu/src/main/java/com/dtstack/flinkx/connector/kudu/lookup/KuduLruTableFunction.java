@@ -204,8 +204,9 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
     private void checkKuduTable() throws IOException {
         try {
             if (Objects.isNull(kuduTable)) {
+                KuduCommonConf commonConf = kuduLookupConf.getCommonConf();
                 String tableName = kuduLookupConf.getTableName();
-                client = getClient();
+                client = KuduUtil.getAsyncKuduClient(commonConf);
                 if (!client.syncClient().tableExists(tableName)) {
                     throw new IllegalArgumentException(
                             "Table Open Failed , please check table exists");
@@ -216,28 +217,6 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
         } catch (Exception e) {
             throw new IOException("kudu table error!", e);
         }
-    }
-
-    private AsyncKuduClient getClient() throws IOException {
-        KuduCommonConf commonConf = kuduLookupConf.getCommonConf();
-        String kuduMasters = commonConf.getMasters();
-        Integer workerCount = commonConf.getWorkerCount();
-        Long defaultOperationTimeoutMs = commonConf.getOperationTimeout();
-
-        Preconditions.checkNotNull(kuduMasters, "kuduMasters could not be null");
-
-        AsyncKuduClient.AsyncKuduClientBuilder asyncKuduClientBuilder =
-                new AsyncKuduClient.AsyncKuduClientBuilder(kuduMasters);
-        if (Objects.nonNull(workerCount)) {
-            asyncKuduClientBuilder.workerCount(workerCount);
-        }
-
-        if (Objects.nonNull(defaultOperationTimeoutMs)) {
-            asyncKuduClientBuilder.defaultOperationTimeoutMs(defaultOperationTimeoutMs);
-        }
-
-        // TODO Kerberos
-        return asyncKuduClientBuilder.build();
     }
 
     @Override

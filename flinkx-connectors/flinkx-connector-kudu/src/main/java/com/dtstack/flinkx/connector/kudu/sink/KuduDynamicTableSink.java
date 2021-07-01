@@ -18,13 +18,6 @@
 
 package com.dtstack.flinkx.connector.kudu.sink;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
-import com.dtstack.flinkx.connector.kudu.converter.KuduRawTypeConverter;
-import com.dtstack.flinkx.connector.kudu.converter.KuduRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-import com.dtstack.flinkx.util.TableUtil;
-
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
@@ -32,6 +25,13 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.logical.NullType;
 import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
+import com.dtstack.flinkx.connector.kudu.converter.KuduRawTypeConverter;
+import com.dtstack.flinkx.connector.kudu.converter.KuduRowConverter;
+import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.util.TableUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,10 +65,13 @@ public class KuduDynamicTableSink implements DynamicTableSink {
 
         String[] fieldNames = tableSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        for (int i = 0; i < fieldNames.length; i++) {
-            String name = fieldNames[i];
-            FieldConf field = new FieldConf();
+        List<String> columnNameList = new ArrayList<>();
 
+        for (int index = 0; index < fieldNames.length; index++) {
+            String name = fieldNames[index];
+            columnNameList.add(name);
+
+            FieldConf field = new FieldConf();
             field.setName(name);
             field.setType(
                     tableSchema
@@ -77,8 +80,7 @@ public class KuduDynamicTableSink implements DynamicTableSink {
                             .getLogicalType()
                             .getTypeRoot()
                             .name());
-            field.setIndex(i);
-
+            field.setIndex(index);
             columnList.add(field);
         }
         sinkConf.setColumn(columnList);
@@ -87,7 +89,7 @@ public class KuduDynamicTableSink implements DynamicTableSink {
                 TableUtil.createRowType(sinkConf.getColumn(), KuduRawTypeConverter::apply);
 
         builder.setSinkConf(sinkConf);
-        builder.setRowConverter(new KuduRowConverter(rowType));
+        builder.setRowConverter(new KuduRowConverter(rowType, columnNameList));
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction(builder.finish()), sinkConf.getParallelism());

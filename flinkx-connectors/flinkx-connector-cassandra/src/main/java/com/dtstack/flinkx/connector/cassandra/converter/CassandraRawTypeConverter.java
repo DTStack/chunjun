@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.cassandra.converter;
 
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
@@ -37,7 +36,7 @@ public class CassandraRawTypeConverter {
      */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
-            case "BIT":
+            case "BOOLEAN":
                 return DataTypes.BOOLEAN();
             case "TINYINT":
                 return DataTypes.TINYINT();
@@ -45,8 +44,9 @@ public class CassandraRawTypeConverter {
             case "INT2":
                 return DataTypes.SMALLINT();
             case "INT":
-            case "INT4":
             case "INTEGER":
+            case "VARINT":
+            case "COUNTER":
                 return DataTypes.INT();
             case "BIGINT":
                 return DataTypes.BIGINT();
@@ -61,10 +61,9 @@ public class CassandraRawTypeConverter {
             case "FLOAT8":
                 return DataTypes.DOUBLE();
             case "ASCII":
-            case "CHAR":
             case "VARCHAR":
             case "TEXT":
-            case "JSON":
+            case "INET":
                 return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();

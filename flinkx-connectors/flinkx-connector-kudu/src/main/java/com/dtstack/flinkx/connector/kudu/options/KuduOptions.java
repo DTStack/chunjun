@@ -95,12 +95,6 @@ public class KuduOptions {
                     .defaultValue(1)
                     .withDescription("Kudu scan parallelism.");
 
-    public static final ConfigOption<Boolean> ENABLE_KRB =
-            ConfigOptions.key("enable-krb")
-                    .booleanType()
-                    .defaultValue(false)
-                    .withDescription("Kudu enable kerberos.");
-
     public static final ConfigOption<String> FLUSH_MODE =
             ConfigOptions.key("flushMode")
                     .stringType()
@@ -116,7 +110,7 @@ public class KuduOptions {
     public static final ConfigOption<Integer> MAX_BUFFER_SIZE =
             ConfigOptions.key("max-buffer-size")
                     .intType()
-                    .defaultValue(1000)
+                    .defaultValue(1024)
                     .withDescription("The max size of Kudu buffer which buffed data.");
 
     public static final ConfigOption<Integer> FLUSH_INTERVAL =

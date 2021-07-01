@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.kudu.source;
 
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.flinkx.connector.kudu.converter.KuduRawTypeConverter;
@@ -27,10 +33,8 @@ import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author tiezhu
@@ -60,11 +64,15 @@ public class KuduSourceFactory extends SourceFactory {
         KuduInputFormatBuilder builder = new KuduInputFormatBuilder();
 
         builder.setKuduSourceConf(sourceConf);
-        builder.setColumns(syncConf.getReader().getFieldList());
 
         final RowType rowType =
                 TableUtil.createRowType(sourceConf.getColumn(), getRawTypeConverter());
-        builder.setRowConverter(new KuduRowConverter(rowType));
+
+        List<FieldConf> fieldConfList = sourceConf.getColumn();
+        List<String> columnNameList = new ArrayList<>();
+        fieldConfList.forEach(fieldConf -> columnNameList.add(fieldConf.getName()));
+
+        builder.setRowConverter(new KuduRowConverter(rowType, columnNameList));
 
         return createInput(builder.finish());
     }

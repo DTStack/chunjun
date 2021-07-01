@@ -18,9 +18,8 @@
 
 package com.dtstack.flinkx.connector.cassandra.conf;
 
-import org.apache.flink.configuration.ReadableConfig;
-
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import org.apache.flink.configuration.ReadableConfig;
 
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CLUSTER_NAME;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CONNECT_TIMEOUT_MILLISECONDS;
@@ -58,27 +57,27 @@ public class CassandraCommonConf extends FlinkxCommonConf {
 
     protected String keyspaces;
 
-    protected String hostDistance;
+    protected String hostDistance = "LOCAL";
 
-    protected boolean useSSL;
+    protected boolean useSSL = false;
 
-    private String clusterName;
+    protected String clusterName = "flinkx-cluster";
 
-    private String consistency;
+    protected String consistency = "LOCAL_QUORUM";
 
-    private Integer coreConnectionsPerHost;
+    protected Integer coreConnectionsPerHost = 8;
 
-    private Integer maxConnectionsPerHost;
+    protected Integer maxConnectionsPerHost = 32768;
 
-    private Integer maxRequestsPerConnection;
+    protected Integer maxRequestsPerConnection = 1;
 
-    private Integer maxQueueSize;
+    protected Integer maxQueueSize = 10 * 1000;
 
-    private Integer readTimeoutMillis;
+    protected Integer readTimeoutMillis = 60 * 1000;
 
-    private Integer connectTimeoutMillis;
+    protected Integer connectTimeoutMillis = 60 * 1000;
 
-    private Integer poolTimeoutMillis;
+    protected Integer poolTimeoutMillis = 60 * 1000;
 
     public String getHost() {
         return host;

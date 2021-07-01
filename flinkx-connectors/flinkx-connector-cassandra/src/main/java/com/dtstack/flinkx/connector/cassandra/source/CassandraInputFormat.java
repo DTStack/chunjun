@@ -98,7 +98,6 @@ public class CassandraInputFormat extends BaseRichInputFormat {
             Row cqlRow = cursor.next();
             rowData = rowConverter.toInternal(cqlRow);
 
-            LOG.info("nextRecordInternal: numReadCounter = {}", numReadCounter.getLocalValue());
         } catch (Exception e) {
             throw new ReadRecordException("Cassandra next record error!", e, -1, rowData);
         }

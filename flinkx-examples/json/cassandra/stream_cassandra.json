@@ -1,0 +1,77 @@
+{
+  "job": {
+    "content": [
+      {
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "text"
+              },
+              {
+                "name": "birth",
+                "type": "timestamp"
+              },
+              {
+                "name": "todayTime",
+                "type": "time"
+              },
+              {
+                "name": "todayDate",
+                "type": "date"
+              }
+            ],
+            "host": "172.16.100.238",
+            "port": 31802,
+            "tableName": "two",
+            "keyspaces": "tiezhu"
+          },
+          "name": "cassandrasink"
+        },
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "text"
+              },
+              {
+                "name": "birth",
+                "type": "timestamp"
+              },
+              {
+                "name": "todayTime",
+                "type": "time"
+              },
+              {
+                "name": "todayDate",
+                "type": "date"
+              }
+            ],
+            "sliceRecordCount": [
+              "3000"
+            ],
+            "permitsPerSecond": 1
+          },
+          "table": {
+            "tableName": "sourceTable"
+          },
+          "name": "streamreader"
+        }
+      }
+    ],
+    "speed": {
+      "readerChannel": 1,
+      "writerChannel": 1
+    }
+  }
+}

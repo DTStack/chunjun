@@ -154,16 +154,9 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         optionalOptions.add(IGNORE_NOT_FOUND);
         optionalOptions.add(IGNORE_DUPLICATE);
 
-        optionalOptions.add(SCAN_PARTITION_COLUMN);
-        optionalOptions.add(SCAN_PARTITION_STRATEGY);
-        optionalOptions.add(SCAN_INCREMENT_COLUMN);
-        optionalOptions.add(SCAN_INCREMENT_COLUMN_TYPE);
-        optionalOptions.add(SCAN_POLLING_INTERVAL);
         optionalOptions.add(SCAN_START_LOCATION);
         optionalOptions.add(SCAN_QUERY_TIMEOUT);
         optionalOptions.add(SCAN_FETCH_SIZE);
-        optionalOptions.add(SCAN_RESTORE_COLUMNNAME);
-        optionalOptions.add(SCAN_RESTORE_COLUMNTYPE);
 
         optionalOptions.add(LOOKUP_CACHE_PERIOD);
         optionalOptions.add(LOOKUP_CACHE_MAX_ROWS);

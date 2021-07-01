@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.kudu.source;
 
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.flinkx.connector.kudu.converter.KuduColumnConverter;
@@ -26,11 +30,6 @@ import com.dtstack.flinkx.connector.kudu.util.KuduUtil;
 import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.util.TableUtil;
-
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduScanToken;
@@ -41,7 +40,6 @@ import org.apache.kudu.client.RowResultIterator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author tiezhu
@@ -51,15 +49,11 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
     private KuduSourceConf sourceConf;
 
-    private List<FieldConf> columns;
+    private transient KuduClient client;
 
-    private KuduClient client;
+    private transient KuduScanner scanner;
 
-    private KuduScanner scanner;
-
-    private RowResultIterator iterator;
-
-    private final AtomicBoolean isClosed = new AtomicBoolean(false);
+    private transient RowResultIterator iterator;
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
@@ -74,10 +68,14 @@ public class KuduInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected void openInternal(InputSplit inputSplit) throws IOException {
+    public void openInputFormat() throws IOException {
         super.openInputFormat();
 
         client = KuduUtil.getKuduClient(sourceConf);
+    }
+
+    @Override
+    protected void openInternal(InputSplit inputSplit) throws IOException {
 
         LOG.info(
                 "Execute openInternal: splitNumber = {}, indexOfSubtask  = {}",
@@ -111,31 +109,32 @@ public class KuduInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {
-
-        if (!isClosed.get()) {
-            return;
-        }
+    protected void closeInternal() {
 
         LOG.info("closeInternal: closing input format.");
-
-        if (client != null) {
-            try {
-                client.close();
-            } catch (KuduException e) {
-                LOG.warn("Kudu Client close failed.", e);
-            }
-        }
 
         if (scanner != null) {
             try {
                 scanner.close();
+                scanner = null;
             } catch (KuduException e) {
                 LOG.warn("Kudu Scanner close failed.", e);
             }
         }
+    }
 
-        isClosed.compareAndSet(false, true);
+    @Override
+    public void closeInputFormat() {
+        super.closeInputFormat();
+
+        try {
+            if (client != null) {
+                client.close();
+                client = null;
+            }
+        } catch (KuduException e) {
+            LOG.error("Close kudu client failed.", e);
+        }
     }
 
     @Override
@@ -156,14 +155,6 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
     public void setSourceConf(KuduSourceConf sourceConf) {
         this.sourceConf = sourceConf;
-    }
-
-    public void setColumns(List<FieldConf> columns) {
-        this.columns = columns;
-    }
-
-    public List<FieldConf> getColumns() {
-        return columns;
     }
 
     public KuduSourceConf getSourceConf() {

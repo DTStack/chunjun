@@ -23,12 +23,14 @@ import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
+import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.NullType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FieldConf;
@@ -46,13 +48,15 @@ import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
 import com.dtstack.flinkx.util.TableUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * @author tiezhu
  * @since 2021/6/9 星期三
  */
-public class KuduDynamicTableSource implements ScanTableSource, LookupTableSource {
+public class KuduDynamicTableSource
+        implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     private static final String IDENTIFIER = "Kudu";
 
@@ -60,7 +64,7 @@ public class KuduDynamicTableSource implements ScanTableSource, LookupTableSourc
 
     private final KuduLookupConf kuduLookupConf;
 
-    private final TableSchema tableSchema;
+    private TableSchema tableSchema;
 
     public KuduDynamicTableSource(
             KuduSourceConf sourceConf, KuduLookupConf lookupConf, TableSchema tableSchema) {
@@ -78,11 +82,13 @@ public class KuduDynamicTableSource implements ScanTableSource, LookupTableSourc
 
         String[] fieldNames = tableSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
+        List<String> columnNameList = new ArrayList<>();
 
-        for (int i = 0; i < fieldNames.length; i++) {
-            String name = fieldNames[i];
+        for (int index = 0; index < fieldNames.length; index++) {
+            String name = fieldNames[index];
+            columnNameList.add(name);
+
             FieldConf field = new FieldConf();
-
             field.setName(name);
             field.setType(
                     tableSchema
@@ -91,8 +97,7 @@ public class KuduDynamicTableSource implements ScanTableSource, LookupTableSourc
                             .getLogicalType()
                             .getTypeRoot()
                             .name());
-            field.setIndex(i);
-
+            field.setIndex(index);
             columnList.add(field);
         }
 
@@ -102,11 +107,11 @@ public class KuduDynamicTableSource implements ScanTableSource, LookupTableSourc
                 TableUtil.createRowType(sourceConf.getColumn(), KuduRawTypeConverter::apply);
 
         builder.setKuduSourceConf(sourceConf);
-        builder.setRowConverter(new KuduRowConverter(rowType));
+        builder.setRowConverter(new KuduRowConverter(rowType, columnNameList));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInfo),
-                false,
+                true,
                 sourceConf.getParallelism());
     }
 
@@ -141,7 +146,8 @@ public class KuduDynamicTableSource implements ScanTableSource, LookupTableSourc
             return ParallelAsyncTableFunctionProvider.of(
                     new KuduLruTableFunction(
                             kuduLookupConf,
-                            new KuduRowConverter(rowType),
+                            new KuduRowConverter(
+                                    rowType, Arrays.asList(tableSchema.getFieldNames())),
                             tableSchema.getFieldNames(),
                             keyNames),
                     kuduLookupConf.getParallelism());
@@ -149,9 +155,20 @@ public class KuduDynamicTableSource implements ScanTableSource, LookupTableSourc
         return ParallelTableFunctionProvider.of(
                 new KuduAllTableFunction(
                         kuduLookupConf,
-                        new KuduRowConverter(rowType),
+                        new KuduRowConverter(rowType, Arrays.asList(tableSchema.getFieldNames())),
                         tableSchema.getFieldNames(),
                         keyNames),
                 kuduLookupConf.getParallelism());
+    }
+
+    @Override
+    public boolean supportsNestedProjection() {
+        // kudu doesn't support nested projection
+        return false;
+    }
+
+    @Override
+    public void applyProjection(int[][] projectedFields) {
+        this.tableSchema = TableSchemaUtils.projectSchema(tableSchema, projectedFields);
     }
 }

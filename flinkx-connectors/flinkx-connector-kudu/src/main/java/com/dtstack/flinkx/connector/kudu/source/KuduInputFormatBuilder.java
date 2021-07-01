@@ -42,10 +42,6 @@ public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setSourceConf(conf);
     }
 
-    public void setColumns(List<FieldConf> columns) {
-        format.setColumns(columns);
-    }
-
     @Override
     protected void checkFormat() {
         KuduSourceConf sourceConf = format.getSourceConf();

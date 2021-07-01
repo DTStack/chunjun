@@ -20,10 +20,10 @@ package com.dtstack.flinkx.connector.kudu.lookup;
 
 import com.dtstack.flinkx.connector.kudu.conf.KuduCommonConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduLookupConf;
+import com.dtstack.flinkx.connector.kudu.util.KuduUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.util.ThreadUtil;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
 import org.apache.flink.table.data.GenericRowData;
@@ -112,16 +112,17 @@ public class KuduAllTableFunction extends AbstractAllTableFunction {
     }
 
     private KuduScanner getKuduScannerWithRetry(KuduLookupConf kuduLookupConf) {
+        KuduCommonConf commonConf = kuduLookupConf.getCommonConf();
         String connInfo =
                 "kuduMasters:"
-                        + kuduLookupConf.getCommonConf().getMasters()
+                        + commonConf.getMasters()
                         + ";tableName:"
                         + kuduLookupConf.getTableName();
         for (int i = 0; i < 3; i++) {
             try {
                 if (Objects.isNull(client)) {
                     String tableName = kuduLookupConf.getTableName();
-                    client = getClient(kuduLookupConf);
+                    client = KuduUtil.getKuduClient(commonConf);
                     if (!client.tableExists(tableName)) {
                         throw new IllegalArgumentException(
                                 "Table Open Failed , please check table exists");
@@ -138,36 +139,6 @@ public class KuduAllTableFunction extends AbstractAllTableFunction {
             }
         }
         throw new RuntimeException("Get kudu connect failed! Current Conn Info \n" + connInfo);
-    }
-
-    /**
-     * get kudu client for scanner
-     *
-     * @param kuduLookupConf kudu lookup conf
-     * @return client
-     * @throws IOException ioe
-     */
-    private KuduClient getClient(KuduLookupConf kuduLookupConf) throws IOException {
-        KuduCommonConf commonConf = kuduLookupConf.getCommonConf();
-        String kuduMasters = commonConf.getMasters();
-        Integer workerCount = commonConf.getWorkerCount();
-        Long defaultOperationTimeoutMs = commonConf.getOperationTimeout();
-
-        Preconditions.checkNotNull(kuduMasters, "kuduMasters could not be null");
-
-        KuduClient.KuduClientBuilder kuduClientBuilder =
-                new KuduClient.KuduClientBuilder(kuduMasters);
-
-        if (Objects.nonNull(workerCount)) {
-            kuduClientBuilder.workerCount(workerCount);
-        }
-
-        if (Objects.nonNull(defaultOperationTimeoutMs)) {
-            kuduClientBuilder.defaultOperationTimeoutMs(defaultOperationTimeoutMs);
-        }
-
-        // TODO kerberos
-        return kuduClientBuilder.build();
     }
 
     /**

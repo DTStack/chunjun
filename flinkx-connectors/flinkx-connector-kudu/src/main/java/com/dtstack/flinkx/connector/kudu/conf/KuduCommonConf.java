@@ -50,16 +50,16 @@ public class KuduCommonConf extends FlinkxCommonConf {
     protected KerberosConfig kerberos;
 
     /** worker线程数，默认为cpu*2 */
-    protected Integer workerCount;
+    protected Integer workerCount = 2;
 
     /** 设置普通操作超时时间，默认30S */
-    protected Long operationTimeout;
+    protected Long operationTimeout = 30 * 1000L;
 
     /** 设置管理员操作(建表，删表)超时时间，默认30S */
-    protected Long adminOperationTimeout;
+    protected Long adminOperationTimeout = 30 * 1000L;
 
     /** 连接scan token的超时时间，如果不设置，则与operationTimeout一致 */
-    protected Long queryTimeout;
+    protected Long queryTimeout = 30 * 1000L;
 
     public String getTable() {
         return table;

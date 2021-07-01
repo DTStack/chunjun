@@ -44,7 +44,7 @@ public class CassandraSourceFactory extends SourceFactory {
 
     private final CassandraSourceConf sourceConf;
 
-    protected CassandraSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public CassandraSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
 
         sourceConf =

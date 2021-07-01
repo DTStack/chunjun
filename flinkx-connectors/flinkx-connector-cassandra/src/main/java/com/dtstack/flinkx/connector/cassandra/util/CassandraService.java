@@ -38,9 +38,7 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
-
 import org.apache.flink.core.io.InputSplit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +70,6 @@ public class CassandraService {
      * @return cassandraSession
      */
     public static Session session(CassandraCommonConf commonConf) {
-        Session cassandraSession;
         try {
             String keySpace = commonConf.getKeyspaces();
 
@@ -82,7 +79,7 @@ public class CassandraService {
             Cluster cluster = cluster(commonConf);
 
             // 创建session
-            cassandraSession = cluster.connect(keySpace);
+            Session cassandraSession = cluster.connect(keySpace);
 
             LOG.info("Get cassandra session successful");
             return cassandraSession;
@@ -107,7 +104,11 @@ public class CassandraService {
 
             String clusterName = commonConf.getClusterName();
 
-            HostDistance hostDistance = hostDistance(commonConf.getHostDistance());
+            HostDistance hostDistance =
+                    hostDistance(
+                            commonConf.getHostDistance() == null
+                                    ? "LOCAL"
+                                    : commonConf.getHostDistance());
 
             boolean useSSL = commonConf.isUseSSL();
             int connectionsPerHost = commonConf.getCoreConnectionsPerHost();

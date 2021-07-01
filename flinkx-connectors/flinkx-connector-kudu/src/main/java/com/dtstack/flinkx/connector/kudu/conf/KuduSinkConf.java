@@ -37,17 +37,17 @@ import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.WRITE_MODE;
 public class KuduSinkConf extends KuduCommonConf {
 
     /** writer写入时session刷新模式 auto_flush_sync（默认） auto_flush_background manual_flush */
-    private String flushMode;
+    private String flushMode = "auto_flush_sync";
 
-    private WriteMode writeMode;
+    private WriteMode writeMode = WriteMode.APPEND;
 
-    private int maxBufferSize;
+    private int maxBufferSize = 1024;
 
-    private int flushInterval;
+    private int flushInterval = 10 * 1000;
 
-    private boolean ignoreNotFound;
+    private boolean ignoreNotFound = false;
 
-    private boolean ignoreDuplicate;
+    private boolean ignoreDuplicate = false;
 
     public String getFlushMode() {
         return flushMode;

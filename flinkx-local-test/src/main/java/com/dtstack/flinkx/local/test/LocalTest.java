@@ -46,7 +46,7 @@ public class LocalTest {
 //        confProperties.setProperty("flink.checkpoint.interval", "10000");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/socket/socket_stream.json";
+        String jobPath = "/Users/wtz/IdeaProjects/flinkxThree/flinkx-examples/sql/kudu/kudu_source_stream.sql";
         String flinkxPluginPath = userDir + "/flinkxplugins";
 
         // 任务配置参数
