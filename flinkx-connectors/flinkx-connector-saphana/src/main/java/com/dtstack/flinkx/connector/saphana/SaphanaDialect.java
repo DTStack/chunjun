@@ -18,13 +18,12 @@
 
 package com.dtstack.flinkx.connector.saphana;
 
-import com.dtstack.flinkx.connector.saphana.converter.SaphanaColumnConverter;
-
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.connector.saphana.converter.SaphanaColumnConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import io.vertx.core.json.JsonArray;
@@ -35,7 +34,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * company www.dtstack.com
@@ -57,24 +55,6 @@ public class SaphanaDialect implements JdbcDialect {
     @Override
     public Optional<String> defaultDriverName() {
         return Optional.of("com.sap.db.jdbc.Driver");
-    }
-
-    @Override
-    public Optional<String> getReplaceStatement(
-            String schema,
-            String tableName,
-            String[] fieldNames) {
-        String quoteTable = quoteTable(tableName);
-        String selectExpressions =
-                Arrays.stream(fieldNames)
-                        .map(this::quoteIdentifier)
-                        .collect(Collectors.joining(", "));
-        String placeholder =
-                "(" + StringUtils.repeat("?", ",", fieldNames.length) + ")";
-        String replaceSql = "REPLACE INTO " + quoteTable
-                + " (" + selectExpressions + ") values "
-                + placeholder;
-        return Optional.of(replaceSql);
     }
 
     @Override

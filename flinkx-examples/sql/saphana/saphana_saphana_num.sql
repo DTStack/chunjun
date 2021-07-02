@@ -10,7 +10,7 @@ CREATE TABLE source
     t_double double
 ) WITH (
       'connector' = 'saphana-x',
-      'url' = 'jdbc:sap://172.16.22.151:39015',
+      'url' = 'jdbc:sap://localhost:39015',
       'table-name' = 'T_NUMERIC_SOURCE',
       'username' = 'SYSTEM',
       'password' = 'Abc!@#579'
@@ -36,7 +36,7 @@ CREATE TABLE sink
     t_double double
 ) WITH (
       'connector' = 'saphana-x',
-      'url' = 'jdbc:sap://172.16.22.151:39015',
+      'url' = 'jdbc:sap://localhost:39015',
       'table-name' = 'T_NUMERIC_SINK',
       'username' = 'SYSTEM',
       'password' = 'Abc!@#579',

@@ -82,6 +82,6 @@ public class ClobType extends LogicalType {
 
     @Override
     public LogicalType copy(boolean isNullable) {
-        return new ClobType(isNullable,getTypeRoot());
+        return new ClobType(isNullable, getTypeRoot());
     }
 }

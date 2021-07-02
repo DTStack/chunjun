@@ -67,7 +67,7 @@ public class SaphanaRowConverter
             case SMALLINT:
                 return val -> val;
             case TINYINT:
-                return val -> ((Short)val).byteValue();
+                return val -> ((Short) val).byteValue();
             case DECIMAL:
                 final int precision = ((DecimalType) type).getPrecision();
                 final int scale = ((DecimalType) type).getScale();
@@ -80,9 +80,12 @@ public class SaphanaRowConverter
                                 new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
-                return val -> (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
+                return val -> (int) ((Date.valueOf(String.valueOf(val)))
+                        .toLocalDate()
+                        .toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay() / 1_000_000L);
+                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> TimestampData.fromTimestamp((Timestamp) val);
@@ -110,7 +113,9 @@ public class SaphanaRowConverter
                 return (val, index, statement) ->
                         statement.setBoolean(index, val.getBoolean(index));
             case TINYINT:
-                return (val, index, statement) -> statement.setShort(index, (short) (val.getByte(index) & 0xff));
+                return (val, index, statement) -> statement.setShort(
+                        index,
+                        (short) (val.getByte(index) & 0xff));
             case SMALLINT:
                 return (val, index, statement) -> statement.setShort(index, val.getShort(index));
             case INTEGER:

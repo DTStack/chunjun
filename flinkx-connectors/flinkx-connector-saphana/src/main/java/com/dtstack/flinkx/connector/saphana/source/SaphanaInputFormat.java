@@ -42,6 +42,7 @@ public class SaphanaInputFormat extends JdbcInputFormat {
         RowType rowType =
                 TableUtil.createRowType(
                         columnNameList, columnTypeList, SaphanaRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
+        setRowConverter(
+                rowConverter == null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
     }
 }

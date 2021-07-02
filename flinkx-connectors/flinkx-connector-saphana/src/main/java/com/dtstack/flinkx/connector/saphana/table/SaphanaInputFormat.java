@@ -18,12 +18,11 @@
 
 package com.dtstack.flinkx.connector.saphana.table;
 
-import com.dtstack.flinkx.connector.saphana.converter.SaphanaRawTypeConverter;
-
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
+import com.dtstack.flinkx.connector.saphana.converter.SaphanaRawTypeConverter;
 import com.dtstack.flinkx.util.TableUtil;
 
 /**
@@ -39,6 +38,7 @@ public class SaphanaInputFormat extends JdbcInputFormat {
         RowType rowType =
                 TableUtil.createRowType(
                         columnNameList, columnTypeList, SaphanaRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
+        setRowConverter(
+                rowConverter == null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
     }
 }

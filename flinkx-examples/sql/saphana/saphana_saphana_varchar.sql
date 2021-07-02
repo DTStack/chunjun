@@ -6,7 +6,7 @@ CREATE TABLE source
     t_shorttext   string
 ) WITH (
       'connector' = 'saphana-x',
-      'url' = 'jdbc:sap://172.16.22.151:39015',
+      'url' = 'jdbc:sap://localhost:39015',
       'table-name' = 'T_CHARACTER',
       'username' = 'SYSTEM',
       'password' = 'Abc!@#579'
@@ -28,7 +28,7 @@ CREATE TABLE sink
     t_shorttext   string
 ) WITH (
       'connector' = 'saphana-x',
-      'url' = 'jdbc:sap://172.16.22.151:39015',
+      'url' = 'jdbc:sap://localhost:39015',
       'table-name' = 'T_CHARACTER_SINK1',
       'username' = 'SYSTEM',
       'password' = 'Abc!@#579',

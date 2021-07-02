@@ -18,25 +18,24 @@
 
 package com.dtstack.flinkx.connector.saphana.converter;
 
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
-import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.*;
-import com.sap.db.jdbc.HanaClob;
-import io.vertx.core.json.JsonArray;
-
-import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.BigDecimalColumn;
+import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.sap.db.jdbc.HanaClob;
 
 import java.io.BufferedReader;
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.sql.ResultSet;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -72,9 +71,9 @@ public class SaphanaColumnConverter
             case CHAR:
             case VARCHAR:
                 return val -> {
-                    if(type instanceof ClobType){
+                    if (type instanceof ClobType) {
                         HanaClob clob = (HanaClob) val;
-                        try (BufferedReader bf = new BufferedReader(clob.getCharacterStream())){
+                        try (BufferedReader bf = new BufferedReader(clob.getCharacterStream())) {
                             StringBuilder stringBuilder = new StringBuilder();
                             String next, line = bf.readLine();
                             for (boolean last = (line == null); !last; line = next) {
@@ -87,15 +86,20 @@ public class SaphanaColumnConverter
                             }
                             return new StringColumn(stringBuilder.toString());
                         }
-                    }else {
+                    } else {
                         return new StringColumn((String) val);
                     }
                 };
             case DATE:
-                return val -> new BigDecimalColumn(Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
+                return val -> new BigDecimalColumn(Date
+                        .valueOf(String.valueOf(val))
+                        .toLocalDate()
+                        .toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
-                        new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
+                        new BigDecimalColumn(
+                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn((Timestamp) val);
@@ -116,7 +120,8 @@ public class SaphanaColumnConverter
                         statement.setBoolean(
                                 index, ((ColumnRowData) val).getField(index).asBoolean());
             case TINYINT:
-                return (val, index, statement) -> statement.setShort(index,
+                return (val, index, statement) -> statement.setShort(
+                        index,
                         (short) (val.getByte(index) & 0xff));
             case SMALLINT:
                 return (val, index, statement) -> statement.setShort(index, val.getShort(index));

@@ -4,7 +4,7 @@ CREATE TABLE source
     t_varbinary      bytes
 ) WITH (
       'connector' = 'saphana-x',
-      'url' = 'jdbc:sap://172.16.22.151:39015',
+      'url' = 'jdbc:sap://localhost:39015',
       'table-name' = 'T_LOB_BINARY',
       'username' = 'SYSTEM',
       'password' = 'Abc!@#579'
@@ -24,7 +24,7 @@ CREATE TABLE sink
     t_varbinary      bytes
 ) WITH (
       'connector' = 'saphana-x',
-      'url' = 'jdbc:sap://172.16.22.151:39015',
+      'url' = 'jdbc:sap://localhost:39015',
       'table-name' = 'T_LOB_BINARY_SINK',
       'username' = 'SYSTEM',
       'password' = 'Abc!@#579',

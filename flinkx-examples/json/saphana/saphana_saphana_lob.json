@@ -7,7 +7,7 @@
             "username": "SYSTEM",
             "password": "Abc!@#579",
             "connection": [{
-              "jdbcUrl": ["jdbc:sap://172.16.22.151:39015"],
+              "jdbcUrl": ["jdbc:sap://localhost:39015"],
               "?table": "表名区分大小写",
               "table": ["T_LOB_BINARY"]
             }],
@@ -46,7 +46,7 @@
             "password": "Abc!@#579",
             "connection": [
               {
-                "jdbcUrl": "jdbc:sap://172.16.22.151:39015",
+                "jdbcUrl": "jdbc:sap://localhost:39015",
                 "table": ["T_LOB_BINARY_SINK"]
               }
             ],

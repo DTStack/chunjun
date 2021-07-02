@@ -19,16 +19,15 @@
 
 package com.dtstack.flinkx.connector.saphana.converter;
 
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import java.sql.SQLException;
 import java.util.Locale;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 /**
  * company www.dtstack.com
