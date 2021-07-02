@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.kingbase;
 
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -141,5 +143,10 @@ public class KingbaseDialect implements JdbcDialect {
                 + " VALUES ("
                 + placeholders
                 + ")";
+    }
+
+    @Override
+    public String getRowNumColumn(String orderBy) {
+        return String.format("row_number() over(%s) as FLINKX_ROWNUM", orderBy);
     }
 }

@@ -31,6 +31,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author jiangbo
@@ -40,12 +41,12 @@ public class LocalTest {
     public static Logger LOG = LoggerFactory.getLogger(LocalTest.class);
 
     public static void main(String[] args) throws Exception {
+        LOG.warn("-----");
         Properties confProperties = new Properties();
 //        confProperties.setProperty("flink.checkpoint.interval", "10000");
         String userDir = System.getProperty("user.dir");
-//        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/saphana/saphana_mysql_num.json";
-        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/saphana/saphana_saphana_lob.json";
-//        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/saphana/mysql_saphana_num.json";
+
+        String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/socket/socket_stream.json";
         String flinkxPluginPath = userDir + "/flinkxplugins";
 
         // 任务配置参数
@@ -58,8 +59,8 @@ public class LocalTest {
             argsList.add("sync");
             argsList.add("-job");
             argsList.add(content);
-            argsList.add("-flinkconf");
-            argsList.add(System.getProperty("user.dir") + "/flinkconf/");
+//            argsList.add("-flinkconf");
+//            argsList.add(System.getProperty("user.dir") + "/flinkconf/");
 //            argsList.add("-pluginRoot");
 //            argsList.add(flinkxPluginPath);
             argsList.add("-confProp");
@@ -80,10 +81,10 @@ public class LocalTest {
             argsList.add(flinkxPluginPath);
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
-            argsList.add("-confProp");
+//            argsList.add("-confProp");
 //            argsList.add("{\"flink.checkpoint.interval\":\"300000\"}");
 //            argsList.add("{\"sql.checkpoint.mode\":\"AT_LEAST_ONCE\",\"flink.checkpoint.interval\":\"300000\"}");
-            argsList.add("{\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"flink.checkpoint.interval\":\"300000\"}");
+//            argsList.add("{\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"flink.checkpoint.interval\":\"300000\"}");
 //            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"state.backend\":\"FILESYSTEM\",\"state.checkpoints.dir\":\"hdfs://ns1/dtInsight/flink110/savepoints/POC_MEIDI_STREAM_JOIN\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
 //            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
         }

@@ -50,6 +50,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -59,7 +60,6 @@ import java.util.regex.Pattern;
  * @author huyifan_zju@
  */
 public class JdbcUtil {
-
     /**
      * jdbc连接URL的分割正则，用于获取URL?后的连接参数
      */
@@ -132,6 +132,14 @@ public class JdbcUtil {
      */
     public static Pair<List<String>, List<String>> getTableMetaData(String schema, String tableName, Connection dbConn) {
         try {
+            //check table exists
+            ResultSet tableRs = dbConn.getMetaData().getTables(null, schema, tableName, null);
+            if(!tableRs.next()){
+                String tableInfo = schema == null ? tableName : schema + "." + tableName;
+                throw new FlinkxRuntimeException(String.format("table %s not found.", tableInfo));
+            }
+
+
             ResultSet rs = dbConn.getMetaData().getColumns(null, schema, tableName, null);
             List<String> fullColumnList = new LinkedList<>();
             List<String> fullColumnTypeList = new LinkedList<>();
@@ -401,5 +409,36 @@ public class JdbcUtil {
         } catch (SQLException throwables) {
             throw new RuntimeException(throwables);
         }
+    }
+
+    /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table **/
+    public static void resetSchemaAndTable(JdbcConf jdbcConf, String leftQuote, String rightQuote) {
+            LOG.info("before reset table info,schema: {},table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
+            String pattern = String.format(
+                    "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
+                    leftQuote,
+                    rightQuote,
+                    leftQuote,
+                    rightQuote);
+            Pattern p = Pattern.compile(pattern);
+            Matcher matcher = p.matcher(jdbcConf.getTable());
+            String schema = null;
+            String table = null;
+            if (matcher.find()) {
+                schema = matcher.group("schema");
+                table = matcher.group("table");
+            } else {
+                String[] split = jdbcConf.getTable().split("\\.");
+                if (split.length == 2) {
+                    schema = split[0];
+                    table = split[1];
+                }
+            }
+
+            if (StringUtils.isNotBlank(schema)) {
+                jdbcConf.setSchema(schema);
+                jdbcConf.setTable(table);
+                LOG.info("after reset table info,schema: {},table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
+            }
     }
 }

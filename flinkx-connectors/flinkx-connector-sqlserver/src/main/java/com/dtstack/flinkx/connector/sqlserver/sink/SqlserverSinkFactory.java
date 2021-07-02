@@ -21,7 +21,7 @@ package com.dtstack.flinkx.connector.sqlserver.sink;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.connector.sqlserver.SqlServerDialect;
+import com.dtstack.flinkx.connector.sqlserver.SqlserverDialect;
 import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 
@@ -35,7 +35,7 @@ public class SqlserverSinkFactory extends JdbcSinkFactory {
 
     public SqlserverSinkFactory(SyncConf syncConf){
         super(syncConf);
-        jdbcDialect = new SqlServerDialect(jdbcConf.isWithNoLock());
+        jdbcDialect = new SqlserverDialect(jdbcConf.isWithNoLock());
     }
 
     @Override
