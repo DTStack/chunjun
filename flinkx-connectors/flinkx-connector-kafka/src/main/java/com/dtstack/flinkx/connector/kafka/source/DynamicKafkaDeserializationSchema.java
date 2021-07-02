@@ -37,7 +37,7 @@ import org.apache.flink.util.Preconditions;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
-import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -86,8 +86,6 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
     protected int indexOfSubTask;
     /** 任务开始时间, openInputFormat()开始计算 */
     protected Properties consumerConfig;
-    /** 自定义的prometheus reporter，用于提交startLocation和endLocation指标 */
-    protected transient CustomPrometheusReporter customPrometheusReporter;
     /** 任务开始时间, openInputFormat()开始计算 */
     protected long startTime;
     /** 累加器收集器 */
@@ -215,7 +213,8 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     protected void dirtyDataCounter(ConsumerRecord<byte[], byte[]> record, Exception e) {
         // add metric of dirty data
-        LOG.error("data parse error:{} ,dirtyData:{}", e.getMessage(), new String(record.value(), StandardCharsets.UTF_8));
+        LOG.error("data parse error:{} ,dirtyData:{}",
+                ExceptionUtil.getErrorMessage(e), new String(record.value(), StandardCharsets.UTF_8));
     }
 
     @Override
@@ -285,26 +284,7 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             indexOfSubTask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
         }
 
-        if (useCustomPrometheusReporter()) {
-            customPrometheusReporter = new CustomPrometheusReporter(getRuntimeContext(), makeTaskFailedWhenReportFailed());
-            customPrometheusReporter.open();
-        }
-
         startTime = System.currentTimeMillis();
-    }
-
-    /**
-     * 使用自定义的指标输出器把增量指标打到普罗米修斯
-     */
-    private boolean useCustomPrometheusReporter() {
-        return false;
-    }
-
-    /**
-     * 为了保证增量数据的准确性，指标输出失败时使任务失败
-     */
-    private boolean makeTaskFailedWhenReportFailed(){
-        return false;
     }
 
     protected void close() {
@@ -316,16 +296,8 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             accumulatorCollector.close();
         }
 
-        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
-            customPrometheusReporter.report();
-        }
-
         if(inputMetric != null){
             inputMetric.waitForReportMetrics();
-        }
-
-        if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
-            customPrometheusReporter.close();
         }
 
         LOG.info("subtask input close finished");
