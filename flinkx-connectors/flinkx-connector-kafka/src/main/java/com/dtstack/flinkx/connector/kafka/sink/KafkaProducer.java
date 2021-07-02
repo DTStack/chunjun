@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.kafka.sink;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaException;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
 import org.apache.flink.table.data.RowData;
@@ -34,6 +35,7 @@ import java.util.Properties;
 public class KafkaProducer extends FlinkKafkaProducer<RowData> {
 
     private KafkaSerializationSchema<RowData> serializationSchema;
+    private Properties producerConfig;
 
     public KafkaProducer(
             String defaultTopic,
@@ -43,13 +45,20 @@ public class KafkaProducer extends FlinkKafkaProducer<RowData> {
             int kafkaProducersPoolSize) {
         super(defaultTopic, serializationSchema, producerConfig, semantic, kafkaProducersPoolSize);
         this.serializationSchema = serializationSchema;
+        this.producerConfig = producerConfig;
     }
 
     @Override
     public void open(Configuration configuration) throws Exception {
         RuntimeContext runtimeContext = getRuntimeContext();
         ((DynamicKafkaSerializationSchema) serializationSchema).setRuntimeContext(runtimeContext);
-        ((DynamicKafkaSerializationSchema) serializationSchema).initMetric();
+        ((DynamicKafkaSerializationSchema) serializationSchema).setProducerConfig(producerConfig);
         super.open(configuration);
+    }
+
+    @Override
+    public void close() throws FlinkKafkaException {
+        super.close();
+        ((DynamicKafkaSerializationSchema) serializationSchema).close();
     }
 }

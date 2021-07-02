@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.kafka.source;
 
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
@@ -42,10 +43,12 @@ import java.util.regex.Pattern;
 public class KafkaConsumer extends FlinkKafkaConsumer<RowData>{
 
     private final KafkaDeserializationSchema<RowData> deserializationSchema;
+    private Properties props;
 
     public KafkaConsumer(List<String> topics, KafkaDeserializationSchema<RowData> deserializer, Properties props) {
         super(topics, deserializer, props);
         this.deserializationSchema = deserializer;
+        this.props = props;
     }
 
     public KafkaConsumer(
@@ -54,13 +57,14 @@ public class KafkaConsumer extends FlinkKafkaConsumer<RowData>{
             Properties props) {
         super(subscriptionPattern, deserializer, props);
         this.deserializationSchema = deserializer;
+        this.props = props;
     }
 
     @Override
-    public void run(SourceContext<RowData> sourceContext) throws Exception {
+    public void open(Configuration configuration) throws Exception {
         ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).setRuntimeContext(getRuntimeContext());
-        ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).initMetric();
-        super.run(sourceContext);
+        ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).setConsumerConfig(props);
+        super.open(configuration);
     }
 
     @Override
@@ -85,5 +89,11 @@ public class KafkaConsumer extends FlinkKafkaConsumer<RowData>{
 
         ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).setFetcher(fetcher);
         return fetcher;
+    }
+
+    @Override
+    public void close() throws Exception {
+        super.close();
+        ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).close();
     }
 }
