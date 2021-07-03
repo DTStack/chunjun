@@ -34,7 +34,6 @@ import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.throwable.NoRestartException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ThreadUtil;
-import com.google.common.collect.Lists;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonArray;
@@ -336,7 +335,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
                     for (JsonArray line : rs.result().getResults()) {
                         try {
-                            RowData row = fillData(line);
+                            RowData row = rowConverter.toInternalLookup(line);
                             if (openCache()) {
                                 cacheContent.add(line);
                             }
@@ -362,12 +361,6 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 });
             }
         });
-    }
-
-    @Override
-    protected RowData fillData(
-            Object sideInput) throws Exception {
-        return rowConverter.toInternalLookup(sideInput);
     }
 
     @Override
