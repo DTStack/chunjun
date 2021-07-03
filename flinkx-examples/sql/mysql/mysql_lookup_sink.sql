@@ -137,7 +137,7 @@ CREATE TABLE sink
     abinary     BYTES,
     atinyint    tinyint
 ) WITH (
-      -- 'connector' = 'stream'
+      -- 'connector' = 'stream-x'
 
       'connector' = 'mysql-x',
       'url' = 'jdbc:mysql://localhost:3306/test',
