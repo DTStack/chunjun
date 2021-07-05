@@ -381,7 +381,6 @@ public class DynamicKafkaSerializationSchema
             conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
             otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
 
-            //use snapshot write count
             numWriteCounter.add(formatState.getMetricValue(Metrics.NUM_WRITES));
 
             snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));

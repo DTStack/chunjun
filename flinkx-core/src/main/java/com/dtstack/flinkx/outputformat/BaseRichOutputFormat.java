@@ -242,7 +242,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         updateDuration();
         numWriteCounter.add(size);
         bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
-        if(!checkpointEnabled){
+        if(checkpointEnabled){
             snapshotWriteCounter.add(size);
         }
     }
@@ -372,8 +372,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
             otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
 
-            //use snapshot write count
-            numWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+            numWriteCounter.add(formatState.getMetricValue(Metrics.NUM_WRITES));
 
             snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
             bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
@@ -523,7 +522,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             }
         }
         //set metric after preCommit
-        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setNumberWrite(numWriteCounter.getLocalValue());
         formatState.setMetric(outputMetric.getMetricCounters());
         LOG.info("format state:{}", formatState.getState());
         return formatState;
