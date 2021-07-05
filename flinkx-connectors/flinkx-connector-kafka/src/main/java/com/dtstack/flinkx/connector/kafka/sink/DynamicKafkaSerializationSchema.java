@@ -19,8 +19,6 @@
 package com.dtstack.flinkx.connector.kafka.sink;
 
 
-import com.dtstack.flinkx.util.JsonUtil;
-
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -37,6 +35,8 @@ import org.apache.flink.util.Preconditions;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
@@ -95,6 +95,8 @@ public class DynamicKafkaSerializationSchema
     protected boolean checkpointEnabled;
     /** 输出指标组 */
     protected transient BaseMetric outputMetric;
+    /** checkpoint状态缓存map */
+    protected FormatState formatState;
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
     protected LongCounter bytesWriteCounter;
@@ -139,6 +141,7 @@ public class DynamicKafkaSerializationSchema
         this.checkpointEnabled = ((StreamingRuntimeContext)runtimeContext).isCheckpointingEnabled();
         this.startTime = System.currentTimeMillis();
         initStatisticsAccumulator();
+        initRestoreInfo();
         initAccumulatorCollector();
 
         checkpointMode =
@@ -177,7 +180,7 @@ public class DynamicKafkaSerializationSchema
         updateDuration();
         numWriteCounter.add(size);
         bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
-        if(!checkpointEnabled){
+        if(checkpointEnabled){
             snapshotWriteCounter.add(size);
         }
     }
@@ -294,6 +297,10 @@ public class DynamicKafkaSerializationSchema
         this.producerConfig = producerConfig;
     }
 
+    public void setFormatState(FormatState formatState) {
+        this.formatState = formatState;
+    }
+
     // --------------------------------------------------------------------------------------------
 
     interface MetadataConverter extends Serializable {
@@ -314,6 +321,17 @@ public class DynamicKafkaSerializationSchema
         }
 
         LOG.info("subtask output close finished");
+    }
+
+    /**
+     * 更新checkpoint状态缓存map
+     * @return
+     */
+    public FormatState getFormatState() {
+        formatState.setNumberWrite(numWriteCounter.getLocalValue());
+        formatState.setMetric(outputMetric.getMetricCounters());
+        LOG.info("format state:{}", formatState.getState());
+        return formatState;
     }
 
     /**
@@ -348,6 +366,28 @@ public class DynamicKafkaSerializationSchema
     private void initAccumulatorCollector() {
         accumulatorCollector = new AccumulatorCollector((StreamingRuntimeContext)runtimeContext, Metrics.METRIC_SINK_LIST);
         accumulatorCollector.start();
+    }
+
+    /**
+     * 从checkpoint状态缓存map中恢复上次任务的指标信息
+     */
+    private void initRestoreInfo() {
+        if (formatState == null) {
+            formatState = new FormatState(runtimeContext.getIndexOfThisSubtask(), null);
+        } else {
+            errCounter.add(formatState.getMetricValue(Metrics.NUM_ERRORS));
+            nullErrCounter.add(formatState.getMetricValue(Metrics.NUM_NULL_ERRORS));
+            duplicateErrCounter.add(formatState.getMetricValue(Metrics.NUM_DUPLICATE_ERRORS));
+            conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
+            otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
+
+            //use snapshot write count
+            numWriteCounter.add(formatState.getMetricValue(Metrics.NUM_WRITES));
+
+            snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+            bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
+            durationCounter.add(formatState.getMetricValue(Metrics.WRITE_DURATION));
+        }
     }
 
     /**

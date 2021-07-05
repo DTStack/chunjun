@@ -19,6 +19,8 @@
 package com.dtstack.flinkx.connector.kafka.source;
 
 
+import com.dtstack.flinkx.restore.FormatState;
+
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
@@ -92,6 +94,8 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
     protected AccumulatorCollector accumulatorCollector;
     /** 输入指标组 */
     protected transient BaseMetric inputMetric;
+    /** checkpoint状态缓存map */
+    protected FormatState formatState;
     /** 统计指标 */
     protected LongCounter numReadCounter;
     protected LongCounter bytesReadCounter;
@@ -132,6 +136,7 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
     protected void beforeOpen() {
         initAccumulatorCollector();
         initStatisticsAccumulator();
+        initRestoreInfo();
         openInputFormat();
 
         LOG.info(
@@ -234,6 +239,21 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         this.consumerConfig = consumerConfig;
     }
 
+    public void setFormatState(FormatState formatState) {
+        this.formatState = formatState;
+    }
+
+    /**
+     * 更新checkpoint状态缓存map
+     * @return
+     */
+    public FormatState getFormatState() {
+        if (formatState != null && numReadCounter != null && inputMetric!= null) {
+            formatState.setMetric(inputMetric.getMetricCounters());
+        }
+        return formatState;
+    }
+
     /**
      * 更新任务执行时间指标
      */
@@ -274,6 +294,19 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         inputMetric.addMetric(Metrics.NUM_READS, numReadCounter, true);
         inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter, true);
         inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
+    }
+
+    /**
+     * 从checkpoint状态缓存map中恢复上次任务的指标信息
+     */
+    private void initRestoreInfo(){
+        if(formatState == null){
+            formatState = new FormatState(indexOfSubTask, null);
+        } else {
+            numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
+            bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
+            durationCounter.add(formatState.getMetricValue(Metrics.READ_DURATION));
+        }
     }
 
     private void openInputFormat() {
