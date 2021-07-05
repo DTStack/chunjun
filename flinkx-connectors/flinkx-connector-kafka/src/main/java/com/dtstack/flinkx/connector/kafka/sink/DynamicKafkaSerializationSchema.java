@@ -19,11 +19,11 @@
 package com.dtstack.flinkx.connector.kafka.sink;
 
 
+import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SerializationSchema;
-import org.apache.flink.metrics.Counter;
-import org.apache.flink.metrics.Meter;
-import org.apache.flink.metrics.MeterView;
+import org.apache.flink.streaming.api.CheckpointingMode;
+import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.streaming.connectors.kafka.KafkaContextAware;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
 import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkKafkaPartitioner;
@@ -32,7 +32,12 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.metrics.MetricConstant;
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
+import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.JsonUtil;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 import java.io.Serializable;
+import java.util.Properties;
 
 /** A specific {@link KafkaSerializationSchema} for {@link org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicSink}. */
 public class DynamicKafkaSerializationSchema
@@ -76,9 +82,32 @@ public class DynamicKafkaSerializationSchema
 
     private int numParallelInstances;
 
-    protected transient Counter dtNumRecordsOut;
-
-    protected transient Meter dtNumRecordsOutRate;
+    protected Properties producerConfig;
+    /**
+     * 虽然开启cp，是否采用定时器和一定条数让下游数据可见。
+     * EXACTLY_ONCE：否，遵循两阶段提交协议。
+     * AT_LEAST_ONCE：是，只要数据条数或者到达定时时间即可见
+     */
+    protected CheckpointingMode checkpointMode;
+    /** 任务开始时间, openInputFormat()开始计算 */
+    protected long startTime;
+    /** 是否开启了checkpoint */
+    protected boolean checkpointEnabled;
+    /** 输出指标组 */
+    protected transient BaseMetric outputMetric;
+    /** checkpoint状态缓存map */
+    protected FormatState formatState;
+    /** 累加器收集器 */
+    protected AccumulatorCollector accumulatorCollector;
+    protected LongCounter bytesWriteCounter;
+    protected LongCounter durationCounter;
+    protected LongCounter numWriteCounter;
+    protected LongCounter snapshotWriteCounter;
+    protected LongCounter errCounter;
+    protected LongCounter nullErrCounter;
+    protected LongCounter duplicateErrCounter;
+    protected LongCounter conversionErrCounter;
+    protected LongCounter otherErrCounter;
 
     private transient RuntimeContext runtimeContext;
 
@@ -108,8 +137,31 @@ public class DynamicKafkaSerializationSchema
         this.upsertMode = upsertMode;
     }
 
+    protected void beforeOpen(){
+        this.checkpointEnabled = ((StreamingRuntimeContext)runtimeContext).isCheckpointingEnabled();
+        this.startTime = System.currentTimeMillis();
+        initStatisticsAccumulator();
+        initRestoreInfo();
+        initAccumulatorCollector();
+
+        checkpointMode =
+                ((StreamingRuntimeContext)runtimeContext).getCheckpointMode() == null
+                        ? CheckpointingMode.AT_LEAST_ONCE
+                        : ((StreamingRuntimeContext)runtimeContext).getCheckpointMode();
+        LOG.info(
+                "[{}] open successfully, \ncheckpointMode = {}, \ncheckpointEnabled = {}, \nflushIntervalMills = {}, \nbatchSize = {}, \n[{}]: \n{} ",
+                this.getClass().getSimpleName(),
+                checkpointMode,
+                checkpointEnabled,
+                0,
+                1,
+                producerConfig.getClass().getSimpleName(),
+                JsonUtil.toFormatJson(producerConfig));
+    }
+
     @Override
     public void open(SerializationSchema.InitializationContext context) throws Exception {
+        beforeOpen();
         if (keySerialization != null) {
             keySerialization.open(context);
         }
@@ -120,20 +172,26 @@ public class DynamicKafkaSerializationSchema
     }
 
     /**
-     * 初始化指标
+     * 指标更新
+     * @param size
+     * @param rowData
      */
-    public void initMetric() {
-        dtNumRecordsOut = runtimeContext.getMetricGroup().counter(MetricConstant.DT_NUM_RECORDS_OUT);
-        dtNumRecordsOutRate = runtimeContext.getMetricGroup().meter(MetricConstant.DT_NUM_RECORDS_OUT_RATE, new MeterView(dtNumRecordsOut, 20));
+    protected void beforeSerialize(long size, RowData rowData){
+        updateDuration();
+        numWriteCounter.add(size);
+        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
+        if(checkpointEnabled){
+            snapshotWriteCounter.add(size);
+        }
     }
 
     @Override
     public ProducerRecord<byte[], byte[]> serialize(RowData consumedRow, @Nullable Long timestamp) {
         try{
+            beforeSerialize(1, consumedRow);
             // shortcut in case no input projection is required
             if (keySerialization == null && !hasMetadata) {
                 final byte[] valueSerialized = valueSerialization.serialize(consumedRow);
-                dtNumRecordsOut.inc();
                 return new ProducerRecord<>(
                         topic,
                         extractPartition(consumedRow, null, valueSerialized),
@@ -165,8 +223,6 @@ public class DynamicKafkaSerializationSchema
                 valueSerialized = valueSerialization.serialize(valueRow);
             }
 
-            dtNumRecordsOut.inc();
-
             return new ProducerRecord<>(
                     topic,
                     extractPartition(consumedRow, keySerialized, valueSerialized),
@@ -175,7 +231,7 @@ public class DynamicKafkaSerializationSchema
                     valueSerialized,
                     readMetadata(consumedRow, KafkaDynamicSink.WritableMetadata.HEADERS));
         } catch (Exception e){
-            // todo 需要脏数据记录
+            // todo 需要脏数据记录 参考 BaseRichOutputFormat.updateDirtyDataMsg(rowData, e);
             LOG.error(e.getMessage());
         }
         return null;
@@ -237,9 +293,109 @@ public class DynamicKafkaSerializationSchema
         this.runtimeContext = runtimeContext;
     }
 
+    public void setProducerConfig(Properties producerConfig) {
+        this.producerConfig = producerConfig;
+    }
+
+    public void setFormatState(FormatState formatState) {
+        this.formatState = formatState;
+    }
+
     // --------------------------------------------------------------------------------------------
 
     interface MetadataConverter extends Serializable {
         Object read(RowData consumedRow, int pos);
+    }
+
+    public void close(){
+        if (durationCounter != null) {
+            updateDuration();
+        }
+
+        if (outputMetric != null) {
+            outputMetric.waitForReportMetrics();
+        }
+
+        if (accumulatorCollector != null) {
+            accumulatorCollector.close();
+        }
+
+        LOG.info("subtask output close finished");
+    }
+
+    /**
+     * 更新checkpoint状态缓存map
+     * @return
+     */
+    public FormatState getFormatState() {
+        formatState.setNumberWrite(numWriteCounter.getLocalValue());
+        formatState.setMetric(outputMetric.getMetricCounters());
+        LOG.info("format state:{}", formatState.getState());
+        return formatState;
+    }
+
+    /**
+     * 初始化累加器指标
+     */
+    private void initStatisticsAccumulator() {
+        errCounter = runtimeContext.getLongCounter(Metrics.NUM_ERRORS);
+        nullErrCounter = runtimeContext.getLongCounter(Metrics.NUM_NULL_ERRORS);
+        duplicateErrCounter = runtimeContext.getLongCounter(Metrics.NUM_DUPLICATE_ERRORS);
+        conversionErrCounter = runtimeContext.getLongCounter(Metrics.NUM_CONVERSION_ERRORS);
+        otherErrCounter = runtimeContext.getLongCounter(Metrics.NUM_OTHER_ERRORS);
+        numWriteCounter = runtimeContext.getLongCounter(Metrics.NUM_WRITES);
+        snapshotWriteCounter = runtimeContext.getLongCounter(Metrics.SNAPSHOT_WRITES);
+        bytesWriteCounter = runtimeContext.getLongCounter(Metrics.WRITE_BYTES);
+        durationCounter = runtimeContext.getLongCounter(Metrics.WRITE_DURATION);
+
+        outputMetric = new BaseMetric(runtimeContext);
+        outputMetric.addMetric(Metrics.NUM_ERRORS, errCounter);
+        outputMetric.addMetric(Metrics.NUM_NULL_ERRORS, nullErrCounter);
+        outputMetric.addMetric(Metrics.NUM_DUPLICATE_ERRORS, duplicateErrCounter);
+        outputMetric.addMetric(Metrics.NUM_CONVERSION_ERRORS, conversionErrCounter);
+        outputMetric.addMetric(Metrics.NUM_OTHER_ERRORS, otherErrCounter);
+        outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter, true);
+        outputMetric.addMetric(Metrics.SNAPSHOT_WRITES, snapshotWriteCounter);
+        outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter, true);
+        outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
+    }
+
+    /**
+     * 初始化累加器收集器
+     */
+    private void initAccumulatorCollector() {
+        accumulatorCollector = new AccumulatorCollector((StreamingRuntimeContext)runtimeContext, Metrics.METRIC_SINK_LIST);
+        accumulatorCollector.start();
+    }
+
+    /**
+     * 从checkpoint状态缓存map中恢复上次任务的指标信息
+     */
+    private void initRestoreInfo() {
+        if (formatState == null) {
+            formatState = new FormatState(runtimeContext.getIndexOfThisSubtask(), null);
+        } else {
+            errCounter.add(formatState.getMetricValue(Metrics.NUM_ERRORS));
+            nullErrCounter.add(formatState.getMetricValue(Metrics.NUM_NULL_ERRORS));
+            duplicateErrCounter.add(formatState.getMetricValue(Metrics.NUM_DUPLICATE_ERRORS));
+            conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
+            otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
+
+            numWriteCounter.add(formatState.getMetricValue(Metrics.NUM_WRITES));
+
+            snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+            bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
+            durationCounter.add(formatState.getMetricValue(Metrics.WRITE_DURATION));
+        }
+    }
+
+    /**
+     * 更新任务执行时间指标
+     */
+    private void updateDuration() {
+        if (durationCounter != null) {
+            durationCounter.resetLocal();
+            durationCounter.add(System.currentTimeMillis() - startTime);
+        }
     }
 }

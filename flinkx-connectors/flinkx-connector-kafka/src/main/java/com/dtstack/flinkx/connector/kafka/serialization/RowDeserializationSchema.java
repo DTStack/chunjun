@@ -60,7 +60,7 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaW
 
     @Override
     public void open(DeserializationSchema.InitializationContext context) {
-
+        beforeOpen();
     }
 
     @Override
@@ -68,7 +68,6 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaW
         try {
             beforeDeserialize(record);
             collector.collect(converter.toInternal(new String(record.value(), StandardCharsets.UTF_8)));
-            numInResolveRecord.inc();
         } catch (Exception e) {
             // todo kafka 比较特殊这里直接对接脏数据即可
             dirtyDataCounter(record, e);
