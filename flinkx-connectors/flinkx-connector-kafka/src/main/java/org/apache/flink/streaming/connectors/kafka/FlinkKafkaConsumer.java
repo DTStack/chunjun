@@ -220,8 +220,7 @@ public class FlinkKafkaConsumer<T> extends FlinkKafkaConsumerBase<T> {
                 !getBoolean(props, KEY_DISABLE_METRICS, false));
 
         this.properties = props;
-        //放开flink对key.deserializer、value.deserializer的限制
-//        setDeserializer(this.properties);
+        setDeserializer(this.properties);
 
         // configure the polling timeout
         try {
@@ -242,24 +241,19 @@ public class FlinkKafkaConsumer<T> extends FlinkKafkaConsumerBase<T> {
      * @param props The Kafka properties to register the serializer in.
      */
     private static void setDeserializer(Properties props) {
+        //放开flink对key.deserializer、value.deserializer的限制
         final String deSerName = ByteArrayDeserializer.class.getName();
 
         Object keyDeSer = props.get(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG);
         Object valDeSer = props.get(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG);
 
-        if (keyDeSer != null && !keyDeSer.equals(deSerName)) {
-            LOG.warn(
-                    "Ignoring configured key DeSerializer ({})",
-                    ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG);
-        }
-        if (valDeSer != null && !valDeSer.equals(deSerName)) {
-            LOG.warn(
-                    "Ignoring configured value DeSerializer ({})",
-                    ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG);
+        if(keyDeSer == null){
+            props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, deSerName);
         }
 
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, deSerName);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deSerName);
+        if(valDeSer == null){
+            props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deSerName);
+        }
     }
 
     @Override
