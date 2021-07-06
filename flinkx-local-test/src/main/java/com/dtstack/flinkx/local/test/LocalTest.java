@@ -31,7 +31,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author jiangbo
@@ -43,11 +42,15 @@ public class LocalTest {
     public static void main(String[] args) throws Exception {
         LOG.warn("-----");
         Properties confProperties = new Properties();
-//        confProperties.setProperty("flink.checkpoint.interval", "10000");
+//        confProperties.setProperty("flink.checkpoint.interval", "30000");
+//        confProperties.setProperty("state.backend","ROCKSDB");
+//        confProperties.setProperty("state.checkpoints.num-retained", "10");
+//        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
         String userDir = System.getProperty("user.dir");
 
         String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/socket/socket_stream.json";
         String flinkxPluginPath = userDir + "/flinkxplugins";
+        String s = "";
 
         // 任务配置参数
         List<String> argsList = new ArrayList<>();
@@ -60,11 +63,15 @@ public class LocalTest {
             argsList.add("-job");
             argsList.add(content);
 //            argsList.add("-flinkconf");
-//            argsList.add(System.getProperty("user.dir") + "/flinkconf/");
+//            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
 //            argsList.add("-pluginRoot");
 //            argsList.add(flinkxPluginPath);
             argsList.add("-confProp");
             argsList.add(GsonUtil.GSON.toJson(confProperties));
+            if(StringUtils.isNotBlank(s)){
+                argsList.add("-s");
+                argsList.add(s);
+            }
         } else if (StringUtils.endsWith(jobPath, "sql")) {
             argsList.add("-jobType");
             argsList.add("sql");

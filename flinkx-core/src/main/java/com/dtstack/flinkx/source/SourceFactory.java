@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.source;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.converter.RawTypeConvertible;
-
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -33,13 +29,13 @@ import org.apache.flink.util.Preconditions;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.converter.RawTypeConvertible;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Abstract specification of Reader Plugin
@@ -75,39 +71,15 @@ public abstract class SourceFactory implements RawTypeConvertible {
      */
     public abstract DataStream<RowData> createSource();
 
-    /**
-     * 同步任务使用transform。不支持*、不支持常量、不支持format、必须是flinksql支持的类型
-     * 常量和format都可以在transform中做。
-     *
-     * @param commonConf
-     */
-    protected void checkConstant(FlinkxCommonConf commonConf) {
-        List<FieldConf> fieldList = commonConf.getColumn();
-        if(fieldList.size() == 1 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())){
-            com.google.common.base.Preconditions.checkArgument(false, "in transformer mode : not support '*' in column.");
-        }
-        commonConf.getColumn().stream().forEach(x->{
-            if(StringUtils.isNotBlank(x.getValue())){
-                com.google.common.base.Preconditions.checkArgument(false, "in transformer mode : not support default value,you can set value in transformer");
-            }
-            if(StringUtils.isNotBlank(x.getFormat())){
-                com.google.common.base.Preconditions.checkArgument(false, "in transformer mode : not support default format,you can set format in transformer");
-            }
-        });
-    }
-
     @SuppressWarnings("unchecked")
     protected DataStream<RowData> createInput(InputFormat inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
-        //        TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
-        DtInputFormatSourceFunction function =
-                new DtInputFormatSourceFunction(inputFormat, typeInformation);
+        DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInformation);
         return env.addSource(function, sourceName, typeInformation);
     }
 
-    protected DataStream<RowData> createInput(
-            RichParallelSourceFunction<RowData> function, String sourceName) {
+    protected DataStream<RowData> createInput(RichParallelSourceFunction<RowData> function, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         return env.addSource(function, sourceName, typeInformation);
     }
@@ -125,7 +97,6 @@ public abstract class SourceFactory implements RawTypeConvertible {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
-        flinkxCommonConf.setParallelism(
-                speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
+        flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
 }

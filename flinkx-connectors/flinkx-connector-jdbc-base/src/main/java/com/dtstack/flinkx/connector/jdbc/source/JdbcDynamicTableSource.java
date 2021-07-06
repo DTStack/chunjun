@@ -139,7 +139,6 @@ public class JdbcDynamicTableSource
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
-        builder.setNumPartitions(jdbcConf.getParallelism() == null ? 1 : jdbcConf.getParallelism());
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
