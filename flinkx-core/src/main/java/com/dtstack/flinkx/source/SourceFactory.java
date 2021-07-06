@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.source;
 
-import com.dtstack.flinkx.converter.RawTypeConvertible;
-
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -31,6 +29,7 @@ import org.apache.flink.util.Preconditions;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.converter.RawTypeConvertible;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
@@ -76,14 +75,11 @@ public abstract class SourceFactory implements RawTypeConvertible {
     protected DataStream<RowData> createInput(InputFormat inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
-        //        TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
-        DtInputFormatSourceFunction function =
-                new DtInputFormatSourceFunction(inputFormat, typeInformation);
+        DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInformation);
         return env.addSource(function, sourceName, typeInformation);
     }
 
-    protected DataStream<RowData> createInput(
-            RichParallelSourceFunction<RowData> function, String sourceName) {
+    protected DataStream<RowData> createInput(RichParallelSourceFunction<RowData> function, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         return env.addSource(function, sourceName, typeInformation);
     }
@@ -101,7 +97,6 @@ public abstract class SourceFactory implements RawTypeConvertible {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
-        flinkxCommonConf.setParallelism(
-                speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
+        flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
 }

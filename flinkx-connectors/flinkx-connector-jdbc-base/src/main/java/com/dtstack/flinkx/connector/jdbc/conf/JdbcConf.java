@@ -18,11 +18,9 @@
 package com.dtstack.flinkx.connector.jdbc.conf;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -363,9 +361,6 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.splitStrategy = splitStrategy;
     }
 
-    public boolean isSplitByKey() {
-        return Objects.nonNull(getParallelism()) && getParallelism() > 1 && StringUtils.isNotEmpty(splitPk);
-    }
     @Override
     public String toString() {
         return "JdbcConf{" +

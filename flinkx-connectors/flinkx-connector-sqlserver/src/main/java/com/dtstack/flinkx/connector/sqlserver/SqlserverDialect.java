@@ -105,13 +105,7 @@ public class SqlserverDialect implements JdbcDialect {
 
     @Override
     public String getSplitModFilter(JdbcInputSplit split, String splitPkName) {
-        StringBuilder sql = new StringBuilder(128);
-        sql.append(String.format(
-            "%s %% %s = %s",
-            quoteIdentifier(splitPkName),
-            split.getTotalNumberOfSplits(),
-            split.getMod()));
-        return sql.toString();
+        return String.format("%s %% %s = %s", quoteIdentifier(splitPkName), split.getTotalNumberOfSplits(), split.getMod());
     }
 
     @Override

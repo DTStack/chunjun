@@ -138,8 +138,8 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 				}
 			}
 		} catch (Exception exception){
-				tryException = exception;
-				LOG.error("", exception);
+            tryException = exception;
+            LOG.error("Exception happened, start to close format", exception);
 		} finally {
 			isRunning = false;
 			try {

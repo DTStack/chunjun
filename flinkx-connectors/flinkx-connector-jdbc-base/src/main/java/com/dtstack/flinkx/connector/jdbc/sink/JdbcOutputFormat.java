@@ -27,6 +27,7 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
@@ -209,7 +210,16 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     @Override
     public void preCommit() throws Exception{
         if (jdbcConf.getRestoreColumnIndex() > -1) {
-            formatState.setState(((GenericRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex()));
+            Object state;
+            if(lastRow instanceof GenericRowData){
+                state = ((GenericRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex());
+            }else if(lastRow instanceof ColumnRowData){
+                state = ((ColumnRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex()).asString();
+            }else{
+                LOG.warn("can't get [{}] from lastRow:{}", jdbcConf.getRestoreColumn(), lastRow);
+                state = null;
+            }
+            formatState.setState(state);
         }
 
         if (rows != null && rows.size() > 0) {
