@@ -40,6 +40,7 @@ import io.vertx.core.json.JsonArray;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Time;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
@@ -85,12 +86,23 @@ public class JdbcColumnConverter
 
     @Override
     public RowData toInternal(ResultSet resultSet) throws Exception {
-        ColumnRowData data = new ColumnRowData(toInternalConverters.length);
-        for (int i = 0; i < toInternalConverters.length; i++) {
-            Object field = resultSet.getObject(i + 1);
-            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
+        ColumnRowData data;
+        if (!commonConf.isHasConstantField()) {
+            data = new ColumnRowData(toInternalConverters.length);
+            for (int i = 0; i < toInternalConverters.length; i++) {
+                Object field = resultSet.getObject(i + 1);
+                data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
+            }
+        } else {
+            data = loadConstantField((commonConf, index) -> {
+                try {
+                    return resultSet.getObject(index + 1);
+                } catch (SQLException sqlException) {
+                    throw sqlException;
+                }
+            });
         }
-        return loadConstantData(data, commonConf.getColumn());
+        return data;
     }
 
     @Override

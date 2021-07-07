@@ -24,6 +24,7 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.util.ColumnBuildUtil;
@@ -117,31 +118,28 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     }
 
     /**
-     * Fill constant { "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
+     * Fill constant field { "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
      *
-     * @param rawRowData rawRowData
-     * @param fieldConfList fieldConfList
-     *
+     * @param converter converter
      * @return RowData
+     * @throws Exception Exception
      */
-    protected RowData loadConstantData(RowData rawRowData, List<FieldConf> fieldConfList) {
-        if (commonConf.isHasConstantField()) {
-            ColumnRowData columnRowData = new ColumnRowData(fieldConfList.size());
-            int index = 0;
-            for (int i = 0; i < fieldConfList.size(); i++) {
-                String val = fieldConfList.get(i).getValue();
-                // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
-                if (val != null) {
-                    columnRowData.addField(new StringColumn(val, fieldConfList.get(i).getFormat()));
-                } else {
-                    columnRowData.addField(((ColumnRowData) rawRowData).getField(index));
-                    index++;
-                }
+    protected ColumnRowData loadConstantField(IColumnConstantConverter<FlinkxCommonConf, Integer, Object> converter)
+            throws Exception {
+        ColumnRowData rowData = new ColumnRowData(commonConf.getColumn().size());
+        int index = 0;
+        for (int i = 0; i < commonConf.getColumn().size(); i++) {
+            String val = commonConf.getColumn().get(i).getValue();
+            // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
+            if (val != null) {
+                rowData.addField(new StringColumn(val, commonConf.getColumn().get(i).getFormat()));
+            } else {
+                Object field = converter.apply(commonConf, index);
+                rowData.addField((AbstractBaseColumn) toInternalConverters[index].deserialize(field));
+                index++;
             }
-            return columnRowData;
-        } else {
-            return rawRowData;
         }
+        return rowData;
     }
 
     protected ISerializationConverter wrapIntoNullableExternalConverter(

@@ -48,11 +48,11 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
     private static final AtomicLong id = new AtomicLong(0L);
 
     public StreamColumnConverter(FlinkxCommonConf commonConf) {
+        this.commonConf = commonConf;
         List<String> typeList = getHandleColumnList().getRight();
 
         this.toInternalConverters = new IDeserializationConverter[typeList.size()];
         this.toExternalConverters = new ISerializationConverter[typeList.size()];
-        this.commonConf = commonConf;
 
         for (int i = 0; i < typeList.size(); i++) {
             toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
@@ -113,11 +113,16 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
     @Override
     @SuppressWarnings("unchecked")
     public RowData toInternal(RowData rowData) throws Exception {
-        ColumnRowData data = new ColumnRowData(toInternalConverters.length);
-        for (int i = 0; i < toInternalConverters.length; i++) {
-            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(data));
+        ColumnRowData data ;
+        if (!commonConf.isHasConstantField()) {
+            data = new ColumnRowData(toInternalConverters.length);
+            for (int i = 0; i < toInternalConverters.length; i++) {
+                data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(data));
+            }
+        } else {
+            data = loadConstantField((commonConf, index) -> new ColumnRowData(toInternalConverters.length));
         }
-        return loadConstantData(data, commonConf.getColumn());
+        return data;
     }
 
     @Override

@@ -41,7 +41,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
         super.openInternal(inputSplit);
         RowType rowType =
                 TableUtil.createRowType(columnNameList, columnTypeList, ClickhouseRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
+        setRowConverter(rowConverter == null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
     }
 
     @Override

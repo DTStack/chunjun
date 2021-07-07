@@ -99,12 +99,15 @@ public class KafkaColumnConverter
             row = new ColumnRowData(1);
             row.addField(new MapColumn(result));
         } else {
-            row = new ColumnRowData(toInternalConverters.length);
-            for (int i = 0; i < nameList.size(); i++) {
-                Object value = result.get(nameList.get(i));
-                row.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(value));
+            if (!commonConf.isHasConstantField()) {
+                row = new ColumnRowData(toInternalConverters.length);
+                for (int i = 0; i < nameList.size(); i++) {
+                    Object value = result.get(nameList.get(i));
+                    row.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(value));
+                }
+            } else {
+                row = loadConstantField((commonConf, index) -> result.get(commonConf.getColumn().get(index).getName()));
             }
-            return loadConstantData(row, kafkaConf.getColumn());
         }
         return row;
     }
@@ -155,6 +158,8 @@ public class KafkaColumnConverter
             case "CHAR":
             case "CHARACTER":
             case "STRING":
+            case "VARCHAR":
+            case "TEXT":
                 return val -> new StringColumn(val.toString());
             case "SHORT":
                 return val -> new BigDecimalColumn(Short.parseShort(val.toString()));
