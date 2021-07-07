@@ -39,7 +39,7 @@ public class Db2OutputFormat extends JdbcOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
         RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, Db2RawTypeConverter::apply);
-        setRowConverter(jdbcDialect.getColumnConverter(rowType));
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
     }
 
     @Override

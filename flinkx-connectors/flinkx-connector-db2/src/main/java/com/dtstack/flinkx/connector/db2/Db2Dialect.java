@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.connector.db2;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.db2.converter.Db2ColumnConverter;
 import com.dtstack.flinkx.connector.db2.converter.Db2RowConverter;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
@@ -72,4 +73,10 @@ public class Db2Dialect implements JdbcDialect {
         return new Db2ColumnConverter(rowType);
     }
 
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
+            RowType rowType,
+            FlinkxCommonConf commonConf) {
+        return new Db2ColumnConverter(rowType, commonConf);
+    }
 }

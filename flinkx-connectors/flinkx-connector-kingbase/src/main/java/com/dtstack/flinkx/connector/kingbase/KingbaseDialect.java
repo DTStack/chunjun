@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.connector.kingbase;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
 
 import org.apache.flink.table.types.logical.LogicalType;
@@ -73,6 +74,13 @@ public class KingbaseDialect implements JdbcDialect {
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
             RowType rowType) {
         return new KingbaseColumnConverter(rowType);
+    }
+
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
+            RowType rowType,
+            FlinkxCommonConf commonConf) {
+        return new KingbaseColumnConverter(rowType, commonConf);
     }
 
     @Override

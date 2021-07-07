@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.kingbase.converter;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -41,6 +43,10 @@ public class KingbaseColumnConverter extends JdbcColumnConverter {
 
     public KingbaseColumnConverter(RowType rowType) {
         super(rowType);
+    }
+
+    public KingbaseColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     /**

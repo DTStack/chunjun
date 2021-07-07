@@ -45,7 +45,7 @@ public class KingbaseInputFormat extends JdbcInputFormat {
         RowType rowType =
                 TableUtil.createRowType(
                         columnNameList, columnTypeList, KingbaseRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
     }
 
     @Override

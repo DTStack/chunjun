@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.oracle;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -117,6 +120,13 @@ public class OracleDialect implements JdbcDialect {
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
             RowType rowType) {
         return new OracleColumnConverter(rowType);
+    }
+
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
+            RowType rowType,
+            FlinkxCommonConf commonConf) {
+        return  new OracleColumnConverter(rowType, commonConf);
     }
 
     /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */

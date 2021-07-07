@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.dm;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.dm.converter.DmColumnConverter;
 import com.dtstack.flinkx.connector.dm.converter.DmRowConverter;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
@@ -175,5 +176,12 @@ public class DmDialect implements JdbcDialect {
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
             RowType rowType) {
         return new DmColumnConverter(rowType);
+    }
+
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
+            RowType rowType,
+            FlinkxCommonConf commonConf) {
+        return new DmColumnConverter(rowType, commonConf);
     }
 }

@@ -22,6 +22,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -58,6 +59,18 @@ public class JdbcColumnConverter
         }
     }
 
+    public JdbcColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
+            toInternalConverters[i] =
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i)));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+        }
+    }
+
     @Override
     protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
             ISerializationConverter serializationConverter, LogicalType type) {
@@ -77,7 +90,7 @@ public class JdbcColumnConverter
             Object field = resultSet.getObject(i + 1);
             data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
         }
-        return data;
+        return loadConstantData(data, commonConf.getColumn());
     }
 
     @Override

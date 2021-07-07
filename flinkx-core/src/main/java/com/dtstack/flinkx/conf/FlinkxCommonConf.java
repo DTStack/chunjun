@@ -49,6 +49,8 @@ public class FlinkxCommonConf implements Serializable {
     private Integer parallelism = 1;
     /** table field column conf */
     private List<FieldConf> column;
+    /** Whether to include constants in user scripts */
+    private boolean hasConstantField = false;
     /** Number of batches written */
     private int batchSize = 1;
     /** Time when the timer is regularly written to the database */
@@ -126,6 +128,14 @@ public class FlinkxCommonConf implements Serializable {
         this.column = column;
     }
 
+    public boolean isHasConstantField() {
+        return hasConstantField;
+    }
+
+    public void setHasConstantField(boolean hasConstantField) {
+        this.hasConstantField = hasConstantField;
+    }
+
     public int getBatchSize() {
         return batchSize;
     }
@@ -154,6 +164,7 @@ public class FlinkxCommonConf implements Serializable {
                 ", checkFormat=" + checkFormat +
                 ", parallelism=" + parallelism +
                 ", column=" + column +
+                ", hasConstantField=" + hasConstantField +
                 ", batchSize=" + batchSize +
                 ", flushIntervalMills=" + flushIntervalMills +
                 '}';

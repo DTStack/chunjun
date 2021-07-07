@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.converter;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.StringColumn;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -27,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
+import java.util.List;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -48,6 +54,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     protected IDeserializationConverter[] toInternalConverters;
     protected ISerializationConverter[] toExternalConverters;
     protected LogicalType[] fieldTypes;
+    protected FlinkxCommonConf commonConf;
 
     public AbstractRowConverter() {}
 
@@ -58,6 +65,16 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
                 rowType.getFields().stream()
                         .map(RowType.RowField::getType)
                         .toArray(LogicalType[]::new);
+    }
+
+    public AbstractRowConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        this(rowType.getFieldCount());
+        this.rowType = checkNotNull(rowType);
+        this.fieldTypes =
+                rowType.getFields().stream()
+                        .map(RowType.RowField::getType)
+                        .toArray(LogicalType[]::new);
+        this.commonConf = commonConf;
     }
 
     public AbstractRowConverter(int converterSize) {
@@ -95,6 +112,34 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
 
     public RowData toInternalLookup(LookupT input) throws Exception {
         throw new RuntimeException("Subclass need rewriting");
+    }
+
+    /**
+     * Fill constant { "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
+     *
+     * @param rawRowData
+     * @param fieldConfList
+     *
+     * @return
+     */
+    protected RowData loadConstantData(RowData rawRowData, List<FieldConf> fieldConfList) {
+        if (commonConf.isHasConstantField()) {
+            ColumnRowData columnRowData = new ColumnRowData(fieldConfList.size());
+            int index = 0;
+            for (int i = 0; i < fieldConfList.size(); i++) {
+                String val = fieldConfList.get(i).getValue();
+                // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
+                if (val != null) {
+                    columnRowData.addField(new StringColumn(val, fieldConfList.get(i).getFormat()));
+                } else {
+                    columnRowData.addField(((ColumnRowData) rawRowData).getField(index));
+                    index++;
+                }
+            }
+            return columnRowData;
+        } else {
+            return rawRowData;
+        }
     }
 
     /**

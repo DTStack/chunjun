@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.saphana.converter;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -47,6 +49,10 @@ public class SaphanaColumnConverter
 
     public SaphanaColumnConverter(RowType rowType) {
         super(rowType);
+    }
+
+    public SaphanaColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     @Override

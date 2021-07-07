@@ -23,6 +23,7 @@ import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
@@ -78,6 +79,16 @@ public interface JdbcDialect extends Serializable {
     default AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
             getColumnConverter(RowType rowType) {
         return new JdbcColumnConverter(rowType);
+    }
+
+    /**
+     * ColumnConverter
+     *
+     * @return a row converter for the database
+     */
+    default AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        return new JdbcColumnConverter(rowType, commonConf);
     }
 
     /**

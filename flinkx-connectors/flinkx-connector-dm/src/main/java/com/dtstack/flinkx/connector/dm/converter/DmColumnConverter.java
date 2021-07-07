@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.dm.converter;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -46,6 +48,10 @@ public class DmColumnConverter
 
     public DmColumnConverter(RowType rowType) {
         super(rowType);
+    }
+
+    public DmColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     @Override

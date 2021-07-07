@@ -35,6 +35,6 @@ public class GBaseInputFormat extends JdbcInputFormat {
     public void openInternal(InputSplit inputSplit) {
         super.openInternal(inputSplit);
         RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, GBaseRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
     }
 }

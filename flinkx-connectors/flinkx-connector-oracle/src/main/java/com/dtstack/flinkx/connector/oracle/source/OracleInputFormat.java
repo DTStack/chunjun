@@ -38,6 +38,6 @@ public class OracleInputFormat extends JdbcInputFormat {
         RowType rowType =
                 TableUtil.createRowType(
                         columnNameList, columnTypeList, OracleRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
+        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
     }
 }

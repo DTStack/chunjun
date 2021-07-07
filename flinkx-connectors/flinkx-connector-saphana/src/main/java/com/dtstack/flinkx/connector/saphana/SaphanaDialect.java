@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.saphana;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -110,6 +112,12 @@ public class SaphanaDialect implements JdbcDialect {
         return new SaphanaColumnConverter(rowType);
     }
 
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
+            RowType rowType,
+            FlinkxCommonConf commonConf) {
+        return new SaphanaColumnConverter(rowType, commonConf);
+    }
 
     @Override
     public String getRowNumColumn(String orderBy) {

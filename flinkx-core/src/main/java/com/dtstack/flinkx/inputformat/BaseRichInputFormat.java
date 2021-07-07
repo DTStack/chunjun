@@ -32,17 +32,17 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.ByteRateLimiter;
+import com.dtstack.flinkx.util.ColumnBuildUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +52,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * FlinkX里面所有自定义inputFormat的抽象基类
@@ -102,8 +103,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     protected List<String> columnNameList = new ArrayList<>();
     /** A collection of field types filled in user scripts with constants removed */
     protected List<String> columnTypeList = new ArrayList<>();
-    /** Whether to include constants in user scripts */
-    protected boolean hasConstantField = false;
 
     @Override
     public final void configure(Configuration parameters) {
@@ -145,6 +144,10 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             initRestoreInfo();
             initialized = true;
         }
+        handColumnList(
+                config.getColumn(),
+                config.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList()),
+                config.getColumn().stream().map(FieldConf::getType).collect(Collectors.toList()));
 
         openInternal(inputSplit);
 
@@ -238,6 +241,23 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     }
 
     /**
+     * 同步任务如果用户配置了常量字段，则将其他非常量字段提取出来
+     *
+     * @param fieldList fieldList
+     * @param fullColumnList fullColumnList
+     * @param fullColumnTypeList fullColumnTypeList
+     */
+    protected void handColumnList(List<FieldConf> fieldList, List<String> fullColumnList, List<String> fullColumnTypeList) {
+        Pair<List<String>, List<String>> handleColumnList = ColumnBuildUtil.handleColumnList(
+                fieldList,
+                fullColumnList,
+                fullColumnTypeList,
+                config);
+        columnNameList = handleColumnList.getLeft();
+        columnTypeList = handleColumnList.getRight();
+    }
+
+    /**
      * 更新任务执行时间指标
      */
     private void updateDuration(){
@@ -311,32 +331,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             formatState.setMetric(inputMetric.getMetricCounters());
         }
         return formatState;
-    }
-
-    /**
-     * Fill constant { "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
-     * @param rawRowData
-     * @param fieldConfList
-     * @return
-     */
-    protected RowData loadConstantData(RowData rawRowData, List<FieldConf> fieldConfList) {
-        if(hasConstantField && rawRowData instanceof ColumnRowData){
-            ColumnRowData columnRowData = new ColumnRowData(fieldConfList.size());
-            int index = 0;
-            for (int i = 0; i < fieldConfList.size(); i++) {
-                String val = fieldConfList.get(i).getValue();
-                // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
-                if (val != null) {
-                    columnRowData.addField(new StringColumn(val, fieldConfList.get(i).getFormat()));
-                } else {
-                    columnRowData.addField(((ColumnRowData) rawRowData).getField(index));
-                    index++;
-                }
-            }
-            return columnRowData;
-        }else{
-            return rawRowData;
-        }
     }
 
     /**

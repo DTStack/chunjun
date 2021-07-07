@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.oracle.converter;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -56,6 +58,10 @@ public class OracleColumnConverter
 
     public OracleColumnConverter(RowType rowType) {
         super(rowType);
+    }
+
+    public OracleColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     @Override

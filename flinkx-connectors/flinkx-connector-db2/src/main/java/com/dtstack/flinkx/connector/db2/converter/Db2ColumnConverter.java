@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.db2.converter;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -44,6 +46,10 @@ public class Db2ColumnConverter extends JdbcColumnConverter {
 
     public Db2ColumnConverter(RowType rowType) {
         super(rowType);
+    }
+
+    public Db2ColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     /**

@@ -19,20 +19,14 @@
 package com.dtstack.flinkx.connector.jdbc.source;
 
 
-import com.dtstack.flinkx.connector.jdbc.util.SqlUtil;
-import com.google.common.collect.Lists;
-
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.connector.jdbc.util.SqlUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.element.ColumnRowData;
@@ -47,6 +41,8 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.math.BigInteger;
@@ -61,7 +57,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 /**
  * InputFormat for reading data from a database and generate Rows.
@@ -71,8 +66,6 @@ import java.util.function.Function;
  * @author huyifan.zju@163.com
  */
 public class JdbcInputFormat extends BaseRichInputFormat {
-
-
 
     public static final long serialVersionUID = 1L;
     protected static final int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
@@ -111,7 +104,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         try {
             dbConn = getConnection();
             dbConn.setAutoCommit(false);
-            initColumnList();
+
+            Pair<List<String>, List<String>> pair = getTableMetaData();
+            handColumnList(jdbcConf.getColumn(), pair.getLeft(), pair.getRight());
+
             querySQL = buildQuerySql(inputSplit);
             jdbcConf.setQuerySql(querySQL);
             executeQuery(((JdbcInputSplit) inputSplit).getStartLocation());
@@ -190,8 +186,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             // todo 抽到DB2插件里面
 //            updateColumnCount();
             @SuppressWarnings("unchecked")
-            RowData rawRowData = rowConverter.toInternal(resultSet);
-            RowData finalRowData = loadConstantData(rawRowData, jdbcConf.getColumn());
+            RowData finalRowData = rowConverter.toInternal(resultSet);
 
             boolean isUpdateLocation = jdbcConf.isPolling() || (jdbcConf.isIncrement() && !jdbcConf.isUseMaxFunc());
             if (isUpdateLocation) {
@@ -693,63 +688,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     /**
-     * init columnNameList、 columnTypeList and hasConstantField
-     */
-    protected void initColumnList() {
-        Pair<List<String>, List<String>> pair = getTableMetaData();
-
-        List<FieldConf> fieldList = jdbcConf.getColumn();
-        List<String> fullColumnList = pair.getLeft();
-        List<String> fullColumnTypeList = pair.getRight();
-        handleColumnList(fieldList, fullColumnList, fullColumnTypeList);
-    }
-
-    /**
      * for override. because some databases have case-sensitive metadata。
      * @return
      */
     protected Pair<List<String>, List<String>> getTableMetaData() {
         return JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-    }
-
-    /**
-     * detailed logic for handling column
-     * @param fieldList
-     * @param fullColumnList
-     * @param fullColumnTypeList
-     */
-    protected void handleColumnList(List<FieldConf> fieldList, List<String> fullColumnList, List<String> fullColumnTypeList) {
-        if(fieldList.size() == 1 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())){
-            columnNameList = fullColumnList;
-            columnTypeList = fullColumnTypeList;
-            return;
-        }
-
-        columnNameList = new ArrayList<>(fieldList.size());
-        columnTypeList = new ArrayList<>(fieldList.size());
-
-        for (FieldConf fieldConf : jdbcConf.getColumn()) {
-            if(fieldConf.getValue() == null){
-                boolean find = false;
-                String name = fieldConf.getName();
-                for (int i = 0; i <fullColumnList.size(); i++) {
-                    if(name.equalsIgnoreCase(fullColumnList.get(i))){
-                        columnNameList.add(name);
-                        columnTypeList.add(fullColumnTypeList.get(i));
-                        find = true;
-                        break;
-                    }
-                }
-                if(!find){
-                    throw new FlinkxRuntimeException(
-                            String.format(
-                                    "can not find field:[%s] in columnNameList:[%s]",
-                                    name, GsonUtil.GSON.toJson(fullColumnList)));
-                }
-            }else{
-                super.hasConstantField = true;
-            }
-        }
     }
 
     /**
