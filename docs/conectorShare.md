@@ -73,9 +73,22 @@
 <br />  
       
 - **服务器上运行:**
-    - 1.将需要的connector的jar包(包括原生jar和flinkx的jar)拷贝到flinkx/lib目录下,构建jobGraph使用
-    - 2.将需要的connector的jar包(包括原生jar和flinkx的jar)拷贝到flink/lib下
+    - 1.将需要的connector的jar包，和其他(包括flinkx-core-feat_1.12_pluginMerge.jar，如果kafka中用到了json也需要将json的format jar包)拷贝到flinkx/lib目录下,构建jobGraph使用
+    - 2.将需要的connector的jar包，和其他(包括flinkx-core-feat_1.12_pluginMerge.jar，如果kafka中用到了json也需要将json的format jar包)拷贝到flink/lib下
     - 3.在在flinkx/lib下目录下执行命令：
+      - local模式
+      ```shell
+      java -cp  "./*" com.dtstack.flinkx.client.Launcher \
+      -mode local \
+      -connectorLoadMode spi \
+      -jobType sql \
+      -jobName flink1.12_SPI \
+      -job /yourjobpath/sqlFile.sql \
+      -pluginRoot /flinkx/flinkxplugins
+      ```
+      ![conectorShare_local.png](images/conectorShare_local.png)
+        
+      - yarnPer模式
       ```shell
       java -cp  "./*" com.dtstack.flinkx.client.Launcher \
       -mode yarnPer \
@@ -89,6 +102,8 @@
       -flinkLibJar /yarn/lib \
       -queue default
       ```
+      ![conectorShare_yarnPer.png](images/conectorShare_yarnPer.png)
+      ![conectorShare_yarn.png](images/conectorShare_yarn.png)
 ## 在flinkSql中使用flinkX的connector
 - **本地调试**
     - 在自己项目中将对应的flink connector的GAV拷贝到pom.xml文件中
@@ -159,4 +174,4 @@
 <br />
       
 - **服务器上运行:**
-    - 将flink需要的connector和flinkX的flinkx-core-1.12.jar包和对应connector的jar引入到自己项目的pom中，将项目打成fat包，提交任务即可。
+    - 将flink需要的connector和flinkX的flinkx-core-feat_1.12_pluginMerge.jar包和对应connector的jar引入到自己项目的pom中，将项目打成fat包，提交任务即可。
