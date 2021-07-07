@@ -18,11 +18,14 @@
 
 package com.dtstack.flinkx.connector.mongodb.table.lookup;
 
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.flinkx.connector.mongodb.converter.MongodbRowConverter;
 import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.mongodb.BasicDBObject;
 import com.mongodb.Block;
 import com.mongodb.ConnectionString;
@@ -31,11 +34,6 @@ import com.mongodb.async.client.MongoClient;
 import com.mongodb.async.client.MongoClients;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
-
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.table.types.logical.RowType;
-
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,10 +116,5 @@ public class MongoLruTableFunction extends AbstractLruTableFunction {
         if (mongoClient != null) {
             mongoClient.close();
         }
-    }
-
-    @Override
-    protected RowData fillData(Object document) {
-        throw new FlinkxRuntimeException("NO USE !");
     }
 }

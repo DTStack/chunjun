@@ -40,7 +40,7 @@
 		<module>flinkx-connector-mongodb</module>
 		<module>flinkx-connector-solr</module>
 		<module>flinkx-connector-file</module>
-
+		<module>flinkx-connector-saphana</module>
 		<module>flinkx-connector-cassandra</module>
 		<module>flinkx-connector-kudu</module>
 
