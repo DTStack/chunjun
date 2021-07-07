@@ -18,21 +18,23 @@
 
 package com.dtstack.flinkx.converter;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.conf.FlinkxCommonConf;
-import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.StringColumn;
-
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.util.ColumnBuildUtil;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -98,29 +100,29 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         };
     }
 
-    protected ISerializationConverter wrapIntoNullableExternalConverter(
-            ISerializationConverter ISerializationConverter, T type){
-        return null;
-    }
-
     /**
-     * Convert data retrieved from {@link ResultSet} to internal {@link RowData}.
-     *
-     * @param input from JDBC
+     * 同步任务如果用户配置了常量字段，则将其他非常量字段提取出来
+     * @return Pair
      */
-    public abstract RowData toInternal(SourceT input) throws Exception;
-
-    public RowData toInternalLookup(LookupT input) throws Exception {
-        throw new RuntimeException("Subclass need rewriting");
+    protected Pair<List<String>, List<String>> getHandleColumnList() {
+        return ColumnBuildUtil.handleColumnList(
+                commonConf.getColumn(),
+                commonConf.getColumn().stream()
+                        .map(FieldConf::getName)
+                        .collect(Collectors.toList()),
+                commonConf.getColumn().stream()
+                        .map(FieldConf::getType)
+                        .collect(Collectors.toList()),
+                commonConf);
     }
 
     /**
      * Fill constant { "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
      *
-     * @param rawRowData
-     * @param fieldConfList
+     * @param rawRowData rawRowData
+     * @param fieldConfList fieldConfList
      *
-     * @return
+     * @return RowData
      */
     protected RowData loadConstantData(RowData rawRowData, List<FieldConf> fieldConfList) {
         if (commonConf.isHasConstantField()) {
@@ -142,20 +144,41 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         }
     }
 
+    protected ISerializationConverter wrapIntoNullableExternalConverter(
+            ISerializationConverter ISerializationConverter, T type){
+        return null;
+    }
+
+    /**
+     * Convert data retrieved from {@link ResultSet} to internal {@link RowData}.
+     *
+     * @param input from JDBC
+     */
+    public abstract RowData toInternal(SourceT input) throws Exception;
+
+    /**
+     *
+     * @param input input
+     * @return RowData
+     * @throws Exception Exception
+     */
+    public RowData toInternalLookup(LookupT input) throws Exception {
+        throw new RuntimeException("Subclass need rewriting");
+    }
     /**
      * BinaryRowData
      *
-     * @param rowData
-     * @param output
-     * @return
+     * @param rowData rowData
+     * @param output output
+     * @return return
      */
     public abstract SinkT toExternal(RowData rowData, SinkT output) throws Exception;
 
     /**
      * 将外部数据库类型转换为flink内部类型
      *
-     * @param type
-     * @return
+     * @param type type
+     * @return return
      */
     protected IDeserializationConverter createInternalConverter(T type){
         return null;
@@ -164,8 +187,8 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     /**
      * 将flink内部的数据类型转换为外部数据库系统类型
      *
-     * @param type
-     * @return
+     * @param type type
+     * @return return
      */
     protected ISerializationConverter createExternalConverter(T type){
         return null;

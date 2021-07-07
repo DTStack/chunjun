@@ -19,6 +19,7 @@ package com.dtstack.flinkx.connector.stream.converter;
 
 import org.apache.flink.table.data.RowData;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
@@ -46,8 +47,13 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
     private static final long serialVersionUID = 1L;
     private static final AtomicLong id = new AtomicLong(0L);
 
-    public StreamColumnConverter(List<String> typeList) {
-        super(typeList.size());
+    public StreamColumnConverter(FlinkxCommonConf commonConf) {
+        List<String> typeList = getHandleColumnList().getRight();
+
+        this.toInternalConverters = new IDeserializationConverter[typeList.size()];
+        this.toExternalConverters = new ISerializationConverter[typeList.size()];
+        this.commonConf = commonConf;
+
         for (int i = 0; i < typeList.size(); i++) {
             toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
             toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(typeList.get(i)), typeList.get(i));
@@ -111,7 +117,7 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
         for (int i = 0; i < toInternalConverters.length; i++) {
             data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(data));
         }
-        return data;
+        return loadConstantData(data, commonConf.getColumn());
     }
 
     @Override

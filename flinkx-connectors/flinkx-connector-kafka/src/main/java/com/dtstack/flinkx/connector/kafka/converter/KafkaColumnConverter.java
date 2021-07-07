@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.kafka.converter;
 
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -46,7 +45,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.dtstack.flinkx.connector.kafka.option.KafkaOptions.DEFAULT_CODEC;
 
@@ -64,9 +62,11 @@ public class KafkaColumnConverter
     private JsonDecoder jsonDecoder;
     /** kafka Conf */
     private final KafkaConf kafkaConf;
+    /** kafka no constant nameList */
+    private List<String> nameList;
 
     public KafkaColumnConverter(KafkaConf kafkaConf) {
-        this.kafkaConf = kafkaConf;
+        this.commonConf = this.kafkaConf = kafkaConf;
 
         this.jsonDecoder = new JsonDecoder();
 
@@ -79,10 +79,10 @@ public class KafkaColumnConverter
         // Only json need to extract the fields
         if (!CollectionUtils.isEmpty(kafkaConf.getColumn())
                 && DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
-            List<String> typeList =
-                    kafkaConf.getColumn().stream()
-                            .map(FieldConf::getType)
-                            .collect(Collectors.toList());
+
+            List<String> typeList = getHandleColumnList().getRight();
+            nameList = getHandleColumnList().getLeft();
+
             this.toInternalConverters = new IDeserializationConverter[typeList.size()];
             for (int i = 0; i < typeList.size(); i++) {
                 toInternalConverters[i] =
@@ -100,11 +100,11 @@ public class KafkaColumnConverter
             row.addField(new MapColumn(result));
         } else {
             row = new ColumnRowData(toInternalConverters.length);
-            List<FieldConf> column = kafkaConf.getColumn();
-            for (int i = 0; i < column.size(); i++) {
-                Object value = result.get(column.get(i).getName());
+            for (int i = 0; i < nameList.size(); i++) {
+                Object value = result.get(nameList.get(i));
                 row.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(value));
             }
+            return loadConstantData(row, kafkaConf.getColumn());
         }
         return row;
     }
