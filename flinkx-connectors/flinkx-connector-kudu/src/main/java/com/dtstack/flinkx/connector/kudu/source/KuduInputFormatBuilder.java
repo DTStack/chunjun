@@ -22,6 +22,7 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.throwable.NoRestartException;
 
 import java.util.List;
 
@@ -48,17 +49,22 @@ public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder {
         List<FieldConf> columns = sourceConf.getColumn();
 
         String masters = sourceConf.getMasters();
+        StringBuilder sb = new StringBuilder(256);
 
         if (columns == null || columns.size() == 0) {
-            throw new IllegalArgumentException("Columns can not be empty.");
+            sb.append("Columns can not be empty.\n");
         }
 
         if (sourceConf.getBatchSizeBytes() > ConstantValue.STORE_SIZE_G) {
-            throw new IllegalArgumentException("BatchSizeBytes must be less than 1G");
+            sb.append("BatchSizeBytes must be less than 1G.\n");
         }
 
         if (masters == null || masters.isEmpty()) {
-            throw new IllegalArgumentException("Kudu masterAddress can not be empty");
+            sb.append("Kudu masterAddress can not be empty.\n");
+        }
+
+        if (sb.length() > 0) {
+            throw new NoRestartException(sb.toString());
         }
     }
 }

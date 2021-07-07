@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.kudu.sink;
 
 import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.throwable.NoRestartException;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -42,9 +43,14 @@ public class KuduOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     @Override
     protected void checkFormat() {
         KuduSinkConf sinkConf = format.getKuduSinkConf();
+        StringBuilder sb = new StringBuilder(256);
 
         if (StringUtils.isBlank(sinkConf.getMasters())) {
-            throw new IllegalArgumentException("Kudu Masters can not be empty.");
+            sb.append("Kudu Masters can not be empty.\n");
+        }
+
+        if (sb.length() > 0) {
+            throw new NoRestartException(sb.toString());
         }
     }
 }
