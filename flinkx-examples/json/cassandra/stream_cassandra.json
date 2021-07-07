@@ -26,9 +26,11 @@
                 "type": "date"
               }
             ],
-            "host": "172.16.100.238",
-            "port": 31802,
-            "tableName": "two",
+            "host": "ip1,ip2,ip3",
+            "port": 9042,
+            "userName": "cassandra",
+            "password": "xxxxxxxxx",
+            "tableName": "one",
             "keyspaces": "tiezhu"
           },
           "name": "cassandrasink"

@@ -8,11 +8,11 @@ CREATE TABLE source_one
     PROCTIME AS PROCTIME()
 ) WITH (
       'connector' = 'cassandra-x',
-      'host' = '172.16.100.238,172.16.100.244,172.16.100.67',
+      'host' = 'ip1,ip2,ip3',
       'port' = '9042',
       'hostDistance' = 'local',
       'user-name' = 'cassandra',
-      'password' = 'cassandra',
+      'password' = 'xxxxxxxx',
       'table-name' = 'one',
       'keyspaces' = 'tiezhu'
       );
@@ -28,10 +28,11 @@ CREATE TABLE side_one
     PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
       'connector' = 'cassandra-x',
-      'host' = '172.16.100.238,172.16.100.244,172.16.100.67',
+      'host' = 'ip1,ip2,ip3',
       'port' = '9042',
+      'hostDistance' = 'local',
       'user-name' = 'cassandra',
-      'password' = 'cassandra',
+      'password' = 'xxxxxxxx',
       'table-name' = 'one',
       'keyspaces' = 'tiezhu',
       'lookup.cache-type' = 'all'

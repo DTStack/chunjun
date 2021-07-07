@@ -7,13 +7,13 @@ CREATE TABLE source_one
     todayDate date
 ) WITH (
       'connector' = 'cassandra-x',
-      'host' = '172.16.100.238,172.16.100.244,172.16.100.67',
+      'host' = 'ip1,ip2,ip3',
       'port' = '9042',
       'hostDistance' = 'local',
       'user-name' = 'cassandra',
-      'password' = 'cassandra',
+      'password' = 'xxxxxxxx',
       'table-name' = 'one',
-      'keyspaces' = 'tiezhu'
+      'keyspaces' = 'tiezhu',
       );
 
 CREATE TABLE sink_one
