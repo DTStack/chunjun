@@ -26,8 +26,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -150,16 +152,14 @@ public class SqlserverDialect implements JdbcDialect {
      * @return
      */
     public List<String> getUpdateColumns(String[] fieldNames, String[] uniqueKeyFields){
-       List<String> list = new ArrayList<>();
-       for(String uniqueKeyField : uniqueKeyFields){
-           for(String fieldsName : fieldNames){
-               if (!uniqueKeyField.equalsIgnoreCase(fieldsName)){
-                   list.add(fieldsName);
-                   break;
-               }
-           }
-       }
-       return list;
+        Set<String> uni = new HashSet<>(Arrays.asList(uniqueKeyFields));
+        List<String> updateColumns = new ArrayList<>();
+        for (String col : fieldNames) {
+            if(!uni.contains(col)){
+                updateColumns.add(col);
+            }
+        }
+        return updateColumns;
     }
 
     public String getUpdateFilterSql(String[] uniqueKeyFields){

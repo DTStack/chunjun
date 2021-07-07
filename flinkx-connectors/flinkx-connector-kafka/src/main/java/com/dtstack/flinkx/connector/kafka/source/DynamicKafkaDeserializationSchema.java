@@ -19,14 +19,13 @@
 package com.dtstack.flinkx.connector.kafka.source;
 
 
-import com.dtstack.flinkx.metrics.MetricConstant;
+import com.dtstack.flinkx.restore.FormatState;
 
+import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.metrics.Counter;
-import org.apache.flink.metrics.Meter;
-import org.apache.flink.metrics.MeterView;
+import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
 import org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicSource;
@@ -37,6 +36,12 @@ import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
+import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.JsonUtil;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +49,12 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /** A specific {@link KafkaSerializationSchema} for {@link KafkaDynamicSource}. */
 class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<RowData> {
@@ -70,23 +78,28 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     private final boolean upsertMode;
 
+
     private static int dataPrintFrequency = 1000;
-
-    protected transient Counter dirtyDataCounter;
-
-    /** tps ransactions Per Second */
-    protected transient Counter numInRecord;
-
-    protected transient Meter numInRate;
-
-    /** rps Record Per Second: deserialize data and out record num */
-    protected transient Counter numInResolveRecord;
-
-    protected transient Meter numInResolveRate;
-
-    protected transient Counter numInBytes;
-
-    protected transient Meter numInBytesRate;
+    /** 任务名称 */
+    protected String jobName = "defaultJobName";
+    /** 任务id */
+    protected String jobId;
+    /** 任务索引id */
+    protected int indexOfSubTask;
+    /** 任务开始时间, openInputFormat()开始计算 */
+    protected Properties consumerConfig;
+    /** 任务开始时间, openInputFormat()开始计算 */
+    protected long startTime;
+    /** 累加器收集器 */
+    protected AccumulatorCollector accumulatorCollector;
+    /** 输入指标组 */
+    protected transient BaseMetric inputMetric;
+    /** checkpoint状态缓存map */
+    protected FormatState formatState;
+    /** 统计指标 */
+    protected LongCounter numReadCounter;
+    protected LongCounter bytesReadCounter;
+    protected LongCounter durationCounter;
 
     private transient RuntimeContext runtimeContext;
 
@@ -120,28 +133,27 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         this.upsertMode = upsertMode;
     }
 
+    protected void beforeOpen() {
+        initAccumulatorCollector();
+        initStatisticsAccumulator();
+        initRestoreInfo();
+        openInputFormat();
+
+        LOG.info(
+                "[{}] open successfully, \ninputSplit = {}, \n[{}]: \n{} ",
+                this.getClass().getSimpleName(),
+                "see other log",
+                consumerConfig.getClass().getSimpleName(),
+                JsonUtil.toFormatJson(consumerConfig));
+    }
+
     @Override
     public void open(DeserializationSchema.InitializationContext context) throws Exception {
+        beforeOpen();
         if (keyDeserialization != null) {
             keyDeserialization.open(context);
         }
         valueDeserialization.open(context);
-    }
-
-    /**
-     * 指标初始化
-     */
-    public void initMetric() {
-        dirtyDataCounter = runtimeContext.getMetricGroup().counter(MetricConstant.DT_DIRTY_DATA_COUNTER);
-
-        numInRecord = runtimeContext.getMetricGroup().counter(MetricConstant.DT_NUM_RECORDS_IN_COUNTER);
-        numInRate = runtimeContext.getMetricGroup().meter(MetricConstant.DT_NUM_RECORDS_IN_RATE, new MeterView(numInRecord, 20));
-
-        numInBytes = runtimeContext.getMetricGroup().counter(MetricConstant.DT_NUM_BYTES_IN_COUNTER);
-        numInBytesRate = runtimeContext.getMetricGroup().meter(MetricConstant.DT_NUM_BYTES_IN_RATE, new MeterView(numInBytes, 20));
-
-        numInResolveRecord = runtimeContext.getMetricGroup().counter(MetricConstant.DT_NUM_RECORDS_RESOVED_IN_COUNTER);
-        numInResolveRate = runtimeContext.getMetricGroup().meter(MetricConstant.DT_NUM_RECORDS_RESOVED_IN_RATE, new MeterView(numInResolveRecord, 20));
     }
 
     @Override
@@ -150,16 +162,24 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
     }
 
     @Override
-    public RowData deserialize(ConsumerRecord<byte[], byte[]> record) throws Exception {
+    public RowData deserialize(ConsumerRecord<byte[], byte[]> record) {
         throw new IllegalStateException("A collector is required for deserializing.");
     }
 
-    protected void beforeDeserialize(ConsumerRecord<byte[], byte[]> record) throws UnsupportedEncodingException {
-        if (numInRecord.getCount() % dataPrintFrequency == 0) {
-            LOG.info("receive source data:" + new String(record.value(), "UTF-8"));
+    protected void beforeDeserialize(ConsumerRecord<byte[], byte[]> record) {
+        if (numReadCounter.getLocalValue() % dataPrintFrequency == 0) {
+            LOG.info("receive source data:" + new String(record.value(), StandardCharsets.UTF_8));
         }
-        numInRecord.inc();
-        numInBytes.inc(record.value().length);
+
+        if(record != null){
+            updateDuration();
+            if (numReadCounter != null) {
+                numReadCounter.add(1);
+            }
+            if (bytesReadCounter != null) {
+                bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(record));
+            }
+        }
     }
 
     @Override
@@ -171,7 +191,6 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             // also not for a cartesian product with the keys
             if (keyDeserialization == null && !hasMetadata) {
                 valueDeserialization.deserialize(record.value(), collector);
-                numInResolveRecord.inc();
                 return;
             }
 
@@ -189,7 +208,6 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
                 outputCollector.collect(null);
             } else {
                 valueDeserialization.deserialize(record.value(), outputCollector);
-                numInResolveRecord.inc();
             }
             keyCollector.buffer.clear();
         } catch (Exception e) {
@@ -198,13 +216,10 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         }
     }
 
-    protected void dirtyDataCounter(ConsumerRecord<byte[], byte[]> record, Exception e) throws UnsupportedEncodingException {
+    protected void dirtyDataCounter(ConsumerRecord<byte[], byte[]> record, Exception e) {
         // add metric of dirty data
-        if (dirtyDataCounter.getCount() % dataPrintFrequency == 0) {
-            LOG.info("dirtyData: " + new String(record.value(), "UTF-8"));
-            LOG.error("data parse error", e);
-        }
-        dirtyDataCounter.inc();
+        LOG.error("data parse error:{} ,dirtyData:{}",
+                ExceptionUtil.getErrorMessage(e), new String(record.value(), StandardCharsets.UTF_8));
     }
 
     @Override
@@ -218,6 +233,107 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     public void setRuntimeContext(RuntimeContext runtimeContext) {
         this.runtimeContext = runtimeContext;
+    }
+
+    public void setConsumerConfig(Properties consumerConfig) {
+        this.consumerConfig = consumerConfig;
+    }
+
+    public void setFormatState(FormatState formatState) {
+        this.formatState = formatState;
+    }
+
+    /**
+     * 更新checkpoint状态缓存map
+     * @return
+     */
+    public FormatState getFormatState() {
+        if (formatState != null && numReadCounter != null && inputMetric!= null) {
+            formatState.setMetric(inputMetric.getMetricCounters());
+        }
+        return formatState;
+    }
+
+    /**
+     * 更新任务执行时间指标
+     */
+    private void updateDuration(){
+        if (durationCounter != null) {
+            durationCounter.resetLocal();
+            durationCounter.add(System.currentTimeMillis() - startTime);
+        }
+    }
+
+    /**
+     * 初始化累加器收集器
+     */
+    private void initAccumulatorCollector(){
+        String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, runtimeContext.getIndexOfThisSubtask());
+        String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, runtimeContext.getIndexOfThisSubtask());
+
+        accumulatorCollector = new AccumulatorCollector((StreamingRuntimeContext)runtimeContext,
+                Arrays.asList(Metrics.NUM_READS,
+                        Metrics.READ_BYTES,
+                        Metrics.READ_DURATION,
+                        Metrics.WRITE_BYTES,
+                        Metrics.NUM_WRITES,
+                        lastWriteLocation,
+                        lastWriteNum));
+        accumulatorCollector.start();
+    }
+
+    /**
+     * 初始化累加器指标
+     */
+    private void initStatisticsAccumulator(){
+        numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
+        bytesReadCounter = getRuntimeContext().getLongCounter(Metrics.READ_BYTES);
+        durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
+
+        inputMetric = new BaseMetric(getRuntimeContext());
+        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter, true);
+        inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter, true);
+        inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
+    }
+
+    /**
+     * 从checkpoint状态缓存map中恢复上次任务的指标信息
+     */
+    private void initRestoreInfo(){
+        if(formatState == null){
+            formatState = new FormatState(indexOfSubTask, null);
+        } else {
+            numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
+            bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
+            durationCounter.add(formatState.getMetricValue(Metrics.READ_DURATION));
+        }
+    }
+
+    private void openInputFormat() {
+        Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
+        if(vars != null){
+            jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");
+            jobId = vars.get(Metrics.JOB_NAME);
+            indexOfSubTask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
+        }
+
+        startTime = System.currentTimeMillis();
+    }
+
+    protected void close() {
+        if(durationCounter != null){
+            updateDuration();
+        }
+
+        if(accumulatorCollector != null){
+            accumulatorCollector.close();
+        }
+
+        if(inputMetric != null){
+            inputMetric.waitForReportMetrics();
+        }
+
+        LOG.info("subtask input close finished");
     }
 
     // --------------------------------------------------------------------------------------------

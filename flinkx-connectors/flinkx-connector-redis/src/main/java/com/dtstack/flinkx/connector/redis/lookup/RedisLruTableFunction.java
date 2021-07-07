@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.connector.redis.lookup;
 
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+
+import org.apache.flink.shaded.curator4.com.google.common.collect.Lists;
+
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.connector.redis.connection.RedisAsyncClient;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -30,12 +35,6 @@ import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisHashAsyncCommands;
 import io.lettuce.core.api.async.RedisKeyAsyncCommands;
 import org.apache.commons.collections.MapUtils;
-
-import org.apache.flink.shaded.curator4.com.google.common.collect.Lists;
-
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +82,7 @@ public class RedisLruTableFunction extends AbstractLruTableFunction {
                         List<Map<String, String>> cacheContent = Lists.newArrayList();
                         List<RowData> rowList = Lists.newArrayList();
                         try {
-                            RowData rowData = fillData(resultValues);
+                            RowData rowData = rowConverter.toInternalLookup(resultValues);
                             if (openCache()) {
                                 cacheContent.add(resultValues);
                             }
@@ -111,11 +110,6 @@ public class RedisLruTableFunction extends AbstractLruTableFunction {
         StringBuilder keyBuilder = new StringBuilder(redisConf.getTableName());
         keyBuilder.append("_").append(super.buildCacheKey(keys));
         return keyBuilder.toString();
-    }
-
-    @Override
-    protected RowData fillData(Object sideInput) throws Exception {
-        return rowConverter.toInternalLookup(sideInput);
     }
 
     @Override

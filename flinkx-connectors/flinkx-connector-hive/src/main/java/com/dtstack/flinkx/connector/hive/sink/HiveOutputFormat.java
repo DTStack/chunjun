@@ -205,7 +205,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         //set metric after preCommit
         snapshotWriteCounter.add(rowsOfCurrentTransaction);
         rowsOfCurrentTransaction = 0;
-        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setNumberWrite(numWriteCounter.getLocalValue());
         formatState.setMetric(outputMetric.getMetricCounters());
         formatState.setState(new HiveFormatState(formatStateMap));
         flushEnable.compareAndSet(true, false);

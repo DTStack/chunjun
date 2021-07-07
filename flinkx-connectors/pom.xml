@@ -40,7 +40,8 @@
 		<module>flinkx-connector-mongodb</module>
 		<module>flinkx-connector-solr</module>
 		<module>flinkx-connector-file</module>
-		
+		<module>flinkx-connector-saphana</module>
+
 		<!--CDC-->
 		<module>flinkx-connector-restapi</module>
 		<module>flinkx-connector-socket</module>
