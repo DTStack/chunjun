@@ -53,6 +53,8 @@ public class FlinkxCommonConf implements Serializable {
     private int batchSize = 1;
     /** Time when the timer is regularly written to the database */
     private long flushIntervalMills = 10000L;
+    /** cp path */
+    private String restorePath;
 
     public long getSpeedBytes() {
         return speedBytes;
@@ -142,6 +144,14 @@ public class FlinkxCommonConf implements Serializable {
         this.flushIntervalMills = flushIntervalMills;
     }
 
+    public String getRestorePath() {
+        return restorePath;
+    }
+
+    public void setRestorePath(String restorePath) {
+        this.restorePath = restorePath;
+    }
+
     @Override
     public String toString() {
         return "FlinkxCommonConf{" +
@@ -156,6 +166,7 @@ public class FlinkxCommonConf implements Serializable {
                 ", column=" + column +
                 ", batchSize=" + batchSize +
                 ", flushIntervalMills=" + flushIntervalMills +
+                ", restorePath=" + restorePath +
                 '}';
     }
 }

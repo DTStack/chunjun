@@ -52,7 +52,6 @@ public abstract class SinkFactory implements RawTypeConvertible {
     protected TypeInformation<RowData> typeInformation;
     protected boolean useAbstractBaseColumn = true;
 
-    @SuppressWarnings("unchecked")
     public SinkFactory(SyncConf syncConf) {
         // 脏数据记录reader中的字段信息
         List<FieldConf> fieldList = syncConf.getWriter().getFieldList();
@@ -61,8 +60,7 @@ public abstract class SinkFactory implements RawTypeConvertible {
         }
         this.syncConf = syncConf;
 
-        if (syncConf.getTransformer() == null
-                || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
+        if (syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
         } else {
             typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter());
@@ -78,22 +76,19 @@ public abstract class SinkFactory implements RawTypeConvertible {
      */
     public abstract DataStreamSink<RowData> createSink(DataStream<RowData> dataSet);
 
-    @SuppressWarnings("unchecked")
-    protected DataStreamSink<RowData> createOutput(
-            DataStream<RowData> dataSet, OutputFormat outputFormat, String sinkName) {
+    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat<RowData> outputFormat, String sinkName) {
         Preconditions.checkNotNull(dataSet);
         Preconditions.checkNotNull(sinkName);
         Preconditions.checkNotNull(outputFormat);
 
-        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
+        DtOutputFormatSinkFunction<RowData> sinkFunction = new DtOutputFormatSinkFunction<>(outputFormat);
         DataStreamSink<RowData> dataStreamSink = dataSet.addSink(sinkFunction);
         dataStreamSink.name(sinkName);
 
         return dataStreamSink;
     }
 
-    protected DataStreamSink<RowData> createOutput(
-            DataStream<RowData> dataSet, OutputFormat outputFormat) {
+    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat<RowData> outputFormat) {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
