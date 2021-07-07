@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.kudu.lookup;
 
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+
 import com.dtstack.flinkx.connector.kudu.conf.KuduCommonConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduLookupConf;
 import com.dtstack.flinkx.connector.kudu.util.KuduUtil;
@@ -31,11 +34,6 @@ import com.google.common.collect.Maps;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
 import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.util.Preconditions;
-
 import org.apache.kudu.ColumnSchema;
 import org.apache.kudu.Schema;
 import org.apache.kudu.client.AsyncKuduClient;
@@ -135,16 +133,10 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
             }
         }
 
-        if (Objects.nonNull(kuduTable)) {
-            kuduTable = null;
-        }
-
-        if (Objects.nonNull(scannerBuilder)) {
-            scannerBuilder = null;
-        }
+        kuduTable = null;
+        scannerBuilder = null;
     }
 
-    // TODO 1. 命名 2. 内部逻辑调整
     private void getKudu() throws IOException {
         checkKuduTable();
         scannerBuilder = client.newScannerBuilder(kuduTable);
@@ -219,12 +211,6 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
         }
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    protected RowData fillData(Object sideInput) throws Exception {
-        return rowConverter.toInternalLookup(sideInput);
-    }
-
     class GetListRowCB implements Callback<Deferred<List<RowData>>, RowResultIterator> {
         private final List<Map<String, Object>> cacheContent;
         private final List<RowData> rowDataList;
@@ -246,6 +232,7 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Deferred<List<RowData>> call(RowResultIterator results) throws Exception {
             for (RowResult result : results) {
                 Map<String, Object> oneRow = Maps.newHashMap();
@@ -258,7 +245,7 @@ public class KuduLruTableFunction extends AbstractLruTableFunction {
                     }
                 }
 
-                RowData rowData = fillData(result);
+                RowData rowData = rowConverter.toInternalLookup(result);
                 if (openCache()) {
                     cacheContent.add(oneRow);
                 }

@@ -18,43 +18,30 @@
 
 package com.dtstack.flinkx.connector.cassandra.util;
 
-import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.HostDistance;
-import com.datastax.driver.core.LocalDate;
 import com.datastax.driver.core.PoolingOptions;
-import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
-import com.dtstack.flinkx.connector.cassandra.CassandraConstants;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraCommonConf;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
 import com.dtstack.flinkx.connector.cassandra.source.CassandraInputSplit;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
+
 import org.apache.flink.core.io.InputSplit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.sql.Time;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * @author tiezhu
@@ -62,6 +49,12 @@ import java.util.UUID;
  */
 public class CassandraService {
     private static final Logger LOG = LoggerFactory.getLogger(CassandraService.class);
+
+    private static final String TOKEN = "token(";
+
+    private static final String RANDOM_PARTITIONER = "RandomPartitioner";
+
+    private static final String MURMUR3_PARTITIONER = "Murmur3Partitioner";
 
     /**
      * Build cassandra session.
@@ -209,180 +202,6 @@ public class CassandraService {
     }
 
     /**
-     * 从cassandra中获取数据
-     *
-     * @param row 一行数据
-     * @param type 字段类型
-     * @param columnName 字段名
-     * @return 返回该字段对应的值
-     */
-    public static Object getData(Row row, DataType type, String columnName) {
-        Object value = null;
-
-        try {
-            if (type == DataType.bigint()) {
-                value = row.getLong(columnName);
-            } else if (type == DataType.cboolean()) {
-                value = row.getBool(columnName);
-            } else if (type == DataType.blob()) {
-                value = row.getBytes(columnName).array();
-            } else if (type == DataType.timestamp()) {
-                value = row.getTimestamp(columnName);
-            } else if (type == DataType.decimal()) {
-                value = row.getDecimal(columnName);
-            } else if (type == DataType.cfloat()) {
-                value = row.getFloat(columnName);
-            } else if (type == DataType.inet()) {
-                value = row.getInet(columnName).getHostAddress();
-            } else if (type == DataType.cint()) {
-                value = row.getInt(columnName);
-            } else if (type == DataType.varchar()) {
-                value = row.getString(columnName);
-            } else if (type == DataType.uuid() || type == DataType.timeuuid()) {
-                value = row.getUUID(columnName).toString();
-            } else if (type == DataType.varint()) {
-                value = row.getVarint(columnName);
-            } else if (type == DataType.cdouble()) {
-                value = row.getDouble(columnName);
-            } else if (type == DataType.text()) {
-                value = row.getString(columnName);
-            } else if (type == DataType.ascii()) {
-                value = row.getString(columnName);
-            } else if (type == DataType.smallint()) {
-                value = row.getShort(columnName);
-            } else if (type == DataType.tinyint()) {
-                value = row.getByte(columnName);
-            } else if (type == DataType.date()) {
-                value = row.getDate(columnName).getMillisSinceEpoch();
-            } else if (type == DataType.time()) {
-                value = row.getTime(columnName);
-            }
-        } catch (Exception e) {
-            LOG.info("获取'{}'值发生异常：{}", columnName, e);
-        }
-
-        if (value == null) {
-            LOG.info("Column '{}' Type({}) get cassandra data is NULL.", columnName, type);
-        }
-        return value;
-    }
-
-    /**
-     * 对象转byte[]
-     *
-     * @param obj 对象实例
-     * @param <T> 对象类型
-     * @return Optional<byte[]>
-     */
-    private static <T> Optional<byte[]> objectToBytes(T obj) {
-        byte[] bytes = null;
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ObjectOutputStream sOut;
-        try {
-            sOut = new ObjectOutputStream(out);
-            sOut.writeObject(obj);
-            sOut.flush();
-            bytes = out.toByteArray();
-        } catch (IOException e) {
-            LOG.warn(
-                    "object convent byte[] failed, error info {}",
-                    ExceptionUtil.getErrorMessage(e),
-                    e);
-        }
-        return Optional.ofNullable(bytes);
-    }
-
-    /**
-     * 设置值到对应的pos上
-     *
-     * @param ps preStatement
-     * @param pos 位置
-     * @param sqlType cql类型
-     * @param value 值
-     * @throws Exception 对于不支持的数据类型，抛出异常
-     */
-    public static void bindColumn(BoundStatement ps, int pos, DataType sqlType, Object value)
-            throws Exception {
-        if (value != null) {
-            switch (sqlType.getName()) {
-                case ASCII:
-                case TEXT:
-                case VARCHAR:
-                    ps.setString(pos, (String) value);
-                    break;
-
-                case BLOB:
-                    ps.setBytes(
-                            pos,
-                            ByteBuffer.wrap(objectToBytes(value).orElseGet(() -> new byte[8])));
-                    break;
-
-                case BOOLEAN:
-                    ps.setBool(pos, (Boolean) value);
-                    break;
-
-                case TINYINT:
-                    ps.setByte(pos, ((Integer) value).byteValue());
-                    break;
-
-                case SMALLINT:
-                    ps.setShort(pos, ((Integer) value).shortValue());
-                    break;
-
-                case INT:
-                    ps.setInt(pos, (Integer) value);
-                    break;
-
-                case BIGINT:
-                    ps.setLong(pos, (Long) value);
-                    break;
-
-                case VARINT:
-                    ps.setVarint(pos, BigInteger.valueOf((Long) value));
-                    break;
-
-                case FLOAT:
-                    ps.setFloat(pos, (Float) value);
-                    break;
-
-                case DOUBLE:
-                    ps.setDouble(pos, (Double) value);
-                    break;
-
-                case DECIMAL:
-                    ps.setDecimal(pos, (BigDecimal) value);
-                    break;
-
-                case DATE:
-                    ps.setDate(pos, LocalDate.fromMillisSinceEpoch(((Date) value).getTime()));
-                    break;
-
-                case TIME:
-                    ps.setTime(pos, ((Time) value).getTime());
-                    break;
-
-                case TIMESTAMP:
-                    ps.setTimestamp(pos, (Date) value);
-                    break;
-
-                case UUID:
-                case TIMEUUID:
-                    ps.setUUID(pos, UUID.fromString((String) value));
-                    break;
-
-                case INET:
-                    ps.setInet(pos, InetAddress.getByName((String) value));
-                    break;
-
-                default:
-                    throw new RuntimeException("暂不支持该数据类型: " + sqlType);
-            }
-        } else {
-            ps.setToNull(pos);
-        }
-    }
-
-    /**
      * 分割任务
      *
      * @param minNumSplits 分片数
@@ -401,13 +220,13 @@ public class CassandraService {
             return splits.toArray(new CassandraInputSplit[0]);
         }
 
-        if (where != null && where.toLowerCase().contains(CassandraConstants.TOKEN)) {
+        if (where != null && where.toLowerCase().contains(TOKEN)) {
             splits.add(new CassandraInputSplit());
             return splits.toArray(new CassandraInputSplit[0]);
         }
         Session session = CassandraService.session(sourceConf);
         String partitioner = session.getCluster().getMetadata().getPartitioner();
-        if (partitioner.endsWith(CassandraConstants.RANDOM_PARTITIONER)) {
+        if (partitioner.endsWith(RANDOM_PARTITIONER)) {
             BigDecimal minToken = BigDecimal.valueOf(-1);
             BigDecimal maxToken = new BigDecimal(new BigInteger("2").pow(127));
             BigDecimal step =
@@ -425,7 +244,7 @@ public class CassandraService {
                 }
                 splits.add(new CassandraInputSplit(l.toString(), r.toString()));
             }
-        } else if (partitioner.endsWith(CassandraConstants.MURMUR3_PARTITIONER)) {
+        } else if (partitioner.endsWith(MURMUR3_PARTITIONER)) {
             BigDecimal minToken = BigDecimal.valueOf(Long.MIN_VALUE);
             BigDecimal maxToken = BigDecimal.valueOf(Long.MAX_VALUE);
             BigDecimal step =
