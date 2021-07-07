@@ -19,39 +19,44 @@ kudu主流版本
 - **masters**
     - 描述：kudu的IP地址和端口
     - 必选：是
+    - 参数类型：string
     - 默认值：无
       <br />
 
 - **table**
     - 描述：要写入kudu表名
     - 必选：是
+    - 参数类型：string
     - 默认值：无
       <br />
 
 - **workerCount**
     - 描述：kudu worker的数量
     - 必选：否
+    - 参数类型：int
     - 默认值：2
       <br />
 
 - **operationTimeout**
     - 描述：kudu operation超时时间
     - 必选：否
+    - 参数类型：int
     - 默认值：30 * 1000（30秒）
       <br />
 
 - **adminOperationTimeout**
     - 描述：admin operation 的超时时间
     - 必选：否
+    - 参数类型：int
     - 默认值：30 * 1000（30秒）
       <br />
 
 - **queryTimeout**
     - 描述：query operation 的超时时间
     - 必选：否
+    - 参数类型：int
     - 默认值：30 * 1000（30秒）
       <br />
-
 
 - **column**
     - 描述：需要读取的字段。
@@ -96,36 +101,42 @@ kudu主流版本
 - **masters**
     - 描述：kudu的IP地址和端口
     - 必选：是
+    - 参数类型：string
     - 默认值：无
       <br />
 
 - **table**
     - 描述：要写入kudu表名
     - 必选：是
+    - 参数类型：string
     - 默认值：无
       <br />
 
 - **workerCount**
     - 描述：kudu worker的数量
     - 必选：否
+    - 参数类型：int
     - 默认值：2
       <br />
 
 - **operationTimeout**
     - 描述：kudu operation超时时间
     - 必选：否
+    - 参数类型：int
     - 默认值：30 * 1000（30秒）
       <br />
 
 - **adminOperationTimeout**
     - 描述：admin operation 的超时时间
     - 必选：否
+    - 参数类型：int
     - 默认值：30 * 1000（30秒）
       <br />
 
 - **queryTimeout**
     - 描述：query operation 的超时时间
     - 必选：否
+    - 参数类型：int
     - 默认值：30 * 1000（30秒）
       <br />
 
