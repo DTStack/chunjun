@@ -78,13 +78,7 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
             if(StringUtils.isBlank(conf.getSplitPk())){
                 sb.append("Must specify the split column when the channel is greater than 1;\n");
             }else{
-                FieldConf field = null;
-                for (FieldConf fieldConf : conf.getColumn()) {
-                    if(conf.getSplitPk().equalsIgnoreCase(fieldConf.getName())){
-                        field = fieldConf;
-                        break;
-                    }
-                }
+                FieldConf field = FieldConf.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
                 if(field == null){
                     sb.append("split column must in columns;\n");
                 }else if(!ColumnType.isNumberType(field.getType())){

@@ -33,6 +33,7 @@ import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
 import com.dtstack.flinkx.connector.hive.conf.HiveConf;
 import com.dtstack.flinkx.connector.hive.options.HiveOptions;
 import com.dtstack.flinkx.connector.hive.sink.HiveDynamicTableSink;
+import com.dtstack.flinkx.sink.options.SinkOptions;
 import com.dtstack.flinkx.table.options.BaseFileOptions;
 import com.dtstack.flinkx.util.JsonUtil;
 
@@ -73,6 +74,8 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> options = new HashSet<>(32);
+        options.add(SinkOptions.SINK_PARALLELISM);
+
         options.add(BaseFileOptions.FILE_NAME);
         options.add(BaseFileOptions.WRITE_MODE);
         options.add(BaseFileOptions.COMPRESS);
@@ -111,6 +114,7 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
 
     private HiveConf getHiveConf(ReadableConfig config){
         HiveConf hiveConf = new HiveConf();
+        hiveConf.setParallelism(config.get(SinkOptions.SINK_PARALLELISM));
 
         hiveConf.setPath(config.get(BaseFileOptions.PATH));
         hiveConf.setFileName(config.get(BaseFileOptions.FILE_NAME));
