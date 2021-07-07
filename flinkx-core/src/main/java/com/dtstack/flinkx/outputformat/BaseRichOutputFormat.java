@@ -340,7 +340,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 errorRatio = (double) config.getErrorPercentage();
             }
             errorLimiter = new ErrorLimiter(accumulatorCollector, config.getErrorRecord(), errorRatio);
-            LOG.info("init dirtyDataManager: {}", this.errorLimiter);
         }
     }
 

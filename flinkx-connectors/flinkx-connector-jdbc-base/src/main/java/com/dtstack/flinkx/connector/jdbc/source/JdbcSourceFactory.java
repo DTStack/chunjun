@@ -33,6 +33,7 @@ import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import com.google.common.base.Preconditions;
@@ -40,9 +41,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -104,7 +102,6 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
-        builder.setNumPartitions(jdbcConf.getParallelism());
 
         AbstractRowConverter rowConverter = null;
         // 同步任务使用transform。不支持*、不支持常量、不支持format、必须是flinksql支持的类型
@@ -157,7 +154,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
             if (NumberUtils.isNumber(increColumn)) {
                 int idx = Integer.parseInt(increColumn);
                 if (idx > fieldConfList.size() - 1) {
-                    throw new RuntimeException(
+                    throw new FlinkxRuntimeException(
                             String.format(
                                     "config error : incrementColumn must less than column.size() when increColumn is number, column = %s, size = %s, increColumn = %s",
                                     GsonUtil.GSON.toJson(fieldConfList),
@@ -179,22 +176,23 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                 }
             }
             if (type == null || name == null) {
-                throw new IllegalArgumentException(
-                        String.format(
-                                "config error : increColumn's name or type is null, column = %s, increColumn = %s",
-                                GsonUtil.GSON.toJson(fieldConfList), increColumn));
+                throw new IllegalArgumentException(String.format("config error : increColumn's name or type is null, column = %s, increColumn = %s", GsonUtil.GSON.toJson(fieldConfList), increColumn));
             }
 
             jdbcConf.setIncrement(true);
+            jdbcConf.setIncreColumn(name);
             jdbcConf.setIncreColumnType(type);
             jdbcConf.setIncreColumnIndex(index);
+
+            jdbcConf.setRestoreColumn(name);
+            jdbcConf.setRestoreColumnType(type);
+            jdbcConf.setRestoreColumnIndex(index);
         }
     }
 
     protected int getDefaultFetchSize() {
         return DEFAULT_FETCH_SIZE;
     }
-
 
 
     /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/

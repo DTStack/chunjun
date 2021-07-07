@@ -413,7 +413,7 @@ public class JdbcUtil {
 
     /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table **/
     public static void resetSchemaAndTable(JdbcConf jdbcConf, String leftQuote, String rightQuote) {
-            LOG.info("before reset table info,schema: {},table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
+            LOG.info("before reset table info, schema: {}, table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
             String pattern = String.format(
                     "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
                     leftQuote,

@@ -258,7 +258,7 @@ ClickHouse 19.x及以上
 <br />
 
 - **scan.parallelism**
-   - 描述：并行度，间隔轮训目前不支持多并行度
+   - 描述：并行度
    - 必选：否
    - 字段类型：String
    - 默认值：无
@@ -282,7 +282,7 @@ ClickHouse 19.x及以上
 <br />
 
 - **scan.partition.column**
-   - 描述：多并行度读取的切分字段，多并行度下必需要设置，间隔轮询不支持多并行
+   - 描述：多并行度读取的切分字段，多并行度下必需要设置
    - 必选：否
    - 字段类型：String
    - 默认值：1
@@ -298,7 +298,7 @@ ClickHouse 19.x及以上
 <br />
 
 - **scan.increment.column**
-   - 描述：增量字段名称，如果配置了该字段，目前并行度只能为1。非必填，无默认
+   - 描述：增量字段名称
    - 必选：否
    - 字段类型：String
    - 默认值：无
@@ -306,7 +306,7 @@ ClickHouse 19.x及以上
 <br />
 
 - **scan.increment.column-type**
-   - 描述：增量字段类型。非必填，无默认
+   - 描述：增量字段类型
    - 必选：否
    - 字段类型：String
    - 默认值：无
@@ -314,7 +314,7 @@ ClickHouse 19.x及以上
 <br />
 
 - **scan.start-location**
-   - 描述：增量字段开始位置,如果不指定则先同步所有，然后在增量。非必填，无默认
+   - 描述：增量字段开始位置,如果不指定则先同步所有，然后在增量
    - 必选：否
    - 字段类型：String
    - 默认值：无
@@ -322,7 +322,7 @@ ClickHouse 19.x及以上
 <br />
 
 - **scan.restore.columnname**
-   - 描述：开启了cp，任务从sp/cp续跑字段名称。如果续跑，则会覆盖scan.start-location开始位置，从续跑点开始。非必填，无默认
+   - 描述：开启了cp，任务从sp/cp续跑字段名称。如果续跑，则会覆盖scan.start-location开始位置，从续跑点开始
    - 必选：否
    - 字段类型：String
    - 默认值：无
@@ -330,7 +330,7 @@ ClickHouse 19.x及以上
 <br />
 
 - **scan.restore.columntype**
-   - 描述：开启了cp，任务从sp/cp续跑字段类型。非必填，无默认
+   - 描述：开启了cp，任务从sp/cp续跑字段类型
    - 必选：否
    - 字段类型：String
    - 默认值：无

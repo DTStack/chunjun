@@ -337,23 +337,19 @@ public interface JdbcDialect extends Serializable {
     default String getSplitRangeFilter(JdbcInputSplit split, String splitPkName) {
         StringBuilder sql = new StringBuilder(128);
         if (StringUtils.isNotBlank(split.getStartLocationOfSplit())) {
-            StringBuilder filterSql = new StringBuilder(128)
-                    .append(quoteIdentifier(splitPkName))
+            sql.append(quoteIdentifier(splitPkName))
                     .append(" >= ")
                     .append(split.getStartLocationOfSplit());
-            sql.append(filterSql);
         }
 
         if (StringUtils.isNotBlank(split.getEndLocationOfSplit())) {
-            StringBuilder filterSql = new StringBuilder(128)
-                    .append(quoteIdentifier(splitPkName))
+            if (sql.length() > 0) {
+                sql.append(" AND ");
+            }
+            sql.append(quoteIdentifier(splitPkName))
                     .append(" < ")
                     .append(split.getEndLocationOfSplit());
-            if (sql.length() > 0) {
-                sql.append(" AND ").append(filterSql);
-            } else {
-                sql.append(filterSql);
-            }
+
         }
 
         return sql.toString();
@@ -363,13 +359,6 @@ public interface JdbcDialect extends Serializable {
      * build split filter by mod, like ' mod(id,2) = 1'
      */
     default String getSplitModFilter(JdbcInputSplit split, String splitPkName) {
-        StringBuilder sql = new StringBuilder(128);
-        sql.append(String.format(
-                " mod(%s, %s) = %s",
-                quoteIdentifier(splitPkName),
-                split.getTotalNumberOfSplits(),
-                split.getMod()));
-        return sql.toString();
+        return String.format(" mod(%s, %s) = %s", quoteIdentifier(splitPkName), split.getTotalNumberOfSplits(), split.getMod());
     }
-
 }
