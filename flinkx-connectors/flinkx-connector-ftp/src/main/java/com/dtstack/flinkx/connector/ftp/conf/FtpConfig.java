@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.ftp.conf;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
+import com.dtstack.flinkx.constants.ConstantValue;
 
 /**
  * @author jiangbo
@@ -43,6 +44,12 @@ public class FtpConfig extends BaseFileConf {
     public Integer port;
 
     public boolean isFirstLineHeader = false;
+
+    /** ftp客户端编码格式 **/
+    public String controlEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
+
+    /** linux是否展示隐藏文件 **/
+    public boolean listHiddenFiles = true;
 
     public Integer timeout = ConfigConstants.DEFAULT_TIMEOUT;
 
@@ -134,4 +141,28 @@ public class FtpConfig extends BaseFileConf {
         this.timeout = timeout;
     }
 
+
+    public boolean isFirstLineHeader() {
+        return isFirstLineHeader;
+    }
+
+    public void setFirstLineHeader(boolean firstLineHeader) {
+        isFirstLineHeader = firstLineHeader;
+    }
+
+    public String getControlEncoding() {
+        return controlEncoding;
+    }
+
+    public void setControlEncoding(String controlEncoding) {
+        this.controlEncoding = controlEncoding;
+    }
+
+    public boolean isListHiddenFiles() {
+        return listHiddenFiles;
+    }
+
+    public void setListHiddenFiles(boolean listHiddenFiles) {
+        this.listHiddenFiles = listHiddenFiles;
+    }
 }
