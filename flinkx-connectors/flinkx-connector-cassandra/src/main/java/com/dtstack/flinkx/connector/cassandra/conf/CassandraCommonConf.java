@@ -19,6 +19,9 @@
 package com.dtstack.flinkx.connector.cassandra.conf;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import org.apache.flink.configuration.ReadableConfig;
 
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CLUSTER_NAME;
@@ -240,5 +243,28 @@ public class CassandraCommonConf extends FlinkxCommonConf {
         conf.setPoolTimeoutMillis(readableConfig.get(POOL_TIMEOUT_MILLISECONDS));
 
         return conf;
+    }
+
+    @Override
+    public String toString() {
+        ToStringBuilder toStringBuilder =
+                new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
+                        .append("host", host)
+                        .append("port", port)
+                        .append("userName", userName)
+                        .append("tableName", tableName)
+                        .append("keyspaces", keyspaces)
+                        .append("hostDistance", hostDistance)
+                        .append("useSSL", useSSL)
+                        .append("clusterName", clusterName)
+                        .append("consistency", consistency)
+                        .append("coreConnectionsPerHost", coreConnectionsPerHost)
+                        .append("maxConnectionsPerHost", maxConnectionsPerHost)
+                        .append("maxRequestPerConnection", maxRequestsPerConnection)
+                        .append("readTimeoutMillis", readTimeoutMillis)
+                        .append("connectTimeoutMillis", connectTimeoutMillis)
+                        .append("poolTimeoutMillis", poolTimeoutMillis);
+
+        return toStringBuilder.toString();
     }
 }

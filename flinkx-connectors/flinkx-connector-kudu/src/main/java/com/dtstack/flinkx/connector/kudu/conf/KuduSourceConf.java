@@ -83,4 +83,20 @@ public class KuduSourceConf extends KuduCommonConf {
 
         return conf;
     }
+
+    @Override
+    public String toString() {
+        return "KuduSourceConf{" +
+                "masters='" + masters + '\'' +
+                ", table='" + table + '\'' +
+                ", kerberos=" + kerberos +
+                ", workerCount=" + workerCount +
+                ", operationTimeout=" + operationTimeout +
+                ", adminOperationTimeout=" + adminOperationTimeout +
+                ", queryTimeout=" + queryTimeout +
+                ", readMode='" + readMode + '\'' +
+                ", batchSizeBytes=" + batchSizeBytes +
+                ", filter='" + filter + '\'' +
+                '}';
+    }
 }

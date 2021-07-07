@@ -81,4 +81,28 @@ public class CassandraSinkConf extends CassandraCommonConf {
 
         return sinkConf;
     }
+
+    @Override
+    public String toString() {
+        return "CassandraSinkConf{" +
+                "host='" + host + '\'' +
+                ", port=" + port +
+                ", userName='" + userName + '\'' +
+                ", password='" + "**********" + '\'' +
+                ", tableName='" + tableName + '\'' +
+                ", keyspaces='" + keyspaces + '\'' +
+                ", hostDistance='" + hostDistance + '\'' +
+                ", useSSL=" + useSSL +
+                ", clusterName='" + clusterName + '\'' +
+                ", consistency='" + consistency + '\'' +
+                ", coreConnectionsPerHost=" + coreConnectionsPerHost +
+                ", maxConnectionsPerHost=" + maxConnectionsPerHost +
+                ", maxRequestsPerConnection=" + maxRequestsPerConnection +
+                ", maxQueueSize=" + maxQueueSize +
+                ", readTimeoutMillis=" + readTimeoutMillis +
+                ", connectTimeoutMillis=" + connectTimeoutMillis +
+                ", poolTimeoutMillis=" + poolTimeoutMillis +
+                ", asyncWrite=" + asyncWrite +
+                '}';
+    }
 }

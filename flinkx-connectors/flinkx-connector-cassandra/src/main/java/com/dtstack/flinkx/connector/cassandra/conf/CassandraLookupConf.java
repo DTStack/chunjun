@@ -70,4 +70,21 @@ public class CassandraLookupConf extends LookupConf {
 
         return conf;
     }
+
+    @Override
+    public String toString() {
+        return "CassandraLookupConf{" +
+                "commonConf=" + commonConf +
+                ", tableName='" + tableName + '\'' +
+                ", period=" + period +
+                ", cacheSize=" + cacheSize +
+                ", cacheTtl=" + cacheTtl +
+                ", cache='" + cache + '\'' +
+                ", maxRetryTimes=" + maxRetryTimes +
+                ", errorLimit=" + errorLimit +
+                ", fetchSize=" + fetchSize +
+                ", asyncTimeout=" + asyncTimeout +
+                ", parallelism=" + parallelism +
+                '}';
+    }
 }
