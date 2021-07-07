@@ -127,7 +127,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
         JdbcInputSplit[] splits;
 
-        if (jdbcConf.getSplitStrategy().equalsIgnoreCase("range")) {
+        if (jdbcConf.getParallelism() > 1 && StringUtils.equalsIgnoreCase("range", jdbcConf.getSplitStrategy())) {
             splits = createSplitsInternalBySplitRange(minNumSplits);
         }else{
             splits = new JdbcInputSplit[minNumSplits];
