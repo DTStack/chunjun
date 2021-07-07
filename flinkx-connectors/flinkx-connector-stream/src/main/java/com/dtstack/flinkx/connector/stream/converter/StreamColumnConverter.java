@@ -75,7 +75,7 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
                 return val -> new BooleanColumn(JMockData.mock(boolean.class));
             case "TINYINT":
             case "BYTE":
-                return val -> new BigDecimalColumn(JMockData.mock(byte.class));
+                return val -> new ByteColumn(JMockData.mock(byte.class));
             case "CHAR":
             case "CHARACTER":
                 return val -> new StringColumn(JMockData.mock(char.class).toString());
