@@ -25,6 +25,7 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -37,8 +38,6 @@ import java.util.Set;
  */
 public class DataSyncFactoryUtil {
 
-    private DataSyncFactoryUtil() {}
-
     public static SourceFactory discoverSource(SyncConf config, StreamExecutionEnvironment env) {
         try {
             String pluginName = config.getJob().getReader().getName();
@@ -50,13 +49,11 @@ public class DataSyncFactoryUtil {
                     urlList,
                     cl -> {
                         Class<?> clazz = cl.loadClass(pluginClassName);
-                        Constructor constructor =
-                                clazz.getConstructor(
-                                        SyncConf.class, StreamExecutionEnvironment.class);
+                        Constructor<?> constructor = clazz.getConstructor(SyncConf.class, StreamExecutionEnvironment.class);
                         return (SourceFactory) constructor.newInstance(config, env);
                     });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new FlinkxRuntimeException(e);
         }
     }
 
@@ -71,11 +68,11 @@ public class DataSyncFactoryUtil {
                     urlList,
                     cl -> {
                         Class<?> clazz = cl.loadClass(pluginClassName);
-                        Constructor constructor = clazz.getConstructor(SyncConf.class);
+                        Constructor<?> constructor = clazz.getConstructor(SyncConf.class);
                         return (SinkFactory) constructor.newInstance(config);
                     });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new FlinkxRuntimeException(e);
         }
     }
 }
