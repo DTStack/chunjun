@@ -87,15 +87,15 @@ public class SqlUtil {
     public static String buildQuerySqlBySplit(JdbcConf jdbcConf, JdbcDialect jdbcDialect, List<String> whereList, List<String> columnNameList, JdbcInputSplit jdbcInputSplit){
         //customSql为空 且 splitPk是ROW_NUMBER()
         boolean flag = StringUtils.isBlank(jdbcConf.getCustomSql()) && SqlUtil.addRowNumColumn(jdbcConf.getSplitPk());
-        String splitColumn;
-        if (flag) {
-            splitColumn = jdbcDialect.getRowNumColumnAlias();
-        } else {
-            splitColumn = jdbcConf.getSplitPk();
-        }
 
         String splitFilter = null;
         if(jdbcInputSplit.getTotalNumberOfSplits() > 1){
+            String splitColumn;
+            if (flag) {
+                splitColumn = jdbcDialect.getRowNumColumnAlias();
+            } else {
+                splitColumn = jdbcConf.getSplitPk();
+            }
             splitFilter = buildSplitFilterSql(jdbcConf.getSplitStrategy(), jdbcDialect, jdbcInputSplit, splitColumn);
         }
 
@@ -202,7 +202,7 @@ public class SqlUtil {
 
     /* 是否添加自定义函数column 作为分片key ***/
     public static boolean addRowNumColumn(String splitKey) {
-        return splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
+        return StringUtils.isNotBlank(splitKey) && splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
     }
 
     /** 获取分片key rownum **/
