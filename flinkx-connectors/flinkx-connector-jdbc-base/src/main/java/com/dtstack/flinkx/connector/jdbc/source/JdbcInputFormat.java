@@ -22,7 +22,6 @@ package com.dtstack.flinkx.connector.jdbc.source;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
@@ -104,7 +103,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         try {
             dbConn = getConnection();
             dbConn.setAutoCommit(false);
-            initColumnList();
+
+            Pair<List<String>, List<String>> pair = getTableMetaData();
+            handColumnList(jdbcConf.getColumn(), pair.getLeft(), pair.getRight());
+
             querySQL = buildQuerySql(jdbcInputSplit);
             jdbcConf.setQuerySql(querySQL);
             executeQuery(jdbcInputSplit.getStartLocation());
@@ -197,8 +199,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
         try {
             @SuppressWarnings("unchecked")
-            RowData rawRowData = rowConverter.toInternal(resultSet);
-            RowData finalRowData = loadConstantData(rawRowData, jdbcConf.getColumn());
+            RowData finalRowData = rowConverter.toInternal(resultSet);
             if (isUpdateLocation) {
                 Object obj;
                 switch (type) {
@@ -663,63 +664,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     /**
-     * init columnNameList、 columnTypeList and hasConstantField
-     */
-    protected void initColumnList() {
-        Pair<List<String>, List<String>> pair = getTableMetaData();
-
-        List<FieldConf> fieldList = jdbcConf.getColumn();
-        List<String> fullColumnList = pair.getLeft();
-        List<String> fullColumnTypeList = pair.getRight();
-        handleColumnList(fieldList, fullColumnList, fullColumnTypeList);
-    }
-
-    /**
      * for override. because some databases have case-sensitive metadata。
      * @return
      */
     protected Pair<List<String>, List<String>> getTableMetaData() {
         return JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-    }
-
-    /**
-     * detailed logic for handling column
-     * @param fieldList
-     * @param fullColumnList
-     * @param fullColumnTypeList
-     */
-    protected void handleColumnList(List<FieldConf> fieldList, List<String> fullColumnList, List<String> fullColumnTypeList) {
-        if(fieldList.size() == 1 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())){
-            columnNameList = fullColumnList;
-            columnTypeList = fullColumnTypeList;
-            return;
-        }
-
-        columnNameList = new ArrayList<>(fieldList.size());
-        columnTypeList = new ArrayList<>(fieldList.size());
-
-        for (FieldConf fieldConf : jdbcConf.getColumn()) {
-            if(fieldConf.getValue() == null){
-                boolean find = false;
-                String name = fieldConf.getName();
-                for (int i = 0; i <fullColumnList.size(); i++) {
-                    if(name.equalsIgnoreCase(fullColumnList.get(i))){
-                        columnNameList.add(name);
-                        columnTypeList.add(fullColumnTypeList.get(i));
-                        find = true;
-                        break;
-                    }
-                }
-                if(!find){
-                    throw new FlinkxRuntimeException(
-                            String.format(
-                                    "can not find field:[%s] in columnNameList:[%s]",
-                                    name, GsonUtil.GSON.toJson(fullColumnList)));
-                }
-            }else{
-                super.hasConstantField = true;
-            }
-        }
     }
 
     /**
