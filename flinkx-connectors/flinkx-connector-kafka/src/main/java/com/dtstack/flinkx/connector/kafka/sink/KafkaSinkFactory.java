@@ -56,15 +56,12 @@ public class KafkaSinkFactory extends SinkFactory {
     }
 
     @Override
-    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat outputFormat) {
+    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat<RowData> outputFormat) {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
     @Override
-    protected DataStreamSink<RowData> createOutput(
-            DataStream<RowData> dataSet,
-            OutputFormat outputFormat,
-            String sinkName) {
+    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat<RowData> outputFormat, String sinkName) {
         Preconditions.checkNotNull(dataSet);
         Preconditions.checkNotNull(sinkName);
 

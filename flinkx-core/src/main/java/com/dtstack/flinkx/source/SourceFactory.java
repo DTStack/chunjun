@@ -20,6 +20,7 @@ package com.dtstack.flinkx.source;
 
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
@@ -55,8 +56,7 @@ public abstract class SourceFactory implements RawTypeConvertible {
         this.env = env;
         this.syncConf = syncConf;
 
-        if (syncConf.getTransformer() == null
-                || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
+        if (syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
         } else {
             typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList(), getRawTypeConverter());
@@ -71,11 +71,10 @@ public abstract class SourceFactory implements RawTypeConvertible {
      */
     public abstract DataStream<RowData> createSource();
 
-    @SuppressWarnings("unchecked")
-    protected DataStream<RowData> createInput(InputFormat inputFormat, String sourceName) {
+    protected DataStream<RowData> createInput(InputFormat<RowData, InputSplit> inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
-        DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInformation);
+        DtInputFormatSourceFunction<RowData> function = new DtInputFormatSourceFunction<>(inputFormat, typeInformation);
         return env.addSource(function, sourceName, typeInformation);
     }
 
@@ -84,7 +83,7 @@ public abstract class SourceFactory implements RawTypeConvertible {
         return env.addSource(function, sourceName, typeInformation);
     }
 
-    protected DataStream<RowData> createInput(InputFormat inputFormat) {
+    protected DataStream<RowData> createInput(InputFormat<RowData, InputSplit> inputFormat) {
         return createInput(inputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 

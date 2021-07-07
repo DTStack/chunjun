@@ -25,6 +25,7 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,7 +166,7 @@ public class PluginUtil {
                 pluginClassName = camelize(sinkName, SINK_SUFFIX);
                 break;
             default:
-                throw new IllegalArgumentException("Plugin Name should end with reader, writer, current plugin name is: " + pluginName);
+                throw new FlinkxRuntimeException("unknown operatorType: " + operatorType);
         }
 
         return pluginClassName;

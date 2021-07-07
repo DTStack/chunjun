@@ -73,5 +73,6 @@ public class PropertiesUtil {
         flinkxCommonConf.setDirtyDataPath(syncConf.getDirty().getPath());
         flinkxCommonConf.setDirtyDataHadoopConf(syncConf.getDirty().getHadoopConfig());
         flinkxCommonConf.setFieldNameList(syncConf.getDirty().getReaderColumnNameList());
+        flinkxCommonConf.setRestorePath(syncConf.getRestorePath());
     }
 }
