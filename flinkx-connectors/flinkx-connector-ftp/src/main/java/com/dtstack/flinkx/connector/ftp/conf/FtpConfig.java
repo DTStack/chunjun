@@ -27,29 +27,31 @@ import com.dtstack.flinkx.constants.ConstantValue;
  */
 public class FtpConfig extends BaseFileConf {
 
-    public String username;
+    private String username;
 
-    public String password;
+    private String password;
 
-    public String privateKeyPath;
+    private String privateKeyPath;
 
-    public String protocol;
+    private String protocol;
 
-    public String fieldDelimiter = ConfigConstants.DEFAULT_FIELD_DELIMITER;
+    private String fieldDelimiter = ConfigConstants.DEFAULT_FIELD_DELIMITER;
 
-    public String connectPattern = ConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
+    private String connectPattern = ConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
 
-    public String host;
+    private String host;
 
-    public Integer port;
+    private Integer port;
 
-    public boolean isFirstLineHeader = false;
+    private boolean isFirstLineHeader = false;
 
     /** ftp客户端编码格式 **/
-    public String controlEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
+    private String controlEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
 
     /** linux是否展示隐藏文件 **/
-    public boolean listHiddenFiles = true;
+    private boolean listHiddenFiles = true;
+
+    private String ftpFileName;
 
     public Integer timeout = ConfigConstants.DEFAULT_TIMEOUT;
 
@@ -164,5 +166,13 @@ public class FtpConfig extends BaseFileConf {
 
     public void setListHiddenFiles(boolean listHiddenFiles) {
         this.listHiddenFiles = listHiddenFiles;
+    }
+
+    public String getFtpFileName() {
+        return ftpFileName;
+    }
+
+    public void setFtpFileName(String ftpFileName) {
+        this.ftpFileName = ftpFileName;
     }
 }
