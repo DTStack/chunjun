@@ -18,20 +18,19 @@
 
 package com.dtstack.flinkx.launcher;
 
+import com.dtstack.flinkx.enums.ClusterMode;
+import com.dtstack.flinkx.options.Options;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.deployment.StandaloneClusterDescriptor;
 import org.apache.flink.client.deployment.StandaloneClusterId;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.rest.RestClusterClient;
-import org.apache.flink.configuration.ConfigConstants;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.GlobalConfiguration;
-import org.apache.flink.configuration.JobManagerOptions;
+import org.apache.flink.configuration.*;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.runtime.akka.AkkaUtils;
+import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
 import org.apache.flink.runtime.util.LeaderConnectionInfo;
-import org.apache.flink.yarn.AbstractYarnClusterDescriptor;
-import org.apache.flink.yarn.LegacyYarnClusterDescriptor;
+import org.apache.flink.runtime.util.LeaderRetrievalUtils;
 import org.apache.flink.yarn.YarnClusterDescriptor;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
@@ -53,7 +52,7 @@ import java.util.Set;
  */
 public class ClusterClientFactory {
 
-    public static ClusterClient createClusterClient(LauncherOptions launcherOptions) throws Exception {
+    public static ClusterClient createClusterClient(Options launcherOptions) throws Exception {
         String mode = launcherOptions.getMode();
         if(mode.equals(ClusterMode.standalone.name())) {
             return createStandaloneClient(launcherOptions);
@@ -64,7 +63,7 @@ public class ClusterClientFactory {
         throw new IllegalArgumentException("Unsupported cluster client type: ");
     }
 
-    public static ClusterClient createStandaloneClient(LauncherOptions launcherOptions) throws Exception {
+    public static ClusterClient createStandaloneClient(Options launcherOptions) throws Exception {
         String flinkConfDir = launcherOptions.getFlinkconf();
         Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
 
@@ -79,7 +78,7 @@ public class ClusterClientFactory {
         return clusterClient;
     }
 
-    public static ClusterClient createYarnClient(LauncherOptions launcherOptions) {
+    public static ClusterClient createYarnClient(Options launcherOptions) {
         String flinkConfDir = launcherOptions.getFlinkconf();
         Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
         String yarnConfDir = launcherOptions.getYarnconf();
@@ -126,8 +125,12 @@ public class ClusterClientFactory {
                     throw new RuntimeException("No flink session found on yarn cluster.");
                 }
 
-                AbstractYarnClusterDescriptor clusterDescriptor = new LegacyYarnClusterDescriptor(config, yarnConf, ".", yarnClient, false);
-                ClusterClient clusterClient = clusterDescriptor.retrieve(applicationId);
+                HighAvailabilityMode highAvailabilityMode = LeaderRetrievalUtils.getRecoveryMode(config);
+                if(highAvailabilityMode.equals(HighAvailabilityMode.ZOOKEEPER) && applicationId!=null){
+                    config.setString(HighAvailabilityOptions.HA_CLUSTER_ID,applicationId.toString());
+                }
+                YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(config, yarnConf, "", yarnClient, false);
+                ClusterClient clusterClient = yarnClusterDescriptor.retrieve(applicationId);
                 clusterClient.setDetached(true);
                 return clusterClient;
             } catch(Exception e) {

@@ -50,6 +50,7 @@ public class FtpReader extends DataReader {
     private String encoding;
     private boolean isFirstLineHeader;
     private List<MetaColumn> metaColumns;
+    private Integer timeout;
 
 
     public FtpReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -75,6 +76,7 @@ public class FtpReader extends DataReader {
         password = readerConfig.getParameter().getStringVal(KEY_PASSWORD);
         encoding = readerConfig.getParameter().getStringVal(KEY_ENCODING);
         isFirstLineHeader = readerConfig.getParameter().getBooleanVal(KEY_IS_FIRST_HEADER,false);
+        timeout = readerConfig.getParameter().getIntVal(KEY_TIMEOUT, FtpConfigConstants.DEFAULT_TIMEOUT);
 
         List columns = readerConfig.getParameter().getColumn();
         metaColumns = MetaColumn.getMetaColumns(columns);
@@ -94,6 +96,7 @@ public class FtpReader extends DataReader {
         builder.setProtocol(protocol);
         builder.setUsername(username);
         builder.setIsFirstLineHeader(isFirstLineHeader);
+        builder.setTimeout(timeout);
 
         return createInput(builder.finish(), "ftpreader");
     }

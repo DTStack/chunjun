@@ -18,21 +18,14 @@
 
 package com.dtstack.flinkx.hdfs;
 
-import com.dtstack.flinkx.common.ColumnType;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.util.DateUtil;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.apache.hadoop.hive.ql.io.HiveBinaryOutputFormat;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.io.*;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 
@@ -44,44 +37,7 @@ import java.text.SimpleDateFormat;
  */
 public class HdfsUtil {
 
-    private static final String HADOOP_CONFIGE = System.getProperty("user.dir") + "/conf/hadoop/";
-
-    private static final String HADOOP_CONF_DIR = System.getenv("HADOOP_CONF_DIR");
-
-    private static Configuration configuration = new Configuration();
-
-    static {
-        try {
-            String dir = StringUtils.isNotBlank(HADOOP_CONF_DIR)?HADOOP_CONF_DIR:HADOOP_CONFIGE;
-            configuration.set("fs.hdfs.impl", DistributedFileSystem.class.getName());
-            configuration.set("fs.hdfs.impl.disable.cache", "true");
-            File[] xmlFileList = new File(dir).listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    if(name.endsWith(".xml")){
-                        return true;
-                    }
-                    return false;
-                }
-            });
-
-            if(xmlFileList != null) {
-                for(File xmlFile : xmlFileList) {
-                    configuration.addResource(xmlFile.toURI().toURL());
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    }
-
-    public static Configuration getConfiguration(){
-        return configuration;
-    }
-
-    public static String getDefaultFs(){
-        return configuration.get("fs.defaultFS");
-    }
+    public static final String NULL_VALUE = "\\N";
 
     public static Object string2col(String str, String type, SimpleDateFormat customDateFormat) {
         if (str == null || str.length() == 0){
@@ -154,6 +110,8 @@ public class HdfsUtil {
             ret = ((ByteWritable) writable).get();
         } else if(clz == DateWritable.class) {
             ret = ((DateWritable) writable).get();
+        } else if(writable instanceof DoubleWritable){
+            ret = ((DoubleWritable) writable).get();
         } else if(writable instanceof Writable) {
             ret = writable.toString();
         } else {

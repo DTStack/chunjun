@@ -61,6 +61,10 @@ public class FtpInputFormatBuilder extends RichInputFormatBuilder {
         }
     }
 
+    public void setTimeout(Integer timeout){
+        format.timeout = timeout;
+    }
+
     public void setMetaColumn(List<MetaColumn> metaColumns) {
         format.metaColumns = metaColumns;
     }
@@ -71,6 +75,8 @@ public class FtpInputFormatBuilder extends RichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

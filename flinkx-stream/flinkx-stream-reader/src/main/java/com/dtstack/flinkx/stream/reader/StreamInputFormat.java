@@ -20,6 +20,7 @@ package com.dtstack.flinkx.stream.reader;
 
 import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -38,13 +39,19 @@ public class StreamInputFormat extends RichInputFormat {
 
     private long recordRead = 0;
 
-    protected long sliceRecordCount;
+    protected List<Long> sliceRecordCount;
 
     protected List<MetaColumn> columns;
 
+    private long channelRecordNum;
+
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
+        if(CollectionUtils.isNotEmpty(sliceRecordCount) && sliceRecordCount.size() > inputSplit.getSplitNumber()){
+            channelRecordNum = sliceRecordCount.get(inputSplit.getSplitNumber());
+        }
 
+        LOG.info("The record number of channel:[{}] is [{}]", inputSplit.getSplitNumber(), channelRecordNum);
     }
 
     @Override
@@ -54,7 +61,7 @@ public class StreamInputFormat extends RichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        return ++recordRead > sliceRecordCount && sliceRecordCount > 0;
+        return ++recordRead > channelRecordNum && channelRecordNum > 0;
     }
 
     @Override

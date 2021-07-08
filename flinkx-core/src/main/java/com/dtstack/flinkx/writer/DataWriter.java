@@ -20,11 +20,16 @@ package com.dtstack.flinkx.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
-import com.dtstack.flinkx.plugin.PluginLoader;
+import com.dtstack.flinkx.config.RestoreConfig;
+import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.Preconditions;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,15 +46,15 @@ public abstract class DataWriter {
 
     protected String monitorUrls;
 
-    protected PluginLoader pluginLoader;
-
     protected Integer errors;
 
     protected Double errorRatio;
 
     protected String dirtyPath;
 
-    protected Map<String,String> dirtyHadoopConfig;
+    protected Map<String,Object> dirtyHadoopConfig;
+
+    protected RestoreConfig restoreConfig;
 
     protected List<String> srcCols = new ArrayList<>();
 
@@ -61,16 +66,9 @@ public abstract class DataWriter {
         this.srcCols = srcCols;
     }
 
-    public PluginLoader getPluginLoader() {
-        return pluginLoader;
-    }
-
-    public void setPluginLoader(PluginLoader pluginLoader) {
-        this.pluginLoader = pluginLoader;
-    }
-
     public DataWriter(DataTransferConfig config) {
         this.monitorUrls = config.getMonitorUrls();
+        this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
         this.errors = config.getJob().getSetting().getErrorLimit().getRecord();
         Double percentage = config.getJob().getSetting().getErrorLimit().getPercentage();
         if(percentage != null){
@@ -80,7 +78,7 @@ public abstract class DataWriter {
         DirtyConfig dirtyConfig =  config.getJob().getSetting().getDirty();
         if(dirtyConfig != null) {
             String dirtyPath = dirtyConfig.getPath();
-            Map<String,String> dirtyHadoopConfig = dirtyConfig.getHadoopConfig();
+            Map<String,Object> dirtyHadoopConfig = dirtyConfig.getHadoopConfig();
             if(dirtyPath != null) {
                 this.dirtyPath = dirtyPath;
             }
@@ -90,19 +88,39 @@ public abstract class DataWriter {
         }
 
         List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
+        parseSrcColumnNames(columns);
 
-        if(columns == null || columns.size() == 0) {
-            throw new RuntimeException("source columns can't be null or empty");
+        if (restoreConfig.isStream()){
+            return;
         }
 
-        System.out.println("src class: " + columns.get(0).getClass());
+        if(restoreConfig.isRestore()){
+            MetaColumn metaColumn = MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());
+            if(metaColumn == null){
+                throw new RuntimeException("Can not find restore column from json with column name:" + restoreConfig.getRestoreColumnName());
+            }
+            restoreConfig.setRestoreColumnIndex(metaColumn.getIndex());
+            restoreConfig.setRestoreColumnType(metaColumn.getType());
+        }
+    }
+
+    private void parseSrcColumnNames(List columns){
+        if (columns == null) {
+            return;
+        }
+
+        if(columns.isEmpty()){
+            throw new RuntimeException("source columns can't be null or empty");
+        }
 
         if(columns.get(0) instanceof String) {
             for(Object column : columns) {
                 srcCols.add((String)column);
             }
-        } else if(columns.get(0) instanceof Map) {
-            this.srcCols = new ArrayList<>();
+            return;
+        }
+
+        if(columns.get(0) instanceof Map) {
             for(Object column : columns) {
                 Map<String,Object> colMap = (Map<String,Object>) column;
                 String colName = (String) colMap.get("name");
@@ -120,7 +138,7 @@ public abstract class DataWriter {
                     } else {
                         String colValue = (String) colMap.get("value");
                         if(StringUtils.isNotBlank(colValue)) {
-                            colName = "val_" +colValue;
+                            colName = "val_" + colValue;
                         } else {
                             throw new RuntimeException("can't determine source column name");
                         }
@@ -129,9 +147,20 @@ public abstract class DataWriter {
                 srcCols.add(colName);
             }
         }
-
     }
 
     public abstract DataStreamSink<?> writeData(DataStream<Row> dataSet);
+
+    protected DataStreamSink<?> createOutput(DataStream<?> dataSet, OutputFormat outputFormat, String sinkName) {
+        Preconditions.checkNotNull(dataSet);
+        Preconditions.checkNotNull(sinkName);
+        Preconditions.checkNotNull(outputFormat);
+
+        DtOutputFormatSinkFunction sinkFunction = new DtOutputFormatSinkFunction(outputFormat);
+        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
+        dataStreamSink.name(sinkName);
+
+        return dataStreamSink;
+    }
 
 }

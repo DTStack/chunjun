@@ -37,7 +37,6 @@ public class RowUtil {
 
     public static String rowToJson(Row row, String[] colName) {
         Preconditions.checkNotNull(colName);
-        Preconditions.checkArgument(row.getArity() == colName.length);
         Map<String,Object> map = new HashMap<>();
 
         for(int i = 0; i < colName.length; ++i) {

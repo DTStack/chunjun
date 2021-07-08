@@ -24,7 +24,6 @@ import com.dtstack.flinkx.es.EsConfigKeys;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,11 +129,6 @@ public class EsWriter extends DataWriter {
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
 
-        OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
-
-        dataStreamSink.name("eswriter");
-
-        return dataStreamSink;
+        return createOutput(dataSet, builder.finish(), "eswriter");
     }
 }

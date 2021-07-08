@@ -4,33 +4,33 @@
 
 ```
 {
-	"job": {
-		"content": [{
-			"reader": {},
-			"writer": {
-				"name": "*writer",
+    "job": {
+        "content": [{
+            "reader": {},
+            "writer": {
+                "name": "*writer",
 
-				"parameter": {
-					"connection": [{
-						"jdbcUrl": "jdbc:mysql://127.0.0.1:3306/test?useCursorFetch=true",
-						"table": [
-							"tableTest"
-						]
-					}],
-					"username": "username",
-					"password": "password",
-					"column": [],
+                "parameter": {
+                    "connection": [{
+                        "jdbcUrl": "jdbc:mysql://127.0.0.1:3306/test?useCursorFetch=true",
+                        "table": [
+                            "tableTest"
+                        ]
+                    }],
+                    "username": "username",
+                    "password": "password",
+                    "column": [],
 
-					"writeMode": "insert",
-					"batchSize": 1024,
-					"preSql": "",
-					"postSql": "",
-					"updateKey": ""
-				}
-			}
-		}]
-	},
-	"setting": {}
+                    "writeMode": "insert",
+                    "batchSize": 1024,
+                    "preSql": "",
+                    "postSql": "",
+                    "updateKey": ""
+                }
+            }
+        }]
+    },
+    "setting": {}
 }
 ```
 
@@ -38,7 +38,8 @@
 
 * **name**
   
-  * 描述：插件名，此处可填写：mysqlwriter，oraclewriter，sqlserverwriter，postgresqlwriter，db2writer
+  * 描述：插件名，此处可填写：mysqlwriter，oraclewriter，sqlserverwriter，postgresqlwriter，db2writer，gbasewriter
+  
   * 必选：是
     
     默认值：无
@@ -132,3 +133,19 @@
   * 必选：否
   
   * 默认值：无
+  
+* **insertSqlMode**
+
+  * 描述：控制写入数据到目标表采用  `COPY table_name [ ( column_name [, ...] ) ] FROM STDIN DELIMITER 'delimiter_character'`语句，提高数据的插入效率
+  
+  * 注意：
+  
+    * 此参数只针对PostgreSQL写入插件有效
+    
+    * 目前该参数值固定传入 `copy`，否则抛出提示为`not support insertSqlMode`的`RuntimeException`
+    
+    * 当指定此参数时，writeMode的值必须为 `insert`，否则设置无效
+    
+  * 必选：否
+  
+  * 默认值：无  

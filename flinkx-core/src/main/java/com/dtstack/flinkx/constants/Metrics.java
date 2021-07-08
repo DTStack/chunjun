@@ -26,38 +26,52 @@ package com.dtstack.flinkx.constants;
  */
 public class Metrics {
 
-    public static String NUM_ERRORS = "nErrors";
+    public static final String NUM_ERRORS = "nErrors";
 
-    public static String NUM_NULL_ERRORS = "nullErrors";
+    public static final String NUM_NULL_ERRORS = "nullErrors";
 
-    public static String NUM_DUPLICATE_ERRORS = "duplicateErrors";
+    public static final String NUM_DUPLICATE_ERRORS = "duplicateErrors";
 
-    public static String NUM_CONVERSION_ERRORS = "conversionErrors";
+    public static final String NUM_CONVERSION_ERRORS = "conversionErrors";
 
-    public static String NUM_OTHER_ERRORS = "otherErrors";
+    public static final String NUM_OTHER_ERRORS = "otherErrors";
 
-    public static String NUM_WRITES = "numWrite";
+    public static final String READ_BYTES = "byteRead";
 
-    public static String JOB_NAME = "<job_name>";
+    public static final String READ_DURATION = "readDuration";
 
-    public static String JOB_ID = "<job_id>";
+    public static final String WRITE_BYTES = "byteWrite";
 
-    public static String NUM_BEFORES = "nBefores";
+    public static final String WRITE_DURATION = "writeDuration";
 
-    public static String NUM_READS = "numRead";
+    public static final String NUM_WRITES = "numWrite";
 
-    public static String END_LOCATION = "endLocation";
+    public static final String SNAPSHOT_WRITES = "snapshotWrite";
 
-    public static String START_LOCATION = "startLocation";
+    public static final String JOB_NAME = "<job_name>";
 
-    public static String TABLE_COL = "tableCol";
+    public static final String JOB_ID = "<job_id>";
 
-    public static String MAX_VALUE = "maxValue";
+    public static final String SUBTASK_INDEX = "<subtask_index>";
 
-    public static String METRIC_GROUP_KEY_FLINKX = "flinkx";
+    public static final String NUM_READS = "numRead";
 
-    public static String METRIC_GROUP_VALUE_INPUT = "input";
+    public static final String END_LOCATION = "endLocation";
 
-    public static String METRIC_GROUP_VALUE_OUTPUT = "output";
+    public static final String START_LOCATION = "startLocation";
+
+    public static final String TABLE_COL = "tableCol";
+
+    public static final String MAX_VALUE = "maxValue";
+
+    public static final String METRIC_GROUP_KEY_FLINKX = "flinkx";
+
+    public static final String METRIC_GROUP_VALUE_OUTPUT = "output";
+
+    public static final String LAST_WRITE_LOCATION_PREFIX = "last_write_location";
+
+    public static final String LAST_WRITE_NUM__PREFIX = "last_write_num";
+
+    public static final String SUFFIX_RATE = "PerSecond";
 
 }

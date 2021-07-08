@@ -34,9 +34,13 @@ public class SettingConfig extends AbstractConfig {
 
     public static final String KEY_DIRTY_CONFIG = "dirty";
 
+    public static final String KEY_RESTORE = "restore";
+
     private SpeedConfig speed = SpeedConfig.defaultConfig();
 
     private ErrorLimitConfig errorLimit = ErrorLimitConfig.defaultConfig();
+
+    private RestoreConfig restoreConfig = RestoreConfig.defaultConfig();
 
     private DirtyConfig dirty;
 
@@ -52,6 +56,9 @@ public class SettingConfig extends AbstractConfig {
             dirty = new DirtyConfig((Map<String, Object>) map.get(KEY_DIRTY_CONFIG));
         }
 
+        if (map.containsKey(KEY_RESTORE)){
+            restoreConfig = new RestoreConfig((Map<String, Object>) map.get(KEY_RESTORE));
+        }
     }
 
     public SpeedConfig getSpeed() {
@@ -76,6 +83,14 @@ public class SettingConfig extends AbstractConfig {
 
     public void setDirty(DirtyConfig dirty) {
         this.dirty = dirty;
+    }
+
+    public RestoreConfig getRestoreConfig() {
+        return restoreConfig;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig) {
+        this.restoreConfig = restoreConfig;
     }
 }
 

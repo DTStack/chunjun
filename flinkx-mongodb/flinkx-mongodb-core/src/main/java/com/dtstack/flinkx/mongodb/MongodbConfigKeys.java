@@ -32,6 +32,8 @@ public class MongodbConfigKeys {
 
     public final static String KEY_PASSWORD = "password";
 
+    public final static String KEY_URL = "url";
+
     public final static String KEY_DATABASE = "database";
 
     public final static String KEY_COLLECTION = "collectionName";

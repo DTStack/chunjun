@@ -17,6 +17,12 @@
             <artifactId>flinkx-mysql-core</artifactId>
             <version>1.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-rdb-reader</artifactId>
+            <version>1.6</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -33,6 +39,11 @@
                     </goals>
                     <configuration>
                         <artifactSet>
+                            <excludes>
+                                <exclude>org.slf4j:slf4j-api</exclude>
+                                <exclude>log4j:log4j</exclude>
+                                <exclude>ch.qos.logback:*</exclude>
+                            </excludes>
                         </artifactSet>
                         <filters>
                             <filter>

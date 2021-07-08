@@ -20,11 +20,9 @@ package com.dtstack.flinkx.oracle;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The class of Oracle database prototype
@@ -82,25 +80,6 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    protected String makeMultipleValues(int nCols, int batchSize) {
-        String value = makeValues(nCols);
-        return StringUtils.repeat(value, " UNION ALL ", batchSize);
-    }
-
-    @Override
-    public String getMultiInsertStatement(List<String> column, String table, int batchSize) {
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") "
-                + makeMultipleValues(column.size(), batchSize);
-    }
-
-    @Override
-    protected String makeValues(int nCols) {
-        return "SELECT " + StringUtils.repeat("?", ",", nCols) + " FROM DUAL";
-    }
-
-
-    @Override
     protected String makeValues(List<String> column) {
         StringBuilder sb = new StringBuilder("SELECT ");
         for(int i = 0; i < column.size(); ++i) {
@@ -144,61 +123,8 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
-        return getMultiReplaceStatement(column,fullColumn,table,1,updateKey);
-    }
-
-    @Override
-    public String getMultiReplaceStatement(List<String> column, List<String> fullColumn, String table, int batchSize, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.isEmpty()) {
-            return getMultiInsertStatement(column, table, batchSize);
-        }
-
-        return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeMultipleReplaceValues(column,fullColumn,batchSize) + ") T2 ON ("
-                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(fullColumn, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
-                + "INSERT (" + quoteColumns(fullColumn) + ") VALUES ("
-                + quoteColumns(fullColumn, "T2") + ")";
-    }
-
-    @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        return getMultiUpsertStatement(column,table,1,updateKey);
-    }
-
-    @Override
-    public String getMultiUpsertStatement(List<String> column, String table, int batchSize, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.isEmpty()) {
-            return getMultiInsertStatement(column, table, batchSize);
-        }
-
-        return "MERGE INTO " + quoteTable(table) + " T1 USING "
-                + "(" + makeMultipleValues(column,batchSize) + ") T2 ON ("
-                + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                + getUpdateSql(column, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
-                + "INSERT (" + quoteColumns(column) + ") VALUES ("
-                + quoteColumns(column, "T2") + ")";
-    }
-
-    private String getUpdateSql(List<String> column,Map<String,List<String>> updateKey, String leftTable, String rightTable) {
-        String prefixLeft = StringUtils.isBlank(leftTable) ? "" : quoteTable(leftTable) + ".";
-        String prefixRight = StringUtils.isBlank(rightTable) ? "" : quoteTable(rightTable) + ".";
-        List<String> list = new ArrayList<>();
-
-        List<String> pkCols = new ArrayList<>();
-        for (List<String> value : updateKey.values()) {
-            pkCols.addAll(value);
-        }
-
-        for(String col : column) {
-            if (pkCols.contains(col)){
-                continue;
-            }
-
-            list.add(prefixLeft + quoteColumn(col) + "=" + prefixRight + quoteColumn(col));
-        }
-        return StringUtils.join(list, ",");
+    public String getRowNumColumn(String orderBy) {
+        return "rownum as FLINKX_ROWNUM";
     }
 
     @Override

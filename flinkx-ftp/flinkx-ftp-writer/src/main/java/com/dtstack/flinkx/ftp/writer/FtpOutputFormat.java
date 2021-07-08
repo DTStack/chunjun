@@ -20,21 +20,21 @@ package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.ftp.FtpConfigConstants;
-import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.ftp.SFtpHandler;
-import com.dtstack.flinkx.ftp.StandardFtpHandler;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.outputformat.FileOutputFormat;
 import com.dtstack.flinkx.util.StringUtil;
-import com.dtstack.flinkx.writer.DirtyDataManager;
+import com.dtstack.flinkx.util.SysUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
+import java.util.function.Predicate;
+
 import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
 
 /**
@@ -43,12 +43,9 @@ import static com.dtstack.flinkx.ftp.FtpConfigConstants.SFTP_PROTOCOL;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class FtpOutputFormat extends RichOutputFormat {
+public class FtpOutputFormat extends FileOutputFormat {
     /** 换行符 */
     private static final int NEWLINE = 10;
-
-    /** 输出路径 */
-    protected String path;
 
     /** ftp主机名或ip */
     protected String host;
@@ -64,90 +61,275 @@ public class FtpOutputFormat extends RichOutputFormat {
 
     protected String protocol;
 
-    protected Integer timeout = 60000;
+    protected Integer timeout;
 
     protected String connectMode = FtpConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
-
-    protected String charsetName = "utf-8";
-
-    protected String writeMode = "append";
 
     protected List<String> columnTypes;
 
     protected List<String> columnNames;
 
-    private transient FtpHandler ftpHandler;
+    private transient IFtpHandler ftpHandler;
 
     private transient OutputStream os;
 
+    private static final String DOT = ".";
+
+    private static final String FILE_SUFFIX = ".csv";
+
+    private static final String OVERWRITE_MODE = "overwrite";
+
     @Override
-    public void configure(Configuration parameters) {
+    protected void openSource() throws IOException {
         if(SFTP_PROTOCOL.equalsIgnoreCase(protocol)) {
             ftpHandler = new SFtpHandler();
         } else {
-            ftpHandler = new StandardFtpHandler();
+            ftpHandler = new FtpHandler();
         }
         ftpHandler.loginFtpServer(host,username,password,port,timeout,connectMode);
     }
 
     @Override
-    protected boolean needWaitBeforeOpenInternal() {
-        return true;
-    }
+    protected void checkOutputDir() {
+        if(!ftpHandler.isDirExist(outputFilePath)){
+            if(!makeDir){
+                throw new RuntimeException("Output path not exists:" + outputFilePath);
+            }
 
-    @Override
-    protected void beforeOpenInternal() {
-        if(taskNumber == 0) {
-            if("overwrite".equalsIgnoreCase(writeMode) && !"/".equals(path)) {
-                ftpHandler.deleteAllFilesInDir(path);
+            ftpHandler.mkDirRecursive(outputFilePath);
+        } else {
+            if(OVERWRITE_MODE.equalsIgnoreCase(writeMode) && !SP.equals(outputFilePath)){
+                ftpHandler.deleteAllFilesInDir(outputFilePath, null);
+                ftpHandler.mkDirRecursive(outputFilePath);
             }
         }
     }
 
     @Override
-    public void openInternal(int taskNumber, int numTasks) throws IOException {
-        ftpHandler.mkDirRecursive(path);
-        Date currentTime = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String dateString = formatter.format(currentTime);
-        String filePath = path + "/" + taskNumber + "." + dateString + "." + UUID.randomUUID() + ".csv";
-        this.os = ftpHandler.getOutputStream(filePath);
+    protected void cleanDirtyData() {
+        int fileIndex = formatState.getFileIndex();
+        String lastJobId = formatState.getJobId();
+        LOG.info("fileIndex = {}, lastJobId = {}",fileIndex, lastJobId);
+        if(org.apache.commons.lang3.StringUtils.isBlank(lastJobId)){
+            return;
+        }
+        List<String> files = ftpHandler.getFiles(outputFilePath);
+        files.removeIf(new Predicate<String>() {
+            @Override
+            public boolean test(String file) {
+                String fileName = file.substring(file.lastIndexOf(SP) + 1);
+                if(!fileName.contains(lastJobId)){
+                    return true;
+                }
 
-        //启动脏数据管理
-        if(StringUtils.isNotBlank(dirtyPath)) {
-            this.dirtyDataManager = new DirtyDataManager(this.dirtyPath, this.dirtyHadoopConfig, this.srcFieldNames.toArray(new String[this.srcFieldNames.size()]));
-            this.dirtyDataManager.open();
+                String[] splits = fileName.split("\\.");
+                if (splits.length == 3) {
+                    return Integer.parseInt(splits[2]) <= fileIndex;
+                }
+
+                return true;
+            }
+        });
+
+        if(CollectionUtils.isNotEmpty(files)){
+            for (String file : files) {
+                ftpHandler.deleteAllFilesInDir(file, null);
+            }
         }
     }
 
     @Override
-    protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
+    protected void nextBlock(){
+        super.nextBlock();
+
+        if (os != null){
+            return;
+        }
+
+        os = ftpHandler.getOutputStream(tmpPath + SP + currentBlockFileName);
+        blockIndex++;
+    }
+
+    @Override
+    public void moveTemporaryDataBlockFileToDirectory(){
+        if (currentBlockFileName == null || !currentBlockFileName.startsWith(DOT)){
+            return;
+        }
+
+        try{
+            String src = path + SP + tmpPath + SP + currentBlockFileName;
+            if (!ftpHandler.isFileExist(src)) {
+                LOG.warn("block file {} not exists", src);
+                return;
+            }
+
+            currentBlockFileName = currentBlockFileName.replaceFirst("\\.", StringUtils.EMPTY);
+            String dist = path + SP + tmpPath + SP + currentBlockFileName;
+            ftpHandler.rename(src, dist);
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void writeSingleRecordToFile(Row row) throws WriteRecordException {
+        if(os == null){
+            nextBlock();
+        }
+
         String line = StringUtil.row2string(row, columnTypes, delimiter, columnNames);
         try {
             byte[] bytes = line.getBytes(this.charsetName);
             this.os.write(bytes);
             this.os.write(NEWLINE);
+
+            if(restoreConfig.isRestore()){
+                lastRow = row;
+                rowsOfCurrentBlock++;
+            }
         } catch(Exception ex) {
             throw new WriteRecordException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
-        // unreachable
+    protected void createFinishedTag() throws IOException {
+        LOG.info("Subtask [{}] finished, create dir {}", taskNumber, finishedPath);
+        ftpHandler.mkDirRecursive(finishedPath);
     }
 
     @Override
-    public void closeInternal() throws IOException {
-        OutputStream s = os;
-        if(s != null) {
-            s.flush();
+    protected boolean isTaskEndsNormally(){
+        try{
+            String state = getTaskState();
+            if(!RUNNING_STATE.equals(state)){
+                if (!restoreConfig.isRestore()){
+                    ftpHandler.deleteAllFilesInDir(tmpPath, null);
+                }
+
+                ftpHandler.logoutFtpServer();
+                return false;
+            }
+        } catch (IOException e){
+            throw new RuntimeException(e);
+        }
+
+        return true;
+    }
+
+    @Override
+    protected void createActionFinishedTag() {
+        ftpHandler.mkDirRecursive(actionFinishedTag);
+    }
+
+    @Override
+    protected void waitForActionFinishedBeforeWrite() {
+        boolean readyWrite = ftpHandler.isDirExist(actionFinishedTag);
+        int n = 0;
+        while (!readyWrite){
+            if(n > SECOND_WAIT){
+                throw new RuntimeException("Wait action finished before write timeout");
+            }
+
+            SysUtil.sleep(1000);
+            readyWrite = ftpHandler.isDirExist(tmpPath + SP + ACTION_FINISHED);
+            n++;
+        }
+    }
+
+    @Override
+    protected void waitForAllTasksToFinish(){
+        final int maxRetryTime = 100;
+        int i = 0;
+        for (; i < maxRetryTime; i++) {
+            int finishedTaskNum = ftpHandler.listDirs(outputFilePath + SP + FINISHED_SUBDIR).size();
+            LOG.info("The number of finished task is:{}", finishedTaskNum);
+            if(finishedTaskNum == numTasks){
+                break;
+            }
+
+            SysUtil.sleep(3000);
+        }
+
+        if (i == maxRetryTime) {
+            ftpHandler.deleteAllFilesInDir(finishedPath, null);
+            throw new RuntimeException("timeout when gathering finish tags for each subtasks");
+        }
+    }
+
+    @Override
+    protected void coverageData(){
+        boolean cleanPath = restoreConfig.isRestore() && OVERWRITE_MODE.equalsIgnoreCase(writeMode) && !SP.equals(path);
+        if(cleanPath){
+            ftpHandler.deleteAllFilesInDir(path, Arrays.asList(tmpPath));
+        }
+    }
+
+    @Override
+    protected void moveTemporaryDataFileToDirectory(){
+        try{
+            List<String> files = ftpHandler.getFiles(path + SP + tmpPath);
+            for (String file : files) {
+                String fileName = file.substring(file.lastIndexOf(SP) + 1);
+                if (fileName.endsWith(FILE_SUFFIX) && fileName.startsWith(String.valueOf(taskNumber))){
+                    String newPath = path + SP + fileName;
+                    LOG.info("Move file {} to path {}", file, newPath);
+                    ftpHandler.rename(file, newPath);
+                }
+            }
+        }catch (Exception e){
+            throw new RuntimeException("Rename temp file error:", e);
+        }
+    }
+
+    @Override
+    protected void moveAllTemporaryDataFileToDirectory() throws IOException {
+        try{
+            List<String> files = ftpHandler.getFiles(path + SP + tmpPath);
+            for (String file : files) {
+                String fileName = file.substring(file.lastIndexOf(SP) + 1);
+                if (fileName.endsWith(FILE_SUFFIX) && !fileName.startsWith(DOT)){
+                    String newPath = path + SP + fileName;
+                    LOG.info("Move file {} to path {}", file, newPath);
+                    ftpHandler.rename(file, newPath);
+                }
+            }
+        }catch (Exception e){
+            throw new RuntimeException("Rename temp file error:", e);
+        }
+    }
+
+    @Override
+    protected void closeSource() throws IOException {
+        if (os != null){
+            os.flush();
+            os.close();
             os = null;
-            s.close();
         }
-        if(ftpHandler != null) {
-            ftpHandler.logoutFtpServer();
-        }
+    }
+
+    @Override
+    protected void clearTemporaryDataFiles() throws IOException {
+        ftpHandler.deleteAllFilesInDir(tmpPath, null);
+        LOG.info("Delete .data dir:{}", tmpPath);
+
+        ftpHandler.deleteAllFilesInDir(outputFilePath + SP + FINISHED_SUBDIR, null);
+        LOG.info("Delete .finished dir:{}", outputFilePath + SP + FINISHED_SUBDIR);
+    }
+
+    @Override
+    public void flushDataInternal() throws IOException {
+        closeSource();
+    }
+
+    @Override
+    public float getDeviation() {
+        return 1.0F;
+    }
+
+    @Override
+    protected String getExtension() {
+        return ".csv";
     }
 
 }

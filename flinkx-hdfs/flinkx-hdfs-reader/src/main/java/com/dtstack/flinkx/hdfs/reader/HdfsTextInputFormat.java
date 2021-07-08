@@ -71,7 +71,6 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
         return null;
     }
 
-
     @Override
     public void openInternal(InputSplit inputSplit) throws IOException {
         HdfsTextInputSplit hdfsTextInputSplit = (HdfsTextInputSplit) inputSplit;
@@ -97,13 +96,13 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
                 MetaColumn metaColumn = metaColumns.get(i);
 
                 Object value = null;
-                if(metaColumn.getIndex() != null && metaColumn.getIndex() < fields.length){
-                    value = fields[metaColumn.getIndex()];
-                    if(value == null && metaColumn.getValue() != null){
-                        value = metaColumn.getValue();
-                    }
-                } else if(metaColumn.getValue() != null){
+                if(metaColumn.getValue() != null){
                     value = metaColumn.getValue();
+                } else if(metaColumn.getIndex() != null && metaColumn.getIndex() < fields.length){
+                    String strVal = fields[metaColumn.getIndex()];
+                    if (!HdfsUtil.NULL_VALUE.equals(strVal)){
+                        value = strVal;
+                    }
                 }
 
                 if(value != null){
@@ -133,7 +132,7 @@ public class HdfsTextInputFormat extends HdfsInputFormat {
             format = new HdfsTextInputFormat();
         }
 
-        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,String> hadoopConfig) {
+        public HdfsTextInputFormatBuilder setHadoopConfig(Map<String,Object> hadoopConfig) {
             format.hadoopConfig = hadoopConfig;
             return this;
         }

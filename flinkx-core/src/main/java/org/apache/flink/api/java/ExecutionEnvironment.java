@@ -73,6 +73,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -234,7 +235,7 @@ public abstract class ExecutionEnvironment {
     }
 
     /**
-     * Returns the {@link org.apache.flink.api.common.JobExecutionResult} of the last executed job.
+	 * Returns the {@link org.apache.flink.api.common.JobExecutionResult} of the last executed job.
      *
      * @return The execution result from the latest job execution.
      */
@@ -384,7 +385,7 @@ public abstract class ExecutionEnvironment {
 
     /**
      * Creates a {@link DataSet} that represents the Strings produced by reading the given file line wise.
-     * The file will be read with the system's default character set.
+     * The file will be read with the UTF-8 character set.
      *
      * @param filePath The path of the file, as a URI (e.g., "file:///some/local/file" or "hdfs://host:port/file/path").
      * @return A {@link DataSet} that represents the data read from the given file as text lines.
@@ -419,7 +420,7 @@ public abstract class ExecutionEnvironment {
      * {@link StringValue} objects, rather than Java Strings. StringValues can be used to tune implementations
      * to be less object and garbage collection heavy.
      *
-     * <p>The file will be read with the system's default character set.
+     * <p>The file will be read with the UTF-8 character set.
      *
      * @param filePath The path of the file, as a URI (e.g., "file:///some/local/file" or "hdfs://host:port/file/path").
      * @return A {@link DataSet} that represents the data read from the given file as text lines.
@@ -703,7 +704,7 @@ public abstract class ExecutionEnvironment {
         catch (Exception e) {
             throw new RuntimeException("Could not create TypeInformation for type " + data[0].getClass().getName()
                     + "; please specify the TypeInformation manually via "
-                    + "ExecutionEnvironment#fromElements(Collection, TypeInformation)");
+                    + "ExecutionEnvironment#fromElements(Collection, TypeInformation)", e);
         }
 
         return fromCollection(Arrays.asList(data), typeInfo, Utils.getCallLocationName());
@@ -736,7 +737,7 @@ public abstract class ExecutionEnvironment {
         catch (Exception e) {
             throw new RuntimeException("Could not create TypeInformation for type " + type.getName()
                     + "; please specify the TypeInformation manually via "
-                    + "ExecutionEnvironment#fromElements(Collection, TypeInformation)");
+                    + "ExecutionEnvironment#fromElements(Collection, TypeInformation)", e);
         }
 
         return fromCollection(Arrays.asList(data), typeInfo, Utils.getCallLocationName());
@@ -844,7 +845,7 @@ public abstract class ExecutionEnvironment {
     /**
      * Registers a file at the distributed cache under the given name. The file will be accessible
      * from any user-defined function in the (distributed) runtime under a local path. Files
-     * may be local files (as long as all relevant workers have access to it), or files in a distributed file system.
+     * may be local files (which will be distributed via BlobServer), or files in a distributed file system.
      * The runtime will copy the files temporarily to a local cache, if needed.
      *
      * <p>The {@link org.apache.flink.api.common.functions.RuntimeContext} can be obtained inside UDFs via
@@ -862,7 +863,7 @@ public abstract class ExecutionEnvironment {
     /**
      * Registers a file at the distributed cache under the given name. The file will be accessible
      * from any user-defined function in the (distributed) runtime under a local path. Files
-     * may be local files (as long as all relevant workers have access to it), or files in a distributed file system.
+     * may be local files (which will be distributed via BlobServer), or files in a distributed file system.
      * The runtime will copy the files temporarily to a local cache, if needed.
      *
      * <p>The {@link org.apache.flink.api.common.functions.RuntimeContext} can be obtained inside UDFs via
@@ -963,12 +964,16 @@ public abstract class ExecutionEnvironment {
         if (!config.isAutoTypeRegistrationDisabled()) {
             plan.accept(new Visitor<org.apache.flink.api.common.operators.Operator<?>>() {
 
-                private final HashSet<Class<?>> deduplicator = new HashSet<>();
+                private final Set<Class<?>> registeredTypes = new HashSet<>();
+                private final Set<org.apache.flink.api.common.operators.Operator<?>> visitedOperators = new HashSet<>();
 
                 @Override
                 public boolean preVisit(org.apache.flink.api.common.operators.Operator<?> visitable) {
+                    if (!visitedOperators.add(visitable)) {
+                        return false;
+                    }
                     OperatorInformation<?> opInfo = visitable.getOperatorInfo();
-                    Serializers.recursivelyRegisterType(opInfo.getOutputType(), config, deduplicator);
+                    Serializers.recursivelyRegisterType(opInfo.getOutputType(), config, registeredTypes);
                     return true;
                 }
 

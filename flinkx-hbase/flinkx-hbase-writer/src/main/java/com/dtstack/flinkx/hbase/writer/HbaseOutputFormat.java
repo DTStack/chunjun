@@ -18,10 +18,14 @@
 
 package com.dtstack.flinkx.hbase.writer;
 
+import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hbase.HbaseHelper;
+import com.dtstack.flinkx.hbase.writer.function.FunctionParser;
+import com.dtstack.flinkx.hbase.writer.function.FunctionTree;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
 import com.dtstack.flinkx.util.DateUtil;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.Validate;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
@@ -35,8 +39,10 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.flink.hadoop.shaded.com.google.common.collect.Maps;
 
 /**
  * The Hbase Implementation of OutputFormat
@@ -48,7 +54,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     private String jobName = "defaultJobName";
 
-    protected Map<String,String> hbaseConfig;
+    protected Map<String,Object> hbaseConfig;
 
     protected String tableName;
 
@@ -64,11 +70,7 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     protected List<String> columnNames;
 
-    protected List<Integer> rowkeyColumnIndices;
-
-    protected List<String> rowkeyColumnTypes;
-
-    protected List<String> rowkeyColumnValues;
+    protected String rowkeyExpress;
 
     protected Integer versionColumnIndex;
 
@@ -78,19 +80,34 @@ public class HbaseOutputFormat extends RichOutputFormat {
 
     private transient BufferedMutator bufferedMutator;
 
+    private transient FunctionTree functionTree;
+
+    protected List<String> rowKeyColumns = Lists.newArrayList();
+    protected List<Integer> rowKeyColumnIndex = Lists.newArrayList();
+
+    private transient Map<String,String[]> nameMaps;
+
+    private transient Map<String, byte[][]> nameByteMaps ;
+
+    private transient ThreadLocal<SimpleDateFormat> timesssFormatThreadLocal;
+
+    private transient ThreadLocal<SimpleDateFormat> timeSSSFormatThreadLocal;
+
+    private boolean openKerberos = false;
+
     @Override
     public void configure(Configuration parameters) {
         LOG.info("HbaseOutputFormat configure start");
-
-        org.apache.hadoop.conf.Configuration hConfiguration = new org.apache.hadoop.conf.Configuration();
+        nameMaps = Maps.newConcurrentMap();
+        nameByteMaps = Maps.newConcurrentMap();
+        timesssFormatThreadLocal = new ThreadLocal();
+        timeSSSFormatThreadLocal = new ThreadLocal();
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
 
-        for (Map.Entry<String, String> entry : hbaseConfig.entrySet()) {
-            hConfiguration.set(entry.getKey(), entry.getValue());
-        }
-
         try {
-            connection = ConnectionFactory.createConnection(hConfiguration);
+            connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "writer");
+
+            org.apache.hadoop.conf.Configuration hConfiguration = HbaseHelper.getConfig(hbaseConfig);
             bufferedMutator = connection.getBufferedMutator(
                     new BufferedMutatorParams(TableName.valueOf(tableName))
                             .pool(HTable.getDefaultExecutor(hConfiguration))
@@ -101,11 +118,22 @@ public class HbaseOutputFormat extends RichOutputFormat {
             throw new IllegalArgumentException(e);
         }
 
+        functionTree = FunctionParser.parse(rowkeyExpress);
+        rowKeyColumns = FunctionParser.parseRowKeyCol(rowkeyExpress);
+        for (String rowKeyColumn : rowKeyColumns) {
+            int index = columnNames.indexOf(rowKeyColumn);
+            if(index == -1){
+                throw new RuntimeException("Can not get row key column from columns:" + rowKeyColumn);
+            }
+            rowKeyColumnIndex.add(index);
+        }
+
         LOG.info("HbaseOutputFormat configure end");
     }
 
     @Override
     public void openInternal(int taskNumber, int numTasks) throws IOException {
+        openKerberos = HbaseHelper.openKerberos(hbaseConfig);
     }
 
     @Override
@@ -125,22 +153,33 @@ public class HbaseOutputFormat extends RichOutputFormat {
             }
 
             for (; i < record.getArity(); ++i) {
+                if(rowKeyColumnIndex.contains(i)){
+                    continue;
+                }
+
                 String type = columnTypes.get(i);
                 ColumnType columnType = ColumnType.getByTypeName(type);
                 String name =columnNames.get(i);
-                String promptInfo = "Hbasewriter 中，column 的列配置格式应该是：列族:列名. 您配置的列错误：" + name;
-                String[] cfAndQualifier = name.split(":");
-
-                Validate.isTrue(cfAndQualifier != null && cfAndQualifier.length == 2
-                        && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[0])
-                        && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[1]), promptInfo);
-
+                String[] cfAndQualifier = nameMaps.get(name);
+                byte[][] cfAndQualifierBytes = nameByteMaps.get(name);
+                if(cfAndQualifier == null || cfAndQualifierBytes==null){
+                    String promptInfo = "Hbasewriter 中，column 的列配置格式应该是：列族:列名. 您配置的列错误：" + name;
+                    cfAndQualifier = name.split(":");
+                    Validate.isTrue(cfAndQualifier != null && cfAndQualifier.length == 2
+                            && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[0])
+                            && org.apache.commons.lang3.StringUtils.isNotBlank(cfAndQualifier[1]), promptInfo);
+                    nameMaps.put(name,cfAndQualifier);
+                    cfAndQualifierBytes = new byte[2][];
+                    cfAndQualifierBytes[0] = Bytes.toBytes(cfAndQualifier[0]);
+                    cfAndQualifierBytes[1] = Bytes.toBytes(cfAndQualifier[1]);
+                    nameByteMaps.put(name,cfAndQualifierBytes);
+                }
                 byte[] columnBytes = getColumnByte(columnType,record.getField(i));
                 //columnBytes 为null忽略这列
                 if(null != columnBytes){
-                    put.addColumn(Bytes.toBytes(
-                            cfAndQualifier[0]),
-                            Bytes.toBytes(cfAndQualifier[1]),
+                    put.addColumn(
+                            cfAndQualifierBytes[0],
+                            cfAndQualifierBytes[1],
                             columnBytes);
                 }else{
                     continue;
@@ -156,6 +195,24 @@ public class HbaseOutputFormat extends RichOutputFormat {
         }
     }
 
+    private SimpleDateFormat getSimpleDateFormat(String sign){
+        SimpleDateFormat format = null;
+        if("sss".equalsIgnoreCase(sign)){
+            format = timesssFormatThreadLocal.get();
+            if(format == null){
+                format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                timesssFormatThreadLocal.set(format);
+            }
+        }else if("SSS".equalsIgnoreCase(sign)){
+            format = timeSSSFormatThreadLocal.get();
+            if(format == null){
+                format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
+                timeSSSFormatThreadLocal.set(format);
+            }
+        }
+        return format;
+    }
+
     @Override
     protected String recordConvertDetailErrorMessage(int pos, Row row) {
         return "\nHbaseOutputFormat [" + jobName + "] writeRecord error: when converting field[" + columnNames.get(pos) + "] in Row(" + row + ")";
@@ -167,23 +224,13 @@ public class HbaseOutputFormat extends RichOutputFormat {
     }
 
     private byte[] getRowkey(Row record) {
-        byte[] rowkeyBuffer  = {};
-        for(int i = 0; i < rowkeyColumnIndices.size(); ++i) {
-            Integer index = rowkeyColumnIndices.get(i);
-            String type =  rowkeyColumnTypes.get(i);
-            ColumnType columnType = ColumnType.getByTypeName(type);
-            if(index == null) {
-                String value = rowkeyColumnValues.get(i);
-                rowkeyBuffer = Bytes.add(rowkeyBuffer,getValueByte(columnType,value));
-            } else {
-                if(index >= record.getArity() || index < 0) {
-                    throw new IllegalArgumentException("index of rowkeyColumn out of range");
-                }
-                byte[] value = getColumnByte(columnType,record.getField(index));
-                rowkeyBuffer = Bytes.add(rowkeyBuffer, value);
-            }
+        Map<String, Object> nameValueMap = new HashMap<>();
+        for (Integer keyColumnIndex : rowKeyColumnIndex) {
+            nameValueMap.put(columnNames.get(keyColumnIndex), record.getField(keyColumnIndex));
         }
-        return rowkeyBuffer;
+
+        String rowKeyStr = functionTree.evaluate(nameValueMap);
+        return rowKeyStr.getBytes();
     }
 
     public long getVersion(Row record){
@@ -203,8 +250,8 @@ public class HbaseOutputFormat extends RichOutputFormat {
             if(record.getField(index)  == null){
                 throw new IllegalArgumentException("null verison column!");
             }
-            SimpleDateFormat df_senconds = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            SimpleDateFormat df_ms = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
+            SimpleDateFormat df_senconds = getSimpleDateFormat("sss");
+            SimpleDateFormat df_ms = getSimpleDateFormat("SSS");
             Object column = record.getField(index);
             if(column instanceof Long){
                 Long longValue = (Long) column;
@@ -433,6 +480,10 @@ public class HbaseOutputFormat extends RichOutputFormat {
     public void closeInternal() throws IOException {
         HbaseHelper.closeBufferedMutator(bufferedMutator);
         HbaseHelper.closeConnection(connection);
+
+        if(openKerberos){
+            KerberosUtil.clear(jobId);
+        }
     }
 
 }

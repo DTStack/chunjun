@@ -84,6 +84,10 @@ public class CarbondataInputFormatBuilder extends RichInputFormatBuilder {
         Preconditions.checkNotNull(format.columnValue);
         Preconditions.checkArgument(format.columnName.size() == format.columnType.size());
         Preconditions.checkArgument(format.columnName.size() == format.columnValue.size());
+
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 
 }

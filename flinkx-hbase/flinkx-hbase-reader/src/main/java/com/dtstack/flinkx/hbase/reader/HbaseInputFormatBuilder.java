@@ -38,7 +38,7 @@ public class HbaseInputFormatBuilder extends RichInputFormatBuilder {
         super.format = format = new HbaseInputFormat();
     }
 
-    public void setHbaseConfig(Map<String,String> hbaseConfig) {
+    public void setHbaseConfig(Map<String,Object> hbaseConfig) {
         format.hbaseConfig = hbaseConfig;
     }
 
@@ -105,5 +105,8 @@ public class HbaseInputFormatBuilder extends RichInputFormatBuilder {
                     || StringUtils.isNotEmpty(format.columnTypes.get(i)) );
         }
 
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

@@ -30,7 +30,8 @@
                     "compress": "SNAPPY",
                     "path": "/test",
                     "writeMode": "append",
-                    "fieldDelimiter": "\\001"
+                    "fieldDelimiter": "\\001",
+                    "maxFileSize":1073741824‬
                 }
             }
         }]
@@ -42,7 +43,7 @@
 
 * **defaultFS**
   
-  * 描述：Hadoop hdfs文件系统namenode节点地址。格式：hdfs://ip:端口；例如：hdfs://127.0.0.1:9000<br />
+  * 描述：Hadoop hdfs文件系统namenode节点地址。格式：hdfs://ip:端口；例如：hdfs://127.0.0.1:9
   
   * 必选：是 <br />
   
@@ -121,3 +122,11 @@
   * 描述：写文件的编码配置。<br />
   * 必选：否
   * 默认值：utf-8
+
+* **maxFileSize**
+  
+  * 描述：hdfs文件最大大小，单位字节
+  
+  * 必须：否
+  
+  * 默认值：1073741824‬（1G）

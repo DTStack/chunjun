@@ -19,14 +19,14 @@
 package com.dtstack.flinkx.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.config.DirtyConfig;
-import com.dtstack.flinkx.plugin.PluginLoader;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
+import org.apache.flink.streaming.api.functions.source.DtInputFormatSourceFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 
@@ -50,14 +50,24 @@ public abstract class DataReader {
 
     protected String monitorUrls;
 
-    protected PluginLoader pluginLoader;
+    protected RestoreConfig restoreConfig;
 
     protected List<String> srcCols = new ArrayList<>();
+
+    protected long exceptionIndex;
 
     /**
      * reuse hadoopConfig for metric
      */
-    protected Map<String, String> hadoopConfig;
+    protected Map<String, Object> hadoopConfig;
+
+    public int getNumPartitions() {
+        return numPartitions;
+    }
+
+    public RestoreConfig getRestoreConfig() {
+        return restoreConfig;
+    }
 
     public List<String> getSrcCols() {
         return srcCols;
@@ -67,29 +77,34 @@ public abstract class DataReader {
         this.srcCols = srcCols;
     }
 
-    public PluginLoader getPluginLoader() {
-        return pluginLoader;
-    }
-
-
-    public void setPluginLoader(PluginLoader pluginLoader) {
-        this.pluginLoader = pluginLoader;
-    }
-
-    protected List<String> jarNameList = new ArrayList<>();
-
     protected DataReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         this.env = env;
         this.numPartitions = config.getJob().getSetting().getSpeed().getChannel();
         this.bytes = config.getJob().getSetting().getSpeed().getBytes();
         this.monitorUrls = config.getMonitorUrls();
+        this.restoreConfig = config.getJob().getSetting().getRestoreConfig();
+        this.exceptionIndex = config.getJob().getContent().get(0).getReader().getParameter().getLongVal("exceptionIndex",0);
 
         DirtyConfig dirtyConfig = config.getJob().getSetting().getDirty();
         if (dirtyConfig != null) {
-            Map<String, String> hadoopConfig = dirtyConfig.getHadoopConfig();
+            Map<String, Object> hadoopConfig = dirtyConfig.getHadoopConfig();
             if (hadoopConfig != null) {
                 this.hadoopConfig = hadoopConfig;
             }
+        }
+
+        if (restoreConfig.isStream()){
+            return;
+        }
+
+        if(restoreConfig.isRestore()){
+            List columns = config.getJob().getContent().get(0).getReader().getParameter().getColumn();
+            MetaColumn metaColumn = MetaColumn.getMetaColumn(columns, restoreConfig.getRestoreColumnName());
+            if(metaColumn == null){
+                throw new RuntimeException("Can not find restore column from json with column name:" + restoreConfig.getRestoreColumnName());
+            }
+            restoreConfig.setRestoreColumnIndex(metaColumn.getIndex());
+            restoreConfig.setRestoreColumnType(metaColumn.getType());
         }
     }
 
@@ -99,7 +114,7 @@ public abstract class DataReader {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
         TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
-        InputFormatSourceFunction function = new InputFormatSourceFunction(inputFormat, typeInfo);
+        DtInputFormatSourceFunction function = new DtInputFormatSourceFunction(inputFormat, typeInfo);
         return env.addSource(function, sourceName, typeInfo);
     }
 

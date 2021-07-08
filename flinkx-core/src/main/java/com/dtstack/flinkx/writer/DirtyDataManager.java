@@ -20,22 +20,22 @@ package com.dtstack.flinkx.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.RowUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import java.io.BufferedWriter;
+import org.apache.hadoop.hdfs.DFSOutputStream;
+import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
+
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+
 import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
 
 /**
@@ -47,9 +47,11 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
 public class DirtyDataManager {
 
     private String location;
-    private Configuration config;
-    private BufferedWriter bw;
+    private Map<String, Object> config;
     private String[] fieldNames;
+    private String jobId;
+    private FSDataOutputStream stream;
+    private EnumSet<HdfsDataOutputStream.SyncFlag> syncFlags = EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH);
 
     private static final String FIELD_DELIMITER = "\u0001";
     private static final String LINE_DELIMITER = "\n";
@@ -64,16 +66,11 @@ public class DirtyDataManager {
         PRIMARY_CONFLICT_KEYWORDS.add("primary key constraint");
     }
 
-    public DirtyDataManager(String path, Map<String,String> configMap, String[] fieldNames) {
+    public DirtyDataManager(String path, Map<String, Object> configMap, String[] fieldNames, String jobId) {
         this.fieldNames = fieldNames;
         location = path + "/" + UUID.randomUUID() + ".txt";
-        config = new Configuration();
-        if(configMap != null) {
-            for(Map.Entry<String,String> entry : configMap.entrySet()) {
-                config.set(entry.getKey(), entry.getValue());
-            }
-        }
-        config.set("fs.hdfs.impl.disable.cache", "true");
+        this.config = configMap;
+        this.jobId = jobId;
     }
 
     public String writeData(Row row, WriteRecordException ex) {
@@ -81,8 +78,10 @@ public class DirtyDataManager {
         String errorType = retrieveCategory(ex);
         String line = StringUtils.join(new String[]{content,errorType, gson.toJson(ex.toString()), DateUtil.timestampToString(new Date()) }, FIELD_DELIMITER);
         try {
-            bw.write(line);
-            bw.write(LINE_DELIMITER);
+            stream.writeChars(line);
+            stream.writeChars(LINE_DELIMITER);
+            DFSOutputStream dfsOutputStream = (DFSOutputStream) stream.getWrappedStream();
+            dfsOutputStream.hsync(syncFlags);
             return errorType;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -104,23 +103,22 @@ public class DirtyDataManager {
 
     public void open() {
         try {
-            FileSystem fs = FileSystem.get(config);
+            FileSystem fs = FileSystemUtil.getFileSystem(config, null, jobId, "dirty");
             Path path = new Path(location);
-            bw = new BufferedWriter(new OutputStreamWriter(fs.create(path, true)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            stream = fs.create(path, true);
+        } catch (Exception e) {
+            throw new RuntimeException("Open dirty manager error", e);
         }
     }
 
     public void close() {
-        if(bw != null) {
+        if(stream != null) {
             try {
-                bw.flush();
-                bw.close();
+                stream.flush();
+                stream.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
-
 }

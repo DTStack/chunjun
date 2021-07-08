@@ -36,82 +36,8 @@ import java.util.Map;
 public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
 
     @Override
-    public String getMultiInsertStatement(List<String> column, String table, int batchSize) {
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values"
-                + makeMultipleValues(column.size(), batchSize);
-    }
-
-    @Override
-    protected String makeMultipleValues(int nCols, int batchSize) {
-        String value = makeValues(nCols);
-        return StringUtils.repeat(value, ",", batchSize);
-    }
-
-    @Override
-    protected String makeValues(int nCols) {
-        return "(" + StringUtils.repeat("?", ",", nCols) + ")";
-    }
-
-    @Override
     protected String makeValues(List<String> column) {
         throw new UnsupportedOperationException();
-    }
-
-    private String makeUpdatePart (List<String> column) {
-        List<String> updateList = new ArrayList<>();
-        for(String col : column) {
-            String quotedCol = quoteColumn(col);
-            updateList.add(quotedCol + "=EXCLUDED." + quotedCol);
-        }
-        return StringUtils.join(updateList, ",");
-    }
-
-    private String makeUpdateKey(Map<String,List<String>> updateKey){
-        Iterator<Map.Entry<String,List<String>>> it = updateKey.entrySet().iterator();
-        return StringUtils.join(it.next().getValue(),",");
-    }
-
-    @Override
-    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
-        return getMultiUpsertStatement(column,table,1,updateKey);
-    }
-
-    @Override
-    public String getMultiUpsertStatement(List<String> column, String table, int batchSize, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.isEmpty()) {
-            return getMultiInsertStatement(column, table, batchSize);
-        }
-
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") VALUES "
-                + makeValues(column.size())
-                + "ON CONFLICT(" + makeUpdateKey(updateKey)
-                + ") DO UPDATE SET " + makeUpdatePart(column) ;
-    }
-
-    @Override
-    public String getReplaceStatement(List<String> column, List<String> fullColumn, String table, Map<String,List<String>> updateKey) {
-        return getMultiReplaceStatement(column,fullColumn,table,1,updateKey);
-    }
-
-    @Override
-    public String getMultiReplaceStatement(List<String> column, List<String> fullColumn, String table, int batchSize, Map<String,List<String>> updateKey) {
-        if(updateKey == null || updateKey.size() == 0){
-            return getInsertStatement(column,table);
-        }
-
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") VALUES "
-                + makeMultipleReplaceValues(column,fullColumn, batchSize)
-                + "ON CONFLICT(" + makeUpdateKey(updateKey)
-                + ") DO UPDATE SET " + makeUpdatePart(fullColumn) ;
-    }
-
-    @Override
-    protected String makeMultipleReplaceValues(List<String> column, List<String> fullColumn,int batchSize){
-        String value = makeReplaceValues(column,fullColumn);
-        return org.apache.commons.lang.StringUtils.repeat(value, " , ", batchSize);
     }
 
     @Override
@@ -149,6 +75,11 @@ public class PostgresqlDatabaseMeta extends BaseDatabaseMeta {
         String sql = "select attrelid ::regclass as table_name, attname as col_name, atttypid ::regtype as col_type from pg_attribute \n" +
                 "where attrelid = '%s' ::regclass and attnum > 0 and attisdropped = 'f'";
         return String.format(sql,table);
+    }
+
+    @Override
+    public String getUpsertStatement(List<String> column, String table, Map<String,List<String>> updateKey) {
+        throw new UnsupportedOperationException("PostgreSQL not support update mode");
     }
 
     @Override

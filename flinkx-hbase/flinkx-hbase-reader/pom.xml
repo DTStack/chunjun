@@ -48,14 +48,12 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <!--from com.dtstack.flinkx:core-->
-                                    <exclude>com.dtstack.flinkx:flinkx-core</exclude>
-                                    <!--from org.apache.flink:*-->
-                                    <exclude>org.apache.flink:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
-                                    <exclude>io.netty:*</exclude>
+                                    <!--<exclude>io.netty:*</exclude>-->
                                     <exclude>org.slf4j:slf4j-api</exclude>
+                                    <!--<exclude>log4j:log4j</exclude>-->
+                                    <exclude>ch.qos.logback:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>

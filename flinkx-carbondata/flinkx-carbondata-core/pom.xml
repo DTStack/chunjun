@@ -12,18 +12,6 @@
     <artifactId>flinkx-carbondata-core</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-core</artifactId>
-            <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-rdb</artifactId>
-            <version>1.6</version>
-        </dependency>
-
 
         <dependency>
             <groupId>org.apache.carbondata</groupId>

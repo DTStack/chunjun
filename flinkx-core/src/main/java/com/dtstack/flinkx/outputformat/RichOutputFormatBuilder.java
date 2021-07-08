@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.outputformat;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
@@ -38,7 +39,7 @@ public abstract class RichOutputFormatBuilder {
         format.setDirtyPath(dirtyPath);
     }
 
-    public void setDirtyHadoopConfig(Map<String,String> dirtyHadoopConfig) {
+    public void setDirtyHadoopConfig(Map<String,Object> dirtyHadoopConfig) {
         format.setDirtyHadoopConfig(dirtyHadoopConfig);
     }
 
@@ -60,6 +61,14 @@ public abstract class RichOutputFormatBuilder {
 
     public void setBatchInterval(int batchInterval) {
         format.batchInterval = batchInterval;
+    }
+
+    public void setRestoreConfig(RestoreConfig restoreConfig){
+        format.restoreConfig = restoreConfig;
+    }
+
+    public void setInitAccumulatorAndDirty(boolean initAccumulatorAndDirty) {
+        this.format.initAccumulatorAndDirty = initAccumulatorAndDirty;
     }
 
     protected abstract void checkFormat();

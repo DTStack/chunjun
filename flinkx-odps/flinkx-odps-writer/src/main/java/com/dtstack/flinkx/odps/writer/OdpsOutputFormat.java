@@ -25,7 +25,7 @@ import com.aliyun.odps.data.Record;
 import com.aliyun.odps.tunnel.TableTunnel;
 import com.aliyun.odps.tunnel.TunnelException;
 import com.aliyun.odps.tunnel.io.TunnelBufferedWriter;
-import com.dtstack.flinkx.common.ColumnType;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.odps.OdpsUtil;
 import com.dtstack.flinkx.outputformat.RichOutputFormat;
@@ -110,7 +110,6 @@ public class OdpsOutputFormat extends RichOutputFormat {
         } catch(Exception ex) {
             throw new WriteRecordException(ex.getMessage(), ex);
         }
-
     }
 
     @Override

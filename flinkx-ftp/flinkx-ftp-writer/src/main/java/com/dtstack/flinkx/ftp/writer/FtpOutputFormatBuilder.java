@@ -19,10 +19,8 @@
 package com.dtstack.flinkx.ftp.writer;
 
 import com.dtstack.flinkx.ftp.FtpConfigConstants;
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.List;
 
 /**
@@ -31,24 +29,17 @@ import java.util.List;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class FtpOutputFormatBuilder extends RichOutputFormatBuilder {
+public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
 
     private FtpOutputFormat format;
 
     public FtpOutputFormatBuilder() {
-        super.format = format = new FtpOutputFormat();
+        format = new FtpOutputFormat();
+        super.setFormat(format);
     }
 
     public void setProtocol(String protocol) {
         format.protocol = protocol;
-    }
-
-    public void setPath(String path) {
-        if(StringUtils.isEmpty(path)) {
-            format.path = "/";
-        } else {
-            format.path = path;
-        }
     }
 
     public void setHost(String host) {
@@ -79,25 +70,16 @@ public class FtpOutputFormatBuilder extends RichOutputFormatBuilder {
         format.delimiter = delimiter;
     }
 
-    public void setEncoding(String charsetName) {
-        if(StringUtils.isNotEmpty(charsetName)) {
-            if(!Charset.isSupported(charsetName)) {
-                throw new UnsupportedCharsetException("The charset " + charsetName + " is not supported.");
-            }
-            this.format.charsetName = charsetName;
-        }
-    }
-
-    public void setWriteMode (String writeMode) {
-        format.writeMode = writeMode;
-    }
-
     public void setConnectPattern(String connectPattern) {
         if(StringUtils.isEmpty(connectPattern)) {
             format.connectMode = FtpConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
         } else {
             format.connectMode = connectPattern;
         }
+    }
+
+    public void setTimeout(Integer timeout){
+        format.timeout = timeout;
     }
 
     @Override

@@ -20,9 +20,7 @@ package com.dtstack.flinkx.db2;
 
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,24 +30,6 @@ import java.util.List;
  * @date 2018/11/19
  */
 public class Db2DatabaseMeta extends BaseDatabaseMeta {
-
-    @Override
-    protected String makeMultipleValues(int nCols, int batchSize) {
-        String value = makeValues(nCols);
-        return StringUtils.repeat(value, ",", batchSize);
-    }
-
-    @Override
-    public String getMultiInsertStatement(List<String> column, String table, int batchSize) {
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values "
-                + makeMultipleValues(column.size(), batchSize);
-    }
-
-    @Override
-    protected String makeValues(int nCols) {
-        return "(" + StringUtils.repeat("?", ",", nCols) + ")";
-    }
 
     @Override
     protected String makeReplaceValues(List<String> column, List<String> fullColumn){
@@ -72,12 +52,12 @@ public class Db2DatabaseMeta extends BaseDatabaseMeta {
 
     @Override
     public String getSQLQueryFields(String tableName) {
-        return "SELECT * FROM " + tableName + " LIMIT 0";
+        return "SELECT * FROM " + tableName + " FETCH FIRST  1 ROWS ONLY";
     }
 
     @Override
     public String getSQLQueryColumnFields(List<String> column, String table) {
-        return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " LIMIT 0";
+        return "SELECT " + quoteColumns(column) + " FROM " + quoteTable(table) + " FETCH FIRST  1 ROWS ONLY";
     }
 
     @Override

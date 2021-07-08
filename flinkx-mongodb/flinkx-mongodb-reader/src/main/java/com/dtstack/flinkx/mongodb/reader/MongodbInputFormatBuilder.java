@@ -87,5 +87,9 @@ public class MongodbInputFormatBuilder extends RichInputFormatBuilder {
         if(format.collectionName == null){
             throw new IllegalArgumentException("No collection supplied");
         }
+
+        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
+            throw new UnsupportedOperationException("This plugin not support restore from failed state");
+        }
     }
 }

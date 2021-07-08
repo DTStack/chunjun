@@ -61,9 +61,9 @@ mvn clean package -Dmaven.test.skip
   * 必选：是
   * 默认值：无
 
-* **plugin**
+* **pluginRoot**
   
-  * 描述：插件根目录地址，也就是打包后产生的plugins目录。
+  * 描述：插件根目录地址，也就是打包后产生的pluginRoot目录。
   * 必选：是
   * 默认值：无
 
@@ -84,19 +84,19 @@ mvn clean package -Dmaven.test.skip
 * **以本地模式启动数据同步任务**
 
 ```
-bin/flinkx -mode local -job /Users/softfly/company/flink-data-transfer/jobs/task_to_run.json -plugin /Users/softfly/company/flink-data-transfer/plugins
+bin/flinkx -mode local -job /Users/softfly/company/flink-data-transfer/jobs/task_to_run.json -pluginRoot /Users/softfly/company/flink-data-transfer/plugins -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
 ```
 
 * **以standalone模式启动数据同步任务**
 
 ```
-bin/flinkx -mode standalone -job /Users/softfly/company/flink-data-transfer/jobs/oracle_to_oracle.json  -plugin /Users/softfly/company/flink-data-transfer/plugins -flinkconf /hadoop/flink-1.4.0/conf
+bin/flinkx -mode standalone -job /Users/softfly/company/flink-data-transfer/jobs/oracle_to_oracle.json  -pluginRoot /Users/softfly/company/flink-data-transfer/plugins -flinkconf /hadoop/flink-1.4.0/conf -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
 ```
 
 * **以yarn模式启动数据同步任务**
 
 ```
-bin/flinkx -mode yarn -job /Users/softfly/company/flinkx/jobs/mysql_to_mysql.json  -plugin /opt/dtstack/flinkplugin/syncplugin -flinkconf /opt/dtstack/myconf/conf -yarnconf /opt/dtstack/myconf/hadoop
+bin/flinkx -mode yarn -job /Users/softfly/company/flinkx/jobs/mysql_to_mysql.json  -pluginRoot /opt/dtstack/flinkplugin/syncplugin -flinkconf /opt/dtstack/myconf/conf -yarnconf /opt/dtstack/myconf/hadoop -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
 ```
 
 ## 4 数据同步任务模版
@@ -174,6 +174,19 @@ setting包括speed、errorLimit和dirty三部分，分别描述限速、错误�
 * path: 脏数据存放路径
 * hadoopConfig: 脏数据存放路径对应hdfs的配置信息(hdfs高可用配置)
 
+#### 4.1.4  restore
+
+```
+"restore": {
+
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      }
+```
+
+restore配置请参考[断点续传](docs/restore.md)
+
 ### 4.2 content
 
 ```
@@ -208,7 +221,7 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 
 ### 5.1 读取插件
 
-* [关系数据库读取插件](docs/rdbreader.md)
+* [关系数据库读取插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase)](docs/rdbreader.md)
 * [分库分表读取插件](docs/rdbdreader.md)
 * [HDFS读取插件](docs/hdfsreader.md)
 * [HBase读取插件](docs/hbasereader.md)
@@ -218,10 +231,14 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [MongoDB读取插件](docs/mongodbreader.md)
 * [Stream读取插件](docs/streamreader.md)
 * [Carbondata读取插件](docs/carbondatareader.md)
+* [MySQL binlog读取插件](docs/binlog.md)
+* [KafKa读取插件](docs/kafkareader.md)
+* [Kudu读取插件](docs/kudureader.md)
+
 
 ### 5.2 写入插件
 
-* [关系数据库写入插件](docs/rdbwriter.md)
+* [关系数据库写入插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase)](docs/rdbwriter.md)
 * [HDFS写入插件](docs/hdfswriter.md)
 * [HBase写入插件](docs/hbasewriter.md)
 * [Elasticsearch写入插件](docs/eswriter.md)
@@ -231,10 +248,24 @@ reader和writer包括name和parameter，分别表示插件名称和插件参数
 * [Redis写入插件](docs/rediswriter.md)
 * [Stream写入插件](docs/streamwriter.md)
 * [Carbondata写入插件](docs/carbondatawriter.md)
+* [Kafka写入插件](docs/kafkawriter.md)
+* [Hive写入插件](docs/hivewriter.md)
+* [Kudu写入插件](docs/kuduwriter.md)
+
+[断点续传和实时采集功能介绍](docs/restore.md)
+
+[数据源开启Kerberos](docs/kerberos.md)
+
+[统计指标说明](docs/statistics.md)
 
 ## 6.版本说明
 
- 1.flinkx的分支版本跟flink的版本对应，比如：flinkx v1.4.0 对应 flink1.4.0,现在支持flink1.4和1.5
+ 1.flinkx的分支版本跟flink的版本对应，比如：flinkx v1.5.0 对应 flink1.5.0,版本说明：
+
+| 插件版本  | flink版本 |
+| ----- | ------- |
+| 1.5.x | 1.5.4   |
+| 1.8.x | 1.8.1   |
 
 ## 7.招聘信息
 

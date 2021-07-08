@@ -18,26 +18,38 @@
 
 package com.dtstack.flinkx.outputformat;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.latch.Latch;
 import com.dtstack.flinkx.latch.LocalLatch;
 import com.dtstack.flinkx.latch.MetricLatch;
-import com.dtstack.flinkx.metrics.OutputMetric;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
+import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.URLUtil;
 import com.dtstack.flinkx.writer.DirtyDataManager;
 import com.dtstack.flinkx.writer.ErrorLimiter;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.accumulators.IntCounter;
 import org.apache.flink.api.common.accumulators.LongCounter;
+import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
 import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
 
 /**
@@ -46,9 +58,13 @@ import static com.dtstack.flinkx.writer.WriteErrorTypes.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> {
+public abstract class RichOutputFormat extends org.apache.flink.api.common.io.RichOutputFormat<Row> implements CleanupWhenUnsuccessful {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    public static final String RUNNING_STATE = "RUNNING";
+
+    public static final int LOG_PRINT_INTERNAL = 2000;
 
     /** Dirty data manager */
     protected DirtyDataManager dirtyDataManager;
@@ -57,7 +73,7 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     protected String dirtyPath;
 
     /** The hadoop config for dirty data storage */
-    protected Map<String,String> dirtyHadoopConfig;
+    protected Map<String,Object> dirtyHadoopConfig;
 
     /** The source table field names  */
     protected List<String> srcFieldNames;
@@ -71,23 +87,30 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     /** 总记录数 */
     protected LongCounter numWriteCounter;
 
+    /** snapshot 中记录的总记录数 */
+    protected LongCounter snapshotWriteCounter;
+
     /** 错误记录数 */
-    protected IntCounter errCounter;
+    protected LongCounter errCounter;
 
     /** Number of null pointer errors */
-    protected IntCounter nullErrCounter;
+    protected LongCounter nullErrCounter;
 
     /** Number of primary key conflict errors */
-    protected IntCounter duplicateErrCounter;
+    protected LongCounter duplicateErrCounter;
 
     /** Number of type conversion errors */
-    protected IntCounter conversionErrCounter;
+    protected LongCounter conversionErrCounter;
 
     /** Number of other errors */
-    protected IntCounter otherErrCounter;
+    protected LongCounter otherErrCounter;
 
     /** 错误限制 */
     protected ErrorLimiter errorLimiter;
+
+    protected LongCounter bytesWriteCounter;
+
+    protected LongCounter durationCounter;
 
     /** 错误阈值 */
     protected Integer errors;
@@ -112,15 +135,19 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected String jobId;
 
-    protected transient OutputMetric outputMetric;
+    protected RestoreConfig restoreConfig;
 
-    public DirtyDataManager getDirtyDataManager() {
-        return dirtyDataManager;
-    }
+    protected FormatState formatState;
 
-    public void setDirtyDataManager(DirtyDataManager dirtyDataManager) {
-        this.dirtyDataManager = dirtyDataManager;
-    }
+    protected Object initState;
+
+    protected transient BaseMetric outputMetric;
+
+    protected AccumulatorCollector accumulatorCollector;
+
+    private long startTime;
+
+    protected boolean initAccumulatorAndDirty = true;
 
     public String getDirtyPath() {
         return dirtyPath;
@@ -130,16 +157,20 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         this.dirtyPath = dirtyPath;
     }
 
-    public Map<String, String> getDirtyHadoopConfig() {
+    public Map<String, Object> getDirtyHadoopConfig() {
         return dirtyHadoopConfig;
     }
 
-    public void setDirtyHadoopConfig(Map<String, String> dirtyHadoopConfig) {
+    public void setDirtyHadoopConfig(Map<String, Object> dirtyHadoopConfig) {
         this.dirtyHadoopConfig = dirtyHadoopConfig;
     }
 
-    public List<String> getSrcFieldNames() {
-        return srcFieldNames;
+    public void setDirtyDataManager(DirtyDataManager dirtyDataManager) {
+        this.dirtyDataManager = dirtyDataManager;
+    }
+
+    public void setErrorLimiter(ErrorLimiter errorLimiter) {
+        this.errorLimiter = errorLimiter;
     }
 
     public void setSrcFieldNames(List<String> srcFieldNames) {
@@ -154,7 +185,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     protected abstract void openInternal(int taskNumber, int numTasks) throws IOException;
 
     /**
-     * The method that I don't know how to say
      * @param taskNumber The number of the parallel instance.
      * @param numTasks The number of parallel tasks.
      * @throws IOException
@@ -166,20 +196,70 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         context = (StreamingRuntimeContext) getRuntimeContext();
         this.numTasks = numTasks;
 
-        //错误记录数
-        errCounter = context.getIntCounter(Metrics.NUM_ERRORS);
-        nullErrCounter = context.getIntCounter(Metrics.NUM_NULL_ERRORS);
-        duplicateErrCounter = context.getIntCounter(Metrics.NUM_DUPLICATE_ERRORS);
-        conversionErrCounter = context.getIntCounter(Metrics.NUM_CONVERSION_ERRORS);
-        otherErrCounter = context.getIntCounter(Metrics.NUM_OTHER_ERRORS);
+        initStatisticsAccumulator();
+        initJobInfo();
 
-        //总记录数
-        numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+        if (initAccumulatorAndDirty) {
+            initAccumulatorCollector();
+            openErrorLimiter();
+            openDirtyDataManager();
+        }
 
-        outputMetric = new OutputMetric(context, errCounter, nullErrCounter, duplicateErrCounter, conversionErrCounter, otherErrCounter, numWriteCounter);
+        initRestoreInfo();
 
+        if(needWaitBeforeOpenInternal()) {
+            beforeOpenInternal();
+            waitWhile("#1");
+        }
+
+        openInternal(taskNumber, numTasks);
+        if(needWaitBeforeWriteRecords()) {
+            beforeWriteRecords();
+            waitWhile("#2");
+        }
+    }
+
+    private void initAccumulatorCollector(){
+        accumulatorCollector = new AccumulatorCollector(jobId, monitorUrl, getRuntimeContext(), 2,
+                Arrays.asList(Metrics.NUM_ERRORS,
+                        Metrics.NUM_NULL_ERRORS,
+                        Metrics.NUM_DUPLICATE_ERRORS,
+                        Metrics.NUM_CONVERSION_ERRORS,
+                        Metrics.NUM_OTHER_ERRORS,
+                        Metrics.NUM_WRITES,
+                        Metrics.WRITE_BYTES,
+                        Metrics.NUM_READS,
+                        Metrics.WRITE_DURATION));
+        accumulatorCollector.start();
+    }
+
+    protected void initRestoreInfo(){
+        if(restoreConfig == null){
+            restoreConfig = RestoreConfig.defaultConfig();
+        } else if(restoreConfig.isRestore()){
+            if(formatState == null){
+                formatState = new FormatState(taskNumber, null);
+            } else {
+                initState = formatState.getState();
+
+                errCounter.add(formatState.getMetricValue(Metrics.NUM_ERRORS));
+                nullErrCounter.add(formatState.getMetricValue(Metrics.NUM_NULL_ERRORS));
+                duplicateErrCounter.add(formatState.getMetricValue(Metrics.NUM_DUPLICATE_ERRORS));
+                conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
+                otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
+
+                //use snapshot write count
+                numWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+
+                snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+                bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
+                durationCounter.add(formatState.getMetricValue(Metrics.WRITE_DURATION));
+            }
+        }
+    }
+
+    protected void initJobInfo(){
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
-
         if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
             jobName = vars.get(Metrics.JOB_NAME);
         }
@@ -187,39 +267,45 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         if(vars!= null && vars.get(Metrics.JOB_ID) != null) {
             jobId = vars.get(Metrics.JOB_ID);
         }
+    }
 
-        //启动错误限制
-        if(StringUtils.isNotBlank(monitorUrl)) {
-            if(errors != null || errorRatio != null) {
-                errorLimiter = new ErrorLimiter(context, monitorUrl, errors, errorRatio, 2);
-                errorLimiter.start();
-            }
+    protected void initStatisticsAccumulator(){
+        errCounter = context.getLongCounter(Metrics.NUM_ERRORS);
+        nullErrCounter = context.getLongCounter(Metrics.NUM_NULL_ERRORS);
+        duplicateErrCounter = context.getLongCounter(Metrics.NUM_DUPLICATE_ERRORS);
+        conversionErrCounter = context.getLongCounter(Metrics.NUM_CONVERSION_ERRORS);
+        otherErrCounter = context.getLongCounter(Metrics.NUM_OTHER_ERRORS);
+        numWriteCounter = context.getLongCounter(Metrics.NUM_WRITES);
+        snapshotWriteCounter = context.getLongCounter(Metrics.SNAPSHOT_WRITES);
+        bytesWriteCounter = context.getLongCounter(Metrics.WRITE_BYTES);
+        durationCounter = context.getLongCounter(Metrics.WRITE_DURATION);
+
+        outputMetric = new BaseMetric(context);
+        outputMetric.addMetric(Metrics.NUM_ERRORS, errCounter);
+        outputMetric.addMetric(Metrics.NUM_NULL_ERRORS, nullErrCounter);
+        outputMetric.addMetric(Metrics.NUM_DUPLICATE_ERRORS, duplicateErrCounter);
+        outputMetric.addMetric(Metrics.NUM_CONVERSION_ERRORS, conversionErrCounter);
+        outputMetric.addMetric(Metrics.NUM_OTHER_ERRORS, otherErrCounter);
+        outputMetric.addMetric(Metrics.NUM_WRITES, numWriteCounter, true);
+        outputMetric.addMetric(Metrics.SNAPSHOT_WRITES, snapshotWriteCounter);
+        outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter, true);
+        outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
+
+        startTime = System.currentTimeMillis();
+    }
+
+    private void openErrorLimiter(){
+        if(errors != null || errorRatio != null) {
+            errorLimiter = new ErrorLimiter(accumulatorCollector, errors, errorRatio);
         }
+    }
 
-        //启动脏数据管理
+    private void openDirtyDataManager(){
         if(StringUtils.isNotBlank(dirtyPath)) {
-            dirtyDataManager = new DirtyDataManager(dirtyPath, dirtyHadoopConfig, srcFieldNames.toArray(new String[srcFieldNames.size()]));
+            dirtyDataManager = new DirtyDataManager(dirtyPath, dirtyHadoopConfig, srcFieldNames.toArray(new String[srcFieldNames.size()]), jobId);
             dirtyDataManager.open();
+            LOG.info("init dirtyDataManager, {}", this.dirtyDataManager);
         }
-
-        if(needWaitBeforeOpenInternal()) {
-            Latch latch = newLatch("#1");
-            beforeOpenInternal();
-            latch.addOne();
-            latch.waitUntil(numTasks);
-        }
-
-        openInternal(taskNumber, numTasks);
-
-        // Do something before starting writing records
-        if(needWaitBeforeWriteRecords()) {
-            Latch latch = newLatch("#2");
-            beforeWriteRecords();
-            latch.addOne();
-            latch.waitUntil(numTasks);
-        }
-
-
     }
 
     protected boolean needWaitBeforeOpenInternal() {
@@ -231,7 +317,6 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
     }
 
     protected void writeSingleRecord(Row row) {
-        // 若错误数超过限制,则抛异常而退出
         if(errorLimiter != null) {
             errorLimiter.acquire();
         }
@@ -239,38 +324,48 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         try {
             writeSingleRecordInternal(row);
 
-            // 总记录数加1
             numWriteCounter.add(1);
         } catch(WriteRecordException e) {
-            errCounter.add(1);
-            String errMsg = e.getMessage();
+            saveErrorData(row, e);
+            updateStatisticsOfDirtyData(row, e);
+            // 总记录数加1
+            numWriteCounter.add(1);
+            snapshotWriteCounter.add(1);
 
-            int pos = e.getColIndex();
-            if (pos != -1) {
-               errMsg += recordConvertDetailErrorMessage(pos, e.getRow());
+            if(dirtyDataManager == null && errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0){
+                LOG.error(e.getMessage());
             }
+        }
+    }
 
-            if(errorLimiter != null) {
-                errorLimiter.setErrMsg(errMsg);
-                errorLimiter.setErrorData(row);
-            }
+    private void saveErrorData(Row row, WriteRecordException e){
+        errCounter.add(1);
 
-            if(dirtyDataManager != null) {
-                String errorType = dirtyDataManager.writeData(row, e);
-                if (ERR_NULL_POINTER.equals(errorType)){
-                    nullErrCounter.add(1);
-                } else if(ERR_FORMAT_TRANSFORM.equals(errorType)){
-                    conversionErrCounter.add(1);
-                } else if(ERR_PRIMARY_CONFLICT.equals(errorType)){
-                    duplicateErrCounter.add(1);
-                } else {
-                    otherErrCounter.add(1);
-                }
-            }
-
-            LOG.error(e.getMessage());
+        String errMsg = ExceptionUtil.getErrorMessage(e);
+        int pos = e.getColIndex();
+        if (pos != -1) {
+            errMsg += recordConvertDetailErrorMessage(pos, e.getRow());
         }
 
+        if(errorLimiter != null) {
+            errorLimiter.setErrMsg(errMsg);
+            errorLimiter.setErrorData(row);
+        }
+    }
+
+    private void updateStatisticsOfDirtyData(Row row, WriteRecordException e){
+        if(dirtyDataManager != null) {
+            String errorType = dirtyDataManager.writeData(row, e);
+            if (ERR_NULL_POINTER.equals(errorType)){
+                nullErrCounter.add(1);
+            } else if(ERR_FORMAT_TRANSFORM.equals(errorType)){
+                conversionErrCounter.add(1);
+            } else if(ERR_PRIMARY_CONFLICT.equals(errorType)){
+                duplicateErrCounter.add(1);
+            } else {
+                otherErrCounter.add(1);
+            }
+        }
     }
 
     protected String recordConvertDetailErrorMessage(int pos, Row row) {
@@ -281,7 +376,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
 
     protected void writeMultipleRecords() throws Exception {
         writeMultipleRecordsInternal();
-        numWriteCounter.add(rows.size());
+        if(!restoreConfig.isRestore()){
+          if(numWriteCounter != null){
+            numWriteCounter.add(rows.size());
+          }
+        }
     }
 
     protected abstract void writeMultipleRecordsInternal() throws Exception;
@@ -290,22 +389,39 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         try {
             writeMultipleRecords();
         } catch(Exception e) {
-            rows.forEach(this::writeSingleRecord);
+            if(restoreConfig.isRestore()){
+                throw new RuntimeException(e);
+            } else {
+                rows.forEach(this::writeSingleRecord);
+            }
         }
         rows.clear();
     }
 
     @Override
     public void writeRecord(Row row) throws IOException {
+        Row internalRow = setChannelInfo(row);
         if(batchInterval <= 1) {
-            writeSingleRecord(row);
+            writeSingleRecord(internalRow);
         } else {
-            rows.add(row);
+            rows.add(internalRow);
             if(rows.size() == batchInterval) {
                 writeRecordInternal();
             }
         }
 
+        updateDuration();
+        if(bytesWriteCounter!=null){
+            bytesWriteCounter.add(row.toString().length());
+        }
+    }
+
+    private Row setChannelInfo(Row row){
+        Row internalRow = new Row(row.getArity() - 1);
+        for (int i = 0; i < internalRow.getArity(); i++) {
+            internalRow.setField(i, row.getField(i));
+        }
+        return internalRow;
     }
 
     @Override
@@ -316,50 +432,119 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
             if(rows.size() != 0) {
                 writeRecordInternal();
             }
+
+            if(durationCounter != null){
+                updateDuration();
+            }
+
             if(needWaitBeforeCloseInternal()) {
-                Latch latch = newLatch("#3");
                 beforeCloseInternal();
-                latch.addOne();
-                System.out.println("hyf latch add one: task# " + taskNumber);
-                latch.waitUntil(numTasks);
-                System.out.println("hyf waitUtil end");
+                waitWhile("#3");
             }
         }finally {
             try{
                 closeInternal();
                 if(needWaitAfterCloseInternal()) {
-                    Latch latch = newLatch("#4");
-                    latch.addOne();
-                    latch.waitUntil(numTasks);
+                    afterCloseInternal();
+                    waitWhile("#4");
                 }
-                afterCloseInternal();
+
+                if(outputMetric != null){
+                    outputMetric.waitForReportMetrics();
+                }
             }finally {
                 if(dirtyDataManager != null) {
                     dirtyDataManager.close();
                 }
 
-                if(errorLimiter != null) {
-                    try{
-                        // Wait a while before checking dirty data
-                        Latch latch = newLatch("#5");
-                        latch.addOne();
-                        latch.waitUntil(numTasks);
-
-                        errorLimiter.updateErrorInfo();
-                    } catch (Exception e){
-                        LOG.warn("Update error info error when task closing:{}", e);
-                    }
-
-                    errorLimiter.acquire();
-                    errorLimiter.stop();
+                checkErrorLimit();
+                if(accumulatorCollector != null){
+                    accumulatorCollector.close();
                 }
             }
             LOG.info("subtask[" + taskNumber + "] close() finished");
         }
     }
 
+    private void checkErrorLimit(){
+        if(errorLimiter != null) {
+            try{
+                waitWhile("#5");
+
+                errorLimiter.updateErrorInfo();
+            } catch (Exception e){
+                LOG.warn("Update error info error when task closing: ", e);
+            }
+
+            errorLimiter.acquire();
+        }
+    }
+
+    private void updateDuration(){
+        if(durationCounter!=null){
+            durationCounter.resetLocal();
+            durationCounter.add(System.currentTimeMillis() - startTime);
+        }
+    }
+
     public void closeInternal() throws IOException {
 
+    }
+
+    @Override
+    public void tryCleanupOnError() throws Exception {
+
+    }
+
+    protected String getTaskState() throws IOException{
+        if (StringUtils.isEmpty(monitorUrl)) {
+            return RUNNING_STATE;
+        }
+
+        String taskState;
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        String monitors = String.format("%s/jobs/%s", monitorUrl, jobId);
+        LOG.info("Monitor url:{}", monitors);
+
+        JsonParser parser = new JsonParser();
+        for (int i = 0; i < 5; i++) {
+            try{
+                String response = URLUtil.get(httpClient, monitors);
+                LOG.info("response:{}", response);
+
+                JsonObject obj = parser.parse(response).getAsJsonObject();
+                taskState = obj.get("state").getAsString();
+                LOG.info("Job state is:{}", taskState);
+
+                if(taskState != null){
+                    httpClient.close();
+                    return taskState;
+                }
+
+                Thread.sleep(500);
+            }catch (Exception e){
+                LOG.info("Get job state error:{}", e.getMessage());
+            }
+        }
+
+        httpClient.close();
+
+        return RUNNING_STATE;
+    }
+
+    /**
+     * Get the recover point of current channel
+     * @return DataRecoverPoint
+     */
+    public FormatState getFormatState(){
+        if (formatState != null){
+            formatState.setMetric(outputMetric.getMetricCounters());
+        }
+        return formatState;
+    }
+
+    public void setRestoreState(FormatState formatState) {
+        this.formatState = formatState;
     }
 
     protected boolean needWaitBeforeWriteRecords() {
@@ -386,6 +571,12 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         // nothing
     }
 
+    protected void waitWhile(String latchName){
+        Latch latch = newLatch(latchName);
+        latch.addOne();
+        latch.waitUntil(numTasks);
+    }
+
     protected Latch newLatch(String latchName) {
         if(StringUtils.isNotBlank(monitorUrl)) {
             return new MetricLatch(getRuntimeContext(), monitorUrl, latchName);
@@ -394,4 +585,11 @@ public abstract class RichOutputFormat extends org.apache.flink.api.common.io.Ri
         }
     }
 
+    public int getBatchInterval() {
+        return batchInterval;
+    }
+
+    public RestoreConfig getRestoreConfig() {
+        return restoreConfig;
+    }
 }

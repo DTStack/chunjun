@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.util;
 
-import com.dtstack.flinkx.common.ColumnType;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import org.apache.flink.types.Row;
 
@@ -47,6 +47,10 @@ public class StringUtil {
      * @return the converted String
      */
     public static String convertRegularExpr (String str) {
+        if(str == null){
+            return "";
+        }
+
         String pattern = "\\\\(\\d{3})";
 
         Pattern r = Pattern.compile(pattern);
@@ -121,9 +125,17 @@ public class StringUtil {
     }
 
     public static String col2string(Object column, String type) {
+        if(column == null){
+            return "";
+        }
+
+        if(type == null){
+            return column.toString();
+        }
+
         String rowData = column.toString();
         ColumnType columnType = ColumnType.getType(type.toUpperCase());
-        Object result = null;
+        Object result;
         switch (columnType) {
             case TINYINT:
                 result = Byte.valueOf(rowData.trim());
@@ -206,16 +218,5 @@ public class StringUtil {
         }
 
         return sb.toString();
-    }
-
-    /**
-     * Split the string according to the specified separator,ignore separators in quotes and parentheses
-     * @param str String to be split
-     * @param delimter Separator
-     * @return Result array
-     */
-    public static String[] splitIgnoreQuotaBrackets(String str, String delimter){
-        String splitPatternStr = delimter + "(?![^()]*+\\))(?![^{}]*+})(?![^\\[\\]]*+\\])(?=(?:[^\"]|\"[^\"]*\")*$)";
-        return str.split(splitPatternStr);
     }
 }

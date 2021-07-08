@@ -19,16 +19,16 @@
 package com.dtstack.flinkx.postgresql.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.inputformat.RichInputFormat;
 import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
+import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.rdb.util.DBUtil;
-import com.dtstack.flinkx.util.ClassUtil;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.flink.types.Row;
 
 /**
  * The reader plugin for PostgreSQL database
@@ -42,5 +42,35 @@ public class PostgresqlReader extends JdbcDataReader {
         super(config, env);
         setDatabaseInterface(new PostgresqlDatabaseMeta());
         setTypeConverterInterface(new PostgresqlTypeConverter());
+        dbUrl = DBUtil.formatJdbcUrl(dbUrl, null);
+    }
+
+    @Override
+    public DataStream<Row> readData() {
+        JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(databaseInterface.getDatabaseType().name());
+        builder.setDrivername(databaseInterface.getDriverClass());
+        builder.setDBUrl(dbUrl);
+        builder.setUsername(username);
+        builder.setPassword(password);
+        builder.setBytes(bytes);
+        builder.setMonitorUrls(monitorUrls);
+        builder.setTable(table);
+        builder.setDatabaseInterface(databaseInterface);
+        builder.setTypeConverter(typeConverter);
+        builder.setMetaColumn(metaColumns);
+        builder.setFetchSize(fetchSize == 0 ? databaseInterface.getFetchSize() : fetchSize);
+        builder.setQueryTimeOut(queryTimeOut == 0 ? databaseInterface.getQueryTimeout() : queryTimeOut);
+        builder.setIncrementConfig(incrementConfig);
+        builder.setSplitKey(splitKey);
+        builder.setNumPartitions(numPartitions);
+        builder.setCustomSql(customSql);
+        builder.setRestoreConfig(restoreConfig);
+        builder.setHadoopConfig(hadoopConfig);
+
+        QuerySqlBuilder sqlBuilder = new PostgresqlQuerySqlBuilder(this);
+        builder.setQuery(sqlBuilder.buildSql());
+
+        RichInputFormat format =  builder.finish();
+        return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
     }
 }

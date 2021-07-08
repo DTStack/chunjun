@@ -28,18 +28,9 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,51 +68,6 @@ public class EsUtil {
 
         RestHighLevelClient client = new RestHighLevelClient(builder);
         return client;
-    }
-
-    public static SearchResponse search(RestHighLevelClient client, String index, String type, String query, int from, int size) {
-        SearchRequest searchRequest = Strings.isNullOrEmpty(index) ? new SearchRequest() : new SearchRequest(index);
-
-        if(!Strings.isNullOrEmpty(type)){
-           searchRequest.types(type);
-        }
-
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder.from(from);
-
-        if(size > 0){
-            sourceBuilder.size(size);
-        }
-
-        if(StringUtils.isNotBlank(query)) {
-            QueryBuilder qb = QueryBuilders.wrapperQuery(query);
-            sourceBuilder.query(qb);
-        }
-
-        searchRequest.source(sourceBuilder);
-
-        try {
-            return client.search(searchRequest);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    public static long searchCount(RestHighLevelClient client, String index, String type, String query) {
-        SearchResponse searchResponse = search(client, index, type, query, 0, 0);
-        return searchResponse.getHits().getTotalHits();
-    }
-
-    public static List<Map<String,Object>> searchContent(RestHighLevelClient client, String index, String type, String query, int from, int size) {
-        SearchResponse searchResponse = search(client, index, type, query, from, size);
-        SearchHits searchHits = searchResponse.getHits();
-        List<Map<String,Object>> resultList = new ArrayList<>();
-        for(SearchHit searchHit : searchHits) {
-            Map<String,Object> source = searchHit.getSourceAsMap();
-            resultList.add(source);
-        }
-        return resultList;
     }
 
     public static Row jsonMapToRow(Map<String,Object> map, List<String> fields, List<String> types, List<String> values) {
@@ -221,6 +167,24 @@ public class EsUtil {
         return column;
     }
 
+    public static String[] getStringArray(Object value){
+        if(value == null){
+            return null;
+        }
 
+        if(value instanceof String){
+            String stringValue = value.toString();
+            return stringValue.split(",");
+        } else if(value instanceof List){
+            List list = (List)value;
+            String[] array = new String[list.size()];
+            for (int i = 0; i < list.size(); i++) {
+                array[i] = list.get(i).toString();
+            }
 
+            return array;
+        } else {
+            return new String[]{value.toString()};
+        }
+    }
 }

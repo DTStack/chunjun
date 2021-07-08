@@ -19,14 +19,12 @@
 package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.ftp.FtpConfigConstants;
-import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.ftp.SFtpHandler;
-import com.dtstack.flinkx.ftp.StandardFtpHandler;
+import com.dtstack.flinkx.ftp.FtpHandler;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.reader.ByteRateLimiter;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.StringUtil;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.configuration.Configuration;
@@ -59,7 +57,7 @@ public class FtpInputFormat extends RichInputFormat {
 
     protected String protocol;
 
-    protected Integer timeout = 60000;
+    protected Integer timeout;
 
     protected String connectMode = FtpConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
 
@@ -71,7 +69,7 @@ public class FtpInputFormat extends RichInputFormat {
 
     private transient FtpSeqBufferedReader br;
 
-    private transient FtpHandler ftpHandler;
+    private transient IFtpHandler ftpHandler;
 
     private transient String line;
 
@@ -80,7 +78,7 @@ public class FtpInputFormat extends RichInputFormat {
         if("sftp".equalsIgnoreCase(protocol)) {
             ftpHandler = new SFtpHandler();
         } else {
-            ftpHandler = new StandardFtpHandler();
+            ftpHandler = new FtpHandler();
         }
         ftpHandler.loginFtpServer(host,username,password,port,timeout,connectMode);
     }

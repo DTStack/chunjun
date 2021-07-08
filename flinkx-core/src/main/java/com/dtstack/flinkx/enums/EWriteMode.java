@@ -39,5 +39,7 @@ public enum EWriteMode {
     /**
      * replace into
      */
-    REPLACE
+    REPLACE,
+
+    UPSERT
 }

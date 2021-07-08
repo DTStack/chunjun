@@ -24,7 +24,6 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.writer.DataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import java.util.List;
 import java.util.Map;
@@ -89,11 +88,7 @@ public class CarbondataWriter extends DataWriter {
         builder.setSrcCols(srcCols);
         builder.setBatchSize(batchSize);
 
-        OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
-        String sinkName = "carbonwriter";
-        dataStreamSink.name(sinkName);
-        return dataStreamSink;
+        return createOutput(dataSet, builder.finish(), "carbonwriter");
     }
 
 }

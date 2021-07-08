@@ -80,21 +80,17 @@ public class MongodbOutputFormat extends RichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
-        Document doc = MongodbUtil.convertRowToDoc(row,columns);
+        try {
+            Document doc = MongodbUtil.convertRowToDoc(row,columns);
 
-        if(WriteMode.INSERT.getMode().equals(mode)){
-            collection.insertOne(doc);
-        } else if(WriteMode.REPLACE.getMode().equals(mode) || WriteMode.UPDATE.getMode().equals(mode)){
-            if(StringUtils.isEmpty(replaceKey)){
-                throw new IllegalArgumentException("ReplaceKey cannot be empty when the write mode is replace");
+            if(WriteMode.INSERT.getMode().equals(mode)){
+                collection.insertOne(doc);
+            } else if(WriteMode.REPLACE.getMode().equals(mode) || WriteMode.UPDATE.getMode().equals(mode)){
+                Document filter = new Document(replaceKey,doc.get(replaceKey));
+                collection.findOneAndReplace(filter,doc);
             }
-
-            if(!doc.containsKey(replaceKey)){
-                throw new IllegalArgumentException("Cannot find replaceKey in the input fields");
-            }
-
-            Document filter = new Document(replaceKey,doc.get(replaceKey));
-            collection.findOneAndReplace(filter,doc);
+        } catch (Exception e){
+            throw new WriteRecordException("Writer data to mongodb error", e, 0, row);
         }
     }
 

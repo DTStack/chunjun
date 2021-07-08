@@ -18,12 +18,11 @@
 
 package com.dtstack.flinkx.hbase.reader;
 
+import com.dtstack.flinkx.authenticate.KerberosUtil;
 import com.dtstack.flinkx.hbase.HbaseHelper;
 import com.dtstack.flinkx.inputformat.RichInputFormat;
-import com.dtstack.flinkx.reader.ByteRateLimiter;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -42,6 +41,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.flink.hadoop.shaded.com.google.common.collect.Maps;
 
 
 /**
@@ -52,7 +52,7 @@ import java.util.Map;
  */
 public class HbaseInputFormat extends RichInputFormat {
 
-    protected Map<String,String> hbaseConfig;
+    protected Map<String,Object> hbaseConfig;
     protected String tableName;
     protected String startRowkey;
     protected String endRowkey;
@@ -69,30 +69,18 @@ public class HbaseInputFormat extends RichInputFormat {
     private transient Table table;
     private transient ResultScanner resultScanner;
     private transient Result next;
+    private transient Map<String,byte[][]> nameMaps;
+
+    private boolean openKerberos = false;
 
     @Override
     public void configure(Configuration configuration) {
         LOG.info("HbaseOutputFormat configure start");
+        nameMaps = Maps.newConcurrentMap();
 
-        try {
-            connection = ConnectionFactory.createConnection(getConfig());
-        } catch (Exception e) {
-            HbaseHelper.closeConnection(connection);
-            throw new IllegalArgumentException(e);
-        }
+        connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "reader");
 
         LOG.info("HbaseOutputFormat configure end");
-    }
-
-    public org.apache.hadoop.conf.Configuration getConfig(){
-        org.apache.hadoop.conf.Configuration hConfiguration = new org.apache.hadoop.conf.Configuration();
-        Validate.isTrue(hbaseConfig != null && hbaseConfig.size() !=0, "hbaseConfig不能为空Map结构!");
-
-        for (Map.Entry<String, String> entry : hbaseConfig.entrySet()) {
-            hConfiguration.set(entry.getKey(), entry.getValue());
-        }
-
-        return hConfiguration;
     }
 
     @Override
@@ -226,13 +214,10 @@ public class HbaseInputFormat extends RichInputFormat {
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
 
         if(null == connection || connection.isClosed()){
-            try {
-                connection = ConnectionFactory.createConnection(getConfig());
-            } catch (Exception e) {
-                HbaseHelper.closeConnection(connection);
-                throw new IllegalArgumentException(e);
-            }
+            connection = HbaseHelper.getHbaseConnection(hbaseConfig, jobId, "reader");
         }
+
+        openKerberos = HbaseHelper.openKerberos(hbaseConfig);
 
         table = connection.getTable(TableName.valueOf(tableName));
         scan = new Scan();
@@ -269,10 +254,15 @@ public class HbaseInputFormat extends RichInputFormat {
                     if (columnName.equals("rowkey")) {
                         bytes = next.getRow();
                     } else {
-                        String[] arr = columnName.split(":");
-                        String family = arr[0].trim();
-                        String qualifier = arr[1].trim();
-                        bytes = next.getValue(family.getBytes(), qualifier.getBytes());
+                        byte [][] arr = nameMaps.get(columnName);
+                        if(arr == null){
+                            arr = new byte[2][];
+                            String[] arr1 = columnName.split(":");
+                            arr[0] = arr1[0].trim().getBytes();
+                            arr[1] = arr1[1].trim().getBytes();
+                            nameMaps.put(columnName,arr);
+                        }
+                        bytes = next.getValue(arr[0], arr[1]);
                     }
                     col = convertBytesToAssignType(columnType, bytes, columnFormat);
                 }
@@ -281,18 +271,23 @@ public class HbaseInputFormat extends RichInputFormat {
                 throw new IOException("Couldn't read data:",e);
             }
         }
-
         return row;
     }
 
     @Override
     public void closeInternal() throws IOException {
         HbaseHelper.closeConnection(connection);
+
+        if(openKerberos){
+            KerberosUtil.clear(jobId);
+        }
     }
 
     public Object convertValueToAssignType(String columnType, String constantValue,String dateformat) throws Exception {
         Object column  = null;
-        if(org.apache.commons.lang3.StringUtils.isEmpty(constantValue)) return column;
+        if(org.apache.commons.lang3.StringUtils.isEmpty(constantValue)) {
+            return column;
+        }
 
         switch (columnType.toUpperCase()) {
             case "BOOLEAN":

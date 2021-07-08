@@ -18,54 +18,39 @@
 
 package com.dtstack.flinkx.hdfs.writer;
 
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.hdfs.HdfsUtil;
+import com.dtstack.flinkx.outputformat.FileOutputFormat;
+import com.dtstack.flinkx.util.ColumnTypeUtil;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.SysUtil;
-import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
+
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.apache.hadoop.conf.Configuration;
+
+
 /**
  * The Hdfs implementation of OutputFormat
  *
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public abstract class HdfsOutputFormat extends RichOutputFormat implements CleanupWhenUnsuccessful {
+public abstract class HdfsOutputFormat extends FileOutputFormat {
 
     protected int rowGroupSize;
 
-    protected static final String DATA_SUBDIR = ".data";
-
-    protected static final String FINISHED_SUBDIR = ".finished";
-
-    protected static final String SP = "/";
-
     protected FileSystem fs;
 
-    protected String outputFilePath;
-
     /** hdfs高可用配置 */
-    protected Map<String,String> hadoopConfig;
-
-    /** 写入模式 */
-    protected String writeMode;
-
-    /** 压缩方式 */
-    protected String compress;
+    protected Map<String,Object> hadoopConfig;
 
     protected String defaultFS;
-
-    protected String path;
-
-    protected String fileName;
 
     protected List<String> columnTypes;
 
@@ -77,17 +62,119 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
 
     protected String delimiter;
 
-    protected String tmpPath;
-
-    protected String finishedPath;
-
-    protected String charsetName = "UTF-8";
-
     protected int[] colIndices;
 
     protected Configuration conf;
 
-    protected void initColIndices() {
+    protected transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
+
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+        initColIndices();
+        super.openInternal(taskNumber, numTasks);
+    }
+
+    @Override
+    protected void checkOutputDir() {
+        try{
+            Path dir = new Path(outputFilePath);
+
+            if(fs.exists(dir)){
+                if(fs.isFile(dir)){
+                    throw new RuntimeException("Can't write new files under common file: " + dir + "\n"
+                            + "One can only write new files under directories");
+                }
+            } else {
+                if(!makeDir){
+                    throw new RuntimeException("Output path not exists:" + outputFilePath);
+                }
+            }
+        } catch (IOException e){
+            throw new RuntimeException("Check output path error", e);
+        }
+    }
+
+    @Override
+    protected void createActionFinishedTag() {
+        try {
+            fs.create(new Path(actionFinishedTag));
+            LOG.info("create action finished tag:{}", actionFinishedTag);
+        } catch (Exception e){
+            throw new RuntimeException("create action finished tag error:", e);
+        }
+    }
+
+    @Override
+    protected void waitForActionFinishedBeforeWrite() {
+        try {
+            Path path = new Path(actionFinishedTag);
+            boolean readyWrite = fs.exists(path);
+            int n = 0;
+            while (!readyWrite){
+                if(n > SECOND_WAIT){
+                    throw new RuntimeException("Wait action finished before write timeout");
+                }
+
+                SysUtil.sleep(1000);
+                readyWrite = fs.exists(path);
+                n++;
+            }
+        } catch (Exception e){
+
+        }
+    }
+
+    @Override
+    protected void cleanDirtyData() {
+        int fileIndex = formatState.getFileIndex();
+        String lastJobId = formatState.getJobId();
+        LOG.info("start to cleanDirtyData, fileIndex = {}, lastJobId = {}",fileIndex, lastJobId);
+        if(StringUtils.isBlank(lastJobId)){
+            return;
+        }
+
+        PathFilter filter = new PathFilter() {
+            @Override
+            public boolean accept(Path path) {
+                String fileName = path.getName();
+                if(!fileName.contains(lastJobId)){
+                    return false;
+                }
+
+                String[] splits = fileName.split("\\.");
+                if (splits.length == 3) {
+                    return Integer.parseInt(splits[2]) > fileIndex;
+                }
+
+                return false;
+            }
+        };
+
+        try{
+            FileStatus[] dirtyData = fs.listStatus(new Path(outputFilePath), filter);
+            if(dirtyData != null && dirtyData.length > 0){
+                for (FileStatus dirtyDatum : dirtyData) {
+                    fs.delete(dirtyDatum.getPath(), false);
+                    LOG.info("Delete dirty data file:{}", dirtyDatum.getPath());
+                }
+            }
+        } catch (Exception e){
+            LOG.error("Clean dirty data error:", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    protected void openSource() throws IOException{
+        try{
+            conf = FileSystemUtil.getConfiguration(hadoopConfig, defaultFS);
+            fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "writer");
+        } catch (Exception e){
+            throw new RuntimeException("Get FileSystem error", e);
+        }
+    }
+
+    private void initColIndices() {
         if (fullColumnNames == null || fullColumnNames.size() == 0) {
             fullColumnNames = columnNames;
         }
@@ -111,134 +198,114 @@ public abstract class HdfsOutputFormat extends RichOutputFormat implements Clean
         }
     }
 
-    protected void configInternal() {
-
-    }
-
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        if(StringUtils.isNotBlank(fileName)) {
-            this.outputFilePath = path + SP + fileName;
-        } else {
-            this.outputFilePath = path;
-        }
-
-        initColIndices();
-
-        conf = new Configuration();
-
-        if(hadoopConfig != null) {
-            for (Map.Entry<String, String> entry : hadoopConfig.entrySet()) {
-                conf.set(entry.getKey(), entry.getValue());
-            }
-        }
-
-        conf.set("fs.default.name", defaultFS);
-        conf.set("fs.hdfs.impl.disable.cache", "true");
-        fs = FileSystem.get(conf);
-        Path dir = new Path(outputFilePath);
-        // dir不能是文件
-        if(fs.exists(dir) && fs.isFile(dir)){
-            throw new RuntimeException("Can't write new files under common file: " + dir + "\n"
-                    + "One can only write new files under directories");
-        }
-
-        configInternal();
-        Date currentTime = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-        String dateString = formatter.format(currentTime);
-        tmpPath = outputFilePath + SP + DATA_SUBDIR + SP + taskNumber + "." + dateString;
-        finishedPath = outputFilePath + SP + FINISHED_SUBDIR + SP + taskNumber;
-        open();
-    }
-
-    protected abstract void open() throws IOException;
-
-    @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
-        // CAN NOT HAPPEN
-    }
-
-    @Override
-    public void tryCleanupOnError() throws Exception {
-        if(fs != null) {
-            Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
-            Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
-            fs.delete(finishedDir, true);
-            fs.delete(tmpDir, true);
-        }
-        LOG.info(jobName + ": tryCleanupOnError over!");
-    }
-
-
-    @Override
-    protected void afterCloseInternal()  {
+    protected void moveTemporaryDataBlockFileToDirectory(){
         try {
-            // write finished file
-            fs.createNewFile(new Path(finishedPath));
-
-            // task_0 move tmp data into destination
-            if(taskNumber == 0) {
-                Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
-                final int maxRetryTime = 100;
-                int i = 0;
-                for(; i < maxRetryTime; ++i) {
-                    if(fs.listStatus(finishedDir).length == numTasks) {
-                        break;
-                    }
-                    SysUtil.sleep(3000);
+            if (currentBlockFileName != null && currentBlockFileName.startsWith(".")){
+                Path src = new Path(tmpPath + SP + currentBlockFileName);
+                if (!fs.exists(src)) {
+                    LOG.warn("block file {} not exists", currentBlockFileName);
+                    return;
                 }
 
-                // 等待所有subtask都执行到close方法了
-                if(StringUtils.isNotBlank(monitorUrl)) {
-                    SysUtil.sleep(3000);
-                    System.out.println("finally acquire");
-                    if(errorLimiter != null) {
-                        errorLimiter.acquire();
-                    }
-                }
+                String dataFileName = currentBlockFileName.replaceFirst("\\.","");
+                Path dist = new Path(tmpPath + SP + dataFileName);
 
-                Path dir = new Path(outputFilePath);
-                Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
-                if (writeMode != null && writeMode.trim().length() != 0 && !writeMode.equalsIgnoreCase("APPEND")) {
-                    if(fs.exists(dir)) {
-                        PathFilter pathFilter = new PathFilter() {
-                            @Override
-                            public boolean accept(Path path) {
-                                return !path.getName().startsWith(".");
-                            }
-                        } ;
-                        FileStatus[] dataFiles = fs.listStatus(dir, pathFilter);
-                        for(FileStatus dataFile : dataFiles) {
-                            fs.delete(dataFile.getPath(), true);
-                        }
-                        fs.mkdirs(dir);
-                    }
-                }
-
-                if (i == maxRetryTime) {
-                    fs.delete(tmpDir, true);
-                    fs.delete(finishedDir, true);
-                    throw new RuntimeException("timeout when gathering finish tags for each subtasks");
-                }
-
-                FileStatus[] dataFiles = fs.listStatus(tmpDir);
-                for(FileStatus dataFile : dataFiles) {
-                    fs.rename(dataFile.getPath(), dir);
-                }
-                fs.delete(tmpDir, true);
-                fs.delete(finishedDir, true);
+                fs.rename(src, dist);
+                LOG.info("Rename temporary data block file:{} to:{}", src, dist);
             }
-            fs.close();
-        } catch(Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (Exception e){
+            throw new RuntimeException(e);
         }
-
     }
 
     @Override
-    protected boolean needWaitAfterCloseInternal() {
-        return true;
+    protected void clearTemporaryDataFiles() throws IOException{
+        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
+        fs.delete(finishedDir, true);
+        LOG.info("Delete .finished dir:{}", finishedDir);
+
+        Path tmpDir = new Path(outputFilePath + SP + DATA_SUBDIR);
+        fs.delete(tmpDir, true);
+        LOG.info("Delete .data dir:{}", tmpDir);
+    }
+
+    @Override
+    protected void closeSource() throws IOException {
+        if(fs != null){
+            fs.close();
+        }
+    }
+
+    @Override
+    protected void createFinishedTag() throws IOException{
+        if(fs != null){
+            fs.createNewFile(new Path(finishedPath));
+            LOG.info("Create finished tag dir:{}", finishedPath);
+        }
+    }
+
+    @Override
+    protected void waitForAllTasksToFinish() throws IOException{
+        Path finishedDir = new Path(outputFilePath + SP + FINISHED_SUBDIR);
+        final int maxRetryTime = 100;
+        int i = 0;
+        for(; i < maxRetryTime; ++i) {
+            if(fs.listStatus(finishedDir).length == numTasks) {
+                break;
+            }
+            SysUtil.sleep(3000);
+        }
+
+        if (i == maxRetryTime) {
+            String subTaskDataPath = outputFilePath + SP + DATA_SUBDIR;
+            fs.delete(new Path(subTaskDataPath), true);
+            LOG.info("waitForAllTasksToFinish: delete path:[{}]", subTaskDataPath);
+
+            fs.delete(finishedDir, true);
+            LOG.info("waitForAllTasksToFinish: delete finished dir:[{}]", finishedDir);
+
+            throw new RuntimeException("timeout when gathering finish tags for each subtasks");
+        }
+    }
+
+    @Override
+    protected void coverageData() throws IOException{
+        LOG.info("Overwrite the original data");
+
+        Path dir = new Path(outputFilePath);
+        if(!fs.exists(dir)){
+            return;
+        }
+
+        fs.delete(dir, true);
+        fs.mkdirs(dir);
+    }
+
+    @Override
+    protected void moveTemporaryDataFileToDirectory() throws IOException{
+        PathFilter pathFilter = path -> path.getName().startsWith(String.valueOf(taskNumber));
+        Path dir = new Path(outputFilePath);
+        Path tmpDir = new Path(tmpPath);
+
+        FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
+        for(FileStatus dataFile : dataFiles) {
+            fs.rename(dataFile.getPath(), dir);
+            LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
+        }
+    }
+
+    @Override
+    protected void moveAllTemporaryDataFileToDirectory() throws IOException {
+        PathFilter pathFilter = path -> !path.getName().startsWith(".");
+        Path dir = new Path(outputFilePath);
+        Path tmpDir = new Path(tmpPath);
+
+        FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
+        for(FileStatus dataFile : dataFiles) {
+            fs.rename(dataFile.getPath(), dir);
+            LOG.info("Rename temp file:{} to dir:{}", dataFile.getPath(), dir);
+        }
     }
 
 }

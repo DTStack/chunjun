@@ -94,22 +94,6 @@ public class MySqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getMultiReplaceStatement(List<String> column, List<String> fullColumn, String table, int batchSize, Map<String,List<String>> updateKey) {
-        return "REPLACE INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values "
-                + makeMultipleValues(column.size(), batchSize);
-    }
-
-    @Override
-    public String getMultiUpsertStatement(List<String> column, String table, int batchSize, Map<String,List<String>> updateKey) {
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values "
-                + makeMultipleValues(column.size(), batchSize)
-                + " ON DUPLICATE KEY UPDATE "
-                + makeUpdatePart(column);
-    }
-
-    @Override
     public String getSplitFilter(String columnName) {
         return String.format("%s mod ${N} = ${M}", getStartQuote() + columnName + getEndQuote());
     }
@@ -120,30 +104,16 @@ public class MySqlDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getMultiInsertStatement(List<String> column, String table, int batchSize) {
-        return "INSERT INTO " + quoteTable(table)
-                + " (" + quoteColumns(column) + ") values "
-                + makeMultipleValues(column.size(), batchSize);
+    public String getRowNumColumn(String orderBy) {
+        throw new RuntimeException("Not support row_number function");
     }
 
-    @Override
-    protected String makeValues(int nCols) {
+    private String makeValues(int nCols) {
         return "(" + StringUtils.repeat("?", ",", nCols) + ")";
     }
 
     @Override
     protected String makeValues(List<String> column) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected String makeMultipleValues(int nCols, int batchSize) {
-        String value = makeValues(nCols);
-        return StringUtils.repeat(value, ",", batchSize);
-    }
-
-    @Override
-    protected String makeMultipleValues(List<String> column, int batchSize) {
         throw new UnsupportedOperationException();
     }
 

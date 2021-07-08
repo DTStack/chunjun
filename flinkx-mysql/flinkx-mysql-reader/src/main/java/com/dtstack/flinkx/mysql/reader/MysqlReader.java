@@ -21,15 +21,10 @@ package com.dtstack.flinkx.mysql.reader;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.mysql.MySqlDatabaseMeta;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
-import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.rdb.util.DBUtil;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.Collections;
 
 /**
  * MySQL reader plugin
@@ -42,6 +37,6 @@ public class MysqlReader extends JdbcDataReader {
     public MysqlReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new MySqlDatabaseMeta());
+        dbUrl = DBUtil.formatJdbcUrl(dbUrl, Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
     }
-
 }

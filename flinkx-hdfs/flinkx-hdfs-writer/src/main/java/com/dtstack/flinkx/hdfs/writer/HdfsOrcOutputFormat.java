@@ -19,9 +19,11 @@
 
 package com.dtstack.flinkx.hdfs.writer;
 
-import com.dtstack.flinkx.common.ColumnType;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
+import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
@@ -32,7 +34,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.compress.SnappyCodec;
+import org.apache.hadoop.io.compress.*;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
@@ -43,6 +45,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -58,134 +61,209 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     private FileOutputFormat outputFormat;
     private JobConf jobConf;
 
+    private static ColumnTypeUtil.DecimalInfo ORC_DEFAULT_DECIMAL_INFO = new ColumnTypeUtil.DecimalInfo(HiveDecimal.SYSTEM_DEFAULT_PRECISION, HiveDecimal.SYSTEM_DEFAULT_SCALE);
 
     @Override
-    protected void configInternal() {
+    protected void openSource() throws IOException{
+        super.openSource();
+
         orcSerde = new OrcSerde();
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
         jobConf = new JobConf(conf);
 
-        if(compress != null && compress.length() != 0 && !compress.equalsIgnoreCase("NONE")) {
-            if(compress.equalsIgnoreCase("SNAPPY")) {
-                FileOutputFormat.setOutputCompressorClass(jobConf, SnappyCodec.class);
-            } else {
-                throw new IllegalArgumentException("Unsupported compress format: " + compress);
-            }
-        }
+        FileOutputFormat.setOutputCompressorClass(jobConf, getCompressType());
 
         List<ObjectInspector>  fullColTypeList = new ArrayList<>();
 
-        for(String columnType : fullColumnTypes) {
-            columnType = columnType.toUpperCase();
-            if(columnType.startsWith("DECIMAL")) {
-                columnType = "DECIMAL";
+        decimalColInfo = new HashMap<>();
+        for (int i = 0; i < fullColumnTypes.size(); i++) {
+            String columnType = fullColumnTypes.get(i);
+
+            if(ColumnTypeUtil.isDecimalType(columnType)) {
+                ColumnTypeUtil.DecimalInfo decimalInfo = ColumnTypeUtil.getDecimalInfo(columnType, ORC_DEFAULT_DECIMAL_INFO);
+                decimalColInfo.put(fullColumnNames.get(i), decimalInfo);
             }
+
             ColumnType type = ColumnType.getType(columnType);
             fullColTypeList.add(HdfsUtil.columnTypeToObjectInspetor(type));
         }
+
         this.inspector = ObjectInspectorFactory
                 .getStandardStructObjectInspector(fullColumnNames, fullColTypeList);
+    }
 
+    private Class getCompressType(){
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
+        if(ECompressType.ORC_SNAPPY.equals(compressType)){
+            return SnappyCodec.class;
+        } else if(ECompressType.ORC_BZIP.equals(compressType)){
+            return BZip2Codec.class;
+        } else if(ECompressType.ORC_GZIP.equals(compressType)){
+            return GzipCodec.class;
+        } else if(ECompressType.ORC_LZ4.equals(compressType)){
+            return Lz4Codec.class;
+        } else {
+            return DefaultCodec.class;
+        }
     }
 
     @Override
-    public void open() throws IOException {
-        recordWriter = outputFormat.getRecordWriter(null, jobConf, tmpPath, Reporter.NULL);
+    protected String getExtension() {
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
+        return compressType.getSuffix();
     }
 
     @Override
-    public void writeSingleRecordInternal(Row row) throws WriteRecordException {
+    public float getDeviation(){
+        ECompressType compressType = ECompressType.getByTypeAndFileType(compress, "orc");
+        return compressType.getDeviation();
+    }
+
+    @Override
+    protected void nextBlock(){
+        super.nextBlock();
+
+        if (recordWriter != null){
+            return;
+        }
+
+        try {
+            String currentBlockTmpPath = tmpPath + SP + currentBlockFileName;
+            recordWriter = outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
+            blockIndex++;
+
+            LOG.info("nextBlock:Current block writer record:" + rowsOfCurrentBlock);
+            LOG.info("Current block file name:" + currentBlockTmpPath);
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void writeSingleRecordToFile(Row row) throws WriteRecordException {
+
+        if (recordWriter == null){
+            nextBlock();
+        }
+
         int i = 0;
         try {
             List<Object> recordList = new ArrayList<>();
             for (; i < fullColumnNames.size(); ++i) {
-                int j = colIndices[i];
-                if(j == -1) {
-                    recordList.add(null);
-                    continue;
-                }
-
-                Object column = row.getField(j);
-
-                if (column == null) {
-                    recordList.add(null);
-                    continue;
-                }
-
-                ColumnType columnType = ColumnType.fromString(columnTypes.get(j));
-                String rowData = column.toString();
-                if(rowData == null || rowData.length() == 0){
-                    recordList.add(null);
-                } else {
-                    switch (columnType) {
-                        case TINYINT:
-                            recordList.add(Byte.valueOf(rowData));
-                            break;
-                        case SMALLINT:
-                            recordList.add(Short.valueOf(rowData));
-                            break;
-                        case INT:
-                            recordList.add(Integer.valueOf(rowData));
-                            break;
-                        case BIGINT:
-                            if (column instanceof Timestamp){
-                                column=((Timestamp) column).getTime();
-                                recordList.add(column);
-                                break;
-                            }
-                            BigInteger data = new BigInteger(rowData);
-                            if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
-                                recordList.add(data);
-                            } else {
-                                recordList.add(Long.valueOf(rowData));
-                            }
-                            break;
-                        case FLOAT:
-                            recordList.add(Float.valueOf(rowData));
-                            break;
-                        case DOUBLE:
-                            recordList.add(Double.valueOf(rowData));
-                            break;
-                        case DECIMAL:
-                            HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData));
-                            HiveDecimalWritable hiveDecimalWritable = new HiveDecimalWritable(hiveDecimal);
-                            recordList.add(hiveDecimalWritable);
-                            break;
-                        case STRING:
-                        case VARCHAR:
-                        case CHAR:
-                            if (column instanceof Timestamp){
-                                SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
-                                recordList.add(fm.format(column));
-                            }else {
-                                recordList.add(rowData);
-                            }
-                            break;
-                        case BOOLEAN:
-                            recordList.add(Boolean.valueOf(rowData));
-                            break;
-                        case DATE:
-                            recordList.add(DateUtil.columnToDate(column,null));
-                            break;
-                        case TIMESTAMP:
-                            recordList.add(DateUtil.columnToTimestamp(column,null));
-                            break;
-                        case BINARY:
-                            recordList.add(new BytesWritable(rowData.getBytes()));
-                            break;
-                        default:
-                            throw new IllegalArgumentException();
-                    }
-                }
+                getData(recordList, i, row);
             }
+
             this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(recordList, this.inspector));
+            rowsOfCurrentBlock++;
+
+            if(restoreConfig.isRestore()){
+                lastRow = row;
+            }
         } catch(Exception e) {
-            if(i < row.getArity()) {
+            if(e instanceof WriteRecordException){
+                throw (WriteRecordException) e;
+            } else {
                 throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
             }
-            throw new WriteRecordException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void flushDataInternal() throws IOException {
+        LOG.info("Close current orc record writer, write data size:[{}]", bytesWriteCounter.getLocalValue());
+
+        if (recordWriter != null){
+            recordWriter.close(Reporter.NULL);
+            recordWriter = null;
+        }
+    }
+
+    private void getData(List<Object> recordList, int index, Row row) throws WriteRecordException{
+        int j = colIndices[index];
+        if(j == -1) {
+            recordList.add(null);
+            return;
         }
 
+        Object column = row.getField(j);
+        if (column == null) {
+            recordList.add(null);
+            return;
+        }
+
+        ColumnType columnType = ColumnType.fromString(columnTypes.get(j));
+        String rowData = column.toString();
+        if(rowData == null || rowData.length() == 0){
+            recordList.add(null);
+            return;
+        }
+
+        switch (columnType) {
+            case TINYINT:
+                recordList.add(Byte.valueOf(rowData));
+                break;
+            case SMALLINT:
+                recordList.add(Short.valueOf(rowData));
+                break;
+            case INT:
+                recordList.add(Integer.valueOf(rowData));
+                break;
+            case BIGINT:
+                if (column instanceof Timestamp){
+                    column=((Timestamp) column).getTime();
+                    recordList.add(column);
+                    break;
+                }
+                BigInteger data = new BigInteger(rowData);
+                if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
+                    recordList.add(data);
+                } else {
+                    recordList.add(Long.valueOf(rowData));
+                }
+                break;
+            case FLOAT:
+                recordList.add(Float.valueOf(rowData));
+                break;
+            case DOUBLE:
+                recordList.add(Double.valueOf(rowData));
+                break;
+            case DECIMAL:
+                ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(fullColumnNames.get(index));
+                HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData));
+                hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
+                if(hiveDecimal == null){
+                    throw new WriteRecordException(String.format("decimal数据的precision和scale和元数据不匹配:decimal(%s, %s)",
+                            decimalInfo.getPrecision(), decimalInfo.getScale()), new IllegalArgumentException(), index, row);
+                }
+
+                HiveDecimalWritable hiveDecimalWritable = new HiveDecimalWritable(hiveDecimal);
+                recordList.add(hiveDecimalWritable);
+                break;
+            case STRING:
+            case VARCHAR:
+            case CHAR:
+                if (column instanceof Timestamp){
+                    SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
+                    recordList.add(fm.format(column));
+                }else {
+                    recordList.add(rowData);
+                }
+                break;
+            case BOOLEAN:
+                recordList.add(Boolean.valueOf(rowData));
+                break;
+            case DATE:
+                recordList.add(DateUtil.columnToDate(column,null));
+                break;
+            case TIMESTAMP:
+                recordList.add(DateUtil.columnToTimestamp(column,null));
+                break;
+            case BINARY:
+                recordList.add(new BytesWritable(rowData.getBytes()));
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     @Override
@@ -194,12 +272,12 @@ public class HdfsOrcOutputFormat extends HdfsOutputFormat {
     }
 
     @Override
-    public void closeInternal() throws IOException {
+    protected void closeSource() throws IOException {
         RecordWriter rw = this.recordWriter;
         if(rw != null) {
+            LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
             rw.close(Reporter.NULL);
             this.recordWriter = null;
         }
     }
-
 }

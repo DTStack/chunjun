@@ -18,10 +18,12 @@
 
 package com.dtstack.flinkx.inputformat;
 
+import com.dtstack.flinkx.config.RestoreConfig;
 import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.metrics.InputMetric;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
+import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.reader.ByteRateLimiter;
-import com.dtstack.flinkx.util.SysUtil;
+import com.dtstack.flinkx.restore.FormatState;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
@@ -32,6 +34,7 @@ import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -46,45 +49,157 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected String jobName = "defaultJobName";
+    protected String jobId;
     protected LongCounter numReadCounter;
+    protected LongCounter bytesReadCounter;
+    protected LongCounter durationCounter;
     protected String monitorUrls;
     protected long bytes;
     protected ByteRateLimiter byteRateLimiter;
 
-    protected transient InputMetric inputMetric;
+    protected RestoreConfig restoreConfig;
+
+    protected FormatState formatState;
+
+    protected transient BaseMetric inputMetric;
+
+    protected int indexOfSubtask;
+
+    private long startTime;
+
+    protected AccumulatorCollector accumulatorCollector;
+
+    private boolean inited = false;
 
     protected abstract void openInternal(InputSplit inputSplit) throws IOException;
 
     @Override
+    public void openInputFormat() throws IOException {
+        initJobInfo();
+        startTime = System.currentTimeMillis();
+    }
+
+    @Override
     public void open(InputSplit inputSplit) throws IOException {
+        if(!inited){
+            initAccumulatorCollector();
+            initStatisticsAccumulator();
+            openByteRateLimiter();
+            initRestoreInfo();
+
+            if(restoreConfig.isRestore()){
+                formatState.setNumOfSubTask(indexOfSubtask);
+            }
+
+            inited = true;
+        }
+
+        openInternal(inputSplit);
+    }
+
+    private void initAccumulatorCollector(){
+        String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubtask);
+        String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubtask);
+
+        accumulatorCollector = new AccumulatorCollector(jobId, monitorUrls, getRuntimeContext(), 2,
+                Arrays.asList(Metrics.NUM_READS,
+                        Metrics.READ_BYTES,
+                        Metrics.READ_DURATION,
+                        Metrics.WRITE_BYTES,
+                        Metrics.NUM_WRITES,
+                        lastWriteLocation,
+                        lastWriteNum));
+        accumulatorCollector.start();
+    }
+
+    private void initJobInfo(){
         Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
-        if (vars != null && vars.get(Metrics.JOB_NAME) != null) {
+        if(vars != null && vars.get(Metrics.JOB_NAME) != null) {
             jobName = vars.get(Metrics.JOB_NAME);
         }
 
-        numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
+        if(vars!= null && vars.get(Metrics.JOB_ID) != null) {
+            jobId = vars.get(Metrics.JOB_ID);
+        }
 
-        inputMetric = new InputMetric(getRuntimeContext(), numReadCounter);
+        if(vars != null && vars.get(Metrics.SUBTASK_INDEX) != null){
+            indexOfSubtask = Integer.valueOf(vars.get(Metrics.SUBTASK_INDEX));
+        }
+    }
 
-        openInternal(inputSplit);
-
-        if (StringUtils.isNotBlank(this.monitorUrls) && this.bytes > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(getRuntimeContext(), this.monitorUrls, this.bytes, 2);
+    private void openByteRateLimiter(){
+        if (this.bytes > 0) {
+            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, this.bytes);
             this.byteRateLimiter.start();
         }
     }
 
+    private void initStatisticsAccumulator(){
+        numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
+        bytesReadCounter = getRuntimeContext().getLongCounter(Metrics.READ_BYTES);
+        durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
 
+        inputMetric = new BaseMetric(getRuntimeContext());
+        inputMetric.addMetric(Metrics.NUM_READS, numReadCounter, true);
+        inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter, true);
+        inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
+    }
+
+    private void initRestoreInfo(){
+        if(restoreConfig == null){
+            restoreConfig = RestoreConfig.defaultConfig();
+        } else if(restoreConfig.isRestore()){
+            if(formatState == null){
+                formatState = new FormatState(indexOfSubtask, null);
+            } else {
+                numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
+                bytesReadCounter.add(formatState.getMetricValue(Metrics.READ_BYTES));
+                durationCounter.add(formatState.getMetricValue(Metrics.READ_DURATION));
+            }
+        }
+    }
 
     @Override
     public Row nextRecord(Row row) throws IOException {
-        numReadCounter.add(1);
-
         if(byteRateLimiter != null) {
             byteRateLimiter.acquire();
         }
+        Row internalRow = nextRecordInternal(row);
+        internalRow = setChannelInformation(internalRow);
 
-        return nextRecordInternal(row);
+        updateDuration();
+        if(numReadCounter !=null ){
+            numReadCounter.add(1);
+        }
+        if(bytesReadCounter!=null){
+            bytesReadCounter.add(internalRow.toString().length());
+        }
+        return internalRow;
+    }
+
+    private Row setChannelInformation(Row internalRow){
+        if (internalRow != null){
+            Row rowWithChannel = new Row(internalRow.getArity() + 1);
+            for (int i = 0; i < internalRow.getArity(); i++) {
+                rowWithChannel.setField(i, internalRow.getField(i));
+            }
+
+            rowWithChannel.setField(internalRow.getArity(), indexOfSubtask);
+            return rowWithChannel;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the recover point of current channel
+     * @return DataRecoverPoint
+     */
+    public FormatState getFormatState() {
+        if (formatState != null && numReadCounter != null && inputMetric!= null) {
+            formatState.setMetric(inputMetric.getMetricCounters());
+        }
+        return formatState;
     }
 
     protected abstract Row nextRecordInternal(Row row) throws IOException;
@@ -93,18 +208,36 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
     public void close() throws IOException {
         try{
             closeInternal();
-
-            if (inputMetric.getDelayPeriodMill() != 0){
-                SysUtil.sleep(inputMetric.getDelayPeriodMill());
-            }
         }catch (Exception e){
             throw new RuntimeException(e);
-        }finally {
-            if(byteRateLimiter != null) {
-                byteRateLimiter.stop();
-                byteRateLimiter = null;
-            }
-            LOG.info("subtask input close finished");
+        }
+    }
+
+    @Override
+    public void closeInputFormat() throws IOException {
+        if(durationCounter != null){
+            updateDuration();
+        }
+
+        if(inputMetric != null){
+            inputMetric.waitForReportMetrics();
+        }
+
+        if(byteRateLimiter != null){
+            byteRateLimiter.stop();
+        }
+
+        if(accumulatorCollector != null){
+            accumulatorCollector.close();
+        }
+
+        LOG.info("subtask input close finished");
+    }
+
+    private void updateDuration(){
+        if(durationCounter !=null ){
+            durationCounter.resetLocal();
+            durationCounter.add(System.currentTimeMillis() - startTime);
         }
     }
 
@@ -120,4 +253,11 @@ public abstract class RichInputFormat extends org.apache.flink.api.common.io.Ric
         return new DefaultInputSplitAssigner(inputSplits);
     }
 
+    public void setRestoreState(FormatState formatState) {
+        this.formatState = formatState;
+    }
+
+    public RestoreConfig getRestoreConfig() {
+        return restoreConfig;
+    }
 }

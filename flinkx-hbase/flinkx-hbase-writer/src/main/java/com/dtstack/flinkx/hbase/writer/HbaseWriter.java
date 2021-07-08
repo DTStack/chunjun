@@ -23,9 +23,9 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.util.ValueUtil;
 import com.dtstack.flinkx.writer.DataWriter;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ import static com.dtstack.flinkx.hbase.HbaseConfigKeys.*;
 public class HbaseWriter extends DataWriter {
 
     private String tableName;
-    private Map<String,String> hbaseConfig;
+    private Map<String,Object> hbaseConfig;
     private String encoding;
     private String nullMode;
     private Boolean walFlag;
@@ -50,10 +50,7 @@ public class HbaseWriter extends DataWriter {
 
     private List<String> columnTypes;
     private List<String> columnNames;
-
-    private List<Integer> rowkeyColumnIndices;
-    private List<String> rowkeyColumnTypes;
-    private List<String> rowkeyColumnValues;
+    private String rowkeyExpress;
 
     private Integer versionColumnIndex;
     private String versionColumnValue;
@@ -63,7 +60,7 @@ public class HbaseWriter extends DataWriter {
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
 
         tableName = writerConfig.getParameter().getStringVal(KEY_TABLE);
-        hbaseConfig = (Map<String, String>) writerConfig.getParameter().getVal(KEY_HBASE_CONFIG);
+        hbaseConfig = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_HBASE_CONFIG);
         encoding = writerConfig.getParameter().getStringVal(KEY_ENCODING);
         nullMode = writerConfig.getParameter().getStringVal(KEY_NULL_MODE);
         walFlag = writerConfig.getParameter().getBooleanVal(KEY_WAL_FLAG, DEFAULT_WAL_FLAG);
@@ -80,28 +77,49 @@ public class HbaseWriter extends DataWriter {
             }
         }
 
-
-        List rowkeyColumns = (List) writerConfig.getParameter().getVal(KEY_ROW_KEY_COLUMN);
-        if(rowkeyColumns != null || rowkeyColumns.size() != 0) {
-            rowkeyColumnIndices = new ArrayList<>();
-            rowkeyColumnTypes = new ArrayList<>();
-            rowkeyColumnValues = new ArrayList<>();
-            for(int i = 0; i < rowkeyColumns.size(); ++i) {
-                Map<String,Object> sm = (Map) rowkeyColumns.get(i);
-                rowkeyColumnIndices.add(ValueUtil.getInt(sm.get(KEY_ROW_KEY_COLUMN_INDEX)));
-                rowkeyColumnTypes.add((String) sm.get(KEY_ROW_KEY_COLUMN_TYPE));
-                rowkeyColumnValues.add((String) sm.get(KEY_ROW_KEY_COLUMN_VALUE));
-            }
-        }
+        Object rowKeyInfo = writerConfig.getParameter().getStringVal(KEY_ROW_KEY_COLUMN);
+        rowkeyExpress = buildRowKeyExpress(rowKeyInfo);
 
         Map<String,Object> versionColumn = (Map<String, Object>) writerConfig.getParameter().getVal(KEY_VERSION_COLUMN);
         if(versionColumn != null) {
             versionColumnIndex = (Integer) versionColumn.get(KEY_VERSION_COLUMN_INDEX);
             versionColumnValue = (String) versionColumn.get(KEY_VERSION_COLUMN_VALUE);
         }
-
     }
 
+    /**
+     * Compatible with old formats
+     */
+    private String buildRowKeyExpress(Object rowKeyInfo){
+        if (rowKeyInfo == null){
+            return null;
+        }
+
+        if(rowKeyInfo instanceof String){
+            return rowKeyInfo.toString();
+        }
+
+        if(!(rowKeyInfo instanceof List)){
+            return null;
+        }
+
+        StringBuilder expressBuilder = new StringBuilder();
+
+        for (Map item : ((List<Map>) rowKeyInfo)) {
+            Integer index = ValueUtil.getInt(item.get(KEY_ROW_KEY_COLUMN_INDEX));
+            if (index != null && index != -1) {
+                expressBuilder.append(String.format("$(%s)", columnNames.get(index)));
+                continue;
+            }
+
+            String value = (String) item.get(KEY_ROW_KEY_COLUMN_VALUE);
+            if (StringUtils.isNotEmpty(value)) {
+                expressBuilder.append(value);
+            }
+        }
+
+        return expressBuilder.toString();
+    }
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
@@ -114,9 +132,7 @@ public class HbaseWriter extends DataWriter {
         builder.setWriteBufferSize(writeBufferSize);
         builder.setColumnNames(columnNames);
         builder.setColumnTypes(columnTypes);
-        builder.setRowkeyColumnIndices(rowkeyColumnIndices);
-        builder.setRowkeyColumnTypes(rowkeyColumnTypes);
-        builder.setRowkeyColumnValues(rowkeyColumnValues);
+        builder.setRowkeyExpress(rowkeyExpress);
         builder.setVersionColumnIndex(versionColumnIndex);
         builder.setVersionColumnValues(versionColumnValue);
         builder.setMonitorUrls(monitorUrls);
@@ -126,12 +142,6 @@ public class HbaseWriter extends DataWriter {
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
 
-        OutputFormatSinkFunction sinkFunction = new OutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(sinkFunction);
-
-        dataStreamSink.name("hbasewriter");
-
-        return dataStreamSink;
-
+        return createOutput(dataSet, builder.finish(), "hbasewriter");
     }
 }

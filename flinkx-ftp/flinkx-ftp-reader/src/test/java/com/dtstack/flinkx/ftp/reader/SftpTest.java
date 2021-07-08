@@ -1,7 +1,7 @@
 package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.ftp.FtpConfigConstants;
-import com.dtstack.flinkx.ftp.FtpHandler;
+import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.ftp.SFtpHandler;
 
 import java.io.BufferedReader;
@@ -21,7 +21,7 @@ public class SftpTest {
         String username = "mysftp";
         String password = "oh1986mygod";
 
-        FtpHandler ftpHandler = new SFtpHandler();
+        IFtpHandler ftpHandler = new SFtpHandler();
         ftpHandler.loginFtpServer(host,username,password, FtpConfigConstants.DEFAULT_SFTP_PORT,
                 0,
                 FtpConfigConstants.DEFAULT_FTP_CONNECT_PATTERN);
