@@ -283,15 +283,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             start = Metrics.START_LOCATION + "_" + inputSplit.getSplitNumber();
             end = Metrics.END_LOCATION + "_" + inputSplit.getSplitNumber();
         }
-        customPrometheusReporter.registerMetric(startLocationAccumulator, start);
-        customPrometheusReporter.registerMetric(endLocationAccumulator, end);
-        getRuntimeContext().addAccumulator(start, startLocationAccumulator);
-        getRuntimeContext().addAccumulator(end, endLocationAccumulator);
+
         //将累加器信息添加至prometheus
         customReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
         customReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
-        getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
-        getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
+        getRuntimeContext().addAccumulator(start, startLocationAccumulator);
+        getRuntimeContext().addAccumulator(end, endLocationAccumulator);
     }
 
     /**

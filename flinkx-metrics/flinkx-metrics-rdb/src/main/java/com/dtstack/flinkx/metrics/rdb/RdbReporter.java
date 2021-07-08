@@ -42,7 +42,7 @@ import java.util.Map;
  * @description rdb report
  * @date: 2021/6/28 下午5:09
  */
-public abstract class CustomRdbReporter extends CustomReporter {
+public abstract class RdbReporter extends CustomReporter {
 
 
     protected JdbcMetricConf jdbcMetricConf;
@@ -67,7 +67,9 @@ public abstract class CustomRdbReporter extends CustomReporter {
 
     private Map<String, Accumulator> accumulatorMap = Maps.newConcurrentMap();
 
-    public CustomRdbReporter(MetricParam metricParam) {
+    private static final char SCOPE_SEPARATOR = '_';
+
+    public RdbReporter(MetricParam metricParam) {
         super(metricParam);
         jdbcMetricConf = JsonUtil.toObject(
                 JsonUtil.toJson(metricParam.getMetricPluginConf()), JdbcMetricConf.class);
@@ -88,8 +90,12 @@ public abstract class CustomRdbReporter extends CustomReporter {
 
     //如何兼容多并行度的情况下的指标写入,TODO  暂时不考虑
     @Override
-    public void registerMetric(Accumulator accumulator, String name) {
-        accumulatorMap.putIfAbsent(name, accumulator);
+    public void registerMetric(Accumulator accumulator, String name, Integer index) {
+        String metricWithIndex = name + SCOPE_SEPARATOR + index;
+        if (accumulatorMap.get(metricWithIndex) != null) {
+            return;
+        }
+        accumulatorMap.put(metricWithIndex, accumulator);
         ReporterScopedSettings reporterScopedSettings = new ReporterScopedSettings(0, ',', Collections.emptySet());
         FrontMetricGroup front = new FrontMetricGroup<AbstractMetricGroup<?>>(
                 reporterScopedSettings,
@@ -105,7 +111,7 @@ public abstract class CustomRdbReporter extends CustomReporter {
         fields.forEach(field -> {
             singleValues.add(metricFilterMap.get(field));
         });
-        metricDimensionValues.putIfAbsent(name, singleValues);
+        metricDimensionValues.putIfAbsent(metricWithIndex, singleValues);
     }
 
     /**
@@ -124,7 +130,8 @@ public abstract class CustomRdbReporter extends CustomReporter {
                     ps.setString(columnIndex, value);
                     columnIndex++;
                 }
-                ps.setString(columnIndex, entry.getKey());
+                String metricWithIndex = entry.getKey();
+                ps.setString(columnIndex, metricWithIndex.substring(0, metricWithIndex.lastIndexOf(SCOPE_SEPARATOR)));
                 columnIndex++;
                 ps.setString(columnIndex, entry.getValue().getLocalValue().toString());
                 ps.addBatch();

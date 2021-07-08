@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.metrics.promtheus;
+package com.dtstack.flinkx.metrics.prometheus;
 
 import com.dtstack.flinkx.conf.MetricParam;
 import com.dtstack.flinkx.constants.Metrics;
@@ -59,12 +59,12 @@ import java.util.Map;
 
 /**
  * @author: shifang
- * @description promtheus report
+ * @description prometheus report
  * @date: 2021/6/28 下午5:09
  */
-public class CustomPromtheusReport extends CustomReporter {
+public class PrometheusReport extends CustomReporter {
 
-    public static Logger LOG = LoggerFactory.getLogger(CustomPromtheusReport.class);
+    public static Logger LOG = LoggerFactory.getLogger(PrometheusReport.class);
 
     public CollectorRegistry defaultRegistry = new CollectorRegistry(true);
 
@@ -91,7 +91,7 @@ public class CustomPromtheusReport extends CustomReporter {
     private final Map<String, Metric> metricHashMap = new HashMap<>();
 
 
-    public CustomPromtheusReport(MetricParam metricParam) {
+    public PrometheusReport(MetricParam metricParam) {
         super(metricParam);
         initConfiguration();
     }
@@ -140,13 +140,13 @@ public class CustomPromtheusReport extends CustomReporter {
     }
 
     @Override
-    public void registerMetric(Accumulator accumulator, String name) {
+    public void registerMetric(Accumulator accumulator, String name, Integer index) {
         name = Metrics.METRIC_GROUP_KEY_FLINKX + "_" + name;
         ReporterScopedSettings reporterScopedSettings = new ReporterScopedSettings(0, ',', Collections.emptySet());
         FrontMetricGroup front = new FrontMetricGroup<AbstractMetricGroup<?>>(
                 reporterScopedSettings,
                 (AbstractMetricGroup) context.getMetricGroup());
-        notifyOfAddedMetric(new SimpleAccumulatorGauge<>(accumulator), name, front);
+        notifyOfAddedMetric(new SimpleAccumulatorGauge<>(accumulator), name, front,index);
     }
 
     @Override
@@ -176,7 +176,7 @@ public class CustomPromtheusReport extends CustomReporter {
         }
     }
 
-    private void notifyOfAddedMetric(final Metric metric, final String metricName, final MetricGroup group) {
+    private void notifyOfAddedMetric(final Metric metric, final String metricName, final MetricGroup group,Integer index) {
         metricHashMap.put(metricName, metric);
 
         List<String> dimensionKeys = new LinkedList<>();
@@ -194,7 +194,7 @@ public class CustomPromtheusReport extends CustomReporter {
         Integer count = 0;
 
         synchronized (this) {
-            if (collectorsWithCountByMetricName.containsKey(scopedMetricName)) {
+            if (collectorsWithCountByMetricName.containsKey(scopedMetricName + SCOPE_SEPARATOR + index)) {
                 final AbstractMap.SimpleImmutableEntry<Collector, Integer> collectorWithCount = collectorsWithCountByMetricName
                         .get(scopedMetricName);
                 collector = collectorWithCount.getKey();
@@ -213,7 +213,7 @@ public class CustomPromtheusReport extends CustomReporter {
             }
             addMetric(metric, dimensionValues, collector);
             collectorsWithCountByMetricName.put(
-                    scopedMetricName,
+                    scopedMetricName + SCOPE_SEPARATOR + index,
                     new AbstractMap.SimpleImmutableEntry<>(collector, count + 1));
         }
     }
