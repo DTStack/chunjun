@@ -45,6 +45,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
+
 /**
  * Reason:
  * Date: 2018/6/27
@@ -63,12 +65,11 @@ public class PluginUtil {
     public static final String SINK_SUFFIX = "sink";
     public static final String GENERIC_SUFFIX = "Factory";
     public static final String METRIC_SUFFIX = "metrics";
-    public static final String DEFAULT_METRIC_PLUGIN = "promtheus";
+    public static final String DEFAULT_METRIC_PLUGIN = "prometheus";
     private static final String SP = File.separator;
     private static final Logger LOG = LoggerFactory.getLogger(PluginUtil.class);
     private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connector.";
     private static final String METRIC_PACKAGE_PREFIX = "com.dtstack.flinkx.metrics.";
-    private static final String METRIC_CUSTOM_PREFIX = ".Custom";
     private static final String METRIC_REPORT_PREFIX = "Report";
 
     private static final String JAR_PREFIX = "flinkx";
@@ -196,7 +197,7 @@ public class PluginUtil {
         suffix = suffix.toLowerCase();
         StringBuilder sb = new StringBuilder(32);
         sb.append(PACKAGE_PREFIX);
-        sb.append(left).append(ConstantValue.POINT_SYMBOL).append(suffix).append(ConstantValue.POINT_SYMBOL);
+        sb.append(left).append(POINT_SYMBOL).append(suffix).append(POINT_SYMBOL);
         sb.append(left.substring(0, 1).toUpperCase()).append(left.substring(1));
         sb.append(suffix.substring(0, 1).toUpperCase()).append(suffix.substring(1));
         sb.append(GENERIC_SUFFIX);
@@ -205,7 +206,7 @@ public class PluginUtil {
 
     private static String appendMetricClass(String pluginName) {
         StringBuilder sb = new StringBuilder(32);
-        sb.append(METRIC_PACKAGE_PREFIX).append(pluginName.toLowerCase(Locale.ENGLISH)).append(METRIC_CUSTOM_PREFIX);
+        sb.append(METRIC_PACKAGE_PREFIX).append(pluginName.toLowerCase(Locale.ENGLISH)).append(POINT_SYMBOL);
         sb.append(pluginName.substring(0, 1).toUpperCase()).append(pluginName.substring(1).toLowerCase());
         sb.append(METRIC_REPORT_PREFIX);
         return sb.toString();

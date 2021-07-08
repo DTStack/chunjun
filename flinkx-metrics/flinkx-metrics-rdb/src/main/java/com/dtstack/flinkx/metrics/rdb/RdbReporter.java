@@ -54,13 +54,6 @@ public abstract class RdbReporter extends CustomReporter {
 
     private List<String> fields = Arrays.asList("job_id", "job_name", "task_id", "task_name", "subtask_index");
 
-    private static List<String> columns = Arrays.asList("jobId",
-            "jobName",
-            "taskId",
-            "taskName",
-            "taskIndex",
-            "metricName",
-            "value");
 
 
     private Map<String, List<String>> metricDimensionValues = Maps.newConcurrentMap();
@@ -145,6 +138,9 @@ public abstract class RdbReporter extends CustomReporter {
 
 
     protected String prepareTemplates() {
+        List<String> columns = new ArrayList(fields);
+        columns.add("metric_name");
+        columns.add("metric_value");
         String singleSql =
                 jdbcDialect.getInsertIntoStatement(
                         jdbcMetricConf.getSchema(),

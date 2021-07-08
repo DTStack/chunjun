@@ -60,7 +60,7 @@ public class FlinkxCommonConf implements Serializable {
     private String metricPluginRoot;
 
     /** metrics plugin name */
-    private String metricPluginName = "promtheus";
+    private String metricPluginName;
 
     /** metrics plugin properties */
     private Map<String,Object> metricProps;
@@ -74,7 +74,7 @@ public class FlinkxCommonConf implements Serializable {
     }
 
     public String getMetricPluginName() {
-        return metricPluginName;
+        return metricPluginName == null ? "prometheus" : metricPluginName;
     }
 
     public void setMetricPluginName(String metricPluginName) {
