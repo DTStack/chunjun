@@ -1,0 +1,32 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "databaseName":"db_test",
+          "tableList": ["test.test123"],
+          "username" : "test",
+          "password" : "Abc12345",
+          "cat" : "insert,delete,update",
+          "url" : "jdbc:sqlserver://localhost:1433;databaseName=db_test",
+          "splitUpdate" : true,
+          "pavingData" : true,
+          "pollInterval" : 1000
+        },
+        "name" : "sqlservercdcreader"
+      },
+      "writer" : {
+        "parameter" : {
+          "print" : true
+        },
+        "name" : "streamwriter"
+      }
+    } ],
+    "setting" : {
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}

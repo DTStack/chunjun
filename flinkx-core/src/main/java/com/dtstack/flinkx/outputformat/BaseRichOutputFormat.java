@@ -242,7 +242,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         updateDuration();
         numWriteCounter.add(size);
         bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
-        if(!checkpointEnabled){
+        if(checkpointEnabled){
             snapshotWriteCounter.add(size);
         }
     }
@@ -340,7 +340,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 errorRatio = (double) config.getErrorPercentage();
             }
             errorLimiter = new ErrorLimiter(accumulatorCollector, config.getErrorRecord(), errorRatio);
-            LOG.info("init dirtyDataManager: {}", this.errorLimiter);
         }
     }
 
@@ -372,8 +371,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
             otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
 
-            //use snapshot write count
-            numWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+            numWriteCounter.add(formatState.getMetricValue(Metrics.NUM_WRITES));
 
             snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
             bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
@@ -492,14 +490,14 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param rowData 当前读取的数据
      * @return 脏数据异常信息记录
      */
-    protected String recordConvertDetailErrorMessage(int pos, RowData rowData) {
+    protected String recordConvertDetailErrorMessage(int pos, Object rowData) {
         return String.format("%s WriteRecord error: when converting field[%s] in Row(%s)", getClass().getName(), pos, rowData);
     }
 
     /**
      * 更新任务执行时间指标
      */
-    private void updateDuration() {
+    protected void updateDuration() {
         if (durationCounter != null) {
             durationCounter.resetLocal();
             durationCounter.add(System.currentTimeMillis() - startTime);
@@ -523,7 +521,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             }
         }
         //set metric after preCommit
-        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setNumberWrite(numWriteCounter.getLocalValue());
         formatState.setMetric(outputMetric.getMetricCounters());
         LOG.info("format state:{}", formatState.getState());
         return formatState;
@@ -591,7 +589,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected void commit(long checkpointId) throws Exception{}
+    public void commit(long checkpointId) throws Exception{}
 
     /**
      * checkpoint失败时操作
@@ -616,7 +614,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      * @param checkpointId
      * @throws Exception
      */
-    protected void rollback(long checkpointId) throws Exception{}
+    public void rollback(long checkpointId) throws Exception{}
 
 
     public void setRestoreState(FormatState formatState) {

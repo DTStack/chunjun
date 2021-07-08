@@ -157,6 +157,6 @@ public class GBaseDialect implements JdbcDialect {
 
     @Override
     public String getRowNumColumn(String orderBy) {
-        return "ROWID as FLINKX_ROWNUM";
+        return "ROWID as " + getRowNumColumnAlias();
     }
 }

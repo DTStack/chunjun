@@ -371,22 +371,22 @@
                                 </includes>
                             </artifactSet>
                             <relocations>
-<!--                                <relocation>-->
-<!--                                    <pattern>com.google.common</pattern>-->
-<!--                                    <shadedPattern>shade.core.com.google.common</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>com.google.thirdparty</pattern>-->
-<!--                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>org.apache.http</pattern>-->
-<!--                                    <shadedPattern>shade.core.org.apache.http</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>io.prometheus.client</pattern>-->
-<!--                                    <shadedPattern>shade.core.io.prometheus.client</shadedPattern>-->
-<!--                                </relocation>-->
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.http</pattern>
+                                    <shadedPattern>shade.core.org.apache.http</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.prometheus.client</pattern>
+                                    <shadedPattern>shade.core.io.prometheus.client</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>

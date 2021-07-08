@@ -66,7 +66,7 @@ public class HdfsParquetRowConverter extends AbstractRowConverter<RowData, RowDa
 
     @Override
     @SuppressWarnings("unchecked")
-    public RowData toInternal(RowData input) {
+    public RowData toInternal(RowData input) throws Exception {
         GenericRowData row = new GenericRowData(input.getArity());
         if(input instanceof GenericRowData){
             GenericRowData genericRowData = (GenericRowData) input;

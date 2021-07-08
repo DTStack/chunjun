@@ -74,6 +74,7 @@ public class PropertiesUtil {
         flinkxCommonConf.setDirtyDataPath(syncConf.getDirty().getPath());
         flinkxCommonConf.setDirtyDataHadoopConf(syncConf.getDirty().getHadoopConfig());
         flinkxCommonConf.setFieldNameList(syncConf.getDirty().getReaderColumnNameList());
+        flinkxCommonConf.setRestorePath(syncConf.getRestorePath());
         if (syncConf.getMetricPluginConf() != null) {
             flinkxCommonConf.setMetricPluginRoot(syncConf.getRemotePluginPath() == null ?
                     syncConf.getPluginRoot() + File.separator + "metrics" : syncConf.getRemotePluginPath());

@@ -20,7 +20,9 @@
 package com.dtstack.flinkx.connector.oracle.converter;
 
 import org.apache.flink.table.api.DataTypes;
+import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
 
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
@@ -62,6 +64,10 @@ public class OracleRawTypeConverter {
             case "NCHAR":
             case "NVARCHAR2":
                 return DataTypes.STRING();
+            case "CLOB":
+            case "NCLOB":
+                return new AtomicDataType(new ClobType(true, LogicalTypeRoot.VARCHAR));
+//            case "XMLTYPE":
             case "INT":
             case "INTEGER":
             case "NUMBER":
@@ -73,12 +79,12 @@ public class OracleRawTypeConverter {
             case "RAW":
             case "LONG RAW":
                 return DataTypes.BYTES();
+            case "BLOB":
+                return new AtomicDataType(new BlobType(true, LogicalTypeRoot.VARBINARY));
             case "BINARY_FLOAT":
                 return DataTypes.FLOAT();
             case "LONG":
-                // when mode is update and allReplace is false, LONG type is not support
-            case "BLOB":
-                throw new UnsupportedTypeException(type);
+            // when mode is update and allReplace is false, LONG type is not support
             default:
                 if (TIMESTAMP_PREDICATE.test(type)) {
                     return DataTypes.TIMESTAMP();

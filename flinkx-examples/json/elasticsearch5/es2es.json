@@ -1,0 +1,102 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "elasticsearch5reader",
+          "parameter": {
+            "hosts": ["localhost:9300"],
+            "index": "mowen1",
+            "type": "schema1",
+            "actionTimeout": "3000",
+            "cluster" : "elasticsearch",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "phone",
+                "type": "bigint"
+              },
+              {
+                "name": "qq",
+                "type": "varchar"
+              },
+              {
+                "name": "wechat",
+                "type": "varchar"
+              },
+              {
+                "name": "income",
+                "type": "decimal"
+              },
+              {
+                "name": "birthday",
+                "type": "timestamp"
+              },
+              {
+                "name": "today",
+                "type": "date"
+              },
+              {
+                "name": "timecurrent",
+                "type": "time"
+              }
+            ]
+          }
+        },
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "phone",
+                "type": "bigint"
+              },
+              {
+                "name": "qq",
+                "type": "varchar"
+              },
+              {
+                "name": "wechat",
+                "type": "varchar"
+              },
+              {
+                "name": "income",
+                "type": "decimal"
+              },
+              {
+                "name": "birthday",
+                "type": "timestamp"
+              },
+              {
+                "name": "today",
+                "type": "date"
+              },
+              {
+                "name": "timecurrent",
+                "type": "time"
+              }
+            ],
+            "hosts": ["localhost:9300"],
+            "index": "mowen_target2",
+            "type": "test_type",
+            "actionTimeout": "3000",
+            "cluster" : "elasticsearch"
+          },
+          "name": "elasticsearch5writer"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

@@ -17,17 +17,19 @@ English | [中文](README_CH.md)
 
 # Introduction
 
-FlinkX is a data synchronization tool based on Flink. FlinkX can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. FlinkX currently includes the following features:
+*[FlinkX 1.12 New Features](docs/changeLog.md)*
+
+FlinkX is a data synchronization tool based on Flink. FlinkX can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. **At the same time, FlinkX is also a computing framework that supports all the syntax and features of native FlinkSql** , <big>**And provide a large number of [cases](flinkx-examples)**</big>. FlinkX currently includes the following features:
 
 - Most plugins support concurrent reading and writing of data, which can greatly improve the speed of reading and writing;
 
 - Some plug-ins support the function of failure recovery, which can restore tasks from the failed location and save running time; [Failure Recovery](docs/restore.md)
 
-- The Reader plugin for relational databases supports interval polling. It can continuously collect changing data; [Interval Polling](docs/offline/reader/mysqlreader.md)
+- The source plugin for relational databases supports interval polling. It can continuously collect changing data; [Interval Polling](docs/offline/reader/mysqlreader.md)
 
 - Some databases support opening Kerberos security authentication;  [Kerberos](docs/kerberos.md)
 
-- Limit the reading speed of Reader plugins and reduce the impact on business databases;
+- Limit the reading speed of source plugins and reduce the impact on business databases;
 
 - Save the dirty data when writing data;
 
@@ -35,42 +37,38 @@ FlinkX is a data synchronization tool based on Flink. FlinkX can collect static 
 
 - Multiple running modes: Local,Standalone,Yarn Session,Yarn Per;
 
+- **Synchronization tasks support transformer operations that execute flinksql syntax;**
+
+- **sql task support is [shared](docs/conectorShare.md) with flinkSql's own connectors;**
+
 The following databases are currently supported:
 
-|                        | Database Type  | Reader                          | Writer                          |
-|:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|
-| Batch Synchronization  | MySQL          | [doc](docs/offline/reader/mysqlreader.md)        | [doc](docs/offline/writer/mysqlwriter.md)      |
-|                        | Oracle         | [doc](docs/offline/reader/oraclereader.md)       | [doc](docs/offline/writer/oraclewriter.md)     |
-|                        | SqlServer      | [doc](docs/offline/reader/sqlserverreader.md)    | [doc](docs/offline/writer/sqlserverwriter.md)  |
-|                        | PostgreSQL     | [doc](docs/offline/reader/postgresqlreader.md)   | [doc](docs/offline/writer/postgresqlwriter.md) |
-|                        | DB2            | [doc](docs/offline/reader/db2reader.md)          | [doc](docs/offline/writer/db2writer.md)        |
-|                        | GBase          | [doc](docs/offline/reader/gbasereader.md)        | [doc](docs/offline/writer/gbasewriter.md)      |
-|                        | ClickHouse     | [doc](docs/offline/reader/clickhousereader.md)   | [doc](docs/offline/writer/clickhousewriter.md) |
-|                        | PolarDB        | [doc](docs/offline/reader/polardbreader.md)      | [doc](docs/offline/writer/polardbwriter.md)    |
-|                        | SAP Hana       | [doc](docs/offline/reader/saphanareader.md)      | [doc](docs/offline/writer/saphanawriter.md)    |
-|                        | Teradata       | [doc](docs/offline/reader/teradatareader.md)     | [doc](docs/offline/writer/teradatawriter.md)   |
-|                        | Phoenix        | [doc](docs/offline/reader/phoenixreader.md)      | [doc](docs/offline/writer/phoenixwriter.md)    |
-|                        | 达梦            | [doc](docs/offline/reader/dmreader.md)           | [doc](docs/offline/writer/dmwriter.md)        |
-|                        | Greenplum      | [doc](docs/offline/reader/greenplumreader.md)    | [doc](docs/offline/writer/greenplumwriter.md)  |
-|                        | KingBase       | [doc](docs/offline/reader/kingbasereader.md)     | [doc](docs/offline/writer/kingbasewriter.md)   |
-|                        | Cassandra      | [doc](docs/offline/reader/cassandrareader.md)    | [doc](docs/offline/writer/cassandrawriter.md)  |
-|                        | ODPS           | [doc](docs/offline/reader/odpsreader.md)         | [doc](docs/offline/writer/odpswriter.md)       |
-|                        | HBase          | [doc](docs/offline/reader/hbasereader.md)        | [doc](docs/offline/writer/hbasewriter.md)      |
-|                        | MongoDB        | [doc](docs/offline/reader/mongodbreader.md)      | [doc](docs/offline/writer/mongodbwriter.md)    |
-|                        | Kudu           | [doc](docs/offline/reader/kudureader.md)         | [doc](docs/offline/writer/kuduwriter.md)       |
-|                        | ElasticSearch  | [doc](docs/offline/reader/esreader.md)           | [doc](docs/offline/writer/eswriter.md)         |
-|                        | FTP            | [doc](docs/offline/reader/ftpreader.md)          | [doc](docs/offline/writer/ftpwriter.md)        |
-|                        | HDFS           | [doc](docs/offline/reader/hdfsreader.md)         | [doc](docs/offline/writer/hdfswriter.md)       |
-|                        | Carbondata     | [doc](docs/offline/reader/carbondatareader.md)   | [doc](docs/offline/writer/carbondatawriter.md) |
-|                        | Stream         | [doc](docs/offline/reader/streamreader.md)       | [doc](docs/offline/writer/carbondatawriter.md) |
-|                        | Redis          |                                                  | [doc](docs/offline/writer/rediswriter.md)      |
-|                        | Hive           |                                                  | [doc](docs/offline/writer/hivewriter.md)       |
-| Stream Synchronization | Kafka          | [doc](docs/realTime/reader/kafkareader.md)       | [doc](docs/realTime/writer/kafkawriter.md)     |
-|                        | EMQX           | [doc](docs/realTime/reader/emqxreader.md)        | [doc](docs/realTime/writer/emqxwriter.md)      |
-|                        | RestApi        || [doc](docs/realTime/writer/restapiwriter.md)   |
-|                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
-|                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
-|                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
+|                        | Database Type  | Source                          | Sink                          | Lookup
+|:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|:-------------------------------:|
+| Batch Synchronization  | MySQL          | [doc](docs/connectors/mysql/mysql-source.md)        | [doc](docs/connectors/mysql/mysql-sink.md)      |[doc](docs/connectors/mysql/mysql-lookup.md)      |
+|                        | TiDB           |                                                     |  [doc](docs/connectors/tidb/tidb-sink.md)  |          [doc](docs/connectors/tidb/tidb-lookup.md)  |   
+|                        | Oracle         | [doc](docs/connectors/oracle/oracle-source.md)       | [doc](docs/connectors/oracle/oracle-sink.md)     |[doc](docs/connectors/oracle/oracle-lookup.md)      |
+|                        | SqlServer      | [doc](docs/connectors/sqlserver/sqlserver-source.md)    | [doc](docs/connectors/sqlserver/sqlserver-sink.md)  |[doc](docs/connectors/sqlserver/sqlserver-lookup.md)
+|                        | PostgreSQL     | [doc](docs/connectors/postgres/postgres-source.md) | [doc](docs/connectors/postgres/postgres-sink.md) | [doc](docs/connectors/postgres/postgres-lookup.md) |
+|                        | DB2            | [doc](docs/connectors/db2/db2-source.md)          | [doc](docs/connectors/db2/db2-sink.md)        | [doc](docs/connectors/db2/db2-lookup.md)
+|                        | ClickHouse     | [doc](docs/connectors/clickhouse/clickhouse-source.md)   | [doc](docs/connectors/clickhouse/clickhouse-sink.md) | [doc](docs/connectors/clickhouse/clickhouse-lookup.md)      |
+|                        | Greenplum      | [doc](docs/connectors/greenplum/greenplum-source.md)    | [doc](docs/connectors/greenplum/greenplum-sink.md)  |
+|                        | KingBase       | [doc](docs/connectors/kingbase/kingbase-source.md)     | [doc](docs/connectors/kingbase/kingbase-sink.md)   |
+|                        | MongoDB        | [doc](docs/connectors/mongodb/mongodb-source.md) | [doc](docs/connectors/mongodb/mongodb-sink.md) |[doc](docs/connectors/mongodb/mongodb-lookup.md) |
+|                        | SAP HANA  | [doc](docs/connectors/saphana/saphana-source.md)           | [doc](docs/connectors/saphana/saphana-sink.md)         |
+|                        | ElasticSearch  | [doc](docs/connectors/elasticsearch6/es6reader.md)           | [doc](docs/connectors/elasticsearch6/es6writer.md)         |
+|                        | FTP            | [doc](docs/connectors/ftp/ftp-source.md)          | [doc](docs/connectors/ftp/ftp-sink.md)        |
+|                        | HDFS           | [doc](docs/connectors/hdfs/hdfs-source.md)         | [doc](docs/connectors/hdfs/hdfs-sink.md)       |
+|                        | Stream         | [doc](docs/connectors/stream/stream-source.md)       | [doc](docs/connectors/stream/stream-sink.md) |
+|                        | Redis          |                                                  | [doc](docs/connectors/redis/redis-sink.md)      |[doc](docs/connectors/redis/redis-lookup.md)      |
+|                        | Hive           |                                                  | [doc](docs/connectors/hive/hive-sink.md)       |
+|                        | Solr          | [doc](docs/connectors/solr/solr-source.md)        | [doc](docs/connectors/solr/solr-sink.md)       |
+|                        | File           |  [doc](docs/connectors/file/file-source.md)
+| Stream Synchronization | Kafka          | [doc](docs/connectors/kafka/kafka-source.md)       | [doc](docs/connectors/kafka/kafka-sink.md)     |
+|                        | EMQX           | [doc](docs/connectors/emqx/emqx-source.md)        | [doc](docs/connectors/emqx/emqx-sink.md)      |
+|                        | MySQL Binlog   | [doc](docs/connectors/binlog/binlog-source.md)      |                                                |
+|                        | Oracle LogMiner | [doc](docs/connectors/logminer/LogMiner-source.md)   |                                            |
+|                        | Sqlserver CDC | [doc](docs/connectors/sqlservercdc/SqlserverCDC-source.md) |                                                |
 
 # Quick Start
 
@@ -83,6 +81,9 @@ Please click [General Configuration](docs/generalconfig.md)
 # Statistics Metric
 
 Please click [Statistics Metric](docs/statistics.md)
+
+# Iceberg
+Please click [Iceberg](docs/iceberg.md)
 
 # Kerberos
 

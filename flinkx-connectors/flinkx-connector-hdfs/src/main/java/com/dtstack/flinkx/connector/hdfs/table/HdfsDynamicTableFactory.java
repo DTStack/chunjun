@@ -31,6 +31,8 @@ import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
 import com.dtstack.flinkx.connector.hdfs.sink.HdfsDynamicTableSink;
 import com.dtstack.flinkx.connector.hdfs.source.HdfsDynamicTableSource;
+import com.dtstack.flinkx.sink.options.SinkOptions;
+import com.dtstack.flinkx.source.options.SourceOptions;
 import com.dtstack.flinkx.table.options.BaseFileOptions;
 
 import java.util.HashSet;
@@ -63,15 +65,19 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> options = new HashSet<>();
+        options.add(SourceOptions.SCAN_PARALLELISM);
+        options.add(SinkOptions.SINK_PARALLELISM);
+
+        options.add(BaseFileOptions.FILE_NAME);
+        options.add(BaseFileOptions.WRITE_MODE);
+        options.add(BaseFileOptions.COMPRESS);
+        options.add(BaseFileOptions.ENCODING);
+        options.add(BaseFileOptions.MAX_FILE_SIZE);
+        options.add(BaseFileOptions.NEXT_CHECK_ROWS);
+
         options.add(HdfsOptions.FILTER_REGEX);
         options.add(HdfsOptions.FIELD_DELIMITER);
         options.add(HdfsOptions.ENABLE_DICTIONARY);
-        options.add(HdfsOptions.FILE_NAME);
-        options.add(HdfsOptions.WRITE_MODE);
-        options.add(HdfsOptions.COMPRESS);
-        options.add(HdfsOptions.ENCODING);
-        options.add(HdfsOptions.MAX_FILE_SIZE);
-        options.add(HdfsOptions.NEXT_CHECK_ROWS);
         return options;
     }
 
@@ -87,6 +93,7 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         // 3.封装参数
         TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         HdfsConf hdfsConf = getHdfsConf(config);
+        hdfsConf.setParallelism(config.get(SourceOptions.SCAN_PARALLELISM));
         hdfsConf.setHadoopConfig(HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
 
         return new HdfsDynamicTableSource(hdfsConf, physicalSchema);
@@ -104,6 +111,7 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         // 3.封装参数
         TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         HdfsConf hdfsConf = getHdfsConf(config);
+        hdfsConf.setParallelism(config.get(SinkOptions.SINK_PARALLELISM));
         hdfsConf.setHadoopConfig(HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
 
         return new HdfsDynamicTableSink(hdfsConf, physicalSchema);

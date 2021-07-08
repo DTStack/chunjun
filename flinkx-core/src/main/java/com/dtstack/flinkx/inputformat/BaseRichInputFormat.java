@@ -186,6 +186,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             internalRow = nextRecordInternal(rowData);
         } catch (ReadRecordException e){
             // todo 脏数据记录
+            LOG.error(e.toString());
         }
         if(internalRow != null){
             updateDuration();

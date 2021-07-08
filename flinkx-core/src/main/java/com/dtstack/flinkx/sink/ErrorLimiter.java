@@ -84,15 +84,4 @@ public class ErrorLimiter {
     public void setErrMsg(String errMsg) {
         this.errMsg = errMsg;
     }
-
-    @Override
-    public String toString() {
-        return "ErrorLimiter{" +
-                "maxErrors=" + maxErrors +
-                ", maxErrorRatio=" + maxErrorRatio +
-                ", errorRatio=" + errorRatio +
-                ", errMsg='" + errMsg + '\'' +
-                ", errorData=" + errorData +
-                '}';
-    }
 }
