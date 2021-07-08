@@ -21,6 +21,7 @@ package com.dtstack.flinkx.connector.cassandra.converter;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
@@ -34,14 +35,17 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.DateUtil;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.math.BigDecimal;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.sql.Time;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 /**
  * @author tiezhu
@@ -50,19 +54,19 @@ import java.util.Locale;
 public class CassandraColumnConverter
         extends AbstractRowConverter<ResultSet, Row, BoundStatement, String> {
 
-    private final List<String> columnNameList;
+    private final List<FieldConf> fieldConfList;
 
-    public CassandraColumnConverter(RowType rowType, List<String> columnNameList) {
+    public CassandraColumnConverter(RowType rowType, List<FieldConf> fieldConfList) {
         super(rowType);
-        this.columnNameList = columnNameList;
+        this.fieldConfList = fieldConfList;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters[i] =
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i).getTypeRoot().name()));
+                            createInternalConverter(fieldConfList.get(i).getType()));
             toExternalConverters[i] =
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(rowType.getTypeAt(i).getTypeRoot().name()),
-                            rowType.getTypeAt(i).getTypeRoot().name());
+                            createExternalConverter(fieldConfList.get(i).getType()),
+                            fieldConfList.get(i).getType());
         }
     }
 
@@ -71,7 +75,7 @@ public class CassandraColumnConverter
     public ISerializationConverter<BoundStatement> wrapIntoNullableExternalConverter(
             ISerializationConverter serializationConverter, String type) {
         return (val, index, statement) -> {
-            if (((ColumnRowData) val).getField(index) == null || val.isNullAt(index)) {
+            if (val == null || val.isNullAt(index)) {
                 statement.setToNull(index);
             } else {
                 serializationConverter.serialize(val, index, statement);
@@ -112,6 +116,7 @@ public class CassandraColumnConverter
             case "TINYINT":
                 return val -> new ByteColumn((byte) val);
             case "SMALLINT":
+            case "VARINT":
                 return val -> new BigDecimalColumn((Short) val);
             case "INTEGER":
             case "INT":
@@ -127,6 +132,11 @@ public class CassandraColumnConverter
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case "VARCHAR":
             case "STRING":
+            case "TEXT":
+            case "ASCII":
+            case "INET":
+            case "UUID":
+            case "TIMEUUID":
                 return val -> new StringColumn((String) val);
             case "TIME":
             case "TIME_WITHOUT_TIME_ZONE":
@@ -135,6 +145,8 @@ public class CassandraColumnConverter
             case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
             case "BINARY":
+            case "VARBINARY":
+            case "BLOB":
                 return val -> new BytesColumn((byte[]) val);
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
@@ -144,52 +156,69 @@ public class CassandraColumnConverter
     @Override
     protected ISerializationConverter<BoundStatement> createExternalConverter(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
+            case "INET":
+                return (val, index, statement) ->
+                        statement.setInet(
+                                fieldConfList.get(index).getName(),
+                                InetAddress.getByName(val.getString(index).toString()));
+            case "UUID":
+            case "TIMEUUID":
+                return (val, index, statement) ->
+                        statement.setUUID(
+                                fieldConfList.get(index).getName(),
+                                UUID.fromString(val.getString(index).toString()));
             case "BOOLEAN":
             case "BOOL":
                 return (val, index, statement) ->
-                        statement.setBool(columnNameList.get(index), val.getBoolean(index));
+                        statement.setBool(
+                                fieldConfList.get(index).getName(), val.getBoolean(index));
             case "TINYINT":
             case "CHAR":
-            case "INT8":
                 return (val, index, statement) ->
-                        statement.setByte(columnNameList.get(index), val.getByte(index));
-            case "INT16":
+                        statement.setByte(fieldConfList.get(index).getName(), val.getByte(index));
             case "SMALLINT":
+            case "VARINT":
                 return (val, index, statement) ->
-                        statement.setShort(columnNameList.get(index), val.getShort(index));
+                        statement.setShort(fieldConfList.get(index).getName(), val.getShort(index));
             case "INTEGER":
             case "INT":
-            case "INT32":
                 return (val, index, statement) ->
-                        statement.setInt(columnNameList.get(index), val.getInt(index));
+                        statement.setInt(fieldConfList.get(index).getName(), val.getInt(index));
             case "BIGINT":
-            case "INT64":
                 return (val, index, operator) ->
-                        operator.setLong(columnNameList.get(index), val.getLong(index));
+                        operator.setLong(fieldConfList.get(index).getName(), val.getLong(index));
             case "FLOAT":
                 return (val, index, statement) ->
-                        statement.setFloat(columnNameList.get(index), val.getFloat(index));
+                        statement.setFloat(fieldConfList.get(index).getName(), val.getFloat(index));
             case "DOUBLE":
                 return (val, index, statement) ->
-                        statement.setDouble(columnNameList.get(index), val.getDouble(index));
+                        statement.setDouble(
+                                fieldConfList.get(index).getName(), val.getDouble(index));
             case "BINARY":
+            case "VARBINARY":
+            case "BLOB":
                 return (val, index, statement) ->
                         statement.setBytes(
-                                columnNameList.get(index), ByteBuffer.wrap(val.getBinary(index)));
+                                fieldConfList.get(index).getName(),
+                                ByteBuffer.wrap(val.getBinary(index)));
             case "DECIMAL":
                 return (val, index, statement) ->
                         statement.setDecimal(
-                                columnNameList.get(index),
+                                fieldConfList.get(index).getName(),
                                 ((ColumnRowData) val).getField(index).asBigDecimal());
             case "VARCHAR":
+            case "ASCII":
+            case "STRING":
+            case "TEXT":
                 return (val, index, statement) ->
                         statement.setString(
-                                columnNameList.get(index), val.getString(index).toString());
+                                fieldConfList.get(index).getName(),
+                                val.getString(index).toString());
             case "TIME_WITHOUT_TIME_ZONE":
             case "TIME":
                 return (val, index, statement) ->
                         statement.setTime(
-                                columnNameList.get(index),
+                                fieldConfList.get(index).getName(),
                                 Time.valueOf(
                                                 ((ColumnRowData) val)
                                                         .getField(index)
@@ -200,7 +229,7 @@ public class CassandraColumnConverter
             case "DATE":
                 return (val, index, statement) ->
                         statement.setDate(
-                                columnNameList.get(index),
+                                fieldConfList.get(index).getName(),
                                 com.datastax.driver.core.LocalDate.fromMillisSinceEpoch(
                                         ((ColumnRowData) val)
                                                 .getField(index)
@@ -213,7 +242,7 @@ public class CassandraColumnConverter
             case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return (val, index, statement) ->
                         statement.setTimestamp(
-                                columnNameList.get(index),
+                                fieldConfList.get(index).getName(),
                                 ((ColumnRowData) val).getField(index).asTimestamp());
             default:
                 throw new UnsupportedTypeException(type);

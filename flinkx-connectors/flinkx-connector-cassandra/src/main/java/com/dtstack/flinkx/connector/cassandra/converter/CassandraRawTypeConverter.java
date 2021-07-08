@@ -50,20 +50,19 @@ public class CassandraRawTypeConverter {
                 return DataTypes.INT();
             case "BIGINT":
                 return DataTypes.BIGINT();
-            case "FLOAT4":
-            case "REAL":
+            case "FLOAT":
                 return DataTypes.FLOAT();
             case "DECIMAL":
             case "NUMERIC":
                 return DataTypes.DECIMAL(38, 18);
             case "DOUBLE":
-            case "DOUBLE PRECISION":
-            case "FLOAT8":
                 return DataTypes.DOUBLE();
             case "ASCII":
             case "VARCHAR":
             case "TEXT":
             case "INET":
+            case "UUID":
+            case "TIMEUUID":
                 return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();

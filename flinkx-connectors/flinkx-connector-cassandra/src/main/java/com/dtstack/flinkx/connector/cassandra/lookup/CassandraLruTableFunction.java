@@ -138,7 +138,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
                             List<RowData> rowList = Lists.newArrayList();
                             for (Row line : rows) {
                                 try {
-                                    RowData row = fillData(line);
+                                    RowData row = rowConverter.toInternalLookup(line);
                                     if (openCache()) {
                                         cacheContent.add(line);
                                     }
@@ -174,12 +174,6 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected RowData fillData(Object sideInput) throws Exception {
-        return rowConverter.toInternalLookup(sideInput);
-    }
-
-    @Override
     public void close() throws Exception {
         super.close();
         if (cluster != null && !cluster.isClosed()) {
@@ -187,7 +181,6 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
         }
 
         if (session != null && !session.isCancelled()) {
-            // TODO 详细了解下，是true 合适还是 false.
             session.cancel(false);
         }
     }

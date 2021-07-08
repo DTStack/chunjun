@@ -65,11 +65,9 @@ public class CassandraSinkFactory extends SinkFactory {
 
         builder.setSinkConf(sinkConf);
         List<FieldConf> fieldConfList = sinkConf.getColumn();
-        List<String> columnNameList = new ArrayList<>();
-        fieldConfList.forEach(fieldConf -> columnNameList.add(fieldConf.getName()));
 
         final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeConverter());
-        builder.setRowConverter(new CassandraColumnConverter(rowType, columnNameList));
+        builder.setRowConverter(new CassandraColumnConverter(rowType, fieldConfList));
 
         return createOutput(dataSet, builder.finish());
     }
