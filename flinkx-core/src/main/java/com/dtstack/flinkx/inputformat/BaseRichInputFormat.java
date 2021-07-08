@@ -209,23 +209,25 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             return;
         }
 
-        if(durationCounter != null){
-            updateDuration();
-        }
+        updateDuration();
 
-        if(byteRateLimiter != null){
+        if (byteRateLimiter != null) {
             byteRateLimiter.stop();
         }
 
-        if(accumulatorCollector != null){
+        if (accumulatorCollector != null) {
             accumulatorCollector.close();
         }
 
         if (useCustomPrometheusReporter() && null != customPrometheusReporter) {
-            customPrometheusReporter.report();
+            try {
+                customPrometheusReporter.report();
+            } catch (Exception e) {
+                LOG.error("customPrometheusReporter.report() exception:{}", ExceptionUtil.getErrorMessage(e));
+            }
         }
 
-        if(inputMetric != null){
+        if (inputMetric != null) {
             inputMetric.waitForReportMetrics();
         }
 
