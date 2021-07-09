@@ -43,10 +43,6 @@ public class SettingConf implements Serializable {
     /** 脏数据保存配置 */
     private DirtyConf dirty = new DirtyConf();
 
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
-    }
-
     public void setMetricPluginConf(MetricPluginConf metricPluginConf) {
         this.metricPluginConf = metricPluginConf;
     }

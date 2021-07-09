@@ -197,7 +197,7 @@ public class PluginUtil {
         suffix = suffix.toLowerCase();
         StringBuilder sb = new StringBuilder(32);
         sb.append(PACKAGE_PREFIX);
-        sb.append(left).append(POINT_SYMBOL).append(suffix).append(POINT_SYMBOL);
+        sb.append(left).append(ConstantValue.POINT_SYMBOL).append(suffix).append(ConstantValue.POINT_SYMBOL);
         sb.append(left.substring(0, 1).toUpperCase()).append(left.substring(1));
         sb.append(suffix.substring(0, 1).toUpperCase()).append(suffix.substring(1));
         sb.append(GENERIC_SUFFIX);
