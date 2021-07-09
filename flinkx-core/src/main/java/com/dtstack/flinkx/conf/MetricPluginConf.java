@@ -30,7 +30,7 @@ public class MetricPluginConf implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String pluginName;
+    private String pluginName = "prometheus";
 
     private Map<String,Object> pluginProp;
 
