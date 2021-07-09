@@ -212,15 +212,13 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             return;
         }
 
-        if(durationCounter != null){
-            updateDuration();
-        }
+        updateDuration();
 
-        if(byteRateLimiter != null){
+        if (byteRateLimiter != null) {
             byteRateLimiter.stop();
         }
 
-        if(accumulatorCollector != null){
+        if (accumulatorCollector != null) {
             accumulatorCollector.close();
         }
 
@@ -228,7 +226,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             customReporter.report();
         }
 
-        if(inputMetric != null){
+        if (inputMetric != null) {
             inputMetric.waitForReportMetrics();
         }
 
@@ -345,7 +343,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     /**
      * 使用自定义的指标输出器把增量指标打到普罗米修斯
      */
-    protected boolean useCustomReporter() {
+    protected boolean useCustomPrometheusReporter() {
         return false;
     }
 
