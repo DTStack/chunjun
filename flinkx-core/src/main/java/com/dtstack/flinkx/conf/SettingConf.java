@@ -32,6 +32,8 @@ public class SettingConf implements Serializable {
     private SpeedConf speed = new SpeedConf();
     /** 任务运行时数据读取写入的出错控制 */
     private ErrorLimitConf errorLimit = new ErrorLimitConf();
+    /** 任务指标插件信息 */
+    private MetricPluginConf metricPluginConf = new MetricPluginConf();
     /** 断点续传配置 */
     private RestoreConf restore = new RestoreConf();
     /** 失败重试配置 */
@@ -40,6 +42,14 @@ public class SettingConf implements Serializable {
     private LogConf log = new LogConf();
     /** 脏数据保存配置 */
     private DirtyConf dirty = new DirtyConf();
+
+    public void setMetricPluginConf(MetricPluginConf metricPluginConf) {
+        this.metricPluginConf = metricPluginConf;
+    }
+
+    public MetricPluginConf getMetricPluginConf() {
+        return metricPluginConf;
+    }
 
     public SpeedConf getSpeed() {
         return speed;
@@ -94,6 +104,7 @@ public class SettingConf implements Serializable {
         return "SettingConf{" +
                 "speed=" + speed +
                 ", errorLimit=" + errorLimit +
+                ", metricPluginConf=" + metricPluginConf +
                 ", restore=" + restore +
                 ", restart=" + restart +
                 ", log=" + log +

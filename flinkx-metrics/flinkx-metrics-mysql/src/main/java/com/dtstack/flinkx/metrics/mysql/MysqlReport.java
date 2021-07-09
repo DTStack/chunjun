@@ -15,16 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.enums;
+
+package com.dtstack.flinkx.metrics.mysql;
+
+import com.dtstack.flinkx.conf.MetricParam;
+import com.dtstack.flinkx.metrics.rdb.RdbReporter;
 
 /**
- * Date: 2021/04/07
- * Company: www.dtstack.com
- *
- * @author tudou
+ * @author: shifang
+ * @description mysql report
+ * @date: 2021/6/28 下午5:09
  */
-public enum  OperatorType {
-    source,
-    sink,
-    metric
+public class MysqlReport extends RdbReporter {
+
+    public MysqlReport(MetricParam metricParam) {
+        super(metricParam);
+        super.jdbcDialect = new MysqlDialect();
+    }
+
 }

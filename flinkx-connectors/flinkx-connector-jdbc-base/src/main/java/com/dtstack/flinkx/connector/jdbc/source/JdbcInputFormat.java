@@ -283,8 +283,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             start = Metrics.START_LOCATION + "_" + inputSplit.getSplitNumber();
             end = Metrics.END_LOCATION + "_" + inputSplit.getSplitNumber();
         }
-        customPrometheusReporter.registerMetric(startLocationAccumulator, start);
-        customPrometheusReporter.registerMetric(endLocationAccumulator, end);
+
+        //将累加器信息添加至prometheus
+        customReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
+        customReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
         getRuntimeContext().addAccumulator(start, startLocationAccumulator);
         getRuntimeContext().addAccumulator(end, endLocationAccumulator);
     }
@@ -780,7 +782,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * 使用自定义的指标输出器把增量指标打到普罗米修斯
      */
     @Override
-    protected boolean useCustomPrometheusReporter() {
+    protected boolean useCustomReporter() {
         return jdbcConf.isIncrement();
     }
 

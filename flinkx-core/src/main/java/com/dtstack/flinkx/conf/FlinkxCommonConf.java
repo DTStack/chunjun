@@ -56,6 +56,39 @@ public class FlinkxCommonConf implements Serializable {
     /** cp path */
     private String restorePath;
 
+    /** metrics plugin root */
+    private String metricPluginRoot;
+
+    /** metrics plugin name */
+    private String metricPluginName;
+
+    /** metrics plugin properties */
+    private Map<String,Object> metricProps;
+
+    public String getMetricPluginRoot() {
+        return metricPluginRoot;
+    }
+
+    public void setMetricPluginRoot(String metricPluginRoot) {
+        this.metricPluginRoot = metricPluginRoot;
+    }
+
+    public String getMetricPluginName() {
+        return metricPluginName == null ? "prometheus" : metricPluginName;
+    }
+
+    public void setMetricPluginName(String metricPluginName) {
+        this.metricPluginName = metricPluginName;
+    }
+
+    public Map<String, Object> getMetricProps() {
+        return metricProps;
+    }
+
+    public void setMetricProps(Map<String, Object> metricProps) {
+        this.metricProps = metricProps;
+    }
+
     public long getSpeedBytes() {
         return speedBytes;
     }
@@ -166,6 +199,9 @@ public class FlinkxCommonConf implements Serializable {
                 ", column=" + column +
                 ", batchSize=" + batchSize +
                 ", flushIntervalMills=" + flushIntervalMills +
+                ", metricPluginRoot='" + metricPluginRoot + '\'' +
+                ", metricPluginName='" + metricPluginName + '\'' +
+                ", metricProps=" + metricProps +
                 ", restorePath=" + restorePath +
                 '}';
     }
