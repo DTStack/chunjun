@@ -285,8 +285,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
 
         //将累加器信息添加至prometheus
-        customReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION, inputSplit.getSplitNumber());
-        customReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION, inputSplit.getSplitNumber());
+        customReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
+        customReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
         getRuntimeContext().addAccumulator(start, startLocationAccumulator);
         getRuntimeContext().addAccumulator(end, endLocationAccumulator);
     }

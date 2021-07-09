@@ -33,8 +33,4 @@ public class MysqlReport extends RdbReporter {
         super.jdbcDialect = new MysqlDialect();
     }
 
-    @Override
-    public void createTableIfNotExist() {
-        //待定
-    }
 }

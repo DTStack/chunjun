@@ -140,13 +140,13 @@ public class PrometheusReport extends CustomReporter {
     }
 
     @Override
-    public void registerMetric(Accumulator accumulator, String name, Integer index) {
+    public void registerMetric(Accumulator accumulator, String name) {
         name = Metrics.METRIC_GROUP_KEY_FLINKX + "_" + name;
         ReporterScopedSettings reporterScopedSettings = new ReporterScopedSettings(0, ',', Collections.emptySet());
         FrontMetricGroup front = new FrontMetricGroup<AbstractMetricGroup<?>>(
                 reporterScopedSettings,
                 (AbstractMetricGroup) context.getMetricGroup());
-        notifyOfAddedMetric(new SimpleAccumulatorGauge<>(accumulator), name, front,index);
+        notifyOfAddedMetric(new SimpleAccumulatorGauge<>(accumulator), name, front);
     }
 
     @Override
@@ -176,7 +176,7 @@ public class PrometheusReport extends CustomReporter {
         }
     }
 
-    private void notifyOfAddedMetric(final Metric metric, final String metricName, final MetricGroup group,Integer index) {
+    private void notifyOfAddedMetric(final Metric metric, final String metricName, final MetricGroup group) {
         metricHashMap.put(metricName, metric);
 
         List<String> dimensionKeys = new LinkedList<>();
@@ -194,7 +194,7 @@ public class PrometheusReport extends CustomReporter {
         Integer count = 0;
 
         synchronized (this) {
-            if (collectorsWithCountByMetricName.containsKey(scopedMetricName + SCOPE_SEPARATOR + index)) {
+            if (collectorsWithCountByMetricName.containsKey(scopedMetricName)) {
                 final AbstractMap.SimpleImmutableEntry<Collector, Integer> collectorWithCount = collectorsWithCountByMetricName
                         .get(scopedMetricName);
                 collector = collectorWithCount.getKey();
@@ -213,7 +213,7 @@ public class PrometheusReport extends CustomReporter {
             }
             addMetric(metric, dimensionValues, collector);
             collectorsWithCountByMetricName.put(
-                    scopedMetricName + SCOPE_SEPARATOR + index,
+                    scopedMetricName,
                     new AbstractMap.SimpleImmutableEntry<>(collector, count + 1));
         }
     }

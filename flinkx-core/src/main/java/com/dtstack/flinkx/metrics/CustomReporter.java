@@ -68,7 +68,7 @@ public abstract class CustomReporter {
      * @param accumulator
      * @param name
      */
-    public abstract void registerMetric(Accumulator accumulator, String name, Integer index);
+    public abstract void registerMetric(Accumulator accumulator, String name);
 
     /**
      * upload metrics

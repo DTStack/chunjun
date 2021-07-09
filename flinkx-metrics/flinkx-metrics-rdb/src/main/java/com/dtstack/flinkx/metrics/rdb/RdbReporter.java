@@ -23,14 +23,18 @@ import com.dtstack.flinkx.metrics.CustomReporter;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.google.common.collect.Maps;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.runtime.metrics.groups.AbstractMetricGroup;
 import org.apache.flink.runtime.metrics.groups.FrontMetricGroup;
 import org.apache.flink.runtime.metrics.groups.ReporterScopedSettings;
 
+import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,22 +49,13 @@ import java.util.Map;
 public abstract class RdbReporter extends CustomReporter {
 
 
-    protected JdbcMetricConf jdbcMetricConf;
-
-    protected JdbcDialect jdbcDialect;
-
-    protected transient Connection dbConn;
-
-
-    private List<String> fields = Arrays.asList("job_id", "job_name", "task_id", "task_name", "subtask_index");
-
-
-
-    private Map<String, List<String>> metricDimensionValues = Maps.newConcurrentMap();
-
-    private Map<String, Accumulator> accumulatorMap = Maps.newConcurrentMap();
-
     private static final char SCOPE_SEPARATOR = '_';
+    protected JdbcMetricConf jdbcMetricConf;
+    protected JdbcDialect jdbcDialect;
+    protected transient Connection dbConn;
+    protected List<String> fields = Arrays.asList("job_id", "job_name", "task_id", "task_name", "subtask_index");
+    private Map<String, List<String>> metricDimensionValues = Maps.newConcurrentMap();
+    private Map<String, Accumulator> accumulatorMap = Maps.newConcurrentMap();
 
     public RdbReporter(MetricParam metricParam) {
         super(metricParam);
@@ -81,14 +76,12 @@ public abstract class RdbReporter extends CustomReporter {
     }
 
 
-    //如何兼容多并行度的情况下的指标写入,TODO  暂时不考虑
     @Override
-    public void registerMetric(Accumulator accumulator, String name, Integer index) {
-        String metricWithIndex = name + SCOPE_SEPARATOR + index;
-        if (accumulatorMap.get(metricWithIndex) != null) {
+    public void registerMetric(Accumulator accumulator, String name) {
+        if (accumulatorMap.get(name) != null) {
             return;
         }
-        accumulatorMap.put(metricWithIndex, accumulator);
+        accumulatorMap.put(name, accumulator);
         ReporterScopedSettings reporterScopedSettings = new ReporterScopedSettings(0, ',', Collections.emptySet());
         FrontMetricGroup front = new FrontMetricGroup<AbstractMetricGroup<?>>(
                 reporterScopedSettings,
@@ -104,17 +97,28 @@ public abstract class RdbReporter extends CustomReporter {
         fields.forEach(field -> {
             singleValues.add(metricFilterMap.get(field));
         });
-        metricDimensionValues.putIfAbsent(metricWithIndex, singleValues);
+        metricDimensionValues.putIfAbsent(name, singleValues);
     }
 
     /**
      * create metric table
      */
-    public abstract void createTableIfNotExist();
+    public void createTableIfNotExist() {
+        try (Statement statement = dbConn.createStatement()) {
+            statement.execute(jdbcDialect.getCreateStatement(jdbcMetricConf.getSchema(), jdbcMetricConf.getTable()));
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 
     @Override
     public void report() {
-        try (PreparedStatement ps = dbConn.prepareStatement(prepareTemplates())) {
+        PreparedStatement ps = null;
+        try {
+            if (!dbConn.isValid(10)) {
+                dbConn = JdbcUtil.getConnection(jdbcMetricConf, jdbcDialect);
+            }
+            ps = dbConn.prepareStatement(prepareTemplates());
             dbConn.setAutoCommit(false);
             for (final Map.Entry<String, Accumulator> entry : accumulatorMap.entrySet()) {
                 List<String> dimensionValue = metricDimensionValues.get(entry.getKey());
@@ -123,8 +127,7 @@ public abstract class RdbReporter extends CustomReporter {
                     ps.setString(columnIndex, value);
                     columnIndex++;
                 }
-                String metricWithIndex = entry.getKey();
-                ps.setString(columnIndex, metricWithIndex.substring(0, metricWithIndex.lastIndexOf(SCOPE_SEPARATOR)));
+                ps.setString(columnIndex, entry.getKey());
                 columnIndex++;
                 ps.setString(columnIndex, entry.getValue().getLocalValue().toString());
                 ps.addBatch();
@@ -133,7 +136,27 @@ public abstract class RdbReporter extends CustomReporter {
             JdbcUtil.commit(dbConn);
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            closeResource(ps);
         }
+    }
+
+    private void closeResource(AutoCloseable... closeables) {
+        if (closeables == null) {
+            return;
+        }
+        List<AutoCloseable> closeableList = Arrays.asList(closeables);
+        try {
+            for (AutoCloseable closeable : closeableList) {
+                if (closeable != null) {
+                    closeable.close();
+                }
+
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
     }
 
 

@@ -156,6 +156,9 @@ public interface JdbcDialect extends Serializable {
                 + ")";
     }
 
+    /** Get insert into statement. */
+    String getCreateStatement(String schema, String tableName);
+
     /**
      * Get update one row statement by condition fields, default not use limit 1, because limit 1 is
      * a sql dialect.
