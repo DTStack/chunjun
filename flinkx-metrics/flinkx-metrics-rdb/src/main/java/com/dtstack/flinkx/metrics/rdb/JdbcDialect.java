@@ -37,6 +37,8 @@ import static java.lang.String.format;
  */
 public interface JdbcDialect extends Serializable {
 
+    static final long serialVersionUID = 1L;
+
     /**
      * Get the name of jdbc dialect.
      *

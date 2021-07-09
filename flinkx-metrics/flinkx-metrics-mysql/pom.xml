@@ -10,6 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>flinkx-metrics-mysql</artifactId>
+	<name>FlinkX : Metrics : MYSQL</name>
 
 	<dependencies>
 		<dependency>
