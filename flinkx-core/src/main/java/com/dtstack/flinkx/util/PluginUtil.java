@@ -223,14 +223,8 @@ public class PluginUtil {
         Set<URL> formatsUrlList = getJarFileDirPath(FORMATS_SUFFIX, config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> sourceUrlList = getJarFileDirPath(config.getReader().getName(), config.getPluginRoot(), config.getRemotePluginPath());
         Set<URL> sinkUrlList = getJarFileDirPath(config.getWriter().getName(), config.getPluginRoot(), config.getRemotePluginPath());
-        String pluginName = DEFAULT_METRIC_PLUGIN;
-        if (config.getMetricPluginConf() != null && StringUtils.isNotBlank(config
-                .getMetricPluginConf()
-                .getPluginName())) {
-            pluginName = config.getMetricPluginConf().getPluginName();
-        }
         Set<URL> metricUrlList = getJarFileDirPath(
-                pluginName,
+                config.getMetricPluginConf().getPluginName(),
                 config.getPluginRoot() + SP + METRIC_SUFFIX,
                 config.getRemotePluginPath());
         urlSet.addAll(coreUrlList);
