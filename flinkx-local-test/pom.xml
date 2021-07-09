@@ -256,6 +256,18 @@
 			<artifactId>flinkx-connector-ftp</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-metrics-mysql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-metrics-prometheus</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 </project>

@@ -53,7 +53,7 @@ public class MetricConstant {
 
     public static final String DT_EVENT_DELAY_GAUGE = "dtEventDelay";
 
-    public static final String DT_TOPIC_PARTITION_LAG_GAUGE = "dtTopicPartitionLag";
+    public static final String DT_TOPIC_PARTITION_LAG_GAUGE = "flinkxTopicPartitionLag";
 
     public static final String DT_TOPIC_GROUP = "topic";
 

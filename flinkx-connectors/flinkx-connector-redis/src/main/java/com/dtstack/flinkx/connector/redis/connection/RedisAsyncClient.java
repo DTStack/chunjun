@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.redis.connection;
 
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -74,7 +75,7 @@ public class RedisAsyncClient {
             } catch (IllegalArgumentException e) {
                 throw e;
             } catch (Exception e) {
-                LOG.error("connect failed:{} , sleep 3 seconds reconnect", e.getCause().getMessage());
+                LOG.error("connect failed:{} , sleep 3 seconds reconnect", ExceptionUtil.getErrorMessage(e));
                 try {
                     TimeUnit.SECONDS.sleep(3);
                 } catch (InterruptedException interruptedException) {
@@ -96,7 +97,9 @@ public class RedisAsyncClient {
         switch (redisConf.getRedisConnectType()) {
             case STANDALONE:
                 RedisURI redisURI = RedisURI.create("redis://" + url);
-                redisURI.setPassword(password);
+                if (!Objects.isNull(password)) {
+                    redisURI.setPassword(password);
+                }
                 redisURI.setDatabase(database);
                 redisClient = RedisClient.create(redisURI);
                 connection = redisClient.connect();

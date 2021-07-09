@@ -28,6 +28,9 @@ import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Date: 2021/03/29
@@ -81,6 +84,23 @@ public class JsonUtil {
             Map<String, Object> result = objectMapper.readValue(objectMapper.writeValueAsString(obj), HashMap.class);
             MapUtil.replaceAllElement(result, Lists.newArrayList("pwd", "password"), "******");
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
+        }catch (Exception e){
+            throw new RuntimeException("error parse [" + obj + "] to json", e);
+        }
+    }
+
+    /**
+     * 实体对象转格式化输出的json字符串(用于日志打印)
+     * @param obj 实体对象
+     * @return  格式化输出的json字符串
+     */
+    public static String toFormatJson(Object obj) {
+        try {
+            Map<String, String> collect = ((Properties) obj)
+                    .entrySet()
+                    .stream()
+                    .collect(toMap(v -> v.getKey().toString(), v -> v.getValue().toString()));
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(collect);
         }catch (Exception e){
             throw new RuntimeException("error parse [" + obj + "] to json", e);
         }

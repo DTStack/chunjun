@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class SqlUtil {
@@ -69,7 +68,7 @@ public class SqlUtil {
                         "SELECT max(%s) as max_value, min(%s) as min_value FROM (%s)tmp",
                         jdbcDialect.quoteIdentifier(jdbcDialect.getRowNumColumnAlias()),
                         jdbcDialect.quoteIdentifier(jdbcDialect.getRowNumColumnAlias()),
-                        customTableBuilder.toString());
+                        customTableBuilder);
             } else {
                 querySplitRangeSql = String.format(
                         "SELECT max(%s) as max_value, min(%s) as min_value FROM %s %s",
@@ -87,15 +86,21 @@ public class SqlUtil {
     /** create querySql for inputSplit **/
     public static String buildQuerySqlBySplit(JdbcConf jdbcConf, JdbcDialect jdbcDialect, List<String> whereList, List<String> columnNameList, JdbcInputSplit jdbcInputSplit){
         //customSql为空 且 splitPk是ROW_NUMBER()
-        String splitFilter ="";
-        if (StringUtils.isBlank(jdbcConf.getCustomSql()) && SqlUtil.addRowNumColumn(jdbcConf.getSplitPk())) {
-            splitFilter = buildSplitFilterSql(jdbcConf.getSplitStrategy(), jdbcDialect, jdbcInputSplit, jdbcDialect.getRowNumColumnAlias());
-        } else {
-            splitFilter = buildSplitFilterSql(jdbcConf.getSplitStrategy(), jdbcDialect, jdbcInputSplit, jdbcConf.getSplitPk());
+        boolean flag = StringUtils.isBlank(jdbcConf.getCustomSql()) && SqlUtil.addRowNumColumn(jdbcConf.getSplitPk());
+
+        String splitFilter = null;
+        if(jdbcInputSplit.getTotalNumberOfSplits() > 1){
+            String splitColumn;
+            if (flag) {
+                splitColumn = jdbcDialect.getRowNumColumnAlias();
+            } else {
+                splitColumn = jdbcConf.getSplitPk();
+            }
+            splitFilter = buildSplitFilterSql(jdbcConf.getSplitStrategy(), jdbcDialect, jdbcInputSplit, splitColumn);
         }
+
         String querySql;
-        //customSql为空 且 splitPk是ROW_NUMBER()
-        if (StringUtils.isBlank(jdbcConf.getCustomSql()) && SqlUtil.addRowNumColumn(jdbcConf.getSplitPk())) {
+        if (flag) {
             String whereSql = String.join(" AND ", whereList.toArray(new String[0]));
             String tempQuerySql = jdbcDialect.getSelectFromStatement(
                     jdbcConf.getSchema(),
@@ -124,7 +129,7 @@ public class SqlUtil {
                     jdbcConf.getCustomSql(),
                     columnNameList.toArray(new String[0]),
                     whereSql);
-        };
+        }
         return querySql;
     }
 
@@ -141,7 +146,7 @@ public class SqlUtil {
      *
      * @return
      */
-    public static String buildFilterSql(String customSql,String operator, String location, String columnName, String columnType, boolean isPolling, Function<Long,String> function) {
+    public static String buildFilterSql(String customSql, String operator, String location, String columnName, String columnType, boolean isPolling, Function<Long,String> function) {
         StringBuilder sql = new StringBuilder(64);
         if (StringUtils.isNotEmpty(customSql)) {
             sql.append(JdbcUtil.TEMPORARY_TABLE_NAME).append(".");
@@ -186,32 +191,23 @@ public class SqlUtil {
      */
     public static String buildOrderSql(JdbcConf jdbcConf, JdbcDialect jdbcDialect, String sortRule){
         String column;
-        if(jdbcConf.isIncrement()){
+        //增量任务
+        if(jdbcConf.isIncrement() && !jdbcConf.isPolling()){
             column = jdbcConf.getIncreColumn();
-        } else if(StringUtils.isNotBlank(jdbcConf.getRestoreColumn())){
-            column = jdbcConf.getRestoreColumn();
-        } else if (jdbcConf.isSplitByKey()){
-            if(StringUtils.isBlank(jdbcConf.getCustomSql()) && SqlUtil.addRowNumColumn(jdbcConf.getSplitPk())){
-                column = jdbcDialect.getRowNumColumnAlias();
-            }else{
-                column = jdbcConf.getSplitPk();
-            }
-        } else {
+        }else {
             column = jdbcConf.getOrderByColumn();
         }
-        return StringUtils.isEmpty(column) ? "" : String.format(" ORDER BY %s %s", jdbcDialect.quoteIdentifier(column), sortRule);
+        return StringUtils.isBlank(column) ? "" : String.format(" ORDER BY %s %s", jdbcDialect.quoteIdentifier(column), sortRule);
     }
 
     /* 是否添加自定义函数column 作为分片key ***/
     public static boolean addRowNumColumn(String splitKey) {
-        return splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
+        return StringUtils.isNotBlank(splitKey) && splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
     }
 
     /** 获取分片key rownum **/
     public static String getRowNumColumn(String splitKey, JdbcDialect jdbcDialect) {
-        String orderBy = splitKey.substring(
-                splitKey.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL) + 1,
-                splitKey.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL));
+        String orderBy = splitKey.substring(splitKey.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL) + 1, splitKey.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL));
         return jdbcDialect.getRowNumColumn(orderBy);
     }
 
@@ -221,7 +217,7 @@ public class SqlUtil {
      * @param splitColumn
      * @return
      */
-    public static String buildSplitFilterSql(String splitStrategy, JdbcDialect jdbcDialect, JdbcInputSplit jdbcInputSplit,String splitColumn){
+    public static String buildSplitFilterSql(String splitStrategy, JdbcDialect jdbcDialect, JdbcInputSplit jdbcInputSplit, String splitColumn){
         if("range".equalsIgnoreCase(splitStrategy)){
             return jdbcDialect.getSplitRangeFilter(jdbcInputSplit, splitColumn);
         }else{

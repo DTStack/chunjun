@@ -274,7 +274,7 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
                     return;
                 } else if (ECacheContentType.SingleLine == val.getType()) {
                     try {
-                        RowData row = fillData(val.getContent());
+                        RowData row = rowConverter.toInternalLookup(val.getContent());
                         future.complete(Collections.singleton(row));
                     } catch (Exception e) {
                         dealFillDataError(future, e);
@@ -283,7 +283,7 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
                     try {
                         List<RowData> rowList = Lists.newArrayList();
                         for (Object one : (List) val.getContent()) {
-                            RowData row = fillData(one);
+                            RowData row = rowConverter.toInternalLookup(one);
                             rowList.add(row);
                         }
                         future.complete(rowList);
@@ -400,13 +400,4 @@ abstract public class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     public void close() throws Exception {
         super.close();
     }
-
-    /**
-     * fill data,diff db need override
-     *
-     * @param sideInput
-     *
-     * @return
-     */
-    abstract protected RowData fillData(Object sideInput) throws Exception;
 }

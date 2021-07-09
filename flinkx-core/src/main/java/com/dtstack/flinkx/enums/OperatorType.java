@@ -25,5 +25,6 @@ package com.dtstack.flinkx.enums;
  */
 public enum  OperatorType {
     source,
-    sink
+    sink,
+    metric
 }

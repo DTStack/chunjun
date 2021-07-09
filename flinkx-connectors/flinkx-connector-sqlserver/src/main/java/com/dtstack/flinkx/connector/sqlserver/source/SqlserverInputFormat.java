@@ -22,11 +22,17 @@ import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.types.logical.RowType;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Company：www.dtstack.com
@@ -95,4 +101,72 @@ public class SqlserverInputFormat extends JdbcInputFormat {
         return timeStr;
     }
 
+    @Override
+    public boolean reachedEnd() {
+        if (hasNext) {
+            return false;
+        } else {
+            if (jdbcConf.isPolling()) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(jdbcConf.getPollingInterval());
+                    //间隔轮询检测数据库连接是否断开，超时时间三秒，断开后自动重连
+                    if(!isValid(dbConn, 3)){
+                        dbConn = getConnection();
+                        //重新连接后还是不可用则认为数据库异常，任务失败
+                        if(!isValid(dbConn, 3)){
+                            String message = String.format("cannot connect to %s, username = %s, please check %s is available.", jdbcConf.getJdbcUrl(), jdbcConf.getJdbcUrl(), jdbcDialect.dialectName());
+                            throw new RuntimeException(message);
+                        }
+                    }
+                    if (!dbConn.getAutoCommit()) {
+                        dbConn.setAutoCommit(true);
+                    }
+                    JdbcUtil.closeDbResources(resultSet, null, null, false);
+                    //此处endLocation理应不会为空
+                    queryForPolling(endLocationAccumulator.getLocalValue().toString());
+                    return false;
+                } catch (InterruptedException e) {
+                    LOG.warn("interrupted while waiting for polling, e = {}", ExceptionUtil.getErrorMessage(e));
+                } catch (SQLException e) {
+                    JdbcUtil.closeDbResources(resultSet, ps, null, false);
+                    String message = String.format("error to execute sql = %s, startLocation = %s, e = %s",
+                        jdbcConf.getQuerySql(),
+                        endLocationAccumulator.getLocalValue(),
+                        ExceptionUtil.getErrorMessage(e));
+                    throw new RuntimeException(message, e);
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Returns true if the connection has not been closed and is still valid.
+     * @param connection jdbc connection
+     * @param timeOut The time in seconds to wait for the database operation.
+     *
+     */
+    public boolean isValid(Connection connection, int timeOut){
+        try {
+            if (connection.isClosed()) {
+                return false;
+            }
+            Statement statement = null;
+            ResultSet resultSet = null;
+            try {
+                final String validationQuery = "select 1";
+                statement = connection.createStatement();
+                statement.setQueryTimeout(timeOut);
+                resultSet = statement.executeQuery(validationQuery);
+                if (!resultSet.next()) {
+                    return false;
+                }
+            }finally {
+                JdbcUtil.closeDbResources(resultSet, statement, null, false);
+            }
+        }catch (Throwable e){
+            return false;
+        }
+        return true;
+    }
 }

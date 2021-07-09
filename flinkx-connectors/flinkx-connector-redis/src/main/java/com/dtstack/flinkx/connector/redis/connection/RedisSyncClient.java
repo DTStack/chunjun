@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.redis.connection;
 
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
@@ -146,7 +147,7 @@ public class RedisSyncClient {
             } catch (IllegalArgumentException e) {
                 throw e;
             } catch (Exception e) {
-                LOG.error("connect failed:{} , sleep 3 seconds reconnect", e.getCause().getMessage());
+                LOG.error("connect failed:{} , sleep 3 seconds reconnect", ExceptionUtil.getErrorMessage(e));
                 try {
                     TimeUnit.SECONDS.sleep(3);
                 } catch (InterruptedException interruptedException) {
@@ -175,7 +176,7 @@ public class RedisSyncClient {
                 pool.close();
             }
         } catch (Exception e) {
-            LOG.error(e.getMessage());
+            LOG.error(ExceptionUtil.getErrorMessage(e));
         }
     }
 

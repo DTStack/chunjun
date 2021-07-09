@@ -18,12 +18,10 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
-import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.CollectionUtil;
@@ -84,9 +82,6 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
 
     @Override
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
-        final TypeInformation<RowData> rowDataTypeInformation =
-                context.createTypeInformation(tableSchema.toRowDataType());
-
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
@@ -94,21 +89,21 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
 
         String[] fieldNames = tableSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        for (String name : fieldNames) {
+        for (int i = 0; i < fieldNames.length; i++) {
             FieldConf field = new FieldConf();
-            field.setName(name);
+            field.setName(fieldNames[i]);
+            field.setType(rowType.getTypeAt(i).asSummaryString());
+            field.setIndex(i);
             columnList.add(field);
         }
         jdbcConf.setColumn(columnList);
-        jdbcConf.setMode((CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey())) ? EWriteMode.INSERT
-                .name() : EWriteMode.UPDATE.name());
+        jdbcConf.setMode((CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey())) ? EWriteMode.INSERT.name() : EWriteMode.UPDATE.name());
 
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()),
-                jdbcConf.getParallelism());
+        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), jdbcConf.getParallelism());
     }
 
     @Override

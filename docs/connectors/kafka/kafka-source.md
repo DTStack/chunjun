@@ -174,7 +174,7 @@ kafka主流版本
 <br />
 
 - **properties.***
-   - 描述：这可以设置和传递任意 Kafka 配置。后缀名称必须与[Kafka 配置文档中](https://kafka.apache.org/documentation/#configuration)定义的配置键匹配。Flink 将删除“属性”。键前缀并将转换后的键和值传递给底层 KafkaClient。例如，您可以通过 禁用自动主题创建'properties.allow.auto.create.topics' = 'false'。但是有一些配置是不支持设置的，因为 Flink 会覆盖它们，比如'key.deserializer'和'value.deserializer' 
+   - 描述：这可以设置和传递任意 Kafka 配置。后缀名称必须与[Kafka 配置文档中](https://kafka.apache.org/documentation/#configuration)定义的配置键匹配。Flink 将删除“属性”。键前缀并将转换后的键和值传递给底层 KafkaClient。例如，您可以通过 禁用自动主题创建'properties.allow.auto.create.topics' = 'false'。但是有一些配置是不支持设置的，因为 Flink 会覆盖它们。 
    - 必选：否
    - 字段类型：String
    - 默认值：无

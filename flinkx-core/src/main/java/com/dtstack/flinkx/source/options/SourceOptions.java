@@ -61,7 +61,7 @@ public class SourceOptions {
     public static final ConfigOption<String> SCAN_INCREMENT_COLUMN_TYPE =
             ConfigOptions.key("scan.increment.column-type")
                     .stringType()
-                    .defaultValue("int")
+                    .noDefaultValue()
                     .withDescription("scan.increment.column-type.");
 
     public static final ConfigOption<Integer> SCAN_POLLING_INTERVAL =
@@ -85,7 +85,7 @@ public class SourceOptions {
     public static final ConfigOption<Integer> SCAN_QUERY_TIMEOUT =
             ConfigOptions.key("scan.query-timeout")
                     .intType()
-                    .defaultValue(1)
+                    .defaultValue(0)
                     .withDescription(
                             "The new query timeout limit in seconds; zero means there is no limit; Default value 1s");
 
