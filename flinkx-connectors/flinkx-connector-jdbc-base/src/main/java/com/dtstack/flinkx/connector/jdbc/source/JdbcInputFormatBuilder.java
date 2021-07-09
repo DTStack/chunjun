@@ -18,11 +18,15 @@
 
 package com.dtstack.flinkx.connector.jdbc.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.Arrays;
 
 /**
  * The builder of JdbcInputFormat
@@ -43,10 +47,6 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setJdbcConf(jdbcConf);
     }
 
-    public void setNumPartitions(int numPartitions) {
-        format.setNumPartitions(numPartitions);
-    }
-
     public void setJdbcDialect(JdbcDialect jdbcDialect) {
         format.setJdbcDialect(jdbcDialect);
     }
@@ -64,21 +64,44 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (StringUtils.isBlank(conf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
-        if (StringUtils.isEmpty(conf.getSplitPk()) && format.getNumPartitions() > 1){
-            sb.append("Must specify the split column when the channel is greater than 1;\n");
+        if(conf.isIncrement()){
+            if (StringUtils.isBlank(conf.getIncreColumn())){
+                sb.append("increColumn can't be empty when increment is true;\n");
+            }
+            conf.setSplitPk(conf.getIncreColumn());
+            if (conf.getParallelism() > 1){
+                conf.setSplitStrategy("mod");
+            }
         }
-        if (conf.isPolling() && format.getNumPartitions() > 1){
-            sb.append("Interval polling task parallelism cannot be greater than 1;\n");
+
+        if(conf.getParallelism() > 1){
+            if(StringUtils.isBlank(conf.getSplitPk())){
+                sb.append("Must specify the split column when the channel is greater than 1;\n");
+            }else{
+                FieldConf field = FieldConf.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
+                if(field == null){
+                    sb.append("split column must in columns;\n");
+                }else if(!ColumnType.isNumberType(field.getType())){
+                    sb.append("split column's type must be number type;\n");
+                }
+            }
         }
-        if (conf.getFetchSize() > ConstantValue.MAX_BATCH_SIZE) {
-            sb.append("The number of fetchSize must be less than [200000];\n");
+
+        if(StringUtils.isNotBlank(conf.getStartLocation())){
+            String[] startLocations = conf.getStartLocation().split(ConstantValue.COMMA_SYMBOL);
+            if(startLocations.length != 1 && startLocations.length != conf.getParallelism()){
+                sb.append("startLocations is ")
+                        .append(Arrays.toString(startLocations))
+                        .append(", length = [")
+                        .append(startLocations.length)
+                        .append("], but the channel is [")
+                        .append(conf.getParallelism())
+                        .append("];\n");
+            }
         }
-        if (conf.isIncrement() && conf.isSplitByKey()) {
-            sb.append("Must specify the channel equals 1 when the task is increment;\n");
-        }
+
         if(sb.length() > 0){
             throw new IllegalArgumentException(sb.toString());
         }
     }
-
 }

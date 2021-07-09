@@ -44,6 +44,7 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -138,25 +139,15 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 				}
 			}
 		} catch (Exception exception){
-				tryException = exception;
-				LOG.error("", exception);
-		} finally {
-			isRunning = false;
-			try {
-				format.close();
-				if (format instanceof RichInputFormat) {
-					((RichInputFormat) format).closeInputFormat();
-				}
-			}catch (Exception finallyException){
-				if(null != tryException){
-					LOG.error(ExceptionUtil.getErrorMessage(finallyException));
-					tryException.addSuppressed(finallyException);
-				}else {
-					tryException = finallyException;
-				}
-			}
-			throwException(tryException);
-		}
+            tryException = exception;
+            LOG.error("Exception happened, start to close format", exception);
+        } finally {
+            isRunning = false;
+            gracefulClose();
+            if(null != tryException) {
+                throw tryException;
+            }
+        }
 	}
 
 	@Override
@@ -166,11 +157,24 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 
 	@Override
 	public void close() throws Exception {
-		format.close();
-		if (format instanceof RichInputFormat) {
-			((RichInputFormat) format).closeInputFormat();
-		}
+        gracefulClose();
 	}
+
+	private void gracefulClose(){
+        try {
+            format.close();
+        } catch (IOException e) {
+            LOG.warn(ExceptionUtil.getErrorMessage(e));
+        }
+
+        if (format instanceof RichInputFormat) {
+            try {
+                ((RichInputFormat) format).closeInputFormat();
+            } catch (IOException e) {
+                LOG.error(ExceptionUtil.getErrorMessage(e));
+            }
+        }
+    }
 
 	/**
 	 * Returns the {@code InputFormat}. This is only needed because we need to set the input
@@ -258,17 +262,5 @@ public class DtInputFormatSourceFunction<OUT> extends InputFormatSourceFunction<
 			}
 		}
         LOG.info("End initialize input format state");
-	}
-
-	/**
-	 * 抛出异常
-	 * @param e 需要抛出的异常
-	 * @throws Exception 异常
-	 */
-	public void throwException(Exception e) throws Exception {
-		if(null != e) {
-			LOG.error("DtInputFormatSourceFunction error, info: {}", ExceptionUtil.getErrorMessage(e), e);
-			throw e;
-		}
 	}
 }

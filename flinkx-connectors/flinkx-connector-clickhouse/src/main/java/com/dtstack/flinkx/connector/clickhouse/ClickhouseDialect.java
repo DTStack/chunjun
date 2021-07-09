@@ -20,12 +20,9 @@ package com.dtstack.flinkx.connector.clickhouse;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import org.apache.commons.lang3.StringUtils;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @program: flinkx
@@ -51,28 +48,21 @@ public class ClickhouseDialect implements JdbcDialect {
 
     @Override
     public String getUpdateStatement(String schema, String tableName, String[] fieldNames, String[] conditionFields) {
-        throw new RuntimeException("Clickhouse does not support update sql");
+        throw new FlinkxRuntimeException("Clickhouse does not support update sql");
     }
 
     @Override
     public Optional<String> getReplaceStatement(String schema, String tableName, String[] fieldNames) {
-        throw new RuntimeException("Clickhouse does not support replace sql");
+        throw new FlinkxRuntimeException("Clickhouse does not support replace sql");
     }
 
     @Override
     public String getDeleteStatement(String schema, String tableName, String[] conditionFields) {
-        throw new RuntimeException("Clickhouse does not support delete sql");
+        throw new FlinkxRuntimeException("Clickhouse does not support delete sql");
     }
 
     @Override
     public String getSplitModFilter(JdbcInputSplit split, String splitPkName) {
-        StringBuilder sql = new StringBuilder(128);
-        sql.append(String.format(
-                " modulo(%s,%s) = %s",
-                quoteIdentifier(splitPkName),
-                split.getTotalNumberOfSplits(),
-                split.getMod()));
-
-        return sql.toString();
+        return String.format(" modulo(%s,%s) = %s", quoteIdentifier(splitPkName), split.getTotalNumberOfSplits(), split.getMod());
     }
 }

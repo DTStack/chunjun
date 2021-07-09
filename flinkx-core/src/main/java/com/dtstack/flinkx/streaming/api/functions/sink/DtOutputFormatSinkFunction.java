@@ -17,6 +17,8 @@
 
 package com.dtstack.flinkx.streaming.api.functions.sink;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -135,7 +137,7 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
                 ((CleanupWhenUnsuccessful) format).tryCleanupOnError();
             }
         } catch (Throwable t) {
-            LOG.error("Cleanup on error failed.", t);
+            LOG.error("Cleanup on error failed. {}", ExceptionUtil.getErrorMessage(t));
         }
     }
 

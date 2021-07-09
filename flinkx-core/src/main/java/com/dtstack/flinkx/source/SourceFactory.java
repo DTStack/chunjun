@@ -18,10 +18,9 @@
 
 package com.dtstack.flinkx.source;
 
-import com.dtstack.flinkx.converter.RawTypeConvertible;
-
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
@@ -31,6 +30,7 @@ import org.apache.flink.util.Preconditions;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.converter.RawTypeConvertible;
 import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
@@ -56,8 +56,7 @@ public abstract class SourceFactory implements RawTypeConvertible {
         this.env = env;
         this.syncConf = syncConf;
 
-        if (syncConf.getTransformer() == null
-                || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
+        if (syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
             typeInformation = TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
         } else {
             typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList(), getRawTypeConverter());
@@ -72,23 +71,19 @@ public abstract class SourceFactory implements RawTypeConvertible {
      */
     public abstract DataStream<RowData> createSource();
 
-    @SuppressWarnings("unchecked")
-    protected DataStream<RowData> createInput(InputFormat inputFormat, String sourceName) {
+    protected DataStream<RowData> createInput(InputFormat<RowData, InputSplit> inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
-        //        TypeInformation typeInfo = TypeExtractor.getInputFormatTypes(inputFormat);
-        DtInputFormatSourceFunction function =
-                new DtInputFormatSourceFunction(inputFormat, typeInformation);
+        DtInputFormatSourceFunction<RowData> function = new DtInputFormatSourceFunction<>(inputFormat, typeInformation);
         return env.addSource(function, sourceName, typeInformation);
     }
 
-    protected DataStream<RowData> createInput(
-            RichParallelSourceFunction<RowData> function, String sourceName) {
+    protected DataStream<RowData> createInput(RichParallelSourceFunction<RowData> function, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         return env.addSource(function, sourceName, typeInformation);
     }
 
-    protected DataStream<RowData> createInput(InputFormat inputFormat) {
+    protected DataStream<RowData> createInput(InputFormat<RowData, InputSplit> inputFormat) {
         return createInput(inputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
@@ -101,7 +96,6 @@ public abstract class SourceFactory implements RawTypeConvertible {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
-        flinkxCommonConf.setParallelism(
-                speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
+        flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
 }

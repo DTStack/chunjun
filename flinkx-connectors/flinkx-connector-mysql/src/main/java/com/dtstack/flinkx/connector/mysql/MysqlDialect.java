@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.mysql;
 
 import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -110,16 +109,5 @@ public class MysqlDialect implements JdbcDialect {
                         + " VALUES ("
                         + placeholders
                         + ")");
-    }
-
-    @Override
-    public String getSplitModFilter(JdbcInputSplit split, String splitPkName) {
-        StringBuilder sql = new StringBuilder(128);
-        sql.append(String.format(
-                " %s mod %s = %s",
-                quoteIdentifier(splitPkName),
-                split.getTotalNumberOfSplits(),
-                split.getMod()));
-        return sql.toString();
     }
 }

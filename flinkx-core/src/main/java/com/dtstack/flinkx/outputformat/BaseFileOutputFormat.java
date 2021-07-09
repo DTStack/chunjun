@@ -26,7 +26,7 @@ import com.dtstack.flinkx.conf.BaseFileConf;
 import com.dtstack.flinkx.enums.SizeUnitType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.sink.WriteMode;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +60,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     @Override
     public void initializeGlobal(int parallelism) {
         initVariableFields();
-        if(WriteMode.OVERWRITE.name().equalsIgnoreCase(baseFileConf.getWriteMode())){
+        if(WriteMode.OVERWRITE.name().equalsIgnoreCase(baseFileConf.getWriteMode()) && StringUtils.isBlank(baseFileConf.getRestorePath())){
             //Overwrite mode and not delete the data directory first when restoring from a checkpoint
             deleteDataDir();
         }else{

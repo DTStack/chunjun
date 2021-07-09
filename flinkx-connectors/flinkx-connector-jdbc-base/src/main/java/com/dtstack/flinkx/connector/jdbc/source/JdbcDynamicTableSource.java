@@ -49,8 +49,7 @@ import java.util.List;
 import java.util.Objects;
 
 /** A {@link DynamicTableSource} for JDBC. */
-public class JdbcDynamicTableSource
-        implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
+public class JdbcDynamicTableSource implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     protected final JdbcConf jdbcConf;
     protected final LookupConf lookupConf;
@@ -78,8 +77,7 @@ public class JdbcDynamicTableSource
         String[] keyNames = new String[context.getKeys().length];
         for (int i = 0; i < keyNames.length; i++) {
             int[] innerKeyArr = context.getKeys()[i];
-            Preconditions.checkArgument(
-                    innerKeyArr.length == 1, "JDBC only support non-nested look up keys");
+            Preconditions.checkArgument(innerKeyArr.length == 1, "JDBC only support non-nested look up keys");
             keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
         }
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
@@ -115,22 +113,36 @@ public class JdbcDynamicTableSource
         JdbcInputFormatBuilder builder = this.builder;
         String[] fieldNames = physicalSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        int index = 0;
-        for (String name : fieldNames) {
+        for (int i = 0; i < fieldNames.length; i++) {
             FieldConf field = new FieldConf();
-            field.setName(name);
-            field.setIndex(index++);
+            field.setName(fieldNames[i]);
+            field.setType(rowType.getTypeAt(i).asSummaryString());
+            field.setIndex(i);
             columnList.add(field);
         }
         jdbcConf.setColumn(columnList);
+
+        String increColumn = jdbcConf.getIncreColumn();
+        if(StringUtils.isNotBlank(increColumn)){
+            FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), increColumn);
+            if (fieldConf != null) {
+                jdbcConf.setIncreColumnIndex(fieldConf.getIndex());
+                jdbcConf.setIncreColumnType(fieldConf.getType());
+
+                jdbcConf.setRestoreColumn(increColumn);
+                jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
+                jdbcConf.setRestoreColumnType(fieldConf.getType());
+            } else {
+                throw new IllegalArgumentException("unknown incre column name: " + increColumn);
+            }
+        }
 
         String restoreColumn = jdbcConf.getRestoreColumn();
         if(StringUtils.isNotBlank(restoreColumn)){
             FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), restoreColumn);
             if (fieldConf != null) {
-                jdbcConf.setRestoreColumn(restoreColumn);
                 jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
-                jdbcConf.setRestoreColumnType(jdbcConf.getIncreColumnType());
+                jdbcConf.setRestoreColumnType(fieldConf.getType());
             } else {
                 throw new IllegalArgumentException("unknown restore column name: " + restoreColumn);
             }
@@ -139,12 +151,8 @@ public class JdbcDynamicTableSource
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
-        builder.setNumPartitions(jdbcConf.getParallelism() == null ? 1 : jdbcConf.getParallelism());
 
-        return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
-                false,
-                jdbcConf.getParallelism());
+        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, jdbcConf.getParallelism());
     }
 
     @Override

@@ -114,6 +114,12 @@ Hadoop 2.x、Hadoop 3.x
   'properties.fs.hdfs.impl.disable.cache' = 'true',
   'properties.fs.hdfs.impl' = 'org.apache.hadoop.hdfs.DistributedFileSystem'
   ```
+- **scan.parallelism**
+  - 描述：source的并行度
+  - 必选：否
+  - 参数类型：String
+  - 默认值：无
+    <br />
 
   
 ## 五、数据类型

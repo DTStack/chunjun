@@ -17,16 +17,14 @@
  */
 package com.dtstack.flinkx.client.util;
 
-import com.dtstack.flinkx.client.yarn.YarnSessionClusterClientHelper;
-import com.dtstack.flinkx.options.Options;
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.PackagedProgram;
 import org.apache.flink.client.program.PackagedProgramUtils;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 
+import com.dtstack.flinkx.options.Options;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
