@@ -138,7 +138,7 @@ metricPluginConf用于配置任务运行时自定义指标持久化的方式。�
 "metricPluginConf":{
           "pluginName": "mysql",
           "pluginProp": {
-            "jdbcUrl": "jdbc:mysql://172.16.100.115:3306/ide?useUnicode=true&characterEncoding=utf-8",
+            "jdbcUrl": "jdbc:mysql://localhost:3306/ide?useUnicode=true&characterEncoding=utf-8",
             "schema": "ide",
             "table": "flinkx_metrics",
             "username": "drpeco",
