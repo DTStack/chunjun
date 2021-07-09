@@ -341,9 +341,9 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     }
 
     /**
-     * 使用自定义的指标输出器把增量指标打到普罗米修斯
+     * 使用自定义的指标输出器把增量指标打到自定义插件
      */
-    protected boolean useCustomPrometheusReporter() {
+    protected boolean useCustomReporter() {
         return false;
     }
 
