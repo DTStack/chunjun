@@ -134,7 +134,7 @@ public class OracleDialect implements JdbcDialect {
     private String buildEqualConditions(String[] uniqueKeyFields) {
         return Arrays.stream(uniqueKeyFields)
                 .map(col -> "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col))
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining(" and "));
     }
 
     /** build T1."A"=T2."A" or T1."A"=nvl(T2."A",T1."A") */
