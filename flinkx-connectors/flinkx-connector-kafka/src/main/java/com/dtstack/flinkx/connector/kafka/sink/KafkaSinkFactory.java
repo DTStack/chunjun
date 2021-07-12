@@ -70,9 +70,12 @@ public class KafkaSinkFactory extends SinkFactory {
         Properties props = new Properties();
         props.putAll(kafkaConf.getProducerSettings());
 
+        if(kafkaConf.isDataCompelOrder()){
+            Preconditions.checkState(kafkaConf.getParallelism() <= 1, "when kafka sink dataCompelOrder set true , Parallelism must 1.");
+        }
+
         RowSerializationSchema rowSerializationSchema;
         if (!CollectionUtil.isNullOrEmpty(kafkaConf.getPartitionAssignColumns())) {
-            Preconditions.checkState(kafkaConf.getParallelism() <= 1, "when kafka sink set partitionAssignColumns , Parallelism must 1.");
             Preconditions.checkState(!CollectionUtil.isNullOrEmpty(kafkaConf.getTableFields()), "when kafka sink set partitionAssignColumns , tableFields must set.");
             for (String field : kafkaConf.getPartitionAssignColumns()) {
                 Preconditions.checkState(kafkaConf.getTableFields().contains(field), "[" + field + "] field in partitionAssignColumns , but not in tableFields:[" + kafkaConf.getTableFields() + "]");
