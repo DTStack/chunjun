@@ -17,6 +17,10 @@
  */
 package com.dtstack.flinkx.connector.kafka.serialization;
 
+import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
+
+import com.dtstack.flinkx.util.JsonUtil;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
@@ -40,8 +44,11 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaW
     private static final long serialVersionUID = 1L;
     /** kafka converter */
     private final AbstractRowConverter converter;
+    /** kafka conf */
+    private final KafkaConf kafkaConf;
 
     public RowDeserializationSchema(
+            KafkaConf kafkaConf,
             AbstractRowConverter converter,
             Calculate calculate) {
         super(
@@ -55,12 +62,19 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaW
                 null,
                 false,
                 calculate);
+        this.kafkaConf = kafkaConf;
         this.converter = converter;
     }
 
     @Override
     public void open(DeserializationSchema.InitializationContext context) {
         beforeOpen();
+        LOG.info(
+                "[{}] open successfully, \ninputSplit = {}, \n[{}]: \n{} ",
+                this.getClass().getSimpleName(),
+                "see other log",
+                kafkaConf.getClass().getSimpleName(),
+                JsonUtil.toPrintJson(kafkaConf));
     }
 
     @Override
