@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.kafka.converter;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.CollectionUtil;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
@@ -37,7 +38,6 @@ import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -56,7 +56,7 @@ import static com.dtstack.flinkx.connector.kafka.option.KafkaOptions.DEFAULT_COD
  * @description
  */
 public class KafkaColumnConverter
-        extends AbstractRowConverter<String, Object, ProducerRecord, String> {
+        extends AbstractRowConverter<String, Object, byte[], String> {
 
     /** source kafka msg decode */
     private IDecode decode;
@@ -64,12 +64,23 @@ public class KafkaColumnConverter
     private JsonDecoder jsonDecoder;
     /** kafka Conf */
     private final KafkaConf kafkaConf;
+    /** kafka sink out fields */
+    private List<String> outList;
+
+    public KafkaColumnConverter(KafkaConf kafkaConf,  List<String> keyTypeList) {
+        this.kafkaConf = kafkaConf;
+        this.outList = keyTypeList;
+        this.jsonDecoder = new JsonDecoder();
+        if (DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
+            this.decode = new JsonDecoder();
+        } else {
+            this.decode = new TextDecoder();
+        }
+    }
 
     public KafkaColumnConverter(KafkaConf kafkaConf) {
         this.kafkaConf = kafkaConf;
-
         this.jsonDecoder = new JsonDecoder();
-
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
             this.decode = new JsonDecoder();
         } else {
@@ -110,7 +121,7 @@ public class KafkaColumnConverter
     }
 
     @Override
-    public ProducerRecord toExternal(RowData rowData, ProducerRecord output) throws Exception {
+    public byte[] toExternal(RowData rowData, byte[] output) throws Exception {
         Map<String, Object> map;
         int arity = rowData.getArity();
         ColumnRowData row = (ColumnRowData) rowData;
@@ -138,8 +149,19 @@ public class KafkaColumnConverter
                 map = Collections.singletonMap("message", row.toString());
             }
         }
-        byte[] bytes = MapUtil.writeValueAsString(map).getBytes(StandardCharsets.UTF_8);
-        return new ProducerRecord<>(kafkaConf.getTopic(), bytes, bytes);
+
+        // get partition key value
+        if (!CollectionUtil.isNullOrEmpty(outList)) {
+            Map<String, Object> keyPartitionMap = new LinkedHashMap<>((arity << 2) / 3);
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                if(outList.contains(entry.getKey())){
+                    keyPartitionMap.put(entry.getKey(), entry.getValue());
+                }
+            }
+            map = keyPartitionMap;
+        }
+
+        return MapUtil.writeValueAsString(map).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
