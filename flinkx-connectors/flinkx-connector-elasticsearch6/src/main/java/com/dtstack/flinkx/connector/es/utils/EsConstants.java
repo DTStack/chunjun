@@ -41,5 +41,5 @@ public interface EsConstants {
      */
     Integer ES_DEFAULT_PORT = 9200;
 
-    String IDENTIFIER = "elasticsearch6-x";
+    String IDENTIFIER = "es-x";
 }
