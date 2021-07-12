@@ -71,6 +71,11 @@ public class EsConf extends FlinkxCommonConf implements Serializable {
 
     private String keyDelimiter = "_";
 
+    /**
+     * table field names
+     */
+    private String[] fieldNames;
+
     public List<String> getHosts() {
         return hosts;
     }
@@ -133,5 +138,13 @@ public class EsConf extends FlinkxCommonConf implements Serializable {
 
     public void setKeyDelimiter(String keyDelimiter) {
         this.keyDelimiter = keyDelimiter;
+    }
+
+    public String[] getFieldNames() {
+        return fieldNames;
+    }
+
+    public void setFieldNames(String[] fieldNames) {
+        this.fieldNames = fieldNames;
     }
 }

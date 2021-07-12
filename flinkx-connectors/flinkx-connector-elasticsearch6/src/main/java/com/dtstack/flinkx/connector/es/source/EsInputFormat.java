@@ -29,6 +29,9 @@ import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
+
+import org.apache.flink.table.descriptors.Elasticsearch;
+
 import org.elasticsearch.action.search.ClearScrollRequest;
 import org.elasticsearch.action.search.ClearScrollResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -94,8 +97,12 @@ public class EsInputFormat extends BaseRichInputFormat {
 
         rhlClient = EsUtil.createClient(elasticsearchConf);
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
-
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        String[] fieldsNames = elasticsearchConf.getFieldNames();
+        SearchSourceBuilder searchSourceBuilder = EsRequestHelper.createSourceBuilder(
+                fieldsNames,
+                null,
+                null
+        );
         searchSourceBuilder.size(elasticsearchConf.getBatchSize());
 
         if(StringUtils.isNotEmpty(query)){
