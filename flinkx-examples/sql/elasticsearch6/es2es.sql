@@ -6,10 +6,11 @@ CREATE TABLE es6_source(
   , income decimal(10,2)
   , birthday timestamp
   , today date
-  , timecurrent time )
+  , timecurrent time
+)
 
 WITH(
-    'connector' ='elasticsearch6-x',
+    'connector' ='es-x',
     'hosts' ='localhost:9200',
     'index' ='mowen',
     'document-type' = '_doc');
@@ -23,13 +24,14 @@ CREATE TABLE es6_sink(
   , income decimal(10,2)
   , birthday timestamp
   , today date
-  , timecurrent time )
+  , timecurrent time
+    )
 
 WITH(
-   'connector' ='stream-x'
---    ,'hosts' ='localhost:9200',
---     'index' ='testdate15',
---     'document-type' = '_doc'
+   'connector' ='es-x'
+   ,'hosts' ='localhost:9200',
+    'index' ='testdate21',
+    'document-type' = '_doc'
     );
 
 

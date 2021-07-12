@@ -32,6 +32,9 @@ import org.apache.flink.table.types.logical.TimestampType;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
+import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -45,8 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import scala.Tuple3;
 
 /**
@@ -85,8 +86,8 @@ public class EsRowConverter extends AbstractRowConverter<Map<String, Object>, Ma
             if (val == null
                     || val.isNullAt(index)
                     || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
-                GenericRowData genericRowData = (GenericRowData) rowData;
-                genericRowData.setField(index, null);
+                Map<String,Object> result = (Map<String,Object>) rowData;
+                result.put(typeIndexList.get(index)._1(), null);
             } else {
                 serializationConverter.serialize(val, index, rowData);
             }
@@ -109,6 +110,12 @@ public class EsRowConverter extends AbstractRowConverter<Map<String, Object>, Ma
             List<Tuple3<String,Integer, LogicalType>> collect = typeIndexList.stream()
                     .filter(x -> x._1().equals(key))
                     .collect(Collectors.toList());
+
+            if (CollectionUtils.isEmpty(collect)) {
+                LOG.warn("Result Map : key [{}] not in columns", key);
+                continue;
+            }
+
             Tuple3<String,Integer, LogicalType> typeTuple =  collect.get(0);
             genericRowData.setField(
                     typeTuple._2(),
