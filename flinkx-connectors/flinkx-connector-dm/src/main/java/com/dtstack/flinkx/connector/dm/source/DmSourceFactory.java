@@ -22,7 +22,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.dm.dialect.DmDialect;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import org.apache.commons.lang3.StringUtils;
 
@@ -39,10 +38,5 @@ public class DmSourceFactory extends JdbcSourceFactory {
                 && jdbcConf.getFetchSize() == 0) {
             jdbcConf.setFetchSize(1000);
         }
-    }
-
-    @Override
-    protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new DmInputFormat());
     }
 }

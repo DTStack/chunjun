@@ -22,7 +22,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.greenplum.dialect.GreenplumDialect;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 
 /**
@@ -36,8 +35,4 @@ public class GreenplumSourceFactory extends JdbcSourceFactory {
         super(syncConf, env, new GreenplumDialect());
     }
 
-    @Override
-    protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new GreenplumInputFormat());
-    }
 }

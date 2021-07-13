@@ -55,7 +55,7 @@ public abstract class SinkFactory implements RawTypeConvertible {
         }
         this.syncConf = syncConf;
 
-        if (syncConf.getTransformer() != null && StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
+        if (syncConf.getTransformer() != null && StringUtils.isNotBlank(syncConf.getTransformer().getTransformSql())) {
             useAbstractBaseColumn = false;
         }
     }

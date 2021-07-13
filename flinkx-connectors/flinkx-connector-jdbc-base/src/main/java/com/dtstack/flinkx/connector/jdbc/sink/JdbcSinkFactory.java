@@ -97,7 +97,9 @@ public abstract class JdbcSinkFactory extends SinkFactory {
      *
      * @return JdbcOutputFormatBuilder
      */
-    protected abstract JdbcOutputFormatBuilder getBuilder();
+    protected JdbcOutputFormatBuilder getBuilder(){
+        return new JdbcOutputFormatBuilder(new JdbcOutputFormat());
+    }
 
     /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
     protected void resetTableInfo(){

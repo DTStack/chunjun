@@ -22,7 +22,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.gbase.dialect.GBaseDialect;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import org.apache.commons.lang3.StringUtils;
 
@@ -40,10 +39,5 @@ public class GBaseSourceFactory extends JdbcSourceFactory {
                 && jdbcConf.getFetchSize() == 0) {
             jdbcConf.setFetchSize(1000);
         }
-    }
-
-    @Override
-    protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new GBaseInputFormat());
     }
 }
