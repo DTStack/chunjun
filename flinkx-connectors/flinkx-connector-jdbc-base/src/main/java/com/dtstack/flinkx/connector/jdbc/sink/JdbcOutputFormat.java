@@ -21,19 +21,16 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.types.Row;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.JsonUtil;
@@ -48,9 +45,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -66,7 +61,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected static final long serialVersionUID = 1L;
 
-    protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "NVARCHAR", "TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
@@ -321,41 +315,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             throw new WriteRecordException(message, e, index, row);
         }
         throw new WriteRecordException(e.getMessage(), e);
-    }
-
-    /**
-     * 获取转换后的字段value
-     *
-     * todo 迁移到插件中
-     *
-     * @param row
-     * @param index
-     *
-     * @return
-     */
-    protected Object getField(Row row, int index) {
-        Object field = row.getField(index);
-        String type = columnTypeList.get(index);
-
-        //field为空字符串，且写入目标类型不为字符串类型的字段，则将object设置为null
-        if (field instanceof String
-                && StringUtils.isBlank((String) field)
-                && !STRING_TYPES.contains(type.toUpperCase(Locale.ENGLISH))) {
-            return null;
-        }
-
-        if (type.matches(DateUtil.DATE_REGEX)) {
-            field = DateUtil.columnToDate(field, null);
-        } else if (type.matches(DateUtil.DATETIME_REGEX)
-                || type.matches(DateUtil.TIMESTAMP_REGEX)) {
-            field = DateUtil.columnToTimestamp(field, null);
-        }
-
-        if (type.equalsIgnoreCase(ColumnType.BIGINT.name()) && field instanceof java.util.Date) {
-            field = ((java.util.Date) field).getTime();
-        }
-
-        return field;
     }
 
     @Override
