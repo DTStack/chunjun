@@ -71,7 +71,7 @@ mysql5.x
   - 默认值：无
 <br />
 
-- **fullcolumn**
+- **fullColumn**
   - 描述：目的表中的所有字段，字段之间用英文逗号分隔。例如: "column": ["id","name","age","hobby"]，如果不配置，将在系统表中获取 
   - 必选：否
   - 参数类型：List
