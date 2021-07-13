@@ -286,11 +286,11 @@ public final class FactoryUtil {
     public static <T extends Factory> T discoverFactory(
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
         final List<Factory> factories;
-        if (org.apache.commons.lang3.StringUtils.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name(), factoryUtilHelpThreadLocal.get().connectorLoadMode)) {
-            factories = loadFactories(classLoader, factoryClass, factoryIdentifier);
-        } else {
-            factories = discoverFactories(classLoader);
+        if (factoryIdentifier.toLowerCase().endsWith("-x")) {
+            loadFactories(classLoader, factoryClass, factoryIdentifier);
         }
+
+        factories = discoverFactories(classLoader);
 
         final List<Factory> foundFactories =
                 factories.stream()
@@ -367,19 +367,21 @@ public final class FactoryUtil {
                             + Arrays.stream(packageName).map(StringUtils::capitalize).collect(Collectors.joining())
                             + CONNECTORS_PACKAGE_SUFFIX.defaultValue();
 
-        } else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass)
-                || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
-
-            // format都放到sqlplugins下的format目录下
-            fullClassName =
-                    FORMAT_PACKAGE_PREFIX.defaultValue()
-                            + factoryIdentifier
-                            + "."
-                            + StringUtils.capitalize(factoryIdentifier)
-                            + FORMAT_PACKAGE_SUFFIX.defaultValue();
-
-            jarDirectorySuffix = FORMATS.key();
-        } else {
+        }
+//        else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass)
+//                || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
+//
+//            // format都放到sqlplugins下的format目录下
+//            fullClassName =
+//                    FORMAT_PACKAGE_PREFIX.defaultValue()
+//                            + factoryIdentifier
+//                            + "."
+//                            + StringUtils.capitalize(factoryIdentifier)
+//                            + FORMAT_PACKAGE_SUFFIX.defaultValue();
+//
+//            jarDirectorySuffix = FORMATS.key();
+//        }
+        else {
             throw new RuntimeException(factoryClass + " can not Identify");
         }
 
@@ -557,13 +559,13 @@ public final class FactoryUtil {
                     factoryUtilHelpThreadLocal.get().remotePluginPath : factoryUtilHelpThreadLocal.get().localPluginPath;
             String pluginJarPath = pluginPath + File.separatorChar + jarDirectorySuffix;
             URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath, factoryIdentifier);
-            URL[] formatsJarUrls = PluginUtil.getPluginJarUrls(
-                    pluginPath + File.separatorChar + PluginUtil.FORMATS_SUFFIX,
-                    factoryIdentifier);
+//            URL[] formatsJarUrls = PluginUtil.getPluginJarUrls(
+//                    pluginPath + File.separatorChar + PluginUtil.FORMATS_SUFFIX,
+//                    factoryIdentifier);
             List<URL> jarUrlList = Arrays.stream(pluginJarUrls).collect(Collectors.toList());
-            if (formatsJarUrls.length > 0) {
-                jarUrlList.addAll(Arrays.asList(formatsJarUrls));
-            }
+//            if (formatsJarUrls.length > 0) {
+//                jarUrlList.addAll(Arrays.asList(formatsJarUrls));
+//            }
             URL[] jarUrls = jarUrlList.toArray(new URL[0]);
 
             // 2.反射创建对象
@@ -582,8 +584,8 @@ public final class FactoryUtil {
             for (URL jarUrl : jarUrls) {
                 add.invoke(currentClassloader, jarUrl);
             }
-            Factory factory = (Factory) classLoader.loadClass(fullClassName).newInstance();
-            result.add(factory);
+           /* Factory factory = (Factory) classLoader.loadClass(fullClassName).newInstance();
+            result.add(factory);*/
 
             // 3.registerCachedFile 为了添加到shipfile中
             for (URL pluginJarUrl : jarUrls) {

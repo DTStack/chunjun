@@ -93,12 +93,12 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * @param <T> The type of records produced by this data source
  */
 @Internal
-public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFunction<T>
+public abstract class FlinkKafkaConsumerBaseBack<T> extends RichParallelSourceFunction<T>
         implements CheckpointListener, ResultTypeQueryable<T>, CheckpointedFunction {
 
     private static final long serialVersionUID = -6272159445203409112L;
 
-    protected static final Logger LOG = LoggerFactory.getLogger(FlinkKafkaConsumerBase.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(FlinkKafkaConsumerBaseBack.class);
 
     /** The maximum number of pending non-committed checkpoints to track, to avoid memory leaks. */
     public static final int MAX_NUM_PENDING_CHECKPOINTS = 100;
@@ -153,7 +153,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
 
     /**
      * The offset commit mode for the consumer. The value of this can only be determined in {@link
-     * FlinkKafkaConsumerBase#open(Configuration)} since it depends on whether or not checkpointing
+     * FlinkKafkaConsumerBaseBack#open(Configuration)} since it depends on whether or not checkpointing
      * is enabled for the job.
      */
     private OffsetCommitMode offsetCommitMode;
@@ -244,7 +244,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      * @param discoveryIntervalMillis the topic / partition discovery interval, in milliseconds (0
      *     if discovery is disabled).
      */
-    public FlinkKafkaConsumerBase(
+    public FlinkKafkaConsumerBaseBack(
             List<String> topics,
             Pattern topicPattern,
             KafkaDeserializationSchema<T> deserializer,
@@ -299,7 +299,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      *
      * @return The consumer object, to allow function chaining.
      */
-    public FlinkKafkaConsumerBase<T> assignTimestampsAndWatermarks(
+    public FlinkKafkaConsumerBaseBack<T> assignTimestampsAndWatermarks(
             WatermarkStrategy<T> watermarkStrategy) {
         checkNotNull(watermarkStrategy);
 
@@ -342,7 +342,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      * @return The consumer object, to allow function chaining.
      */
     @Deprecated
-    public FlinkKafkaConsumerBase<T> assignTimestampsAndWatermarks(
+    public FlinkKafkaConsumerBaseBack<T> assignTimestampsAndWatermarks(
             AssignerWithPunctuatedWatermarks<T> assigner) {
         checkNotNull(assigner);
 
@@ -388,7 +388,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      * @return The consumer object, to allow function chaining.
      */
     @Deprecated
-    public FlinkKafkaConsumerBase<T> assignTimestampsAndWatermarks(
+    public FlinkKafkaConsumerBaseBack<T> assignTimestampsAndWatermarks(
             AssignerWithPeriodicWatermarks<T> assigner) {
         checkNotNull(assigner);
 
@@ -416,7 +416,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      *
      * @return The consumer object, to allow function chaining.
      */
-    public FlinkKafkaConsumerBase<T> setCommitOffsetsOnCheckpoints(boolean commitOnCheckpoints) {
+    public FlinkKafkaConsumerBaseBack<T> setCommitOffsetsOnCheckpoints(boolean commitOnCheckpoints) {
         this.enableCommitOnCheckpoints = commitOnCheckpoints;
         return this;
     }
@@ -431,7 +431,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      *
      * @return The consumer object, to allow function chaining.
      */
-    public FlinkKafkaConsumerBase<T> setStartFromEarliest() {
+    public FlinkKafkaConsumerBaseBack<T> setStartFromEarliest() {
         this.startupMode = StartupMode.EARLIEST;
         this.startupOffsetsTimestamp = null;
         this.specificStartupOffsets = null;
@@ -448,7 +448,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      *
      * @return The consumer object, to allow function chaining.
      */
-    public FlinkKafkaConsumerBase<T> setStartFromLatest() {
+    public FlinkKafkaConsumerBaseBack<T> setStartFromLatest() {
         this.startupMode = StartupMode.LATEST;
         this.startupOffsetsTimestamp = null;
         this.specificStartupOffsets = null;
@@ -471,7 +471,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      * @param startupOffsetsTimestamp timestamp for the startup offsets, as milliseconds from epoch.
      * @return The consumer object, to allow function chaining.
      */
-    public FlinkKafkaConsumerBase<T> setStartFromTimestamp(long startupOffsetsTimestamp) {
+    public FlinkKafkaConsumerBaseBack<T> setStartFromTimestamp(long startupOffsetsTimestamp) {
         checkArgument(
                 startupOffsetsTimestamp >= 0,
                 "The provided value for the startup offsets timestamp is invalid.");
@@ -501,7 +501,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      *
      * @return The consumer object, to allow function chaining.
      */
-    public FlinkKafkaConsumerBase<T> setStartFromGroupOffsets() {
+    public FlinkKafkaConsumerBaseBack<T> setStartFromGroupOffsets() {
         this.startupMode = StartupMode.GROUP_OFFSETS;
         this.startupOffsetsTimestamp = null;
         this.specificStartupOffsets = null;
@@ -518,7 +518,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      * subscribed by the consumer, the entry will be ignored. If the consumer subscribes to a
      * partition that does not exist in the provided map of offsets, the consumer will fallback to
      * the default group offset behaviour (see {@link
-     * FlinkKafkaConsumerBase#setStartFromGroupOffsets()}) for that particular partition.
+     * FlinkKafkaConsumerBaseBack#setStartFromGroupOffsets()}) for that particular partition.
      *
      * <p>If the specified offset for a partition is invalid, or the behaviour for that partition is
      * defaulted to group offsets but still no group offset could be found for it, then the
@@ -531,7 +531,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      *
      * @return The consumer object, to allow function chaining.
      */
-    public FlinkKafkaConsumerBase<T> setStartFromSpecificOffsets(
+    public FlinkKafkaConsumerBaseBack<T> setStartFromSpecificOffsets(
             Map<KafkaTopicPartition, Long> specificStartupOffsets) {
         this.startupMode = StartupMode.SPECIFIC_OFFSETS;
         this.startupOffsetsTimestamp = null;
@@ -550,7 +550,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
      *
      * @return The consumer object, to allow function chaining.
      */
-    public FlinkKafkaConsumerBase<T> disableFilterRestoredPartitionsWithSubscribedTopics() {
+    public FlinkKafkaConsumerBaseBack<T> disableFilterRestoredPartitionsWithSubscribedTopics() {
         this.filterRestoredPartitionsWithCurrentTopicsDescriptor = false;
         return this;
     }
@@ -980,7 +980,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
     // ------------------------------------------------------------------------
 
     @Override
-    public void initializeState(FunctionInitializationContext context) throws Exception {
+    public final void initializeState(FunctionInitializationContext context) throws Exception {
 
         OperatorStateStore stateStore = context.getOperatorStateStore();
 
@@ -1010,7 +1010,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
     }
 
     @Override
-    public void snapshotState(FunctionSnapshotContext context) throws Exception {
+    public final void snapshotState(FunctionSnapshotContext context) throws Exception {
         if (!running) {
             LOG.debug("snapshotState() called on closed source");
         } else {

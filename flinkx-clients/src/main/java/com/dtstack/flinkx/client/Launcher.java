@@ -17,33 +17,35 @@
  */
 package com.dtstack.flinkx.client;
 
-import com.dtstack.flinkx.client.kubernetes.KubernetesApplicationClusterClientHelper;
-import com.dtstack.flinkx.client.kubernetes.KubernetesSessionClusterClientHelper;
-import com.dtstack.flinkx.client.local.LocalClusterClientHelper;
-
-import com.dtstack.flinkx.client.standalone.StandaloneClusterClientHelper;
-import com.dtstack.flinkx.client.yarn.YarnPerJobClusterClientHelper;
-import com.dtstack.flinkx.client.yarn.YarnSessionClusterClientHelper;
-
 import org.apache.flink.client.deployment.ClusterDeploymentException;
 import org.apache.flink.configuration.ConfigConstants;
 
+import com.dtstack.flinkx.classloader.ClassLoaderManager;
+import com.dtstack.flinkx.client.kubernetes.KubernetesApplicationClusterClientHelper;
+import com.dtstack.flinkx.client.kubernetes.KubernetesSessionClusterClientHelper;
+import com.dtstack.flinkx.client.local.LocalClusterClientHelper;
+import com.dtstack.flinkx.client.standalone.StandaloneClusterClientHelper;
+import com.dtstack.flinkx.client.yarn.YarnPerJobClusterClientHelper;
+import com.dtstack.flinkx.client.yarn.YarnSessionClusterClientHelper;
 import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
+import com.dtstack.flinkx.util.ExecuteProcessHelper;
 import com.dtstack.flinkx.util.JsonModifyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.List;
 
 /**
  * FlinkX commandline Launcher
- * <p>
- * Company: www.dtstack.com
+ *
+ * <p>Company: www.dtstack.com
  *
  * @author huyifan.zju@163.com
  */
@@ -71,7 +73,7 @@ public class Launcher {
         }
         // 对json中的值进行修改
         String s = temp.get("-p");
-        if(StringUtils.isNotBlank(s)){
+        if (StringUtils.isNotBlank(s)) {
             HashMap<String, String> parameter = JsonModifyUtil.CommandTransform(s);
             temp.put("-job", JsonModifyUtil.JsonValueReplace(temp.get("-job"), parameter));
         }
@@ -112,8 +114,14 @@ public class Launcher {
                 clusterClientHelper = new KubernetesApplicationClusterClientHelper();
                 break;
             default:
-                throw new ClusterDeploymentException(launcherOptions.getMode() + " Mode not supported.");
+                throw new ClusterDeploymentException(
+                        launcherOptions.getMode() + " Mode not supported.");
         }
+
+        // add ext class
+        URLClassLoader urlClassLoader = (URLClassLoader) Launcher.class.getClassLoader();
+        List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(launcherOptions.getAddjar());
+        ClassLoaderManager.loadExtraJar(jarUrlList, urlClassLoader);
         clusterClientHelper.submit(jobDeployer);
     }
 
