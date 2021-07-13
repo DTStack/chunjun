@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.sqlserver;
+package com.dtstack.flinkx.connector.sqlserver.dialect;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -50,8 +52,7 @@ public class SqlserverDialect implements JdbcDialect {
     private boolean withNoLock;
 
 
-    public SqlserverDialect() {
-    }
+    public SqlserverDialect() {}
 
     public SqlserverDialect(boolean withNoLock) {
         this.withNoLock = withNoLock;
@@ -65,6 +66,11 @@ public class SqlserverDialect implements JdbcDialect {
     @Override
     public boolean canHandle(String url) {
         return url.startsWith("jdbc:sqlserver:");
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return SqlserverRawTypeConverter::apply;
     }
 
     @Override

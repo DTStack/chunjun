@@ -42,13 +42,7 @@ import java.sql.Timestamp;
 /**
  * @author kunni
  */
-public class DmColumnConverter
-        extends JdbcColumnConverter {
-
-
-    public DmColumnConverter(RowType rowType) {
-        super(rowType);
-    }
+public class DmColumnConverter extends JdbcColumnConverter {
 
     public DmColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         super(rowType, commonConf);

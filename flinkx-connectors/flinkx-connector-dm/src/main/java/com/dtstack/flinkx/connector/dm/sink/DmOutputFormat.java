@@ -18,23 +18,10 @@
 
 package com.dtstack.flinkx.connector.dm.sink;
 
-import com.dtstack.flinkx.connector.dm.converter.DmRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-
-import com.dtstack.flinkx.util.TableUtil;
-
-import org.apache.flink.table.types.logical.RowType;
 
 /**
  * @author kunni
  */
 public class DmOutputFormat extends JdbcOutputFormat {
-
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) {
-        super.openInternal(taskNumber, numTasks);
-        RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, DmRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-    }
-
 }

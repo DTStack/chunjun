@@ -18,12 +18,12 @@
 
 package com.dtstack.flinkx.connector.oracle.source;
 
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
 import com.dtstack.flinkx.util.TableUtil;
-
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
 
 /**
  * company www.dtstack.com
@@ -31,13 +31,4 @@ import org.apache.flink.table.types.logical.RowType;
  * @author jier
  */
 public class OracleInputFormat extends JdbcInputFormat {
-
-    @Override
-    public void openInternal(InputSplit inputSplit) {
-        super.openInternal(inputSplit);
-        RowType rowType =
-                TableUtil.createRowType(
-                        columnNameList, columnTypeList, OracleRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
-    }
 }

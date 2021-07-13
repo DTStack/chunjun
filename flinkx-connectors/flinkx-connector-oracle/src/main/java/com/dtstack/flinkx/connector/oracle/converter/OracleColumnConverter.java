@@ -53,12 +53,7 @@ import java.time.LocalTime;
  *
  * @author jier
  */
-public class OracleColumnConverter
-        extends JdbcColumnConverter {
-
-    public OracleColumnConverter(RowType rowType) {
-        super(rowType);
-    }
+public class OracleColumnConverter extends JdbcColumnConverter {
 
     public OracleColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         super(rowType, commonConf);

@@ -25,12 +25,13 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -59,13 +60,10 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     private static final int DEFAULT_FETCH_SIZE = 1024;
     private static final int DEFAULT_QUERY_TIMEOUT = 300;
 
-    public JdbcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public JdbcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
         super(syncConf, env);
-        Gson gson =
-                new GsonBuilder()
-                        .registerTypeAdapter(
-                                ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf"))
-                        .create();
+        this.jdbcDialect = jdbcDialect;
+        Gson gson = new GsonBuilder().registerTypeAdapter(ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf")).create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConf.class);
         jdbcConf.setColumn(syncConf.getReader().getFieldList());
@@ -178,6 +176,10 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         return DEFAULT_FETCH_SIZE;
     }
 
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return jdbcDialect.getRawTypeConverter();
+    }
 
     /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
     protected void resetTableInfo(){

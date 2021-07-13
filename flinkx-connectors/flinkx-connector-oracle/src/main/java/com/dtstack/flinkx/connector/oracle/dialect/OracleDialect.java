@@ -16,19 +16,19 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.oracle;
-
-import com.dtstack.flinkx.conf.FlinkxCommonConf;
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
+package com.dtstack.flinkx.connector.oracle.dialect;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.oracle.converter.OracleColumnConverter;
+import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
 import com.dtstack.flinkx.connector.oracle.converter.OracleRowConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,6 +53,11 @@ public class OracleDialect implements JdbcDialect {
     @Override
     public boolean canHandle(String url) {
         return url.startsWith("jdbc:oracle:thin:");
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return OracleRawTypeConverter::apply;
     }
 
     @Override
@@ -117,15 +122,7 @@ public class OracleDialect implements JdbcDialect {
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
-            RowType rowType) {
-        return new OracleColumnConverter(rowType);
-    }
-
-    @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
-            RowType rowType,
-            FlinkxCommonConf commonConf) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         return  new OracleColumnConverter(rowType, commonConf);
     }
 

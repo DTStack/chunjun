@@ -44,12 +44,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
-public class SaphanaColumnConverter
-        extends JdbcColumnConverter {
-
-    public SaphanaColumnConverter(RowType rowType) {
-        super(rowType);
-    }
+public class SaphanaColumnConverter extends JdbcColumnConverter {
 
     public SaphanaColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         super(rowType, commonConf);

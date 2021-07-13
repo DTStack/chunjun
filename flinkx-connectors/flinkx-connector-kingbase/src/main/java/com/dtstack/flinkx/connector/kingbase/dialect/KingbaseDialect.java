@@ -15,20 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.connector.kingbase;
-
-import com.dtstack.flinkx.conf.FlinkxCommonConf;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
+package com.dtstack.flinkx.connector.kingbase.dialect;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.kingbase.converter.KingbaseColumnConverter;
+import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRawTypeConverter;
 import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRowConverter;
 import com.dtstack.flinkx.connector.kingbase.util.KingbaseConstants;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import io.vertx.core.json.JsonArray;
 
@@ -61,6 +61,11 @@ public class KingbaseDialect implements JdbcDialect {
     }
 
     @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return KingbaseRawTypeConverter::apply;
+    }
+
+    @Override
     public String quoteIdentifier(String identifier) {
         return "" + identifier + "";
     }
@@ -71,15 +76,7 @@ public class KingbaseDialect implements JdbcDialect {
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
-            RowType rowType) {
-        return new KingbaseColumnConverter(rowType);
-    }
-
-    @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
-            RowType rowType,
-            FlinkxCommonConf commonConf) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         return new KingbaseColumnConverter(rowType, commonConf);
     }
 

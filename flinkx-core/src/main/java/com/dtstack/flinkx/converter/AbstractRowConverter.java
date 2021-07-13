@@ -18,24 +18,19 @@
 
 package com.dtstack.flinkx.converter;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.StringColumn;
-import com.dtstack.flinkx.util.ColumnBuildUtil;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -64,19 +59,13 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     public AbstractRowConverter(RowType rowType) {
         this(rowType.getFieldCount());
         this.rowType = checkNotNull(rowType);
-        this.fieldTypes =
-                rowType.getFields().stream()
-                        .map(RowType.RowField::getType)
-                        .toArray(LogicalType[]::new);
+        this.fieldTypes = rowType.getFields().stream().map(RowType.RowField::getType).toArray(LogicalType[]::new);
     }
 
     public AbstractRowConverter(RowType rowType, FlinkxCommonConf commonConf) {
         this(rowType.getFieldCount());
         this.rowType = checkNotNull(rowType);
-        this.fieldTypes =
-                rowType.getFields().stream()
-                        .map(RowType.RowField::getType)
-                        .toArray(LogicalType[]::new);
+        this.fieldTypes = rowType.getFields().stream().map(RowType.RowField::getType).toArray(LogicalType[]::new);
         this.commonConf = commonConf;
     }
 
@@ -85,8 +74,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         this.toExternalConverters = new ISerializationConverter[converterSize];
     }
 
-    protected IDeserializationConverter wrapIntoNullableInternalConverter(
-            IDeserializationConverter IDeserializationConverter) {
+    protected IDeserializationConverter wrapIntoNullableInternalConverter(IDeserializationConverter IDeserializationConverter) {
         return val -> {
             if (val == null) {
                 return null;
@@ -102,48 +90,21 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     }
 
     /**
-     * 同步任务如果用户配置了常量字段，则将其他非常量字段提取出来
-     * @return Pair
+     * 组装字段属性，常量、format、等等
+     * @param fieldConf
+     * @param baseColumn
+     * @return
      */
-    protected Pair<List<String>, List<String>> getHandleColumnList() {
-        return ColumnBuildUtil.handleColumnList(
-                commonConf.getColumn(),
-                commonConf.getColumn().stream()
-                        .map(FieldConf::getName)
-                        .collect(Collectors.toList()),
-                commonConf.getColumn().stream()
-                        .map(FieldConf::getType)
-                        .collect(Collectors.toList()),
-                commonConf);
-    }
-
-    /**
-     * Fill constant field { "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
-     *
-     * @param converter converter
-     * @return RowData
-     * @throws Exception Exception
-     */
-    protected ColumnRowData loadConstantField(IColumnConstantConverter<FlinkxCommonConf, Integer, Object> converter)
-            throws Exception {
-        ColumnRowData rowData = new ColumnRowData(commonConf.getColumn().size());
-        int index = 0;
-        for (int i = 0; i < commonConf.getColumn().size(); i++) {
-            String val = commonConf.getColumn().get(i).getValue();
-            // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
-            if (val != null) {
-                rowData.addField(new StringColumn(val, commonConf.getColumn().get(i).getFormat()));
-            } else {
-                Object field = converter.apply(commonConf, index);
-                rowData.addField((AbstractBaseColumn) toInternalConverters[index].deserialize(field));
-                index++;
-            }
+    protected AbstractBaseColumn assembleFieldProps(FieldConf fieldConf, AbstractBaseColumn baseColumn) {
+        if(StringUtils.isNotBlank(fieldConf.getValue())){
+            baseColumn = new StringColumn(fieldConf.getValue(), fieldConf.getFormat());
+        }else if(baseColumn instanceof StringColumn && StringUtils.isNotBlank(fieldConf.getFormat())){
+            baseColumn = new StringColumn(baseColumn.asString(), fieldConf.getFormat());
         }
-        return rowData;
+        return baseColumn;
     }
 
-    protected ISerializationConverter wrapIntoNullableExternalConverter(
-            ISerializationConverter ISerializationConverter, T type){
+    protected ISerializationConverter<SinkT> wrapIntoNullableExternalConverter(ISerializationConverter<SinkT> ISerializationConverter, T type){
         return null;
     }
 
@@ -190,5 +151,13 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      */
     protected ISerializationConverter createExternalConverter(T type){
         return null;
+    }
+
+    public FlinkxCommonConf getCommonConf() {
+        return commonConf;
+    }
+
+    public void setCommonConf(FlinkxCommonConf commonConf) {
+        this.commonConf = commonConf;
     }
 }

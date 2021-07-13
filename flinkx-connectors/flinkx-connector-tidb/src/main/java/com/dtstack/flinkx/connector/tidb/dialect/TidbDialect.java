@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.tidb;
+package com.dtstack.flinkx.connector.tidb.dialect;
 
-import com.dtstack.flinkx.connector.mysql.MysqlDialect;
+import com.dtstack.flinkx.connector.mysql.dialect.MysqlDialect;
 
 /**
  * Company：www.dtstack.com

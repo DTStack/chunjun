@@ -20,9 +20,7 @@ package com.dtstack.flinkx.connector.saphana.sink;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.connector.saphana.SaphanaDialect;
-import com.dtstack.flinkx.connector.saphana.converter.SaphanaRawTypeConverter;
-import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.connector.saphana.dialect.SaphanaDialect;
 
 /**
  * company www.dtstack.com
@@ -32,17 +30,11 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 public class SaphanaSinkFactory extends JdbcSinkFactory {
 
     public SaphanaSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        super.jdbcDialect = new SaphanaDialect();
+        super(syncConf, new SaphanaDialect());
     }
 
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
         return new JdbcOutputFormatBuilder(new SaphanaOutputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return SaphanaRawTypeConverter::apply;
     }
 }

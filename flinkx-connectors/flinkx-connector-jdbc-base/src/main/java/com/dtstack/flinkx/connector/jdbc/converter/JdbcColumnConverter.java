@@ -18,10 +18,7 @@
 
 package com.dtstack.flinkx.connector.jdbc.converter;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -36,45 +33,34 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import io.vertx.core.json.JsonArray;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Time;
+import java.util.List;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
-public class JdbcColumnConverter
-        extends AbstractRowConverter<
-                        ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
+public class JdbcColumnConverter extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
 
     public JdbcColumnConverter(RowType rowType) {
-        super(rowType);
-        for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
-                    wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
-                    wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
-        }
+        this(rowType, null);
     }
 
     public JdbcColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         super(rowType, commonConf);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
-                    wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
-                    wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(rowType.getTypeAt(i)));
+            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(fieldTypes[i]), fieldTypes[i]);
         }
     }
 
     @Override
-    protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter, LogicalType type) {
+    protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, statement) -> {
             if (((ColumnRowData) val).getField(index) == null) {
                 statement.setObject(index, null);
@@ -85,29 +71,25 @@ public class JdbcColumnConverter
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public RowData toInternal(ResultSet resultSet) throws Exception {
-        ColumnRowData data;
-        if (!commonConf.isHasConstantField()) {
-            data = new ColumnRowData(toInternalConverters.length);
-            for (int i = 0; i < toInternalConverters.length; i++) {
-                Object field = resultSet.getObject(i + 1);
-                data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
+        List<FieldConf> fieldConfList = commonConf.getColumn();
+        ColumnRowData result = new ColumnRowData(fieldConfList.size());
+        int converterIndex = 0;
+        for (FieldConf fieldConf : fieldConfList) {
+            AbstractBaseColumn baseColumn = null;
+            if(StringUtils.isBlank(fieldConf.getValue())){
+                Object field = resultSet.getObject(converterIndex + 1);
+                baseColumn = (AbstractBaseColumn) toInternalConverters[converterIndex].deserialize(field);
+                converterIndex++;
             }
-        } else {
-            data = loadConstantField((commonConf, index) -> {
-                try {
-                    return resultSet.getObject(index + 1);
-                } catch (SQLException sqlException) {
-                    throw sqlException;
-                }
-            });
+            result.addField(assembleFieldProps(fieldConf, baseColumn));
         }
-        return data;
+        return result;
     }
 
     @Override
-    public FieldNamedPreparedStatement toExternal(
-            RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
+    public FieldNamedPreparedStatement toExternal(RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, statement);
         }

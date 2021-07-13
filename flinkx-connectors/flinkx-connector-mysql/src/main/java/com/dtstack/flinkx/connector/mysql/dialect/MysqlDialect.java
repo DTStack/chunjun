@@ -16,9 +16,11 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.mysql;
+package com.dtstack.flinkx.connector.mysql.dialect;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.mysql.converter.MysqlRawTypeConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -39,6 +41,11 @@ public class MysqlDialect implements JdbcDialect {
     @Override
     public boolean canHandle(String url) {
         return url.startsWith("jdbc:mysql:");
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return MysqlRawTypeConverter::apply;
     }
 
     @Override

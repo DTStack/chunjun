@@ -18,17 +18,6 @@
 
 package com.dtstack.flinkx.inputformat;
 
-import org.apache.flink.api.common.accumulators.LongCounter;
-import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
-import org.apache.flink.api.common.io.RichInputFormat;
-import org.apache.flink.api.common.io.statistics.BaseStatistics;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.core.io.InputSplitAssigner;
-import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
-import org.apache.flink.table.data.RowData;
-
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -38,11 +27,18 @@ import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.metrics.CustomPrometheusReporter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.ByteRateLimiter;
-import com.dtstack.flinkx.util.ColumnBuildUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.flink.api.common.accumulators.LongCounter;
+import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
+import org.apache.flink.api.common.io.RichInputFormat;
+import org.apache.flink.api.common.io.statistics.BaseStatistics;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.core.io.InputSplitAssigner;
+import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
+import org.apache.flink.table.data.RowData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +48,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 /**
  * FlinkX里面所有自定义inputFormat的抽象基类
@@ -144,10 +139,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             initRestoreInfo();
             initialized = true;
         }
-        handColumnList(
-                config.getColumn(),
-                config.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList()),
-                config.getColumn().stream().map(FieldConf::getType).collect(Collectors.toList()));
 
         openInternal(inputSplit);
 
@@ -238,23 +229,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
         isClosed.set(true);
         LOG.info("subtask input close finished");
-    }
-
-    /**
-     * 同步任务如果用户配置了常量字段，则将其他非常量字段提取出来
-     *
-     * @param fieldList fieldList
-     * @param fullColumnList fullColumnList
-     * @param fullColumnTypeList fullColumnTypeList
-     */
-    protected void handColumnList(List<FieldConf> fieldList, List<String> fullColumnList, List<String> fullColumnTypeList) {
-        Pair<List<String>, List<String>> handleColumnList = ColumnBuildUtil.handleColumnList(
-                fieldList,
-                fullColumnList,
-                fullColumnTypeList,
-                config);
-        columnNameList = handleColumnList.getLeft();
-        columnTypeList = handleColumnList.getRight();
     }
 
     /**

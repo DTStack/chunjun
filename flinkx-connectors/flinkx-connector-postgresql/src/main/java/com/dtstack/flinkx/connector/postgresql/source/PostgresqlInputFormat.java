@@ -18,12 +18,7 @@
 
 package com.dtstack.flinkx.connector.postgresql.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
-import com.dtstack.flinkx.connector.postgresql.converter.PostgresqlRawTypeConverter;
-import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * @program: flinkx
@@ -31,12 +26,4 @@ import com.dtstack.flinkx.util.TableUtil;
  * @create: 2021/04/22
  */
 public class PostgresqlInputFormat extends JdbcInputFormat {
-
-    @Override
-    public void openInternal(InputSplit inputSplit) {
-        super.openInternal(inputSplit);
-        RowType rowType =
-                TableUtil.createRowType(columnNameList, columnTypeList, PostgresqlRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
-    }
 }

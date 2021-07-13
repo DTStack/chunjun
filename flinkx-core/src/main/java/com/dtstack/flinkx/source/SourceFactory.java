@@ -52,6 +52,7 @@ public abstract class SourceFactory implements RawTypeConvertible {
 
     protected StreamExecutionEnvironment env;
     protected SyncConf syncConf;
+    protected List<FieldConf> fieldList;
     protected TypeInformation<RowData> typeInformation;
     protected boolean useAbstractBaseColumn = true;
 
@@ -60,9 +61,9 @@ public abstract class SourceFactory implements RawTypeConvertible {
         this.syncConf = syncConf;
 
         if (syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
-            typeInformation = TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
+            fieldList = Collections.emptyList();
         } else {
-            typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList(), getRawTypeConverter());
+            fieldList = syncConf.getReader().getFieldList();
             useAbstractBaseColumn = false;
         }
     }
@@ -98,13 +99,13 @@ public abstract class SourceFactory implements RawTypeConvertible {
     protected DataStream<RowData> createInput(InputFormat<RowData, InputSplit> inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         Preconditions.checkNotNull(inputFormat);
-        DtInputFormatSourceFunction<RowData> function = new DtInputFormatSourceFunction<>(inputFormat, typeInformation);
-        return env.addSource(function, sourceName, typeInformation);
+        DtInputFormatSourceFunction<RowData> function = new DtInputFormatSourceFunction<>(inputFormat, getTypeInformation());
+        return env.addSource(function, sourceName, getTypeInformation());
     }
 
     protected DataStream<RowData> createInput(RichParallelSourceFunction<RowData> function, String sourceName) {
         Preconditions.checkNotNull(sourceName);
-        return env.addSource(function, sourceName, typeInformation);
+        return env.addSource(function, sourceName, getTypeInformation());
     }
 
     protected DataStream<RowData> createInput(InputFormat<RowData, InputSplit> inputFormat) {
@@ -121,5 +122,12 @@ public abstract class SourceFactory implements RawTypeConvertible {
         flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
         flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
+    }
+
+    protected TypeInformation<RowData> getTypeInformation(){
+        if(typeInformation == null){
+            typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter());
+        }
+        return typeInformation;
     }
 }

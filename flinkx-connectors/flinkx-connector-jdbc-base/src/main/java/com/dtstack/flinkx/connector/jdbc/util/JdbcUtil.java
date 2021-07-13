@@ -21,7 +21,7 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.CollectionUtil;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;

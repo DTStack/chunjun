@@ -44,9 +44,7 @@ public class StreamSourceFactory extends SourceFactory {
 
     public StreamSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
-        streamConf =
-                GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(config.getReader().getParameter()), StreamConf.class);
+        streamConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getReader().getParameter()), StreamConf.class);
         streamConf.setColumn(config.getReader().getFieldList());
         super.initFlinkxCommonConf(streamConf);
     }

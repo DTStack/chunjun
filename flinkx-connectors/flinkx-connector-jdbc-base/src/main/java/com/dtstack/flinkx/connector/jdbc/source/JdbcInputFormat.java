@@ -19,10 +19,12 @@
 package com.dtstack.flinkx.connector.jdbc.source;
 
 
+import com.dtstack.flinkx.util.ColumnBuildUtil;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.jdbc.util.SqlUtil;
@@ -38,6 +40,7 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -105,7 +108,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             dbConn.setAutoCommit(false);
 
             Pair<List<String>, List<String>> pair = getTableMetaData();
-            handColumnList(jdbcConf.getColumn(), pair.getLeft(), pair.getRight());
+            Pair<List<String>, List<String>> columnPair = ColumnBuildUtil.handleColumnList(jdbcConf.getColumn(), pair.getLeft(), pair.getRight());
+            columnNameList = columnPair.getLeft();
+            columnTypeList = columnPair.getRight();
 
             querySQL = buildQuerySql(jdbcInputSplit);
             jdbcConf.setQuerySql(querySQL);
@@ -115,6 +120,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             }
             //增量任务
             isUpdateLocation = jdbcConf.isIncrement() && !jdbcConf.isPolling() && !jdbcConf.isUseMaxFunc();
+            RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
+            setRowConverter(rowConverter == null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
         } catch (SQLException se) {
             String expMsg =  se.getMessage();
             expMsg = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;
@@ -721,7 +728,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      *
      * @return connection
      */
-    protected Connection getConnection() {
+    protected Connection getConnection() throws SQLException{
         return JdbcUtil.getConnection(jdbcConf, jdbcDialect);
     }
 
