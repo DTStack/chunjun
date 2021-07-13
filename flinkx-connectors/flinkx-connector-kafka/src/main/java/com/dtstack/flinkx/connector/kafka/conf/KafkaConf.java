@@ -52,6 +52,10 @@ public class KafkaConf extends FlinkxCommonConf {
     private Map<String, String> producerSettings;
     /** 字段映射配置。从reader插件传递到writer插件的的数据只包含其value属性，配置该参数后可将其还原成键值对类型json字符串输出。 */
     private List<String> tableFields;
+    /** 是否强制有序，如果是则并行度只能为1 */
+    private boolean dataCompelOrder;
+    /** kafka sink分区字段 */
+    private List<String> partitionAssignColumns;
 
     public String getCodec() {
         return codec;
@@ -125,6 +129,22 @@ public class KafkaConf extends FlinkxCommonConf {
         this.tableFields = tableFields;
     }
 
+    public List<String> getPartitionAssignColumns() {
+        return partitionAssignColumns;
+    }
+
+    public void setPartitionAssignColumns(List<String> partitionAssignColumns) {
+        this.partitionAssignColumns = partitionAssignColumns;
+    }
+
+    public boolean isDataCompelOrder() {
+        return dataCompelOrder;
+    }
+
+    public void setDataCompelOrder(boolean dataCompelOrder) {
+        this.dataCompelOrder = dataCompelOrder;
+    }
+
     @Override
     public String toString() {
         return "KafkaConf{" +
@@ -136,7 +156,9 @@ public class KafkaConf extends FlinkxCommonConf {
                 ", timestamp=" + timestamp +
                 ", consumerSettings=" + consumerSettings +
                 ", producerSettings=" + producerSettings +
+                ", dataCompelOrder=" + dataCompelOrder +
                 ", tableFields=" + tableFields +
+                ", partitionAssignColumns=" + partitionAssignColumns +
                 '}';
     }
 }

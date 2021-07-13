@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.es.converter;
 
-import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.util.DateUtil;
-
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
@@ -30,12 +26,15 @@ import org.apache.flink.table.types.logical.RowType;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.dtstack.flinkx.util.DateUtil;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -86,8 +85,8 @@ public class EsColumnConverter extends AbstractRowConverter<Map<String, Object>,
             if (val == null
                     || val.isNullAt(index)
                     || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
-                GenericRowData genericRowData = (GenericRowData) rowData;
-                genericRowData.setField(index, null);
+                Map<String,Object> result = (Map<String,Object>) rowData;
+                result.put(typeIndexList.get(index)._1(), null);
             } else {
                 ISerializationConverter.serialize(val, index, rowData);
             }
@@ -102,6 +101,13 @@ public class EsColumnConverter extends AbstractRowConverter<Map<String, Object>,
             List<Tuple3<String,Integer, LogicalType>> collect = typeIndexList.stream()
                     .filter(x -> x._2() == index)
                     .collect(Collectors.toList());
+
+            if (CollectionUtils.isEmpty(collect)) {
+                LOG.warn("Result Map : key [{}] not in columns",
+                        typeIndexList.get(index)._2());
+                continue;
+            }
+
             Tuple3<String,Integer, LogicalType> typeTuple =  collect.get(0);
             Object field = input.get(typeTuple._1());
             columnRowData.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));

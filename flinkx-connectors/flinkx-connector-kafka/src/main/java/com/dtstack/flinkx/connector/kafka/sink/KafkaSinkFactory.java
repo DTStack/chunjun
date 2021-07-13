@@ -22,6 +22,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.CollectionUtil;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.SyncConf;
@@ -29,6 +30,7 @@ import com.dtstack.flinkx.connector.kafka.adapter.StartupModeAdapter;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
 import com.dtstack.flinkx.connector.kafka.converter.KafkaColumnConverter;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
+import com.dtstack.flinkx.connector.kafka.partitioner.CustomerFlinkPartition;
 import com.dtstack.flinkx.connector.kafka.serialization.RowSerializationSchema;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
@@ -68,9 +70,24 @@ public class KafkaSinkFactory extends SinkFactory {
         Properties props = new Properties();
         props.putAll(kafkaConf.getProducerSettings());
 
+        if(kafkaConf.isDataCompelOrder()){
+            Preconditions.checkState(kafkaConf.getParallelism() <= 1, "when kafka sink dataCompelOrder set true , Parallelism must 1.");
+        }
+
+        RowSerializationSchema rowSerializationSchema;
+        if (!CollectionUtil.isNullOrEmpty(kafkaConf.getPartitionAssignColumns())) {
+            Preconditions.checkState(!CollectionUtil.isNullOrEmpty(kafkaConf.getTableFields()), "when kafka sink set partitionAssignColumns , tableFields must set.");
+            for (String field : kafkaConf.getPartitionAssignColumns()) {
+                Preconditions.checkState(kafkaConf.getTableFields().contains(field), "[" + field + "] field in partitionAssignColumns , but not in tableFields:[" + kafkaConf.getTableFields() + "]");
+            }
+            rowSerializationSchema = new RowSerializationSchema(kafkaConf, new CustomerFlinkPartition<>(), new KafkaColumnConverter(kafkaConf, kafkaConf.getPartitionAssignColumns()), new KafkaColumnConverter(kafkaConf));
+        } else {
+            rowSerializationSchema = new RowSerializationSchema(kafkaConf, new CustomerFlinkPartition<>(), null, new KafkaColumnConverter(kafkaConf));
+        }
+
         KafkaProducer kafkaProducer = new KafkaProducer(
                 kafkaConf.getTopic(),
-                new RowSerializationSchema(kafkaConf.getTopic(), new KafkaColumnConverter(kafkaConf)),
+                rowSerializationSchema,
                 props,
                 FlinkKafkaProducer.Semantic.AT_LEAST_ONCE,
                 FlinkKafkaProducer.DEFAULT_KAFKA_PRODUCERS_POOL_SIZE);

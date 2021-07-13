@@ -55,9 +55,9 @@ public class DynamicKafkaSerializationSchema
 
     private static final long serialVersionUID = 1L;
 
-    private final @Nullable FlinkKafkaPartitioner<RowData> partitioner;
+    protected final @Nullable FlinkKafkaPartitioner<RowData> partitioner;
 
-    private final String topic;
+    protected final String topic;
 
     private final @Nullable SerializationSchema<RowData> keySerialization;
 
@@ -78,9 +78,9 @@ public class DynamicKafkaSerializationSchema
 
     private int[] partitions;
 
-    private int parallelInstanceId;
+    protected int parallelInstanceId;
 
-    private int numParallelInstances;
+    protected int numParallelInstances;
 
     protected Properties producerConfig;
     /**
@@ -148,15 +148,10 @@ public class DynamicKafkaSerializationSchema
                 ((StreamingRuntimeContext)runtimeContext).getCheckpointMode() == null
                         ? CheckpointingMode.AT_LEAST_ONCE
                         : ((StreamingRuntimeContext)runtimeContext).getCheckpointMode();
-        LOG.info(
-                "[{}] open successfully, \ncheckpointMode = {}, \ncheckpointEnabled = {}, \nflushIntervalMills = {}, \nbatchSize = {}, \n[{}]: \n{} ",
-                this.getClass().getSimpleName(),
-                checkpointMode,
-                checkpointEnabled,
-                0,
-                1,
-                producerConfig.getClass().getSimpleName(),
-                JsonUtil.toFormatJson(producerConfig));
+
+        if (partitioner != null) {
+            partitioner.open(runtimeContext.getIndexOfThisSubtask(), runtimeContext.getNumberOfParallelSubtasks());
+        }
     }
 
     @Override
@@ -166,9 +161,15 @@ public class DynamicKafkaSerializationSchema
             keySerialization.open(context);
         }
         valueSerialization.open(context);
-        if (partitioner != null) {
-            partitioner.open(parallelInstanceId, numParallelInstances);
-        }
+        LOG.info(
+                "[{}] open successfully, \ncheckpointMode = {}, \ncheckpointEnabled = {}, \nflushIntervalMills = {}, \nbatchSize = {}, \n[{}]: \n{} ",
+                this.getClass().getSimpleName(),
+                checkpointMode,
+                checkpointEnabled,
+                0,
+                1,
+                producerConfig.getClass().getSimpleName(),
+                JsonUtil.toFormatJson(producerConfig));
     }
 
     /**
@@ -266,7 +267,7 @@ public class DynamicKafkaSerializationSchema
         return (T) metadata.converter.read(consumedRow, pos);
     }
 
-    private Integer extractPartition(
+    protected Integer extractPartition(
             RowData consumedRow, @Nullable byte[] keySerialized, byte[] valueSerialized) {
         if (partitioner != null) {
             return partitioner.partition(

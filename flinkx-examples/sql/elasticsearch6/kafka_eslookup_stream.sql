@@ -21,7 +21,7 @@ CREATE TABLE es_lookup
     id varchar,
     birthday TIMESTAMP
 ) WITH (
-    'connector' ='elasticsearch6-x'
+    'connector' ='es-x'
    ,'hosts' ='localhost:9200',
     'index' ='testdate9',
     'document-type' = '_doc',
