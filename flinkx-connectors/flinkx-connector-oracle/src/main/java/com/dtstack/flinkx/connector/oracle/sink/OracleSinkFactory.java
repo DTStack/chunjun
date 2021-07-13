@@ -18,7 +18,6 @@
 package com.dtstack.flinkx.connector.oracle.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.oracle.dialect.OracleDialect;
 
@@ -31,10 +30,5 @@ public class OracleSinkFactory extends JdbcSinkFactory {
 
     public OracleSinkFactory(SyncConf syncConf) {
         super(syncConf, new OracleDialect());
-    }
-
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new OracleOutputFormat());
     }
 }

@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.mysql.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.mysql.dialect.MysqlDialect;
 
@@ -32,10 +31,5 @@ public class MysqlSinkFactory extends JdbcSinkFactory {
 
     public MysqlSinkFactory(SyncConf syncConf) {
         super(syncConf, new MysqlDialect());
-    }
-
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new MysqlOutputFormat());
     }
 }

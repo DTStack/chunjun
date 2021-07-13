@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.greenplum.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.greenplum.dialect.GreenplumDialect;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 
 /**
@@ -32,10 +31,5 @@ public class GreenplumSinkFactory extends JdbcSinkFactory {
 
     public GreenplumSinkFactory(SyncConf syncConf) {
         super(syncConf, new GreenplumDialect());
-    }
-
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new GreenplumOutputFormat());
     }
 }

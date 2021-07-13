@@ -115,7 +115,9 @@ public abstract class JdbcSourceFactory extends SourceFactory {
      *
      * @return JdbcInputFormatBuilder
      */
-    protected abstract JdbcInputFormatBuilder getBuilder();
+    protected JdbcInputFormatBuilder getBuilder(){
+        return new JdbcInputFormatBuilder(new JdbcInputFormat());
+    }
 
     /**
      * 初始化增量或间隔轮询任务配置

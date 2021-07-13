@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.gbase.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.gbase.dialect.GBaseDialect;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 
 /**
@@ -31,10 +30,5 @@ public class GBaseSinkFactory extends JdbcSinkFactory {
 
     public GBaseSinkFactory(SyncConf syncConf) {
         super(syncConf, new GBaseDialect());
-    }
-
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new GBaseOutputFormat());
     }
 }
