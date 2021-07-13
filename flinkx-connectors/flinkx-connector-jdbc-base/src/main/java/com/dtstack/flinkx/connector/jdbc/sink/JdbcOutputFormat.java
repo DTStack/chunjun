@@ -20,10 +20,11 @@ package com.dtstack.flinkx.connector.jdbc.sink;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.Row;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
@@ -36,6 +37,7 @@ import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -71,8 +73,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected transient Connection dbConn;
     protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
 
-
-
     @Override
     public void initializeGlobal(int parallelism) {
         executeBatch(jdbcConf.getPreSql());
@@ -101,11 +101,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }
             }
 
-            fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(
-                    dbConn,
-                    prepareTemplates(),
-                    this.columnNameList.toArray(new String[0]));
-
+            fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(dbConn, prepareTemplates(), this.columnNameList.toArray(new String[0]));
+            RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
+            setRowConverter(rowConverter == null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
@@ -377,7 +375,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
      * 获取数据库连接，用于子类覆盖
      * @return connection
      */
-    protected Connection getConnection() {
+    protected Connection getConnection() throws SQLException{
         return JdbcUtil.getConnection(jdbcConf, jdbcDialect);
     }
 

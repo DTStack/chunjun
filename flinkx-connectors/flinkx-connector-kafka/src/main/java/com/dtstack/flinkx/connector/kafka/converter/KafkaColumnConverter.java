@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.kafka.converter;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.CollectionUtil;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -38,6 +35,8 @@ import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.CollectionUtil;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -55,13 +54,12 @@ import static com.dtstack.flinkx.connector.kafka.option.KafkaOptions.DEFAULT_COD
  * @create 2021-06-07 15:51
  * @description
  */
-public class KafkaColumnConverter
-        extends AbstractRowConverter<String, Object, byte[], String> {
+public class KafkaColumnConverter extends AbstractRowConverter<String, Object, byte[], String> {
 
     /** source kafka msg decode */
-    private IDecode decode;
+    private final IDecode decode;
     /** sink json Decoder */
-    private JsonDecoder jsonDecoder;
+    private final JsonDecoder jsonDecoder;
     /** kafka Conf */
     private final KafkaConf kafkaConf;
     /** kafka sink out fields */
@@ -79,7 +77,7 @@ public class KafkaColumnConverter
     }
 
     public KafkaColumnConverter(KafkaConf kafkaConf) {
-        this.kafkaConf = kafkaConf;
+        this.commonConf = this.kafkaConf = kafkaConf;
         this.jsonDecoder = new JsonDecoder();
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
             this.decode = new JsonDecoder();
@@ -90,34 +88,32 @@ public class KafkaColumnConverter
         // Only json need to extract the fields
         if (!CollectionUtils.isEmpty(kafkaConf.getColumn())
                 && DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
-            List<String> typeList =
-                    kafkaConf.getColumn().stream()
-                            .map(FieldConf::getType)
-                            .collect(Collectors.toList());
+            List<String> typeList = kafkaConf.getColumn().stream().map(FieldConf::getType).collect(Collectors.toList());
             this.toInternalConverters = new IDeserializationConverter[typeList.size()];
             for (int i = 0; i < typeList.size(); i++) {
-                toInternalConverters[i] =
-                        wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
+                toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
             }
         }
     }
 
     @Override
     public RowData toInternal(String input) throws Exception {
-        Map<String, Object> result = decode.decode(input);
-        ColumnRowData row;
+        Map<String, Object> map = decode.decode(input);
+        ColumnRowData result;
         if (toInternalConverters == null || toInternalConverters.length == 0) {
-            row = new ColumnRowData(1);
-            row.addField(new MapColumn(result));
+            result = new ColumnRowData(1);
+            result.addField(new MapColumn(map));
         } else {
-            row = new ColumnRowData(toInternalConverters.length);
-            List<FieldConf> column = kafkaConf.getColumn();
-            for (int i = 0; i < column.size(); i++) {
-                Object value = result.get(column.get(i).getName());
-                row.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(value));
+            List<FieldConf> fieldConfList = kafkaConf.getColumn();
+            result = new ColumnRowData(fieldConfList.size());
+            for (int i = 0; i < fieldConfList.size(); i++) {
+                FieldConf fieldConf = fieldConfList.get(i);
+                Object value = map.get(fieldConf.getName());
+                AbstractBaseColumn baseColumn = (AbstractBaseColumn) toInternalConverters[i].deserialize(value);
+                result.addField(assembleFieldProps(fieldConf, baseColumn));
             }
         }
-        return row;
+        return result;
     }
 
     @Override
@@ -177,6 +173,8 @@ public class KafkaColumnConverter
             case "CHAR":
             case "CHARACTER":
             case "STRING":
+            case "VARCHAR":
+            case "TEXT":
                 return val -> new StringColumn(val.toString());
             case "SHORT":
                 return val -> new BigDecimalColumn(Short.parseShort(val.toString()));

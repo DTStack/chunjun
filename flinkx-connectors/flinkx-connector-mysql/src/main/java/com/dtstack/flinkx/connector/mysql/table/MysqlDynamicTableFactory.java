@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.connector.mysql.table;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
-import com.dtstack.flinkx.connector.mysql.MysqlDialect;
+import com.dtstack.flinkx.connector.mysql.dialect.MysqlDialect;
 
 /**
  * @program: flinkx

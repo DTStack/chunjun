@@ -18,22 +18,11 @@
 
 package com.dtstack.flinkx.connector.gbase.sink;
 
-import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.gbase.converter.GBaseRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * @author tiezhu
  * @since 2021/5/10 3:02 下午
  */
 public class GBaseOutputFormat extends JdbcOutputFormat {
-
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) {
-        super.openInternal(taskNumber, numTasks);
-        RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, GBaseRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-    }
 }

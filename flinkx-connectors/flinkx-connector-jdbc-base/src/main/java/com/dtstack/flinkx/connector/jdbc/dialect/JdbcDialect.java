@@ -16,19 +16,21 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.jdbc;
+package com.dtstack.flinkx.connector.jdbc.dialect;
 
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
@@ -60,13 +62,17 @@ public interface JdbcDialect extends Serializable {
     boolean canHandle(String url);
 
     /**
+     * get jdbc RawTypeConverter
+     */
+    RawTypeConverter getRawTypeConverter();
+
+    /**
      * Get converter that convert jdbc object and Flink internal object each other.
      *
      * @param rowType the given row type
      * @return a row converter for the database
      */
-    default AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getRowConverter(RowType rowType) {
+    default AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(RowType rowType) {
         return new JdbcRowConverter(rowType);
     }
 
@@ -75,9 +81,17 @@ public interface JdbcDialect extends Serializable {
      *
      * @return a row converter for the database
      */
-    default AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
-            getColumnConverter(RowType rowType) {
-        return new JdbcColumnConverter(rowType);
+    default AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType) {
+        return getColumnConverter(rowType, null);
+    }
+
+    /**
+     * ColumnConverter
+     *
+     * @return a row converter for the database
+     */
+    default AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        return new JdbcColumnConverter(rowType, commonConf);
     }
 
     /**

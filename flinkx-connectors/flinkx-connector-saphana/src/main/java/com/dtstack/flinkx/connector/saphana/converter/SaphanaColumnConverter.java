@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.saphana.converter;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -42,11 +44,10 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
-public class SaphanaColumnConverter
-        extends JdbcColumnConverter {
+public class SaphanaColumnConverter extends JdbcColumnConverter {
 
-    public SaphanaColumnConverter(RowType rowType) {
-        super(rowType);
+    public SaphanaColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     @Override

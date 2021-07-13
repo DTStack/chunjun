@@ -16,48 +16,61 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.gbase;
+package com.dtstack.flinkx.connector.oracle.dialect;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.connector.oracle.converter.OracleColumnConverter;
+import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
+import com.dtstack.flinkx.connector.oracle.converter.OracleRowConverter;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
+import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
+import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * @author tiezhu
- * @since 2021/5/8 4:11 下午
+ * company www.dtstack.com
+ *
+ * @author jier
  */
-public class GBaseDialect implements JdbcDialect {
-
-    private static final String GBASE_QUOTATION_MASK = "`";
+public class OracleDialect implements JdbcDialect {
 
     @Override
     public String dialectName() {
-        return "GBase";
+        return "ORACLE";
     }
 
     @Override
     public boolean canHandle(String url) {
-        return url.startsWith("jdbc:gbase:");
+        return url.startsWith("jdbc:oracle:thin:");
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return OracleRawTypeConverter::apply;
     }
 
     @Override
     public Optional<String> defaultDriverName() {
-        return Optional.of("com.gbase.jdbc.Driver");
+        return Optional.of("oracle.jdbc.OracleDriver");
     }
 
-    /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */
-    public String buildDualQueryStatement(String[] column) {
-        StringBuilder sb = new StringBuilder("SELECT ");
-        String collect =
-                Arrays.stream(column)
-                        .map(col -> " ? " + quoteIdentifier(col))
-                        .collect(Collectors.joining(", "));
-        sb.append(collect);
-        return sb.toString();
+    @Override
+    public Optional<String> getReplaceStatement(
+            String schema,
+            String tableName,
+            String[] fieldNames) {
+        throw new RuntimeException("Oracle does not support replace sql");
     }
 
     @Override
@@ -102,6 +115,35 @@ public class GBaseDialect implements JdbcDialect {
         return Optional.of(mergeIntoSql.toString());
     }
 
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(
+            RowType rowType) {
+        return new OracleRowConverter(rowType);
+    }
+
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        return  new OracleColumnConverter(rowType, commonConf);
+    }
+
+    /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */
+    public String buildDualQueryStatement(String[] column) {
+        StringBuilder sb = new StringBuilder("SELECT ");
+        String collect =
+                Arrays.stream(column)
+                        .map(col -> ":" + col + " " + quoteIdentifier(col))
+                        .collect(Collectors.joining(", "));
+        sb.append(collect).append(" FROM DUAL");
+        return sb.toString();
+    }
+
+    /** build sql part e.g: T1.`A` = T2.`A`, T1.`B` = T2.`B` */
+    private String buildEqualConditions(String[] uniqueKeyFields) {
+        return Arrays.stream(uniqueKeyFields)
+                .map(col -> "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col))
+                .collect(Collectors.joining(" and "));
+    }
+
     /** build T1."A"=T2."A" or T1."A"=nvl(T2."A",T1."A") */
     private String buildUpdateConnection(
             String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
@@ -118,45 +160,21 @@ public class GBaseDialect implements JdbcDialect {
      */
     private String buildConnectString(boolean allReplace, String col) {
         return allReplace
-                ? quoteIdentifier("T1")
-                        + "."
-                        + quoteIdentifier(col)
-                        + " = "
-                        + quoteIdentifier("T2")
-                        + "."
-                        + quoteIdentifier(col)
-                : quoteIdentifier("T1")
-                        + "."
-                        + quoteIdentifier(col)
-                        + " =NVL("
-                        + quoteIdentifier("T2")
-                        + "."
-                        + quoteIdentifier(col)
-                        + ","
-                        + quoteIdentifier("T1")
-                        + "."
-                        + quoteIdentifier(col)
-                        + ")";
-    }
-
-    /** build sql part e.g: T1.`A` = T2.`A`, T1.`B` = T2.`B` */
-    private String buildEqualConditions(String[] uniqueKeyFields) {
-        return Arrays.stream(uniqueKeyFields)
-                .map(col -> "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col))
-                .collect(Collectors.joining(", "));
-    }
-
-    @Override
-    public String quoteIdentifier(String identifier) {
-        if (identifier.startsWith(GBASE_QUOTATION_MASK)
-                && identifier.endsWith(GBASE_QUOTATION_MASK)) {
-            return identifier;
-        }
-        return GBASE_QUOTATION_MASK + identifier + GBASE_QUOTATION_MASK;
+                ? "T1."
+                + quoteIdentifier(col)
+                + " = T2."
+                + quoteIdentifier(col)
+                : "T1."
+                + quoteIdentifier(col)
+                + " =NVL(T2."
+                + quoteIdentifier(col)
+                + ",T1."
+                + quoteIdentifier(col)
+                + ")";
     }
 
     @Override
     public String getRowNumColumn(String orderBy) {
-        return "ROWID as " + getRowNumColumnAlias();
+        return "rownum as " + getRowNumColumnAlias();
     }
 }

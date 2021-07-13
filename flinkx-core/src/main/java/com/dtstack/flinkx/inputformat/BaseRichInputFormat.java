@@ -18,10 +18,19 @@
 
 package com.dtstack.flinkx.inputformat;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.exception.ReadRecordException;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
+import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.metrics.CustomReporter;
-
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.source.ByteRateLimiter;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
-
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.JsonUtil;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -31,21 +40,6 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
-
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.conf.FlinkxCommonConf;
-import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.StringColumn;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.metrics.AccumulatorCollector;
-import com.dtstack.flinkx.metrics.BaseMetric;
-import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.source.ByteRateLimiter;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.JsonUtil;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,8 +99,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     protected List<String> columnNameList = new ArrayList<>();
     /** A collection of field types filled in user scripts with constants removed */
     protected List<String> columnTypeList = new ArrayList<>();
-    /** Whether to include constants in user scripts */
-    protected boolean hasConstantField = false;
 
     @Override
     public final void configure(Configuration parameters) {
@@ -312,32 +304,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             formatState.setMetric(inputMetric.getMetricCounters());
         }
         return formatState;
-    }
-
-    /**
-     * Fill constant { "name": "raw_date", "type": "string", "value": "2014-12-12 14:24:16" }
-     * @param rawRowData
-     * @param fieldConfList
-     * @return
-     */
-    protected RowData loadConstantData(RowData rawRowData, List<FieldConf> fieldConfList) {
-        if(hasConstantField && rawRowData instanceof ColumnRowData){
-            ColumnRowData columnRowData = new ColumnRowData(fieldConfList.size());
-            int index = 0;
-            for (int i = 0; i < fieldConfList.size(); i++) {
-                String val = fieldConfList.get(i).getValue();
-                // 代表设置了常量即value有值，不管数据库中有没有对应字段的数据，用json中的值替代
-                if (val != null) {
-                    columnRowData.addField(new StringColumn(val, fieldConfList.get(i).getFormat()));
-                } else {
-                    columnRowData.addField(((ColumnRowData) rawRowData).getField(index));
-                    index++;
-                }
-            }
-            return columnRowData;
-        }else{
-            return rawRowData;
-        }
     }
 
     /**

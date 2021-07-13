@@ -18,23 +18,10 @@
 
 package com.dtstack.flinkx.connector.dm.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.dm.converter.DmRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
-import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * @author kunni
  */
 public class DmInputFormat extends JdbcInputFormat {
-
-    @Override
-    public void openInternal(InputSplit inputSplit) {
-        super.openInternal(inputSplit);
-        RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, DmRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-    }
-
 }

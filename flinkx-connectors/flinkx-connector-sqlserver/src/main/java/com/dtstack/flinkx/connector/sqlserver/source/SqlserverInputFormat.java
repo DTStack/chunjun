@@ -20,12 +20,8 @@ package com.dtstack.flinkx.connector.sqlserver.source;
 
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.TableUtil;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -41,19 +37,6 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/5/19 13:57
  */
 public class SqlserverInputFormat extends JdbcInputFormat {
-
-    private static final long serialVersionUID = 1L;
-
-    @Override
-    public void openInternal(InputSplit inputSplit) {
-        super.openInternal(inputSplit);
-        RowType rowType =
-            TableUtil.createRowType(
-                columnNameList, columnTypeList, SqlserverRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-
-    }
-
 
     /**
      * 构建边界位置sql

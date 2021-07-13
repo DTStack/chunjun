@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.connector.saphana.table;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
-import com.dtstack.flinkx.connector.saphana.SaphanaDialect;
+import com.dtstack.flinkx.connector.saphana.dialect.SaphanaDialect;
 
 /**
  * company www.dtstack.com

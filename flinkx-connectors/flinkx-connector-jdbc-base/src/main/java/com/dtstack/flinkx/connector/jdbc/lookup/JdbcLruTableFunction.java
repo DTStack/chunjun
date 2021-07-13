@@ -22,7 +22,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.enums.ECacheContentType;
@@ -80,7 +80,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcLruTableFunction.class);
     /** when network is unhealthy block query */
-    private AtomicBoolean connectionStatus = new AtomicBoolean(true);
+    private final AtomicBoolean connectionStatus = new AtomicBoolean(true);
     /** query data thread */
     private transient ThreadPoolExecutor executor;
     /** vertx */

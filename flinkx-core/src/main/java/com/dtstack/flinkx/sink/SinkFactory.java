@@ -18,13 +18,6 @@
 
 package com.dtstack.flinkx.sink;
 
-import org.apache.flink.api.common.io.OutputFormat;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.Preconditions;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
@@ -32,11 +25,14 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.converter.RawTypeConvertible;
 import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
-import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.common.io.OutputFormat;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.Preconditions;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,7 +45,6 @@ import java.util.List;
 public abstract class SinkFactory implements RawTypeConvertible {
 
     protected SyncConf syncConf;
-    protected TypeInformation<RowData> typeInformation;
     protected boolean useAbstractBaseColumn = true;
 
     public SinkFactory(SyncConf syncConf) {
@@ -60,10 +55,7 @@ public abstract class SinkFactory implements RawTypeConvertible {
         }
         this.syncConf = syncConf;
 
-        if (syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
-            typeInformation = TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
-        } else {
-            typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter());
+        if (syncConf.getTransformer() != null && StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
             useAbstractBaseColumn = false;
         }
     }

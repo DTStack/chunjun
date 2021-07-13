@@ -18,11 +18,7 @@
 
 package com.dtstack.flinkx.connector.postgresql.sink;
 
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.postgresql.converter.PostgresqlRawTypeConverter;
-import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * @program: flinkx
@@ -30,12 +26,4 @@ import com.dtstack.flinkx.util.TableUtil;
  * @create: 2021/04/28
  */
 public class PostgresqlOutputFormat extends JdbcOutputFormat {
-
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) {
-        super.openInternal(taskNumber, numTasks);
-        RowType rowType =
-                TableUtil.createRowType(columnNameList, columnTypeList, PostgresqlRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-    }
 }

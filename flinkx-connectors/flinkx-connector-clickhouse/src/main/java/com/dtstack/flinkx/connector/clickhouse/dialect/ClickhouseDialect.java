@@ -16,10 +16,12 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.clickhouse;
+package com.dtstack.flinkx.connector.clickhouse.dialect;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.clickhouse.converter.ClickhouseRawTypeConverter;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import java.util.Optional;
@@ -39,6 +41,11 @@ public class ClickhouseDialect implements JdbcDialect {
     @Override
     public boolean canHandle(String url) {
         return url.startsWith("jdbc:clickhouse:");
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return ClickhouseRawTypeConverter::apply;
     }
 
     @Override

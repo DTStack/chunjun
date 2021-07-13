@@ -16,15 +16,18 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.saphana;
+package com.dtstack.flinkx.connector.saphana.dialect;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.saphana.converter.SaphanaColumnConverter;
+import com.dtstack.flinkx.connector.saphana.converter.SaphanaRawTypeConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +53,11 @@ public class SaphanaDialect implements JdbcDialect {
     @Override
     public boolean canHandle(String url) {
         return url.startsWith("jdbc:sap:");
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return SaphanaRawTypeConverter::apply;
     }
 
     @Override
@@ -105,11 +113,9 @@ public class SaphanaDialect implements JdbcDialect {
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
-            RowType rowType) {
-        return new SaphanaColumnConverter(rowType);
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        return new SaphanaColumnConverter(rowType, commonConf);
     }
-
 
     @Override
     public String getRowNumColumn(String orderBy) {

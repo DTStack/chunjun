@@ -16,10 +16,12 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.postgresql;
+package com.dtstack.flinkx.connector.postgresql.dialect;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.connector.postgresql.converter.PostgresqlRawTypeConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -33,18 +35,23 @@ import java.util.stream.Collectors;
  */
 public class PostgresqlDialect implements JdbcDialect {
 
-    private static final String DIEALECT_NAME = "PostgreSQL";
+    private static final String DIALECT_NAME = "PostgreSQL";
     private static final String DRIVER = "org.postgresql.Driver";
     private static final String URL_START = "jdbc:postgresql:";
 
     @Override
     public String dialectName() {
-        return DIEALECT_NAME;
+        return DIALECT_NAME;
     }
 
     @Override
     public boolean canHandle(String url) {
         return url.startsWith(URL_START);
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return PostgresqlRawTypeConverter::apply;
     }
 
     @Override

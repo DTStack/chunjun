@@ -18,11 +18,7 @@
 
 package com.dtstack.flinkx.connector.greenplum.sink;
 
-import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.greenplum.converter.GreenplumRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * company www.dtstack.com
@@ -30,12 +26,4 @@ import com.dtstack.flinkx.util.TableUtil;
  * @author jier
  */
 public class GreenplumOutputFormat extends JdbcOutputFormat {
-
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) {
-        super.openInternal(taskNumber, numTasks);
-        RowType rowType =
-                TableUtil.createRowType(columnNameList, columnTypeList, GreenplumRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-    }
 }

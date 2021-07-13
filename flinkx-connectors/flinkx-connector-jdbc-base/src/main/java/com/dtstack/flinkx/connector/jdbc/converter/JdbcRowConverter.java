@@ -47,35 +47,23 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
-public class JdbcRowConverter
-        extends AbstractRowConverter<
-                ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
+public class JdbcRowConverter extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
 
     private static final long serialVersionUID = 1L;
 
     public JdbcRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
-                    wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
-                    wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(rowType.getTypeAt(i)));
+            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(fieldTypes[i]), fieldTypes[i]);
         }
     }
 
     @Override
-    protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter, LogicalType type) {
-        final int sqlType =
-                JdbcTypeUtil.typeInformationToSqlType(
-                        TypeConversions.fromDataTypeToLegacyInfo(
-                                TypeConversions.fromLogicalToDataType(type)));
+    protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(ISerializationConverter<FieldNamedPreparedStatement> serializationConverter, LogicalType type) {
+        final int sqlType = JdbcTypeUtil.typeInformationToSqlType(TypeConversions.fromDataTypeToLegacyInfo(TypeConversions.fromLogicalToDataType(type)));
         return (val, index, statement) -> {
-            if (val == null
-                    || val.isNullAt(index)
-                    || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
+            if (val == null || val.isNullAt(index) || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
                 statement.setNull(index, sqlType);
             } else {
                 serializationConverter.serialize(val, index, statement);

@@ -17,12 +17,8 @@
  */
 package com.dtstack.flinkx.connector.kingbase.sink;
 
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRawTypeConverter;
-import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -36,18 +32,6 @@ import java.util.List;
  */
 public class KingbaseOutputFormat extends JdbcOutputFormat {
 
-    protected static final long serialVersionUID = 2L;
-
-
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) {
-        super.openInternal(taskNumber, numTasks);
-        // create row converter
-        RowType rowType =
-                TableUtil.createRowType(columnNameList, columnTypeList, KingbaseRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-    }
-
     /**
      * override reason: The Kingbase meta-database is case sensitive。
      * If you use a lowercase table name, it will not be able to query the table metadata.
@@ -55,8 +39,6 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
      */
     @Override
     protected Pair<List<String>, List<String>> getTableMetaData() {
-        return JdbcUtil.getTableMetaData(
-                StringUtils.upperCase(jdbcConf.getSchema()),
-                StringUtils.upperCase(jdbcConf.getTable()), dbConn);
+        return JdbcUtil.getTableMetaData(StringUtils.upperCase(jdbcConf.getSchema()), StringUtils.upperCase(jdbcConf.getTable()), dbConn);
     }
 }

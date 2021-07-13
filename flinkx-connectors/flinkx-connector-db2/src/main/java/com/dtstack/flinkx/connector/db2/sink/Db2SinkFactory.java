@@ -18,11 +18,9 @@
 package com.dtstack.flinkx.connector.db2.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.db2.Db2Dialect;
-import com.dtstack.flinkx.connector.db2.converter.Db2RawTypeConverter;
+import com.dtstack.flinkx.connector.db2.dialect.Db2Dialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.converter.RawTypeConverter;
 
 /**
  * Company: www.dtstack.com
@@ -33,17 +31,11 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 public class Db2SinkFactory extends JdbcSinkFactory {
 
     public Db2SinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        super.jdbcDialect = new Db2Dialect();
+        super(syncConf, new Db2Dialect());
     }
 
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
         return new JdbcOutputFormatBuilder(new Db2OutputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return Db2RawTypeConverter::apply;
     }
 }

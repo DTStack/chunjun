@@ -38,5 +38,4 @@ public class TidbSinkFactory extends MysqlSinkFactory {
     protected JdbcOutputFormatBuilder getBuilder() {
         return new JdbcOutputFormatBuilder(new TidbOutputFormat());
     }
-
 }

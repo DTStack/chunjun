@@ -27,5 +27,4 @@ import com.dtstack.flinkx.connector.mysql.sink.MysqlOutputFormat;
  * @date 2021/6/22 15:34
  */
 public class TidbOutputFormat extends MysqlOutputFormat {
-
 }

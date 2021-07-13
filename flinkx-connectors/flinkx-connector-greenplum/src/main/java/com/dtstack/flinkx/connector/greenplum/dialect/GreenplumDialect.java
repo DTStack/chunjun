@@ -16,9 +16,11 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.greenplum;
+package com.dtstack.flinkx.connector.greenplum.dialect;
 
-import com.dtstack.flinkx.connector.postgresql.PostgresqlDialect;
+import com.dtstack.flinkx.connector.greenplum.converter.GreenplumRawTypeConverter;
+import com.dtstack.flinkx.connector.postgresql.dialect.PostgresqlDialect;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 
 import java.util.Optional;
 
@@ -41,6 +43,11 @@ public class GreenplumDialect extends PostgresqlDialect {
     @Override
     public boolean canHandle(String url) {
         return url.startsWith(URL_START);
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return GreenplumRawTypeConverter::apply;
     }
 
     @Override

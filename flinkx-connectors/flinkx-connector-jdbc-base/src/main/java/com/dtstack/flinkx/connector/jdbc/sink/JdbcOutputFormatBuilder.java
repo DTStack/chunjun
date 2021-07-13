@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;

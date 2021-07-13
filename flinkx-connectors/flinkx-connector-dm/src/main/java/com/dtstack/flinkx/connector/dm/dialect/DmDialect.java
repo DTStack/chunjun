@@ -16,18 +16,22 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.dm;
+package com.dtstack.flinkx.connector.dm.dialect;
 
-import com.dtstack.flinkx.connector.dm.converter.DmColumnConverter;
-import com.dtstack.flinkx.connector.dm.converter.DmRowConverter;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import io.vertx.core.json.JsonArray;
-import org.apache.commons.lang3.StringUtils;
-
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.connector.dm.converter.DmColumnConverter;
+import com.dtstack.flinkx.connector.dm.converter.DmRawTypeConverter;
+import com.dtstack.flinkx.connector.dm.converter.DmRowConverter;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
+import io.vertx.core.json.JsonArray;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.ResultSet;
 import java.util.Arrays;
@@ -48,6 +52,11 @@ public class DmDialect implements JdbcDialect {
     @Override
     public boolean canHandle(String url) {
         return url != null && url.startsWith("jdbc:dm");
+    }
+
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return DmRawTypeConverter::apply;
     }
 
     @Override
@@ -160,20 +169,17 @@ public class DmDialect implements JdbcDialect {
     }
 
     @Override
-    public Optional<String> getReplaceStatement(
-            String schema, String tableName, String[] fieldNames) {
-        throw new RuntimeException("dm does not support replace sql");
+    public Optional<String> getReplaceStatement(String schema, String tableName, String[] fieldNames) {
+        throw new FlinkxRuntimeException("dm does not support replace sql");
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(
-            RowType rowType) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(RowType rowType) {
         return new DmRowConverter(rowType);
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(
-            RowType rowType) {
-        return new DmColumnConverter(rowType);
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        return new DmColumnConverter(rowType, commonConf);
     }
 }
