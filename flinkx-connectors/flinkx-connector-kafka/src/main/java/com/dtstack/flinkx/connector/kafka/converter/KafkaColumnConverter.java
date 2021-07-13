@@ -19,8 +19,6 @@
 package com.dtstack.flinkx.connector.kafka.converter;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -37,6 +35,8 @@ import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.CollectionUtil;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
