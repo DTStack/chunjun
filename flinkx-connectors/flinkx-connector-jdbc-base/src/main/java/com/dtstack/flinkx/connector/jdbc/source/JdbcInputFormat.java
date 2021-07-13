@@ -750,18 +750,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         return true;
     }
 
-
-    /* 是否添加自定义函数column 作为分片key ***/
-    protected boolean addRowNumColumn(String splitKey){
-        return splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
-    }
-
-    /** 获取分片key rownum **/
-    protected String getRowNumColumn(String splitKey){
-        String orderBy = splitKey.substring(splitKey.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL)+1, splitKey.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL));
-        return jdbcDialect.getRowNumColumn(orderBy);
-    }
-
     public JdbcConf getJdbcConf() {
         return jdbcConf;
     }
