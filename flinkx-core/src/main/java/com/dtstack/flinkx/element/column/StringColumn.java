@@ -67,7 +67,7 @@ public class StringColumn extends AbstractBaseColumn {
         try {
             //如果string是时间戳
             time = NumberUtils.createLong(data);
-        } catch (UnsupportedOperationException ignored) {
+        } catch (Exception ignored) {
             //doNothing
         }
         SimpleDateFormat formatter = DateUtil.buildDateFormatter(format);

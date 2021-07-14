@@ -22,7 +22,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.enums.ECacheContentType;
@@ -34,7 +34,6 @@ import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.throwable.NoRestartException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ThreadUtil;
-import com.google.common.collect.Lists;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonArray;
@@ -53,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -80,9 +80,11 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcLruTableFunction.class);
     /** when network is unhealthy block query */
-    private AtomicBoolean connectionStatus = new AtomicBoolean(true);
+    private final AtomicBoolean connectionStatus = new AtomicBoolean(true);
     /** query data thread */
     private transient ThreadPoolExecutor executor;
+    /** vertx */
+    private transient Vertx vertx;
     /** rdb client */
     private transient SQLClient rdbSqlClient;
     /** select sql */
@@ -129,7 +131,8 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 .setWorkerPoolSize(asyncPoolSize)
                 .setFileResolverCachingEnabled(false);
 
-        this.rdbSqlClient = JDBCClient.createNonShared(Vertx.vertx(vertxOptions), jdbcConfig);
+        this.vertx = Vertx.vertx(vertxOptions);
+        this.rdbSqlClient = JDBCClient.createNonShared(vertx, jdbcConfig);
 
         executor = new ThreadPoolExecutor(
                 MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
@@ -332,7 +335,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
                     for (JsonArray line : rs.result().getResults()) {
                         try {
-                            RowData row = fillData(line);
+                            RowData row = rowConverter.toInternalLookup(line);
                             if (openCache()) {
                                 cacheContent.add(line);
                             }
@@ -361,12 +364,6 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    protected RowData fillData(
-            Object sideInput) throws Exception {
-        return rowConverter.toInternalLookup(sideInput);
-    }
-
-    @Override
     public void close() throws Exception {
         super.close();
         if (rdbSqlClient != null) {
@@ -376,7 +373,14 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         if (executor != null) {
             executor.shutdown();
         }
-
+        // 关闭异步连接vertx事件循环线程，因为vertx使用的是非守护线程
+        if (Objects.nonNull(vertx)) {
+            vertx.close(done -> {
+                if (done.failed()) {
+                    LOG.error("vert.x close error. cause by {}", done.cause().getMessage());
+                }
+            });
+        }
     }
 
     /**

@@ -21,6 +21,7 @@ package com.dtstack.flinkx.util;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.flink.table.data.GenericRowData;
@@ -47,6 +48,8 @@ import java.util.regex.Pattern;
 public class StringUtil {
 
     public static final int STEP_SIZE = 2;
+
+    public final static char[] hexChars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     /**
      * Handle the escaped escape charactor.
@@ -232,6 +235,21 @@ public class StringUtil {
         return sb.toString();
     }
 
+    /**
+     * 16进制数组 转为hex字符串
+     * @param b
+     * @return
+     */
+    public static String bytesToHexString(byte[] b) {
+        StringBuilder sb = new StringBuilder(b.length * 2);
+        for (byte value : b) {
+            int hexVal = value & 0xFF;
+            sb.append(hexChars[(hexVal & 0xF0) >> 4]);
+            sb.append(hexChars[(hexVal & 0x0F)]);
+        }
+        return sb.toString();
+    }
+
     public static byte[] hexStringToByteArray(String hexString) {
         if (hexString == null) {
             return null;
@@ -323,8 +341,8 @@ public class StringUtil {
                 default: return location;
             }
         }catch (ParseException e){
-            String message = String.format("cannot transform 【%s】to 【%s】, e = %s", location, type, ExceptionUtil.getErrorMessage(e));
-            throw new RuntimeException(message);
+            String message = String.format("cannot transform 【%s】to 【%s】", location, type);
+            throw new FlinkxRuntimeException(message, e);
         }
     }
 
@@ -358,5 +376,23 @@ public class StringUtil {
             stringBuffer.append(new String(byt, 0, i));
         }
         return stringBuffer.toString();
+    }
+
+    /**
+     * 转义正则特殊字符 （$()*+.[]?\^{},|）
+     *
+     * @param keyword 需要转义特殊字符串的文本
+     * @return 特殊字符串转义后的文本
+     */
+    public static String escapeExprSpecialWord(String keyword) {
+        if (StringUtils.isNotBlank(keyword)) {
+            String[] fbsArr = {"\\", "$", "(", ")", "*", "+", ".", "[", "]", "?", "^", "{", "}", "|"};
+            for (String key : fbsArr) {
+                if (keyword.contains(key)) {
+                    keyword = keyword.replace(key, "\\" + key);
+                }
+            }
+        }
+        return keyword;
     }
 }

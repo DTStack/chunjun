@@ -59,10 +59,9 @@ public class StreamSinkFactory extends SinkFactory {
         builder.setStreamConf(streamConf);
         AbstractRowConverter converter;
         if (useAbstractBaseColumn) {
-            converter = new StreamColumnConverter();
+            converter = new StreamColumnConverter(streamConf);
         } else {
-            final RowType rowType =
-                    TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());
+            final RowType rowType = TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());
             converter = new StreamRowConverter(rowType);
         }
 

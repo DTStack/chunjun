@@ -70,6 +70,7 @@ public class KafkaSourceFactory extends SourceFactory {
         KafkaConsumer consumer = new KafkaConsumer(
                 Lists.newArrayList(kafkaConf.getTopic()),
                 new RowDeserializationSchema(
+                        kafkaConf,
                         new KafkaColumnConverter(kafkaConf),
                         (Calculate & Serializable) (subscriptionState, tp) ->
                                 subscriptionState.partitionLag(

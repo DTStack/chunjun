@@ -242,7 +242,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         updateDuration();
         numWriteCounter.add(size);
         bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
-        if(!checkpointEnabled){
+        if(checkpointEnabled){
             snapshotWriteCounter.add(size);
         }
     }
@@ -251,46 +251,82 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     public synchronized void close() throws IOException {
         LOG.info("taskNumber[{}] close()", taskNumber);
 
-        try {
-            if (closed) {
-                return;
-            }
-            if (this.scheduledFuture != null) {
-                scheduledFuture.cancel(false);
-                this.scheduler.shutdown();
-            }
-            // when exist data
-            int size = rows.size();
-            if (size != 0) {
+        if (closed) {
+            return;
+        }
+
+        Exception closeException = null;
+
+        // when exist data
+        int size = rows.size();
+        if (size != 0) {
+            try {
                 writeRecordInternal();
                 numWriteCounter.add(size);
+            } catch (Exception e) {
+                closeException = e;
+            }
+        }
+
+        if (this.scheduledFuture != null) {
+            scheduledFuture.cancel(false);
+            this.scheduler.shutdown();
+        }
+
+        try {
+            closeInternal();
+        } catch (Exception e) {
+            LOG.warn("closeInternal() Exception:{}", ExceptionUtil.getErrorMessage(e));
+        }
+
+        updateDuration();
+
+        if (outputMetric != null) {
+            outputMetric.waitForReportMetrics();
+        }
+
+        if (dirtyDataManager != null) {
+            try {
+                dirtyDataManager.close();
+            } catch (Exception e) {
+                LOG.error("dirtyDataManager.close() Exception:{}", ExceptionUtil.getErrorMessage(e));
+            }
+        }
+
+        if (errorLimiter != null) {
+            try {
+                errorLimiter.updateErrorInfo();
+            } catch (Exception e) {
+                LOG.warn("errorLimiter.updateErrorInfo() Exception:{}", ExceptionUtil.getErrorMessage(e));
             }
 
-            if (durationCounter != null) {
-                updateDuration();
-            }
-            this.closed = true;
-        } finally {
             try {
-                closeInternal();
-                if (outputMetric != null) {
-                    outputMetric.waitForReportMetrics();
+                errorLimiter.checkErrorLimit();
+            } catch (Exception e) {
+                LOG.error("errorLimiter.checkErrorLimit() Exception:{}", ExceptionUtil.getErrorMessage(e));
+                if (closeException != null) {
+                    closeException.addSuppressed(e);
+                } else {
+                    closeException = e;
                 }
             } finally {
-                if (dirtyDataManager != null) {
-                    dirtyDataManager.close();
-                }
-
-                if (errorLimiter != null) {
-                    errorLimiter.updateErrorInfo();
-                    errorLimiter.checkErrorLimit();
-                }
                 if (accumulatorCollector != null) {
                     accumulatorCollector.close();
+                    accumulatorCollector = null;
                 }
             }
-            LOG.info("subtask[{}}] close() finished", taskNumber);
         }
+
+        if (accumulatorCollector != null) {
+            accumulatorCollector.close();
+        }
+
+        if (closeException != null) {
+            throw new RuntimeException(closeException);
+        }
+
+        LOG.info("subtask[{}}] close() finished", taskNumber);
+        this.closed = true;
     }
 
     @Override
@@ -340,7 +376,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 errorRatio = (double) config.getErrorPercentage();
             }
             errorLimiter = new ErrorLimiter(accumulatorCollector, config.getErrorRecord(), errorRatio);
-            LOG.info("init dirtyDataManager: {}", this.errorLimiter);
         }
     }
 
@@ -372,8 +407,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             conversionErrCounter.add(formatState.getMetricValue(Metrics.NUM_CONVERSION_ERRORS));
             otherErrCounter.add(formatState.getMetricValue(Metrics.NUM_OTHER_ERRORS));
 
-            //use snapshot write count
-            numWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
+            numWriteCounter.add(formatState.getMetricValue(Metrics.NUM_WRITES));
 
             snapshotWriteCounter.add(formatState.getMetricValue(Metrics.SNAPSHOT_WRITES));
             bytesWriteCounter.add(formatState.getMetricValue(Metrics.WRITE_BYTES));
@@ -400,7 +434,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                             numWriteCounter.add(size);
                         }
                     } catch (Exception e) {
-                        LOG.error("Writing records failed. {}", e.getMessage());
+                        LOG.error("Writing records failed. {}", ExceptionUtil.getErrorMessage(e));
                     }
                 }
             }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
@@ -523,7 +557,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             }
         }
         //set metric after preCommit
-        formatState.setNumberWrite(snapshotWriteCounter.getLocalValue());
+        formatState.setNumberWrite(numWriteCounter.getLocalValue());
         formatState.setMetric(outputMetric.getMetricCounters());
         LOG.info("format state:{}", formatState.getState());
         return formatState;

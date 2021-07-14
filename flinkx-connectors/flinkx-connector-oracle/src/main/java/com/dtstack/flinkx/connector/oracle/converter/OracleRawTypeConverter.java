@@ -65,6 +65,7 @@ public class OracleRawTypeConverter {
             case "NVARCHAR2":
                 return DataTypes.STRING();
             case "CLOB":
+            case "NCLOB":
                 return new AtomicDataType(new ClobType(true, LogicalTypeRoot.VARCHAR));
 //            case "XMLTYPE":
             case "INT":

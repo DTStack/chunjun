@@ -1,0 +1,98 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "essource",
+          "parameter": {
+            "hosts": ["localhost:9200"],
+            "index": "mowen",
+            "type": "_doc",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "phone",
+                "type": "bigint"
+              },
+              {
+                "name": "qq",
+                "type": "varchar"
+              },
+              {
+                "name": "wechat",
+                "type": "varchar"
+              },
+              {
+                "name": "income",
+                "type": "decimal"
+              },
+              {
+                "name": "birthday",
+                "type": "timestamp"
+              },
+              {
+                "name": "today",
+                "type": "date"
+              },
+              {
+                "name": "timecurrent",
+                "type": "time"
+              }
+            ]
+          }
+        },
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "phone",
+                "type": "bigint"
+              },
+              {
+                "name": "qq",
+                "type": "varchar"
+              },
+              {
+                "name": "wechat",
+                "type": "varchar"
+              },
+              {
+                "name": "income",
+                "type": "decimal"
+              },
+              {
+                "name": "birthday",
+                "type": "timestamp"
+              },
+              {
+                "name": "today",
+                "type": "date"
+              },
+              {
+                "name": "timecurrent",
+                "type": "time"
+              }
+            ],
+            "hosts": ["localhost:9200"],
+            "index": "mowen_target3",
+            "type": "_doc"
+          },
+          "name": "essink"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

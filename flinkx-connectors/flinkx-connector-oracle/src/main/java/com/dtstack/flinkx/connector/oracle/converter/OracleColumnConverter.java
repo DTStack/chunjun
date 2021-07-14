@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.oracle.converter;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -51,11 +53,10 @@ import java.time.LocalTime;
  *
  * @author jier
  */
-public class OracleColumnConverter
-        extends JdbcColumnConverter {
+public class OracleColumnConverter extends JdbcColumnConverter {
 
-    public OracleColumnConverter(RowType rowType) {
-        super(rowType);
+    public OracleColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     @Override

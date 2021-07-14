@@ -18,11 +18,8 @@
 package com.dtstack.flinkx.connector.oracle.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.connector.oracle.OracleDialect;
-import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
-import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.connector.oracle.dialect.OracleDialect;
 
 /**
  * company www.dtstack.com
@@ -32,17 +29,6 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 public class OracleSinkFactory extends JdbcSinkFactory {
 
     public OracleSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        super.jdbcDialect = new OracleDialect();
-    }
-
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new OracleOutputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return OracleRawTypeConverter::apply;
+        super(syncConf, new OracleDialect());
     }
 }

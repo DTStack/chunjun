@@ -22,9 +22,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.flinkx.connector.kingbase.KingbaseDialect;
-import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRawTypeConverter;
-import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.connector.kingbase.dialect.KingbaseDialect;
 
 /**
  * @description:
@@ -35,17 +33,11 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 public class KingbaseSourceFactory extends JdbcSourceFactory {
 
     public KingbaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        super.jdbcDialect = new KingbaseDialect();
+        super(syncConf, env, new KingbaseDialect());
     }
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new KingbaseInputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return KingbaseRawTypeConverter::apply;
     }
 }

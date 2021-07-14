@@ -43,6 +43,7 @@ public class SyncConf implements Serializable {
     private String pluginRoot;
     /** FlinkX运行时服务器上的远程端插件包路径 */
     private String remotePluginPath;
+    private String restorePath;
 
     /**
      * 解析job字符串
@@ -177,12 +178,25 @@ public class SyncConf implements Serializable {
         this.remotePluginPath = remotePluginPath;
     }
 
+    public String getRestorePath() {
+        return restorePath;
+    }
+
+    public void setRestorePath(String restorePath) {
+        this.restorePath = restorePath;
+    }
+
+    public MetricPluginConf getMetricPluginConf() {
+        return job.getSetting().getMetricPluginConf();
+    }
+
     @Override
     public String toString() {
         return "FlinkxConf{" +
                 "job=" + job +
                 ", pluginRoot='" + pluginRoot + '\'' +
                 ", remotePluginPath='" + remotePluginPath + '\'' +
+                ", restorePath='" + restorePath + '\'' +
                 '}';
     }
 
@@ -194,6 +208,7 @@ public class SyncConf implements Serializable {
         return "FlinkxConf{" +
                 ", pluginRoot='" + pluginRoot + '\'' +
                 ", remotePluginPath='" + remotePluginPath + '\'' +
+                ", restorePath='" + restorePath + '\'' +
                 '}';
     }
 }
