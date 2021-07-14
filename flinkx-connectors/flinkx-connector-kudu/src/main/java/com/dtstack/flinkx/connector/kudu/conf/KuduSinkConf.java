@@ -23,6 +23,8 @@ import org.apache.flink.configuration.ReadableConfig;
 import com.dtstack.flinkx.sink.WriteMode;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.Locale;
+
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.FLUSH_INTERVAL;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.FLUSH_MODE;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.IGNORE_DUPLICATE;
@@ -62,7 +64,7 @@ public class KuduSinkConf extends KuduCommonConf {
     }
 
     public void setWriteMode(String writeMode) {
-        switch (writeMode) {
+        switch (writeMode.toLowerCase(Locale.ENGLISH)) {
             case "insert":
                 this.writeMode = WriteMode.INSERT;
             case "update":
