@@ -17,10 +17,6 @@
  */
 package com.dtstack.flinkx.connector.hive.sink;
 
-import org.apache.flink.streaming.api.CheckpointingMode;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.RowKind;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsRawTypeConverter;
@@ -42,10 +38,14 @@ import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.flink.streaming.api.CheckpointingMode;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -125,7 +125,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             AbstractBaseColumn baseColumn = (columnRowData).getField(0);
             if(baseColumn instanceof MapColumn){
                 //from kafka
-                dataMap = GsonUtil.GSON.fromJson(baseColumn.asString(), GsonUtil.gsonMapTypeToken);
+                dataMap = JsonUtil.toObject(baseColumn.asString(), JsonUtil.MAP_TYPE_REFERENCE);
                 if(hasAnalyticalRules){
                     tableName = PathConverterUtil.regexByRules(dataMap, hiveConf.getAnalyticalRules(), hiveConf.getDistributeTableMapping());
                 }

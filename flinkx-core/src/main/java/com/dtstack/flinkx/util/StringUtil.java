@@ -18,19 +18,16 @@
 
 package com.dtstack.flinkx.util;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -103,6 +100,7 @@ public class StringUtil {
                 break;
             case MEDIUMINT:
             case BIGINT:
+            case LONG:
                 ret = Long.valueOf(str.trim());
                 break;
             case FLOAT:

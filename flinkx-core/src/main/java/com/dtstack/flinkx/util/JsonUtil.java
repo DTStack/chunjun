@@ -17,8 +17,10 @@
  */
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.DeserializationFeature;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.MapperFeature;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +44,7 @@ public class JsonUtil {
             .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
+    public static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<Map<String, Object>>() {};
 
     /**
      * json反序列化成实体对象
@@ -54,7 +57,22 @@ public class JsonUtil {
         try {
             return objectMapper.readValue(jsonStr, clazz);
         }catch (IOException e){
-            throw new RuntimeException("error parse [" + jsonStr + "] to [" + clazz.getName() + "]", e);
+            throw new FlinkxRuntimeException("error parse [" + jsonStr + "] to [" + clazz.getName() + "]", e);
+        }
+    }
+
+    /**
+     * json反序列化成实体对象
+     * @param jsonStr   json字符串
+     * @param clazz     实体类class
+     * @param <T>       泛型
+     * @return          实体对象
+     */
+    public static <T> T toObject(String jsonStr, TypeReference<T> valueTypeRef) {
+        try {
+            return objectMapper.readValue(jsonStr, valueTypeRef);
+        }catch (IOException e){
+            throw new FlinkxRuntimeException("error parse [" + jsonStr + "] to [" + valueTypeRef.getType().getTypeName() + "]", e);
         }
     }
 

@@ -21,7 +21,7 @@ package com.dtstack.flinkx.exec;
 import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.enums.EPluginLoadMode;
 import com.dtstack.flinkx.util.SampleUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.Charsets;

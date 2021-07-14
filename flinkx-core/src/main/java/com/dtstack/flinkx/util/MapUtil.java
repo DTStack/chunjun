@@ -1,10 +1,7 @@
 package com.dtstack.flinkx.util;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.internal.LinkedHashTreeMap;
 import com.google.gson.internal.LinkedTreeMap;
 
@@ -25,7 +22,7 @@ import java.util.Map;
 public class MapUtil {
 
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * convert LinkedTreeMap or LinkedHashTreeMap Map to HashMap,for LinkedTreeMap,LinkedHashTreeMap can not serialize
@@ -55,7 +52,7 @@ public class MapUtil {
         return objectMapper.readValue(objectMapper.writeValueAsBytes(obj), Map.class);
     }
 
-    public static <T> T jsonStrToObject(String jsonStr, Class<T> clazz) throws JsonParseException, JsonMappingException, JsonGenerationException, IOException {
+    public static <T> T jsonStrToObject(String jsonStr, Class<T> clazz) throws IOException {
         return  objectMapper.readValue(jsonStr, clazz);
     }
 
@@ -63,7 +60,7 @@ public class MapUtil {
         return objectMapper.writeValueAsString(obj);
     }
 
-    public static void replaceAllElement(Map<String, Object> map, final List<String> keys, final Object value) throws JsonProcessingException {
+    public static void replaceAllElement(Map<String, Object> map, final List<String> keys, final Object value) {
         Iterator<Map.Entry<String, Object>> entries = map.entrySet().iterator();
         while (entries.hasNext()) {
             Map.Entry<String, Object> entry = entries.next();

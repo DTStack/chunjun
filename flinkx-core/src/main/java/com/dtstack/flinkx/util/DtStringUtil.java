@@ -19,7 +19,7 @@
 
 package com.dtstack.flinkx.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
@@ -302,7 +302,7 @@ public class DtStringUtil {
             isFirst = false;
         }
 
-        return preStr + "?" + sb.toString();
+        return preStr + "?" + sb;
     }
 
     public static boolean isJson(String str) {
