@@ -94,7 +94,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     }
 
     @Override
-    public InputSplit[] createHdfsSplit(int minNumSplits) throws IOException {
+    public InputSplit[] createHdfsSplit(int minNumSplits) {
         List<String> allFilePaths;
         HdfsPathFilter pathFilter = new HdfsPathFilter(hdfsConf.getFilterRegex());
 
@@ -135,8 +135,23 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         currentSplitFilePaths = ((HdfsParquetSplit)inputSplit).getPaths();
     }
 
-    private boolean nextLine() throws IOException{
-        if (currentFileReader == null && currentFileIndex <= currentSplitFilePaths.size()-1){
+    private void getNextLine() throws IOException {
+        if (currentFileReader != null) {
+            if (openKerberos) {
+                currentLine = nextLineWithKerberos();
+            } else {
+                currentLine = currentFileReader.read();
+            }
+        }
+    }
+
+    private boolean nextLine() throws IOException {
+        getNextLine();
+        if (currentLine != null) {
+            setMetaColumns();
+            return true;
+        }
+        for (; currentFileIndex <= currentSplitFilePaths.size() - 1; ) {
             if (openKerberos) {
                 ugi.doAs((PrivilegedAction<Object>) () -> {
                     try {
@@ -149,25 +164,17 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
             } else {
                 nextFile();
             }
+            getNextLine();
+            if (currentLine != null) {
+                setMetaColumns();
+                return true;
+            }
         }
+        return false;
+    }
 
-        if (currentFileReader == null){
-            return false;
-        }
-
-        if (openKerberos) {
-            currentLine = ugi.doAs((PrivilegedAction<Group>) () -> {
-                try {
-                    return currentFileReader.read();
-                } catch (IOException e) {
-                    throw new FlinkxRuntimeException(e);
-                }
-            });
-        } else {
-            currentLine = currentFileReader.read();
-        }
-
-        if (fullColNames == null && currentLine != null){
+    private void setMetaColumns() {
+        if (fullColNames == null && currentLine != null) {
             fullColNames = new ArrayList<>();
             fullColTypes = new ArrayList<>();
             List<Type> types = currentLine.getType().getFields();
@@ -178,9 +185,9 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
 
             for (FieldConf fieldConf : hdfsConf.getColumn()) {
                 String name = fieldConf.getName();
-                if(StringUtils.isNotBlank(name)){
+                if (StringUtils.isNotBlank(name)) {
                     name = name.toUpperCase();
-                    if(fullColNames.contains(name)){
+                    if (fullColNames.contains(name)) {
                         fieldConf.setIndex(fullColNames.indexOf(name));
                     } else {
                         fieldConf.setIndex(-1);
@@ -188,13 +195,16 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 }
             }
         }
+    }
 
-        if (currentLine == null){
-            currentFileReader = null;
-            nextLine();
-        }
-
-        return currentLine != null;
+    private Group nextLineWithKerberos() {
+        return ugi.doAs((PrivilegedAction<Group>) () -> {
+            try {
+                return currentFileReader.read();
+            } catch (IOException e) {
+                throw new FlinkxRuntimeException(e);
+            }
+        });
     }
 
     /**
