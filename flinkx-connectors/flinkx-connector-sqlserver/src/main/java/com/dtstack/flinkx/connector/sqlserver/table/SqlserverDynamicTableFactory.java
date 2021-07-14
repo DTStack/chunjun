@@ -18,11 +18,11 @@
 
 package com.dtstack.flinkx.connector.sqlserver.table;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
-import com.dtstack.flinkx.connector.sqlserver.SqlserverDialect;
+import com.dtstack.flinkx.connector.sqlserver.dialect.SqlserverDialect;
 import com.dtstack.flinkx.connector.sqlserver.sink.SqlserverOutputFormat;
 import com.dtstack.flinkx.connector.sqlserver.source.SqlserverInputFormat;
 

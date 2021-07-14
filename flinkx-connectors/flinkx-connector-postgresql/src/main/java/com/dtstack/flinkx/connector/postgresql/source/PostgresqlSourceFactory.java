@@ -18,16 +18,11 @@
 
 package com.dtstack.flinkx.connector.postgresql.source;
 
-import com.dtstack.flinkx.connector.postgresql.converter.PostgresqlRawTypeConverter;
-import com.dtstack.flinkx.converter.RawTypeConverter;
-
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.flinkx.connector.postgresql.PostgresqlDialect;
-import org.apache.commons.lang3.StringUtils;
+import com.dtstack.flinkx.connector.postgresql.dialect.PostgresqlDialect;
 
 /**
  * Starting with Postgresql that is for compatible with 1.10 API.
@@ -38,17 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 public class PostgresqlSourceFactory extends JdbcSourceFactory {
 
     public PostgresqlSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        super.jdbcDialect = new PostgresqlDialect();
-    }
-
-    @Override
-    protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new PostgresqlInputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return PostgresqlRawTypeConverter::apply;
+        super(syncConf, env,  new PostgresqlDialect());
     }
 }

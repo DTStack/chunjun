@@ -18,8 +18,8 @@
 
 package com.dtstack.flinkx.connector.greenplum.table;
 
-import com.dtstack.flinkx.connector.greenplum.GreenplumDialect;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.greenplum.dialect.GreenplumDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 
 /**

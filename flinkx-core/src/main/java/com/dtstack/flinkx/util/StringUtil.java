@@ -24,13 +24,12 @@ import org.apache.flink.table.data.RowData;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -342,8 +341,8 @@ public class StringUtil {
                 default: return location;
             }
         }catch (ParseException e){
-            String message = String.format("cannot transform 【%s】to 【%s】, e = %s", location, type, ExceptionUtil.getErrorMessage(e));
-            throw new RuntimeException(message);
+            String message = String.format("cannot transform 【%s】to 【%s】", location, type);
+            throw new FlinkxRuntimeException(message, e);
         }
     }
 

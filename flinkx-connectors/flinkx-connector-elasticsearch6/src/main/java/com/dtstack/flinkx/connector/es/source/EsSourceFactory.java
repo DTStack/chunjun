@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.es.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
@@ -31,6 +33,8 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
+
+import java.util.List;
 
 /**
  * @description:
@@ -47,8 +51,15 @@ public class EsSourceFactory extends SourceFactory {
         elasticsearchConf =
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getReader().getParameter()), EsConf.class);
-        elasticsearchConf.setColumn(syncConf.getReader().getFieldList());
+        List<FieldConf> fieldList = syncConf.getReader().getFieldList();
+        String[] fieldNames = new String[fieldList.size()];
+        for (int i = 0; i < fieldList.size() ; i++) {
+            fieldNames[i] = fieldList.get(i).getName();
+        }
+
         super.initFlinkxCommonConf(elasticsearchConf);
+        elasticsearchConf.setColumn(fieldList);
+        elasticsearchConf.setFieldNames(fieldNames);
         elasticsearchConf.setParallelism(1);
     }
 

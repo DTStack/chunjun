@@ -18,8 +18,8 @@
 
 package com.dtstack.flinkx.connector.gbase.table;
 
-import com.dtstack.flinkx.connector.gbase.GBaseDialect;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.gbase.dialect.GBaseDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 
 /**

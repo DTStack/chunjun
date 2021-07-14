@@ -138,13 +138,6 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         initStatisticsAccumulator();
         initRestoreInfo();
         openInputFormat();
-
-        LOG.info(
-                "[{}] open successfully, \ninputSplit = {}, \n[{}]: \n{} ",
-                this.getClass().getSimpleName(),
-                "see other log",
-                consumerConfig.getClass().getSimpleName(),
-                JsonUtil.toFormatJson(consumerConfig));
     }
 
     @Override
@@ -154,6 +147,12 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             keyDeserialization.open(context);
         }
         valueDeserialization.open(context);
+        LOG.info(
+                "[{}] open successfully, \ninputSplit = {}, \n[{}]: \n{} ",
+                this.getClass().getSimpleName(),
+                "see other log",
+                consumerConfig.getClass().getSimpleName(),
+                JsonUtil.toFormatJson(consumerConfig));
     }
 
     @Override

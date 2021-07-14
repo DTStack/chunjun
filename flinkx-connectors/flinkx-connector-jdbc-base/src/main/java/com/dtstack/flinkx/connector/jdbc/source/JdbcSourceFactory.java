@@ -25,24 +25,21 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
-import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -63,13 +60,10 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     private static final int DEFAULT_FETCH_SIZE = 1024;
     private static final int DEFAULT_QUERY_TIMEOUT = 300;
 
-    public JdbcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public JdbcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
         super(syncConf, env);
-        Gson gson =
-                new GsonBuilder()
-                        .registerTypeAdapter(
-                                ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf"))
-                        .create();
+        this.jdbcDialect = jdbcDialect;
+        Gson gson = new GsonBuilder().registerTypeAdapter(ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf")).create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), JdbcConf.class);
         jdbcConf.setColumn(syncConf.getReader().getFieldList());
@@ -104,26 +98,11 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
-        builder.setNumPartitions(jdbcConf.getParallelism());
 
         AbstractRowConverter rowConverter = null;
-        // 同步任务使用transform。不支持*、不支持常量、不支持format、必须是flinksql支持的类型
-        // 常量和format都可以在transform中做。
         if (!useAbstractBaseColumn) {
-            List<FieldConf> fieldList = jdbcConf.getColumn();
-            if(fieldList.size() == 1 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())){
-                Preconditions.checkArgument(false, "in transformer mode : not support '*' in column.");
-            }
-            jdbcConf.getColumn().stream().forEach(x->{
-                if(StringUtils.isNotBlank(x.getValue())){
-                    Preconditions.checkArgument(false, "in transformer mode : not support default value,you can set value in transformer");
-                }
-                if(StringUtils.isNotBlank(x.getFormat())){
-                    Preconditions.checkArgument(false, "in transformer mode : not support default format,you can set format in transformer");
-                }
-            });
-
-            final RowType rowType = TableUtil.createRowType(fieldList, getRawTypeConverter());
+            checkConstant(jdbcConf);
+            final RowType rowType = TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
             rowConverter = jdbcDialect.getRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);
@@ -136,7 +115,9 @@ public abstract class JdbcSourceFactory extends SourceFactory {
      *
      * @return JdbcInputFormatBuilder
      */
-    protected abstract JdbcInputFormatBuilder getBuilder();
+    protected JdbcInputFormatBuilder getBuilder(){
+        return new JdbcInputFormatBuilder(new JdbcInputFormat());
+    }
 
     /**
      * 初始化增量或间隔轮询任务配置
@@ -157,7 +138,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
             if (NumberUtils.isNumber(increColumn)) {
                 int idx = Integer.parseInt(increColumn);
                 if (idx > fieldConfList.size() - 1) {
-                    throw new RuntimeException(
+                    throw new FlinkxRuntimeException(
                             String.format(
                                     "config error : incrementColumn must less than column.size() when increColumn is number, column = %s, size = %s, increColumn = %s",
                                     GsonUtil.GSON.toJson(fieldConfList),
@@ -179,15 +160,17 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                 }
             }
             if (type == null || name == null) {
-                throw new IllegalArgumentException(
-                        String.format(
-                                "config error : increColumn's name or type is null, column = %s, increColumn = %s",
-                                GsonUtil.GSON.toJson(fieldConfList), increColumn));
+                throw new IllegalArgumentException(String.format("config error : increColumn's name or type is null, column = %s, increColumn = %s", GsonUtil.GSON.toJson(fieldConfList), increColumn));
             }
 
             jdbcConf.setIncrement(true);
+            jdbcConf.setIncreColumn(name);
             jdbcConf.setIncreColumnType(type);
             jdbcConf.setIncreColumnIndex(index);
+
+            jdbcConf.setRestoreColumn(name);
+            jdbcConf.setRestoreColumnType(type);
+            jdbcConf.setRestoreColumnIndex(index);
         }
     }
 
@@ -195,7 +178,10 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         return DEFAULT_FETCH_SIZE;
     }
 
-
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return jdbcDialect.getRawTypeConverter();
+    }
 
     /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
     protected void resetTableInfo(){

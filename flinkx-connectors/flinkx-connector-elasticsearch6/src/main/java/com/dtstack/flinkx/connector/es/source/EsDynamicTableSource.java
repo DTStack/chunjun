@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.es.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -41,6 +43,9 @@ import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunc
 import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @description:
@@ -83,6 +88,8 @@ public class EsDynamicTableSource implements ScanTableSource, LookupTableSource,
 
         EsInputFormatBuilder builder = new EsInputFormatBuilder();
         builder.setRowConverter(new EsRowConverter(rowType));
+        String[] fieldNames = physicalSchema.getFieldNames();
+        elasticsearchConf.setFieldNames(fieldNames);
         builder.setEsConf(elasticsearchConf);
 
         return ParallelSourceFunctionProvider.of(

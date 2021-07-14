@@ -303,4 +303,32 @@ public class Options {
         this.jobType = jobType;
     }
 
+    @Override
+    public String toString() {
+        return "Options{" +
+                "jobType='" + jobType + '\'' +
+                ", mode='" + mode + '\'' +
+                ", job='" + job + '\'' +
+                ", jobName='" + jobName + '\'' +
+                ", flinkconf='" + flinkconf + '\'' +
+                ", pluginRoot='" + pluginRoot + '\'' +
+                ", yarnconf='" + yarnconf + '\'' +
+                ", parallelism='" + parallelism + '\'' +
+                ", priority='" + priority + '\'' +
+                ", queue='" + queue + '\'' +
+                ", flinkLibJar='" + flinkLibJar + '\'' +
+                ", confProp='" + confProp + '\'' +
+                ", s='" + s + '\'' +
+                ", pluginLoadMode='" + pluginLoadMode + '\'' +
+                ", krb5conf='" + krb5conf + '\'' +
+                ", keytab='" + keytab + '\'' +
+                ", principal='" + principal + '\'' +
+                ", appId='" + appId + '\'' +
+                ", remotePluginPath='" + remotePluginPath + '\'' +
+                ", addjar='" + addjar + '\'' +
+                ", addShipfile='" + addShipfile + '\'' +
+                ", connectorLoadMode='" + connectorLoadMode + '\'' +
+                ", flinkConfiguration=" + flinkConfiguration +
+                '}';
+    }
 }

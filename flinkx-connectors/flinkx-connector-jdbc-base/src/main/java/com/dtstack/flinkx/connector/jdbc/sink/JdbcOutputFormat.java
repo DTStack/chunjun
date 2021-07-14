@@ -20,21 +20,21 @@ package com.dtstack.flinkx.connector.jdbc.sink;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.Row;
+import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -45,9 +45,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -63,14 +61,11 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     protected static final long serialVersionUID = 1L;
 
-    protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "NVARCHAR", "TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
     protected transient Connection dbConn;
     protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
-
-
 
     @Override
     public void initializeGlobal(int parallelism) {
@@ -100,11 +95,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }
             }
 
-            fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(
-                    dbConn,
-                    prepareTemplates(),
-                    this.columnNameList.toArray(new String[0]));
-
+            fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(dbConn, prepareTemplates(), this.columnNameList.toArray(new String[0]));
+            RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
+            setRowConverter(rowConverter == null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
@@ -209,7 +202,16 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     @Override
     public void preCommit() throws Exception{
         if (jdbcConf.getRestoreColumnIndex() > -1) {
-            formatState.setState(((GenericRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex()));
+            Object state;
+            if(lastRow instanceof GenericRowData){
+                state = ((GenericRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex());
+            }else if(lastRow instanceof ColumnRowData){
+                state = ((ColumnRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex()).asString();
+            }else{
+                LOG.warn("can't get [{}] from lastRow:{}", jdbcConf.getRestoreColumn(), lastRow);
+                state = null;
+            }
+            formatState.setState(state);
         }
 
         if (rows != null && rows.size() > 0) {
@@ -315,41 +317,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         throw new WriteRecordException(e.getMessage(), e);
     }
 
-    /**
-     * 获取转换后的字段value
-     *
-     * todo 迁移到插件中
-     *
-     * @param row
-     * @param index
-     *
-     * @return
-     */
-    protected Object getField(Row row, int index) {
-        Object field = row.getField(index);
-        String type = columnTypeList.get(index);
-
-        //field为空字符串，且写入目标类型不为字符串类型的字段，则将object设置为null
-        if (field instanceof String
-                && StringUtils.isBlank((String) field)
-                && !STRING_TYPES.contains(type.toUpperCase(Locale.ENGLISH))) {
-            return null;
-        }
-
-        if (type.matches(DateUtil.DATE_REGEX)) {
-            field = DateUtil.columnToDate(field, null);
-        } else if (type.matches(DateUtil.DATETIME_REGEX)
-                || type.matches(DateUtil.TIMESTAMP_REGEX)) {
-            field = DateUtil.columnToTimestamp(field, null);
-        }
-
-        if (type.equalsIgnoreCase(ColumnType.BIGINT.name()) && field instanceof java.util.Date) {
-            field = ((java.util.Date) field).getTime();
-        }
-
-        return field;
-    }
-
     @Override
     public void closeInternal() {
         snapshotWriteCounter.add(rowsOfCurrentTransaction);
@@ -367,7 +334,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
      * 获取数据库连接，用于子类覆盖
      * @return connection
      */
-    protected Connection getConnection() {
+    protected Connection getConnection() throws SQLException{
         return JdbcUtil.getConnection(jdbcConf, jdbcDialect);
     }
 

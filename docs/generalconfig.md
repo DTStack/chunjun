@@ -130,6 +130,28 @@ errorLimit用于配置任务运行时数据读取写入的出错控制。具体�
 | record | 错误阈值，当错误记录数超过此阈值时任务失败 | 否 | 0 | int |
 | percentage | 错误比例阈值，当错误记录比例超过此阈值时任务失败 | 否 | 0.0 | Double |
 
+#### 
+metricPluginConf用于配置任务运行时自定义指标持久化的方式。具体配置如下所示：
+
+```json
+{
+"metricPluginConf":{
+          "pluginName": "mysql",
+          "pluginProp": {
+            "jdbcUrl": "jdbc:mysql://localhost:3306/ide?useUnicode=true&characterEncoding=utf-8",
+            "schema": "ide",
+            "table": "flinkx_metrics",
+            "username": "drpeco",
+            "password": "DT@Stack#123"
+          }
+}
+}
+```
+| 名称 | 说明 | 是否必填 | 默认值 | 参数类型 |
+| --- | --- | --- | --- | --- |
+| pluginName | 持久化插件的名称 | 否 | prometheus | String |
+| pluginProp | 连接插件需要用到的参数配置 | 否 | 无 | Map |
+
 
 #### dirty
 dirty用于配置脏数据的保存，通常与上文出错控制联合使用。具体配置如下所示：

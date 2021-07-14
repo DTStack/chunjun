@@ -12,7 +12,7 @@ Elasticsearch 6.x
 | 类型|名称|
 | ---- | ----|
 | Sync | eswriter、essink |
-| SQL | elasticsearch6-x |
+| SQL | es-x |
 
 ​
 
@@ -73,7 +73,7 @@ Elasticsearch 6.x
 ## 2、SQL
 
 - hosts
-   - 描述：Elasticsearch集群的连接地址。eg: ["localhost:9200"]
+   - 描述：Elasticsearch集群的连接地址。eg: 'http://host_name:9092;http://host_name:9093'
    - 必选：是
    - 参数类型：List<String>
    - 默认值：无
