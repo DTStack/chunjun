@@ -77,7 +77,8 @@ public class PerJobSubmitter {
         YarnClusterDescriptor descriptor = perJobClusterClientBuilder.createPerJobClusterDescriptor(launcherOptions);
         ClusterClientProvider<ApplicationId> provider = descriptor.deployJobCluster(clusterSpecification, jobGraph, true);
         String applicationId = provider.getClusterClient().getClusterId().toString();
-        String flinkJobId = jobGraph.getJobID().toString();
+        //use the real submitted JobGraph
+        String flinkJobId = descriptor.getJobGraph().getJobID().toString();
         LOG.info("deploy per_job with appId: {}}, jobId: {}", applicationId, flinkJobId);
         return applicationId;
     }
