@@ -25,6 +25,7 @@ import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
+import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -335,14 +336,21 @@ public class Main {
     /**
      * 配置StreamTableEnvironment
      *
-     * @param tableEnv
-     * @param properties
-     * @param jobName
+     * @param tableEnv tableEnv
+     * @param properties properties
+     * @param jobName jobName
      */
     private static void configStreamExecutionEnvironment(StreamTableEnvironment tableEnv, Properties properties, String jobName) {
-        StreamEnvConfigManagerUtil.streamTableEnvironmentStateTTLConfig(tableEnv, properties);
-        StreamEnvConfigManagerUtil.streamTableEnvironmentEarlyTriggerConfig(tableEnv, properties);
-        StreamEnvConfigManagerUtil.streamTableEnvironmentName(tableEnv, jobName);
+        Configuration configuration = tableEnv.getConfig().getConfiguration();
+        properties.entrySet().stream()
+                .filter(e -> e.getKey().toString().toLowerCase().startsWith("table."))
+                .forEach(
+                        e ->
+                                configuration.setString(
+                                        e.getKey().toString().toLowerCase(),
+                                        e.getValue().toString().toLowerCase()));
+
+        configuration.setString(PipelineOptions.NAME, jobName);
     }
 
     /**

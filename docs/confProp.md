@@ -1,8 +1,13 @@
 ## confProp
 
- * **early.trigger：开启window统计提前触发功能，单位为秒(填写正整数即可)，如：5。**
- * sql.ttl.min: 最小过期时间,大于0的整数,如1d、1h(d\D:天,h\H:小时,m\M:分钟,s\s:秒)
- * sql.ttl.max: 最大过期时间,大于0的整数,如2d、2h(d\D:天,h\H:小时,m\M:分钟,s\s:秒),需同时设置最小时间,且比最小时间大5分钟
+ * table.exec.source.idle-timeout：当一个源在超时时间内没有收到任何元素时，它将被标记为临时空闲。这允许下游任务推进其水印，而无需在空闲时等待来自该源的水印。默认值为 0（表示未启用检测源空闲），可设置：10 ms(单位毫秒)。
+   
+
+ * table.exec.emit.early-fire.enabled：开启window统计提前触发功能。默认:false（表示不开启），设置true开启。
+ * table.exec.emit.early-fire.delay：开启window统计提前触发时间,上面设置为true才有效。无默认值，可设置：1s（单位为秒）。
+
+
+ * table.exec.state.ttl: 状态最小过期时间。默认:0 ms（代表不过期）。
  * state.backend: 任务状态后端，可选为MEMORY,FILESYSTEM,ROCKSDB，默认为flinkconf中的配置。
  * state.checkpoints.dir: FILESYSTEM,ROCKSDB状态后端文件系统存储路径，例如：hdfs://ns1/dtInsight/flink180/checkpoints。
  * state.backend.incremental: ROCKSDB状态后端是否开启增量checkpoint,默认为true。
@@ -19,7 +24,7 @@
  * jobmanager.memory.mb: per_job模式下指定jobmanager的内存大小(单位MB, 默认值:768)
  * taskmanager.memory.mb: per_job模式下指定taskmanager的内存大小(单位MB, 默认值:768)
  * taskmanager.numberOfTaskSlots：per_job模式下指定每个taskmanager对应的slot数量(默认1),通过该参数和sql.env.parallelism可控制tm的个数,即sql.env.parallelism/taskmanager.numberOfTaskSlots 向上取整。
- * savePointPath：任务恢复点的路径（默认无）
+ * s：任务恢复点的路径（默认无）
  * allowNonRestoredState：指示保存点是否允许非还原状态的标志（默认false）
  * logLevel: 日志级别动态配置（默认info）
  * sample.interval.count：间隔一定数据条数后，将本次进入Flink的数据抽样打印到日志中。默认为0，不进行抽样打印。可以设置一个整数，例如：1000000。
