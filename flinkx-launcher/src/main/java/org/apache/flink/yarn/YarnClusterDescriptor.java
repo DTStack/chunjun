@@ -566,6 +566,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 			PackagedProgram program = FlinkPerJobUtil.buildProgram(url,clusterSpecification);
 			clusterSpecification.setProgram(program);
 			jobGraph = PackagedProgramUtils.createJobGraph(program, clusterSpecification.getConfiguration(), clusterSpecification.getParallelism(), false);
+			this.jobGraph = jobGraph;
 			String pluginLoadMode = clusterSpecification.getConfiguration().getString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY);
 			if(StringUtils.equalsIgnoreCase(pluginLoadMode, ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE)){
 				jobGraph.getClasspaths().forEach(jarFile -> {
