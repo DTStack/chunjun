@@ -82,6 +82,10 @@
 					<artifactId>commons-cli</artifactId>
 					<groupId>commons-cli</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>netty-all</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
 			</exclusions>
 			<groupId>org.apache.hadoop</groupId>
 			<version>${hadoop.version}</version>
@@ -112,13 +116,13 @@
 <!--			<artifactId>flinkx-connector-elasticsearch7</artifactId>-->
 <!--			<version>${project.version}</version>-->
 <!--		</dependency>-->
-		
+
         <dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-elasticsearch6</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-postgresql</artifactId>
@@ -175,7 +179,7 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-oracle</artifactId>
+			<artifactId>flinkx-connector-kudu</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -255,6 +259,26 @@
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-ftp</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-cassandra</artifactId>
+			<version>1.12-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>netty-codec</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>netty-buffer</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>netty-transport</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

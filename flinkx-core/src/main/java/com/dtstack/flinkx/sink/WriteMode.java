@@ -46,9 +46,13 @@ public enum WriteMode {
     /**
      * 用于文件的追加
      */
-    APPEND("append");
+    APPEND("append"),
 
-    private String mode;
+    UPSERT("upsert"),
+
+    ;
+
+    private final String mode;
 
     WriteMode(String mode) {
         this.mode = mode;

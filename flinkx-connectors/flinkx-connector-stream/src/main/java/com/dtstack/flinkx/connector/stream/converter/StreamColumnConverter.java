@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.stream.converter;
 
+import org.apache.flink.table.data.RowData;
+
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -26,10 +28,10 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.ByteColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.github.jsonzou.jmockdata.JMockData;
-import org.apache.flink.table.data.RowData;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
@@ -43,31 +45,39 @@ import java.util.stream.Collectors;
  *
  * @author tudou
  */
-public class StreamColumnConverter extends AbstractRowConverter<ColumnRowData, RowData, RowData, String> {
+public class StreamColumnConverter
+        extends AbstractRowConverter<ColumnRowData, RowData, RowData, String> {
 
     private static final long serialVersionUID = 1L;
     private static final AtomicLong id = new AtomicLong(0L);
 
     public StreamColumnConverter(FlinkxCommonConf commonConf) {
-        List<String> typeList = commonConf.getColumn().stream().map(FieldConf::getType).collect(Collectors.toList());
+        List<String> typeList =
+                commonConf.getColumn().stream()
+                        .map(FieldConf::getType)
+                        .collect(Collectors.toList());
         super.commonConf = commonConf;
         super.toInternalConverters = new IDeserializationConverter[typeList.size()];
         super.toExternalConverters = new ISerializationConverter[typeList.size()];
 
         for (int i = 0; i < typeList.size(); i++) {
             toInternalConverters[i] = createInternalConverter(typeList.get(i));
-            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(typeList.get(i)), typeList.get(i));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(typeList.get(i)), typeList.get(i));
         }
     }
 
     @Override
     @SuppressWarnings("all")
-    protected ISerializationConverter<ColumnRowData> wrapIntoNullableExternalConverter( ISerializationConverter serializationConverter, String type) {
+    protected ISerializationConverter<ColumnRowData> wrapIntoNullableExternalConverter(
+            ISerializationConverter serializationConverter, String type) {
         return (val, index, rowData) -> rowData.addField(((ColumnRowData) val).getField(index));
     }
 
     @Override
-    protected IDeserializationConverter<RowData, AbstractBaseColumn> createInternalConverter(String type) {
+    protected IDeserializationConverter<RowData, AbstractBaseColumn> createInternalConverter(
+            String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "ID":
                 return val -> new BigDecimalColumn(new BigDecimal(id.incrementAndGet()));
@@ -77,7 +87,8 @@ public class StreamColumnConverter extends AbstractRowConverter<ColumnRowData, R
             case "BOOLEAN":
                 return val -> new BooleanColumn(JMockData.mock(boolean.class));
             case "TINYINT":
-                return val -> new BigDecimalColumn(JMockData.mock(byte.class));
+            case "BYTE":
+                return val -> new ByteColumn(JMockData.mock(byte.class));
             case "CHAR":
             case "CHARACTER":
                 return val -> new StringColumn(JMockData.mock(char.class).toString());
@@ -115,7 +126,8 @@ public class StreamColumnConverter extends AbstractRowConverter<ColumnRowData, R
         List<FieldConf> fieldConfList = commonConf.getColumn();
         ColumnRowData result = new ColumnRowData(fieldConfList.size());
         for (int i = 0; i < fieldConfList.size(); i++) {
-            AbstractBaseColumn baseColumn = (AbstractBaseColumn) toInternalConverters[i].deserialize(null);
+            AbstractBaseColumn baseColumn =
+                    (AbstractBaseColumn) toInternalConverters[i].deserialize(null);
             result.addField(assembleFieldProps(fieldConfList.get(i), baseColumn));
         }
         return result;

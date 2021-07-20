@@ -41,6 +41,8 @@
 		<module>flinkx-connector-solr</module>
 		<module>flinkx-connector-file</module>
 		<module>flinkx-connector-saphana</module>
+		<module>flinkx-connector-cassandra</module>
+		<module>flinkx-connector-kudu</module>
 
 		<!--CDC-->
 		<module>flinkx-connector-restapi</module>
