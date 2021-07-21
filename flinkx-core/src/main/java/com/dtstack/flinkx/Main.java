@@ -408,7 +408,6 @@ public class Main {
         StreamEnvConfigManagerUtil.getEnvParallelism(confProperties).ifPresent(streamEnv::setParallelism);
         StreamEnvConfigManagerUtil.getMaxEnvParallelism(confProperties).ifPresent(streamEnv::setMaxParallelism);
         StreamEnvConfigManagerUtil.getBufferTimeoutMillis(confProperties).ifPresent(streamEnv::setBufferTimeout);
-        StreamEnvConfigManagerUtil.getStreamTimeCharacteristic(confProperties).ifPresent(streamEnv::setStreamTimeCharacteristic);
         StreamEnvConfigManagerUtil.getAutoWatermarkInterval(confProperties)
                 .ifPresent(
                         op -> {

@@ -90,25 +90,6 @@ public final class StreamEnvConfigManagerUtil {
         return Optional.of(Integer.valueOf(failureInterval));
     }
 
-    /**
-     * #ProcessingTime(默认), IngestionTime, EventTime
-     *
-     * @param properties
-     */
-    public static Optional<TimeCharacteristic> getStreamTimeCharacteristic(Properties properties) {
-        if (!properties.containsKey(ConfigConstant.FLINK_TIME_CHARACTERISTIC_KEY)) {
-            return Optional.empty();
-        }
-        String characteristicStr = properties.getProperty(ConfigConstant.FLINK_TIME_CHARACTERISTIC_KEY);
-        Optional<TimeCharacteristic> characteristic = Arrays.stream(TimeCharacteristic.values())
-                .filter(tc -> characteristicStr.equalsIgnoreCase(tc.toString())).findAny();
-
-        if (!characteristic.isPresent()) {
-            throw new RuntimeException("illegal property :" + ConfigConstant.FLINK_TIME_CHARACTERISTIC_KEY);
-        }
-        return characteristic;
-    }
-
     public static Optional<Boolean> isCheckpointEnabled(Properties properties) {
         boolean checkpointEnabled = !(properties.getProperty(ConfigConstant.SQL_CHECKPOINT_INTERVAL_KEY) == null
                 && properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY) == null);
