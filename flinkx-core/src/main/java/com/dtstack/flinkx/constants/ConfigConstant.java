@@ -82,9 +82,6 @@ public class ConfigConstant {
     /**失败重启间隔时间 sec*/
     public static final String  DELAYINTERVAL= "delay.interval";
 
-    /**时间语义*/
-    public static final String FLINK_TIME_CHARACTERISTIC_KEY = "time.characteristic";
-
     /**cp时间间隔*/
     public static final String SQL_CHECKPOINT_INTERVAL_KEY = "sql.checkpoint.interval";
     public static final String FLINK_CHECKPOINT_INTERVAL_KEY = "flink.checkpoint.interval";
