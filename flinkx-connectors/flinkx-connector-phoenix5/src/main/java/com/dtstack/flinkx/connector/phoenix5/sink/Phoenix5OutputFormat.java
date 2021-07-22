@@ -55,7 +55,7 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
                     FieldNamedPreparedStatement.prepareStatement(
                             dbConn, prepareTemplates(), this.columnNameList.toArray(new String[0]));
 
-            LOG.info("subTask[{}}] wait finished", taskNumber);
+            LOG.info("subTask[{}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
         } finally {
@@ -101,12 +101,9 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
 
     @Override
     protected Connection getConnection() {
-        Connection conn;
-        try {
-            conn = Phoenix5Util.getConnection(jdbcDialect.defaultDriverName().get(), jdbcConf);
-        } catch (SQLException throwables) {
-            throw new RuntimeException("Unable to get phoenix connection。");
-        }
+        Connection conn =
+                Phoenix5Util.getConnection(jdbcDialect.defaultDriverName().get(), jdbcConf);
+
         return conn;
     }
 }

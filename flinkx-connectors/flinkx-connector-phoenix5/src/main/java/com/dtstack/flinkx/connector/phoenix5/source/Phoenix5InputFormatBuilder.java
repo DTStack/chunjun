@@ -44,15 +44,11 @@ public class Phoenix5InputFormatBuilder extends JdbcInputFormatBuilder {
         if (StringUtils.isBlank(conf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
-        //if (StringUtils.isEmpty(conf.getSplitPk()) && format.getNumPartitions() > 1) {
-        //    sb.append("Must specify the split column when the channel is greater than 1;\n");
-        //}
-        //if (conf.isPolling() && format.getNumPartitions() > 1) {
-        //    sb.append("Interval polling task parallelism cannot be greater than 1;\n");
-        //}
+
         if (conf.getFetchSize() > ConstantValue.MAX_BATCH_SIZE) {
             sb.append("The number of fetchSize must be less than [200000];\n");
         }
+
         if (sb.length() > 0) {
             throw new IllegalArgumentException(sb.toString());
         }

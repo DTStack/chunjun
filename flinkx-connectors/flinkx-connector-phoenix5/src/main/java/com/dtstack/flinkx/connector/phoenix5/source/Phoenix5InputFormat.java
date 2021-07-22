@@ -18,20 +18,15 @@
 
 package com.dtstack.flinkx.connector.phoenix5.source;
 
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
-import com.dtstack.flinkx.connector.phoenix5.converter.Phoenix5RawTypeConverter;
-import com.dtstack.flinkx.connector.phoenix5.util.Phoenix5Util;
-import com.dtstack.flinkx.util.TableUtil;
-import org.apache.commons.lang3.tuple.Pair;
-
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
+import com.dtstack.flinkx.connector.phoenix5.util.Phoenix5Util;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -43,8 +38,7 @@ import java.util.List;
  */
 public class Phoenix5InputFormat extends JdbcInputFormat {
 
-    final Logger LOG = LoggerFactory.getLogger(getClass());
-    public String sql;
+    private static final Logger LOG = LoggerFactory.getLogger(Phoenix5InputFormat.class);
 
     // phoenix resolve table meta data by retrieving a row of data.
     @Override
@@ -68,13 +62,9 @@ public class Phoenix5InputFormat extends JdbcInputFormat {
     @SuppressWarnings("AlibabaRemoveCommentedCode")
     @Override
     protected Connection getConnection() {
-        Connection conn;
-        try {
-            conn = Phoenix5Util.getConnection(jdbcDialect.defaultDriverName().get(), jdbcConf);
-            LOG.info("Obtain a phoenix5 connection success !");
-        } catch (SQLException throwables) {
-            throw new RuntimeException("Unable to get phoenix connection。");
-        }
+        Connection conn =
+                Phoenix5Util.getConnection(jdbcDialect.defaultDriverName().get(), jdbcConf);
+        LOG.info("Obtain a phoenix5 connection success !");
         return conn;
     }
 }

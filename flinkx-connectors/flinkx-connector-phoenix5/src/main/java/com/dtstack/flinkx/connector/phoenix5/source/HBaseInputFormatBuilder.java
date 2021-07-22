@@ -30,19 +30,18 @@ import org.apache.commons.lang.StringUtils;
  * @email wujuan@dtstack.com
  * @company www.dtstack.com
  */
-public class HbaseInputFormatBuilder extends BaseRichInputFormatBuilder {
+public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder {
 
-    protected HbaseInputFormat format;
+    protected HBaseInputFormat format;
 
-    public HbaseInputFormatBuilder() {
-        super.format = this.format = new HbaseInputFormat();
+    public HBaseInputFormatBuilder() {
+        super.format = this.format = new HBaseInputFormat();
     }
 
     public void setPhoenix5Conf(Phoenix5Conf phoenix5Conf) {
         super.setConfig(phoenix5Conf);
         format.setPhoenix5Conf(phoenix5Conf);
         format.setJdbcConf(phoenix5Conf);
-        //format.setJdbcDialect(jdbcDialect);
     }
 
 

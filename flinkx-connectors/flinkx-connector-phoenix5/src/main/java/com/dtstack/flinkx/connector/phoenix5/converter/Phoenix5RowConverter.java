@@ -18,16 +18,25 @@
 
 package com.dtstack.flinkx.connector.phoenix5.converter;
 
+import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
+import org.apache.flink.table.data.DecimalData;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.StringData;
+import org.apache.flink.table.data.TimestampData;
+import org.apache.flink.table.types.logical.DecimalType;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
+import org.apache.flink.table.types.utils.TypeConversions;
+
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import io.vertx.core.json.JsonArray;
-
-import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
-import org.apache.flink.table.data.*;
-import org.apache.flink.table.types.logical.*;
-import org.apache.flink.table.types.utils.TypeConversions;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -58,8 +67,9 @@ public class Phoenix5RowConverter
     }
 
     @Override
-    protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter, LogicalType type) {
+    protected ISerializationConverter<FieldNamedPreparedStatement>
+            wrapIntoNullableExternalConverter(
+                    ISerializationConverter serializationConverter, LogicalType type) {
         final int sqlType =
                 JdbcTypeUtil.typeInformationToSqlType(
                         TypeConversions.fromDataTypeToLegacyInfo(
@@ -136,9 +146,13 @@ public class Phoenix5RowConverter
                                         new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
-                return val -> (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
+                return val ->
+                        (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay() / 1_000_000L);
+                return val ->
+                        (int)
+                                ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> TimestampData.fromTimestamp((Timestamp) val);
@@ -154,7 +168,7 @@ public class Phoenix5RowConverter
             case MULTISET:
             case RAW:
             default:
-                throw new UnsupportedOperationException("Unsupported type:" + type);
+                throw new UnsupportedTypeException("Unsupported type:" + type);
         }
     }
 
@@ -217,7 +231,7 @@ public class Phoenix5RowConverter
             case ROW:
             case RAW:
             default:
-                throw new UnsupportedOperationException("Unsupported type:" + type);
+                throw new UnsupportedTypeException(type);
         }
     }
 }

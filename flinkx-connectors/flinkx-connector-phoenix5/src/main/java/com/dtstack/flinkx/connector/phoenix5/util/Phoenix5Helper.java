@@ -17,34 +17,35 @@
  */
 package com.dtstack.flinkx.connector.phoenix5.util;
 
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.util.Preconditions;
+
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.phoenix5.conf.Phoenix5Conf;
-import com.dtstack.flinkx.connector.phoenix5.converter.HbaseColumnConverter;
-import com.dtstack.flinkx.connector.phoenix5.converter.HbaseRawTypeConverter;
-import com.dtstack.flinkx.connector.phoenix5.converter.HbaseRowConverter;
+import com.dtstack.flinkx.connector.phoenix5.converter.HBaseColumnConverter;
+import com.dtstack.flinkx.connector.phoenix5.converter.HBaseRawTypeConverter;
+import com.dtstack.flinkx.connector.phoenix5.converter.HBaseRowConverter;
 import com.dtstack.flinkx.connector.phoenix5.source.Phoenix5InputSplit;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.util.Preconditions;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.NoTagsKeyValue;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
-import org.apache.phoenix.compile.ColumnProjector;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.phoenix.compile.RowProjector;
 import org.apache.phoenix.compile.StatementContext;
 import org.apache.phoenix.jdbc.PhoenixEmbeddedDriver;
@@ -52,8 +53,29 @@ import org.apache.phoenix.jdbc.PhoenixPreparedStatement;
 import org.apache.phoenix.jdbc.PhoenixResultSet;
 import org.apache.phoenix.query.KeyRange;
 import org.apache.phoenix.query.QueryConstants;
-import org.apache.phoenix.schema.tuple.ResultTuple;
-import org.apache.phoenix.schema.types.*;
+import org.apache.phoenix.schema.types.PBoolean;
+import org.apache.phoenix.schema.types.PChar;
+import org.apache.phoenix.schema.types.PDataType;
+import org.apache.phoenix.schema.types.PDate;
+import org.apache.phoenix.schema.types.PDecimal;
+import org.apache.phoenix.schema.types.PDouble;
+import org.apache.phoenix.schema.types.PFloat;
+import org.apache.phoenix.schema.types.PInteger;
+import org.apache.phoenix.schema.types.PLong;
+import org.apache.phoenix.schema.types.PSmallint;
+import org.apache.phoenix.schema.types.PTime;
+import org.apache.phoenix.schema.types.PTimestamp;
+import org.apache.phoenix.schema.types.PTinyint;
+import org.apache.phoenix.schema.types.PUnsignedDate;
+import org.apache.phoenix.schema.types.PUnsignedDouble;
+import org.apache.phoenix.schema.types.PUnsignedFloat;
+import org.apache.phoenix.schema.types.PUnsignedInt;
+import org.apache.phoenix.schema.types.PUnsignedLong;
+import org.apache.phoenix.schema.types.PUnsignedSmallint;
+import org.apache.phoenix.schema.types.PUnsignedTime;
+import org.apache.phoenix.schema.types.PUnsignedTimestamp;
+import org.apache.phoenix.schema.types.PUnsignedTinyint;
+import org.apache.phoenix.schema.types.PVarchar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,8 +83,17 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.Connection;
-import java.sql.*;
-import java.util.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.Vector;
 
 /**
  * @author wujuan
@@ -80,7 +111,6 @@ public class Phoenix5Helper implements Serializable {
     private StatementContext context;
     private transient Table hTable;
     private transient Scan scan = null;
-    private transient Iterator<Result> resultIterator;
     private transient Iterator<Pair<byte[], byte[]>> keyRangeIterator;
 
     public List<Pair<byte[], byte[]>> getRangeList(Phoenix5Conf conf, Connection conn) {
@@ -189,13 +219,13 @@ public class Phoenix5Helper implements Serializable {
         final Boolean syncTaskType = conf.getSyncTaskType();
         RowType rowType =
                 TableUtil.createRowType(
-                        fullColumnNameList, fullColumnTypeList, HbaseRawTypeConverter::apply);
+                        fullColumnNameList, fullColumnTypeList, HBaseRawTypeConverter::apply);
         // sync task
         if (syncTaskType) {
-            rowConverter = new HbaseColumnConverter(rowType, rowProjector);
+            rowConverter = new HBaseColumnConverter(rowType, rowProjector);
         } else {
             // sql task
-            rowConverter = new HbaseRowConverter(rowType, rowProjector);
+            rowConverter = new HBaseRowConverter(rowType, rowProjector);
         }
     }
 
@@ -211,38 +241,14 @@ public class Phoenix5Helper implements Serializable {
             rowProjector = (RowProjector) field.get(resultSet);
             field.setAccessible(false);
         } catch (NoSuchFieldException e) {
-            // TODO 打 LOG
-            e.printStackTrace();
+            throw new FlinkxRuntimeException(e);
         } catch (IllegalAccessException e) {
-            // TODO 打 LOG
-            e.printStackTrace();
+            throw new FlinkxRuntimeException(e);
         }
     }
 
     public byte[] getScanProjector() {
         return context.getScan().getAttribute("scanProjector");
-    }
-
-    public RowData getRowData(byte[] bytes, int offset, int length) throws SQLException {
-        int size = phoenixDataTypeList.size();
-        GenericRowData genericRowData = new GenericRowData(size);
-        ImmutableBytesWritable pointer = new ImmutableBytesWritable();
-        for (int pos = 0; pos < size; pos++) {
-
-            ColumnProjector columnProjector = rowProjector.getColumnProjector(pos);
-
-            NoTagsKeyValue noTagsKeyValue = new NoTagsKeyValue(bytes, offset, length);
-            Result result = Result.create(Collections.singletonList(noTagsKeyValue));
-            ResultTuple resultTuple = new ResultTuple(result);
-
-            PDataType pDataType = phoenixDataTypeList.get(pos);
-
-            Object value = columnProjector.getValue(resultTuple, pDataType, pointer);
-            // Object field = resultSet.getObject(pos + 1);
-            // genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
-            genericRowData.setField(pos, value);
-        }
-        return genericRowData;
     }
 
     public Iterator<Result> getHbaseIterator(InputSplit inputSplit, Phoenix5Conf conf)
@@ -256,8 +262,8 @@ public class Phoenix5Helper implements Serializable {
         Map<String, Object> map = null;
         try {
             map = analyzePhoenixUrl(conf.getJdbcUrl());
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException e) {
+            throw new FlinkxRuntimeException(e);
         }
         Configuration hConfiguration = HBaseConfiguration.create();
         hConfiguration.set(HConstants.ZOOKEEPER_QUORUM, (String) map.get("quorum"));
@@ -282,7 +288,7 @@ public class Phoenix5Helper implements Serializable {
                     ConnectionFactory.createConnection(hConfiguration);
             hTable = hConn.getTable(TableName.valueOf(conf.getTable()));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new FlinkxRuntimeException("Obtain org.apache.hadoop.hbase.client.Connection fail.",e);
         }
         return hTable.getScanner(getScan(keyRangeList, conf));
     }
@@ -410,13 +416,9 @@ public class Phoenix5Helper implements Serializable {
                 return PVarchar.INSTANCE;
             case "CHAR":
                 return PChar.INSTANCE;
-                // 不支持二进制字段类型
-            case "BINARY":
-                throw new RuntimeException("type [BINARY] is unsupported!");
-            case "VARBINARY":
-                throw new RuntimeException("type [VARBINARY] is unsupported!");
+                // not support BINARY VARBINARY.
             default:
-                throw new RuntimeException("type[" + type + "] is unsupported!");
+                throw new UnsupportedTypeException("Unsupported type:" + type);
         }
     }
 

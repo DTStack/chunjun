@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.phoenix5;
 
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -72,20 +74,18 @@ public class Phoenix5Dialect implements JdbcDialect {
      */
     @Override
     public String quoteIdentifier(String identifier) {
-        return "" + identifier + "";
+        return identifier;
     }
 
     @Override
     public String getInsertIntoStatement(String schema, String tableName, String[] fieldNames) {
-        LOG.error("phoenix not support insert, only support upsert!");
-        return "";
+        throw new UnsupportedOperationException("phoenix not support update, only support upsert!");
     }
 
     @Override
     public String getUpdateStatement(
             String schema, String tableName, String[] fieldNames, String[] conditionFields) {
-        LOG.error("phoenix not support update, only support upsert!");
-        return "";
+        throw new UnsupportedOperationException("phoenix not support update, only support upsert!");
     }
 
     /**
