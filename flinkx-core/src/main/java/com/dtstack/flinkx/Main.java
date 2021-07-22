@@ -325,11 +325,14 @@ public class Main {
             env.setParallelism(config.getSpeed().getChannel());
         } else {
             Preconditions.checkArgument(ExecuteProcessHelper.checkRemoteSqlPluginPath( options.getRemotePluginPath(), options.getMode(), options.getPluginLoadMode()), "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
-            FactoryUtil.setLocalPluginPath(options.getPluginRoot());
-            FactoryUtil.setRemotePluginPath(options.getRemotePluginPath());
-            FactoryUtil.setPluginLoadMode(options.getPluginLoadMode());
-            FactoryUtil.setEnv(env);
-            FactoryUtil.setConnectorLoadMode(options.getConnectorLoadMode());
+            FactoryUtil.FactoryUtilHelp factoryUtilHelp = new FactoryUtil().new FactoryUtilHelp();
+            factoryUtilHelp.setLocalPluginPath(options.getPluginRoot());
+            factoryUtilHelp.setRemotePluginPath(options.getRemotePluginPath());
+            factoryUtilHelp.setPluginLoadMode(options.getPluginLoadMode());
+            factoryUtilHelp.setEnv(env);
+            factoryUtilHelp.setConnectorLoadMode(options.getConnectorLoadMode());
+
+            FactoryUtil.setFactoryUtilHelp(factoryUtilHelp);
         }
     }
 
