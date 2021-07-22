@@ -18,12 +18,11 @@
 
 package com.dtstack.flinkx.connector.phoenix5.converter;
 
-import com.dtstack.flinkx.conf.FlinkxCommonConf;
-
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -35,6 +34,7 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.DateUtil;
 import io.vertx.core.json.JsonArray;
 
@@ -46,7 +46,7 @@ import java.sql.Time;
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
 public class Phoenix5ColumnConverter
         extends AbstractRowConverter<
-                        ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
+                ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
 
     public Phoenix5ColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         super(rowType, commonConf);
@@ -61,8 +61,9 @@ public class Phoenix5ColumnConverter
     }
 
     @Override
-    protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter, LogicalType type) {
+    protected ISerializationConverter<FieldNamedPreparedStatement>
+            wrapIntoNullableExternalConverter(
+                    ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, statement) -> {
             if (((ColumnRowData) val).getField(index) == null) {
                 statement.setObject(index, null);
@@ -99,7 +100,7 @@ public class Phoenix5ColumnConverter
             case TINYINT:
                 // TINYINT              java.lang.Byte      -128 to 127
                 // UNSIGNED_TINYINT     java.lang.Byte      0 to 127
-                return val -> new BigDecimalColumn(Byte.toString((byte)val));
+                return val -> new BigDecimalColumn(Byte.toString((byte) val));
             case SMALLINT:
                 return val -> new BigDecimalColumn((Short) val);
             case INTEGER:
@@ -125,7 +126,7 @@ public class Phoenix5ColumnConverter
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
             default:
-                throw new UnsupportedOperationException("Unsupported type:" + type);
+                throw new UnsupportedTypeException("Unsupported type:" + type);
         }
     }
 
@@ -179,20 +180,22 @@ public class Phoenix5ColumnConverter
                 return (val, index, statement) ->
                         statement.setDate(
                                 index,
-                                Date.valueOf(((ColumnRowData) val)
-                                        .getField(index)
-                                        .asTimestamp()
-                                        .toLocalDateTime()
-                                        .toLocalDate()));
+                                Date.valueOf(
+                                        ((ColumnRowData) val)
+                                                .getField(index)
+                                                .asTimestamp()
+                                                .toLocalDateTime()
+                                                .toLocalDate()));
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTime(
                                 index,
-                                Time.valueOf(((ColumnRowData) val)
-                                        .getField(index)
-                                        .asTimestamp()
-                                        .toLocalDateTime()
-                                        .toLocalTime()));
+                                Time.valueOf(
+                                        ((ColumnRowData) val)
+                                                .getField(index)
+                                                .asTimestamp()
+                                                .toLocalDateTime()
+                                                .toLocalTime()));
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
@@ -204,7 +207,7 @@ public class Phoenix5ColumnConverter
                 return (val, index, statement) ->
                         statement.setBytes(index, ((ColumnRowData) val).getField(index).asBytes());
             default:
-                throw new UnsupportedOperationException("Unsupported type:" + type);
+                throw new UnsupportedTypeException(type);
         }
     }
 }

@@ -18,10 +18,10 @@
 
 package com.dtstack.flinkx.connector.phoenix5.converter;
 
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
-
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import java.util.Locale;
 
@@ -95,7 +95,7 @@ public class Phoenix5RawTypeConverter {
             case "TIMESTAMP":
             case "DATETIME":
                 return DataTypes.TIMESTAMP();
-            //case "TINYINT":
+                // case "TINYINT":
             case "TINYBLOB":
             case "BLOB":
             case "MEDIUMBLOB":

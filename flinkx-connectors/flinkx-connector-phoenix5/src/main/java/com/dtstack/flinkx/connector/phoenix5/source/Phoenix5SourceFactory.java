@@ -46,10 +46,7 @@ public class Phoenix5SourceFactory extends JdbcSourceFactory {
     public Phoenix5SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env, new Phoenix5Dialect());
         phoenix5Conf = (Phoenix5Conf) jdbcConf;
-        if (phoenix5Conf.isReadFromHbase()) {
-            //phoenix5Conf.setColumn(syncConf.getReader().getFieldList());
-        } else {
-            // 避免result.next阻塞
+        if (!phoenix5Conf.isReadFromHbase()) {
             if (jdbcConf.isPolling()
                     && StringUtils.isEmpty(jdbcConf.getStartLocation())
                     && jdbcConf.getFetchSize() == 0) {
@@ -66,23 +63,10 @@ public class Phoenix5SourceFactory extends JdbcSourceFactory {
     @Override
     public DataStream<RowData> createSource() {
         if (phoenix5Conf.isReadFromHbase()) {
-            HbaseInputFormatBuilder builder = new HbaseInputFormatBuilder();
+            HBaseInputFormatBuilder builder = new HBaseInputFormatBuilder();
             builder.setPhoenix5Conf(phoenix5Conf);
             // set sync task or sql task.
             phoenix5Conf.setSyncTaskType(useAbstractBaseColumn);
-
-            //HbaseConverterFactory hbaseConverterFactory =
-            //        new HbaseConverterFactory(phoenix5Conf);
-            //AbstractRowConverter converter;
-            //if (useAbstractBaseColumn) {
-            //    // 同步任务
-            //    converter = hbaseConverterFactory.createColumnConverter();
-            //} else {
-            //    // sql 任务
-            //    converter = hbaseConverterFactory.createRowConverter();
-            //}
-            //builder.setRowConverter(converter);
-
             return createInput(builder.finish());
         } else {
             return super.createSource();

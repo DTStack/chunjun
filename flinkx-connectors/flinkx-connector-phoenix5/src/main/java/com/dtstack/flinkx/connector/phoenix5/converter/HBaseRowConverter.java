@@ -18,8 +18,12 @@
 
 package com.dtstack.flinkx.connector.phoenix5.converter;
 
+import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.StringData;
+import org.apache.flink.table.data.TimestampData;
+import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
@@ -27,14 +31,7 @@ import org.apache.flink.table.types.logical.RowType;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
-import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.BigDecimalColumn;
-import com.dtstack.flinkx.element.column.BooleanColumn;
-import com.dtstack.flinkx.element.column.BytesColumn;
-import com.dtstack.flinkx.element.column.StringColumn;
-import com.dtstack.flinkx.element.column.TimestampColumn;
-import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.NoTagsKeyValue;
 import org.apache.hadoop.hbase.client.Result;
@@ -67,8 +64,10 @@ import org.apache.phoenix.schema.types.PUnsignedTinyint;
 import org.apache.phoenix.schema.types.PVarchar;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -80,15 +79,16 @@ import java.util.List;
  * @email wujuan@dtstack.com
  * @company www.dtstack.com
  */
-public class HbaseColumnConverter
+public class HBaseRowConverter
         extends AbstractRowConverter<NoTagsKeyValue, Object, NoTagsKeyValue, LogicalType> {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 3L;
 
     public transient RowProjector rowProjector;
+    // !!! note : PDataType is not serialize，
     private transient List<PDataType> phoenixTypeList;
 
-    public HbaseColumnConverter(RowType rowType, RowProjector rowProjector) {
+    public HBaseRowConverter(RowType rowType, RowProjector rowProjector) {
         super(rowType);
         List<String> fieldNames = rowType.getFieldNames();
         phoenixTypeList = new ArrayList<>(fieldNames.size());
@@ -97,7 +97,6 @@ public class HbaseColumnConverter
             toInternalConverters[i] =
                     wrapIntoNullableInternalConverter(
                             createInternalConverter(rowType.getTypeAt(i)));
-
             phoenixTypeList.add(getPDataType(fieldTypes[i].getTypeRoot().toString()));
             this.rowProjector = rowProjector;
         }
@@ -105,7 +104,7 @@ public class HbaseColumnConverter
 
     @Override
     protected ISerializationConverter wrapIntoNullableExternalConverter(
-            ISerializationConverter ISerializationConverter, LogicalType type) {
+            ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, rowData) -> {
             if (val == null
                     || val.isNullAt(index)
@@ -113,7 +112,7 @@ public class HbaseColumnConverter
                 GenericRowData genericRowData = (GenericRowData) rowData;
                 genericRowData.setField(index, null);
             } else {
-                ISerializationConverter.serialize(val, index, rowData);
+                serializationConverter.serialize(val, index, rowData);
             }
         };
     }
@@ -121,7 +120,7 @@ public class HbaseColumnConverter
     @Override
     public RowData toInternal(NoTagsKeyValue input) throws Exception {
 
-        ColumnRowData columnRowData = new ColumnRowData(rowType.getFieldCount());
+        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
 
         final byte[] bytes = input.getBuffer();
         final int offset = input.getOffset();
@@ -129,17 +128,17 @@ public class HbaseColumnConverter
 
         ImmutableBytesWritable pointer = new ImmutableBytesWritable();
 
-        NoTagsKeyValue noTagsKeyValue = new NoTagsKeyValue(bytes, offset, length); // hbase
-        Result result = Result.create(Collections.singletonList(noTagsKeyValue)); // hbase-client
-        ResultTuple resultTuple = new ResultTuple(result); // phoenix-core
+        NoTagsKeyValue noTagsKeyValue = new NoTagsKeyValue(bytes, offset, length);
+        Result result = Result.create(Collections.singletonList(noTagsKeyValue));
+        ResultTuple resultTuple = new ResultTuple(result);
 
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            ColumnProjector columnProjector = rowProjector.getColumnProjector(i); // phoenix
-            PDataType pDataType = phoenixTypeList.get(i); // phoenix-core
+            ColumnProjector columnProjector = rowProjector.getColumnProjector(i);
+            PDataType pDataType = phoenixTypeList.get(i);
             Object value = columnProjector.getValue(resultTuple, pDataType, pointer);
-            columnRowData.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(value));
+            genericRowData.setField(i, toInternalConverters[i].deserialize(value));
         }
-        return columnRowData;
+        return genericRowData;
     }
 
     @Override
@@ -151,44 +150,58 @@ public class HbaseColumnConverter
     protected IDeserializationConverter createInternalConverter(LogicalType type) {
 
         switch (type.getTypeRoot()) {
+            case NULL:
+                return val -> null;
             case BOOLEAN:
-                return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
-            case TINYINT:
-                // TINYINT              java.lang.Byte      -128 to 127
-                // UNSIGNED_TINYINT     java.lang.Byte      0 to 127
-                return val -> new BigDecimalColumn(Byte.toString((byte) val));
-            case SMALLINT:
-                return val -> new BigDecimalColumn((Short) val);
-            case INTEGER:
-                return val -> new BigDecimalColumn((Integer) val);
             case FLOAT:
-                return val -> new BigDecimalColumn((Float) val);
             case DOUBLE:
-                return val -> new BigDecimalColumn((Double) val);
+            case INTERVAL_YEAR_MONTH:
+            case INTERVAL_DAY_TIME:
+            case INTEGER:
             case BIGINT:
-                return val -> new BigDecimalColumn((Long) val);
+                return val -> val;
+            case TINYINT:
+                return val -> (byte) val;
+            case SMALLINT:
+                // Converter for small type that casts value to int and then return short value,
+                // since
+                // JDBC 1.0 use int type for small values.
+                return val -> val instanceof Integer ? ((Integer) val).shortValue() : val;
             case DECIMAL:
-                return val -> new BigDecimalColumn((BigDecimal) val);
-            case CHAR:
-            case VARCHAR:
-                return val -> new StringColumn((String) val);
+                final int precision = ((DecimalType) type).getPrecision();
+                final int scale = ((DecimalType) type).getScale();
+                // using decimal(20, 0) to support db type bigint unsigned, user should define
+                // decimal(20, 0) in SQL,
+                // but other precision like decimal(30, 0) can work too from lenient consideration.
+                return val ->
+                        val instanceof BigInteger
+                                ? DecimalData.fromBigDecimal(
+                                        new BigDecimal((BigInteger) val, 0), precision, scale)
+                                : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
                 return val ->
-                        new BigDecimalColumn(
-                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
+                        (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
-                        new BigDecimalColumn(
-                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
+                        (int)
+                                ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
                                         / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
+                return val -> TimestampData.fromTimestamp((Timestamp) val);
+            case CHAR:
+            case VARCHAR:
+                return val -> StringData.fromString(val.toString());
             case BINARY:
             case VARBINARY:
-                return val -> new BytesColumn((byte[]) val);
+                return val -> (byte[]) val;
+            case ARRAY:
+            case ROW:
+            case MAP:
+            case MULTISET:
+            case RAW:
             default:
-                throw new UnsupportedOperationException("Unsupported type:" + type);
+                throw new UnsupportedTypeException("Unsupported type:" + type);
         }
     }
 
@@ -236,10 +249,6 @@ public class HbaseColumnConverter
             case "DATE":
                 return PDate.INSTANCE;
             case "TIMESTAMP":
-            case "INTERVAL_YEAR_MONTH":
-            case "TIME_WITHOUT_TIME_ZONE":
-            case "TIMESTAMP_WITH_TIME_ZONE":
-            case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return PTimestamp.INSTANCE;
             case "UNSIGNED_TIME":
                 return PUnsignedTime.INSTANCE;
@@ -252,12 +261,8 @@ public class HbaseColumnConverter
             case "CHAR":
                 return PChar.INSTANCE;
                 // 不支持二进制字段类型
-            case "BINARY":
-                throw new RuntimeException("type [BINARY] is unsupported!");
-            case "VARBINARY":
-                throw new RuntimeException("type [VARBINARY] is unsupported!");
             default:
-                throw new RuntimeException("type[" + type + "] is unsupported!");
+                throw new UnsupportedTypeException(type);
         }
     }
 }

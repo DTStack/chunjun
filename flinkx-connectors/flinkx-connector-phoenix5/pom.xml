@@ -11,6 +11,11 @@
 
 	<artifactId>flinkx-connector-phoenix5</artifactId>
 	<name>FlinkX : Connectors : Phoenix5</name>
+
+	<properties>
+		<dir.name>phoenix5</dir.name>
+	</properties>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -188,12 +193,12 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../flinkxplugins/Phoenix5/"
+								<copy todir="${basedir}/../../flinkxplugins/${dir.name}"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../flinkxplugins/Phoenix5/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../flinkxplugins/Phoenix5/${project.artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/../../flinkxplugins/${dir.name}/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../flinkxplugins/${dir.name}/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../flinkxplugins/Phoenix5/"
+									<fileset dir="${basedir}/../../flinkxplugins/${dir.name}/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>

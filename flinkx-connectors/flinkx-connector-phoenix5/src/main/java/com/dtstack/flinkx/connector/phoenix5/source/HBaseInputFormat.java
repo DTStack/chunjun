@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.phoenix5.source;
 
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
@@ -38,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -50,22 +51,19 @@ import java.util.Vector;
  * @email wujuan@dtstack.com
  * @company www.dtstack.com
  */
-public class HbaseInputFormat extends JdbcInputFormat {
+public class HBaseInputFormat extends JdbcInputFormat {
 
-    final Logger LOG = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(HBaseInputFormat.class);
 
-    public String sql;
     private transient Iterator<Result> resultIterator;
     private Phoenix5Conf phoenix5Conf;
     private transient Phoenix5Helper phoenix5Helper;
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
-        // Phoenix5Conf conf = ((Phoenix5Conf) jdbcConf);
         Connection conn = getConnection();
         phoenix5Helper = new Phoenix5Helper();
-        // phoenix5Helper.initMetaData(conf, conn);
-        LOG.warn(
+        LOG.info(
                 "phoenix5reader config [readFromHbase] is true, FlinkX will read data from HBase directly!");
         List<Pair<byte[], byte[]>> rangeList = phoenix5Helper.getRangeList(phoenix5Conf, conn);
         LOG.info("region's count = {}", rangeList.size());
@@ -97,8 +95,6 @@ public class HbaseInputFormat extends JdbcInputFormat {
         Phoenix5Conf conf = phoenix5Conf;
         phoenix5Helper = new Phoenix5Helper();
         phoenix5Helper.initMetaData(conf, getConnection());
-        // jdbc meta data
-        //initColumnList();
         try {
             resultIterator = phoenix5Helper.getHbaseIterator(inputSplit, conf);
         } catch (Exception e) {
@@ -109,8 +105,6 @@ public class HbaseInputFormat extends JdbcInputFormat {
                             GsonUtil.GSON.toJson(conf),
                             ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(message, e);
-        } finally {
-            // DbUtil.closeDbResources(resultSet, ps, dbConn, false);
         }
     }
 
@@ -143,7 +137,7 @@ public class HbaseInputFormat extends JdbcInputFormat {
                 try {
                     resultIterator = phoenix5Helper.next();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new FlinkxRuntimeException(e);
                 }
                 return reachedEnd();
             } else {
@@ -160,14 +154,8 @@ public class HbaseInputFormat extends JdbcInputFormat {
     @SuppressWarnings("AlibabaRemoveCommentedCode")
     @Override
     protected Connection getConnection() {
-        Connection conn;
-        try {
-            conn =
-                    Phoenix5Util.getConnection(
-                            "org.apache.phoenix.jdbc.PhoenixDriver", phoenix5Conf);
-        } catch (SQLException throwables) {
-            throw new RuntimeException("Unable to get phoenix connection。");
-        }
+        Connection conn =
+                Phoenix5Util.getConnection("org.apache.phoenix.jdbc.PhoenixDriver", phoenix5Conf);
         return conn;
     }
 

@@ -35,7 +35,7 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 public class Phoenix5SinkFactory extends JdbcSinkFactory {
 
     public Phoenix5SinkFactory(SyncConf syncConf) {
-        super(syncConf,new Phoenix5Dialect());
+        super(syncConf, new Phoenix5Dialect());
     }
 
     @Override

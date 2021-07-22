@@ -31,8 +31,8 @@ import org.apache.flink.configuration.ConfigOptions;
 public class Phoenix5Options {
     // read config options
     public static final ConfigOption<String> READ_FROM_HBASE =
-            ConfigOptions.key("readFromHbase")
-                         .stringType()
-                         .noDefaultValue()
-                         .withDescription("read directly from hbase");
+            ConfigOptions.key("read-from-hbase")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("read directly from hbase");
 }

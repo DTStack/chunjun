@@ -17,10 +17,10 @@
  */
 package com.dtstack.flinkx.connector.phoenix5.converter;
 
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
+
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import java.util.Locale;
 
@@ -31,7 +31,7 @@ import java.util.Locale;
  * @email wujuan@dtstack.com
  * @company www.dtstack.com
  */
-public class HbaseRawTypeConverter {
+public class HBaseRawTypeConverter {
 
     /*
      * JDBC ResultSet implementation of Phoenix.

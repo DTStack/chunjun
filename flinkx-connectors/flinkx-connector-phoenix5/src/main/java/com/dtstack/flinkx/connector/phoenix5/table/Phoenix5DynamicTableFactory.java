@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.phoenix5.table;
 
 import org.apache.flink.configuration.ConfigOption;
+import org.apache.flink.table.connector.source.DynamicTableSource;
 
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
@@ -71,5 +72,11 @@ public class Phoenix5DynamicTableFactory extends JdbcDynamicTableFactory {
         final Set<ConfigOption<?>> configOptions = super.optionalOptions();
         configOptions.add(READ_FROM_HBASE);
         return configOptions;
+    }
+
+    @Override
+    public DynamicTableSource createDynamicTableSource(Context context) {
+        //  TODO sql support read from hbase.
+        return super.createDynamicTableSource(context);
     }
 }

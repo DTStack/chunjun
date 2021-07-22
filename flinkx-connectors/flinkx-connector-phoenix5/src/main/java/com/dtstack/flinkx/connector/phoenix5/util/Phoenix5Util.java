@@ -17,22 +17,27 @@
  */
 package com.dtstack.flinkx.connector.phoenix5.util;
 
+import org.apache.flink.util.Preconditions;
+
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-
-import org.apache.flink.util.Preconditions;
-
 import org.apache.phoenix.query.QueryServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -56,8 +61,7 @@ public class Phoenix5Util {
      * @return
      * @throws SQLException
      */
-    public static Connection getConnection(String driverName, JdbcConf jdbcConf)
-            throws SQLException {
+    public static Connection getConnection(String driverName, JdbcConf jdbcConf) {
         final String url = jdbcConf.getJdbcUrl();
         final String username = jdbcConf.getUsername();
         final String password = jdbcConf.getPassword();
@@ -90,7 +94,13 @@ public class Phoenix5Util {
                 // 客户端批处理的最大数据量（单位：B）1GB
                 properties.setProperty(QueryServices.MAX_MUTATION_SIZE_BYTES_ATTRIB, "1073741824");
             }
-            return DriverManager.getConnection(url, properties);
+            Connection conn;
+            try {
+                conn = DriverManager.getConnection(url, properties);
+            } catch (SQLException e) {
+                throw new FlinkxRuntimeException("Unable to get phoenix connection.", e);
+            }
+            return conn;
         }
     }
 
@@ -125,18 +135,19 @@ public class Phoenix5Util {
                 LOG.info("field count, name = {}, type = {}", i + "," + name, type);
             }
             return Pair.of(fullColumnNameList, fullColumnTypeList);
-        } catch (SQLException throwables) {
+        } catch (SQLException e) {
             throw new FlinkxRuntimeException(
                     String.format(
                             "error to get meta from [%s.%s]",
-                            meta != null ? meta.toString() : "meta is null", tableName));
+                            meta != null ? meta.toString() : "meta is null", tableName),
+                    e);
         } finally {
             if (resultSet != null) {
                 try {
                     resultSet.close();
-                } catch (SQLException throwables) {
+                } catch (SQLException e) {
                     throw new FlinkxRuntimeException(
-                            String.format("close connection fail  [%s]", tableName));
+                            String.format("close connection fail  [%s]", tableName), e);
                 }
             }
         }
@@ -165,33 +176,22 @@ public class Phoenix5Util {
             if (i != 0) {
                 sb.append(".");
             }
-            // sb.append(getStartQuote() + parts[i] + getEndQuote());
             sb.append(parts[i]);
         }
         return sb.toString();
     }
 
     public static String quoteColumns(List<String> column, String table) {
-        String prefix =
-                org.apache.commons.lang3.StringUtils.isBlank(table) ? "" : quoteTable(table) + ".";
+        String prefix = StringUtils.isBlank(table) ? "" : quoteTable(table) + ".";
         List<String> list = new ArrayList<>();
         for (String col : column) {
             list.add(prefix + quoteColumn(col));
         }
-        return org.apache.commons.lang3.StringUtils.join(list, ",");
+        return StringUtils.join(list, ",");
     }
 
     public static String quoteColumn(String column) {
-        // return getStartQuote() + column + getEndQuote();
         return column;
-    }
-
-    public static String getStartQuote() {
-        return "\"";
-    }
-
-    public static String getEndQuote() {
-        return "\"";
     }
 
     public static void closeDbResources(ResultSet rs, Statement stmt, Connection conn) {
