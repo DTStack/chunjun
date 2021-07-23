@@ -26,6 +26,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.configuration.PipelineOptions;
+import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -135,18 +136,21 @@ public class Main {
      * @throws Exception
      */
     private static void exeSqlJob(StreamExecutionEnvironment env, StreamTableEnvironment tableEnv, String job, Options options, Properties confProperties) throws Exception {
-        configStreamExecutionEnvironment(env, options, null, confProperties);
-        List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
-        StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
-        TableResult execute = statementSet.execute();
-        if (env instanceof MyLocalStreamEnvironment) {
-            execute.getJobClient().ifPresent(v -> {
-                try {
-                    PrintUtil.printResult(v.getAccumulators().get());
-                } catch (Exception e) {
-                    LOG.error("error to execute sql job, e = {}", ExceptionUtil.getErrorMessage(e));
+        try {
+            configStreamExecutionEnvironment(env, options, null, confProperties);
+            List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
+            StatementSet statementSet = SqlParser.parseSql(job, jarUrlList, tableEnv);
+            TableResult execute = statementSet.execute();
+            if (env instanceof MyLocalStreamEnvironment) {
+                Optional<JobClient> jobClient = execute.getJobClient();
+                if (jobClient.isPresent()) {
+                    PrintUtil.printResult(jobClient.get().getAccumulators().get());
                 }
-            });
+            }
+        } catch (Exception e) {
+            LOG.error(ExceptionUtil.getErrorMessage(e));
+        } finally {
+            FactoryUtil.getFactoryUtilHelpThreadLocal().remove();
         }
     }
 

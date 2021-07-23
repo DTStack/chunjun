@@ -880,6 +880,10 @@ public final class FactoryUtil {
         factoryUtilHelpThreadLocal.set(factoryUtilHelp);
     }
 
+    public static ThreadLocal<FactoryUtilHelp> getFactoryUtilHelpThreadLocal() {
+        return factoryUtilHelpThreadLocal;
+    }
+
     public class FactoryUtilHelp{
 
         /** 插件路径 */
