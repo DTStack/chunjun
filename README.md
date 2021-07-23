@@ -12,7 +12,7 @@ English | [中文](README_CH.md)
 - We use [DingTalk](https://www.dingtalk.com/) to communicate,You can search the group number [**30537511**] or scan the QR code below to join the communication group
   
   <div align=center>
-     <img src=docs/images/ding.jpg width=300 />
+     <img src=docs/images/IMG_3362.JPG width=300 />
    </div>
 
 # Introduction
