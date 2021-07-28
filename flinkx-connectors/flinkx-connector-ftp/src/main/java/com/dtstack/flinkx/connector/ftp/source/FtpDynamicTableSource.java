@@ -18,13 +18,6 @@
 
 package com.dtstack.flinkx.connector.ftp.source;
 
-import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-
-import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
-
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
@@ -36,12 +29,16 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
+import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 /**
  * @program: flinkx
  * @author: xiuzhu
  * @create: 2021/06/19
  */
-
 public class FtpDynamicTableSource implements ScanTableSource {
 
     private TableSchema schema;
@@ -72,13 +69,10 @@ public class FtpDynamicTableSource implements ScanTableSource {
         builder.setRowConverter(
                 new FtpRowConverter(
                         decodingFormat.createRuntimeDecoder(
-                                runtimeProviderContext,
-                                schema.toRowDataType())));
+                                runtimeProviderContext, schema.toRowDataType())));
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
-                false, 1);
-
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
 
     @Override

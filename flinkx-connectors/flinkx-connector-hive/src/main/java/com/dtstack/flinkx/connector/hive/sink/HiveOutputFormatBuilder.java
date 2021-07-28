@@ -18,11 +18,10 @@
 package com.dtstack.flinkx.connector.hive.sink;
 
 import com.dtstack.flinkx.connector.hive.conf.HiveConf;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -43,11 +42,11 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     protected void checkFormat() {
         StringBuilder msg = new StringBuilder(64);
         Integer parallelism = format.getConfig().getParallelism();
-        if(parallelism > 1){
-            //并行度大于1时，移动文件可能存在问题，目前先限制掉，后续优化
+        if (parallelism > 1) {
+            // 并行度大于1时，移动文件可能存在问题，目前先限制掉，后续优化
             msg.append("Hive sink does not support parallelism setting greater than 1!\n");
         }
-        if(msg.length() > 0){
+        if (msg.length() > 0) {
             throw new IllegalArgumentException(msg.toString());
         }
     }

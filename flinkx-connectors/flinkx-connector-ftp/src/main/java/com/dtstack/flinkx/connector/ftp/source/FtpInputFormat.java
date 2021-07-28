@@ -18,28 +18,21 @@
 
 package com.dtstack.flinkx.connector.ftp.source;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-
-import com.dtstack.flinkx.connector.ftp.converter.FtpColumnConverter;
-import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
-import com.dtstack.flinkx.connector.ftp.handler.FtpHandlerFactory;
-import com.dtstack.flinkx.connector.ftp.handler.IFtpHandler;
-
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.element.column.StringColumn;
-import com.dtstack.flinkx.exception.ReadRecordException;
-
-import org.apache.commons.collections.CollectionUtils;
-
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
+import com.dtstack.flinkx.connector.ftp.converter.FtpColumnConverter;
+import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
+import com.dtstack.flinkx.connector.ftp.handler.FtpHandlerFactory;
+import com.dtstack.flinkx.connector.ftp.handler.IFtpHandler;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.GsonUtil;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,7 +41,8 @@ import java.util.List;
 /**
  * The InputFormat class of Ftp
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class FtpInputFormat extends BaseRichInputFormat {
@@ -77,8 +71,8 @@ public class FtpInputFormat extends BaseRichInputFormat {
         List<String> files = new ArrayList<>();
 
         String path = ftpConfig.getPath();
-        if(path != null && path.length() > 0){
-            path = path.replace("\n","").replace("\r","");
+        if (path != null && path.length() > 0) {
+            path = path.replace("\n", "").replace("\r", "");
             String[] pathArray = path.split(",");
             for (String p : pathArray) {
                 files.addAll(ftpHandler.getFiles(p.trim()));
@@ -87,10 +81,10 @@ public class FtpInputFormat extends BaseRichInputFormat {
         LOG.info("FTP files = {}", GsonUtil.GSON.toJson(files));
         int numSplits = (Math.min(files.size(), minNumSplits));
         FtpInputSplit[] ftpInputSplits = new FtpInputSplit[numSplits];
-        for(int index = 0; index < numSplits; ++index) {
+        for (int index = 0; index < numSplits; ++index) {
             ftpInputSplits[index] = new FtpInputSplit();
         }
-        for(int i = 0; i < files.size(); ++i) {
+        for (int i = 0; i < files.size(); ++i) {
             ftpInputSplits[i % numSplits].getPaths().add(files.get(i));
         }
 
@@ -100,14 +94,14 @@ public class FtpInputFormat extends BaseRichInputFormat {
 
     @Override
     public void openInternal(InputSplit split) throws IOException {
-        FtpInputSplit inputSplit = (FtpInputSplit)split;
+        FtpInputSplit inputSplit = (FtpInputSplit) split;
         List<String> paths = inputSplit.getPaths();
 
-        if (ftpConfig.getIsFirstLineHeader()){
-            br = new FtpSeqBufferedReader(ftpHandler,paths.iterator(),ftpConfig);
+        if (ftpConfig.getIsFirstLineHeader()) {
+            br = new FtpSeqBufferedReader(ftpHandler, paths.iterator(), ftpConfig);
             br.setFromLine(1);
         } else {
-            br = new FtpSeqBufferedReader(ftpHandler,paths.iterator(),ftpConfig);
+            br = new FtpSeqBufferedReader(ftpHandler, paths.iterator(), ftpConfig);
             br.setFromLine(0);
         }
         br.setFileEncoding(ftpConfig.getEncoding());
@@ -130,7 +124,8 @@ public class FtpInputFormat extends BaseRichInputFormat {
                 List<FieldConf> columns = ftpConfig.getColumn();
 
                 GenericRowData genericRowData;
-                if (CollectionUtils.size(columns) == 1 && ConstantValue.STAR_SYMBOL.equals(columns.get(0).getName())) {
+                if (CollectionUtils.size(columns) == 1
+                        && ConstantValue.STAR_SYMBOL.equals(columns.get(0).getName())) {
                     genericRowData = new GenericRowData(fields.length);
                     for (int i = 0; i < fields.length; i++) {
                         genericRowData.setField(i, fields[i]);
@@ -162,14 +157,13 @@ public class FtpInputFormat extends BaseRichInputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        if(br != null) {
+        if (br != null) {
             br.close();
         }
-        if(ftpHandler != null) {
+        if (ftpHandler != null) {
             ftpHandler.logoutFtpServer();
         }
     }
-
 
     public FtpConfig getFtpConfig() {
         return ftpConfig;

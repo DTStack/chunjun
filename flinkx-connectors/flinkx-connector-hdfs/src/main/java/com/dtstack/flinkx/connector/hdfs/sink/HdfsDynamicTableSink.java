@@ -30,14 +30,13 @@ import com.dtstack.flinkx.connector.hdfs.converter.HdfsParquetRowConverter;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsTextRowConverter;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Date: 2021/06/21
- * Company: www.dtstack.com
+ * Date: 2021/06/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -73,7 +72,7 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
         HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(hdfsConf.getFileType());
         builder.setHdfsConf(hdfsConf);
         AbstractRowConverter rowConverter;
-        switch(FileType.getByName(hdfsConf.getFileType())) {
+        switch (FileType.getByName(hdfsConf.getFileType())) {
             case ORC:
                 rowConverter = new HdfsOrcRowConverter(rowType);
                 break;
@@ -84,7 +83,8 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
                 rowConverter = new HdfsTextRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), hdfsConf.getParallelism());
+        return SinkFunctionProvider.of(
+                new DtOutputFormatSinkFunction(builder.finish()), hdfsConf.getParallelism());
     }
 
     @Override

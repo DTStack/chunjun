@@ -15,22 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.dtstack.flinkx.sink.format;
 
-package com.dtstack.flinkx.exception;
-
-import static com.dtstack.flinkx.util.DtStringUtil.addLineNumber;
+import com.dtstack.flinkx.conf.BaseFileConf;
 
 /**
- * @author chuixue
- * @create 2021-05-13 14:30
- * @description sql解析异常
+ * Date: 2021/06/21 Company: www.dtstack.com
+ *
+ * @author tudou
  */
-public class DtSqlParserException extends RuntimeException {
-    public DtSqlParserException(String sql, String message, Throwable e) {
-        super(
-                "\n----------sql start---------\n"
-                        + addLineNumber(sql)
-                        + "\n----------sql end--------- \n\n"
-                        + message, e);
+public abstract class FileOutputFormatBuilder extends BaseRichOutputFormatBuilder {
+    protected BaseFileOutputFormat format;
+
+    public void setFormat(BaseFileOutputFormat format) {
+        this.format = format;
+        super.format = format;
+    }
+
+    public void setBaseFileConf(BaseFileConf baseFileConf) {
+        super.setConfig(baseFileConf);
+        format.baseFileConf = baseFileConf;
     }
 }

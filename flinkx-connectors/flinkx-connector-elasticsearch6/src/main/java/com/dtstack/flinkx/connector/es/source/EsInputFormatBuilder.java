@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.connector.es.source;
 
 import com.dtstack.flinkx.connector.es.conf.EsConf;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.google.common.base.Preconditions;
 
 /**
@@ -48,12 +48,12 @@ public class EsInputFormatBuilder extends BaseRichInputFormatBuilder {
         Preconditions.checkNotNull(esConf.getIndex(), "elasticsearch6 type of index is required");
         Preconditions.checkNotNull(esConf.getType(), "elasticsearch6 type of type is required");
 
-        /**
-         * is open basic auth
-         */
+        /** is open basic auth */
         if (esConf.isAuthMesh()) {
-            Preconditions.checkNotNull(esConf.getUsername(), "elasticsearch6 type of userName is required");
-            Preconditions.checkNotNull(esConf.getPassword(), "elasticsearch6 type of password is required");
+            Preconditions.checkNotNull(
+                    esConf.getUsername(), "elasticsearch6 type of userName is required");
+            Preconditions.checkNotNull(
+                    esConf.getPassword(), "elasticsearch6 type of password is required");
         }
     }
 }

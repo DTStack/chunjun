@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,21 +16,21 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.exception;
+package com.dtstack.flinkx.throwable;
 
 /**
- * The Exception describing errors when read a record
+ * The Exception describing errors when writing a record
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
-public class ReadRecordException extends Exception {
+public class WriteRecordException extends Exception {
 
     private final int colIndex;
     private final Object rowData;
 
-
-    public ReadRecordException(String message, Throwable cause, int colIndex, Object rowData) {
+    public WriteRecordException(String message, Throwable cause, int colIndex, Object rowData) {
         super(message, cause);
         this.colIndex = colIndex;
         this.rowData = rowData;
@@ -44,7 +44,7 @@ public class ReadRecordException extends Exception {
         return rowData;
     }
 
-    public ReadRecordException(String message, Throwable cause) {
+    public WriteRecordException(String message, Throwable cause) {
         this(message, cause, -1, null);
     }
 

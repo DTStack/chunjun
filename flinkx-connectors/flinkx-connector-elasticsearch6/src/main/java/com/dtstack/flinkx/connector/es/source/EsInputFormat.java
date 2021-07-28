@@ -25,13 +25,10 @@ import org.apache.flink.table.data.RowData;
 import com.dtstack.flinkx.connector.es.conf.EsConf;
 import com.dtstack.flinkx.connector.es.utils.EsRequestHelper;
 import com.dtstack.flinkx.connector.es.utils.EsUtil;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-
-import org.apache.flink.table.descriptors.Elasticsearch;
-
 import org.elasticsearch.action.search.ClearScrollRequest;
 import org.elasticsearch.action.search.ClearScrollResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -58,14 +55,10 @@ import java.util.Map;
  */
 public class EsInputFormat extends BaseRichInputFormat {
 
-    /**
-     * Elasticsearch Configuration
-     */
+    /** Elasticsearch Configuration */
     private EsConf elasticsearchConf;
 
-    /**
-     * Elasticsearch High Level Client
-     */
+    /** Elasticsearch High Level Client */
     private transient RestHighLevelClient rhlClient;
 
     protected String query;
@@ -84,7 +77,7 @@ public class EsInputFormat extends BaseRichInputFormat {
     protected InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
         InputSplit[] splits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            splits[i] = new GenericInputSplit(i,minNumSplits);
+            splits[i] = new GenericInputSplit(i, minNumSplits);
         }
 
         return splits;
@@ -93,33 +86,32 @@ public class EsInputFormat extends BaseRichInputFormat {
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
         super.openInputFormat();
-        GenericInputSplit genericInputSplit = (GenericInputSplit)inputSplit;
+        GenericInputSplit genericInputSplit = (GenericInputSplit) inputSplit;
 
         rhlClient = EsUtil.createClient(elasticsearchConf);
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
         String[] fieldsNames = elasticsearchConf.getFieldNames();
-        SearchSourceBuilder searchSourceBuilder = EsRequestHelper.createSourceBuilder(
-                fieldsNames,
-                null,
-                null
-        );
+        SearchSourceBuilder searchSourceBuilder =
+                EsRequestHelper.createSourceBuilder(fieldsNames, null, null);
         searchSourceBuilder.size(elasticsearchConf.getBatchSize());
 
-        if(StringUtils.isNotEmpty(query)){
+        if (StringUtils.isNotEmpty(query)) {
             searchSourceBuilder.query(QueryBuilders.wrapperQuery(query));
         }
 
-        if(genericInputSplit.getTotalNumberOfSplits() > 1){
-            searchSourceBuilder.slice(new SliceBuilder(genericInputSplit.getSplitNumber(), genericInputSplit.getTotalNumberOfSplits()));
+        if (genericInputSplit.getTotalNumberOfSplits() > 1) {
+            searchSourceBuilder.slice(
+                    new SliceBuilder(
+                            genericInputSplit.getSplitNumber(),
+                            genericInputSplit.getTotalNumberOfSplits()));
         }
 
-        searchRequest = EsRequestHelper.createSearchRequest(
-                elasticsearchConf.getIndex(),
-                elasticsearchConf.getType(),
-                scroll,
-                searchSourceBuilder
-        );
-
+        searchRequest =
+                EsRequestHelper.createSearchRequest(
+                        elasticsearchConf.getIndex(),
+                        elasticsearchConf.getType(),
+                        scroll,
+                        searchSourceBuilder);
     }
 
     @Override
@@ -134,7 +126,7 @@ public class EsInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void closeInternal() throws IOException {
-        if(rhlClient != null) {
+        if (rhlClient != null) {
             clearScroll();
 
             rhlClient.close();
@@ -142,8 +134,8 @@ public class EsInputFormat extends BaseRichInputFormat {
         }
     }
 
-    private void clearScroll() throws IOException{
-        if(scrollId == null){
+    private void clearScroll() throws IOException {
+        if (scrollId == null) {
             return;
         }
 
@@ -156,7 +148,7 @@ public class EsInputFormat extends BaseRichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        if(iterator != null && iterator.hasNext()) {
+        if (iterator != null && iterator.hasNext()) {
             return false;
         } else {
             return searchScroll();
@@ -165,7 +157,7 @@ public class EsInputFormat extends BaseRichInputFormat {
 
     private boolean searchScroll() throws IOException {
         SearchHit[] searchHits;
-        if(scrollId == null){
+        if (scrollId == null) {
             SearchResponse searchResponse = rhlClient.search(searchRequest);
             scrollId = searchResponse.getScrollId();
             searchHits = searchResponse.getHits().getHits();
@@ -178,8 +170,8 @@ public class EsInputFormat extends BaseRichInputFormat {
         }
 
         List<Map<String, Object>> resultList = Lists.newArrayList();
-        for(SearchHit searchHit : searchHits) {
-            Map<String,Object> source = searchHit.getSourceAsMap();
+        for (SearchHit searchHit : searchHits) {
+            Map<String, Object> source = searchHit.getSourceAsMap();
             resultList.add(source);
         }
 

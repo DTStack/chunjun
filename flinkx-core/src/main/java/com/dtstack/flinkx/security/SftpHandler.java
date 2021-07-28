@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,7 @@
  * limitations under the License.
  */
 
-
-package com.dtstack.flinkx.authenticate;
+package com.dtstack.flinkx.security;
 
 import com.dtstack.flinkx.util.RetryUtil;
 import com.jcraft.jsch.ChannelSftp;
@@ -62,20 +61,24 @@ public class SftpHandler {
         this.channelSftp = channelSftp;
     }
 
-    public static SftpHandler getInstanceWithRetry(Map<String, String> sftpConfig){
+    public static SftpHandler getInstanceWithRetry(Map<String, String> sftpConfig) {
         try {
-            return RetryUtil.executeWithRetry(new Callable<SftpHandler>() {
-                @Override
-                public SftpHandler call() throws Exception {
-                    return getInstance(sftpConfig);
-                }
-            }, 3, 1000, false);
+            return RetryUtil.executeWithRetry(
+                    new Callable<SftpHandler>() {
+                        @Override
+                        public SftpHandler call() throws Exception {
+                            return getInstance(sftpConfig);
+                        }
+                    },
+                    3,
+                    1000,
+                    false);
         } catch (Exception e) {
             throw new RuntimeException("获取SFTPHandler出错", e);
         }
     }
 
-    private static SftpHandler getInstance(Map<String, String> sftpConfig){
+    private static SftpHandler getInstance(Map<String, String> sftpConfig) {
         checkConfig(sftpConfig);
 
         String host = MapUtils.getString(sftpConfig, KEY_HOST);
@@ -86,7 +89,8 @@ public class SftpHandler {
             JSch jsch = new JSch();
             Session session = jsch.getSession(username, host, port);
             if (session == null) {
-                throw new RuntimeException("Login failed. Please check if username and password are correct");
+                throw new RuntimeException(
+                        "Login failed. Please check if username and password are correct");
             }
 
             session.setPassword(MapUtils.getString(sftpConfig, KEY_PASSWORD));
@@ -100,55 +104,61 @@ public class SftpHandler {
             channelSftp.connect();
 
             return new SftpHandler(session, channelSftp);
-        } catch (Exception e){
-            String message = String.format("与ftp服务器建立连接失败 : [%s]",
-                    "message:host =" + host + ",username = " + username + ",port =" + port);
+        } catch (Exception e) {
+            String message =
+                    String.format(
+                            "与ftp服务器建立连接失败 : [%s]",
+                            "message:host =" + host + ",username = " + username + ",port =" + port);
             throw new RuntimeException(message, e);
         }
     }
 
-    private static void checkConfig(Map<String, String> sftpConfig){
-        if(sftpConfig == null || sftpConfig.isEmpty()){
+    private static void checkConfig(Map<String, String> sftpConfig) {
+        if (sftpConfig == null || sftpConfig.isEmpty()) {
             throw new IllegalArgumentException("The config of sftp is null");
         }
 
-        if(StringUtils.isEmpty(sftpConfig.get(KEY_HOST))){
+        if (StringUtils.isEmpty(sftpConfig.get(KEY_HOST))) {
             throw new IllegalArgumentException("The host of sftp is null");
         }
     }
 
     public void downloadFileWithRetry(String ftpPath, String localPath) {
         try {
-            RetryUtil.executeWithRetry(new Callable<Object>() {
-                @Override
-                public Object call() throws Exception {
-                    downloadFile(ftpPath, localPath);
-                    return null;
-                }
-            }, 3, 1000, false);
+            RetryUtil.executeWithRetry(
+                    new Callable<Object>() {
+                        @Override
+                        public Object call() throws Exception {
+                            downloadFile(ftpPath, localPath);
+                            return null;
+                        }
+                    },
+                    3,
+                    1000,
+                    false);
         } catch (Exception e) {
             throw new IllegalArgumentException("下载文件失败", e);
         }
     }
 
-    private void downloadFile(String ftpPath, String localPath){
-        if(!isFileExist(ftpPath)){
+    private void downloadFile(String ftpPath, String localPath) {
+        if (!isFileExist(ftpPath)) {
             throw new RuntimeException("File not exist on sftp:" + ftpPath);
         }
 
-        try (OutputStream os = new FileOutputStream(new File(localPath))){
+        try (OutputStream os = new FileOutputStream(new File(localPath))) {
             channelSftp.get(ftpPath, os);
             os.flush();
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("download file from sftp error", e);
         }
     }
 
-    public boolean isFileExist(String ftpPath){
+    public boolean isFileExist(String ftpPath) {
         try {
             channelSftp.lstat(ftpPath);
             return true;
-        } catch (SftpException e){
+        } catch (SftpException e) {
             if (e.getMessage().contains(KEYWORD_FILE_NOT_EXISTS)) {
                 return false;
             } else {
@@ -157,7 +167,7 @@ public class SftpHandler {
         }
     }
 
-    public void close(){
+    public void close() {
         if (channelSftp != null) {
             channelSftp.disconnect();
         }

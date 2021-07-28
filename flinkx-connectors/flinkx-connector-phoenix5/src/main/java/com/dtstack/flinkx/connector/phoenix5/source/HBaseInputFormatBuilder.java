@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.phoenix5.source;
 
 import com.dtstack.flinkx.connector.phoenix5.conf.Phoenix5Conf;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -43,7 +43,6 @@ public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setPhoenix5Conf(phoenix5Conf);
         format.setJdbcConf(phoenix5Conf);
     }
-
 
     @Override
     protected void checkFormat() {

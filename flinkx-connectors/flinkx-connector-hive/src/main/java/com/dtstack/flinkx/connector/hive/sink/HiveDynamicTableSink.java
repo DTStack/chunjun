@@ -24,11 +24,10 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 
 import com.dtstack.flinkx.connector.hive.conf.HiveConf;
 import com.dtstack.flinkx.connector.hive.util.HiveUtil;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -51,9 +50,15 @@ public class HiveDynamicTableSink implements DynamicTableSink {
     @SuppressWarnings("all")
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
         HiveOutputFormatBuilder builder = new HiveOutputFormatBuilder();
-        hiveConf.setTableInfos(HiveUtil.formatHiveTableInfo(hiveConf.getTablesColumn(), hiveConf.getPartition(), hiveConf.getFieldDelimiter(), hiveConf.getFileType()));
+        hiveConf.setTableInfos(
+                HiveUtil.formatHiveTableInfo(
+                        hiveConf.getTablesColumn(),
+                        hiveConf.getPartition(),
+                        hiveConf.getFieldDelimiter(),
+                        hiveConf.getFileType()));
         builder.setHiveConf(hiveConf);
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), hiveConf.getParallelism());
+        return SinkFunctionProvider.of(
+                new DtOutputFormatSinkFunction(builder.finish()), hiveConf.getParallelism());
     }
 
     @Override

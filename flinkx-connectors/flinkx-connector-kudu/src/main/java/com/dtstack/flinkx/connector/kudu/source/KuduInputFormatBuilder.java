@@ -21,7 +21,7 @@ package com.dtstack.flinkx.connector.kudu.source;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.throwable.NoRestartException;
 
 import java.util.List;

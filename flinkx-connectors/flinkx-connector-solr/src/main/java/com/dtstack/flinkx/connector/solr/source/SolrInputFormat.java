@@ -24,8 +24,8 @@ import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.solr.SolrConf;
 import com.dtstack.flinkx.connector.solr.client.CloudSolrClientKerberosWrapper;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;

@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.cassandra.sink;
 
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraSinkConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.throwable.NoRestartException;
 import org.apache.commons.lang3.StringUtils;
 

@@ -33,15 +33,14 @@ import com.dtstack.flinkx.connector.hdfs.converter.HdfsParquetRowConverter;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsTextRowConverter;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Date: 2021/06/17
- * Company: www.dtstack.com
+ * Date: 2021/06/17 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -72,7 +71,7 @@ public class HdfsDynamicTableSource implements ScanTableSource {
         HdfsInputFormatBuilder builder = new HdfsInputFormatBuilder(hdfsConf.getFileType());
         builder.setHdfsConf(hdfsConf);
         AbstractRowConverter rowConverter;
-        switch(FileType.getByName(hdfsConf.getFileType())) {
+        switch (FileType.getByName(hdfsConf.getFileType())) {
             case ORC:
                 rowConverter = new HdfsOrcRowConverter(rowType);
                 break;

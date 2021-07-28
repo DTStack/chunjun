@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,21 +16,40 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.exception;
+package com.dtstack.flinkx.throwable;
 
 /**
- * 数据源异常类型
+ * The Exception describing errors when read a record
+ *
+ * <p>Company: www.dtstack.com
+ *
+ * @author huyifan.zju@163.com
  */
-public class DataSourceException extends RuntimeException {
-    private String dataSourceName;
+public class ReadRecordException extends Exception {
 
-    public DataSourceException(String sourceName, String message, Throwable cause) {
+    private final int colIndex;
+    private final Object rowData;
+
+    public ReadRecordException(String message, Throwable cause, int colIndex, Object rowData) {
         super(message, cause);
-        this.dataSourceName = sourceName;
+        this.colIndex = colIndex;
+        this.rowData = rowData;
+    }
+
+    public int getColIndex() {
+        return colIndex;
+    }
+
+    public Object getRowData() {
+        return rowData;
+    }
+
+    public ReadRecordException(String message, Throwable cause) {
+        this(message, cause, -1, null);
     }
 
     @Override
     public String toString() {
-        return "datasourceName【" + dataSourceName+"】" + super.toString() + "\n" + getCause().toString();
+        return super.toString() + "\n" + getCause().toString();
     }
 }

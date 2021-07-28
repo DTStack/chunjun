@@ -23,8 +23,8 @@ import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.mongodb.MongoClientFactory;
 import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;

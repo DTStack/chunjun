@@ -21,8 +21,8 @@ package com.dtstack.flinkx.connector.mongodb.sink;
 import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.flinkx.connector.mongodb.datasync.MongoClientConfFactory;
 import com.dtstack.flinkx.connector.mongodb.datasync.MongodbDataSyncConf;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.sink.WriteMode;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
 /**
  * @author Ada Wong

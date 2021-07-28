@@ -22,7 +22,7 @@ import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
-import com.dtstack.flinkx.function.FunctionManager;
+import com.dtstack.flinkx.sql.FunctionManager;
 import com.dtstack.flinkx.throwable.FlinkxSqlParseException;
 
 import java.lang.reflect.InvocationTargetException;

@@ -18,17 +18,14 @@
 
 package com.dtstack.flinkx.connector.ftp.sink;
 
-import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-
-import com.dtstack.flinkx.connector.ftp.handler.FtpHandlerFactory;
-import com.dtstack.flinkx.connector.ftp.handler.IFtpHandler;
-
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
+import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
+import com.dtstack.flinkx.connector.ftp.handler.FtpHandlerFactory;
+import com.dtstack.flinkx.connector.ftp.handler.IFtpHandler;
+import com.dtstack.flinkx.sink.format.BaseFileOutputFormat;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 
 import java.io.BufferedWriter;
@@ -42,7 +39,8 @@ import java.util.List;
 /**
  * The OutputFormat Implementation which reads data from ftp servers.
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class FtpOutputFormat extends BaseFileOutputFormat {
@@ -90,18 +88,18 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
-    protected void nextBlock(){
+    protected void nextBlock() {
         super.nextBlock();
 
-        if (writer != null){
+        if (writer != null) {
             return;
         }
         String currentBlockTmpPath = tmpPath + File.separatorChar + currentFileName;
-        try{
+        try {
             os = ftpHandler.getOutputStream(currentBlockTmpPath);
             writer = new BufferedWriter(new OutputStreamWriter(os, ftpConfig.getEncoding()));
             LOG.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new FlinkxRuntimeException(ExceptionUtil.getErrorMessage(e));
         }
 
@@ -111,7 +109,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     @Override
     public void writeSingleRecordToFile(RowData rowData) throws WriteRecordException {
         try {
-            if(writer == null){
+            if (writer == null) {
                 nextBlock();
             }
 
@@ -120,7 +118,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             this.writer.write(NEWLINE);
             rowsOfCurrentBlock++;
             lastRow = rowData;
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             throw new WriteRecordException(ex.getMessage(), ex);
         }
     }
@@ -128,16 +126,16 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     @Override
     protected void closeSource() {
         try {
-            if (writer != null){
+            if (writer != null) {
                 writer.flush();
                 writer.close();
                 writer = null;
                 os.close();
                 os = null;
             }
-            //avoid Failure of FtpClient operating
+            // avoid Failure of FtpClient operating
             this.ftpHandler.completePendingCommand();
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new FlinkxRuntimeException("can't close source.", e);
         }
     }
@@ -164,8 +162,12 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 copyList.add(newFilePath);
                 LOG.info("copy temp file:{} to dir:{}", currentFilePath, outputFilePath);
             }
-        }catch (Exception e){
-            throw new FlinkxRuntimeException(String.format("can't copy temp file:[%s] to dir:[%s]", currentFilePath, outputFilePath), e);
+        } catch (Exception e) {
+            throw new FlinkxRuntimeException(
+                    String.format(
+                            "can't copy temp file:[%s] to dir:[%s]",
+                            currentFilePath, outputFilePath),
+                    e);
         }
         return copyList;
     }
@@ -180,8 +182,9 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                     LOG.info("delete file:{}", currentFilePath);
                 }
             }
-        }catch (IOException e){
-            throw new FlinkxRuntimeException(String.format("can't delete commit file:[%s]", currentFilePath), e);
+        } catch (IOException e) {
+            throw new FlinkxRuntimeException(
+                    String.format("can't delete commit file:[%s]", currentFilePath), e);
         }
     }
 
@@ -198,8 +201,11 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 LOG.info("move temp file:{} to dir:{}", dataFilePath, outputFilePath);
             }
             ftpHandler.deleteAllFilesInDir(tmpPath, null);
-        }catch (Exception e){
-            throw new FlinkxRuntimeException(String.format("can't copy temp file:[%s] to dir:[%s]", dataFilePath, outputFilePath), e);
+        } catch (Exception e) {
+            throw new FlinkxRuntimeException(
+                    String.format(
+                            "can't copy temp file:[%s] to dir:[%s]", dataFilePath, outputFilePath),
+                    e);
         }
     }
 
@@ -218,7 +224,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         String path = tmpPath + File.separatorChar + currentFileName;
         try {
             return ftpHandler.getFileSize(path);
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new FlinkxRuntimeException("can't get file size from ftp, file = " + path, e);
         }
     }
@@ -239,6 +245,4 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     protected void notSupportBatchWrite(String writerName) {
         throw new UnsupportedOperationException(writerName + "不支持批量写入");
     }
-
-
 }

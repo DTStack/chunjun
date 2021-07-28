@@ -18,12 +18,6 @@
 
 package com.dtstack.flinkx.connector.ftp.sink;
 
-import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-
-import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
-
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -31,6 +25,10 @@ import org.apache.flink.table.connector.format.EncodingFormat;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.data.RowData;
+
+import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
+import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 /**
  * @program: flinkx
@@ -61,8 +59,10 @@ public class FtpDynamicTableSink implements DynamicTableSink {
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
         FtpOutputFormatBuilder builder = new FtpOutputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
-        builder.setRowConverter(new FtpRowConverter(
-                valueEncodingFormat.createRuntimeEncoder(context, physicalSchema.toRowDataType())));
+        builder.setRowConverter(
+                new FtpRowConverter(
+                        valueEncodingFormat.createRuntimeEncoder(
+                                context, physicalSchema.toRowDataType())));
 
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()), 1);
     }

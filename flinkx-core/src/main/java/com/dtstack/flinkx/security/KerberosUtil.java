@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,7 @@
  * limitations under the License.
  */
 
-
-package com.dtstack.flinkx.authenticate;
+package com.dtstack.flinkx.security;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.Md5Util;
@@ -57,9 +56,10 @@ public class KerberosUtil {
     private static final String JAVA_VENDOR_IBM = "IBM";
 
     private static String LOCAL_CACHE_DIR;
+
     static {
         String systemInfo = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_OS);
-        if(systemInfo.toLowerCase().startsWith(ConstantValue.OS_WINDOWS)){
+        if (systemInfo.toLowerCase().startsWith(ConstantValue.OS_WINDOWS)) {
             LOCAL_CACHE_DIR = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_USER_DIR);
         } else {
             LOCAL_CACHE_DIR = "/tmp/flinkx/keytab";
@@ -68,7 +68,8 @@ public class KerberosUtil {
         createDir(LOCAL_CACHE_DIR);
     }
 
-    public static UserGroupInformation loginAndReturnUgi(Configuration conf, String principal, String keytab) throws IOException {
+    public static UserGroupInformation loginAndReturnUgi(
+            Configuration conf, String principal, String keytab) throws IOException {
         if (conf == null) {
             throw new IllegalArgumentException("kerberos conf can not be null");
         }
@@ -77,11 +78,11 @@ public class KerberosUtil {
             throw new IllegalArgumentException("principal can not be null");
         }
 
-        if(StringUtils.isEmpty(keytab)){
+        if (StringUtils.isEmpty(keytab)) {
             throw new IllegalArgumentException("keytab can not be null");
         }
 
-        if(StringUtils.isNotEmpty(conf.get(KEY_JAVA_SECURITY_KRB5_CONF))){
+        if (StringUtils.isNotEmpty(conf.get(KEY_JAVA_SECURITY_KRB5_CONF))) {
             reloadKrb5Conf(conf);
         }
 
@@ -92,7 +93,7 @@ public class KerberosUtil {
         return UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytab);
     }
 
-    public static String getPrincipal(Map<String,Object> configMap, String keytabPath) {
+    public static String getPrincipal(Map<String, Object> configMap, String keytabPath) {
         String principal = MapUtils.getString(configMap, KEY_PRINCIPAL);
         if (StringUtils.isEmpty(principal)) {
             principal = findPrincipalFromKeytab(keytabPath);
@@ -101,23 +102,24 @@ public class KerberosUtil {
         return principal;
     }
 
-    private static void reloadKrb5Conf(Configuration conf){
+    private static void reloadKrb5Conf(Configuration conf) {
         String krb5File = conf.get(KEY_JAVA_SECURITY_KRB5_CONF);
         LOG.info("set krb5 file:{}", krb5File);
         System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5File);
 
         try {
-            if (!System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_JAVA_VENDOR).contains(JAVA_VENDOR_IBM)) {
+            if (!System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_JAVA_VENDOR)
+                    .contains(JAVA_VENDOR_IBM)) {
                 Config.refresh();
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             LOG.warn("reload krb5 file:{} error:", krb5File, e);
         }
     }
 
-    public static void loadKrb5Conf(Map<String, Object> kerberosConfig){
+    public static void loadKrb5Conf(Map<String, Object> kerberosConfig) {
         String krb5FilePath = MapUtils.getString(kerberosConfig, KEY_JAVA_SECURITY_KRB5_CONF);
-        if(StringUtils.isEmpty(krb5FilePath)){
+        if (StringUtils.isEmpty(krb5FilePath)) {
             LOG.info("krb5 file is empty,will use default file");
             return;
         }
@@ -128,27 +130,17 @@ public class KerberosUtil {
     }
 
     /**
-     * kerberosConfig
-     * {
-     *     "principalFile":"keytab.keytab",
-     *     "remoteDir":"/home/admin",
-     *     "sftpConf":{
-     *          "path" : "/home/admin",
-     *          "password" : "******",
-     *          "port" : "22",
-     *          "auth" : "1",
-     *          "host" : "127.0.0.1",
-     *          "username" : "admin"
-     *     }
-     * }
+     * kerberosConfig { "principalFile":"keytab.keytab", "remoteDir":"/home/admin", "sftpConf":{
+     * "path" : "/home/admin", "password" : "******", "port" : "22", "auth" : "1", "host" :
+     * "127.0.0.1", "username" : "admin" } }
      */
     public static String loadFile(Map<String, Object> kerberosConfig, String filePath) {
         boolean useLocalFile = MapUtils.getBooleanValue(kerberosConfig, KEY_USE_LOCAL_FILE);
-        if(useLocalFile){
+        if (useLocalFile) {
             LOG.info("will use local file:{}", filePath);
             checkFileExists(filePath);
         } else {
-            if(filePath.contains(SP)){
+            if (filePath.contains(SP)) {
                 filePath = filePath.substring(filePath.lastIndexOf(SP) + 1);
             }
 
@@ -158,18 +150,18 @@ public class KerberosUtil {
         return filePath;
     }
 
-    private static void checkFileExists(String filePath){
-       File file = new File(filePath);
-       if (file.exists()){
-           if (file.isDirectory()) {
-               throw new RuntimeException("keytab is a directory:" + filePath);
-           }
-       } else {
-           throw new RuntimeException("keytab file not exists:" + filePath);
-       }
+    private static void checkFileExists(String filePath) {
+        File file = new File(filePath);
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                throw new RuntimeException("keytab is a directory:" + filePath);
+            }
+        } else {
+            throw new RuntimeException("keytab file not exists:" + filePath);
+        }
     }
 
-    private static String loadFromSftp(Map<String, Object> config, String fileName){
+    private static String loadFromSftp(Map<String, Object> config, String fileName) {
         String remoteDir = MapUtils.getString(config, KEY_REMOTE_DIR);
         String filePathOnSftp = remoteDir + "/" + fileName;
 
@@ -184,16 +176,16 @@ public class KerberosUtil {
         SftpHandler handler = null;
         try {
             handler = SftpHandler.getInstanceWithRetry(MapUtils.getMap(config, KEY_SFTP_CONF));
-            if(handler.isFileExist(filePathOnSftp)){
+            if (handler.isFileExist(filePathOnSftp)) {
                 handler.downloadFileWithRetry(filePathOnSftp, fileLocalPath);
 
                 LOG.info("download file:{} to local:{}", filePathOnSftp, fileLocalPath);
                 return fileLocalPath;
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            if (handler != null){
+            if (handler != null) {
                 handler.close();
             }
         }
@@ -213,12 +205,12 @@ public class KerberosUtil {
         return null;
     }
 
-    private static void delectFile(String filePath){
+    private static void delectFile(String filePath) {
         if (fileExists(filePath)) {
             File file = new File(filePath);
-            if(file.delete()){
+            if (file.delete()) {
                 LOG.info(file.getName() + " is delected！");
-            }else{
+            } else {
                 LOG.error("delected " + file.getName() + " failed！");
             }
         }
@@ -229,14 +221,14 @@ public class KerberosUtil {
         return file.exists() && file.isFile();
     }
 
-    private static String createDir(String dir){
+    private static String createDir(String dir) {
         File file = new File(dir);
-        if (file.exists()){
+        if (file.exists()) {
             return dir;
         }
 
         boolean result = file.mkdirs();
-        if (!result){
+        if (!result) {
             LOG.warn("Create dir failure:{}", dir);
         }
 
@@ -253,20 +245,20 @@ public class KerberosUtil {
         return fileName;
     }
 
-    /**
-     * 刷新krb内容信息
-     */
+    /** 刷新krb内容信息 */
     public static void refreshConfig() {
-        try{
+        try {
             sun.security.krb5.Config.refresh();
             Field defaultRealmField = KerberosName.class.getDeclaredField("defaultRealm");
             defaultRealmField.setAccessible(true);
-            defaultRealmField.set(null, org.apache.hadoop.security.authentication.util.KerberosUtil.getDefaultRealm());
-            //reload java.security.auth.login.config
+            defaultRealmField.set(
+                    null,
+                    org.apache.hadoop.security.authentication.util.KerberosUtil.getDefaultRealm());
+            // reload java.security.auth.login.config
             javax.security.auth.login.Configuration.setConfiguration(null);
-        }catch (Exception e){
-            LOG.warn("resetting default realm failed, current default realm will still be used.", e);
+        } catch (Exception e) {
+            LOG.warn(
+                    "resetting default realm failed, current default realm will still be used.", e);
         }
-
     }
 }

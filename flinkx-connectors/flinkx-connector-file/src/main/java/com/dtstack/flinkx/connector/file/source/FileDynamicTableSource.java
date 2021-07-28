@@ -18,12 +18,6 @@
 
 package com.dtstack.flinkx.connector.file.source;
 
-import com.dtstack.flinkx.conf.BaseFileConf;
-
-import com.dtstack.flinkx.connector.file.converter.FileRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
@@ -35,19 +29,26 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.dtstack.flinkx.conf.BaseFileConf;
+import com.dtstack.flinkx.connector.file.converter.FileRowConverter;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 /**
  * @program: flinkx
  * @author: xiuzhu
  * @create: 2021/06/24
  */
-
 public class FileDynamicTableSource implements ScanTableSource {
 
     private TableSchema schema;
     private BaseFileConf fileConf;
     private DecodingFormat<DeserializationSchema<RowData>> decodingFormat;
 
-    public FileDynamicTableSource(TableSchema schema, BaseFileConf fileConf, DecodingFormat<DeserializationSchema<RowData>> decodingFormat) {
+    public FileDynamicTableSource(
+            TableSchema schema,
+            BaseFileConf fileConf,
+            DecodingFormat<DeserializationSchema<RowData>> decodingFormat) {
         this.schema = schema;
         this.fileConf = fileConf;
         this.decodingFormat = decodingFormat;
@@ -69,13 +70,10 @@ public class FileDynamicTableSource implements ScanTableSource {
         builder.setRowConverter(
                 new FileRowConverter(
                         decodingFormat.createRuntimeDecoder(
-                                runtimeProviderContext,
-                                schema.toRowDataType())));
+                                runtimeProviderContext, schema.toRowDataType())));
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
-                true,
-                1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), true, 1);
     }
 
     @Override

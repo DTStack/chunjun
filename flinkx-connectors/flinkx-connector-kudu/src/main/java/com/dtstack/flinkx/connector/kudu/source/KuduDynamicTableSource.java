@@ -41,7 +41,7 @@ import com.dtstack.flinkx.connector.kudu.converter.KuduRowConverter;
 import com.dtstack.flinkx.connector.kudu.lookup.KuduAllTableFunction;
 import com.dtstack.flinkx.connector.kudu.lookup.KuduLruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;

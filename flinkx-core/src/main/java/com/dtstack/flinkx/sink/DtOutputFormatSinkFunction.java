@@ -1,12 +1,13 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,9 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.streaming.api.functions.sink;
-
-import com.dtstack.flinkx.util.ExceptionUtil;
+package com.dtstack.flinkx.sink;
 
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.ExecutionConfig;
@@ -38,8 +37,9 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,19 +48,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Simple implementation of the SinkFunction writing tuples in the specified
- * OutputFormat format.
+ * Simple implementation of the SinkFunction writing tuples in the specified OutputFormat format.
  *
- * {@link org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction} can not be replaced
- * because {@link org.apache.flink.streaming.api.operators.SimpleOperatorFactory} use it to create
- * {@link org.apache.flink.streaming.api.operators.SimpleOutputFormatOperatorFactory}
+ * <p>{@link org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction} can not be
+ * replaced because {@link org.apache.flink.streaming.api.operators.SimpleOperatorFactory} use it to
+ * create {@link org.apache.flink.streaming.api.operators.SimpleOutputFormatOperatorFactory}
  *
  * @param <IN> Input type
- *
  * @author jiangbo
  */
 @PublicEvolving
-public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN> implements CheckpointedFunction, CheckpointListener, InputTypeConfigurable {
+public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
+        implements CheckpointedFunction, CheckpointListener, InputTypeConfigurable {
 
     private static final long serialVersionUID = 1L;
 
@@ -86,7 +85,8 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
         format.configure(parameters);
 
         if (format instanceof BaseRichOutputFormat && formatStateMap != null) {
-            ((BaseRichOutputFormat) format).setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
+            ((BaseRichOutputFormat) format)
+                    .setRestoreState(formatStateMap.get(context.getIndexOfThisSubtask()));
         }
 
         int indexInSubtaskGroup = context.getIndexOfThisSubtask();
@@ -156,10 +156,11 @@ public class DtOutputFormatSinkFunction<IN> extends OutputFormatSinkFunction<IN>
         LOG.info("Start initialize output format state");
 
         OperatorStateStore stateStore = context.getOperatorStateStore();
-        unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
-                LOCATION_STATE_NAME,
-                TypeInformation.of(new TypeHint<FormatState>() {
-                })));
+        unionOffsetStates =
+                stateStore.getUnionListState(
+                        new ListStateDescriptor<>(
+                                LOCATION_STATE_NAME,
+                                TypeInformation.of(new TypeHint<FormatState>() {})));
 
         LOG.info("Is restored:{}", context.isRestored());
         if (context.isRestored()) {

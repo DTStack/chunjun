@@ -22,7 +22,7 @@ import org.apache.flink.core.io.InputSplit;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import org.apache.hadoop.fs.FileSystem;
@@ -38,8 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Date: 2021/06/08
- * Company: www.dtstack.com
+ * Date: 2021/06/08 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -51,6 +50,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
     protected Object key;
     /** the value to read data into */
     protected Object value;
+
     protected boolean openKerberos;
 
     protected transient FileSystem fs;
@@ -63,15 +63,19 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         openKerberos = FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig());
         if (openKerberos) {
-            UserGroupInformation ugi = FileSystemUtil.getUGI(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+            UserGroupInformation ugi =
+                    FileSystemUtil.getUGI(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
             LOG.info("user:{}, ", ugi.getShortUserName());
-            return ugi.doAs((PrivilegedAction<InputSplit[]>) () -> {
-                try {
-                    return createHdfsSplit(minNumSplits);
-                } catch (Exception e) {
-                    throw new FlinkxRuntimeException("error to create hdfs splits", e);
-                }
-            });
+            return ugi.doAs(
+                    (PrivilegedAction<InputSplit[]>)
+                            () -> {
+                                try {
+                                    return createHdfsSplit(minNumSplits);
+                                } catch (Exception e) {
+                                    throw new FlinkxRuntimeException(
+                                            "error to create hdfs splits", e);
+                                }
+                            });
         } else {
             return createHdfsSplit(minNumSplits);
         }
@@ -96,29 +100,29 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        if(recordReader != null) {
+        if (recordReader != null) {
             recordReader.close();
         }
     }
 
-    /**
-     * init Hadoop Job Config
-     */
+    /** init Hadoop Job Config */
     protected void initHadoopJobConf() {
-        hadoopJobConf = FileSystemUtil.getJobConf(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+        hadoopJobConf =
+                FileSystemUtil.getJobConf(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
         hadoopJobConf.set(HdfsPathFilter.KEY_REGEX, hdfsConf.getFilterRegex());
         FileSystemUtil.setHadoopUserName(hadoopJobConf);
     }
 
     /**
      * Get current partition information from hdfs path
+     *
      * @param path hdfs path
      */
-    public void findCurrentPartition(Path path){
+    public void findCurrentPartition(Path path) {
         Map<String, String> map = new HashMap<>(16);
         String pathStr = path.getParent().toString();
         int index;
-        while((index = pathStr.lastIndexOf(ConstantValue.EQUAL_SYMBOL)) > 0){
+        while ((index = pathStr.lastIndexOf(ConstantValue.EQUAL_SYMBOL)) > 0) {
             int i = pathStr.lastIndexOf(File.separator);
             String name = pathStr.substring(i + 1, index);
             String value = pathStr.substring(index + 1);
@@ -127,7 +131,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
         }
 
         for (FieldConf fieldConf : hdfsConf.getColumn()) {
-            if(fieldConf.getPart()){
+            if (fieldConf.getPart()) {
                 fieldConf.setValue(map.get(fieldConf.getName()));
             }
         }
@@ -135,6 +139,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     /**
      * create hdfs data splits
+     *
      * @param minNumSplits
      * @return
      * @throws IOException
@@ -143,6 +148,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     /**
      * create hdfs inputFormat
+     *
      * @return org.apache.hadoop.mapred.InputFormat
      */
     public abstract org.apache.hadoop.mapred.InputFormat createInputFormat();

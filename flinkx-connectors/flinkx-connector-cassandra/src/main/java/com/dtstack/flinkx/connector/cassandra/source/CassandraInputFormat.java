@@ -18,7 +18,9 @@
 
 package com.dtstack.flinkx.connector.cassandra.source;
 
-import com.datastax.driver.core.ColumnDefinitions;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -27,12 +29,9 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
 import com.dtstack.flinkx.connector.cassandra.util.CassandraService;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.google.common.base.Preconditions;
-
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
 
 import java.io.IOException;
 import java.util.ArrayList;

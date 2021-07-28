@@ -17,12 +17,11 @@
  */
 package com.dtstack.flinkx.connector.oraclelogminer.inputformat;
 
-
 import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.flinkx.connector.oraclelogminer.listener.LogMinerConnection;
 import com.dtstack.flinkx.connector.oraclelogminer.util.SqlUtil;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -56,7 +55,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
         super.format = format = new OracleLogMinerInputFormat();
     }
 
-    public void setLogMinerConfig(LogMinerConf logMinerConf){
+    public void setLogMinerConfig(LogMinerConf logMinerConf) {
         super.setConfig(logMinerConf);
         format.logMinerConf = logMinerConf;
     }
@@ -71,8 +70,8 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
         StringBuilder sb = new StringBuilder(256);
         if (StringUtils.isBlank(config.getJdbcUrl())) {
             sb.append("No jdbc URL supplied;\n");
-        }else{
-            //检测数据源连通性
+        } else {
+            // 检测数据源连通性
             TelnetUtil.telnet(config.getJdbcUrl());
         }
         if (StringUtils.isBlank(config.getUsername())) {
@@ -82,30 +81,33 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             sb.append("No database password supplied;\n");
         }
 
-        if(sb.length() > 0){
-            //JDBC URL、username、password其中之一未配置，直接先抛出异常
+        if (sb.length() > 0) {
+            // JDBC URL、username、password其中之一未配置，直接先抛出异常
             throw new IllegalArgumentException(sb.toString());
         }
 
-        if(config.getFetchSize() < 1){
+        if (config.getFetchSize() < 1) {
             sb.append("fetchSize must bigger than 0;\n");
         }
-        List<String> list = Arrays.asList(LogMinerConnection.ReadPosition.ALL.name(),
-                LogMinerConnection.ReadPosition.CURRENT.name(),
-                LogMinerConnection.ReadPosition.TIME.name(),
-                LogMinerConnection.ReadPosition.SCN.name());
-        if(StringUtils.isBlank(config.getReadPosition())
-                || !list.contains(config.getReadPosition().toUpperCase(Locale.ENGLISH))){
-            sb.append("readPosition must be one of [all, current, time, scn], current readPosition is [")
+        List<String> list =
+                Arrays.asList(
+                        LogMinerConnection.ReadPosition.ALL.name(),
+                        LogMinerConnection.ReadPosition.CURRENT.name(),
+                        LogMinerConnection.ReadPosition.TIME.name(),
+                        LogMinerConnection.ReadPosition.SCN.name());
+        if (StringUtils.isBlank(config.getReadPosition())
+                || !list.contains(config.getReadPosition().toUpperCase(Locale.ENGLISH))) {
+            sb.append(
+                            "readPosition must be one of [all, current, time, scn], current readPosition is [")
                     .append(config.getReadPosition())
                     .append("];\n");
         }
         if (LogMinerConnection.ReadPosition.TIME.name().equalsIgnoreCase(config.getReadPosition())
-                && config.getStartTime() == 0){
+                && config.getStartTime() == 0) {
             sb.append("[startTime] must be supplied when readPosition is [time];\n");
         }
 
-        //校验logMiner cat
+        // 校验logMiner cat
         if (StringUtils.isNotEmpty(config.getCat())) {
             HashSet<String> set = Sets.newHashSet("INSERT", "UPDATE", "DELETE");
             List<String> cats = Lists.newArrayList(config.getCat().toUpperCase().split(","));
@@ -119,33 +121,33 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             }
         }
 
-
         LogMinerConf logMinerConf = format.logMinerConf;
 
-        if(logMinerConf.getParallelism() > 1){
-            sb.append("logMiner can not support readerChannel bigger than 1, current readerChannel is [")
-                    .append(logMinerConf.getParallelism() )
+        if (logMinerConf.getParallelism() > 1) {
+            sb.append(
+                            "logMiner can not support readerChannel bigger than 1, current readerChannel is [")
+                    .append(logMinerConf.getParallelism())
                     .append("];\n");
         }
 
         ClassUtil.forName(config.getDriverName(), getClass().getClassLoader());
-        try(
-            Connection connection = RetryUtil.executeWithRetry(
-                    () -> DriverManager.getConnection(
-                            config.getJdbcUrl(),
-                            config.getUsername(),
-                            config.getPassword()),
-                    LogMinerConnection.RETRY_TIMES,
-                    LogMinerConnection.SLEEP_TIME,
-                    false);
-            Statement statement = connection.createStatement();
-        ) {
+        try (Connection connection =
+                        RetryUtil.executeWithRetry(
+                                () ->
+                                        DriverManager.getConnection(
+                                                config.getJdbcUrl(),
+                                                config.getUsername(),
+                                                config.getPassword()),
+                                LogMinerConnection.RETRY_TIMES,
+                                LogMinerConnection.SLEEP_TIME,
+                                false);
+                Statement statement = connection.createStatement(); ) {
             statement.setQueryTimeout(config.getQueryTimeout().intValue());
 
             int oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
             LOG.info("current Oracle version is：{}", oracleVersion);
 
-            //1、校验Oracle账号用户角色组
+            // 1、校验Oracle账号用户角色组
             ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ROLES);
             List<String> roles = new ArrayList<>();
             while (rs.next()) {
@@ -154,17 +156,18 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
                     roles.add(role.toUpperCase());
                 }
             }
-            //非DBA角色且非EXECUTE_CATALOG_ROLE角色
+            // 非DBA角色且非EXECUTE_CATALOG_ROLE角色
             if (!roles.contains("DBA") && !roles.contains("EXECUTE_CATALOG_ROLE")) {
                 sb.append("Non-DBA role users must be [EXECUTE_CATALOG_ROLE] role, ")
                         .append("current roles are: [")
                         .append(GsonUtil.GSON.toJson(roles))
-                        .append("], please execute sql for empowerment：GRANT EXECUTE_CATALOG_ROLE TO ")
+                        .append(
+                                "], please execute sql for empowerment：GRANT EXECUTE_CATALOG_ROLE TO ")
                         .append(config.getUsername())
                         .append(";\n");
             }
 
-            //2、校验Oracle账号权限
+            // 2、校验Oracle账号权限
             rs = statement.executeQuery(SqlUtil.SQL_QUERY_PRIVILEGES);
             List<String> privileges = new ArrayList<>();
             while (rs.next()) {
@@ -176,7 +179,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
 
             int privilegeCount = 0;
             List<String> privilegeList;
-            //Oracle 11
+            // Oracle 11
             if (oracleVersion <= 11) {
                 privilegeList = SqlUtil.ORACLE_11_PRIVILEGES_NEEDED;
             } else {
@@ -188,55 +191,60 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
                 }
             }
 
-            if(privilegeCount != privilegeList.size()){
+            if (privilegeCount != privilegeList.size()) {
                 if (oracleVersion <= 11) {
                     sb.append("Insufficient permissions, ")
                             .append("current permissions are :")
                             .append(GsonUtil.GSON.toJson(privileges))
-                            .append(",please execute sql for empowerment：grant create session, execute_catalog_role, select any transaction, flashback any table, select any table, lock any table, select any dictionary to ")
+                            .append(
+                                    ",please execute sql for empowerment：grant create session, execute_catalog_role, select any transaction, flashback any table, select any table, lock any table, select any dictionary to ")
                             .append(config.getUsername())
                             .append(";\n");
-                }else{
+                } else {
                     sb.append("Insufficient permissions, ")
                             .append("current permissions are :")
                             .append(GsonUtil.GSON.toJson(privilegeList))
-                            .append(",please execute sql for empowerment：grant create session, execute_catalog_role, select any transaction, flashback any table, select any table, lock any table, logmining, select any dictionary to ")
+                            .append(
+                                    ",please execute sql for empowerment：grant create session, execute_catalog_role, select any transaction, flashback any table, select any table, lock any table, logmining, select any dictionary to ")
                             .append(config.getUsername())
                             .append(";\n");
                 }
             }
 
-            //3、检查Oracle数据库是否开启日志归档
+            // 3、检查Oracle数据库是否开启日志归档
             rs = statement.executeQuery(SqlUtil.SQL_QUERY_LOG_MODE);
             rs.next();
             String logMode = rs.getString(1);
-            if(!"ARCHIVELOG".equalsIgnoreCase(logMode)){
+            if (!"ARCHIVELOG".equalsIgnoreCase(logMode)) {
                 sb.append("oracle logMode is ")
                         .append(logMode)
                         .append(", please enable log archiving;\n");
             }
 
-            //4、检查Oracle数据库是否开启ALL追加日志
+            // 4、检查Oracle数据库是否开启ALL追加日志
             rs = statement.executeQuery(SqlUtil.SQL_QUERY_SUPPLEMENTAL_LOG_DATA_ALL);
             rs.next();
-            if(!"YES".equalsIgnoreCase(rs.getString(1))){
-                sb.append("supplemental_log_data_all is not enabled, please execute sql to enable this config: alter database add supplemental log data (all) columns;\n");
+            if (!"YES".equalsIgnoreCase(rs.getString(1))) {
+                sb.append(
+                        "supplemental_log_data_all is not enabled, please execute sql to enable this config: alter database add supplemental log data (all) columns;\n");
             }
 
             rs.close();
 
-            if(sb.length() > 0){
+            if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
 
             StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
 
-            if(sb.length() > 0){
+            if (sb.length() > 0) {
                 detailsInfo.append(" logMiner config not right，details is  ").append(sb.toString());
             }
 
-            detailsInfo.append(" \n error to check logMiner config, e = " ).append(ExceptionUtil.getErrorMessage(e));
+            detailsInfo
+                    .append(" \n error to check logMiner config, e = ")
+                    .append(ExceptionUtil.getErrorMessage(e));
 
             throw new RuntimeException(detailsInfo.toString(), e);
         }

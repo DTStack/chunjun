@@ -19,13 +19,12 @@
 package com.dtstack.flinkx.connector.stream.sink;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
 /**
  * The builder of StreamOutputFormat
  *
- * @author jiangbo
- * @Company: www.dtstack.com
+ * @author jiangbo @Company: www.dtstack.com
  */
 public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
@@ -41,6 +40,5 @@ public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     }
 
     @Override
-    protected void checkFormat() {
-    }
+    protected void checkFormat() {}
 }

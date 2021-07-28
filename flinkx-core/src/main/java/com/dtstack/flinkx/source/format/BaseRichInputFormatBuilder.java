@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.inputformat;
+package com.dtstack.flinkx.source.format;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -27,7 +27,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Abstract specification for all the InputFormatBuilder implementation
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public abstract class BaseRichInputFormatBuilder {
@@ -44,18 +45,17 @@ public abstract class BaseRichInputFormatBuilder {
         format.setRowConverter(rowConverter);
     }
 
-    /**
-     * 检查format配置
-     */
+    /** 检查format配置 */
     protected abstract void checkFormat();
 
     /**
      * 结束builder构建
+     *
      * @return 返回format对象
      */
     public BaseRichInputFormat finish() {
         Preconditions.checkNotNull(format);
-        if(format.getConfig().isCheckFormat()){
+        if (format.getConfig().isCheckFormat()) {
             checkFormat();
         }
         return format;

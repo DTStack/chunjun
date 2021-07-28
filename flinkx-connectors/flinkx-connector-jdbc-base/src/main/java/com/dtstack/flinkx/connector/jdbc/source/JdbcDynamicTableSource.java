@@ -32,13 +32,13 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
@@ -49,7 +49,8 @@ import java.util.List;
 import java.util.Objects;
 
 /** A {@link DynamicTableSource} for JDBC. */
-public class JdbcDynamicTableSource implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
+public class JdbcDynamicTableSource
+        implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     protected final JdbcConf jdbcConf;
     protected final LookupConf lookupConf;
@@ -77,7 +78,8 @@ public class JdbcDynamicTableSource implements ScanTableSource, LookupTableSourc
         String[] keyNames = new String[context.getKeys().length];
         for (int i = 0; i < keyNames.length; i++) {
             int[] innerKeyArr = context.getKeys()[i];
-            Preconditions.checkArgument(innerKeyArr.length == 1, "JDBC only support non-nested look up keys");
+            Preconditions.checkArgument(
+                    innerKeyArr.length == 1, "JDBC only support non-nested look up keys");
             keyNames[i] = physicalSchema.getFieldNames()[innerKeyArr[0]];
         }
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
@@ -123,8 +125,9 @@ public class JdbcDynamicTableSource implements ScanTableSource, LookupTableSourc
         jdbcConf.setColumn(columnList);
 
         String increColumn = jdbcConf.getIncreColumn();
-        if(StringUtils.isNotBlank(increColumn)){
-            FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), increColumn);
+        if (StringUtils.isNotBlank(increColumn)) {
+            FieldConf fieldConf =
+                    FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), increColumn);
             if (fieldConf != null) {
                 jdbcConf.setIncreColumnIndex(fieldConf.getIndex());
                 jdbcConf.setIncreColumnType(fieldConf.getType());
@@ -138,8 +141,9 @@ public class JdbcDynamicTableSource implements ScanTableSource, LookupTableSourc
         }
 
         String restoreColumn = jdbcConf.getRestoreColumn();
-        if(StringUtils.isNotBlank(restoreColumn)){
-            FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), restoreColumn);
+        if (StringUtils.isNotBlank(restoreColumn)) {
+            FieldConf fieldConf =
+                    FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), restoreColumn);
             if (fieldConf != null) {
                 jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
                 jdbcConf.setRestoreColumnType(fieldConf.getType());
@@ -152,7 +156,10 @@ public class JdbcDynamicTableSource implements ScanTableSource, LookupTableSourc
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
 
-        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, jdbcConf.getParallelism());
+        return ParallelSourceFunctionProvider.of(
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                jdbcConf.getParallelism());
     }
 
     @Override
@@ -173,7 +180,8 @@ public class JdbcDynamicTableSource implements ScanTableSource, LookupTableSourc
 
     @Override
     public DynamicTableSource copy() {
-        return new JdbcDynamicTableSource(jdbcConf, lookupConf, physicalSchema, jdbcDialect, builder);
+        return new JdbcDynamicTableSource(
+                jdbcConf, lookupConf, physicalSchema, jdbcDialect, builder);
     }
 
     @Override

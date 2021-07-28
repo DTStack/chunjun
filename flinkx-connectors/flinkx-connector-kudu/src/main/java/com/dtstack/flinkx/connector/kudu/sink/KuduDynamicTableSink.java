@@ -30,7 +30,7 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
 import com.dtstack.flinkx.connector.kudu.converter.KuduRawTypeConverter;
 import com.dtstack.flinkx.connector.kudu.converter.KuduRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 import com.dtstack.flinkx.util.TableUtil;
 
 import java.util.ArrayList;

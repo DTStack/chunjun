@@ -18,12 +18,6 @@
 
 package com.dtstack.flinkx.connector.sqlservercdc.source;
 
-import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
-import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
-import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableSchema;
@@ -35,18 +29,26 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
+import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
+import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
+import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 /**
  * @author chuixue
  * @create 2021-04-09 09:20
  * @description
- **/
-
+ */
 public class SqlServerCdcDynamicTableSource implements ScanTableSource {
     private final TableSchema schema;
     private final SqlServerCdcConf sqlserverCdcConf;
     private final TimestampFormat timestampFormat;
 
-    public SqlServerCdcDynamicTableSource(TableSchema schema, SqlServerCdcConf sqlserverCdcConf, TimestampFormat timestampFormat) {
+    public SqlServerCdcDynamicTableSource(
+            TableSchema schema,
+            SqlServerCdcConf sqlserverCdcConf,
+            TimestampFormat timestampFormat) {
         this.schema = schema;
         this.sqlserverCdcConf = sqlserverCdcConf;
         this.timestampFormat = timestampFormat;
@@ -59,17 +61,19 @@ public class SqlServerCdcDynamicTableSource implements ScanTableSource {
 
         SqlServerCdcInputFormatBuilder builder = new SqlServerCdcInputFormatBuilder();
         builder.setSqlServerCdcConf(sqlserverCdcConf);
-        builder.setRowConverter(new SqlServerCdcRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat));
+        builder.setRowConverter(
+                new SqlServerCdcRowConverter(
+                        (RowType) this.schema.toRowDataType().getLogicalType(),
+                        this.timestampFormat));
 
-        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+        return ParallelSourceFunctionProvider.of(
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
 
     @Override
     public DynamicTableSource copy() {
         return new SqlServerCdcDynamicTableSource(
-                this.schema,
-                this.sqlserverCdcConf,
-                this.timestampFormat);
+                this.schema, this.sqlserverCdcConf, this.timestampFormat);
     }
 
     @Override

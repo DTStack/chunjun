@@ -28,7 +28,7 @@ import org.apache.flink.types.RowKind;
 import com.dtstack.flinkx.connector.solr.SolrConf;
 import com.dtstack.flinkx.connector.solr.converter.SolrRowConverter;
 import com.dtstack.flinkx.connector.solr.sink.SolrOutputFormatBuilder;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 /**
  * @author Ada Wong

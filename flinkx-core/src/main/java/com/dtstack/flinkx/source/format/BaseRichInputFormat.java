@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,21 +16,8 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.inputformat;
+package com.dtstack.flinkx.source.format;
 
-import com.dtstack.flinkx.conf.FlinkxCommonConf;
-import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.metrics.AccumulatorCollector;
-import com.dtstack.flinkx.metrics.BaseMetric;
-import com.dtstack.flinkx.metrics.CustomReporter;
-import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.source.ByteRateLimiter;
-import com.dtstack.flinkx.util.DataSyncFactoryUtil;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.JsonUtil;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -40,6 +27,20 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
+
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
+import com.dtstack.flinkx.metrics.BaseMetric;
+import com.dtstack.flinkx.metrics.CustomReporter;
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.source.ByteRateLimiter;
+import com.dtstack.flinkx.throwable.ReadRecordException;
+import com.dtstack.flinkx.util.DataSyncFactoryUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.JsonUtil;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,9 +54,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * FlinkX里面所有自定义inputFormat的抽象基类
  *
- * 扩展了org.apache.flink.api.common.io.RichInputFormat, 因而可以通过{@link #getRuntimeContext()}获取运行时执行上下文
- * 自动完成
- * 用户只需覆盖openInternal,closeInternal等方法, 无需操心细节
+ * <p>扩展了org.apache.flink.api.common.io.RichInputFormat, 因而可以通过{@link
+ * #getRuntimeContext()}获取运行时执行上下文 自动完成 用户只需覆盖openInternal,closeInternal等方法, 无需操心细节
  *
  * @author jiangbo
  */
@@ -88,6 +88,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     protected AccumulatorCollector accumulatorCollector;
     /** checkpoint状态缓存map */
     protected FormatState formatState;
+
     protected LongCounter numReadCounter;
     protected LongCounter bytesReadCounter;
     protected LongCounter durationCounter;
@@ -114,9 +115,9 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     public final InputSplit[] createInputSplits(int minNumSplits) {
         try {
             return createInputSplitsInternal(minNumSplits);
-        } catch (Exception e){
+        } catch (Exception e) {
             LOG.warn("error to create InputSplits", e);
-            return new ErrorInputSplit[]{new ErrorInputSplit(ExceptionUtil.getErrorMessage(e))};
+            return new ErrorInputSplit[] {new ErrorInputSplit(ExceptionUtil.getErrorMessage(e))};
         }
     }
 
@@ -133,7 +134,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             throw new RuntimeException(((ErrorInputSplit) inputSplit).getErrorMessage());
         }
 
-        if(!initialized){
+        if (!initialized) {
             initAccumulatorCollector();
             initStatisticsAccumulator();
             initByteRateLimiter();
@@ -154,14 +155,16 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     @Override
     public void openInputFormat() throws IOException {
         Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
-        if(vars != null){
+        if (vars != null) {
             jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");
             jobId = vars.get(Metrics.JOB_NAME);
             indexOfSubTask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
         }
 
         if (useCustomReporter()) {
-            customReporter = DataSyncFactoryUtil.discoverMetric(config, getRuntimeContext(), makeTaskFailedWhenReportFailed());
+            customReporter =
+                    DataSyncFactoryUtil.discoverMetric(
+                            config, getRuntimeContext(), makeTaskFailedWhenReportFailed());
             customReporter.open();
         }
 
@@ -170,17 +173,17 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
     @Override
     public RowData nextRecord(RowData rowData) {
-        if(byteRateLimiter != null) {
+        if (byteRateLimiter != null) {
             byteRateLimiter.acquire();
         }
         RowData internalRow = null;
-        try{
+        try {
             internalRow = nextRecordInternal(rowData);
-        } catch (ReadRecordException e){
+        } catch (ReadRecordException e) {
             // todo 脏数据记录
             LOG.error(e.toString());
         }
-        if(internalRow != null){
+        if (internalRow != null) {
             updateDuration();
             if (numReadCounter != null) {
                 numReadCounter.add(1);
@@ -194,7 +197,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     }
 
     @Override
-    public void close() throws IOException{
+    public void close() throws IOException {
         closeInternal();
     }
 
@@ -230,48 +233,46 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         LOG.info("subtask input close finished");
     }
 
-    /**
-     * 更新任务执行时间指标
-     */
-    private void updateDuration(){
+    /** 更新任务执行时间指标 */
+    private void updateDuration() {
         if (durationCounter != null) {
             durationCounter.resetLocal();
             durationCounter.add(System.currentTimeMillis() - startTime);
         }
     }
 
-    /**
-     * 初始化累加器收集器
-     */
-    private void initAccumulatorCollector(){
-        String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubTask);
-        String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubTask);
+    /** 初始化累加器收集器 */
+    private void initAccumulatorCollector() {
+        String lastWriteLocation =
+                String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, indexOfSubTask);
+        String lastWriteNum =
+                String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, indexOfSubTask);
 
-        accumulatorCollector = new AccumulatorCollector(context,
-                Arrays.asList(Metrics.NUM_READS,
-                        Metrics.READ_BYTES,
-                        Metrics.READ_DURATION,
-                        Metrics.WRITE_BYTES,
-                        Metrics.NUM_WRITES,
-                        lastWriteLocation,
-                        lastWriteNum));
+        accumulatorCollector =
+                new AccumulatorCollector(
+                        context,
+                        Arrays.asList(
+                                Metrics.NUM_READS,
+                                Metrics.READ_BYTES,
+                                Metrics.READ_DURATION,
+                                Metrics.WRITE_BYTES,
+                                Metrics.NUM_WRITES,
+                                lastWriteLocation,
+                                lastWriteNum));
         accumulatorCollector.start();
     }
 
-    /**
-     * 初始化速率限制器
-     */
-    private void initByteRateLimiter(){
+    /** 初始化速率限制器 */
+    private void initByteRateLimiter() {
         if (config.getSpeedBytes() > 0) {
-            this.byteRateLimiter = new ByteRateLimiter(accumulatorCollector, config.getSpeedBytes());
+            this.byteRateLimiter =
+                    new ByteRateLimiter(accumulatorCollector, config.getSpeedBytes());
             this.byteRateLimiter.start();
         }
     }
 
-    /**
-     * 初始化累加器指标
-     */
-    private void initStatisticsAccumulator(){
+    /** 初始化累加器指标 */
+    private void initStatisticsAccumulator() {
         numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
         bytesReadCounter = getRuntimeContext().getLongCounter(Metrics.READ_BYTES);
         durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
@@ -282,11 +283,9 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
     }
 
-    /**
-     * 从checkpoint状态缓存map中恢复上次任务的指标信息
-     */
-    private void initRestoreInfo(){
-        if(formatState == null){
+    /** 从checkpoint状态缓存map中恢复上次任务的指标信息 */
+    private void initRestoreInfo() {
+        if (formatState == null) {
             formatState = new FormatState(indexOfSubTask, null);
         } else {
             numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
@@ -297,26 +296,23 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
     /**
      * 更新checkpoint状态缓存map
+     *
      * @return
      */
     public FormatState getFormatState() {
-        if (formatState != null && numReadCounter != null && inputMetric!= null) {
+        if (formatState != null && numReadCounter != null && inputMetric != null) {
             formatState.setMetric(inputMetric.getMetricCounters());
         }
         return formatState;
     }
 
-    /**
-     * 使用自定义的指标输出器把增量指标打到自定义插件
-     */
+    /** 使用自定义的指标输出器把增量指标打到自定义插件 */
     protected boolean useCustomReporter() {
         return false;
     }
 
-    /**
-     * 为了保证增量数据的准确性，指标输出失败时使任务失败
-     */
-    protected boolean makeTaskFailedWhenReportFailed(){
+    /** 为了保证增量数据的准确性，指标输出失败时使任务失败 */
+    protected boolean makeTaskFailedWhenReportFailed() {
         return false;
     }
 

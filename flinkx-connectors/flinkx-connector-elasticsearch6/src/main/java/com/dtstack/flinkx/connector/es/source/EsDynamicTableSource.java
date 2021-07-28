@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.connector.es.source;
 
-import com.dtstack.flinkx.conf.FieldConf;
-
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -39,13 +37,10 @@ import com.dtstack.flinkx.connector.es.lookup.EsAllTableFunction;
 import com.dtstack.flinkx.connector.es.lookup.EsLruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @description:
@@ -53,17 +48,18 @@ import java.util.List;
  * @author: lany
  * @create: 2021/06/22 11:08
  */
-public class EsDynamicTableSource implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
+public class EsDynamicTableSource
+        implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
     private TableSchema physicalSchema;
     protected final EsConf elasticsearchConf;
     protected final LookupConf lookupConf;
 
-    public EsDynamicTableSource(TableSchema physicalSchema, EsConf elasticsearchConf, LookupConf lookupConf) {
+    public EsDynamicTableSource(
+            TableSchema physicalSchema, EsConf elasticsearchConf, LookupConf lookupConf) {
         this.physicalSchema = physicalSchema;
         this.elasticsearchConf = elasticsearchConf;
         this.lookupConf = lookupConf;
-
     }
 
     @Override
@@ -93,9 +89,7 @@ public class EsDynamicTableSource implements ScanTableSource, LookupTableSource,
         builder.setEsConf(elasticsearchConf);
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
-                false,
-                1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
 
     @Override
@@ -116,10 +110,8 @@ public class EsDynamicTableSource implements ScanTableSource, LookupTableSource,
                             lookupConf,
                             physicalSchema.getFieldNames(),
                             keyNames,
-                            new EsRowConverter(rowType)
-                    ),
-                    lookupConf.getParallelism()
-            );
+                            new EsRowConverter(rowType)),
+                    lookupConf.getParallelism());
         }
 
         return ParallelTableFunctionProvider.of(
@@ -128,10 +120,8 @@ public class EsDynamicTableSource implements ScanTableSource, LookupTableSource,
                         lookupConf,
                         physicalSchema.getFieldNames(),
                         keyNames,
-                        new EsRowConverter(rowType)
-                ),
-                lookupConf.getParallelism()
-        );
+                        new EsRowConverter(rowType)),
+                lookupConf.getParallelism());
     }
 
     @Override

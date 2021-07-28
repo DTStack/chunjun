@@ -23,8 +23,8 @@ import org.apache.flink.table.data.RowData;
 import com.dtstack.flinkx.connector.es.conf.EsConf;
 import com.dtstack.flinkx.connector.es.utils.EsRequestHelper;
 import com.dtstack.flinkx.connector.es.utils.EsUtil;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -46,14 +46,10 @@ import java.util.Map;
  */
 public class EsOutputFormat extends BaseRichOutputFormat {
 
-    /**
-     * Elasticsearch Configuration
-     */
+    /** Elasticsearch Configuration */
     private EsConf elasticsearchConf;
 
-    /**
-     * Elasticsearch High Level Client
-     */
+    /** Elasticsearch High Level Client */
     private transient RestHighLevelClient rhlClient;
 
     private transient BulkRequest bulkRequest;
@@ -105,7 +101,6 @@ public class EsOutputFormat extends BaseRichOutputFormat {
                 default:
                     throw new RuntimeException("Unsupported row kind.");
             }
-
         }
         BulkResponse response = rhlClient.bulk(bulkRequest);
         if (response.hasFailures()) {
@@ -117,10 +112,12 @@ public class EsOutputFormat extends BaseRichOutputFormat {
         BulkItemResponse[] itemResponses = response.getItems();
         WriteRecordException exception;
         for (int i = 0; i < itemResponses.length; i++) {
-            if(itemResponses[i].isFailed()){
-                if (dirtyDataManager != null){
-                    exception = new WriteRecordException(itemResponses[i].getFailureMessage()
-                            ,itemResponses[i].getFailure().getCause());
+            if (itemResponses[i].isFailed()) {
+                if (dirtyDataManager != null) {
+                    exception =
+                            new WriteRecordException(
+                                    itemResponses[i].getFailureMessage(),
+                                    itemResponses[i].getFailure().getCause());
                     dirtyDataManager.writeData(rows.get(i), exception);
                 }
 
@@ -151,42 +148,43 @@ public class EsOutputFormat extends BaseRichOutputFormat {
         this.elasticsearchConf = elasticsearchConf;
     }
 
-    private DocWriteRequest processUpsert(RowData rowData) throws Exception{
-        Map<String, Object> message = (Map<String, Object>) rowConverter.toExternal(rowData, new HashMap<String, Object>());
+    private DocWriteRequest processUpsert(RowData rowData) throws Exception {
+        Map<String, Object> message =
+                (Map<String, Object>)
+                        rowConverter.toExternal(rowData, new HashMap<String, Object>());
 
         if (elasticsearchConf.getIds() == null || elasticsearchConf.getIds().size() == 0) {
-            IndexRequest indexRequest = EsRequestHelper.createIndexRequest(
-                    elasticsearchConf.getIndex(),
-                    elasticsearchConf.getType(),
-                    message
-            );
+            IndexRequest indexRequest =
+                    EsRequestHelper.createIndexRequest(
+                            elasticsearchConf.getIndex(), elasticsearchConf.getType(), message);
             return indexRequest;
         } else {
-            final String key = EsUtil.generateDocId(elasticsearchConf.getIds(),
-                    message,
-                    elasticsearchConf.getKeyDelimiter());
-            UpdateRequest updateRequest = EsRequestHelper.createUpdateRequest(
-                    elasticsearchConf.getIndex(),
-                    elasticsearchConf.getType(),
-                    key,
-                    message
-            );
+            final String key =
+                    EsUtil.generateDocId(
+                            elasticsearchConf.getIds(),
+                            message,
+                            elasticsearchConf.getKeyDelimiter());
+            UpdateRequest updateRequest =
+                    EsRequestHelper.createUpdateRequest(
+                            elasticsearchConf.getIndex(),
+                            elasticsearchConf.getType(),
+                            key,
+                            message);
             return updateRequest;
         }
     }
 
     private DeleteRequest processDelete(RowData rowData) throws Exception {
-        Map<String, Object> message = (Map<String, Object>) rowConverter.toExternal(rowData, new HashMap<String, Object>());
+        Map<String, Object> message =
+                (Map<String, Object>)
+                        rowConverter.toExternal(rowData, new HashMap<String, Object>());
 
-        final String key = EsUtil.generateDocId(elasticsearchConf.getIds(),
-                message,
-                elasticsearchConf.getKeyDelimiter());
-        DeleteRequest deleteRequest = EsRequestHelper.createDeleteRequest(
-                elasticsearchConf.getIndex(),
-                elasticsearchConf.getType(),
-                key
-        );
+        final String key =
+                EsUtil.generateDocId(
+                        elasticsearchConf.getIds(), message, elasticsearchConf.getKeyDelimiter());
+        DeleteRequest deleteRequest =
+                EsRequestHelper.createDeleteRequest(
+                        elasticsearchConf.getIndex(), elasticsearchConf.getType(), key);
         return deleteRequest;
     }
-
 }

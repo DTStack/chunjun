@@ -29,8 +29,8 @@ import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.enums.EWriteMode;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.JsonUtil;
@@ -50,8 +50,8 @@ import java.util.Objects;
 
 /**
  * OutputFormat for writing data to relational database.
- * <p>
- * Company: www.dtstack.com
+ *
+ * <p>Company: www.dtstack.com
  *
  * @author huyifan.zju@163.com
  */
@@ -81,7 +81,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks) {
         try {
             dbConn = getConnection();
-            //默认关闭事务自动提交，手动控制事务
+            // 默认关闭事务自动提交，手动控制事务
             dbConn.setAutoCommit(false);
             initColumnList();
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
@@ -95,9 +95,16 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }
             }
 
-            fieldNamedPreparedStatement = FieldNamedPreparedStatement.prepareStatement(dbConn, prepareTemplates(), this.columnNameList.toArray(new String[0]));
-            RowType rowType = TableUtil.createRowType(columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
-            setRowConverter(rowConverter == null ? jdbcDialect.getColumnConverter(rowType, jdbcConf) : rowConverter);
+            fieldNamedPreparedStatement =
+                    FieldNamedPreparedStatement.prepareStatement(
+                            dbConn, prepareTemplates(), this.columnNameList.toArray(new String[0]));
+            RowType rowType =
+                    TableUtil.createRowType(
+                            columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
+            setRowConverter(
+                    rowConverter == null
+                            ? jdbcDialect.getColumnConverter(rowType, jdbcConf)
+                            : rowConverter);
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
@@ -106,9 +113,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    /**
-     * init columnNameList、 columnTypeList and hasConstantField
-     */
+    /** init columnNameList、 columnTypeList and hasConstantField */
     protected void initColumnList() {
         Pair<List<String>, List<String>> pair = getTableMetaData();
 
@@ -120,6 +125,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     /**
      * for override. because some databases have case-sensitive metadata。
+     *
      * @return
      */
     protected Pair<List<String>, List<String>> getTableMetaData() {
@@ -128,12 +134,16 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     /**
      * detailed logic for handling column
+     *
      * @param fieldList
      * @param fullColumnList
      * @param fullColumnTypeList
      */
-    protected void handleColumnList(List<FieldConf> fieldList, List<String> fullColumnList, List<String> fullColumnTypeList) {
-        if(fieldList.size() == 1 && Objects.equals(fieldList.get(0).getName(), "*")){
+    protected void handleColumnList(
+            List<FieldConf> fieldList,
+            List<String> fullColumnList,
+            List<String> fullColumnTypeList) {
+        if (fieldList.size() == 1 && Objects.equals(fieldList.get(0).getName(), "*")) {
             columnNameList = fullColumnList;
             columnTypeList = fullColumnTypeList;
             return;
@@ -156,7 +166,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
         int index = 0;
         try {
-            fieldNamedPreparedStatement = (FieldNamedPreparedStatement) rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
+            fieldNamedPreparedStatement =
+                    (FieldNamedPreparedStatement)
+                            rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
             fieldNamedPreparedStatement.execute();
             JdbcUtil.commit(dbConn);
         } catch (Exception e) {
@@ -167,14 +179,22 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected String recordConvertDetailErrorMessage(int pos, Object row) {
-        return "\nJdbcOutputFormat [" + jobName + "] writeRecord error: when converting field["+ pos + "] in Row(" + row + ")";
+        return "\nJdbcOutputFormat ["
+                + jobName
+                + "] writeRecord error: when converting field["
+                + pos
+                + "] in Row("
+                + row
+                + ")";
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
             for (RowData row : rows) {
-                fieldNamedPreparedStatement = (FieldNamedPreparedStatement) rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
+                fieldNamedPreparedStatement =
+                        (FieldNamedPreparedStatement)
+                                rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
                 fieldNamedPreparedStatement.addBatch();
                 lastRow = row;
             }
@@ -183,31 +203,35 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             if (checkpointEnabled && CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
                 rowsOfCurrentTransaction += rows.size();
             } else {
-                //手动提交事务
+                // 手动提交事务
                 JdbcUtil.commit(dbConn);
             }
         } catch (Exception e) {
-            LOG.warn("write Multiple Records error, start to rollback connection, row size = {}, first row = {}",
+            LOG.warn(
+                    "write Multiple Records error, start to rollback connection, row size = {}, first row = {}",
                     rows.size(),
                     rows.size() > 0 ? GsonUtil.GSON.toJson(rows.get(0)) : "null",
                     e);
             JdbcUtil.rollBack(dbConn);
             throw e;
         } finally {
-            //执行完后清空batch
+            // 执行完后清空batch
             fieldNamedPreparedStatement.clearBatch();
         }
     }
 
     @Override
-    public void preCommit() throws Exception{
+    public void preCommit() throws Exception {
         if (jdbcConf.getRestoreColumnIndex() > -1) {
             Object state;
-            if(lastRow instanceof GenericRowData){
+            if (lastRow instanceof GenericRowData) {
                 state = ((GenericRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex());
-            }else if(lastRow instanceof ColumnRowData){
-                state = ((ColumnRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex()).asString();
-            }else{
+            } else if (lastRow instanceof ColumnRowData) {
+                state =
+                        ((ColumnRowData) lastRow)
+                                .getField(jdbcConf.getRestoreColumnIndex())
+                                .asString();
+            } else {
                 LOG.warn("can't get [{}] from lastRow:{}", jdbcConf.getRestoreColumn(), lastRow);
                 state = null;
             }
@@ -241,18 +265,18 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     /**
      * 执行pre、post SQL
+     *
      * @param sqlList
      */
     protected void executeBatch(List<String> sqlList) {
-        if(CollectionUtils.isNotEmpty(sqlList)){
-            try(Connection conn = getConnection();
-                Statement stmt = conn.createStatement()
-            ){
+        if (CollectionUtils.isNotEmpty(sqlList)) {
+            try (Connection conn = getConnection();
+                    Statement stmt = conn.createStatement()) {
                 for (String sql : sqlList) {
-                    //兼容多条SQL写在同一行的情况
+                    // 兼容多条SQL写在同一行的情况
                     String[] strings = sql.split(";");
                     for (String s : strings) {
-                        if(StringUtils.isNotBlank(s)){
+                        if (StringUtils.isNotBlank(s)) {
                             LOG.info("add sql to batch, sql = {}", sql);
                             stmt.addBatch(sql);
                         }
@@ -260,7 +284,10 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }
                 stmt.executeBatch();
             } catch (SQLException e) {
-                LOG.error("execute sql failed, sqlList = {}, e = {}", JsonUtil.toPrintJson(sqlList), e);
+                LOG.error(
+                        "execute sql failed, sqlList = {}, e = {}",
+                        JsonUtil.toPrintJson(sqlList),
+                        e);
             }
         }
     }
@@ -299,10 +326,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         return singleSql;
     }
 
-    protected void processWriteException(
-            Exception e,
-            int index,
-            RowData row) throws WriteRecordException {
+    protected void processWriteException(Exception e, int index, RowData row)
+            throws WriteRecordException {
         if (e instanceof SQLException) {
             if (e.getMessage().contains("No operations allowed")) {
                 throw new RuntimeException("Connection maybe closed", e);
@@ -321,7 +346,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     public void closeInternal() {
         snapshotWriteCounter.add(rowsOfCurrentTransaction);
         try {
-            if(fieldNamedPreparedStatement != null){
+            if (fieldNamedPreparedStatement != null) {
                 fieldNamedPreparedStatement.close();
             }
         } catch (SQLException e) {
@@ -332,9 +357,10 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     /**
      * 获取数据库连接，用于子类覆盖
+     *
      * @return connection
      */
-    protected Connection getConnection() throws SQLException{
+    protected Connection getConnection() throws SQLException {
         return JdbcUtil.getConnection(jdbcConf, jdbcDialect);
     }
 

@@ -32,21 +32,21 @@ import org.apache.flink.types.RowKind;
 import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.flinkx.connector.oraclelogminer.converter.LogMinerRowConverter;
 import com.dtstack.flinkx.connector.oraclelogminer.inputformat.OracleLogMinerInputFormatBuilder;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 /**
  * @author chuixue
  * @create 2021-04-09 09:20
  * @description
- **/
-
+ */
 public class OraclelogminerDynamicTableSource implements ScanTableSource {
     private final TableSchema schema;
     private final LogMinerConf logMinerConf;
     private final TimestampFormat timestampFormat;
 
-    public OraclelogminerDynamicTableSource(TableSchema schema, LogMinerConf logMinerConf, TimestampFormat timestampFormat ) {
+    public OraclelogminerDynamicTableSource(
+            TableSchema schema, LogMinerConf logMinerConf, TimestampFormat timestampFormat) {
         this.schema = schema;
         this.logMinerConf = logMinerConf;
         this.timestampFormat = timestampFormat;
@@ -59,17 +59,17 @@ public class OraclelogminerDynamicTableSource implements ScanTableSource {
 
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
         builder.setLogMinerConfig(logMinerConf);
-        builder.setRowConverter(new LogMinerRowConverter((RowType) this.schema.toRowDataType().getLogicalType()));
+        builder.setRowConverter(
+                new LogMinerRowConverter((RowType) this.schema.toRowDataType().getLogicalType()));
 
-        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+        return ParallelSourceFunctionProvider.of(
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
 
     @Override
     public DynamicTableSource copy() {
         return new OraclelogminerDynamicTableSource(
-                this.schema,
-                this.logMinerConf,
-                this.timestampFormat);
+                this.schema, this.logMinerConf, this.timestampFormat);
     }
 
     @Override

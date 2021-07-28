@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.outputformat;
+package com.dtstack.flinkx.sink.format;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -27,7 +27,8 @@ import org.slf4j.LoggerFactory;
 /**
  * The builder of RichOutputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public abstract class BaseRichOutputFormatBuilder {
@@ -47,17 +48,14 @@ public abstract class BaseRichOutputFormatBuilder {
         format.setRowConverter(rowConverter);
     }
 
-    /**
-     * Check the value of parameters
-     */
+    /** Check the value of parameters */
     protected abstract void checkFormat();
 
     public BaseRichOutputFormat finish() {
         checkFormat();
 
         /**
-         * 200000条限制的原因：
-         * 按照目前的使用情况以及部署配置，假设写入字段数量平均为50个，一个单slot的TaskManager内存为1G，
+         * 200000条限制的原因： 按照目前的使用情况以及部署配置，假设写入字段数量平均为50个，一个单slot的TaskManager内存为1G，
          * 在不考虑各插件批量写入对内存特殊要求并且只考虑插件缓存这么多条数据的情况下，batchInterval为400000条时出现fullGC，
          * 为了避免fullGC以及OOM，并且保证batchInterval有足够的配置空间，取最大值的一半200000。
          */

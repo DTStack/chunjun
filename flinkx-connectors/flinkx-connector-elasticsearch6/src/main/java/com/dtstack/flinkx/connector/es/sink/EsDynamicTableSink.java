@@ -27,7 +27,7 @@ import org.apache.flink.types.RowKind;
 
 import com.dtstack.flinkx.connector.es.conf.EsConf;
 import com.dtstack.flinkx.connector.es.converter.EsRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 /**
  * @description:
@@ -64,14 +64,12 @@ public class EsDynamicTableSink implements DynamicTableSink {
         builder.setRowConverter(new EsRowConverter(rowType));
         builder.setEsConf(elasticsearchConf);
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()),
-                1);
+        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()), 1);
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new EsDynamicTableSink(physicalSchema,
-                elasticsearchConf);
+        return new EsDynamicTableSink(physicalSchema, elasticsearchConf);
     }
 
     @Override

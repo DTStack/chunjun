@@ -18,21 +18,6 @@
 
 package com.dtstack.flinkx.connector.cassandra.source;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.cassandra.conf.CassandraLookupConf;
-import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
-import com.dtstack.flinkx.connector.cassandra.converter.CassandraColumnConverter;
-import com.dtstack.flinkx.connector.cassandra.converter.CassandraRawTypeConverter;
-import com.dtstack.flinkx.connector.cassandra.converter.CassandraRowConverter;
-import com.dtstack.flinkx.connector.cassandra.lookup.CassandraAllTableFunction;
-import com.dtstack.flinkx.connector.cassandra.lookup.CassandraLruTableFunction;
-import com.dtstack.flinkx.enums.CacheType;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
-import com.dtstack.flinkx.util.TableUtil;
-
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -45,6 +30,20 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.NullType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.Preconditions;
+
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.cassandra.conf.CassandraLookupConf;
+import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
+import com.dtstack.flinkx.connector.cassandra.converter.CassandraRawTypeConverter;
+import com.dtstack.flinkx.connector.cassandra.converter.CassandraRowConverter;
+import com.dtstack.flinkx.connector.cassandra.lookup.CassandraAllTableFunction;
+import com.dtstack.flinkx.connector.cassandra.lookup.CassandraLruTableFunction;
+import com.dtstack.flinkx.enums.CacheType;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
+import com.dtstack.flinkx.util.TableUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -147,7 +146,8 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
             return ParallelAsyncTableFunctionProvider.of(
                     new CassandraLruTableFunction(
                             cassandraLookupConf,
-                            new CassandraRowConverter(rowType, Arrays.asList(tableSchema.getFieldNames())),
+                            new CassandraRowConverter(
+                                    rowType, Arrays.asList(tableSchema.getFieldNames())),
                             tableSchema.getFieldNames(),
                             keyNames),
                     cassandraLookupConf.getParallelism());
@@ -155,7 +155,8 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
         return ParallelTableFunctionProvider.of(
                 new CassandraAllTableFunction(
                         cassandraLookupConf,
-                        new CassandraRowConverter(rowType, Arrays.asList(tableSchema.getFieldNames())),
+                        new CassandraRowConverter(
+                                rowType, Arrays.asList(tableSchema.getFieldNames())),
                         tableSchema.getFieldNames(),
                         keyNames),
                 cassandraLookupConf.getParallelism());

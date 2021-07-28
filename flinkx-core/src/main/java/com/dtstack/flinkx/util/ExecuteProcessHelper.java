@@ -16,17 +16,18 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.exec;
+package com.dtstack.flinkx.util;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.enums.EPluginLoadMode;
-import com.dtstack.flinkx.util.SampleUtils;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +41,7 @@ import java.util.Set;
 import static com.dtstack.flinkx.constants.ConfigConstant.SAMPLE_INTERVAL_COUNT;
 
 /**
- * 任务执行时的流程方法
- * Date: 2020/2/17
- * Company: www.dtstack.com
+ * 任务执行时的流程方法 Date: 2020/2/17 Company: www.dtstack.com
  *
  * @author maqi
  */
@@ -60,7 +59,8 @@ public class ExecuteProcessHelper {
      * @param pluginLoadMode
      * @return
      */
-    public static boolean checkRemoteSqlPluginPath(String remoteSqlPluginPath, String deployMode, String pluginLoadMode) {
+    public static boolean checkRemoteSqlPluginPath(
+            String remoteSqlPluginPath, String deployMode, String pluginLoadMode) {
         if (StringUtils.isEmpty(remoteSqlPluginPath)) {
             return StringUtils.equalsIgnoreCase(pluginLoadMode, EPluginLoadMode.SHIPFILE.name())
                     || StringUtils.equalsIgnoreCase(deployMode, ClusterMode.local.name());
@@ -70,10 +70,7 @@ public class ExecuteProcessHelper {
 
     private static void setSamplingIntervalCount(Properties properties) {
         SampleUtils.setSamplingIntervalCount(
-                Integer.parseInt(
-                        properties.getProperty(SAMPLE_INTERVAL_COUNT, "0")
-                )
-        );
+                Integer.parseInt(properties.getProperty(SAMPLE_INTERVAL_COUNT, "0")));
     }
 
     public static List<URL> getExternalJarUrls(String addJarListStr) throws java.io.IOException {
@@ -82,8 +79,10 @@ public class ExecuteProcessHelper {
             return jarUrlList;
         }
 
-        List<String> addJarFileList = OBJECT_MAPPER.readValue(URLDecoder.decode(addJarListStr, Charsets.UTF_8.name()), List.class);
-        //Get External jar to load
+        List<String> addJarFileList =
+                OBJECT_MAPPER.readValue(
+                        URLDecoder.decode(addJarListStr, Charsets.UTF_8.name()), List.class);
+        // Get External jar to load
         for (String addJarPath : addJarFileList) {
             jarUrlList.add(new File(addJarPath).toURI().toURL());
         }
@@ -96,7 +95,8 @@ public class ExecuteProcessHelper {
      * @param env
      * @param classPathSet
      */
-    public static void registerPluginUrlToCachedFile(StreamExecutionEnvironment env, Set<URL> classPathSet) {
+    public static void registerPluginUrlToCachedFile(
+            StreamExecutionEnvironment env, Set<URL> classPathSet) {
         int i = 0;
         for (URL url : classPathSet) {
             String classFileName = String.format(CLASS_FILE_NAME_FMT, i);

@@ -16,38 +16,33 @@
  * limitations under the License.
  */
 
-
-package com.dtstack.flinkx.function;
-
-
-import com.dtstack.flinkx.throwable.FlinkxSqlParseException;
+package com.dtstack.flinkx.sql;
 
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.functions.AggregateFunction;
 import org.apache.flink.table.functions.ScalarFunction;
 import org.apache.flink.table.functions.TableFunction;
+
+import com.dtstack.flinkx.throwable.FlinkxSqlParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * 自定义函数管理类
- * Reason:
- * Date: 2017/2/21
- * Company: www.dtstack.com
+ * 自定义函数管理类 Reason: Date: 2017/2/21 Company: www.dtstack.com
  *
  * @author xuchao
  */
-
 public class FunctionManager {
     private static final Logger logger = LoggerFactory.getLogger(FunctionManager.class);
 
-    /**
-     * TABLE|SCALAR|AGGREGATE
-     * 注册UDF到table env
-     */
-    public static void registerUDF(String type, String classPath, String funcName, TableEnvironment tableEnv, ClassLoader classLoader) {
+    /** TABLE|SCALAR|AGGREGATE 注册UDF到table env */
+    public static void registerUDF(
+            String type,
+            String classPath,
+            String funcName,
+            TableEnvironment tableEnv,
+            ClassLoader classLoader) {
         if ("SCALAR".equalsIgnoreCase(type)) {
             registerScalarUDF(classPath, funcName, tableEnv, classLoader);
         } else if ("TABLE".equalsIgnoreCase(type)) {
@@ -55,7 +50,8 @@ public class FunctionManager {
         } else if ("AGGREGATE".equalsIgnoreCase(type)) {
             registerAggregateUDF(classPath, funcName, tableEnv, classLoader);
         } else {
-            throw new FlinkxSqlParseException("not support of UDF which is not in (TABLE, SCALAR, AGGREGATE)");
+            throw new FlinkxSqlParseException(
+                    "not support of UDF which is not in (TABLE, SCALAR, AGGREGATE)");
         }
     }
 
@@ -66,10 +62,13 @@ public class FunctionManager {
      * @param funcName
      * @param tableEnv
      */
-    public static void registerScalarUDF(String classPath, String funcName, TableEnvironment tableEnv, ClassLoader classLoader) {
+    public static void registerScalarUDF(
+            String classPath, String funcName, TableEnvironment tableEnv, ClassLoader classLoader) {
         try {
-            ScalarFunction udfFunc = Class.forName(classPath, false, classLoader)
-                .asSubclass(ScalarFunction.class).newInstance();
+            ScalarFunction udfFunc =
+                    Class.forName(classPath, false, classLoader)
+                            .asSubclass(ScalarFunction.class)
+                            .newInstance();
             tableEnv.registerFunction(funcName, udfFunc);
             logger.info("register scalar function:{} success.", funcName);
         } catch (Exception e) {
@@ -85,11 +84,14 @@ public class FunctionManager {
      * @param funcName
      * @param tableEnv
      */
-    public static void registerTableUDF(String classPath, String funcName, TableEnvironment tableEnv, ClassLoader classLoader) {
+    public static void registerTableUDF(
+            String classPath, String funcName, TableEnvironment tableEnv, ClassLoader classLoader) {
         try {
             checkStreamTableEnv(tableEnv);
-            TableFunction udtf = Class.forName(classPath, false, classLoader)
-                .asSubclass(TableFunction.class).newInstance();
+            TableFunction udtf =
+                    Class.forName(classPath, false, classLoader)
+                            .asSubclass(TableFunction.class)
+                            .newInstance();
 
             ((StreamTableEnvironment) tableEnv).registerFunction(funcName, udtf);
             logger.info("register table function:{} success.", funcName);
@@ -101,7 +103,8 @@ public class FunctionManager {
 
     private static void checkStreamTableEnv(TableEnvironment tableEnv) {
         if (!(tableEnv instanceof StreamTableEnvironment)) {
-            throw new RuntimeException("no support tableEnvironment class for " + tableEnv.getClass().getName());
+            throw new RuntimeException(
+                    "no support tableEnvironment class for " + tableEnv.getClass().getName());
         }
     }
 
@@ -112,12 +115,15 @@ public class FunctionManager {
      * @param funcName
      * @param tableEnv
      */
-    public static void registerAggregateUDF(String classPath, String funcName, TableEnvironment tableEnv, ClassLoader classLoader) {
+    public static void registerAggregateUDF(
+            String classPath, String funcName, TableEnvironment tableEnv, ClassLoader classLoader) {
         try {
             checkStreamTableEnv(tableEnv);
 
-            AggregateFunction udaf = Class.forName(classPath, false, classLoader)
-                .asSubclass(AggregateFunction.class).newInstance();
+            AggregateFunction udaf =
+                    Class.forName(classPath, false, classLoader)
+                            .asSubclass(AggregateFunction.class)
+                            .newInstance();
             ((StreamTableEnvironment) tableEnv).registerFunction(funcName, udaf);
             logger.info("register Aggregate function:{} success.", funcName);
         } catch (Exception e) {

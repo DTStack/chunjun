@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.outputformat;
+package com.dtstack.flinkx.sink.format;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
@@ -31,7 +31,6 @@ import org.apache.flink.table.data.RowData;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.factory.DTThreadFactory;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
@@ -39,6 +38,7 @@ import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.sink.WriteErrorTypes;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
@@ -61,22 +61,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * <p>Company: www.dtstack.com
  *
- * <p>NOTE Four situations for checkpoint(cp):
- * 1).Turn off cp, batch and timing directly submitted to the database
+ * <p>NOTE Four situations for checkpoint(cp): 1).Turn off cp, batch and timing directly submitted
+ * to the database
  *
- * 2).Turn on cp and in AT_LEAST_ONCE model, batch and timing directly commit to the db .
- *    snapshotState、notifyCheckpointComplete、notifyCheckpointAborted Does not interact with the db
+ * <p>2).Turn on cp and in AT_LEAST_ONCE model, batch and timing directly commit to the db .
+ * snapshotState、notifyCheckpointComplete、notifyCheckpointAborted Does not interact with the db
  *
- * 3).Turn on cp and in EXACTLY_ONCE model, batch and timing pre commit to the db .
- *    snapshotState pre commit、notifyCheckpointComplete real commit、notifyCheckpointAborted rollback
+ * <p>3).Turn on cp and in EXACTLY_ONCE model, batch and timing pre commit to the db . snapshotState
+ * pre commit、notifyCheckpointComplete real commit、notifyCheckpointAborted rollback
  *
- * 4).Turn on cp and in EXACTLY_ONCE model, when cp time out snapshotState、notifyCheckpointComplete may never call,
- *    Only call notifyCheckpointAborted.this maybe a problem ,should make users perceive
- *
+ * <p>4).Turn on cp and in EXACTLY_ONCE model, when cp time out
+ * snapshotState、notifyCheckpointComplete may never call, Only call notifyCheckpointAborted.this
+ * maybe a problem ,should make users perceive
  *
  * @author huyifan.zju@163.com
  */
-public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> implements CleanupWhenUnsuccessful, InitializeOnMaster, FinalizeOnMaster {
+public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
+        implements CleanupWhenUnsuccessful, InitializeOnMaster, FinalizeOnMaster {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -102,11 +103,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     /** checkpoint状态缓存map */
     protected FormatState formatState;
 
-    /**
-     * 虽然开启cp，是否采用定时器和一定条数让下游数据可见。
-     * EXACTLY_ONCE：否，遵循两阶段提交协议。
-     * AT_LEAST_ONCE：是，只要数据条数或者到达定时时间即可见
-     */
+    /** 虽然开启cp，是否采用定时器和一定条数让下游数据可见。 EXACTLY_ONCE：否，遵循两阶段提交协议。 AT_LEAST_ONCE：是，只要数据条数或者到达定时时间即可见 */
     protected CheckpointingMode checkpointMode;
     /** 定时提交数据服务 */
     protected transient ScheduledExecutorService scheduler;
@@ -147,6 +144,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
+
     protected LongCounter bytesWriteCounter;
     protected LongCounter durationCounter;
     protected LongCounter numWriteCounter;
@@ -159,7 +157,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     @Override
     public void initializeGlobal(int parallelism) {
-        //任务开始前操作，在configure前调用。
+        // 任务开始前操作，在configure前调用。
     }
 
     @Override
@@ -169,7 +167,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     @Override
     public void finalizeGlobal(int parallelism) {
-        //任务结束后操作。
+        // 任务结束后操作。
     }
 
     /**
@@ -177,7 +175,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      *
      * @param taskNumber 任务索引id
      * @param numTasks 子任务数量
-     *
      * @throws IOException
      */
     @Override
@@ -197,7 +194,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                         : context.getCheckpointMode();
 
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
-        if(vars != null){
+        if (vars != null) {
             jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");
             jobId = vars.get(Metrics.JOB_ID);
         }
@@ -242,7 +239,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         updateDuration();
         numWriteCounter.add(size);
         bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
-        if(checkpointEnabled){
+        if (checkpointEnabled) {
             snapshotWriteCounter.add(size);
         }
     }
@@ -289,7 +286,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             try {
                 dirtyDataManager.close();
             } catch (Exception e) {
-                LOG.error("dirtyDataManager.close() Exception:{}", ExceptionUtil.getErrorMessage(e));
+                LOG.error(
+                        "dirtyDataManager.close() Exception:{}", ExceptionUtil.getErrorMessage(e));
             }
         }
 
@@ -297,13 +295,17 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             try {
                 errorLimiter.updateErrorInfo();
             } catch (Exception e) {
-                LOG.warn("errorLimiter.updateErrorInfo() Exception:{}", ExceptionUtil.getErrorMessage(e));
+                LOG.warn(
+                        "errorLimiter.updateErrorInfo() Exception:{}",
+                        ExceptionUtil.getErrorMessage(e));
             }
 
             try {
                 errorLimiter.checkErrorLimit();
             } catch (Exception e) {
-                LOG.error("errorLimiter.checkErrorLimit() Exception:{}", ExceptionUtil.getErrorMessage(e));
+                LOG.error(
+                        "errorLimiter.checkErrorLimit() Exception:{}",
+                        ExceptionUtil.getErrorMessage(e));
                 if (closeException != null) {
                     closeException.addSuppressed(e);
                 } else {
@@ -332,9 +334,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
     @Override
     public void tryCleanupOnError() throws Exception {}
 
-    /**
-     * 初始化累加器指标
-     */
+    /** 初始化累加器指标 */
     protected void initStatisticsAccumulator() {
         errCounter = context.getLongCounter(Metrics.NUM_ERRORS);
         nullErrCounter = context.getLongCounter(Metrics.NUM_NULL_ERRORS);
@@ -358,45 +358,39 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
     }
 
-    /**
-     * 初始化累加器收集器
-     */
+    /** 初始化累加器收集器 */
     private void initAccumulatorCollector() {
         accumulatorCollector = new AccumulatorCollector(context, Metrics.METRIC_SINK_LIST);
         accumulatorCollector.start();
     }
 
-    /**
-     * 初始化脏数据限制器
-     */
+    /** 初始化脏数据限制器 */
     private void initErrorLimiter() {
         if (config.getErrorRecord() >= 0 || config.getErrorPercentage() > 0) {
             Double errorRatio = null;
             if (config.getErrorPercentage() > 0) {
                 errorRatio = (double) config.getErrorPercentage();
             }
-            errorLimiter = new ErrorLimiter(accumulatorCollector, config.getErrorRecord(), errorRatio);
+            errorLimiter =
+                    new ErrorLimiter(accumulatorCollector, config.getErrorRecord(), errorRatio);
         }
     }
 
-    /**
-     * 初始化脏数据管理器
-     */
+    /** 初始化脏数据管理器 */
     private void initDirtyDataManager() {
         if (StringUtils.isNotBlank(config.getDirtyDataPath())) {
-            dirtyDataManager = new DirtyDataManager(
-                    config.getDirtyDataPath(),
-                    config.getDirtyDataHadoopConf(),
-                    config.getFieldNameList().toArray(new String[0]),
-                    jobId);
+            dirtyDataManager =
+                    new DirtyDataManager(
+                            config.getDirtyDataPath(),
+                            config.getDirtyDataHadoopConf(),
+                            config.getFieldNameList().toArray(new String[0]),
+                            jobId);
             dirtyDataManager.open();
             LOG.info("init dirtyDataManager: {}", this.dirtyDataManager);
         }
     }
 
-    /**
-     * 从checkpoint状态缓存map中恢复上次任务的指标信息
-     */
+    /** 从checkpoint状态缓存map中恢复上次任务的指标信息 */
     private void initRestoreInfo() {
         if (formatState == null) {
             formatState = new FormatState(taskNumber, null);
@@ -415,34 +409,45 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
         }
     }
 
-    /**
-     * Turn on timed submission,Each result table is opened separately
-     */
+    /** Turn on timed submission,Each result table is opened separately */
     private void initTimingSubmitTask() {
         if (batchSize > 1 && flushIntervalMills > 0) {
-            LOG.info("initTimingSubmitTask() ,initialDelay:{}, delay:{}, MILLISECONDS", flushIntervalMills, flushIntervalMills);
-            this.scheduler = new ScheduledThreadPoolExecutor(1, new DTThreadFactory("timer-data-write-thread"));
-            this.scheduledFuture = this.scheduler.scheduleWithFixedDelay(() -> {
-                synchronized (BaseRichOutputFormat.this) {
-                    if (closed) {
-                        return;
-                    }
-                    try {
-                        if(!rows.isEmpty()){
-                            int size = rows.size();
-                            writeRecordInternal();
-                            numWriteCounter.add(size);
-                        }
-                    } catch (Exception e) {
-                        LOG.error("Writing records failed. {}", ExceptionUtil.getErrorMessage(e));
-                    }
-                }
-            }, flushIntervalMills, flushIntervalMills, TimeUnit.MILLISECONDS);
+            LOG.info(
+                    "initTimingSubmitTask() ,initialDelay:{}, delay:{}, MILLISECONDS",
+                    flushIntervalMills,
+                    flushIntervalMills);
+            this.scheduler =
+                    new ScheduledThreadPoolExecutor(
+                            1, new DTThreadFactory("timer-data-write-thread"));
+            this.scheduledFuture =
+                    this.scheduler.scheduleWithFixedDelay(
+                            () -> {
+                                synchronized (BaseRichOutputFormat.this) {
+                                    if (closed) {
+                                        return;
+                                    }
+                                    try {
+                                        if (!rows.isEmpty()) {
+                                            int size = rows.size();
+                                            writeRecordInternal();
+                                            numWriteCounter.add(size);
+                                        }
+                                    } catch (Exception e) {
+                                        LOG.error(
+                                                "Writing records failed. {}",
+                                                ExceptionUtil.getErrorMessage(e));
+                                    }
+                                }
+                            },
+                            flushIntervalMills,
+                            flushIntervalMills,
+                            TimeUnit.MILLISECONDS);
         }
     }
 
     /**
      * 数据单条写出
+     *
      * @param rowData 单条数据
      */
     protected void writeSingleRecord(RowData rowData) {
@@ -456,20 +461,21 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             // todo 脏数据记录
             updateDirtyDataMsg(rowData, e);
             if (LOG.isTraceEnabled()) {
-                LOG.trace("write error rowData, rowData = {}, e = {}", rowData.toString(), ExceptionUtil.getErrorMessage(e));
+                LOG.trace(
+                        "write error rowData, rowData = {}, e = {}",
+                        rowData.toString(),
+                        ExceptionUtil.getErrorMessage(e));
             }
         }
     }
 
-    /**
-     * 数据批量写出
-     */
+    /** 数据批量写出 */
     protected synchronized void writeRecordInternal() {
-        if(flushEnable.get()){
+        if (flushEnable.get()) {
             try {
                 writeMultipleRecordsInternal();
             } catch (Exception e) {
-                //批量写异常转为单条写
+                // 批量写异常转为单条写
                 rows.forEach(this::writeSingleRecord);
             } finally {
                 // Data is either recorded dirty data or written normally
@@ -480,6 +486,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     /**
      * 更新脏数据信息
+     *
      * @param rowData 当前读取的数据
      * @param e 异常
      */
@@ -492,7 +499,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
             errMsg += recordConvertDetailErrorMessage(pos, e.getRowData());
         }
 
-        //每2000条打印一次脏数据
+        // 每2000条打印一次脏数据
         if (errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
             LOG.error(errMsg);
         }
@@ -504,7 +511,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
         if (dirtyDataManager != null) {
             String errorType = dirtyDataManager.writeData(rowData, e);
-            switch (errorType){
+            switch (errorType) {
                 case WriteErrorTypes.ERR_NULL_POINTER:
                     nullErrCounter.add(1);
                     break;
@@ -522,17 +529,18 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     /**
      * 记录脏数据异常信息
+     *
      * @param pos 异常字段索引
      * @param rowData 当前读取的数据
      * @return 脏数据异常信息记录
      */
     protected String recordConvertDetailErrorMessage(int pos, Object rowData) {
-        return String.format("%s WriteRecord error: when converting field[%s] in Row(%s)", getClass().getName(), pos, rowData);
+        return String.format(
+                "%s WriteRecord error: when converting field[%s] in Row(%s)",
+                getClass().getName(), pos, rowData);
     }
 
-    /**
-     * 更新任务执行时间指标
-     */
+    /** 更新任务执行时间指标 */
     protected void updateDuration() {
         if (durationCounter != null) {
             durationCounter.resetLocal();
@@ -542,13 +550,16 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     /**
      * 更新checkpoint状态缓存map
+     *
      * @return
      */
     public synchronized FormatState getFormatState() throws Exception {
         // not EXACTLY_ONCE model,Does not interact with the db
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
             try {
-                LOG.info("getFormatState:Start preCommit, rowsOfCurrentTransaction: {}", rowsOfCurrentTransaction);
+                LOG.info(
+                        "getFormatState:Start preCommit, rowsOfCurrentTransaction: {}",
+                        rowsOfCurrentTransaction);
                 preCommit();
             } catch (Exception e) {
                 LOG.error("preCommit error, e = {}", ExceptionUtil.getErrorMessage(e));
@@ -556,7 +567,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
                 flushEnable.compareAndSet(true, false);
             }
         }
-        //set metric after preCommit
+        // set metric after preCommit
         formatState.setNumberWrite(numWriteCounter.getLocalValue());
         formatState.setMetric(outputMetric.getMetricCounters());
         LOG.info("format state:{}", formatState.getState());
@@ -565,15 +576,15 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     /**
      * pre commit data
+     *
      * @throws Exception
      */
-    protected void preCommit() throws Exception{}
+    protected void preCommit() throws Exception {}
 
     /**
      * 写出单条数据
      *
      * @param rowData 数据
-     *
      * @throws WriteRecordException
      */
     protected abstract void writeSingleRecordInternal(RowData rowData) throws WriteRecordException;
@@ -590,7 +601,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      *
      * @param taskNumber 通道索引
      * @param numTasks 通道数量
-     *
      * @throws IOException
      */
     protected abstract void openInternal(int taskNumber, int numTasks) throws IOException;
@@ -622,10 +632,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     /**
      * commit data
+     *
      * @param checkpointId
      * @throws Exception
      */
-    public void commit(long checkpointId) throws Exception{}
+    public void commit(long checkpointId) throws Exception {}
 
     /**
      * checkpoint失败时操作
@@ -634,12 +645,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
      */
     public synchronized void notifyCheckpointAborted(long checkpointId) {
         if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
-            try{
+            try {
                 rollback(checkpointId);
-                LOG.info("notifyCheckpointAborted:rollback success , checkpointId:{}", checkpointId);
+                LOG.info(
+                        "notifyCheckpointAborted:rollback success , checkpointId:{}", checkpointId);
             } catch (Exception e) {
                 LOG.error("rollback error, e = {}", ExceptionUtil.getErrorMessage(e));
-            } finally{
+            } finally {
                 flushEnable.compareAndSet(false, true);
             }
         }
@@ -647,11 +659,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData> imp
 
     /**
      * rollback data
+     *
      * @param checkpointId
      * @throws Exception
      */
-    public void rollback(long checkpointId) throws Exception{}
-
+    public void rollback(long checkpointId) throws Exception {}
 
     public void setRestoreState(FormatState formatState) {
         this.formatState = formatState;

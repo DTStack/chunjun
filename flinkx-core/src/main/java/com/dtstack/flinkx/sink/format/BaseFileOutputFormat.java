@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-
-package com.dtstack.flinkx.outputformat;
+package com.dtstack.flinkx.sink.format;
 
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
 import com.dtstack.flinkx.enums.SizeUnitType;
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.sink.WriteMode;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -47,12 +46,14 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     protected String currentFileName;
     /** Data file write path */
     protected String outputFilePath;
-    /** Temporary data file write path,  outputFilePath + /.data */
+    /** Temporary data file write path, outputFilePath + /.data */
     protected String tmpPath;
+
     protected long sumRowsOfBlock;
     protected long rowsOfCurrentBlock;
     /** Current file index number */
     protected int currentFileIndex = 0;
+
     protected List<String> preCommitFilePathList = new ArrayList<>();
     protected long nextNumForCheckDataSize;
     protected long lastWriteTime = System.currentTimeMillis();
@@ -60,10 +61,12 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     @Override
     public void initializeGlobal(int parallelism) {
         initVariableFields();
-        if(WriteMode.OVERWRITE.name().equalsIgnoreCase(baseFileConf.getWriteMode()) && StringUtils.isBlank(baseFileConf.getRestorePath())){
-            //Overwrite mode and not delete the data directory first when restoring from a checkpoint
+        if (WriteMode.OVERWRITE.name().equalsIgnoreCase(baseFileConf.getWriteMode())
+                && StringUtils.isBlank(baseFileConf.getRestorePath())) {
+            // Overwrite mode and not delete the data directory first when restoring from a
+            // checkpoint
             deleteDataDir();
-        }else{
+        } else {
             deleteTmpDataDir();
         }
         checkOutputDir();
@@ -94,10 +97,11 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         initVariableFields();
     }
 
-    protected void initVariableFields(){
-        //The file name here is actually the partition name
-        if(StringUtils.isNotBlank(baseFileConf.getFileName())) {
-            outputFilePath = baseFileConf.getPath() + File.separatorChar + baseFileConf.getFileName();
+    protected void initVariableFields() {
+        // The file name here is actually the partition name
+        if (StringUtils.isNotBlank(baseFileConf.getFileName())) {
+            outputFilePath =
+                    baseFileConf.getPath() + File.separatorChar + baseFileConf.getFileName();
         } else {
             outputFilePath = baseFileConf.getPath();
         }
@@ -106,7 +110,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         openSource();
     }
 
-    protected void nextBlock(){
+    protected void nextBlock() {
         currentFileName = currentFileNamePrefix + "_" + currentFileIndex + getExtension();
     }
 
@@ -125,7 +129,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     }
 
     private void checkCurrentFileSize() {
-        if(numWriteCounter.getLocalValue() < nextNumForCheckDataSize){
+        if (numWriteCounter.getLocalValue() < nextNumForCheckDataSize) {
             return;
         }
         long currentFileSize = getCurrentFileSize();
@@ -133,14 +137,22 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
             flushData();
         }
         nextNumForCheckDataSize += baseFileConf.getNextCheckRows();
-        LOG.info("current file: {}, size = {}, nextNumForCheckDataSize = {}", currentFileName, SizeUnitType.readableFileSize(currentFileSize), nextNumForCheckDataSize);
+        LOG.info(
+                "current file: {}, size = {}, nextNumForCheckDataSize = {}",
+                currentFileName,
+                SizeUnitType.readableFileSize(currentFileSize),
+                nextNumForCheckDataSize);
     }
 
-    public void flushData(){
+    public void flushData() {
         if (rowsOfCurrentBlock != 0) {
             flushDataInternal();
             sumRowsOfBlock += rowsOfCurrentBlock;
-            LOG.info("flush file:{}, rowsOfCurrentBlock = {}, sumRowsOfBlock = {}", currentFileName, rowsOfCurrentBlock, sumRowsOfBlock);
+            LOG.info(
+                    "flush file:{}, rowsOfCurrentBlock = {}, sumRowsOfBlock = {}",
+                    currentFileName,
+                    rowsOfCurrentBlock,
+                    sumRowsOfBlock);
             rowsOfCurrentBlock = 0;
         }
     }
@@ -178,24 +190,16 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         closeSource();
     }
 
-    /**
-     * Check whether the writing path exists and whether it is a directory
-     */
+    /** Check whether the writing path exists and whether it is a directory */
     protected abstract void checkOutputDir();
 
-    /**
-     * Overwrite mode to clear the data file directory
-     */
+    /** Overwrite mode to clear the data file directory */
     protected abstract void deleteDataDir();
 
-    /**
-     * Clear temporary data files
-     */
+    /** Clear temporary data files */
     protected abstract void deleteTmpDataDir();
 
-    /**
-     * Open resource
-     */
+    /** Open resource */
     protected abstract void openSource();
 
     /**
@@ -207,6 +211,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     /**
      * Get the actual size of the file currently written
+     *
      * @return
      */
     protected abstract long getCurrentFileSize();
@@ -219,20 +224,17 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
      */
     protected abstract void writeSingleRecordToFile(RowData rowData) throws WriteRecordException;
 
-    /**
-     * flush data to storage media
-     */
+    /** flush data to storage media */
     protected abstract void flushDataInternal();
 
     /**
      * copy the temporary data file corresponding to the channel index to the official path
+     *
      * @return pre Commit File Path List
      */
     protected abstract List<String> copyTmpDataFileToDir();
 
-    /**
-     * Delete the data files submitted in the pre-submission phase under the official directory
-     */
+    /** Delete the data files submitted in the pre-submission phase under the official directory */
     protected abstract void deleteDataFiles(List<String> preCommitFilePathList, String path);
 
     /**
@@ -240,13 +242,12 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
      */
     protected abstract void moveAllTmpDataFileToDir();
 
-    /**
-     * close Source
-     */
+    /** close Source */
     protected abstract void closeSource();
 
     /**
      * Get file compression ratio
+     *
      * @return 压缩比 < 1
      */
     public abstract float getDeviation();

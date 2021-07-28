@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.connector.phoenix5.source;
 
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
@@ -27,7 +25,8 @@ import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.phoenix5.conf.Phoenix5Conf;
 import com.dtstack.flinkx.connector.phoenix5.util.Phoenix5Helper;
 import com.dtstack.flinkx.connector.phoenix5.util.Phoenix5Util;
-import com.dtstack.flinkx.exception.ReadRecordException;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RangeSplitUtil;

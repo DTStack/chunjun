@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,26 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.outputformat;
 
-import com.dtstack.flinkx.conf.BaseFileConf;
+package com.dtstack.flinkx.throwable;
+
+import static com.dtstack.flinkx.util.DtStringUtil.addLineNumber;
 
 /**
- * Date: 2021/06/21
- * Company: www.dtstack.com
- *
- * @author tudou
+ * @author chuixue
+ * @create 2021-05-13 14:30
+ * @description sql解析异常
  */
-public abstract class FileOutputFormatBuilder extends BaseRichOutputFormatBuilder{
-    protected BaseFileOutputFormat format;
-
-    public void setFormat(BaseFileOutputFormat format) {
-        this.format = format;
-        super.format = format;
-    }
-
-    public void setBaseFileConf(BaseFileConf baseFileConf) {
-        super.setConfig(baseFileConf);
-        format.baseFileConf = baseFileConf;
+public class DtSqlParserException extends RuntimeException {
+    public DtSqlParserException(String sql, String message, Throwable e) {
+        super(
+                "\n----------sql start---------\n"
+                        + addLineNumber(sql)
+                        + "\n----------sql end--------- \n\n"
+                        + message,
+                e);
     }
 }

@@ -18,16 +18,15 @@
 
 package com.dtstack.flinkx.connector.kudu.sink;
 
-import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
-import com.dtstack.flinkx.connector.kudu.util.KuduUtil;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.sink.WriteMode;
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-import com.dtstack.flinkx.throwable.NoRestartException;
-
 import org.apache.flink.table.data.RowData;
 
+import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
+import com.dtstack.flinkx.connector.kudu.util.KuduUtil;
+import com.dtstack.flinkx.sink.WriteMode;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.NoRestartException;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduSession;

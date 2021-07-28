@@ -19,13 +19,13 @@
 package com.dtstack.flinkx.connector.redis.sink;
 
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
 /**
  * @author chuixue
  * @create 2021-06-16 15:14
  * @description
- **/
+ */
 public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private RedisOutputFormat format;
