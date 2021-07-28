@@ -109,8 +109,10 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -553,6 +555,12 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
         Resource maxRes = appResponse.getMaximumResourceCapability();
 
         if(clusterSpecification.isCreateProgramDelay()){
+            List<URL> tmpfile = new ArrayList<>();
+            for(File file : shipFiles){
+                tmpfile.add(file.toURI().toURL());
+            }
+            clusterSpecification.setClasspaths(tmpfile);
+
             PackagedProgram program = JobGraphUtil.buildProgram(clusterSpecification);
             clusterSpecification.setProgram(program);
             jobGraph = PackagedProgramUtils.createJobGraph(program, clusterSpecification.getConfiguration(), clusterSpecification.getParallelism(), false);

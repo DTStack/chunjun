@@ -29,6 +29,10 @@ import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.util.ReflectionUtils;
+
+import org.apache.flink.util.Collector;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.internals.SubscriptionState;
 import org.apache.kafka.common.TopicPartition;
@@ -151,6 +155,7 @@ public class DynamicKafkaDeserializationSchemaWrapper extends DynamicKafkaDeseri
             });
         }
     }
+
 
     public void setFetcher(AbstractFetcher<RowData, ?> fetcher) {
         try {

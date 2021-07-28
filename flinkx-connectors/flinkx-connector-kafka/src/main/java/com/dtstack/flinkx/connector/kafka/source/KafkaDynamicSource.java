@@ -42,6 +42,8 @@ import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.internals.SubscriptionState;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.requests.IsolationLevel;
 
@@ -210,7 +212,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
         final TypeInformation<RowData> producedTypeInfo =
                 context.createTypeInformation(producedDataType);
 
-        final FlinkKafkaConsumer<RowData> kafkaConsumer =
+        final KafkaConsumer kafkaConsumer =
                 createKafkaConsumer(keyDeserialization, valueDeserialization, producedTypeInfo);
 
         return ParallelSourceFunctionProvider.of(kafkaConsumer, false, parallelism);
@@ -346,7 +348,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
 
     // --------------------------------------------------------------------------------------------
 
-    protected FlinkKafkaConsumer<RowData> createKafkaConsumer(
+    protected KafkaConsumer createKafkaConsumer(
             DeserializationSchema<RowData> keyDeserialization,
             DeserializationSchema<RowData> valueDeserialization,
             TypeInformation<RowData> producedTypeInfo) {
@@ -379,7 +381,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
                                 adjustedPhysicalArity))
                         .toArray();
 
-        final FlinkKafkaConsumer<RowData> kafkaConsumer = new KafkaConsumerFactory().createKafkaConsumer(
+        final KafkaConsumer kafkaConsumer = new KafkaConsumerFactory().createKafkaConsumer(
                 topics,
                 adjustedPhysicalArity,
                 keyDeserialization,
@@ -543,11 +545,11 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
         }
     }
 
-    private class KafkaConsumerFactory implements Serializable {
+    private static class KafkaConsumerFactory implements Serializable {
 
         private static final long serialVersionUID = 1L;
 
-        public FlinkKafkaConsumer<RowData> createKafkaConsumer(
+        public KafkaConsumer createKafkaConsumer(
                 List<String> topics,
                 int adjustedPhysicalArity,
                 DeserializationSchema<RowData> keyDeserialization,
@@ -573,11 +575,14 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
                             metadataConverters,
                             producedTypeInfo,
                             upsertMode,
-                            (Calculate & Serializable)
-                                    (subscriptionState, tp) ->
-                                            subscriptionState.partitionLag(
-                                                    tp, IsolationLevel.READ_UNCOMMITTED));
-
+                            new Calculate() {
+                                @Override
+                                public Long calc(SubscriptionState subscriptionState, TopicPartition tp) {
+                                    return subscriptionState.partitionLag(
+                                            tp, IsolationLevel.READ_UNCOMMITTED);
+                                }
+                            }
+                    );
             if (topics != null) {
                 kafkaConsumer = new KafkaConsumer(topics, kafkaDeserializer, properties);
             } else {

@@ -99,6 +99,13 @@
             <artifactId>avro</artifactId>
             <version>1.8.2</version>
         </dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-json</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
     </dependencies>
 
     <build>

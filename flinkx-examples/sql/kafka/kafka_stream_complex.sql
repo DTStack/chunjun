@@ -1,4 +1,4 @@
--- {"id":100,"name":"lb james阿道夫","money":293.899778,"dateone":"2020-07-30 10:08:22","age":"33","datethree":"2020-07-30 10:08:22.123","datesix":"2020-07-30 10:08:22.123456","datenigth":"2020-07-30 10:08:22.123456789","dtdate":"2020-07-30","dttime":"10:08:22"}
+--complex with flink original kafka-connector
 CREATE TABLE source_ods_fact_user_ippv (
     id INT
     , name STRING
@@ -31,9 +31,7 @@ CREATE TABLE source_ods_fact_user_ippv (
       ,'scan.parallelism' = '1'
       );
 
-
-CREATE TABLE result_total_pvuv_min
-(
+CREATE TABLE source_ods_fact_user_original (
     id INT
     , name STRING
     , money decimal
@@ -45,14 +43,28 @@ CREATE TABLE result_total_pvuv_min
     , dtdate date
     , dttime time
 
+    , `partition` BIGINT METADATA VIRTUAL -- from Kafka connector
+    , `topic` STRING METADATA VIRTUAL -- from Kafka connector
+    , `leader-epoch` int METADATA VIRTUAL -- from Kafka connector
+    , `offset` BIGINT METADATA VIRTUAL  -- from Kafka connector
+    , ts TIMESTAMP(3) METADATA FROM 'timestamp' -- from Kafka connector
+    , `timestamp-type` STRING METADATA VIRTUAL  -- from Kafka connector
+    , partition_id BIGINT METADATA FROM 'partition' VIRTUAL   -- from Kafka connector
+    , WATERMARK FOR datethree AS datethree - INTERVAL '5' SECOND
+) WITH (
+ 'connector' = 'kafka',
+  'topic' = 'user_behavior',
+  'properties.bootstrap.servers' = 'localhost:9092',
+  'properties.group.id' = 'testGroup',
+  'scan.startup.mode' = 'earliest-offset',
+  'format' = 'json'
+      );
 
-    , `partition` BIGINT
-    , `topic` STRING
-    , `leader-epoch` int
-    , `offset` BIGINT
-    , ts TIMESTAMP(3)
-    , `timestamp-type` STRING
-    , partition_id BIGINT
+
+CREATE TABLE result_total_pvuv_min
+(
+    id INT
+    , name STRING
 ) WITH (
       'connector' = 'stream-x'
 
@@ -66,5 +78,10 @@ CREATE TABLE result_total_pvuv_min
 
 
 INSERT INTO result_total_pvuv_min
-SELECT *
-from source_ods_fact_user_ippv;
+SELECT
+a.id,b.name
+from source_ods_fact_user_ippv a
+left join
+source_ods_fact_user_original b
+on a.id = b.id;
+
