@@ -24,7 +24,6 @@ import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.DelegatingConfiguration;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.api.ValidationException;
@@ -39,7 +38,6 @@ import org.apache.flink.table.utils.EncodingUtils;
 import org.apache.flink.util.Preconditions;
 
 import com.dtstack.flinkx.enums.ConnectorLoadMode;
-import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.util.PluginUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -48,7 +46,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -572,14 +569,6 @@ public final class FactoryUtil {
             Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             add.setAccessible(true);
             Object currentClassloader = classLoader;
-
-            // 非local模式下需要使用FlinkUserCodeClassLoader来加载jar
-            if (!(factoryUtilHelpThreadLocal.get().env instanceof MyLocalStreamEnvironment)) {
-                Field field = FlinkUserCodeClassLoaders.SafetyNetWrapperClassLoader.class.getDeclaredField(
-                        "inner");
-                field.setAccessible(true);
-                currentClassloader = field.get(classLoader);
-            }
 
             for (URL jarUrl : jarUrls) {
                 add.invoke(currentClassloader, jarUrl);

@@ -28,6 +28,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.enums.ConnectorLoadMode;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.core.Core;
 
 
 /**
@@ -126,6 +127,8 @@ public class Options {
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
             }
             flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
+
+            flinkConfiguration.set(CoreOptions.CHECK_LEAKED_CLASSLOADER, false);
         }
         return flinkConfiguration;
     }
