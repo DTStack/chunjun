@@ -21,7 +21,7 @@ package com.dtstack.flinkx.carbondata.writer;
 import com.dtstack.flinkx.carbondata.CarbonConfigKeys;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -35,7 +35,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan_zju@163.com
  */
-public class CarbondataWriter extends DataWriter {
+public class CarbondataWriter extends BaseDataWriter {
 
     protected String table;
 
@@ -49,7 +49,7 @@ public class CarbondataWriter extends DataWriter {
 
     protected String mode;
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected String partition;
 
@@ -64,7 +64,7 @@ public class CarbondataWriter extends DataWriter {
         path = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE_PATH);
         column = (List<String>) writerConfig.getParameter().getColumn();
         mode = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_WRITE_MODE);
-        defaultFS = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
+        defaultFs = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
         partition = writerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_PARTITION);
         batchSize = writerConfig.getParameter().getIntVal(CarbonConfigKeys.KEY_BATCH_SIZE, CarbonConfigKeys.DEFAULT_BATCH_SIZE);
     }
@@ -79,7 +79,7 @@ public class CarbondataWriter extends DataWriter {
         builder.setTable(table);
         builder.setPath(path);
         builder.setHadoopConfig(hadoopConfig);
-        builder.setDefaultFS(defaultFS);
+        builder.setDefaultFs(defaultFs);
         builder.setMonitorUrls(monitorUrls);
         builder.setErrors(errors);
         builder.setErrorRatio(errorRatio);
@@ -88,7 +88,7 @@ public class CarbondataWriter extends DataWriter {
         builder.setSrcCols(srcCols);
         builder.setBatchSize(batchSize);
 
-        return createOutput(dataSet, builder.finish(), "carbonwriter");
+        return createOutput(dataSet, builder.finish());
     }
 
 }

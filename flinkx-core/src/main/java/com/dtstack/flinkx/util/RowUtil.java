@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,7 +23,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -37,7 +37,7 @@ public class RowUtil {
 
     public static String rowToJson(Row row, String[] colName) {
         Preconditions.checkNotNull(colName);
-        Map<String,Object> map = new HashMap<>();
+        Map<String,Object> map = new LinkedHashMap<>(colName.length);
 
         for(int i = 0; i < colName.length; ++i) {
             String key = colName[i];

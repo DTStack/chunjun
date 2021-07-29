@@ -23,21 +23,33 @@ import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.kudu.core.KuduUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.ValueUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.types.Row;
-import org.apache.kudu.client.*;
+import org.apache.kudu.ColumnSchema;
+import org.apache.kudu.client.KuduClient;
+import org.apache.kudu.client.KuduException;
+import org.apache.kudu.client.KuduSession;
+import org.apache.kudu.client.KuduTable;
+import org.apache.kudu.client.Operation;
+import org.apache.kudu.client.PartialRow;
+import org.apache.kudu.client.SessionConfiguration;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jiangbo
  * @date 2019/7/31
  */
-public class KuduOutputFormat extends RichOutputFormat {
+public class KuduOutputFormat extends BaseRichOutputFormat {
 
     protected List<MetaColumn> columns;
 
@@ -47,6 +59,8 @@ public class KuduOutputFormat extends RichOutputFormat {
 
     private transient KuduClient client;
 
+    protected Map<String,Object> hadoopConfig;
+
     private transient KuduSession session;
 
     private transient KuduTable kuduTable;
@@ -54,7 +68,7 @@ public class KuduOutputFormat extends RichOutputFormat {
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
         try{
-            client = KuduUtil.getKuduClient(kuduConfig);
+            client = KuduUtil.getKuduClient(kuduConfig, hadoopConfig);
         } catch (Exception e){
             throw new RuntimeException("Get KuduClient error", e);
         }
@@ -93,14 +107,56 @@ public class KuduOutputFormat extends RichOutputFormat {
         }
     }
 
+    /**
+     * kudu内部采用(Long) val方式进行数据转换，这里先进行优雅转换
+     * @param row 传入数据
+     * @throws WriteRecordException 写入异常
+     */
     private void writeData(Row row) throws WriteRecordException {
         int index = 0;
         try {
             Operation operation = getOperation();
+            PartialRow partialRow = operation.getRow();
             for (int i = 0; i < columns.size(); i++) {
                 index = i;
                 MetaColumn column = columns.get(i);
-                operation.getRow().addObject(column.getName(), row.getField(i));
+                int columnIndex = partialRow.getSchema().getColumnIndex(column.getName());
+                ColumnSchema col = partialRow.getSchema().getColumnByIndex(columnIndex);
+                if (col == null) {
+                    throw new IllegalArgumentException("Column name isn't present in the table's schema");
+                }
+                Object val = row.getField(i);
+                if(val==null){
+                    partialRow.setNull(i);
+                }else{
+                    switch (col.getType()) {
+                        case BOOL: partialRow.addBoolean(columnIndex, ValueUtil.getBooleanVal(val)); break;
+                        case INT8: partialRow.addByte(columnIndex, ValueUtil.getByteVal(val)); break;
+                        case INT16: partialRow.addShort(columnIndex, ValueUtil.getShortVal(val)); break;
+                        case INT32: partialRow.addInt(columnIndex, ValueUtil.getIntegerVal(val)); break;
+                        case INT64: partialRow.addLong(columnIndex, ValueUtil.getLongVal(val)); break;
+                        case UNIXTIME_MICROS:
+                            if (val instanceof Timestamp || val instanceof Date) {
+                                partialRow.addTimestamp(columnIndex, ValueUtil.getTimestampVal(val));
+                            } else {
+                                partialRow.addLong(columnIndex, ValueUtil.getLongVal(val));
+                            }
+                            break;
+                        case FLOAT: partialRow.addFloat(columnIndex, ValueUtil.getFloatVal(val)); break;
+                        case DOUBLE: partialRow.addDouble(columnIndex, ValueUtil.getDoubleVal(val)); break;
+                        case STRING: partialRow.addString(columnIndex, ValueUtil.getStringVal(val)); break;
+                        case BINARY:
+                            if (val instanceof byte[]) {
+                                partialRow.addBinary(columnIndex, (byte[]) val);
+                            } else {
+                                partialRow.addBinary(columnIndex, (ByteBuffer) val);
+                            }
+                            break;
+                        case DECIMAL: partialRow.addDecimal(columnIndex, ValueUtil.getBigDecimalVal(val)); break;
+                        default:
+                            throw new IllegalArgumentException("Unsupported column type: " + col.getType());
+                    }
+                }
             }
 
             session.apply(operation);
@@ -143,5 +199,13 @@ public class KuduOutputFormat extends RichOutputFormat {
         if(client != null){
             client.close();
         }
+    }
+
+    public Map<String, Object> getHadoopConfig() {
+        return hadoopConfig;
+    }
+
+    public void setHadoopConfig(Map<String, Object> hadoopConfig) {
+        this.hadoopConfig = hadoopConfig;
     }
 }

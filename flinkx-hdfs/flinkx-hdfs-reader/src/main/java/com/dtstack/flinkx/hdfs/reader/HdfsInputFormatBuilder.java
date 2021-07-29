@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
@@ -30,8 +30,8 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
-    private HdfsInputFormat format;
+public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
+    private BaseHdfsInputFormat format;
 
     public HdfsInputFormatBuilder(String type) {
         switch(type.toUpperCase()) {
@@ -44,12 +44,18 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
             case "PARQUET":
                 format = new HdfsParquetInputFormat();
                 break;
+            default:
+                format = new HdfsTextInputFormat();
         }
         super.format = format;
     }
 
     public void setHadoopConfig(Map<String,Object> hadoopConfig) {
         format.hadoopConfig = hadoopConfig;
+    }
+
+    public void setFilterRegex(String filterRegex){
+        format.filterRegex = filterRegex;
     }
 
     public void setMetaColumn(List<MetaColumn> metaColumn) {
@@ -68,7 +74,7 @@ public class HdfsInputFormatBuilder extends RichInputFormatBuilder {
     }
 
     public void setDefaultFs(String defaultFs) {
-        format.defaultFS = defaultFs;
+        format.defaultFs = defaultFs;
     }
 
     @Override

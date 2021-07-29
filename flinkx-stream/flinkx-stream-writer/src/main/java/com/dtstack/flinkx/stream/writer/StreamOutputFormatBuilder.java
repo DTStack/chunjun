@@ -18,7 +18,10 @@
 
 package com.dtstack.flinkx.stream.writer;
 
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.reader.MetaColumn;
+
+import java.util.List;
 
 /**
  * The builder of StreamOutputFormat
@@ -26,7 +29,7 @@ import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class StreamOutputFormatBuilder extends RichOutputFormatBuilder {
+public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private StreamOutputFormat format;
 
@@ -36,6 +39,14 @@ public class StreamOutputFormatBuilder extends RichOutputFormatBuilder {
 
     public void setPrint(boolean print){
         format.print = print;
+    }
+
+    public void setMetaColumn(List<MetaColumn> metaColumns) {
+        format.metaColumns = metaColumns;
+    }
+
+    public void setWriteDelimiter(String writeDelimiter) {
+        format.writeDelimiter = writeDelimiter;
     }
 
     @Override

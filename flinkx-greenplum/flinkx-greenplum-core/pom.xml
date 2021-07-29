@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>flinkx-greenplum</artifactId>
+        <groupId>com.dtstack.flinkx</groupId>
+        <version>1.6</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>flinkx-greenplum-core</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-postgresql-core</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.pivotal</groupId>
+            <artifactId>greenplum-jdbc</artifactId>
+            <version>5.1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.2</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>HandChina RDC</id>
+            <name>HandChina RDC</name>
+            <url>http://nexus.saas.hand-china.com/content/repositories/rdc/</url>
+        </repository>
+    </repositories>
+
+</project>

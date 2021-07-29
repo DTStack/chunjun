@@ -20,10 +20,14 @@ package com.dtstack.flinkx.carbondata.reader;
 import com.dtstack.flinkx.carbondata.CarbonConfigKeys;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +38,9 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan_zju@163.com
  */
-public class CarbondataReader extends DataReader {
+public class CarbondataReader extends BaseDataReader {
+
+    private static Logger LOG = LoggerFactory.getLogger(CarbondataReader.class);
 
     protected String table;
 
@@ -44,7 +50,7 @@ public class CarbondataReader extends DataReader {
 
     protected Map<String,String> hadoopConfig;
 
-    protected String defaultFS;
+    protected String defaultFs;
 
     protected List<String> columnName;
 
@@ -63,7 +69,7 @@ public class CarbondataReader extends DataReader {
         database = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DATABASE);
         path = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_TABLE_PATH);
         filter = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_FILTER);
-        defaultFS = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
+        defaultFs = readerConfig.getParameter().getStringVal(CarbonConfigKeys.KEY_DEFAULT_FS);
         List columns = readerConfig.getParameter().getColumn();
 
         if (columns != null && columns.size() > 0) {
@@ -77,8 +83,8 @@ public class CarbondataReader extends DataReader {
                     columnValue.add((String) sm.get("value"));
                     columnName.add((String) sm.get("name"));
                 }
-                System.out.println("init column finished");
-            } else if (!columns.get(0).equals("*") || columns.size() != 1) {
+                LOG.info("init column finished");
+            } else if (!ConstantValue.STAR_SYMBOL.equals(columns.get(0)) || columns.size() != 1) {
                 throw new IllegalArgumentException("column argument error");
             }
         } else {
@@ -89,18 +95,21 @@ public class CarbondataReader extends DataReader {
     @Override
     public DataStream<Row> readData() {
         CarbondataInputFormatBuilder builder = new CarbondataInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
         builder.setColumnValues(columnValue);
         builder.setDatabase(database);
         builder.setTable(table);
         builder.setPath(path);
-        builder.setDefaultFS(defaultFS);
+        builder.setDefaultFs(defaultFs);
         builder.setFilter(filter);
         builder.setHadoopConfig(hadoopConfig);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
-        return createInput(builder.finish(), "carbonreader");
+        builder.setLogConfig(logConfig);
+        builder.setTestConfig(testConfig);
+        return createInput(builder.finish());
     }
 
 }

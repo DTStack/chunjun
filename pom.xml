@@ -11,39 +11,133 @@
 
     <modules>
         <module>flinkx-core</module>
+
+        <module>flinkx-launcher</module>
+        <module>flinkx-test</module>
+        <module>flinkx-stream</module>
+
+        <!--******离线******-->
         <module>flinkx-rdb</module>
+        <module>flinkx-mysql</module>
+        <module>flinkx-polardb</module>
+        <module>flinkx-oracle</module>
+        <module>flinkx-sqlserver</module>
+        <module>flinkx-postgresql</module>
+        <module>flinkx-db2</module>
+        <module>flinkx-dm</module>
+        <module>flinkx-gbase</module>
+        <module>flinkx-clickhouse</module>
+        <module>flinkx-saphana</module>
+        <module>flinkx-teradata</module>
+        <module>flinkx-greenplum</module>
+        <module>flinkx-kingbase</module>
+
+        <module>flinkx-hdfs</module>
+        <module>flinkx-hive</module>
         <module>flinkx-es</module>
         <module>flinkx-ftp</module>
         <module>flinkx-odps</module>
-        <module>flinkx-examples</module>
-        <module>flinkx-mysql</module>
         <module>flinkx-hbase</module>
-        <module>flinkx-hdfs</module>
-        <module>flinkx-hive</module>
-        <module>flinkx-oracle</module>
-        <module>flinkx-sqlserver</module>
+        <module>flinkx-phoenix</module>
+        <module>flinkx-carbondata</module>
+        <module>flinkx-kudu</module>
+        <module>flinkx-cassandra</module>
+
         <module>flinkx-redis</module>
         <module>flinkx-mongodb</module>
-        <module>flinkx-postgresql</module>
-        <module>flinkx-launcher</module>
-        <module>flinkx-stream</module>
-        <module>flinkx-carbondata</module>
-        <module>flinkx-db2</module>
-        <module>flinkx-test</module>
-        <module>flinkx-gbase</module>
+
+        <!--******实时******-->
         <module>flinkx-binlog</module>
+        <module>flinkx-pgwal</module>
+        <module>flinkx-kb</module>
         <module>flinkx-kafka09</module>
         <module>flinkx-kafka10</module>
         <module>flinkx-kafka11</module>
-        <module>flinkx-kudu</module>
+        <module>flinkx-kafka</module>
+        <module>flinkx-emqx</module>
+        <module>flinkx-pulsar</module>
+        <module>flinkx-restapi</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <scala.binary.version>2.10</scala.binary.version>
-        <flink.version>1.5.4</flink.version>
+        <flink.version>1.8.3</flink.version>
+        <hadoop.version>2.7.3</hadoop.version>
+        <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
+        <package.name>release_1.8.9</package.name>
     </properties>
+
+    <dependencies>
+        <!--Hadoop-->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-yarn-common</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-yarn-client</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-yarn-api</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>1.8.2</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.0.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -57,8 +151,23 @@
             </plugin>
 
             <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.8</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -77,30 +186,23 @@
                     <destDir>flinkx-java-docs</destDir>
                 </configuration>
             </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
             <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>2.2.6</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>revision</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <dateFormat>yyyy.MM.dd HH:mm:ss</dateFormat>
-                    <verbose>true</verbose>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <gitDescribe>
-                        <always>false</always>
-                        <dirty>-dirty</dirty>
-                        <forceLongFormat>false</forceLongFormat>
-                    </gitDescribe>
-                </configuration>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
             </plugin>
         </plugins>
-
-    </build>
+    </reporting>
 
 </project>

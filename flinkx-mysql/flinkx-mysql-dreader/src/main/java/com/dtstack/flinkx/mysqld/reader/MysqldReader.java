@@ -22,13 +22,17 @@ import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.mysql.MySqlDatabaseMeta;
 import com.dtstack.flinkx.rdb.DataSource;
 import com.dtstack.flinkx.rdb.datareader.DistributedJdbcDataReader;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormat;
+import com.dtstack.flinkx.rdb.inputformat.DistributedJdbcInputFormatBuilder;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
+/**
+ * @author toutian
+ */
 public class MysqldReader extends DistributedJdbcDataReader {
 
     public MysqldReader(DataTransferConfig config, StreamExecutionEnvironment env) {
@@ -37,14 +41,19 @@ public class MysqldReader extends DistributedJdbcDataReader {
     }
 
     @Override
-    protected List<DataSource> buildConnections(){
-        List<DataSource> sourceList = new ArrayList<>(connectionConfigs.size());
+    protected DistributedJdbcInputFormatBuilder getBuilder(){
+        return new DistributedJdbcInputFormatBuilder(new DistributedJdbcInputFormat());
+    }
+
+    @Override
+    protected ArrayList<DataSource> buildConnections(){
+        ArrayList<DataSource> sourceList = new ArrayList<>(connectionConfigs.size());
         for (ReaderConfig.ParameterConfig.ConnectionConfig connectionConfig : connectionConfigs) {
             String curUsername = (connectionConfig.getUsername() == null || connectionConfig.getUsername().length() == 0)
                     ? username : connectionConfig.getUsername();
             String curPassword = (connectionConfig.getPassword() == null || connectionConfig.getPassword().length() == 0)
                     ? password : connectionConfig.getPassword();
-            String curJdbcUrl = DBUtil.formatJdbcUrl(connectionConfig.getJdbcUrl().get(0), Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
+            String curJdbcUrl = DbUtil.formatJdbcUrl(connectionConfig.getJdbcUrl().get(0), Collections.singletonMap("zeroDateTimeBehavior", "convertToNull"));
             for (String table : connectionConfig.getTable()) {
                 DataSource source = new DataSource();
                 source.setTable(table);

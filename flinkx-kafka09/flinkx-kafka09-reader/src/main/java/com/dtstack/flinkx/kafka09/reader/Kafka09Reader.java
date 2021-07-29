@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,48 +19,31 @@ package com.dtstack.flinkx.kafka09.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.reader.DataReader;
-import org.apache.flink.streaming.api.datastream.DataStream;
+import com.dtstack.flinkx.kafkabase.KafkaConfigKeys;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.types.Row;
 
-import java.util.Map;
-
-import static com.dtstack.flinkx.kafka09.KafkaConfigKeys.*;
+import java.nio.charset.StandardCharsets;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/4
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/4
  */
-public class Kafka09Reader extends DataReader {
-
-    private String topic;
-
-    private String codec;
-
+public class Kafka09Reader extends KafkaBaseReader {
     private String encoding;
-
-    private Map<String, String> consumerSettings;
 
     public Kafka09Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        topic = readerConfig.getParameter().getStringVal(KEY_TOPIC);
-        codec = readerConfig.getParameter().getStringVal(KEY_CODEC, "plain");
-        consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
-        encoding = readerConfig.getParameter().getStringVal(KEY_ENCODING, "utf-8");
+        encoding = readerConfig.getParameter().getStringVal(KafkaConfigKeys.KEY_ENCODING, StandardCharsets.UTF_8.name());
     }
 
     @Override
-    public DataStream<Row> readData() {
+    public KafkaBaseInputFormat getFormat(){
         Kafka09InputFormat format = new Kafka09InputFormat();
-        format.setTopic(topic);
-        format.setCodec(codec);
-        format.setConsumerSettings(consumerSettings);
         format.setEncoding(encoding);
-        format.setRestoreConfig(restoreConfig);
-
-        return createInput(format, "kafka09reader");
+        return format;
     }
 }

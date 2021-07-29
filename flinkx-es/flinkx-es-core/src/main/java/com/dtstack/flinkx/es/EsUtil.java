@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,6 +28,10 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Preconditions;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -45,16 +49,16 @@ import java.util.Map;
  */
 public class EsUtil {
 
-    public static RestHighLevelClient getClient(String address,Map<String,Object> config) {
+    public static RestHighLevelClient getClient(String address, String username, String password, Map<String,Object> config) {
         List<HttpHost> httpHostList = new ArrayList<>();
         String[] addr = address.split(",");
         for(String add : addr) {
             String[] pair = add.split(":");
-            TelnetUtil.telnet(pair[0], Integer.valueOf(pair[1]));
-            httpHostList.add(new HttpHost(pair[0], Integer.valueOf(pair[1]), "http"));
+            TelnetUtil.telnet(pair[0], Integer.parseInt(pair[1]));
+            httpHostList.add(new HttpHost(pair[0], Integer.parseInt(pair[1]), "http"));
         }
 
-        RestClientBuilder builder = RestClient.builder(httpHostList.toArray(new HttpHost[httpHostList.size()]));
+        RestClientBuilder builder = RestClient.builder(httpHostList.toArray(new HttpHost[0]));
 
         Integer timeout = MapUtils.getInteger(config, EsConfigKeys.KEY_TIMEOUT);
         if (timeout != null){
@@ -65,9 +69,16 @@ public class EsUtil {
         if (StringUtils.isNotEmpty(pathPrefix)){
             builder.setPathPrefix(pathPrefix);
         }
+        if(StringUtils.isNotBlank(username)){
+            CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+            builder.setHttpClientConfigCallback(httpClientBuilder -> {
+                httpClientBuilder.disableAuthCaching();
+                return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            });
+        }
 
-        RestHighLevelClient client = new RestHighLevelClient(builder);
-        return client;
+        return new RestHighLevelClient(builder);
     }
 
     public static Row jsonMapToRow(Map<String,Object> map, List<String> fields, List<String> types, List<String> values) {
@@ -92,7 +103,7 @@ public class EsUtil {
 
     public static Map<String, Object> rowToJsonMap(Row row, List<String> fields, List<String> types) throws WriteRecordException {
         Preconditions.checkArgument(row.getArity() == fields.size());
-        Map<String,Object> jsonMap = new HashMap<>();
+        Map<String,Object> jsonMap = new HashMap<>((fields.size()<<2)/3);
         int i = 0;
         try {
             for(; i < fields.size(); ++i) {
@@ -102,7 +113,7 @@ public class EsUtil {
                 for(int j = 0; j < parts.length - 1; ++j) {
                     String key = parts[j];
                     if(currMap.get(key) == null) {
-                        currMap.put(key, new HashMap<String,Object>());
+                        currMap.put(key, new HashMap<String,Object>(16));
                     }
                     currMap = (Map<String, Object>) currMap.get(key);
                 }
@@ -130,7 +141,7 @@ public class EsUtil {
             if(current.containsKey(fieldParts[i])) {
                 current = (Map<String, Object>) current.get(fieldParts[i]);
             } else {
-                throw new RuntimeException("can't from key[" + fieldParts[i]);
+                return null;
             }
         }
         return  current.get(fieldParts[i]);

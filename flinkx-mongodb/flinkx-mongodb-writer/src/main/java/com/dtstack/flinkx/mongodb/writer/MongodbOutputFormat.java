@@ -19,14 +19,15 @@
 package com.dtstack.flinkx.mongodb.writer;
 
 import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.mongodb.MongodbClientUtil;
+import com.dtstack.flinkx.mongodb.MongodbConfig;
 import com.dtstack.flinkx.mongodb.MongodbUtil;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.WriteMode;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.apache.commons.lang.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.types.Row;
 import org.bson.Document;
@@ -34,7 +35,6 @@ import org.bson.Document;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * OutputFormat for mongodb writer plugin
@@ -42,29 +42,15 @@ import java.util.Map;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class MongodbOutputFormat extends RichOutputFormat {
-
-    protected String hostPorts;
-
-    protected String username;
-
-    protected String password;
-
-    protected String database;
-
-    protected String collectionName;
+public class MongodbOutputFormat extends BaseRichOutputFormat {
 
     protected List<MetaColumn> columns;
-
-    protected String replaceKey;
-
-    protected String mode;
 
     private transient MongoCollection<Document> collection;
 
     private transient MongoClient client;
 
-    protected Map<String,Object> mongodbConfig;
+    protected MongodbConfig mongodbConfig;
 
     @Override
     public void configure(Configuration parameters) {
@@ -73,9 +59,9 @@ public class MongodbOutputFormat extends RichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        client = MongodbUtil.getMongoClient(mongodbConfig);
-        MongoDatabase db = client.getDatabase(database);
-        collection = db.getCollection(collectionName);
+        client = MongodbClientUtil.getClient(mongodbConfig);
+        MongoDatabase db = client.getDatabase(mongodbConfig.getDatabase());
+        collection = db.getCollection(mongodbConfig.getCollectionName());
     }
 
     @Override
@@ -83,10 +69,11 @@ public class MongodbOutputFormat extends RichOutputFormat {
         try {
             Document doc = MongodbUtil.convertRowToDoc(row,columns);
 
-            if(WriteMode.INSERT.getMode().equals(mode)){
+            if(WriteMode.INSERT.getMode().equals(mongodbConfig.getWriteMode())){
                 collection.insertOne(doc);
-            } else if(WriteMode.REPLACE.getMode().equals(mode) || WriteMode.UPDATE.getMode().equals(mode)){
-                Document filter = new Document(replaceKey,doc.get(replaceKey));
+            } else if(WriteMode.REPLACE.getMode().equals(mongodbConfig.getWriteMode())
+                    || WriteMode.UPDATE.getMode().equals(mongodbConfig.getWriteMode())){
+                Document filter = new Document(mongodbConfig.getReplaceKey(), doc.get(mongodbConfig.getReplaceKey()));
                 collection.findOneAndReplace(filter,doc);
             }
         } catch (Exception e){
@@ -101,17 +88,17 @@ public class MongodbOutputFormat extends RichOutputFormat {
             documents.add(MongodbUtil.convertRowToDoc(row,columns));
         }
 
-        if(WriteMode.INSERT.getMode().equals(mode)){
+        if(WriteMode.INSERT.getMode().equals(mongodbConfig.getWriteMode())){
             collection.insertMany(documents);
-        } else if(WriteMode.UPDATE.getMode().equals(mode)) {
+        } else if(WriteMode.UPDATE.getMode().equals(mongodbConfig.getWriteMode())) {
             throw new RuntimeException("Does not support batch update documents");
-        } else if(WriteMode.REPLACE.getMode().equals(mode)){
+        } else if(WriteMode.REPLACE.getMode().equals(mongodbConfig.getWriteMode())){
             throw new RuntimeException("Does not support batch replace documents");
         }
     }
 
     @Override
     public void closeInternal() throws IOException {
-        MongodbUtil.close(client, null);
+        MongodbClientUtil.close(client, null);
     }
 }

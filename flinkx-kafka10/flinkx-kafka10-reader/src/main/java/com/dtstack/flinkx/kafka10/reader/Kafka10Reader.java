@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,62 +18,27 @@
 package com.dtstack.flinkx.kafka10.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.reader.DataReader;
-import org.apache.flink.streaming.api.datastream.DataStream;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseInputFormat;
+import com.dtstack.flinkx.kafkabase.reader.KafkaBaseReader;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.types.Row;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
-import java.util.Map;
-
-import static com.dtstack.flinkx.kafka10.KafkaConfigKeys.*;
-
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/4
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/4
  */
-public class Kafka10Reader extends DataReader {
-
-
-    private String topic;
-
-    private String groupId;
-
-    private String codec;
-
-    /**
-     * true: allow blank
-     */
-    private boolean blankIgnore;
-
-    private Map<String, String> consumerSettings;
+public class Kafka10Reader extends KafkaBaseReader {
 
     public Kafka10Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
-        ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
-        topic = readerConfig.getParameter().getStringVal(KEY_TOPIC);
-        groupId = readerConfig.getParameter().getStringVal(KEY_GROUPID);
-        codec = readerConfig.getParameter().getStringVal(KEY_CODEC, "plain");
-        blankIgnore = readerConfig.getParameter().getBooleanVal(KEY_BLANK_IGNORE, false);
-        consumerSettings = (Map<String, String>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
-
         if (!consumerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
             throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in consumerSettings");
         }
     }
 
     @Override
-    public DataStream<Row> readData() {
-        Kafka10InputFormat format = new Kafka10InputFormat();
-        format.setTopic(topic);
-        format.setGroupId(groupId);
-        format.setCodec(codec);
-        format.setBlankIgnore(blankIgnore);
-        format.setConsumerSettings(consumerSettings);
-        format.setRestoreConfig(restoreConfig);
-
-        return createInput(format, "kafka10reader");
+    public KafkaBaseInputFormat getFormat(){
+        return new Kafka10InputFormat();
     }
 }

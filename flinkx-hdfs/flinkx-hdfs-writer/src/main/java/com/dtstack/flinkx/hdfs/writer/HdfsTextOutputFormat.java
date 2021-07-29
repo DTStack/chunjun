@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,6 +28,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -35,6 +36,8 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The builder class of HdfsOutputFormat writing text files
@@ -42,7 +45,7 @@ import java.util.Date;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsTextOutputFormat extends HdfsOutputFormat {
+public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
 
     private static final int NEWLINE = 10;
     private transient OutputStream stream;
@@ -106,102 +109,35 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
 
     @Override
     public void writeSingleRecordToFile(Row row) throws WriteRecordException {
-
         if(stream == null){
             nextBlock();
         }
 
-        byte[] bytes = null;
+        StringBuilder sb = new StringBuilder();
         int i = 0;
         try {
-            // convert row to string
             int cnt = fullColumnNames.size();
-            StringBuilder sb = new StringBuilder();
-
             for (; i < cnt; ++i) {
-                if (i != 0) {
-                    sb.append(delimiter);
-                }
-
                 int j = colIndices[i];
                 if(j == -1) {
                     continue;
                 }
 
-                Object column = row.getField(j);
-
-                if(column == null) {
-                    sb.append(HdfsUtil.NULL_VALUE);
-                    continue;
+                if (i != 0) {
+                    sb.append(delimiter);
                 }
 
-                String rowData = column.toString();
-                ColumnType columnType = ColumnType.fromString(columnTypes.get(j));
-
-                if(rowData.length() == 0){
-                    sb.append("");
-                } else {
-                    switch (columnType) {
-                        case TINYINT:
-                            sb.append(Byte.valueOf(rowData));
-                            break;
-                        case SMALLINT:
-                            sb.append(Short.valueOf(rowData));
-                            break;
-                        case INT:
-                            sb.append(Integer.valueOf(rowData));
-                            break;
-                        case BIGINT:
-                            if (column instanceof Timestamp){
-                                column=((Timestamp) column).getTime();
-                                sb.append(column);
-                                break;
-                            }
-
-                            BigInteger data = new BigInteger(rowData);
-                            if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
-                                sb.append(data);
-                            } else {
-                                sb.append(Long.valueOf(rowData));
-                            }
-                            break;
-                        case FLOAT:
-                            sb.append(Float.valueOf(rowData));
-                            break;
-                        case DOUBLE:
-                            sb.append(Double.valueOf(rowData));
-                            break;
-                        case DECIMAL:
-                            sb.append(HiveDecimal.create(new BigDecimal(rowData)));
-                            break;
-                        case STRING:
-                        case VARCHAR:
-                        case CHAR:
-                            if (column instanceof Timestamp){
-                                SimpleDateFormat fm = DateUtil.getDateTimeFormatter();
-                                sb.append(fm.format(column));
-                            }else {
-                                sb.append(rowData);
-                            }
-                            break;
-                        case BOOLEAN:
-                            sb.append(Boolean.valueOf(rowData));
-                            break;
-                        case DATE:
-                            column = DateUtil.columnToDate(column,null);
-                            sb.append(DateUtil.dateToString((Date) column));
-                            break;
-                        case TIMESTAMP:
-                            column = DateUtil.columnToTimestamp(column,null);
-                            sb.append(DateUtil.timestampToString((Date)column));
-                            break;
-                        default:
-                            throw new IllegalArgumentException("Unsupported column type: " + columnType);
-                    }
-                }
+                appendDataToString(sb, row.getField(j), ColumnType.fromString(columnTypes.get(j)));
             }
+        } catch(Exception e) {
+            if(i < row.getArity()) {
+                throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
+            }
+            throw new WriteRecordException(e.getMessage(), e);
+        }
 
-            bytes = sb.toString().getBytes(this.charsetName);
+        try {
+            byte[] bytes = sb.toString().getBytes(this.charsetName);
             this.stream.write(bytes);
             this.stream.write(NEWLINE);
             rowsOfCurrentBlock++;
@@ -213,11 +149,80 @@ public class HdfsTextOutputFormat extends HdfsOutputFormat {
             if(rowsOfCurrentBlock % BUFFER_SIZE == 0) {
                 this.stream.flush();
             }
-        } catch(Exception e) {
-            if(i < row.getArity()) {
-                throw new WriteRecordException(recordConvertDetailErrorMessage(i, row), e, i, row);
+        } catch (IOException e) {
+            throw new WriteRecordException(String.format("数据写入hdfs异常，row:{%s}", row), e);
+        }
+    }
+
+    private void appendDataToString(StringBuilder sb, Object column, ColumnType columnType) {
+        if(column == null) {
+            sb.append(HdfsUtil.NULL_VALUE);
+            return;
+        }
+
+        String rowData = column.toString();
+        if(rowData.length() == 0){
+            sb.append("");
+        } else {
+            switch (columnType) {
+                case TINYINT:
+                    sb.append(Byte.valueOf(rowData));
+                    break;
+                case SMALLINT:
+                    sb.append(Short.valueOf(rowData));
+                    break;
+                case INT:
+                    sb.append(Integer.valueOf(rowData));
+                    break;
+                case BIGINT:
+                    if (column instanceof Timestamp){
+                        column=((Timestamp) column).getTime();
+                        sb.append(column);
+                        break;
+                    }
+
+                    BigInteger data = new BigInteger(rowData);
+                    if (data.compareTo(new BigInteger(String.valueOf(Long.MAX_VALUE))) > 0){
+                        sb.append(data);
+                    } else {
+                        sb.append(Long.valueOf(rowData));
+                    }
+                    break;
+                case FLOAT:
+                    sb.append(Float.valueOf(rowData));
+                    break;
+                case DOUBLE:
+                    sb.append(Double.valueOf(rowData));
+                    break;
+                case DECIMAL:
+                    sb.append(HiveDecimal.create(new BigDecimal(rowData)));
+                    break;
+                case STRING:
+                case VARCHAR:
+                case CHAR:
+                    if (column instanceof Timestamp){
+                        SimpleDateFormat fm = DateUtil.getDateTimeFormatterForMillisencond();
+                        sb.append(fm.format(column));
+                    }else if (column instanceof Map || column instanceof List){
+                        sb.append(gson.toJson(column));
+                    }else {
+                        sb.append(rowData);
+                    }
+                    break;
+                case BOOLEAN:
+                    sb.append(Boolean.valueOf(rowData));
+                    break;
+                case DATE:
+                    column = DateUtil.columnToDate(column,null);
+                    sb.append(DateUtil.dateToString((Date) column));
+                    break;
+                case TIMESTAMP:
+                    column = DateUtil.columnToTimestamp(column,null);
+                    sb.append(DateUtil.timestampToString((Date)column));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported column type: " + columnType);
             }
-            throw new WriteRecordException(e.getMessage(), e);
         }
     }
 

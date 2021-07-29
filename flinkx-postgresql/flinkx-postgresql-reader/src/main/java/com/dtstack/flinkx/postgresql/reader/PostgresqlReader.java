@@ -19,13 +19,14 @@
 package com.dtstack.flinkx.postgresql.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.inputformat.RichInputFormat;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.postgresql.PostgresqlDatabaseMeta;
 import com.dtstack.flinkx.postgresql.PostgresqlTypeConverter;
+import com.dtstack.flinkx.postgresql.format.PostgresqlInputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
 import com.dtstack.flinkx.rdb.datareader.QuerySqlBuilder;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
@@ -42,14 +43,20 @@ public class PostgresqlReader extends JdbcDataReader {
         super(config, env);
         setDatabaseInterface(new PostgresqlDatabaseMeta());
         setTypeConverterInterface(new PostgresqlTypeConverter());
-        dbUrl = DBUtil.formatJdbcUrl(dbUrl, null);
+        dbUrl = DbUtil.formatJdbcUrl(dbUrl, null);
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new PostgresqlInputFormat());
     }
 
     @Override
     public DataStream<Row> readData() {
-        JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(databaseInterface.getDatabaseType().name());
-        builder.setDrivername(databaseInterface.getDriverClass());
-        builder.setDBUrl(dbUrl);
+        JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(new PostgresqlInputFormat());
+        builder.setDataTransferConfig(dataTransferConfig);
+        builder.setDriverName(databaseInterface.getDriverClass());
+        builder.setDbUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
         builder.setBytes(bytes);
@@ -66,11 +73,12 @@ public class PostgresqlReader extends JdbcDataReader {
         builder.setCustomSql(customSql);
         builder.setRestoreConfig(restoreConfig);
         builder.setHadoopConfig(hadoopConfig);
+        builder.setTestConfig(testConfig);
 
         QuerySqlBuilder sqlBuilder = new PostgresqlQuerySqlBuilder(this);
         builder.setQuery(sqlBuilder.buildSql());
 
-        RichInputFormat format =  builder.finish();
+        BaseRichInputFormat format =  builder.finish();
         return createInput(format, (databaseInterface.getDatabaseType() + "reader").toLowerCase());
     }
 }

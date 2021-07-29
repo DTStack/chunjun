@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,37 +18,22 @@
 package com.dtstack.flinkx.kafka10.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.config.WriterConfig;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.kafkabase.writer.HeartBeatController;
+import com.dtstack.flinkx.kafkabase.writer.KafkaBaseWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
-import java.util.Map;
-
-import static com.dtstack.flinkx.kafka10.KafkaConfigKeys.*;
-
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/7/4
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/7/4
  */
-public class Kafka10Writer extends DataWriter {
-
-    private String timezone;
-
-    private String topic;
-
-    private Map<String, String> producerSettings;
+public class Kafka10Writer extends KafkaBaseWriter {
 
     public Kafka10Writer(DataTransferConfig config) {
         super(config);
-        WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
-        timezone = writerConfig.getParameter().getStringVal(KEY_TIMEZONE);
-        topic = writerConfig.getParameter().getStringVal(KEY_TOPIC);
-        producerSettings = (Map<String, String>) writerConfig.getParameter().getVal(KEY_PRODUCER_SETTINGS);
-
         if (!producerSettings.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)){
             throw new IllegalArgumentException(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG + " must set in producerSettings");
         }
@@ -59,9 +44,14 @@ public class Kafka10Writer extends DataWriter {
         Kafka10OutputFormat format = new Kafka10OutputFormat();
         format.setTimezone(timezone);
         format.setTopic(topic);
+        format.setTableFields(tableFields);
         format.setProducerSettings(producerSettings);
         format.setRestoreConfig(restoreConfig);
+        format.setHeartBeatController(new HeartBeatController());
 
-        return createOutput(dataSet, format, "kafka10writer");
+        format.setDirtyPath(dirtyPath);
+        format.setDirtyHadoopConfig(dirtyHadoopConfig);
+        format.setSrcFieldNames(srcCols);
+        return createOutput(dataSet, format);
     }
 }

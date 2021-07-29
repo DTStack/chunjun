@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 
 
 /**
- * A object which provide a method to generate global dictionary from CSV files.
+ * @author demotto
  */
 public class CarbonDictionaryUtil {
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,5 +22,19 @@ package com.dtstack.flinkx.hive;
  * @author toutian
  */
 public enum EStoreType {
-    TEXT, ORC, PARQUET
+
+    /**
+     * 普通文本格式csv
+     */
+    TEXT,
+
+    /**
+     * orc格式
+     */
+    ORC,
+
+    /**
+     * parquet格式
+     */
+    PARQUET
 }

@@ -38,16 +38,6 @@ under the License.
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-hive-core</artifactId>
             <version>1.6</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>httpcore</artifactId>
-                    <groupId>org.apache.httpcomponents</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>httpclient</artifactId>
-                    <groupId>org.apache.httpcomponents</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -63,7 +53,7 @@ under the License.
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -71,10 +61,10 @@ under the License.
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.slf4j:slf4j-api</exclude>
-                                    <!--<exclude>log4j:log4j</exclude>-->
                                     <exclude>ch.qos.logback:*</exclude>
                                     <exclude>com.google.code.gson:*</exclude>
                                     <exclude>com.data-artisans:*</exclude>
@@ -92,6 +82,28 @@ under the License.
                                     </excludes>
                                 </filter>
                             </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                            </relocations>
+
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                    <resource>META-INF/services/java.sql.Driver</resource>
+                                </transformer>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                                    <resource>META-INF/services</resource>
+                                    <file>java.sql.hive2.Driver</file>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>
@@ -116,7 +128,7 @@ under the License.
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/hivewriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/hivewriter/${project.name}-${git.branch}.jar" />
+                                      tofile="${basedir}/../../plugins/hivewriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

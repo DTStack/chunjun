@@ -39,11 +39,10 @@ under the License.
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -51,6 +50,7 @@ under the License.
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <artifactSet>
                                 <excludes>
                                     <exclude>com.data-artisans:*</exclude>
@@ -71,6 +71,16 @@ under the License.
                                     </excludes>
                                 </filter>
                             </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -95,7 +105,7 @@ under the License.
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/ftpreader/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/ftpreader/${project.name}-${git.branch}.jar"/>
+                                      tofile="${basedir}/../../plugins/ftpreader/${project.name}-${package.name}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

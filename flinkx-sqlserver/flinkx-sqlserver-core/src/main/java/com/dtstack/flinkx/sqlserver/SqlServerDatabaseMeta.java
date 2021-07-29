@@ -18,14 +18,17 @@
 
 package com.dtstack.flinkx.sqlserver;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.EDatabaseType;
 import com.dtstack.flinkx.rdb.BaseDatabaseMeta;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -35,6 +38,8 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
+
+    private static final long serialVersionUID = 1L;
 
     @Override
     public EDatabaseType getDatabaseType() {
@@ -47,12 +52,12 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSQLQueryFields(String tableName) {
+    public String getSqlQueryFields(String tableName) {
         return "SELECT TOP 1 * FROM " + tableName;
     }
 
     @Override
-    public String getSQLQueryColumnFields(List<String> column, String table) {
+    public String getSqlQueryColumnFields(List<String> column, String table) {
         return "SELECT TOP 1 " + quoteColumns(column) + " FROM " + quoteTable(table);
     }
 
@@ -64,6 +69,17 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
     @Override
     public String getSplitFilter(String columnName) {
         return String.format("%s %% ${N} = ${M}", getStartQuote() + columnName + getEndQuote());
+    }
+
+
+    @Override
+    public String quoteTable(String table) {
+        List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
+        return strings.stream().map(i -> {
+            StringBuffer stringBuffer = new StringBuffer(64);
+            return stringBuffer.append("\"").append(i).append("\"").toString();
+        }).collect(Collectors.joining(ConstantValue.POINT_SYMBOL));
+
     }
 
     @Override
@@ -91,16 +107,16 @@ public class SqlServerDatabaseMeta extends BaseDatabaseMeta {
 
         List<String> updateColumns = getUpdateColumns(column, updateKey);
         if(CollectionUtils.isEmpty(updateColumns)){
-            return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
+            return "MERGE INTO " + quoteTable(table) + " T1 USING "
                     + "(" + makeValues(column) + ") T2 ON ("
                     + updateKeySql(updateKey) + ") WHEN NOT MATCHED THEN "
                     + "INSERT (" + quoteColumns(column) + ") VALUES ("
                     + quoteColumns(column, "T2") + ");";
         } else {
-            return "set IDENTITY_INSERT " + quoteTable(table) +" ON " + "MERGE INTO " + quoteTable(table) + " T1 USING "
+            return "MERGE INTO " + quoteTable(table) + " T1 USING "
                     + "(" + makeValues(column) + ") T2 ON ("
                     + updateKeySql(updateKey) + ") WHEN MATCHED THEN UPDATE SET "
-                    + getSqlServerUpdateSql(column, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
+                    + getSqlServerUpdateSql(updateColumns, updateKey,"T1", "T2") + " WHEN NOT MATCHED THEN "
                     + "INSERT (" + quoteColumns(column) + ") VALUES ("
                     + quoteColumns(column, "T2") + ");";
         }

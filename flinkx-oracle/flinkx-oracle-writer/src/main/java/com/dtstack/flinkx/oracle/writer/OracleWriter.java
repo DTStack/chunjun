@@ -19,8 +19,12 @@
 package com.dtstack.flinkx.oracle.writer;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.oracle.OracleDatabaseMeta;
+import com.dtstack.flinkx.oracle.format.OracleOutputFormat;
 import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
+import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Oracle writer plugin
@@ -30,9 +34,20 @@ import com.dtstack.flinkx.rdb.datawriter.JdbcDataWriter;
  */
 public class OracleWriter extends JdbcDataWriter {
 
+    protected  String schema;
     public OracleWriter(DataTransferConfig config) {
         super(config);
+        schema = config.getJob().getContent().get(0).getWriter().getParameter().getConnection().get(0).getSchema();
+        if(StringUtils.isNotBlank(schema)){
+            table = schema + ConstantValue.POINT_SYMBOL + table;
+        }
         setDatabaseInterface(new OracleDatabaseMeta());
     }
 
+    @Override
+    protected JdbcOutputFormatBuilder getBuilder() {
+        JdbcOutputFormatBuilder jdbcOutputFormatBuilder = new JdbcOutputFormatBuilder(new OracleOutputFormat());
+        jdbcOutputFormatBuilder.setSchema(schema);
+        return jdbcOutputFormatBuilder;
+    }
 }

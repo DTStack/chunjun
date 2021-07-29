@@ -24,7 +24,7 @@ import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.outputformat.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -32,15 +32,24 @@ import org.apache.flink.types.Row;
 import java.util.List;
 import java.util.Map;
 
-import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.*;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_BATCH_SIZE;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_FULL_COLUMN;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_INSERT_SQL_MODE;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_PASSWORD;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_POST_SQL;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_PRE_SQL;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_UPDATE_KEY;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_USERNAME;
+import static com.dtstack.flinkx.rdb.datawriter.JdbcConfigKeys.KEY_WRITE_MODE;
 
 /**
  * The Writer plugin for any database that can be connected via JDBC.
- *
+ * <p>
  * Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
-public class JdbcDataWriter extends DataWriter {
+public class JdbcDataWriter extends BaseDataWriter {
 
     protected DatabaseInterface databaseInterface;
     protected String dbUrl;
@@ -51,11 +60,13 @@ public class JdbcDataWriter extends DataWriter {
     protected List<String> preSql;
     protected List<String> postSql;
     protected int batchSize;
-    protected Map<String,List<String>> updateKey;
+    protected Map<String, List<String>> updateKey;
     protected List<String> fullColumn;
     protected TypeConverterInterface typeConverter;
 
-    /**just for postgresql,use copy replace insert*/
+    /**
+     * just for postgresql,use copy replace insert
+     */
     protected String insertSqlMode;
 
     private static final int DEFAULT_BATCH_SIZE = 1024;
@@ -93,9 +104,9 @@ public class JdbcDataWriter extends DataWriter {
 
     @Override
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
-        JdbcOutputFormatBuilder builder = new JdbcOutputFormatBuilder(databaseInterface.getDatabaseType().name());
+        JdbcOutputFormatBuilder builder = getBuilder();
         builder.setDriverName(databaseInterface.getDriverClass());
-        builder.setDBUrl(dbUrl);
+        builder.setDbUrl(dbUrl);
         builder.setUsername(username);
         builder.setPassword(password);
         builder.setBatchInterval(batchSize);
@@ -117,7 +128,10 @@ public class JdbcDataWriter extends DataWriter {
         builder.setRestoreConfig(restoreConfig);
         builder.setInsertSqlMode(insertSqlMode);
 
-        String sinkName = (databaseInterface.getDatabaseType() + "writer").toLowerCase();
-        return createOutput(dataSet, builder.finish(), sinkName);
+        return createOutput(dataSet, builder.finish());
+    }
+
+    protected JdbcOutputFormatBuilder getBuilder() {
+        throw new RuntimeException("子类必须覆盖getBuilder方法");
     }
 }

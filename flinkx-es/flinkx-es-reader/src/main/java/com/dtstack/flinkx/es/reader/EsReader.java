@@ -20,13 +20,17 @@ package com.dtstack.flinkx.es.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.es.EsConfigKeys;
 import com.dtstack.flinkx.es.EsUtil;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.google.gson.Gson;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,9 +42,13 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class EsReader extends DataReader {
+public class EsReader extends BaseDataReader {
+
+    private static Logger LOG = LoggerFactory.getLogger(EsReader.class);
 
     private String address;
+    private String username;
+    private String password;
     private String query;
 
     private String[] index;
@@ -56,6 +64,8 @@ public class EsReader extends DataReader {
         super(config, env);
         ReaderConfig readerConfig = config.getJob().getContent().get(0).getReader();
         address = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_ADDRESS);
+        username = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_USERNAME);
+        password = readerConfig.getParameter().getStringVal(EsConfigKeys.KEY_PASSWORD);
         index = EsUtil.getStringArray(readerConfig.getParameter().getVal(EsConfigKeys.KEY_INDEX));
         type = EsUtil.getStringArray(readerConfig.getParameter().getVal(EsConfigKeys.KEY_TYPE));
         batchSize = readerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BATCH_SIZE, 10);
@@ -81,8 +91,9 @@ public class EsReader extends DataReader {
                     columnValue.add((String) sm.get("value"));
                     columnName.add((String) sm.get("name"));
                 }
-                System.out.println("init column finished");
-            } else if (!columns.get(0).equals("*") || columns.size() != 1) {
+
+                LOG.info("init column finished");
+            } else if (!ConstantValue.STAR_SYMBOL.equals(columns.get(0)) || columns.size() != 1) {
                 throw new IllegalArgumentException("column argument error");
             }
         } else{
@@ -93,10 +104,13 @@ public class EsReader extends DataReader {
     @Override
     public DataStream<Row> readData() {
         EsInputFormatBuilder builder = new EsInputFormatBuilder();
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
         builder.setColumnValues(columnValue);
         builder.setAddress(address);
+        builder.setUsername(username);
+        builder.setPassword(password);
         builder.setIndex(index);
         builder.setType(type);
         builder.setBatchSize(batchSize);
@@ -104,8 +118,10 @@ public class EsReader extends DataReader {
         builder.setQuery(query);
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
+        builder.setTestConfig(testConfig);
+        builder.setLogConfig(logConfig);
 
-        return createInput(builder.finish(), "esreader");
+        return createInput(builder.finish());
     }
 
 }

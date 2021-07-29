@@ -22,10 +22,13 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
 import com.dtstack.flinkx.hbase.HbaseConfigConstants;
 import com.dtstack.flinkx.hbase.HbaseConfigKeys;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +39,9 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HbaseReader extends DataReader {
+public class HbaseReader extends BaseDataReader {
+
+    private static Logger LOG = LoggerFactory.getLogger(HbaseReader.class);
 
     protected List<String> columnName;
     protected List<String> columnType;
@@ -49,7 +54,6 @@ public class HbaseReader extends DataReader {
     protected boolean isBinaryRowkey;
     protected String tableName;
     protected int scanCacheSize;
-    protected int scanBatchSize;
 
     public HbaseReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -66,7 +70,6 @@ public class HbaseReader extends DataReader {
 
         encoding = readerConfig.getParameter().getStringVal(HbaseConfigKeys.KEY_ENCODING);
         scanCacheSize = readerConfig.getParameter().getIntVal(HbaseConfigKeys.KEY_SCAN_CACHE_SIZE, HbaseConfigConstants.DEFAULT_SCAN_CACHE_SIZE);
-        scanBatchSize = readerConfig.getParameter().getIntVal(HbaseConfigKeys.KEY_SCAN_BATCH_SIZE, HbaseConfigConstants.DEFAULT_SCAN_BATCH_SIZE);
 
         List columns = readerConfig.getParameter().getColumn();
         if(columns != null && columns.size() > 0) {
@@ -81,7 +84,8 @@ public class HbaseReader extends DataReader {
                 columnValue.add((String) sm.get("value"));
                 columnFormat.add((String) sm.get("format"));
             }
-            System.out.println("init column finished");
+
+            LOG.info("init column finished");
         } else{
             throw new IllegalArgumentException("column argument error");
         }
@@ -90,7 +94,7 @@ public class HbaseReader extends DataReader {
     @Override
     public DataStream<Row> readData() {
         HbaseInputFormatBuilder builder = new HbaseInputFormatBuilder();
-
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setColumnFormats(columnFormat);
         builder.setColumnNames(columnName);
         builder.setColumnTypes(columnType);
@@ -104,10 +108,11 @@ public class HbaseReader extends DataReader {
         builder.setBytes(bytes);
         builder.setMonitorUrls(monitorUrls);
         builder.setScanCacheSize(scanCacheSize);
-        builder.setScanBatchSize(scanBatchSize);
         builder.setMonitorUrls(monitorUrls);
+        builder.setTestConfig(testConfig);
+        builder.setLogConfig(logConfig);
 
-        return createInput(builder.finish(), "hbasereader");
+        return createInput(builder.finish());
     }
 
 }

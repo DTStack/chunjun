@@ -24,9 +24,7 @@ import com.dtstack.flinkx.util.SysUtil;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,15 +41,23 @@ public class PluginUtil {
 
     private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.";
 
-    public static Set<URL> getJarFileDirPath(String pluginName, String pluginRoot){
+    public static Set<URL> getJarFileDirPath(String pluginName, String pluginRoot, String remotePluginPath) {
         Set<URL> urlList = new HashSet<>();
 
         File commonDir = new File(pluginRoot + File.separator + COMMON_DIR + File.separator);
         File pluginDir = new File(pluginRoot + File.separator + pluginName);
+        File remoteDir = null;
+
+        if (remotePluginPath != null) {
+            remoteDir = new File(remotePluginPath + File.separator + pluginName);
+        }
 
         try {
             urlList.addAll(SysUtil.findJarsInDir(commonDir));
             urlList.addAll(SysUtil.findJarsInDir(pluginDir));
+            if(remoteDir!=null){
+                urlList.addAll(SysUtil.findJarsInDir(remoteDir));
+            }
 
             return urlList;
         } catch (MalformedURLException e) {

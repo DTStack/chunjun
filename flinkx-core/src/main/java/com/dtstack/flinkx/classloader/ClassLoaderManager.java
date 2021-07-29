@@ -18,19 +18,26 @@
 
 package com.dtstack.flinkx.classloader;
 
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/10/14
+ * @company: www.dtstack.com
+ * @author: toutian
+ * @create: 2019/10/14
  */
 public class ClassLoaderManager {
 
@@ -43,18 +50,18 @@ public class ClassLoaderManager {
         return ClassLoaderSupplierCallBack.callbackAndReset(supplier, classLoader);
     }
 
-    private static ClassLoader retrieveClassLoad(List<URL> jarUrls) {
+    private static URLClassLoader retrieveClassLoad(List<URL> jarUrls) {
         jarUrls.sort(Comparator.comparing(URL::toString));
         String jarUrlkey = StringUtils.join(jarUrls, "_");
         return pluginClassLoader.computeIfAbsent(jarUrlkey, k -> {
             try {
-                URL[] urls = jarUrls.toArray(new URL[jarUrls.size()]);
+                URL[] urls = jarUrls.toArray(new URL[0]);
                 ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
                 URLClassLoader classLoader = new URLClassLoader(urls, parentClassLoader);
                 LOG.info("jarUrl:{} create ClassLoad successful...", jarUrlkey);
                 return classLoader;
             } catch (Throwable e) {
-                LOG.error("retrieve ClassLoad happens error:{}", e);
+                LOG.error("retrieve ClassLoad happens error:{}", ExceptionUtil.getErrorMessage(e));
                 throw new RuntimeException("retrieve ClassLoad happens error");
             }
         });

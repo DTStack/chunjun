@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,6 +19,7 @@
 
 package com.dtstack.flinkx.ftp;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -30,70 +31,89 @@ import java.util.List;
  * @author huyifan.zju@163.com
  */
 public interface IFtpHandler {
+
     /**
+     * 登录服务器
      *
-     * @Title: LoginFtpServer
-     * @Description: 与ftp服务器建立连接
-     * @param @param host
-     * @param @param username
-     * @param @param password
-     * @param @param port
-     * @param @param timeout
-     * @param @param connectMode
-     * @return void
-     * @throws
+     * @param ftpConfig 连接配置
      */
-    void loginFtpServer(String host, String username, String password, int port, int timeout,String connectMode) ;
+    void loginFtpServer(FtpConfig ftpConfig) ;
+
     /**
-     *
-     * @Title: LogoutFtpServer
-     * @Description: 断开与ftp服务器的连接
-     * @param
-     * @return void
-     * @throws
+     * 登出服务器
+     * @throws IOException logout error
      */
-    void logoutFtpServer();
+    void logoutFtpServer() throws IOException;
+
     /**
+     * 判断给定的目录是否存在
      *
-     * @Title: isDirExist
-     * @Description: 判断指定路径是否是目录
-     * @param @param directoryPath
-     * @param @return
-     * @return boolean
-     * @throws
+     * @param directoryPath 要检查的路径
+     * @return true:存在，false:不存在
      */
     boolean isDirExist(String directoryPath);
+
     /**
+     * 检查给定的文件是否存在
      *
-     * @Title: isFileExist
-     * @Description: 判断指定路径是否是文件
-     * @param @param filePath
-     * @param @return
-     * @return boolean
-     * @throws
+     * @param filePath 要检查的文件路径
+     * @return true:存在,false:不存在
      */
     boolean isFileExist(String filePath);
 
     /**
+     * 获取文件输入流
      *
-     * @Title: getInputStream
-     * @Description: 获取指定路径的输入流
-     * @param @param filePath
-     * @param @return
-     * @return InputStream
-     * @throws
+     * @param filePath 文件路径
+     * @return 数据流
      */
     InputStream getInputStream(String filePath);
 
+    /**
+     * 列出指定路径下的目录
+     *
+     * @param path 路径
+     * @return 目录列表
+     */
     List<String> listDirs(String path);
 
+    /**
+     * 列出路径下的文件
+     *
+     * @param path 路径
+     * @return 文件列表
+     */
     List<String> getFiles(String path);
 
+    /**
+     * 递归创建目录
+     *
+     * @param directoryPath 要创建的目录
+     */
     void mkDirRecursive(String directoryPath);
 
+    /**
+     * 获取输出数据流
+     *
+     * @param filePath 文件路径
+     * @return 数据流
+     */
     OutputStream getOutputStream(String filePath);
 
+    /**
+     * 删除目录下的文件
+     *
+     * @param dir 指定的目录
+     * @param exclude 要排除的文件
+     */
     void deleteAllFilesInDir(String dir, List<String> exclude);
 
+    /**
+     * 重命名路径
+     *
+     * @param oldPath 原来的路径名称
+     * @param newPath 新的路径名称
+     * @throws Exception 可能会出现文件不存在，连接异常等
+     */
     void rename(String oldPath, String newPath) throws Exception;
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,15 +28,9 @@ public class HbaseConfigConstants {
 
     public static final int DEFAULT_SCAN_CACHE_SIZE = 256;
 
-    public static final int DEFAULT_SCAN_BATCH_SIZE = 100;
-
     public static final int MAX_SCAN_CACHE_SIZE = 1000;
 
     public static final int MIN_SCAN_CACHE_SIZE = 1;
-
-    public static final int MAX_SCAN_BATCH_SIZE = 100;
-
-    public static final int MIN_SCAN_BATCH_SIZE = 1;
 
     public static final String DEFAULT_ENCODING = "UTF-8";
 
@@ -44,7 +38,7 @@ public class HbaseConfigConstants {
 
     public static final String DEFAULT_NULL_MODE = "skip";
 
-    public static final long DEFAULT_WRITE_BUFFER_SIZE = 8 * 1024 * 1024;
+    public static final long DEFAULT_WRITE_BUFFER_SIZE = 8 * 1024 * 1024L;
 
     public static final boolean DEFAULT_WAL_FLAG = false;
 

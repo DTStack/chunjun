@@ -19,9 +19,9 @@
 package com.dtstack.flinkx.hbase.writer;
 
 import com.dtstack.flinkx.hbase.HbaseConfigConstants;
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.hadoop.shaded.com.google.common.base.Preconditions;
+import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +31,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
+public class HbaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private HbaseOutputFormat format;
 
@@ -110,5 +110,7 @@ public class HbaseOutputFormatBuilder extends RichOutputFormatBuilder {
         if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
             throw new UnsupportedOperationException("This plugin not support restore from failed state");
         }
+
+        notSupportBatchWrite("HbaseWriter");
     }
 }

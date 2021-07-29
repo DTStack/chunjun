@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -33,10 +33,10 @@ public class ClassUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClassUtil.class);
 
-    public final static String lock_str = "jdbc_lock_str";
+    public final static Object LOCK_STR = new Object();
 
     public static void forName(String clazz, ClassLoader classLoader)  {
-        synchronized (lock_str){
+        synchronized (LOCK_STR){
             try {
                 Class.forName(clazz, true, classLoader);
                 DriverManager.setLoginTimeout(10);

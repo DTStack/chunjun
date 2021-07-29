@@ -20,21 +20,25 @@ package com.dtstack.flinkx.odps.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.ReaderConfig;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.MetaColumn;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.types.Row;
+
 import java.util.List;
 import java.util.Map;
-import static com.dtstack.flinkx.odps.OdpsConfigKeys.*;
+
+import static com.dtstack.flinkx.odps.OdpsConfigKeys.KEY_ODPS_CONFIG;
+import static com.dtstack.flinkx.odps.OdpsConfigKeys.KEY_PARTITION;
+import static com.dtstack.flinkx.odps.OdpsConfigKeys.KEY_TABLE;
 
 /**
  * The reader plugin of Odps
  * @author huyifan.zju@163.com
  * @date 2018-1-17
  */
-public class OdpsReader extends DataReader {
+public class OdpsReader extends BaseDataReader {
     private Map<String,String> odpsConfig;
     private List<MetaColumn> metaColumns;
 
@@ -55,14 +59,16 @@ public class OdpsReader extends DataReader {
     @Override
     public DataStream<Row> readData() {
         OdpsInputFormatBuilder builder = new OdpsInputFormatBuilder();
-
+        builder.setDataTransferConfig(dataTransferConfig);
         builder.setMetaColumn(metaColumns);
         builder.setOdpsConfig(odpsConfig);
         builder.setTableName(tableName);
         builder.setPartition(partition);
         builder.setMonitorUrls(monitorUrls);
         builder.setBytes(bytes);
+        builder.setTestConfig(testConfig);
+        builder.setLogConfig(logConfig);
 
-        return createInput(builder.finish(), "odpsreader");
+        return createInput(builder.finish());
     }
 }

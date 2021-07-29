@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,23 +28,26 @@ import com.dtstack.flinkx.enums.ClusterMode;
  */
 public class Options {
 
-      @OptionRequired(description = "Running mode")
-      private String mode = ClusterMode.local.name();
+    @OptionRequired(description = "Running mode")
+    private String mode = ClusterMode.local.name();
 
-      @OptionRequired(required = true,description = "Job config")
-      private String job;
+    @OptionRequired(required = true, description = "Job config")
+    private String job;
 
-      @OptionRequired(description = "Monitor Addresses")
-      private String monitor;
+    @OptionRequired(description = "Monitor Addresses")
+    private String monitor;
 
-      @OptionRequired(description = "Job unique id")
-      private String jobid = "Flink Job";
+    @OptionRequired(description = "Job unique id")
+    private String jobid = "Flink Job";
 
     @OptionRequired(description = "Flink configuration directory")
     private String flinkconf;
 
-    @OptionRequired(required = true,description = "env properties")
+    @OptionRequired(required = true, description = "env properties")
     private String pluginRoot;
+
+    @OptionRequired(description = "Sync remote plugin root path")
+    private String remotePluginPath;
 
     @OptionRequired(description = "Yarn and Hadoop configuration directory")
     private String yarnconf;
@@ -64,11 +67,34 @@ public class Options {
     @OptionRequired(description = "env properties")
     private String confProp = "{}";
 
-    /**
-     * savepoint
-     */
+    @OptionRequired(description = "json modify")
+    private String p = "";
+
     @OptionRequired(description = "savepoint path")
     private String s;
+
+    @OptionRequired(description = "plugin load mode, by classpath or shipfile")
+    private String pluginLoadMode = "shipfile";
+
+    @OptionRequired(description = "applicationId on yarn cluster")
+    private String appId;
+
+    public String getAppId() {
+        return appId;
+    }
+
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+
+    @OptionRequired(description = "kerberos krb5conf")
+    private String krb5conf ;
+
+    @OptionRequired(description = "kerberos keytabPath")
+    private String keytab ;
+
+    @OptionRequired(description = "kerberos principal")
+    private String principal ;
 
     public String getS() {
         return s;
@@ -142,6 +168,14 @@ public class Options {
         this.pluginRoot = pluginRoot;
     }
 
+    public String getRemotePluginPath() {
+        return remotePluginPath;
+    }
+
+    public void setRemotePluginPath(String remotePluginPath) {
+        this.remotePluginPath = remotePluginPath;
+    }
+
     public String getYarnconf() {
         return yarnconf;
     }
@@ -172,5 +206,71 @@ public class Options {
 
     public void setFlinkLibJar(String flinkLibJar) {
         this.flinkLibJar = flinkLibJar;
+    }
+
+    public String getPluginLoadMode() {
+        return pluginLoadMode;
+    }
+
+    public void setPluginLoadMode(String pluginLoadMode) {
+        this.pluginLoadMode = pluginLoadMode;
+    }
+
+    public String getP() {
+        return p;
+    }
+
+    public void setP(String p) {
+        this.p = p;
+    }
+
+    public String getKrb5conf() {
+        return krb5conf;
+    }
+
+    public void setKrb5conf(String krb5conf) {
+        this.krb5conf = krb5conf;
+    }
+
+    public String getKeytab() {
+        return keytab;
+    }
+
+    public void setKeytab(String keytab) {
+        this.keytab = keytab;
+    }
+
+    public String getPrincipal() {
+        return principal;
+    }
+
+    public void setPrincipal(String principal) {
+        this.principal = principal;
+    }
+
+    @Override
+    public String toString() {
+        return "Options{" +
+                "mode='" + mode + '\'' +
+                ", job='" + job + '\'' +
+                ", monitor='" + monitor + '\'' +
+                ", jobid='" + jobid + '\'' +
+                ", flinkconf='" + flinkconf + '\'' +
+                ", pluginRoot='" + pluginRoot + '\'' +
+                ", yarnconf='" + yarnconf + '\'' +
+                ", parallelism='" + parallelism + '\'' +
+                ", priority='" + priority + '\'' +
+                ", queue='" + queue + '\'' +
+                ", flinkLibJar='" + flinkLibJar + '\'' +
+                ", confProp='" + confProp + '\'' +
+                ", s='" + s + '\'' +
+                ", pluginLoadMode='" + pluginLoadMode + '\'' +
+                ", krb5conf='" + krb5conf + '\'' +
+                ", keytab='" + keytab + '\'' +
+                ", principal='" + principal + '\'' +
+                ", p='" + p + '\'' +
+                ", pluginLoadMode='" + pluginLoadMode + '\'' +
+                ", appId='" + appId + '\'' +
+                '}';
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,15 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.flinkx.launcher;
 
 import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.enums.ClusterMode;
-import com.dtstack.flinkx.launcher.perJob.PerJobSubmitter;
+import com.dtstack.flinkx.launcher.perjob.PerJobSubmitter;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
+import com.dtstack.flinkx.util.JsonModifyUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.client.program.ClusterClient;
@@ -31,7 +31,6 @@ import org.apache.flink.client.program.PackagedProgram;
 import org.apache.flink.client.program.PackagedProgramUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
-import org.apache.flink.core.fs.Path;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.util.Preconditions;
@@ -42,7 +41,9 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -52,6 +53,12 @@ import java.util.List;
  * @author huyifan.zju@163.com
  */
 public class Launcher {
+
+    public static final String KEY_FLINKX_HOME = "FLINKX_HOME";
+    public static final String KEY_FLINK_HOME = "FLINK_HOME";
+    public static final String KEY_HADOOP_HOME = "HADOOP_HOME";
+
+    public static final String PLUGINS_DIR_NAME = "plugins";
 
     public static final String CORE_JAR_NAME_PREFIX = "flinkx";
 
@@ -85,10 +92,29 @@ public class Launcher {
     public static void main(String[] args) throws Exception {
         OptionParser optionParser = new OptionParser(args);
         Options launcherOptions = optionParser.getOptions();
+        findDefaultConfigDir(launcherOptions);
+
         String mode = launcherOptions.getMode();
         List<String> argList = optionParser.getProgramExeArgList();
+
+        // 将argList转化为HashMap，方便通过参数名称来获取参数值
+        HashMap<String, String> temp = new HashMap<>(16);
+        for (int i = 0; i < argList.size(); i += 2) {
+            temp.put(argList.get(i), argList.get(i + 1));
+        }
+        // 对json中的值进行修改
+        HashMap<String, String> parameter = JsonModifyUtil.CommandTransform(temp.get("-p"));
+        temp.put("-job", JsonModifyUtil.JsonValueReplace(temp.get("-job"), parameter));
+
+        // 清空list，填充修改后的参数值
+        argList.clear();
+        for (int i = 0; i < temp.size(); i++) {
+            argList.add(temp.keySet().toArray()[i].toString());
+            argList.add(temp.values().toArray()[i].toString());
+        }
+
         if(mode.equals(ClusterMode.local.name())) {
-            String[] localArgs = argList.toArray(new String[argList.size()]);
+            String[] localArgs = argList.toArray(new String[0]);
             com.dtstack.flinkx.Main.main(localArgs);
         } else {
             String pluginRoot = launcherOptions.getPluginRoot();
@@ -96,7 +122,7 @@ public class Launcher {
             String coreJarName = getCoreJarFileName(pluginRoot);
             File jarFile = new File(pluginRoot + File.separator + coreJarName);
             List<URL> urlList = analyzeUserClasspath(content, pluginRoot);
-            if(mode.equals(ClusterMode.yarn.name())){
+            if(!ClusterMode.yarnPer.name().equals(mode)){
                 ClusterClient clusterClient = ClusterClientFactory.createClusterClient(launcherOptions);
                 String monitor = clusterClient.getWebInterfaceURL();
                 argList.add("-monitor");
@@ -111,7 +137,7 @@ public class Launcher {
 
                 clusterClient.run(program, Integer.parseInt(launcherOptions.getParallelism()));
                 clusterClient.shutdown();
-            }else if(mode.equals(ClusterMode.yarnPer.name())){
+            }else{
                 String confProp = launcherOptions.getConfProp();
                 if (StringUtils.isBlank(confProp)){
                     throw new IllegalArgumentException("per-job mode must have confProp!");
@@ -134,22 +160,81 @@ public class Launcher {
                 String flinkConfDir = launcherOptions.getFlinkconf();
                 Configuration conf = GlobalConfiguration.loadConfiguration(flinkConfDir);
                 JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, conf, Integer.parseInt(launcherOptions.getParallelism()));
-
-                File[] jars = new File(launcherOptions.getFlinkLibJar()).listFiles();
-                if(jars != null){
-                    for (File jar : jars) {
-                        URL url = jar.toURI().toURL();
-                        if(!url.toString().contains("flink-dist")){
-                            jobGraph.addJar(new Path(url.toString()));
-                        }
-                    }
-                }
-
                 PerJobSubmitter.submit(launcherOptions, jobGraph);
             }
         }
     }
+    private static void findDefaultConfigDir(Options launcherOptions) {
+        findDefaultPluginRoot(launcherOptions);
 
+        if (ClusterMode.local.name().equalsIgnoreCase(launcherOptions.getMode())) {
+            return;
+        }
+
+        findDefaultFlinkConf(launcherOptions);
+        findDefaultHadoopConf(launcherOptions);
+    }
+
+    private static void findDefaultHadoopConf(Options launcherOptions) {
+        if (StringUtils.isNotEmpty(launcherOptions.getYarnconf())) {
+            return;
+        }
+
+        String hadoopHome = getSystemProperty(KEY_HADOOP_HOME);
+        if (StringUtils.isNotEmpty(hadoopHome)) {
+            hadoopHome = hadoopHome.trim();
+            if (hadoopHome.endsWith(File.separator)) {
+                hadoopHome = hadoopHome.substring(0, hadoopHome.lastIndexOf(File.separator));
+            }
+
+            launcherOptions.setYarnconf(hadoopHome + "/etc/hadoop");
+        }
+    }
+
+    private static void findDefaultFlinkConf(Options launcherOptions) {
+        if (StringUtils.isNotEmpty(launcherOptions.getFlinkconf()) && StringUtils.isNotEmpty(launcherOptions.getFlinkLibJar())) {
+            return;
+        }
+
+        String flinkHome = getSystemProperty(KEY_FLINK_HOME);
+        if (StringUtils.isNotEmpty(flinkHome)) {
+            flinkHome = flinkHome.trim();
+            if (flinkHome.endsWith(File.separator)){
+                flinkHome = flinkHome.substring(0, flinkHome.lastIndexOf(File.separator));
+            }
+
+            launcherOptions.setFlinkconf(flinkHome + "/conf");
+            launcherOptions.setFlinkLibJar(flinkHome + "/lib");
+        }
+    }
+
+    private static void findDefaultPluginRoot(Options launcherOptions) {
+        String pluginRoot = launcherOptions.getPluginRoot();
+        if (StringUtils.isNotEmpty(pluginRoot)) {
+            return;
+        }
+
+        String flinkxHome = getSystemProperty(KEY_FLINKX_HOME);
+        if (StringUtils.isNotEmpty(flinkxHome)) {
+            flinkxHome = flinkxHome.trim();
+            if (flinkxHome.endsWith(File.separator)) {
+                pluginRoot = flinkxHome + PLUGINS_DIR_NAME;
+            } else {
+                pluginRoot = flinkxHome + File.separator + PLUGINS_DIR_NAME;
+            }
+
+            launcherOptions.setPluginRoot(pluginRoot);
+        }
+    }
+
+    private static String getSystemProperty(String name) {
+        String property = System.getenv(name);
+        if (StringUtils.isEmpty(property)) {
+            property = System.getProperty(name);
+        }
+
+        return property;
+    }
     private static String getCoreJarFileName (String pluginRoot) throws FileNotFoundException{
         String coreJarFileName = null;
         File pluginDir = new File(pluginRoot);
@@ -174,15 +259,15 @@ public class Launcher {
     }
 
     private static String readJob(String job) {
-        try {
-            File file = new File(job);
-            FileInputStream in = new FileInputStream(file);
+        File file = new File(job);
+        try (FileInputStream in = new FileInputStream(file)) {
             byte[] fileContent = new byte[(int) file.length()];
             in.read(fileContent);
             in.close();
-            return new String(fileContent, "UTF-8");
+            return new String(fileContent, StandardCharsets.UTF_8);
         } catch (Exception e){
             throw new RuntimeException(e);
         }
     }
+
 }

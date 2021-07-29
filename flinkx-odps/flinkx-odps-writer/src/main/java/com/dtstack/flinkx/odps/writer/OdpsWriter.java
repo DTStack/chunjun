@@ -21,7 +21,8 @@ import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.odps.OdpsConfigKeys;
 import com.dtstack.flinkx.odps.OdpsUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -34,7 +35,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class OdpsWriter extends DataWriter {
+public class OdpsWriter extends BaseDataWriter {
 
     private Map<String,String> odpsConfig;
 
@@ -67,7 +68,7 @@ public class OdpsWriter extends DataWriter {
         }
 
         List columns = (List) writerConfig.getParameter().getVal(OdpsConfigKeys.KEY_COLUMN_LIST);
-        if(columns != null || columns.size() != 0) {
+        if(CollectionUtils.isNotEmpty(columns)) {
             columnName = new String[columns.size()];
             columnType = new String[columns.size()];
             for(int i = 0; i < columns.size(); ++i) {
@@ -96,6 +97,6 @@ public class OdpsWriter extends DataWriter {
         builder.setBufferSize(bufferSize);
         builder.setRestoreConfig(restoreConfig);
 
-        return createOutput(dataSet, builder.finish(), "odpswriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

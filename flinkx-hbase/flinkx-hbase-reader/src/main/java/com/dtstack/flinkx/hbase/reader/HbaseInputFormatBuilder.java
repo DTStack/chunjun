@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.hbase.reader;
 
 import com.dtstack.flinkx.hbase.HbaseConfigConstants;
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.util.Preconditions;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HbaseInputFormatBuilder extends RichInputFormatBuilder {
+public class HbaseInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private HbaseInputFormat format;
 
@@ -82,10 +82,6 @@ public class HbaseInputFormatBuilder extends RichInputFormatBuilder {
         format.scanCacheSize = scanCacheSize;
     }
 
-    public void setScanBatchSize(int scanBatchSize) {
-        format.scanBatchSize = scanBatchSize;
-    }
-
     @Override
     protected void checkFormat() {
         Preconditions.checkNotNull(format.columnTypes);
@@ -95,9 +91,6 @@ public class HbaseInputFormatBuilder extends RichInputFormatBuilder {
 
         Preconditions.checkArgument(format.scanCacheSize <= HbaseConfigConstants.MAX_SCAN_CACHE_SIZE && format.scanCacheSize >= HbaseConfigConstants.MIN_SCAN_CACHE_SIZE,
                 "scanCacheSize should be between " + HbaseConfigConstants.MIN_SCAN_CACHE_SIZE +  " and " + HbaseConfigConstants.MAX_SCAN_CACHE_SIZE);
-
-        Preconditions.checkArgument(format.scanBatchSize <= HbaseConfigConstants.MAX_SCAN_BATCH_SIZE && format.scanBatchSize >= HbaseConfigConstants.MIN_SCAN_BATCH_SIZE,
-                "scanBatchSize should be between " + HbaseConfigConstants.MIN_SCAN_BATCH_SIZE + " and " + HbaseConfigConstants.MAX_SCAN_BATCH_SIZE);
 
         for(int i = 0; i < format.columnTypes.size(); ++i) {
             Preconditions.checkArgument(StringUtils.isNotEmpty(format.columnTypes.get(i)));

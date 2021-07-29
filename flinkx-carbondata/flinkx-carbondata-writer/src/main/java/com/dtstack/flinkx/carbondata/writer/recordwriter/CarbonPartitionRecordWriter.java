@@ -21,10 +21,7 @@ package com.dtstack.flinkx.carbondata.writer.recordwriter;
 
 
 import com.dtstack.flinkx.carbondata.writer.dict.CarbonTypeConverter;
-import com.dtstack.flinkx.util.DateUtil;
-import com.dtstack.flinkx.util.StringUtil;
 import org.apache.carbondata.core.metadata.datatype.DataType;
-import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.schema.PartitionInfo;
 import org.apache.carbondata.core.metadata.schema.partition.PartitionType;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
@@ -37,6 +34,7 @@ import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -139,7 +137,7 @@ public class CarbonPartitionRecordWriter extends AbstractRecordWriter {
                 v = date.getTime();
             } else if(v instanceof String && partitioner instanceof RangePartitioner) {
                 String s = (String) v;
-                v = s.getBytes();
+                v = s.getBytes(StandardCharsets.UTF_8);
             }
         } else {
             v = null;

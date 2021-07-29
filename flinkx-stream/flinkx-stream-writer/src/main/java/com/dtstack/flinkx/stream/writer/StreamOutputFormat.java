@@ -18,49 +18,73 @@
 
 package com.dtstack.flinkx.stream.writer;
 
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.reader.MetaColumn;
+import com.dtstack.flinkx.restore.FormatState;
 import org.apache.flink.types.Row;
+import org.apache.flink.util.StringUtils;
 
-import java.io.IOException;
+import java.util.List;
 
 /**
  * OutputFormat for stream writer
  *
- * @Company: www.dtstack.com
  * @author jiangbo
+ * @Company: www.dtstack.com
  */
-public class StreamOutputFormat extends RichOutputFormat {
+public class StreamOutputFormat extends BaseRichOutputFormat {
 
     protected boolean print;
+    protected String writeDelimiter;
+
+    protected List<MetaColumn> metaColumns;
+
+    protected Row lastRow;
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) throws IOException {
+    protected void openInternal(int taskNumber, int numTasks) {
         // do nothing
     }
 
     @Override
-    protected void writeSingleRecordInternal(Row row) throws WriteRecordException {
+    protected void writeSingleRecordInternal(Row row) {
         if (print) {
-            System.out.println(String.format("subTaskIndex[%s]:%s", taskNumber, row));
+            LOG.info("subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(row, writeDelimiter));
         }
-
-        if (restoreConfig.isRestore()) {
-            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
-        }
+        lastRow = row;
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
+    protected void writeMultipleRecordsInternal() {
         if (print) {
             for (Row row : rows) {
-                System.out.println(row);
+                LOG.info(rowToStringWithDelimiter(row, writeDelimiter));
             }
         }
+        if(rows.size() > 1){
+            lastRow = rows.get(rows.size() - 1);
+        }
+    }
 
-        if (restoreConfig.isRestore()) {
-            Row row = rows.get(rows.size() - 1);
-            formatState.setState(row.getField(restoreConfig.getRestoreColumnIndex()));
+    public FormatState getFormatState(){
+        if(lastRow != null){
+            LOG.info("subTaskIndex[{}]:{}", taskNumber, rowToStringWithDelimiter(lastRow, writeDelimiter));
+        }
+        return super.getFormatState();
+    }
+
+    public String rowToStringWithDelimiter(Row row, String writeDelimiter) {
+        if(row == null){
+            return "";
+        }else{
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < row.getArity(); i++) {
+                if (i > 0) {
+                    sb.append(writeDelimiter);
+                }
+                sb.append(StringUtils.arrayAwareToString(row.getField(i)));
+            }
+            return sb.toString();
         }
     }
 }

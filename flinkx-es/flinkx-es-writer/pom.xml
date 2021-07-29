@@ -24,7 +24,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -32,6 +32,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <artifactSet>
                                 <excludes>
                                     <exclude>com.google.code.gson:*</exclude>
@@ -53,6 +54,20 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson.databind</pattern>
+                                    <shadedPattern>shade.es.com.fasterxml.jackson.databind</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -77,7 +92,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/eswriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/eswriter/${project.name}-${git.branch}.jar" />
+                                      tofile="${basedir}/../../plugins/eswriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

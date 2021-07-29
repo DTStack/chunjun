@@ -26,7 +26,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -34,6 +34,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <artifactSet>
                                 <excludes>
                                     <exclude>com.google.code.gson:*</exclude>
@@ -43,7 +44,6 @@
                                     <exclude>org.apache.hadoop:*</exclude>
                                     <exclude>xerces:xercesImpl</exclude>
                                     <exclude>org.slf4j:slf4j-api</exclude>
-                                    <!--<exclude>org.slf4j:slf4j-log4j12</exclude>-->
                                     <exclude>ch.qos.logback:*</exclude>
                                 </excludes>
                             </artifactSet>
@@ -57,6 +57,20 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>io.netty</pattern>
+                                    <shadedPattern>shade.carbondatawriter.io.netty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -81,7 +95,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/carbondatawriter/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/carbondatawriter/${project.name}.jar" />
+                                      tofile="${basedir}/../../plugins/carbondatawriter/${project.name}-${package.name}.jar" />
                             </tasks>
                         </configuration>
                     </execution>

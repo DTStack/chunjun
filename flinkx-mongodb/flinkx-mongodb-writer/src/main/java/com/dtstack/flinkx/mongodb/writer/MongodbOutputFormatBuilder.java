@@ -18,14 +18,13 @@
 
 package com.dtstack.flinkx.mongodb.writer;
 
-import com.dtstack.flinkx.outputformat.RichOutputFormatBuilder;
+import com.dtstack.flinkx.mongodb.MongodbConfig;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.writer.WriteMode;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
-import java.util.Map;
-
 
 /**
  * The builder for mongodb writer plugin
@@ -33,7 +32,7 @@ import java.util.Map;
  * @Company: www.dtstack.com
  * @author jiangbo
  */
-public class MongodbOutputFormatBuilder extends RichOutputFormatBuilder {
+public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     private MongodbOutputFormat format;
 
@@ -41,65 +40,29 @@ public class MongodbOutputFormatBuilder extends RichOutputFormatBuilder {
         super.format = format = new MongodbOutputFormat();
     }
 
-    public void setHostPorts(String hostPorts){
-        format.hostPorts = hostPorts;
-    }
-
-    public void setUsername(String username){
-        format.username = username;
-    }
-
-    public void setPassword(String password){
-        format.password = password;
-    }
-
-    public void setDatabase(String database){
-        format.database = database;
-    }
-
-    public void setCollection(String collection){
-        format.collectionName = collection;
+    public void setMongodbConfig(MongodbConfig mongodbConfig){
+        format.mongodbConfig = mongodbConfig;
     }
 
     public void setColumns(List<MetaColumn> columns){
         format.columns = columns;
     }
 
-    public void setMode(String mode){
-        format.mode = mode;
-    }
-
-    public void setReplaceKey(String replaceKey){
-        format.replaceKey = replaceKey;
-    }
-
-
-    public void setMongodbConfig(Map<String,Object> mongodbConfig){
-        format.mongodbConfig = mongodbConfig;
-    }
-
     @Override
     protected void checkFormat() {
-        if(format.hostPorts == null){
-            throw new IllegalArgumentException("No host supplied");
-        }
-
-        if(format.database == null){
-            throw new IllegalArgumentException("No database supplied");
-        }
-
-        if(format.collectionName == null){
+        if(format.mongodbConfig.getCollectionName() == null){
             throw new IllegalArgumentException("No collection supplied");
         }
 
-        if(WriteMode.REPLACE.getMode().equals(format.mode) || WriteMode.UPDATE.getMode().equals(format.mode)){
-            if(StringUtils.isEmpty(format.replaceKey)){
+        if(WriteMode.REPLACE.getMode().equals(format.mongodbConfig.getWriteMode())
+                || WriteMode.UPDATE.getMode().equals(format.mongodbConfig.getWriteMode())){
+            if(StringUtils.isEmpty(format.mongodbConfig.getReplaceKey())){
                 throw new IllegalArgumentException("ReplaceKey cannot be empty when the write mode is replace");
             }
 
             boolean columnContainsReplaceKey = false;
             for (MetaColumn column : format.columns) {
-                if (column.getName().equalsIgnoreCase(format.replaceKey)) {
+                if (column.getName().equalsIgnoreCase(format.mongodbConfig.getReplaceKey())) {
                     columnContainsReplaceKey = true;
                     break;
                 }

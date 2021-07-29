@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,7 +21,8 @@ package com.dtstack.flinkx.es.writer;
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.es.EsConfigKeys;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.types.Row;
@@ -36,34 +37,29 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class EsWriter extends DataWriter {
+public class EsWriter extends BaseDataWriter {
 
     public static final int DEFAULT_BULK_ACTION = 100;
 
     private String address;
-
+    private String username;
+    private String password;
     private String index;
-
     private String type;
-
     private int bulkAction;
-
     private Map<String,Object> clientConfig;
-
     private List<String> columnTypes;
-
     private List<String> columnNames;
-
     private List<Integer> idColumnIndices;
-
     private List<String> idColumnTypes;
-
     private List<String> idColumnValues;
 
     public EsWriter(DataTransferConfig config) {
         super(config);
         WriterConfig writerConfig = config.getJob().getContent().get(0).getWriter();
         address = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_ADDRESS);
+        username = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_USERNAME);
+        password = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_PASSWORD);
         type = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_TYPE);
         index = writerConfig.getParameter().getStringVal(EsConfigKeys.KEY_INDEX);
         bulkAction = writerConfig.getParameter().getIntVal(EsConfigKeys.KEY_BULK_ACTION, DEFAULT_BULK_ACTION);
@@ -73,7 +69,7 @@ public class EsWriter extends DataWriter {
         clientConfig.put(EsConfigKeys.KEY_PATH_PREFIX, writerConfig.getParameter().getVal(EsConfigKeys.KEY_PATH_PREFIX));
 
         List columns = writerConfig.getParameter().getColumn();
-        if(columns != null || columns.size() != 0) {
+        if(CollectionUtils.isNotEmpty(columns)) {
             columnTypes = new ArrayList<>();
             columnNames = new ArrayList<>();
             for(int i = 0; i < columns.size(); ++i) {
@@ -114,6 +110,8 @@ public class EsWriter extends DataWriter {
     public DataStreamSink<?> writeData(DataStream<Row> dataSet) {
         EsOutputFormatBuilder builder = new EsOutputFormatBuilder();
         builder.setAddress(address);
+        builder.setUsername(username);
+        builder.setPassword(password);
         builder.setIndex(index);
         builder.setType(type);
         builder.setBatchInterval(bulkAction);
@@ -129,6 +127,6 @@ public class EsWriter extends DataWriter {
         builder.setDirtyHadoopConfig(dirtyHadoopConfig);
         builder.setSrcCols(srcCols);
 
-        return createOutput(dataSet, builder.finish(), "eswriter");
+        return createOutput(dataSet, builder.finish());
     }
 }

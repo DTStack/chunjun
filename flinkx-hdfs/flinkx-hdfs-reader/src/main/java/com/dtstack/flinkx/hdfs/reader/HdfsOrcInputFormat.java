@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,23 +18,29 @@
 
 package com.dtstack.flinkx.hdfs.reader;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.types.Row;
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.hive.ql.io.orc.*;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hive.ql.io.orc.OrcFile;
+import org.apache.hadoop.hive.ql.io.orc.OrcInputFormat;
+import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
+import org.apache.hadoop.hive.ql.io.orc.OrcSplit;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Reporter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import org.apache.hadoop.security.UserGroupInformation;
+
+import java.io.*;
+import java.security.PrivilegedAction;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The subclass of HdfsInputFormat which handles orc files
@@ -42,13 +48,9 @@ import java.util.*;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class HdfsOrcInputFormat extends HdfsInputFormat {
-
-    private transient OrcSerde orcSerde;
+public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
 
     private transient String[] fullColNames;
-
-    private transient String[] fullColTypes;
 
     private transient StructObjectInspector inspector;
 
@@ -56,84 +58,95 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
 
     private static final String COMPLEX_FIELD_TYPE_SYMBOL_REGEX = ".*(<|>|\\{|}|[|]).*";
 
+    private AtomicBoolean isInit = new AtomicBoolean(false);
+
     @Override
-    protected void configureAnythingElse() {
-        orcSerde = new OrcSerde();
+    public void openInputFormat() throws IOException {
+        super.openInputFormat();
         inputFormat = new OrcInputFormat();
-        org.apache.hadoop.hive.ql.io.orc.Reader reader = null;
+    }
+
+    @Override
+    public void openInternal(InputSplit inputSplit) throws IOException {
+        HdfsOrcInputSplit hdfsOrcInputSplit = (HdfsOrcInputSplit) inputSplit;
+        OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();
+
         try {
-            FileSystem fs = FileSystemUtil.getFileSystem(hadoopConfig, defaultFS, jobId, "reader");
-            OrcFile.ReaderOptions readerOptions = OrcFile.readerOptions(conf);
-            readerOptions.filesystem(fs);
-
-            Path path = new Path(inputPath);
-            String typeStruct = null;
-
-            if(fs.isDirectory(path)) {
-                RemoteIterator<LocatedFileStatus> iterator = fs.listFiles(path, true);
-                while(iterator.hasNext()) {
-                    FileStatus fileStatus = iterator.next();
-                    if(fileStatus.isFile() && fileStatus.getLen() > 49) {
-                        Path subPath = fileStatus.getPath();
-                        reader = OrcFile.createReader(subPath, readerOptions);
-                        typeStruct = reader.getObjectInspector().getTypeName();
-                        if(StringUtils.isNotEmpty(typeStruct)) {
-                            break;
-                        }
-                    }
-                }
-
-                if(reader == null) {
-                    //throw new RuntimeException("orcfile dir is empty!");
-                    LOG.error("orc file {} is empty!", inputPath);
-                    isFileEmpty = true;
-                    return;
-                }
-
-            } else {
-                reader = OrcFile.createReader(path, readerOptions);
-                typeStruct = reader.getObjectInspector().getTypeName();
+            if (!isInit.get()) {
+                init(orcSplit.getPath());
+                isInit.set(true);
             }
-
-            if (StringUtils.isEmpty(typeStruct)) {
-                throw new RuntimeException("can't retrieve type struct from " + path);
-            }
-
-
-            int startIndex = typeStruct.indexOf("<") + 1;
-            int endIndex = typeStruct.lastIndexOf(">");
-            typeStruct = typeStruct.substring(startIndex, endIndex);
-
-            if(typeStruct.matches(COMPLEX_FIELD_TYPE_SYMBOL_REGEX)){
-                throw new RuntimeException("Field types such as array, map, and struct are not supported.");
-            }
-
-            List<String> cols = parseColumnAndType(typeStruct);
-
-            fullColNames = new String[cols.size()];
-            fullColTypes = new String[cols.size()];
-
-            for(int i = 0; i < cols.size(); ++i) {
-                String[] temp = cols.get(i).split(":");
-                fullColNames[i] = temp[0];
-                fullColTypes[i] = temp[1];
-            }
-
-            for(int j = 0; j < metaColumns.size(); ++j) {
-                MetaColumn metaColumn = metaColumns.get(j);
-                metaColumn.setIndex(name2index(metaColumn.getName()));
-            }
-
-            Properties p = new Properties();
-            p.setProperty("columns", StringUtils.join(fullColNames, ","));
-            p.setProperty("columns.types", StringUtils.join(fullColTypes, ":"));
-            orcSerde.initialize(conf, p);
-
-            this.inspector = (StructObjectInspector) orcSerde.getObjectInspector();
-
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new IOException("初始化[inspector]出错", e);
         }
+
+        if (openKerberos) {
+            ugi.doAs(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    try {
+                        openOrcReader(inputSplit);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    return null;
+                }
+            });
+        } else {
+            openOrcReader(inputSplit);
+        }
+    }
+
+    private void openOrcReader(InputSplit inputSplit) throws IOException{
+        numReadCounter = getRuntimeContext().getLongCounter("numRead");
+        HdfsOrcInputSplit hdfsOrcInputSplit = (HdfsOrcInputSplit) inputSplit;
+        OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();
+        findCurrentPartition(orcSplit.getPath());
+        recordReader = inputFormat.getRecordReader(orcSplit, conf, Reporter.NULL);
+        key = recordReader.createKey();
+        value = recordReader.createValue();
+        fields = inspector.getAllStructFieldRefs();
+    }
+
+    private void init(Path path) throws Exception {
+        OrcFile.ReaderOptions readerOptions = OrcFile.readerOptions(conf);
+        readerOptions.filesystem(fs);
+
+        org.apache.hadoop.hive.ql.io.orc.Reader reader = OrcFile.createReader(path, readerOptions);
+        String typeStruct = reader.getObjectInspector().getTypeName();
+
+        if (StringUtils.isEmpty(typeStruct)) {
+            throw new RuntimeException("can't retrieve type struct from " + path);
+        }
+
+        int startIndex = typeStruct.indexOf("<") + 1;
+        int endIndex = typeStruct.lastIndexOf(">");
+        typeStruct = typeStruct.substring(startIndex, endIndex);
+
+        if(typeStruct.matches(COMPLEX_FIELD_TYPE_SYMBOL_REGEX)){
+            throw new RuntimeException("Field types such as array, map, and struct are not supported.");
+        }
+
+        List<String> cols = parseColumnAndType(typeStruct);
+
+        fullColNames = new String[cols.size()];
+        String[] fullColTypes = new String[cols.size()];
+
+        for(int i = 0; i < cols.size(); ++i) {
+            String[] temp = cols.get(i).split(":");
+            fullColNames[i] = temp[0];
+            fullColTypes[i] = temp[1];
+        }
+
+        Properties p = new Properties();
+        p.setProperty("columns", StringUtils.join(fullColNames, ","));
+        p.setProperty("columns.types", StringUtils.join(fullColTypes, ":"));
+
+        OrcSerde orcSerde = new OrcSerde();
+        orcSerde.initialize(conf, p);
+
+        this.inspector = (StructObjectInspector) orcSerde.getObjectInspector();
     }
 
     private List<String> parseColumnAndType(String typeStruct){
@@ -141,14 +154,27 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
         List<String> splits = Arrays.asList(typeStruct.split(","));
         Iterator<String> it = splits.iterator();
         while (it.hasNext()){
-            String current = it.next();
-            if(current.contains("(")){
-                if(current.contains("(")){
+            StringBuilder current = new StringBuilder(it.next());
+            if (!current.toString().contains("(") && !current.toString().contains(")")) {
+                cols.add(current.toString());
+                continue;
+            }
+
+            if (current.toString().contains("(") && current.toString().contains(")")) {
+                cols.add(current.toString());
+                continue;
+            }
+
+            if (current.toString().contains("(") && !current.toString().contains(")")) {
+                while (it.hasNext()) {
                     String next = it.next();
-                    cols.add(current + "," + next);
+                    current.append(",").append(next);
+                    if (next.contains(")")) {
+                        break;
+                    }
                 }
-            } else {
-                cols.add(current);
+
+                cols.add(current.toString());
             }
         }
 
@@ -156,52 +182,52 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
     }
 
     @Override
-    public HdfsOrcInputSplit[] createInputSplits(int minNumSplits) throws IOException {
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(conf, inputPath);
-        org.apache.hadoop.mapred.InputSplit[] splits = inputFormat.getSplits(conf, minNumSplits);
+    public HdfsOrcInputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
+        if (FileSystemUtil.isOpenKerberos(hadoopConfig)) {
+            UserGroupInformation ugi = FileSystemUtil.getUGI(hadoopConfig, defaultFs);
+            LOG.info("user:{}, ", ugi.getShortUserName());
+            return ugi.doAs(new PrivilegedAction<HdfsOrcInputSplit[]>() {
+                @Override
+                public HdfsOrcInputSplit[] run() {
+                    try {
+                        return createOrcSplit(minNumSplits);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        } else {
+            return createOrcSplit(minNumSplits);
+        }
+    }
+
+    private HdfsOrcInputSplit[] createOrcSplit(int minNumSplits) throws IOException{
+        JobConf jobConf = FileSystemUtil.getJobConf(hadoopConfig, defaultFs);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(jobConf, inputPath);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(buildConfig(), HdfsPathFilter.class);
+
+        OrcInputFormat orcInputFormat = new OrcInputFormat();
+        org.apache.hadoop.mapred.InputSplit[] splits = orcInputFormat.getSplits(jobConf, minNumSplits);
 
         if(splits != null) {
-            HdfsOrcInputSplit[] hdfsOrcInputSplits = new HdfsOrcInputSplit[splits.length];
-            for (int i = 0; i < splits.length; ++i) {
-                hdfsOrcInputSplits[i] = new HdfsOrcInputSplit((OrcSplit) splits[i], i);
+            List<HdfsOrcInputSplit> list = new ArrayList<>(splits.length);
+            int i = 0;
+            for (org.apache.hadoop.mapred.InputSplit split : splits) {
+                OrcSplit orcSplit = (OrcSplit) split;
+                if(orcSplit.getLength() > 49){
+                    list.add(new HdfsOrcInputSplit(orcSplit, i));
+                    i++;
+                }
             }
-            return hdfsOrcInputSplits;
+            return list.toArray(new HdfsOrcInputSplit[i]);
         }
 
         return null;
     }
 
-
-    @Override
-    public void openInternal(InputSplit inputSplit) throws IOException {
-
-        if(isFileEmpty){
-            return;
-        }
-
-        numReadCounter = getRuntimeContext().getLongCounter("numRead");
-        HdfsOrcInputSplit hdfsOrcInputSplit = (HdfsOrcInputSplit) inputSplit;
-        OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();
-        recordReader = inputFormat.getRecordReader(orcSplit, conf, Reporter.NULL);
-        key = recordReader.createKey();
-        value = recordReader.createValue();
-        fields = inspector.getAllStructFieldRefs();
-    }
-
-    private int name2index(String columnName) {
-        int i = 0;
-        for(; i < fullColNames.length; ++i) {
-            if (fullColNames[i].equalsIgnoreCase(columnName)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-
     @Override
     public Row nextRecordInternal(Row row) throws IOException {
-        if(metaColumns.size() == 1 && "*".equals(metaColumns.get(0).getName())){
+        if(metaColumns.size() == 1 && ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
             row = new Row(fullColNames.length);
             for (int i = 0; i < fullColNames.length; i++) {
                 Object col = inspector.getStructFieldData(value, fields.get(i));
@@ -216,17 +242,17 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
                 MetaColumn metaColumn = metaColumns.get(i);
                 Object val = null;
 
-                if(metaColumn.getIndex() != -1){
+                if(metaColumn.getValue() != null){
+                    val = metaColumn.getValue();
+                }else if(metaColumn.getIndex() != -1){
                     val = inspector.getStructFieldData(value, fields.get(metaColumn.getIndex()));
                     if (val == null && metaColumn.getValue() != null){
                         val = metaColumn.getValue();
                     }
-                } else if(metaColumn.getValue() != null){
-                    val = metaColumn.getValue();
                 }
 
                 if(val instanceof String || val instanceof org.apache.hadoop.io.Text){
-                    val = HdfsUtil.string2col(String.valueOf(val),metaColumn.getType(),metaColumn.getTimeFormat());
+                    val = StringUtil.string2col(String.valueOf(val), metaColumn.getType(), metaColumn.getTimeFormat());
                 } else if(val != null){
                     val = HdfsUtil.getWritableValue(val);
                 }
@@ -268,5 +294,4 @@ public class HdfsOrcInputFormat extends HdfsInputFormat {
             return splitNumber;
         }
     }
-
 }

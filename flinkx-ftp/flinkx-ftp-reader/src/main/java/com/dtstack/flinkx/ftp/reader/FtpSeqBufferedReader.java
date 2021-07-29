@@ -20,8 +20,13 @@ package com.dtstack.flinkx.ftp.reader;
 
 import com.dtstack.flinkx.ftp.IFtpHandler;
 import com.dtstack.flinkx.ftp.FtpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 
 /**
@@ -32,6 +37,8 @@ import java.util.Iterator;
  */
 public class FtpSeqBufferedReader {
 
+    private static Logger LOG = LoggerFactory.getLogger(FtpSeqBufferedReader.class);
+
     private IFtpHandler ftpHandler;
 
     private Iterator<String> iter;
@@ -40,7 +47,7 @@ public class FtpSeqBufferedReader {
 
     private BufferedReader br;
 
-    private String charsetName = "utf-8";
+    private String fileEncoding;
 
     public FtpSeqBufferedReader(IFtpHandler ftpHandler, Iterator<String> iter) {
         this.ftpHandler = ftpHandler;
@@ -70,13 +77,14 @@ public class FtpSeqBufferedReader {
             String file = iter.next();
             InputStream in = ftpHandler.getInputStream(file);
             if (in == null) {
-                throw new NullPointerException();
+                throw new RuntimeException(String.format("can not get inputStream for file [%s], please check file read and write permissions", file));
             }
 
-            br = new BufferedReader(new InputStreamReader(in, charsetName));
+            br = new BufferedReader(new InputStreamReader(in, fileEncoding));
 
             for (int i = 0; i < fromLine; i++) {
-                br.readLine();
+                String skipLine = br.readLine();
+                LOG.info("Skip line:{}", skipLine);
             }
         } else {
             br = null;
@@ -98,7 +106,7 @@ public class FtpSeqBufferedReader {
         this.fromLine = fromLine;
     }
 
-    public void setCharsetName(String charsetName) {
-        this.charsetName = charsetName;
+    public void setFileEncoding(String fileEncoding) {
+        this.fileEncoding = fileEncoding;
     }
 }

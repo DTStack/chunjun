@@ -54,8 +54,6 @@ import static org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporterO
 @PublicEvolving
 public abstract class AbstractPrometheusReporter implements MetricReporter {
 
-	protected final Logger log = LoggerFactory.getLogger(getClass());
-
 	private static final Pattern UNALLOWED_CHAR_PATTERN = Pattern.compile("[^a-zA-Z0-9:_]");
 	private static final CharacterFilter CHARACTER_FILTER = new CharacterFilter() {
 		@Override
@@ -63,11 +61,11 @@ public abstract class AbstractPrometheusReporter implements MetricReporter {
 			return replaceInvalidChars(input);
 		}
 	};
-
 	private static final char SCOPE_SEPARATOR = '_';
 	private static final String SCOPE_PREFIX = "flink" + SCOPE_SEPARATOR;
-
+	protected final Logger log = LoggerFactory.getLogger(getClass());
 	private final Map<String, AbstractMap.SimpleImmutableEntry<Collector, Integer>> collectorsWithCountByMetricName = new HashMap<>();
+	private CharacterFilter labelValueCharactersFilter = CHARACTER_FILTER;
 
 	@VisibleForTesting
 	static String replaceInvalidChars(final String input) {
@@ -76,7 +74,42 @@ public abstract class AbstractPrometheusReporter implements MetricReporter {
 		return UNALLOWED_CHAR_PATTERN.matcher(input).replaceAll("_");
 	}
 
-	private CharacterFilter labelValueCharactersFilter = CHARACTER_FILTER;
+	private static String getScopedName(String metricName, MetricGroup group) {
+		return SCOPE_PREFIX + getLogicalScope(group) + SCOPE_SEPARATOR + CHARACTER_FILTER.filterCharacters(metricName);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static String getLogicalScope(MetricGroup group) {
+		return ((FrontMetricGroup<AbstractMetricGroup<?>>) group).getLogicalScope(CHARACTER_FILTER, SCOPE_SEPARATOR);
+	}
+
+	private static io.prometheus.client.Gauge.Child gaugeFrom(Counter counter) {
+		return new io.prometheus.client.Gauge.Child() {
+			@Override
+			public double get() {
+				return (double) counter.getCount();
+			}
+		};
+	}
+
+	private static io.prometheus.client.Gauge.Child gaugeFrom(Meter meter) {
+		return new io.prometheus.client.Gauge.Child() {
+			@Override
+			public double get() {
+				return meter.getRate();
+			}
+		};
+	}
+
+	private static List<String> addToList(List<String> list, String element) {
+		final List<String> result = new ArrayList<>(list);
+		result.add(element);
+		return result;
+	}
+
+	private static String[] toArray(List<String> list) {
+		return list.toArray(new String[list.size()]);
+	}
 
 	@Override
 	public void open(MetricConfig config) {
@@ -126,10 +159,6 @@ public abstract class AbstractPrometheusReporter implements MetricReporter {
 			addMetric(metric, dimensionValues, collector);
 			collectorsWithCountByMetricName.put(scopedMetricName, new AbstractMap.SimpleImmutableEntry<>(collector, count + 1));
 		}
-	}
-
-	private static String getScopedName(String metricName, MetricGroup group) {
-		return SCOPE_PREFIX + getLogicalScope(group) + SCOPE_SEPARATOR + CHARACTER_FILTER.filterCharacters(metricName);
 	}
 
 	private Collector createCollector(Metric metric, List<String> dimensionKeys, List<String> dimensionValues, String scopedMetricName, String helpString) {
@@ -210,11 +239,6 @@ public abstract class AbstractPrometheusReporter implements MetricReporter {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private static String getLogicalScope(MetricGroup group) {
-		return ((FrontMetricGroup<AbstractMetricGroup<?>>) group).getLogicalScope(CHARACTER_FILTER, SCOPE_SEPARATOR);
-	}
-
 	@VisibleForTesting
 	io.prometheus.client.Gauge.Child gaugeFrom(Gauge gauge) {
 		return new io.prometheus.client.Gauge.Child() {
@@ -237,24 +261,6 @@ public abstract class AbstractPrometheusReporter implements MetricReporter {
 				log.debug("Invalid type for Gauge {}: {}, only number types and booleans are supported by this reporter.",
 					gauge, value.getClass().getName());
 				return 0;
-			}
-		};
-	}
-
-	private static io.prometheus.client.Gauge.Child gaugeFrom(Counter counter) {
-		return new io.prometheus.client.Gauge.Child() {
-			@Override
-			public double get() {
-				return (double) counter.getCount();
-			}
-		};
-	}
-
-	private static io.prometheus.client.Gauge.Child gaugeFrom(Meter meter) {
-		return new io.prometheus.client.Gauge.Child() {
-			@Override
-			public double get() {
-				return meter.getRate();
 			}
 		};
 	}
@@ -305,15 +311,5 @@ public abstract class AbstractPrometheusReporter implements MetricReporter {
 					histogram.getStatistics().getQuantile(quantile)));
 			}
 		}
-	}
-
-	private static List<String> addToList(List<String> list, String element) {
-		final List<String> result = new ArrayList<>(list);
-		result.add(element);
-		return result;
-	}
-
-	private static String[] toArray(List<String> list) {
-		return list.toArray(new String[list.size()]);
 	}
 }

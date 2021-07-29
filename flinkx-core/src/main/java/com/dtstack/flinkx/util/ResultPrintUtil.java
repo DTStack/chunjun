@@ -22,6 +22,8 @@ package com.dtstack.flinkx.util;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -31,12 +33,14 @@ import java.util.List;
  */
 public class ResultPrintUtil {
 
+    private static Logger LOG = LoggerFactory.getLogger(ResultPrintUtil.class);
+
     public static void printResult(JobExecutionResult result){
         List<String> names = Lists.newArrayList();
-        List<Long> values = Lists.newArrayList();
+        List<String> values = Lists.newArrayList();
         result.getAllAccumulatorResults().forEach((name, val) -> {
             names.add(name);
-            values.add((Long) val);
+            values.add(String.valueOf(val));
         });
 
         int maxLength = 0;
@@ -45,7 +49,8 @@ public class ResultPrintUtil {
         }
         maxLength += 5;
 
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(128);
+        builder.append("\n*********************************************\n");
         for (int i = 0; i < names.size(); i++) {
             String name = names.get(i);
             builder.append(name + StringUtils.repeat(" ", maxLength - name.length()));
@@ -55,9 +60,7 @@ public class ResultPrintUtil {
                 builder.append("\n");
             }
         }
-
-        System.out.println("---------------------------------");
-        System.out.println(builder.toString());
-        System.out.println("---------------------------------");
+        builder.append("\n*********************************************\n");
+        LOG.info(builder.toString());
     }
 }

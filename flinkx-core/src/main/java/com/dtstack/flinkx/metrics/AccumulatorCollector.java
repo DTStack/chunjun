@@ -19,21 +19,29 @@
 
 package com.dtstack.flinkx.metrics;
 
-import com.dtstack.flinkx.util.URLUtil;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.log.DtLogger;
+import com.dtstack.flinkx.util.UrlUtil;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.flink.hadoop.shaded.org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.flink.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Regularly get statistics from the flink API
@@ -50,6 +58,8 @@ public class AccumulatorCollector {
     private static final String KEY_ACCUMULATORS = "user-task-accumulators";
     private static final String KEY_NAME = "name";
     private static final String KEY_VALUE = "value";
+
+    private static final int MAX_COLLECT_ERROR_TIMES = 100;
 
     private Gson gson = new Gson();
 
@@ -70,6 +80,8 @@ public class AccumulatorCollector {
     private Map<String, ValueAccumulator> valueAccumulatorMap;
 
     private List<String> metricNames;
+
+    private long collectErrorTimes = 0;
 
     public AccumulatorCollector(String jobId, String monitorUrlStr, RuntimeContext runtimeContext, int period, List<String> metricNames){
         Preconditions.checkArgument(jobId != null && jobId.length() > 0);
@@ -103,9 +115,9 @@ public class AccumulatorCollector {
     }
 
     private void formatMonitorUrl(String monitorUrlStr){
-        if(monitorUrlStr.startsWith("http")){
+        if(monitorUrlStr.startsWith(ConstantValue.KEY_HTTP)){
             String url;
-            if(monitorUrlStr.endsWith("/")){
+            if(monitorUrlStr.endsWith(ConstantValue.SINGLE_SLASH_SYMBOL)){
                 url = monitorUrlStr + "jobs/" + jobId + "/accumulators";
             } else {
                 url = monitorUrlStr + "/jobs/" + jobId + "/accumulators";
@@ -118,12 +130,14 @@ public class AccumulatorCollector {
                 monitorUrls.add(url);
             }
         }
+        if(DtLogger.isEnableDebug()){
+            LOG.debug("monitorUrls = {}", gson.toJson(monitorUrls));
+        }
     }
 
     private void checkMonitorUrlIsValid(){
         for (String monitorUrl : monitorUrls) {
-            try {
-                URLUtil.open(monitorUrl);
+            try(InputStream ignored = UrlUtil.open(monitorUrl)) {
                 return;
             } catch (Exception e) {
                 LOG.warn("Connect error with monitor url:{}", monitorUrl);
@@ -198,30 +212,47 @@ public class AccumulatorCollector {
         return valueAccumulator.getLocal().getLocalValue();
     }
 
+    @SuppressWarnings("unchecked")
     private void collectAccumulatorWithApi(){
         for (String monitorUrl : monitorUrls) {
             try {
-                String response = URLUtil.get(httpClient, monitorUrl);
+                String response = UrlUtil.get(httpClient, monitorUrl);
                 Map<String,Object> map = gson.fromJson(response, Map.class);
                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get(KEY_ACCUMULATORS);
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {
                     String name = (String) accumulator.get(KEY_NAME);
                     if(name != null && !"tableCol".equalsIgnoreCase(name)) {
-                        long value = Double.valueOf((String) accumulator.get(KEY_VALUE)).longValue();
-                        ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
-                        if(valueAccumulator != null){
-                            valueAccumulator.setGlobal(value);
+                        String accValue = (String) accumulator.get(KEY_VALUE);
+                        if(!"null".equals(accValue)){
+                            long value = Double.valueOf(accValue).longValue();
+                            ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
+                            if(valueAccumulator != null){
+                                valueAccumulator.setGlobal(value);
+                            }
                         }
                     }
                 }
             } catch (Exception e){
+                checkErrorTimes();
                 LOG.error("Update data error,url:[{}],error info:", monitorUrl, e);
             }
             break;
         }
     }
 
-    class ValueAccumulator{
+    /**
+     * 限制最大出错次数，超过最大次数则使任务失败，如果不失败，统计数据没有及时更新，会影响速率限制，错误控制等功能
+     */
+    private void checkErrorTimes() {
+        collectErrorTimes++;
+        if (collectErrorTimes > MAX_COLLECT_ERROR_TIMES){
+            // 主动关闭线程和资源，防止异常情况下没有关闭
+            close();
+            throw new RuntimeException("更新统计数据出错次数超过最大限制100次，为了确保数据正确性，任务自动失败");
+        }
+    }
+
+    static class ValueAccumulator{
         private long global;
         private LongCounter local;
 

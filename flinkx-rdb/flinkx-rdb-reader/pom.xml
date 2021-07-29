@@ -41,7 +41,7 @@
                                     </fileset>
                                 </copy>
                                 <move file="${basedir}/../../plugins/common/${project.name}-${project.version}.jar"
-                                      tofile="${basedir}/../../plugins/common/${project.name}-${git.branch}.jar"/>
+                                      tofile="${basedir}/../../plugins/common/${project.name}-${package.name}.jar"/>
                             </tasks>
                         </configuration>
                     </execution>

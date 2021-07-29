@@ -1,0 +1,31 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "topic": "test",
+            "codec": "text",
+            "blankIgnore": false,
+            "consumerSettings": {
+              "bootstrap.servers": "ip1:9092,ip2:9092,ip3:9092"
+            }
+          },
+          "name": "kafkareader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "readerChannel": 3,
+        "writerChannel": 1
+      }
+    }
+  }
+}

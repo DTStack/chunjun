@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -31,9 +31,13 @@ public class SpeedConfig extends AbstractConfig {
 
     public static final String KEY_BYTES = "bytes";
     public static final String KEY_NUM_CHANNELS = "channel";
+    public static final String KEY_NUM_READER_CHANNELS = "readerChannel";
+    public static final String KEY_NUM_WRITER_CHANNELS = "writerChannel";
+    public static final String KEY_REBALANCE = "rebalance";
 
     public static final long DEFAULT_SPEED_BYTES = Long.MAX_VALUE;
-    public static final int DEFAULT_NUM_CHANNALS = 1;
+    public static final int DEFAULT_NUM_CHANNELS = 1;
+    public static final int DEFAULT_NUM_READER_WRITER_CHANNEL = -1;
 
     public SpeedConfig(Map<String, Object> map) {
         super(map);
@@ -41,8 +45,11 @@ public class SpeedConfig extends AbstractConfig {
 
     public static SpeedConfig defaultConfig(){
         Map<String, Object> map = new HashMap<>(2);
-        map.put("bytes",DEFAULT_SPEED_BYTES);
-        map.put("channel",DEFAULT_NUM_CHANNALS);
+        map.put(KEY_BYTES, DEFAULT_SPEED_BYTES);
+        map.put(KEY_NUM_CHANNELS, DEFAULT_NUM_CHANNELS);
+        map.put(KEY_NUM_READER_CHANNELS, DEFAULT_NUM_READER_WRITER_CHANNEL);
+        map.put(KEY_NUM_WRITER_CHANNELS, DEFAULT_NUM_READER_WRITER_CHANNEL);
+        map.put(KEY_REBALANCE, false);
         return new SpeedConfig(map);
     }
 
@@ -55,11 +62,22 @@ public class SpeedConfig extends AbstractConfig {
     }
 
     public int getChannel() {
-        return getIntVal(KEY_NUM_CHANNELS, DEFAULT_NUM_CHANNALS);
+        return getIntVal(KEY_NUM_CHANNELS, DEFAULT_NUM_CHANNELS);
+    }
+
+    public int getReaderChannel(){
+        return getIntVal(KEY_NUM_READER_CHANNELS, DEFAULT_NUM_READER_WRITER_CHANNEL);
+    }
+
+    public int getWriterChannel(){
+        return getIntVal(KEY_NUM_WRITER_CHANNELS, DEFAULT_NUM_READER_WRITER_CHANNEL);
     }
 
     public void setChannel(int channel) {
         setIntVal(KEY_NUM_CHANNELS, channel);
     }
 
+    public boolean isRebalance() {
+        return getBooleanVal(KEY_REBALANCE, false);
+    }
 }

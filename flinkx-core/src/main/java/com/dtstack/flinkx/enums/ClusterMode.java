@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,7 +26,25 @@ package com.dtstack.flinkx.enums;
  */
 public enum ClusterMode {
 
-    local(0),standalone(1),yarn(2),yarnPer(3);
+    /**
+     * 本地模式运行
+     */
+    local(0),
+
+    /**
+     * flink集群 standalone模式
+     */
+    standalone(1),
+
+    /**
+     * 在已经启动在yarn上的flink session里上运行
+     */
+    yarn(2),
+
+    /**
+     * 在yarn上单独启动flink session运行
+     */
+    yarnPer(3);
 
     private int type;
 

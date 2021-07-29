@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,7 +25,11 @@ import org.apache.flink.client.deployment.StandaloneClusterDescriptor;
 import org.apache.flink.client.deployment.StandaloneClusterId;
 import org.apache.flink.client.program.ClusterClient;
 import org.apache.flink.client.program.rest.RestClusterClient;
-import org.apache.flink.configuration.*;
+import org.apache.flink.configuration.ConfigConstants;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.GlobalConfiguration;
+import org.apache.flink.configuration.HighAvailabilityOptions;
+import org.apache.flink.configuration.JobManagerOptions;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.runtime.akka.AkkaUtils;
 import org.apache.flink.runtime.jobmanager.HighAvailabilityMode;
@@ -67,29 +71,33 @@ public class ClusterClientFactory {
         String flinkConfDir = launcherOptions.getFlinkconf();
         Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
 
-        StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(config);
-        RestClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance());
+        try (StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(config)) {
+            RestClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance());
 
-        LeaderConnectionInfo connectionInfo = clusterClient.getClusterConnectionInfo();
-        InetSocketAddress address = AkkaUtils.getInetSocketAddressFromAkkaURL(connectionInfo.getAddress());
-        config.setString(JobManagerOptions.ADDRESS, address.getAddress().getHostName());
-        config.setInteger(JobManagerOptions.PORT, address.getPort());
-        clusterClient.setDetached(true);
-        return clusterClient;
+            LeaderConnectionInfo connectionInfo = clusterClient.getClusterConnectionInfo();
+            InetSocketAddress address = AkkaUtils.getInetSocketAddressFromAkkaURL(connectionInfo.getAddress());
+            config.setString(JobManagerOptions.ADDRESS, address.getAddress().getHostName());
+            config.setInteger(JobManagerOptions.PORT, address.getPort());
+            clusterClient.setDetached(true);
+            return clusterClient;
+        }
     }
 
-    public static ClusterClient createYarnClient(Options launcherOptions) {
+    public static ClusterClient createYarnClient(Options launcherOptions) throws Exception{
         String flinkConfDir = launcherOptions.getFlinkconf();
         Configuration config = GlobalConfiguration.loadConfiguration(flinkConfDir);
         String yarnConfDir = launcherOptions.getYarnconf();
         if(StringUtils.isNotBlank(yarnConfDir)) {
+            config.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
+            FileSystem.initialize(config);
 
-            try {
-                config.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
-                FileSystem.initialize(config);
+            //进行kerberos验证 如果需要的话
+            KerberosInfo kerberosInfo = new KerberosInfo(launcherOptions.getKrb5conf(), launcherOptions.getKeytab(), launcherOptions.getPrincipal(), config);
+            kerberosInfo.verify();
 
-                YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
-                YarnClient yarnClient = YarnClient.createYarnClient();
+            YarnConfiguration yarnConf = YarnConfLoader.getYarnConf(yarnConfDir);
+
+            try (YarnClient yarnClient = YarnClient.createYarnClient()) {
                 yarnClient.init(yarnConf);
                 yarnClient.start();
                 ApplicationId applicationId = null;
@@ -111,14 +119,19 @@ public class ClusterClientFactory {
                         continue;
                     }
 
+                    if(!report.getQueue().equals(launcherOptions.getQueue())) {
+                        continue;
+                    }
+
                     int thisMemory = report.getApplicationResourceUsageReport().getNeededResources().getMemory();
                     int thisCores = report.getApplicationResourceUsageReport().getNeededResources().getVirtualCores();
-                    if(thisMemory > maxMemory || thisMemory == maxMemory && thisCores > maxCores) {
+
+                    boolean isOverMaxResource = thisMemory > maxMemory || thisMemory == maxMemory && thisCores > maxCores;
+                    if(isOverMaxResource) {
                         maxMemory = thisMemory;
                         maxCores = thisCores;
                         applicationId = report.getApplicationId();
                     }
-
                 }
 
                 if(applicationId != null && StringUtils.isEmpty(applicationId.toString())) {
@@ -129,10 +142,12 @@ public class ClusterClientFactory {
                 if(highAvailabilityMode.equals(HighAvailabilityMode.ZOOKEEPER) && applicationId!=null){
                     config.setString(HighAvailabilityOptions.HA_CLUSTER_ID,applicationId.toString());
                 }
-                YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(config, yarnConf, "", yarnClient, false);
-                ClusterClient clusterClient = yarnClusterDescriptor.retrieve(applicationId);
-                clusterClient.setDetached(true);
-                return clusterClient;
+
+                try (YarnClusterDescriptor yarnClusterDescriptor = new YarnClusterDescriptor(config, yarnConf, "", yarnClient, false)) {
+                    ClusterClient clusterClient = yarnClusterDescriptor.retrieve(applicationId);
+                    clusterClient.setDetached(true);
+                    return clusterClient;
+                }
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }

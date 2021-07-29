@@ -20,28 +20,35 @@ package com.dtstack.flinkx;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
+import com.dtstack.flinkx.config.ContentConfig;
 import com.dtstack.flinkx.config.DataTransferConfig;
-import com.dtstack.flinkx.constants.ConfigConstrant;
+import com.dtstack.flinkx.config.RestartConfig;
+import com.dtstack.flinkx.config.SpeedConfig;
+import com.dtstack.flinkx.config.TestConfig;
+import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.options.OptionParser;
-import com.dtstack.flinkx.reader.DataReader;
+import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.reader.DataReaderFactory;
 import com.dtstack.flinkx.util.ResultPrintUtil;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import com.dtstack.flinkx.writer.DataWriterFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.Charsets;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.time.Time;
 import org.apache.flink.client.program.ContextEnvironment;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamContextEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.transformations.PartitionTransformation;
-import org.apache.flink.streaming.runtime.partitioner.DTRebalancePartitioner;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,8 +58,10 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
-import java.util.*;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The main class entry
@@ -64,6 +73,13 @@ public class Main {
 
     public static Logger LOG = LoggerFactory.getLogger(Main.class);
 
+    public static final String READER = "reader";
+    public static final String WRITER = "writer";
+    public static final String STREAM_READER = "streamreader";
+    public static final String STREAM_WRITER = "streamwriter";
+
+    private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
+
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) throws Exception {
@@ -72,11 +88,13 @@ public class Main {
         String jobIdString = options.getJobid();
         String monitor = options.getMonitor();
         String pluginRoot = options.getPluginRoot();
+        String remotePluginPath = options.getRemotePluginPath();
         String savepointPath = options.getS();
         Properties confProperties = parseConf(options.getConfProp());
 
         // 解析jobPath指定的任务配置文件
         DataTransferConfig config = DataTransferConfig.parse(job);
+        speedTest(config);
 
         if(StringUtils.isNotEmpty(monitor)) {
             config.setMonitorUrls(monitor);
@@ -86,32 +104,50 @@ public class Main {
             config.setPluginRoot(pluginRoot);
         }
 
+        Configuration flinkConf = new Configuration();
+        if (StringUtils.isNotEmpty(options.getFlinkconf())) {
+            flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkconf());
+        }
+
+        if (StringUtils.isNotEmpty(remotePluginPath)) {
+            config.setRemotePluginPath(remotePluginPath);
+        }
+
         StreamExecutionEnvironment env = (StringUtils.isNotBlank(monitor)) ?
                 StreamExecutionEnvironment.getExecutionEnvironment() :
-                new MyLocalStreamEnvironment();
+                new MyLocalStreamEnvironment(flinkConf);
 
         env = openCheckpointConf(env, confProperties);
+        configRestartStrategy(env, config);
 
-        env.setParallelism(config.getJob().getSetting().getSpeed().getChannel());
+        SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
+
+        env.setParallelism(speedConfig.getChannel());
         env.setRestartStrategy(RestartStrategies.noRestart());
-        DataReader dataReader = DataReaderFactory.getDataReader(config, env);
+
+        BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
+        if(speedConfig.getReaderChannel() > 0){
+            dataStream = ((DataStreamSource<Row>) dataStream).setParallelism(speedConfig.getReaderChannel());
+        }
 
-        dataStream = new DataStream<>(dataStream.getExecutionEnvironment(),
-                new PartitionTransformation<>(dataStream.getTransformation(),
-                        new DTRebalancePartitioner<>()));
+        if (speedConfig.isRebalance()) {
+            dataStream = dataStream.rebalance();
+        }
 
-        DataWriter dataWriter = DataWriterFactory.getDataWriter(config);
-        dataWriter.writeData(dataStream);
+        BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(config);
+        DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
 
+        if(speedConfig.getWriterChannel() > 0){
+            dataStreamSink.setParallelism(speedConfig.getWriterChannel());
+        }
         if(env instanceof MyLocalStreamEnvironment) {
             if(StringUtils.isNotEmpty(savepointPath)){
                 ((MyLocalStreamEnvironment) env).setSettings(SavepointRestoreSettings.forPath(savepointPath));
             }
         }
 
-        Set<URL> classPathSet = ClassLoaderManager.getClassPath();
-        addEnvClassPath(env, classPathSet);
+        addEnvClassPath(env, ClassLoaderManager.getClassPath());
 
         JobExecutionResult result = env.execute(jobIdString);
         if(env instanceof MyLocalStreamEnvironment){
@@ -119,7 +155,74 @@ public class Main {
         }
     }
 
+    private static void configRestartStrategy(StreamExecutionEnvironment env, DataTransferConfig config){
+        if (needRestart(config)) {
+            RestartConfig restartConfig = findRestartConfig(config);
+            if (RestartConfig.STRATEGY_FIXED_DELAY.equalsIgnoreCase(restartConfig.getStrategy())) {
+                env.setRestartStrategy(RestartStrategies.fixedDelayRestart(
+                        restartConfig.getRestartAttempts(),
+                        Time.of(restartConfig.getDelayInterval(), TimeUnit.SECONDS)
+                ));
+            } else if (RestartConfig.STRATEGY_FAILURE_RATE.equalsIgnoreCase(restartConfig.getStrategy())) {
+                env.setRestartStrategy(RestartStrategies.failureRateRestart(
+                        restartConfig.getFailureRate(),
+                        Time.of(restartConfig.getFailureInterval(), TimeUnit.SECONDS),
+                        Time.of(restartConfig.getDelayInterval(), TimeUnit.SECONDS)
+                ));
+            } else {
+                env.setRestartStrategy(RestartStrategies.noRestart());
+            }
+        } else {
+            env.setRestartStrategy(RestartStrategies.noRestart());
+        }
+    }
+
+    private static RestartConfig findRestartConfig(DataTransferConfig config) {
+        RestartConfig restartConfig = config.getJob().getSetting().getRestartConfig();
+        if (null != restartConfig) {
+            return restartConfig;
+        }
+
+        Object restartConfigObj = config.getJob().getContent().get(0).getReader().getParameter().getVal(RestartConfig.KEY_STRATEGY);
+        if (null != restartConfigObj) {
+            return new RestartConfig((Map<String, Object>)restartConfigObj);
+        }
+
+        restartConfigObj = config.getJob().getContent().get(0).getWriter().getParameter().getVal(RestartConfig.KEY_STRATEGY);
+        if (null != restartConfigObj) {
+            return new RestartConfig((Map<String, Object>)restartConfigObj);
+        }
+
+        return RestartConfig.defaultConfig();
+    }
+
+    private static boolean needRestart(DataTransferConfig config){
+        return config.getJob().getSetting().getRestoreConfig().isStream();
+    }
+
+    private static void speedTest(DataTransferConfig config) {
+        TestConfig testConfig = config.getJob().getSetting().getTestConfig();
+        if (READER.equalsIgnoreCase(testConfig.getSpeedTest())) {
+            ContentConfig contentConfig = config.getJob().getContent().get(0);
+            contentConfig.getWriter().setName(STREAM_WRITER);
+        } else if (WRITER.equalsIgnoreCase(testConfig.getSpeedTest())){
+            ContentConfig contentConfig = config.getJob().getContent().get(0);
+            contentConfig.getReader().setName(STREAM_READER);
+        }else {
+            return;
+        }
+
+        config.getJob().getSetting().getSpeed().setBytes(-1);
+    }
+
     private static void addEnvClassPath(StreamExecutionEnvironment env, Set<URL> classPathSet) throws Exception{
+        int i = 0;
+        for(URL url : classPathSet){
+            String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
+            env.registerCachedFile(url.getPath(),  classFileName, true);
+            i++;
+        }
+
         if(env instanceof MyLocalStreamEnvironment){
             ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(classPathSet));
         } else if(env instanceof StreamContextEnvironment){
@@ -151,14 +254,14 @@ public class Main {
 
     private static StreamExecutionEnvironment openCheckpointConf(StreamExecutionEnvironment env, Properties properties){
         if(properties!=null){
-            String interval = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_INTERVAL_KEY);
+            String interval = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY);
             if(StringUtils.isNotBlank(interval)){
-                env.enableCheckpointing(Long.valueOf(interval.trim()));
+                env.enableCheckpointing(Long.parseLong(interval.trim()));
                 LOG.info("Open checkpoint with interval:" + interval);
             }
-            String checkpointTimeoutStr = properties.getProperty(ConfigConstrant.FLINK_CHECKPOINT_TIMEOUT_KEY);
+            String checkpointTimeoutStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_TIMEOUT_KEY);
             if(checkpointTimeoutStr != null){
-                long checkpointTimeout = Long.valueOf(checkpointTimeoutStr.trim());
+                long checkpointTimeout = Long.parseLong(checkpointTimeoutStr.trim());
                 //checkpoints have to complete within one min,or are discard
                 env.getCheckpointConfig().setCheckpointTimeout(checkpointTimeout);
 

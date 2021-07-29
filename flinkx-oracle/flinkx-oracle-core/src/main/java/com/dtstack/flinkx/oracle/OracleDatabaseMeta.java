@@ -36,8 +36,8 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
     public String quoteTable(String table) {
         table = table.replace("\"","");
         String[] part = table.split("\\.");
-        if(part.length == 2) {
-            table = part[0] + "." + getStartQuote() + part[1] + getEndQuote();
+        if(part.length == DB_TABLE_PART_SIZE) {
+            table = getStartQuote() + part[0] + getEndQuote() + "." + getStartQuote() + part[1] + getEndQuote();
         } else {
             table = getStartQuote() + table + getEndQuote();
         }
@@ -55,12 +55,12 @@ public class OracleDatabaseMeta extends BaseDatabaseMeta {
     }
 
     @Override
-    public String getSQLQueryFields(String tableName) {
+    public String getSqlQueryFields(String tableName) {
         return "SELECT /*+FIRST_ROWS*/ * FROM " + tableName + " WHERE ROWNUM < 1";
     }
 
     @Override
-    public String getSQLQueryColumnFields(List<String> column, String table) {
+    public String getSqlQueryColumnFields(List<String> column, String table) {
         return "SELECT /*+FIRST_ROWS*/ " + quoteColumns(column) + " FROM " + quoteTable(table) + " WHERE ROWNUM < 1";
     }
 

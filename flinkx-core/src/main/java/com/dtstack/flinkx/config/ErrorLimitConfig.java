@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,8 @@
  */
 
 package com.dtstack.flinkx.config;
+
+import com.dtstack.flinkx.util.ValueUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +43,7 @@ public class ErrorLimitConfig extends AbstractConfig {
     }
 
     public static ErrorLimitConfig defaultConfig(){
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>(2);
         map.put("record",DEFAULT_ERROR_RECORD_LIMIT);
         map.put("percentage",DEFAULT_ERROR_PERCENTAGE_LIMIT);
         return new ErrorLimitConfig(map);
@@ -57,7 +59,7 @@ public class ErrorLimitConfig extends AbstractConfig {
     }
 
     public Double getPercentage() {
-        return (Double) getVal(KEY_ERROR_PERCENTAGE_LIMIT);
+        return ValueUtil.getDoubleVal(getVal(KEY_ERROR_PERCENTAGE_LIMIT));
     }
 
     public void setPercentage(Double percentage) {

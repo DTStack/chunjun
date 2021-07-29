@@ -53,7 +53,7 @@ public class CarbondataUtil {
         return CarbonTable.buildFromTableInfo(wrapperTableInfo);
     }
 
-    public static void initFileFactory(Map<String,String> hadoopConfig, String defaultFS) {
+    public static void initFileFactory(Map<String,String> hadoopConfig, String defaultFs) {
         Configuration conf = new Configuration();
         conf.clear();
         if(hadoopConfig != null) {
@@ -62,8 +62,8 @@ public class CarbondataUtil {
             }
         }
 
-        if(StringUtils.isNotBlank(defaultFS)) {
-            conf.set("fs.default.name", defaultFS);
+        if(StringUtils.isNotBlank(defaultFs)) {
+            conf.set("fs.default.name", defaultFs);
         }
         conf.set("fs.hdfs.impl.disable.cache", "true");
 

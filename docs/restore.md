@@ -56,12 +56,12 @@ and id > ${offset}
 offset存在时
 
 ```sql
-第一个通道：
+#第一个通道:
 select * from data_test
 where id mod 2=0
 and id > ${offset_0};
 
-第二个通道
+#第二个通道:
 select * from data_test
 where id mod 2=1
 and id > ${offset_1};
@@ -70,11 +70,11 @@ and id > ${offset_1};
 offset不存在时
 
 ```sql
-第一个通道：
+#第一个通道:
 select * from data_test
 where id mod 2=0;
 
-第二个通道
+#第二个通道:
 select * from data_test
 where id mod 2=1;
 ```
@@ -91,7 +91,7 @@ where id mod 2=1;
 
 3. 检测 /data_test/.data 目录是否存在，如果存在就先删除，再创建，确保没有其它任务因异常失败遗留的脏数据文件；
    
-   数据写入hdfs是单条写入的，不支持批量写入。数据会先写入/data_test/.data/目录下，数据文件的命名格式为： channelIndex.jobId.fileIndex，包含通道索引，jobId，文件索引三个部分，文件最掐灭。
+   数据写入hdfs是单条写入的，不支持批量写入。数据会先写入/data_test/.data/目录下，数据文件的命名格式为： channelIndex.jobId.fileIndex，包含通道索引，jobId，文件索引三个部分。
 
 ##### **3**）checkpoint触发时
 

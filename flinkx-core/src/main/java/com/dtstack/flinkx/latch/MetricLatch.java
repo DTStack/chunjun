@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,8 @@
 
 package com.dtstack.flinkx.latch;
 
-import com.dtstack.flinkx.util.URLUtil;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.util.UrlUtil;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +39,7 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class MetricLatch extends Latch {
+public class MetricLatch extends BaseLatch {
 
     public static Logger LOG = LoggerFactory.getLogger(MetricLatch.class);
 
@@ -55,13 +57,13 @@ public class MetricLatch extends Latch {
         for(; j < monitorRoots.length; ++j) {
             String requestUrl = monitorRoots[j] + "/jobs/" + jobId + "/accumulators";
             LOG.info("Monitor url:" + requestUrl);
-            try(InputStream inputStream = URLUtil.open(requestUrl)) {
+            try(InputStream inputStream = UrlUtil.open(requestUrl, 10)) {
                 flag = true;
                 break;
             } catch (Exception e) {
                 exceptionMsg.append("Monitor url:").append(requestUrl).append("\n");
                 exceptionMsg.append("Error info:\n").append(e.getMessage()).append("\n");
-                LOG.error("Open monitor url error:{}",e);
+                LOG.error("Open monitor url error:", e);
             }
         }
 
@@ -71,8 +73,8 @@ public class MetricLatch extends Latch {
     }
 
     private int getIntMetricVal(String requestUrl) {
-        try(InputStream inputStream = URLUtil.open(requestUrl)) {
-            try(Reader rd = new InputStreamReader(inputStream)) {
+        try(InputStream inputStream = UrlUtil.open(requestUrl)) {
+            try(Reader rd = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
                 Map<String,Object> map = gson.fromJson(rd, Map.class);
                 List<LinkedTreeMap> userTaskAccumulators = (List<LinkedTreeMap>) map.get("user-task-accumulators");
                 for(LinkedTreeMap accumulator : userTaskAccumulators) {
@@ -95,7 +97,7 @@ public class MetricLatch extends Latch {
         Map<String, String> vars = context.getMetricGroup().getAllVariables();
         jobId = vars.get("<job_id>");
 
-        if(monitors.startsWith("http")) {
+        if(monitors.startsWith(ConstantValue.KEY_HTTP)) {
             monitorRoots = monitors.split(",");
         } else {
             String[] monitor = monitors.split(",");

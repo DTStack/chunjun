@@ -1,272 +1,101 @@
-# FlinkX
+FlinkX
+============
 
-## 1 什么是FlinkX
+[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-* **FlinkX是在是袋鼠云内部广泛使用的基于flink的分布式离线数据同步框架，实现了多种异构数据源之间高效的数据迁移。**
+English | [中文](README_CH.md)
 
-不同的数据源头被抽象成不同的Reader插件，不同的数据目标被抽象成不同的Writer插件。理论上，FlinkX框架可以支持任意数据源类型的数据同步工作。作为一套生态系统，每接入一套新数据源该新加入的数据源即可实现和现有的数据源互通。
+# Communication
 
-<div align=center>
-    <img src=docs/images/template.png width=400 />
-</div>
+- We are recruiting **Big data platform development engineers**.If you want more information about the position, please add WeChat ID [**ysqwhiletrue**] or email your resume to [sishu@dtstack.com](mailto:sishu@dtstack.com).
 
-## 2 工作原理
-
-在底层实现上，FlinkX依赖Flink，数据同步任务会被翻译成StreamGraph在Flink上执行，工作原理如下图：
-
-<div align=center>
-    <img src=docs/images/diagram.png width=600 />
-</div>
-
-## 3 快速起步
-
-### 3.1 运行模式
-
-* 单机模式：对应Flink集群的单机模式
-* standalone模式：对应Flink集群的分布式模式
-* yarn模式：对应Flink集群的yarn模式
-
-### 3.2 执行环境
-
-* Java: JDK8及以上
-* Flink集群: 1.4及以上（单机模式不需要安装Flink集群）
-* 操作系统：理论上不限，但是目前只编写了shell启动脚本，用户可以可以参考shell脚本编写适合特定操作系统的启动脚本。
-
-### 3.3 打包
-
-进入项目根目录，使用maven打包：
-
-```
-mvn clean package -Dmaven.test.skip
-```
-
-打包结束后，项目根目录下会产生bin目录和plugins目录，其中bin目录包含FlinkX的启动脚本，plugins目录下存放编译好的数据同步插件包
-
-### 3.4 启动
-
-#### 3.4.1 命令行参数选项
-
-* **model**
+- We use [DingTalk](https://www.dingtalk.com/) to communicate,You can search the group number [**30537511**] or scan the QR code below to join the communication group
   
-  * 描述：执行模式，也就是flink集群的工作模式
-    * local: 本地模式
-    * standalone: 独立部署模式的flink集群
-    * yarn: yarn模式的flink集群，需要提前在yarn上启动一个flink session，使用默认名称"Flink session cluster"
-  * 必选：否
-  * 默认值：local
+  <div align=center>
+     <img src=docs/images/ding.jpg width=300 />
+   </div>
 
-* **job**
-  
-  * 描述：数据同步任务描述文件的存放路径；该描述文件中使用json字符串存放任务信息。
-  * 必选：是
-  * 默认值：无
+# Introduction
 
-* **pluginRoot**
-  
-  * 描述：插件根目录地址，也就是打包后产生的pluginRoot目录。
-  * 必选：是
-  * 默认值：无
+FlinkX is a data synchronization tool based on Flink. FlinkX can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. FlinkX currently includes the following features:
 
-* **flinkconf**
-  
-  * 描述：flink配置文件所在的目录（单机模式下不需要），如/hadoop/flink-1.4.0/conf
-  * 必选：否
-  * 默认值：无
+- Most plugins support concurrent reading and writing of data, which can greatly improve the speed of reading and writing;
 
-* **yarnconf**
-  
-  * 描述：Hadoop配置文件（包括hdfs和yarn）所在的目录（单机模式下不需要），如/hadoop/etc/hadoop
-  * 必选：否
-  * 默认值：无
+- Some plug-ins support the function of failure recovery, which can restore tasks from the failed location and save running time; [Failure Recovery](docs/restore.md)
 
-#### 3.4.2 启动数据同步任务
+- The Reader plugin for relational databases supports interval polling. It can continuously collect changing data; [Interval Polling](docs/offline/reader/mysqlreader.md)
 
-* **以本地模式启动数据同步任务**
+- Some databases support opening Kerberos security authentication;  [Kerberos](docs/kerberos.md)
 
-```
-bin/flinkx -mode local -job /Users/softfly/company/flink-data-transfer/jobs/task_to_run.json -pluginRoot /Users/softfly/company/flink-data-transfer/plugins -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
-```
+- Limit the reading speed of Reader plugins and reduce the impact on business databases;
 
-* **以standalone模式启动数据同步任务**
+- Save the dirty data when writing data;
 
-```
-bin/flinkx -mode standalone -job /Users/softfly/company/flink-data-transfer/jobs/oracle_to_oracle.json  -pluginRoot /Users/softfly/company/flink-data-transfer/plugins -flinkconf /hadoop/flink-1.4.0/conf -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
-```
+- Limit the maximum number of dirty data;
 
-* **以yarn模式启动数据同步任务**
+- Multiple running modes: Local,Standalone,Yarn Session,Yarn Per;
 
-```
-bin/flinkx -mode yarn -job /Users/softfly/company/flinkx/jobs/mysql_to_mysql.json  -pluginRoot /opt/dtstack/flinkplugin/syncplugin -flinkconf /opt/dtstack/myconf/conf -yarnconf /opt/dtstack/myconf/hadoop -confProp "{"flink.checkpoint.interval":60000,"flink.checkpoint.stateBackend":"/flink_checkpoint/"}" -s /flink_checkpoint/0481473685a8e7d22e7bd079d6e5c08c/chk-*
-```
+The following databases are currently supported:
 
-## 4 数据同步任务模版
+|                        | Database Type  | Reader                          | Writer                          |
+|:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|
+| Batch Synchronization  | MySQL          | [doc](docs/offline/reader/mysqlreader.md)        | [doc](docs/offline/writer/mysqlwriter.md)      |
+|                        | Oracle         | [doc](docs/offline/reader/oraclereader.md)       | [doc](docs/offline/writer/oraclewriter.md)     |
+|                        | SqlServer      | [doc](docs/offline/reader/sqlserverreader.md)    | [doc](docs/offline/writer/sqlserverwriter.md)  |
+|                        | PostgreSQL     | [doc](docs/offline/reader/postgresqlreader.md)   | [doc](docs/offline/writer/postgresqlwriter.md) |
+|                        | DB2            | [doc](docs/offline/reader/db2reader.md)          | [doc](docs/offline/writer/db2writer.md)        |
+|                        | GBase          | [doc](docs/offline/reader/gbasereader.md)        | [doc](docs/offline/writer/gbasewriter.md)      |
+|                        | ClickHouse     | [doc](docs/offline/reader/clickhousereader.md)   | [doc](docs/offline/writer/clickhousewriter.md) |
+|                        | PolarDB        | [doc](docs/offline/reader/polardbreader.md)      | [doc](docs/offline/writer/polardbwriter.md)    |
+|                        | SAP Hana       | [doc](docs/offline/reader/saphanareader.md)      | [doc](docs/offline/writer/saphanawriter.md)    |
+|                        | Teradata       | [doc](docs/offline/reader/teradatareader.md)     | [doc](docs/offline/writer/teradatawriter.md)   |
+|                        | Phoenix        | [doc](docs/offline/reader/phoenixreader.md)      | [doc](docs/offline/writer/phoenixwriter.md)    |
+|                        | 达梦            | [doc](docs/offline/reader/dmreader.md)           | [doc](docs/offline/writer/dmwriter.md)        |
+|                        | Greenplum      | [doc](docs/offline/reader/greenplumreader.md)    | [doc](docs/offline/writer/greenplumwriter.md)  |
+|                        | KingBase       | [doc](docs/offline/reader/kingbasereader.md)     | [doc](docs/offline/writer/kingbasewriter.md)   |
+|                        | Cassandra      | [doc](docs/offline/reader/cassandrareader.md)    | [doc](docs/offline/writer/cassandrawriter.md)  |
+|                        | ODPS           | [doc](docs/offline/reader/odpsreader.md)         | [doc](docs/offline/writer/odpswriter.md)       |
+|                        | HBase          | [doc](docs/offline/reader/hbasereader.md)        | [doc](docs/offline/writer/hbasewriter.md)      |
+|                        | MongoDB        | [doc](docs/offline/reader/mongodbreader.md)      | [doc](docs/offline/writer/mongodbwriter.md)    |
+|                        | Kudu           | [doc](docs/offline/reader/kudureader.md)         | [doc](docs/offline/writer/kuduwriter.md)       |
+|                        | ElasticSearch  | [doc](docs/offline/reader/esreader.md)           | [doc](docs/offline/writer/eswriter.md)         |
+|                        | FTP            | [doc](docs/offline/reader/ftpreader.md)          | [doc](docs/offline/writer/ftpwriter.md)        |
+|                        | HDFS           | [doc](docs/offline/reader/hdfsreader.md)         | [doc](docs/offline/writer/hdfswriter.md)       |
+|                        | Carbondata     | [doc](docs/offline/reader/carbondatareader.md)   | [doc](docs/offline/writer/carbondatawriter.md) |
+|                        | Stream         | [doc](docs/offline/reader/streamreader.md)       | [doc](docs/offline/writer/carbondatawriter.md) |
+|                        | Redis          |                                                  | [doc](docs/offline/writer/rediswriter.md)      |
+|                        | Hive           |                                                  | [doc](docs/offline/writer/hivewriter.md)       |
+| Stream Synchronization | Kafka          | [doc](docs/realTime/reader/kafkareader.md)       | [doc](docs/realTime/writer/kafkawriter.md)     |
+|                        | EMQX           | [doc](docs/realTime/reader/emqxreader.md)        | [doc](docs/realTime/writer/emqxwriter.md)      |
+|                        | RestApi        || [doc](docs/realTime/writer/restapiwriter.md)   |
+|                        | MySQL Binlog   | [doc](docs/realTime/reader/binlogreader.md)      |                                                |
+|                        | MongoDB Oplog  | [doc](docs/realTime/reader/mongodboplogreader.md)|                                                |
+|                        | PostgreSQL WAL | [doc](docs/realTime/reader/pgwalreader.md)       |                                                |
 
-从最高空俯视，一个数据同步的构成很简单，如下：
+# Quick Start
 
-```
-{
-    "job": {
-        "setting": {...},
-        "content": [...]
-    }
-}
-```
+Please click [Quick Start](docs/quickstart.md)
 
-数据同步任务包括一个job元素，而这个元素包括setting和content两部分。
+# General Configuration
 
-* setting: 用于配置限速、错误控制和脏数据管理
-* content: 用于配置具体任务信息，包括从哪里来（Reader插件信息），到哪里去（Writer插件信息）
+Please click [General Configuration](docs/generalconfig.md)
 
-### 4.1 setting
+# Statistics Metric
 
-```
-    "setting": {
-        "speed": {...},
-        "errorLimit": {...},
-        "dirty": {...}
-    }
-```
+Please click [Statistics Metric](docs/statistics.md)
 
-setting包括speed、errorLimit和dirty三部分，分别描述限速、错误控制和脏数据管理的配置信息
+# Kerberos
 
-#### 4.1.1 speed
+Please click [Kerberos](docs/kerberos.md)
 
-```
-            "speed": {
-                 "channel": 3,
-                 "bytes": 0
-            }
-```
+# Questions
 
-* channel: 任务并发数
-* bytes: 每秒字节数，默认为 Long.MAX_VALUE
+Please click [Questions](docs/questions.md)
 
-#### 4.1.2 errorLimit
+# How to contribute FlinkX
 
-```
-            "errorLimit": {
-                "record": 10000,
-                "percentage": 100
-            }
-```
+Please click [Contribution](docs/contribution.md)
 
-* record: 出错记录数超过record设置的条数时，任务标记为失败
-* percentage: 当出错记录数超过percentage百分数时，任务标记为失败
+# License
 
-#### 4.1.3 dirty
-
-```
-        "dirty": {
-                "path": "/tmp",
-                "hadoopConfig": {
-                    "fs.default.name": "hdfs://ns1",
-                    "dfs.nameservices": "ns1",
-                    "dfs.ha.namenodes.ns1": "nn1,nn2",
-                    "dfs.namenode.rpc-address.ns1.nn1": "node02:9000",
-                    "dfs.namenode.rpc-address.ns1.nn2": "node03:9000",
-                    "dfs.ha.automatic-failover.enabled": "true",
-                    "dfs.client.failover.proxy.provider.ns1": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
-                    "fs.hdfs.impl.disable.cache": "true"
-                }
-            }
-```
-
-* path: 脏数据存放路径
-* hadoopConfig: 脏数据存放路径对应hdfs的配置信息(hdfs高可用配置)
-
-#### 4.1.4  restore
-
-```
-"restore": {
-
-        "isRestore": false,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
-      }
-```
-
-restore配置请参考[断点续传](docs/restore.md)
-
-### 4.2 content
-
-```
-        "content": [
-            {
-               "reader": {
-                    "name": "...",
-                    "parameter": {
-                        ...
-                    }
-                },
-               "writer": {
-                    "name": "...",
-                    "parameter": {
-                         ...
-                     }
-                }
-            }
-        ]
-```
-
-* reader: 用于读取数据的插件的信息
-* writer: 用于写入数据的插件的信息
-
-reader和writer包括name和parameter，分别表示插件名称和插件参数
-
-### 4.3 数据同步任务例子
-
-详见flinkx-examples子工程
-
-## 5. 数据同步插件
-
-### 5.1 读取插件
-
-* [关系数据库读取插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase)](docs/rdbreader.md)
-* [分库分表读取插件](docs/rdbdreader.md)
-* [HDFS读取插件](docs/hdfsreader.md)
-* [HBase读取插件](docs/hbasereader.md)
-* [Elasticsearch读取插件](docs/esreader.md)
-* [Ftp读取插件](docs/ftpreader.md)
-* [Odps读取插件](docs/odpsreader.md)
-* [MongoDB读取插件](docs/mongodbreader.md)
-* [Stream读取插件](docs/streamreader.md)
-* [Carbondata读取插件](docs/carbondatareader.md)
-* [MySQL binlog读取插件](docs/binlog.md)
-* [KafKa读取插件](docs/kafkareader.md)
-* [Kudu读取插件](docs/kudureader.md)
-
-
-### 5.2 写入插件
-
-* [关系数据库写入插件(Mysql,Oracle,Sqlserver,Postgresql,Db2,Gbase)](docs/rdbwriter.md)
-* [HDFS写入插件](docs/hdfswriter.md)
-* [HBase写入插件](docs/hbasewriter.md)
-* [Elasticsearch写入插件](docs/eswriter.md)
-* [Ftp写入插件](docs/ftpwriter.md)
-* [Odps写入插件](docs/odpswriter.md)
-* [MongoDB写入插件](docs/mongodbwriter.md)
-* [Redis写入插件](docs/rediswriter.md)
-* [Stream写入插件](docs/streamwriter.md)
-* [Carbondata写入插件](docs/carbondatawriter.md)
-* [Kafka写入插件](docs/kafkawriter.md)
-* [Hive写入插件](docs/hivewriter.md)
-* [Kudu写入插件](docs/kuduwriter.md)
-
-[断点续传和实时采集功能介绍](docs/restore.md)
-
-[数据源开启Kerberos](docs/kerberos.md)
-
-[统计指标说明](docs/statistics.md)
-
-## 6.版本说明
-
- 1.flinkx的分支版本跟flink的版本对应，比如：flinkx v1.5.0 对应 flink1.5.0,版本说明：
-
-| 插件版本  | flink版本 |
-| ----- | ------- |
-| 1.5.x | 1.5.4   |
-| 1.8.x | 1.8.1   |
-
-## 7.招聘信息
-
- 1.大数据平台开发工程师，想了解岗位详细信息可以添加本人微信号ysqwhiletrue,注明招聘，如有意者发送简历至sishu@dtstack.com。
+FlinkX is under the Apache 2.0 license. See the [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) file for details.

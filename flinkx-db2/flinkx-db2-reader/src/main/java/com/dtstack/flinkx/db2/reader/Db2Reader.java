@@ -20,7 +20,9 @@ package com.dtstack.flinkx.db2.reader;
 
 import com.dtstack.flinkx.config.DataTransferConfig;
 import com.dtstack.flinkx.db2.Db2DatabaseMeta;
+import com.dtstack.flinkx.db2.format.Db2InputFormat;
 import com.dtstack.flinkx.rdb.datareader.JdbcDataReader;
+import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormatBuilder;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -34,5 +36,10 @@ public class Db2Reader extends JdbcDataReader {
     public Db2Reader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
         setDatabaseInterface(new Db2DatabaseMeta());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new Db2InputFormat());
     }
 }

@@ -24,22 +24,31 @@ import com.dtstack.flinkx.config.WriterConfig;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.kudu.core.KuduConfigBuilder;
 import com.dtstack.flinkx.reader.MetaColumn;
-import com.dtstack.flinkx.writer.DataWriter;
+import com.dtstack.flinkx.writer.BaseDataWriter;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 import org.apache.kudu.client.AsyncKuduClient;
 
 import java.util.List;
+import java.util.Map;
 
-import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.*;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_ADMIN_OPERATION_TIMEOUT;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_AUTHENTICATION;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_BOSS_COUNT;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_FLUSH_MODE;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_KEYTABFILE;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_MASTER_ADDRESSES;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_OPERATION_TIMEOUT;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_PRINCIPAL;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_TABLE;
+import static com.dtstack.flinkx.kudu.core.KuduConfigKeys.KEY_WORKER_COUNT;
 
 /**
  * @author jiangbo
  * @date 2019/7/31
  */
-public class KuduWriter extends DataWriter {
+public class KuduWriter extends BaseDataWriter {
 
     private List<MetaColumn> columns;
 
@@ -48,6 +57,8 @@ public class KuduWriter extends DataWriter {
     private String writeMode;
 
     private int batchInterval;
+
+    protected Map<String,Object> hadoopConfig;
 
     public KuduWriter(DataTransferConfig config) {
         super(config);
@@ -69,6 +80,8 @@ public class KuduWriter extends DataWriter {
                 .withTable(parameterConfig.getStringVal(KEY_TABLE))
                 .withFlushMode(parameterConfig.getStringVal(KEY_FLUSH_MODE))
                 .build();
+
+        hadoopConfig = (Map<String, Object>) parameterConfig.getVal("hadoopConfig");
     }
 
     @Override
@@ -81,10 +94,10 @@ public class KuduWriter extends DataWriter {
         builder.setBatchInterval(batchInterval);
         builder.setErrors(errors);
         builder.setErrorRatio(errorRatio);
-
-        DtOutputFormatSinkFunction formatSinkFunction = new DtOutputFormatSinkFunction(builder.finish());
-        DataStreamSink<?> dataStreamSink = dataSet.addSink(formatSinkFunction);
-        dataStreamSink.name("kuduwriter");
-        return dataStreamSink;
+        builder.setHadoopConfig(hadoopConfig);
+        builder.setDirtyPath(dirtyPath);
+        builder.setDirtyHadoopConfig(dirtyHadoopConfig);
+        builder.setSrcCols(srcCols);
+        return createOutput(dataSet,builder.finish());
     }
 }

@@ -20,21 +20,29 @@ package com.dtstack.flinkx.rdb.outputformat;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.RichOutputFormat;
+import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.rdb.DatabaseInterface;
 import com.dtstack.flinkx.rdb.type.TypeConverterInterface;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,9 +53,9 @@ import java.util.Map;
  * Company: www.dtstack.com
  * @author huyifan.zju@163.com
  */
-public class JdbcOutputFormat extends RichOutputFormat {
+public class JdbcOutputFormat extends BaseRichOutputFormat {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(JdbcOutputFormat.class);
 
     protected static final long serialVersionUID = 1L;
 
@@ -57,7 +65,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected String driverName;
 
-    protected String dbURL;
+    protected String dbUrl;
 
     protected Connection dbConn;
 
@@ -88,13 +96,18 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     protected TypeConverterInterface typeConverter;
 
-    private Row lastRow = null;
+    protected Row lastRow = null;
 
-    private boolean readyCheckpoint;
+    protected boolean readyCheckpoint;
 
     protected long rowsOfCurrentTransaction;
 
-    protected final static String GET_ORACLE_INDEX_SQL = "SELECT " +
+    /**
+     * schema名
+     */
+    public String schema;
+
+    protected final static String GET_INDEX_SQL = "SELECT " +
             "t.INDEX_NAME," +
             "t.COLUMN_NAME " +
             "FROM " +
@@ -106,6 +119,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             "AND t.table_name = '%s'";
 
     protected final static String CONN_CLOSE_ERROR_MSG = "No operations allowed";
+    protected static List<String> STRING_TYPES = Arrays.asList("CHAR", "VARCHAR","TINYBLOB","TINYTEXT","BLOB","TEXT", "MEDIUMBLOB", "MEDIUMTEXT", "LONGBLOB", "LONGTEXT");
 
     protected PreparedStatement prepareTemplates() throws SQLException {
         if(CollectionUtils.isEmpty(fullColumn)) {
@@ -132,19 +146,18 @@ public class JdbcOutputFormat extends RichOutputFormat {
     protected void openInternal(int taskNumber, int numTasks){
         try {
             ClassUtil.forName(driverName, getClass().getClassLoader());
-            dbConn = DBUtil.getConnection(dbURL, username, password);
+            dbConn = DbUtil.getConnection(dbUrl, username, password);
 
-            if (restoreConfig.isRestore()){
-                dbConn.setAutoCommit(false);
-            }
+            //默认关闭事务自动提交，手动控制事务
+            dbConn.setAutoCommit(false);
 
             if(CollectionUtils.isEmpty(fullColumn)) {
-                fullColumn = probeFullColumns(table, dbConn);
+                fullColumn = probeFullColumns(getTable(), dbConn);
             }
 
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(mode)){
                 if(updateKey == null || updateKey.size() == 0) {
-                    updateKey = probePrimaryKeys(table, dbConn);
+                    updateKey = probePrimaryKeys(getTable(), dbConn);
                 }
             }
 
@@ -167,16 +180,18 @@ public class JdbcOutputFormat extends RichOutputFormat {
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
+        }finally {
+            DbUtil.commit(dbConn);
         }
     }
 
-    private List<String> analyzeTable() {
+    protected List<String> analyzeTable() {
         List<String> ret = new ArrayList<>();
         Statement stmt = null;
         ResultSet rs = null;
         try {
             stmt = dbConn.createStatement();
-            rs = stmt.executeQuery(databaseInterface.getSQLQueryFields(databaseInterface.quoteTable(table)));
+            rs = stmt.executeQuery(databaseInterface.getSqlQueryFields(databaseInterface.quoteTable(table)));
             ResultSetMetaData rd = rs.getMetaData();
             for(int i = 0; i < rd.getColumnCount(); ++i) {
                 ret.add(rd.getColumnTypeName(i+1));
@@ -190,7 +205,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            DBUtil.closeDBResources(rs, stmt,null, false);
+            DbUtil.closeDbResources(rs, stmt,null, false);
         }
 
         return ret;
@@ -201,11 +216,13 @@ public class JdbcOutputFormat extends RichOutputFormat {
         int index = 0;
         try {
             for (; index < row.getArity(); index++) {
-                preparedStatement.setObject(index+1,getField(row,index));
+                preparedStatement.setObject(index+1, getField(row, index));
             }
 
             preparedStatement.execute();
+            DbUtil.commit(dbConn);
         } catch (Exception e) {
+            DbUtil.rollBack(dbConn);
             processWriteException(e, index, row);
         }
     }
@@ -218,7 +235,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
 
         if(index < row.getArity()) {
-            throw new WriteRecordException(recordConvertDetailErrorMessage(index, row), e, index, row);
+            String message = recordConvertDetailErrorMessage(index, row);
+            LOG.error(message, e);
+            throw new WriteRecordException(message, e, index, row);
         }
         throw new WriteRecordException(e.getMessage(), e);
     }
@@ -232,8 +251,8 @@ public class JdbcOutputFormat extends RichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
             for (Row row : rows) {
-                for (int j = 0; j < row.getArity(); ++j) {
-                    preparedStatement.setObject(j + 1, getField(row, j));
+                for (int index = 0; index < row.getArity(); index++) {
+                    preparedStatement.setObject(index+1, getField(row, index));
                 }
                 preparedStatement.addBatch();
 
@@ -251,14 +270,14 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
             if(restoreConfig.isRestore()){
                 rowsOfCurrentTransaction += rows.size();
+            }else{
+                //手动提交事务
+                DbUtil.commit(dbConn);
             }
+            preparedStatement.clearBatch();
         } catch (Exception e){
-            if (restoreConfig.isRestore()){
-                LOG.warn("writeMultipleRecordsInternal:Start rollback");
-                dbConn.rollback();
-                LOG.warn("writeMultipleRecordsInternal:Rollback success");
-            }
-
+            LOG.warn("error to writeMultipleRecords, start to rollback connection, e = {}", ExceptionUtil.getErrorMessage(e));
+            DbUtil.rollBack(dbConn);
             throw e;
         }
     }
@@ -276,11 +295,18 @@ public class JdbcOutputFormat extends RichOutputFormat {
             if (readyCheckpoint || rowsOfCurrentTransaction > restoreConfig.getMaxRowNumForCheckpoint()){
 
                 LOG.info("getFormatState:Start commit connection");
-                preparedStatement.executeBatch();
+                if(rows != null && rows.size() > 0){
+                    super.writeRecordInternal();
+                }else{
+                    preparedStatement.executeBatch();
+                }
+                //若事务提交失败，抛出异常
                 dbConn.commit();
+                preparedStatement.clearBatch();
                 LOG.info("getFormatState:Commit connection success");
 
                 snapshotWriteCounter.add(rowsOfCurrentTransaction);
+                numWriteCounter.add(rowsOfCurrentTransaction);
                 rowsOfCurrentTransaction = 0;
 
                 formatState.setState(lastRow.getField(restoreConfig.getRestoreColumnIndex()));
@@ -295,6 +321,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         } catch (Exception e){
             try {
                 LOG.warn("getFormatState:Start rollback");
+                //若事务回滚失败，抛出异常
                 dbConn.rollback();
                 LOG.warn("getFormatState:Rollback success");
             } catch (SQLException sqlE){
@@ -305,9 +332,23 @@ public class JdbcOutputFormat extends RichOutputFormat {
         }
     }
 
+    /**
+     * 获取转换后的字段value
+     * @param row
+     * @param index
+     * @return
+     */
     protected Object getField(Row row, int index) {
         Object field = row.getField(index);
         String type = columnType.get(index);
+
+        //field为空字符串，且写入目标类型不为字符串类型的字段，则将object设置为null
+        if(field instanceof String
+                && StringUtils.isBlank((String) field)
+                &&!STRING_TYPES.contains(type)){
+            return null;
+        }
+
         if(type.matches(DateUtil.DATE_REGEX)) {
             field = DateUtil.columnToDate(field,null);
         } else if(type.matches(DateUtil.DATETIME_REGEX) || type.matches(DateUtil.TIMESTAMP_REGEX)){
@@ -331,7 +372,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
     }
 
     protected Map<String, List<String>> probePrimaryKeys(String table, Connection dbConn) throws SQLException {
-        Map<String, List<String>> map = new HashMap<>();
+        Map<String, List<String>> map = new HashMap<>(16);
         ResultSet rs = dbConn.getMetaData().getIndexInfo(null, null, table, true, false);
         while(rs.next()) {
             String indexName = rs.getString("INDEX_NAME");
@@ -340,7 +381,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             }
             map.get(indexName).add(rs.getString("COLUMN_NAME"));
         }
-        Map<String,List<String>> retMap = new HashMap<>();
+        Map<String,List<String>> retMap = new HashMap<>((map.size()<<2)/3);
         for(Map.Entry<String,List<String>> entry: map.entrySet()) {
             String k = entry.getKey();
             List<String> v = entry.getValue();
@@ -356,6 +397,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
         readyCheckpoint = false;
         boolean commit = true;
         try{
+            numWriteCounter.add(rowsOfCurrentTransaction);
             String state = getTaskState();
             // Do not commit a transaction when the task is canceled or failed
             if(!RUNNING_STATE.equals(state) && restoreConfig.isRestore()){
@@ -365,7 +407,7 @@ public class JdbcOutputFormat extends RichOutputFormat {
             LOG.error("Get task status error:{}", e.getMessage());
         }
 
-        DBUtil.closeDBResources(null, preparedStatement, dbConn, commit);
+        DbUtil.closeDbResources(null, preparedStatement, dbConn, commit);
         dbConn = null;
     }
 
@@ -376,8 +418,9 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     protected void beforeWriteRecords()  {
+        // preSql
         if(taskNumber == 0) {
-            DBUtil.executeBatch(dbConn, preSql);
+            DbUtil.executeBatch(dbConn, preSql);
         }
     }
 
@@ -388,10 +431,21 @@ public class JdbcOutputFormat extends RichOutputFormat {
 
     @Override
     protected void beforeCloseInternal() {
-        // 执行postsql
+        // 执行postSql
         if(taskNumber == 0) {
-            DBUtil.executeBatch(dbConn, postSql);
+            DbUtil.executeBatch(dbConn, postSql);
         }
     }
 
+    /**
+     * 获取table名称，如果table是schema.table格式，可重写此方法 只返回table
+     * @return
+     */
+    protected String getTable(){
+        return table;
+    }
+
+    public void setSchema(String schema){
+        this.schema = schema;
+    }
 }

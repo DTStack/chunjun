@@ -19,14 +19,14 @@ package com.dtstack.flinkx.sqlserver.format;
 
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.rdb.inputformat.JdbcInputFormat;
-import com.dtstack.flinkx.rdb.util.DBUtil;
+import com.dtstack.flinkx.rdb.util.DbUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.types.Row;
 
 import java.io.IOException;
 import java.sql.Timestamp;
 
-import static com.dtstack.flinkx.rdb.util.DBUtil.clobToString;
+import static com.dtstack.flinkx.rdb.util.DbUtil.clobToString;
 
 /**
  * Date: 2019/09/19
@@ -46,10 +46,10 @@ public class SqlserverInputFormat extends JdbcInputFormat {
         try {
             for (int pos = 0; pos < row.getArity(); pos++) {
                 Object obj = resultSet.getObject(pos + 1);
-                if(obj != null) {
-                    if(CollectionUtils.isNotEmpty(descColumnTypeList)) {
-                        if(descColumnTypeList.get(pos).equalsIgnoreCase("bit")) {
-                            if(obj instanceof Boolean) {
+                if (obj != null) {
+                    if (CollectionUtils.isNotEmpty(descColumnTypeList)) {
+                        if ("bit".equalsIgnoreCase(descColumnTypeList.get(pos))) {
+                            if (obj instanceof Boolean) {
                                 obj = ((Boolean) obj ? 1 : 0);
                             }
                         }
@@ -60,17 +60,18 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                 row.setField(pos, obj);
             }
             return super.nextRecordInternal(row);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new IOException("Couldn't read data - " + e.getMessage(), e);
         }
     }
 
     /**
      * 构建边界位置sql
-     * @param incrementColType  增量字段类型
-     * @param incrementCol      增量字段名称
-     * @param location          边界位置(起始/结束)
-     * @param operator          判断符( >, >=,  <)
+     *
+     * @param incrementColType 增量字段类型
+     * @param incrementCol     增量字段名称
+     * @param location         边界位置(起始/结束)
+     * @param operator         判断符( >, >=,  <)
      * @return
      */
     @Override
@@ -79,13 +80,13 @@ public class SqlserverInputFormat extends JdbcInputFormat {
         String endLocationSql;
         boolean isTimeType = ColumnType.isTimeType(incrementColType)
                 || ColumnType.NVARCHAR.name().equals(incrementColType);
-        if(isTimeType){
+        if (isTimeType) {
             endTimeStr = getTimeStr(Long.parseLong(location), incrementColType);
             endLocationSql = incrementCol + operator + endTimeStr;
-        } else if(ColumnType.isNumberType(incrementColType)){
+        } else if (ColumnType.isNumberType(incrementColType)) {
             endLocationSql = incrementCol + operator + location;
         } else {
-            endTimeStr = String.format("'%s'",location);
+            endTimeStr = String.format("'%s'", location);
             endLocationSql = incrementCol + operator + endTimeStr;
         }
 
@@ -94,18 +95,19 @@ public class SqlserverInputFormat extends JdbcInputFormat {
 
     /**
      * 构建时间边界字符串
-     * @param location          边界位置(起始/结束)
-     * @param incrementColType  增量字段类型
+     *
+     * @param location         边界位置(起始/结束)
+     * @param incrementColType 增量字段类型
      * @return
      */
     @Override
-    protected String getTimeStr(Long location, String incrementColType){
+    protected String getTimeStr(Long location, String incrementColType) {
         String timeStr;
-        Timestamp ts = new Timestamp(DBUtil.getMillis(location));
-        ts.setNanos(DBUtil.getNanos(location));
-        timeStr = DBUtil.getNanosTimeStr(ts.toString());
-        timeStr = timeStr.substring(0,23);
-        timeStr = String.format("'%s'",timeStr);
+        Timestamp ts = new Timestamp(DbUtil.getMillis(location));
+        ts.setNanos(DbUtil.getNanos(location));
+        timeStr = DbUtil.getNanosTimeStr(ts.toString());
+        timeStr = timeStr.substring(0, 23);
+        timeStr = String.format("'%s'", timeStr);
 
         return timeStr;
     }

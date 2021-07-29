@@ -19,17 +19,19 @@
 
 package com.dtstack.flinkx.kudu.reader;
 
-import com.dtstack.flinkx.inputformat.RichInputFormatBuilder;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.kudu.core.KuduConfig;
 import com.dtstack.flinkx.reader.MetaColumn;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jiangbo
  * @date 2019/7/31
  */
-public class KuduInputFormatBuilder extends RichInputFormatBuilder {
+public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private KuduInputFormat format;
 
@@ -45,10 +47,18 @@ public class KuduInputFormatBuilder extends RichInputFormatBuilder {
         format.kuduConfig = kuduConfig;
     }
 
+    public void setHadoopConfig(Map<String,Object> hadoopConfig) {
+        format.setHadoopConfig(hadoopConfig);
+    }
+
     @Override
     protected void checkFormat() {
         if (format.columns == null || format.columns.size() == 0){
             throw new IllegalArgumentException("columns can not be empty");
+        }
+
+        if (format.kuduConfig.getBatchSizeBytes() > ConstantValue.STORE_SIZE_G) {
+            throw new IllegalArgumentException("批量读取字节数必须小于[1G]");
         }
     }
 }

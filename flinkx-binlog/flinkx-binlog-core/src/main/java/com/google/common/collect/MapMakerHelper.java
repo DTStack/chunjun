@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,6 +23,9 @@ import com.google.common.base.Function;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * @author toutian
+ */
 public class MapMakerHelper {
 
     public static MapMaker softValues(MapMaker mapMaker) {
