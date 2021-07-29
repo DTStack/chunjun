@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.solr;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.solr.SolrConf;
 import com.dtstack.flinkx.connector.solr.converter.SolrColumnConverter;
 import com.dtstack.flinkx.connector.solr.converter.SolrRawTypeConverter;
 import com.dtstack.flinkx.connector.solr.converter.SolrRowConverter;
@@ -34,12 +33,12 @@ import java.util.List;
  * @author Ada Wong
  * @program flinkx
  * @create 2021/06/28
- **/
+ */
 public class SolrConverterFactory {
 
-    private RowType rowType;
-    private List<String> fieldNames;
-    private List<String> fieldTypes;
+    private final RowType rowType;
+    private final List<String> fieldNames;
+    private final List<String> fieldTypes;
 
     public SolrConverterFactory(SolrConf solrConf) {
         fieldNames = new ArrayList<>();

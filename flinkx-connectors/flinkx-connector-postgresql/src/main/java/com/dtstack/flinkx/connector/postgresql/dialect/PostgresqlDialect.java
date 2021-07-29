@@ -22,6 +22,7 @@ import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.postgresql.converter.PostgresqlRawTypeConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;

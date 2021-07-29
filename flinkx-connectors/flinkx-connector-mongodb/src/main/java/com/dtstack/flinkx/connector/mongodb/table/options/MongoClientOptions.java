@@ -59,14 +59,8 @@ public class MongoClientOptions {
                     .withDescription("the MongoDB database.");
     // Read Only
     public static final ConfigOption<String> FILTER =
-            ConfigOptions.key("filter")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("");
+            ConfigOptions.key("filter").stringType().noDefaultValue().withDescription("");
 
     public static final ConfigOption<String> FETCH_SIZE =
-            ConfigOptions.key("fetch-size")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("");
+            ConfigOptions.key("fetch-size").stringType().noDefaultValue().withDescription("");
 }

@@ -18,14 +18,15 @@
 
 package com.dtstack.flinkx.connector.mongodb.table.lookup;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.mongodb.MongoClientFactory;
 import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.flinkx.connector.mongodb.converter.MongodbRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.google.common.collect.Maps;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
@@ -43,10 +44,10 @@ import java.util.Map;
  */
 public class MongoAllTableFunction extends AbstractAllTableFunction {
 
+    private static final int FETCH_SIZE = 1000;
     private final MongoClientConf mongoClientConf;
     private transient MongoClient mongoClient;
     private transient MongoCollection collection;
-    private static final int FETCH_SIZE = 1000;
 
     public MongoAllTableFunction(
             MongoClientConf mongoClientConf,

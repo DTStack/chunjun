@@ -18,13 +18,6 @@
 
 package com.dtstack.flinkx.connector.mongodb.table;
 
-import org.apache.flink.table.api.TableSchema;
-import org.apache.flink.table.connector.ChangelogMode;
-import org.apache.flink.table.connector.sink.DynamicTableSink;
-import org.apache.flink.table.connector.sink.SinkFunctionProvider;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.types.RowKind;
-
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.flinkx.connector.mongodb.conf.MongoWriteConf;
@@ -32,6 +25,13 @@ import com.dtstack.flinkx.connector.mongodb.converter.MongodbRowConverter;
 import com.dtstack.flinkx.connector.mongodb.sink.MongodbOutputFormat;
 import com.dtstack.flinkx.connector.mongodb.sink.MongodbOutputFormatBuilder;
 import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
+import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.connector.ChangelogMode;
+import org.apache.flink.table.connector.sink.DynamicTableSink;
+import org.apache.flink.table.connector.sink.SinkFunctionProvider;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.types.RowKind;
 
 /**
  * @author Ada Wong

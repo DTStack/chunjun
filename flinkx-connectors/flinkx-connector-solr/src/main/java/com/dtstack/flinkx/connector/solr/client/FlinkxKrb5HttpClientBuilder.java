@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.solr.client;
 
 import com.dtstack.flinkx.security.KerberosUtils;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequestInterceptor;

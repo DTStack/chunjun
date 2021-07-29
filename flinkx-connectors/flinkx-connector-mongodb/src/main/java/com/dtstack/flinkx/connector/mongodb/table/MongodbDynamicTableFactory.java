@@ -18,7 +18,11 @@
 
 package com.dtstack.flinkx.connector.mongodb.table;
 
+import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.flinkx.connector.mongodb.conf.MongoWriteConf;
+import com.dtstack.flinkx.connector.mongodb.table.options.MongoClientOptions;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.lookup.conf.LookupConfFactory;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
@@ -29,11 +33,6 @@ import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
-
-import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
-import com.dtstack.flinkx.connector.mongodb.table.options.MongoClientOptions;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.lookup.conf.LookupConfFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -172,7 +171,6 @@ public class MongodbDynamicTableFactory
         config.getOptional(SINK_PARALLELISM).ifPresent(mongoWriteConf::setParallelism);
         config.getOptional(SINK_BUFFER_FLUSH_MAX_ROWS).ifPresent(mongoWriteConf::setFlushMaxRows);
         config.getOptional(SINK_BUFFER_FLUSH_INTERVAL).ifPresent(mongoWriteConf::setFlushInterval);
-        return new MongodbDynamicTableSink(
-                mongoClientConf, physicalSchema, mongoWriteConf);
+        return new MongodbDynamicTableSink(mongoClientConf, physicalSchema, mongoWriteConf);
     }
 }

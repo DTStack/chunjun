@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class SolrInputFormatBuilder extends BaseRichInputFormatBuilder {
 
-    private SolrConf solrConf;
+    private final SolrConf solrConf;
 
     public SolrInputFormatBuilder(SolrConf solrConf) {
         this.solrConf = solrConf;

@@ -18,13 +18,13 @@
 
 package com.dtstack.flinkx.connector.mongodb.datasync;
 
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.mongodb.converter.MongodbColumnConverter;
 import com.dtstack.flinkx.connector.mongodb.converter.MongodbRawTypeConverter;
 import com.dtstack.flinkx.connector.mongodb.converter.MongodbRowConverter;
 import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.flink.table.types.logical.RowType;
 
 import java.util.ArrayList;
 import java.util.List;

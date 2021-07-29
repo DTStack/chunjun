@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.mongodb.datasync;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.mongodb.conf.MongodbClientOptions;
+
 import com.mongodb.AuthenticationMechanism;
 
 import java.io.Serializable;

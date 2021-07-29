@@ -18,14 +18,15 @@
 
 package com.dtstack.flinkx.connector.postgresql.source;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.connector.postgresql.dialect.PostgresqlDialect;
 
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 /**
  * Starting with Postgresql that is for compatible with 1.10 API.
+ *
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/28
@@ -33,6 +34,6 @@ import com.dtstack.flinkx.connector.postgresql.dialect.PostgresqlDialect;
 public class PostgresqlSourceFactory extends JdbcSourceFactory {
 
     public PostgresqlSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env,  new PostgresqlDialect());
+        super(syncConf, env, new PostgresqlDialect());
     }
 }
