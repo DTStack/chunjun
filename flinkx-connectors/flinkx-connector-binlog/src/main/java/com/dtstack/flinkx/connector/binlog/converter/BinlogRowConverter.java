@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.connector.pgwal.converter;
+package com.dtstack.flinkx.connector.binlog.converter;
 
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableException;
@@ -28,10 +28,11 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.connector.pgwal.util.ChangeLog;
-import com.dtstack.flinkx.connector.pgwal.util.ColumnInfo;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.google.common.collect.Maps;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -42,17 +43,20 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
-import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
+ * Date: 2021/04/29
+ * Company: www.dtstack.com
  *
+ * @author tudou
  */
-public class PGWalRowConverter extends AbstractCDCRowConverter<ChangeLog, LogicalType> {
+public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, LogicalType> {
     private final TimestampFormat timestampFormat;
 
-    public PGWalRowConverter(RowType rowType, TimestampFormat timestampFormat) {
+    public BinlogRowConverter(RowType rowType, TimestampFormat timestampFormat) {
         super.fieldNameList = rowType.getFieldNames();
         this.timestampFormat = timestampFormat;
         super.converters = new IDeserializationConverter[rowType.getFieldCount()];
@@ -62,18 +66,27 @@ public class PGWalRowConverter extends AbstractCDCRowConverter<ChangeLog, Logica
     }
 
     @Override
-    public LinkedList<RowData> toInternal(ChangeLog changeLog) {
-        Map<Object, Object> beforeMap = new HashMap<>(25);
-        Map<Object, Object> afterMap = new HashMap<>(25);
-        int i = 0;
-        for (ColumnInfo column : changeLog.getColumnList()) {
-            beforeMap.put(column.getName(), changeLog.getOldData()[i]);
-            afterMap.put(column.getName(), changeLog.getNewData()[i]);
-            i++;
-        }
+    public LinkedList<RowData> toInternal(BinlogEventRow binlogEventRow) throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
-        try {
-            switch (changeLog.getType().name()) {
+        CanalEntry.RowChange rowChange = binlogEventRow.getRowChange();
+        String eventType = rowChange.getEventType().toString();
+        for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
+            List<CanalEntry.Column> beforeColumnsList = rowData.getBeforeColumnsList();
+            Map<Object, Object> beforeMap = Maps.newHashMapWithExpectedSize(beforeColumnsList.size());
+            for (CanalEntry.Column column : beforeColumnsList) {
+                if (!column.getIsNull()) {
+                    beforeMap.put(column.getName(), column.getValue());
+                }
+            }
+            List<CanalEntry.Column> afterColumnsList = rowData.getAfterColumnsList();
+            Map<Object, Object> afterMap = Maps.newHashMapWithExpectedSize(afterColumnsList.size());
+            for (CanalEntry.Column column : afterColumnsList) {
+                if (!column.getIsNull()) {
+                    afterMap.put(column.getName(), column.getValue());
+                }
+            }
+
+            switch (eventType){
                 case "INSERT":
                     RowData insert = createRowDataByConverters(fieldNameList, converters, afterMap);
                     insert.setRowKind(RowKind.INSERT);
@@ -94,11 +107,8 @@ public class PGWalRowConverter extends AbstractCDCRowConverter<ChangeLog, Logica
                     result.add(updateAfter);
                     break;
                 default:
-                    throw new UnsupportedOperationException("Unsupported eventType: " + changeLog.getType());
+                    throw new UnsupportedOperationException("Unsupported eventType: " + eventType);
             }
-
-        }catch (Exception e) {
-            throw new RuntimeException(e);
         }
         return result;
     }
@@ -123,7 +133,7 @@ public class PGWalRowConverter extends AbstractCDCRowConverter<ChangeLog, Logica
             case DATE:
                 return (IDeserializationConverter<String, Integer>) val -> {
                     LocalDate date = DateTimeFormatter.ISO_LOCAL_DATE.parse(val).query(TemporalQueries.localDate());
-                    return (int) date.toEpochDay();
+                    return (int)date.toEpochDay();
                 };
             case TIME_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<String, Integer>) val -> {
@@ -134,7 +144,7 @@ public class PGWalRowConverter extends AbstractCDCRowConverter<ChangeLog, Logica
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<String, TimestampData>) val -> {
                     TemporalAccessor parsedTimestamp;
-                    switch (this.timestampFormat) {
+                    switch(this.timestampFormat) {
                         case SQL:
                             parsedTimestamp = SQL_TIMESTAMP_FORMAT.parse(val);
                             break;
@@ -182,13 +192,13 @@ public class PGWalRowConverter extends AbstractCDCRowConverter<ChangeLog, Logica
                 return (IDeserializationConverter<String, StringData>) StringData::fromString;
             case DECIMAL:
                 return (IDeserializationConverter<String, DecimalData>) val -> {
-                    final int precision = ((DecimalType) type).getPrecision();
-                    final int scale = ((DecimalType) type).getScale();
+                    final int precision = ((DecimalType)type).getPrecision();
+                    final int scale = ((DecimalType)type).getScale();
                     return DecimalData.fromBigDecimal(new BigDecimal(val), precision, scale);
                 };
             case BINARY:
             case VARBINARY:
-                return (IDeserializationConverter<String, byte[]>) val -> val.getBytes(StandardCharsets.UTF_8);
+                return (IDeserializationConverter<String, byte[]>) val ->val.getBytes(StandardCharsets.UTF_8);
 //            case ARRAY:
 //            case MAP:
 //            case MULTISET:

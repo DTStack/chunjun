@@ -1,5 +1,9 @@
 package com.dtstack.flinkx.connector.api;
 
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+
+import com.dtstack.flinkx.throwable.ReadRecordException;
+
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
@@ -9,7 +13,6 @@ import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.enums.ColumnType;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.metrics.BigIntegerAccmulator;
 import com.dtstack.flinkx.metrics.StringAccumulator;
 import com.dtstack.flinkx.util.StringUtil;
@@ -74,14 +77,13 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
     }
 
     @Override
-    protected RowData nextRecordInternal(RowData rowData) throws IOException {
-
+    protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         if (queue.isEmpty()) {
             ServiceProcessor.Context context = new SimpleContext();
             try {
                 queue.addAll(processor.dataProcessor().process(context));
-            } catch (SQLException e) {
-                throw new IOException(e);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
         return queue.poll();
@@ -131,8 +133,8 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
         }
 
         //将累加器信息添加至prometheus
-        customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
-        customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+//        customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
+//        customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
         getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
         getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
     }
@@ -336,7 +338,6 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
     /**
      * 使用自定义的指标输出器把增量指标打到普罗米修斯
      */
-    @Override
     protected boolean useCustomPrometheusReporter() {
         return jdbcConf.isIncrement();
     }

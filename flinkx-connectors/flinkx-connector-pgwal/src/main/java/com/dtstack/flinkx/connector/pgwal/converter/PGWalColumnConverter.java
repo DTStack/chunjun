@@ -92,7 +92,7 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
 
     @Override
     @SuppressWarnings("unchecked")
-    public LinkedList<RowData> toInternal(ChangeLog entity) {
+    public LinkedList<RowData> toInternal(ChangeLog entity) throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
         PgMessageTypeEnum eventType = entity.getType();
         String schema = entity.getSchema();
@@ -249,7 +249,7 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
             List<Object> entryColumnList,
             List<AbstractBaseColumn> columnList,
             List<String> headerList,
-            String after) {
+            String after) throws Exception {
         List<String> originList = new ArrayList<>();
         for (int i = 0; i < entryColumnList.size(); i++) {
             Object entryColumn = entryColumnList.get(i);

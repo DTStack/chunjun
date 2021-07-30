@@ -75,6 +75,8 @@ public class PGCDCServiceProcessor
                 dataProcessor().process(context);
             } catch (IOException e) {
                 dataProcessor().processException(e);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

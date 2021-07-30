@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.pgwal.inputformat;
 import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
 import com.dtstack.flinkx.connector.pgwal.util.PGUtil;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.collect.Lists;
@@ -75,6 +75,5 @@ public class PGWalInputFormatBuilder extends BaseRichInputFormatBuilder<PGWalInp
         }
 
         ClassUtil.forName(PGUtil.DRIVER_NAME, getClass().getClassLoader());
-
     }
 }

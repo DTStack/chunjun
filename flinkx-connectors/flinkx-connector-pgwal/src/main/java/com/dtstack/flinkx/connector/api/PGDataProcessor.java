@@ -43,7 +43,7 @@ public class PGDataProcessor implements DataProcessor<RowData> {
     }
 
     @Override
-    public List<RowData> process(ServiceProcessor.Context context) throws SQLException {
+    public List<RowData> process(ServiceProcessor.Context context) throws Exception {
         assert context.contains("data");
         ChangeLog changeLog = decoder.decode(context.get("data", ByteBuffer.class));
         if (StringUtils.isBlank(changeLog.getId())) {

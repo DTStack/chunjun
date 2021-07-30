@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.pgwal.table;
 
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -41,7 +43,6 @@ import org.apache.flink.util.Preconditions;
 import com.dtstack.flinkx.connector.api.PGCDCServiceProcessor;
 import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
 import com.dtstack.flinkx.connector.pgwal.options.PGWalOptions;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 import java.sql.SQLException;

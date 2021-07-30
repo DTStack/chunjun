@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.pgwal.inputformat;
 
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
@@ -27,7 +29,6 @@ import com.dtstack.flinkx.connector.pgwal.util.PGUtil;
 import com.dtstack.flinkx.connector.pgwal.util.ReplicationSlotInfoWrapper;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.element.ErrorMsgRowData;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.RetryUtil;
