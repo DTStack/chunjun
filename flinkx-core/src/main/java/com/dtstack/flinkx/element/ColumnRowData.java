@@ -27,8 +27,9 @@ import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.InstantiationUtil;
 import org.apache.flink.util.Preconditions;
+import org.apache.flink.util.StringUtils;
 
-import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.google.common.collect.Maps;
 
 import java.io.Serializable;
@@ -46,24 +47,25 @@ import java.util.Map;
 public final class ColumnRowData implements RowData, Serializable {
 
     private static final long serialVersionUID = 1L;
-    private final List<AbstractBaseColumn> fields;
+    private final List<AbstractBaseColumn> columnList;
     private Map<String, Integer> header;
 
     private RowKind kind;
 
     public ColumnRowData(RowKind kind, int arity) {
-        this.fields = new ArrayList<>(arity);
+        this.columnList = new ArrayList<>(arity);
         this.kind = kind;
     }
 
     public ColumnRowData(int arity) {
-        this.fields = new ArrayList<>(arity);
-        this.kind = RowKind.INSERT; // INSERT as default
+        this.columnList = new ArrayList<>(arity);
+        // INSERT as default
+        this.kind = RowKind.INSERT;
     }
 
     public void addHeader(String name){
         if(this.header == null){
-            this.header = Maps.newHashMapWithExpectedSize(this.fields.size());
+            this.header = Maps.newHashMapWithExpectedSize(this.columnList.size());
         }
         this.header.put(name, this.header.size());
     }
@@ -86,19 +88,19 @@ public final class ColumnRowData implements RowData, Serializable {
     }
 
     public void addField(AbstractBaseColumn value) {
-        this.fields.add(value);
+        this.columnList.add(value);
     }
 
     public void addAllField(List<AbstractBaseColumn> list) {
-        this.fields.addAll(list);
+        this.columnList.addAll(list);
     }
 
     public void setField(int pos, AbstractBaseColumn value) {
-        this.fields.set(pos, value);
+        this.columnList.set(pos, value);
     }
 
     public AbstractBaseColumn getField(int pos) {
-        return this.fields.get(pos);
+        return this.columnList.get(pos);
     }
 
     public AbstractBaseColumn getField(String name) {
@@ -106,20 +108,20 @@ public final class ColumnRowData implements RowData, Serializable {
             return null;
         }
         Integer pos = header.getOrDefault(name, -1);
-        return pos == -1 ? null : this.fields.get(pos);
+        return pos == -1 ? null : this.columnList.get(pos);
     }
 
     public ColumnRowData copy(){
         try {
             return InstantiationUtil.clone(this, Thread.currentThread().getContextClassLoader());
         }catch (Exception e){
-            throw new RuntimeException(e);
+            throw new FlinkxRuntimeException(e);
         }
     }
 
     @Override
     public int getArity() {
-        return fields.size();
+        return columnList.size();
     }
 
     @Override
@@ -135,58 +137,58 @@ public final class ColumnRowData implements RowData, Serializable {
 
     @Override
     public boolean isNullAt(int pos) {
-        return this.fields.get(pos) == null;
+        return this.columnList.get(pos) == null || this.columnList.get(pos).getData() == null;
     }
 
     @Override
     public boolean getBoolean(int pos) {
-        return this.fields.get(pos).asBoolean();
+        return this.columnList.get(pos).asBoolean();
     }
 
     @Override
     public byte getByte(int pos) {
-        return this.fields.get(pos).asBigDecimal().byteValue();
+        return this.columnList.get(pos).asBigDecimal().byteValue();
     }
 
     @Override
     public short getShort(int pos) {
-        return this.fields.get(pos).asShort();
+        return this.columnList.get(pos).asShort();
     }
 
     @Override
     public int getInt(int pos) {
-        return this.fields.get(pos).asInt();
+        return this.columnList.get(pos).asInt();
     }
 
     @Override
     public long getLong(int pos) {
-        return this.fields.get(pos).asLong();
+        return this.columnList.get(pos).asLong();
     }
 
     @Override
     public float getFloat(int pos) {
-        return this.fields.get(pos).asFloat();
+        return this.columnList.get(pos).asFloat();
     }
 
     @Override
     public double getDouble(int pos) {
-        return this.fields.get(pos).asDouble();
+        return this.columnList.get(pos).asDouble();
     }
 
     @Override
     public StringData getString(int pos) {
-        return StringData.fromString(this.fields.get(pos).asString());
+        return StringData.fromString(this.columnList.get(pos).asString());
     }
 
     @Override
     public DecimalData getDecimal(int pos, int precision, int scale) {
-        BigDecimal bigDecimal = this.fields.get(pos).asBigDecimal();
+        BigDecimal bigDecimal = this.columnList.get(pos).asBigDecimal();
         return DecimalData.fromBigDecimal(bigDecimal, bigDecimal.precision(), bigDecimal.scale());
     }
 
     @Override
     public TimestampData getTimestamp(int pos, int precision) {
-        return TimestampData.fromTimestamp(this.fields.get(pos).asTimestamp());
+        return TimestampData.fromTimestamp(this.columnList.get(pos).asTimestamp());
     }
 
     @Override
@@ -196,7 +198,7 @@ public final class ColumnRowData implements RowData, Serializable {
 
     @Override
     public byte[] getBinary(int pos) {
-        return this.fields.get(pos).asBinary();
+        return this.columnList.get(pos).asBinary();
     }
 
     @Override
@@ -214,8 +216,27 @@ public final class ColumnRowData implements RowData, Serializable {
         return null;
     }
 
+    public String getString() {
+        StringBuilder sb = new StringBuilder();
+        return buildString(sb);
+    }
+
     @Override
     public String toString() {
-        return JsonUtil.toPrintJson(this);
+        StringBuilder sb = new StringBuilder();
+        sb.append(kind.shortString());
+        return buildString(sb);
+    }
+
+    private String buildString(StringBuilder sb){
+        sb.append("(");
+        for (int i = 0; i < columnList.size(); i++) {
+            if (i != 0) {
+                sb.append(",");
+            }
+            sb.append(StringUtils.arrayAwareToString(columnList.get(i).asString()));
+        }
+        sb.append(")");
+        return sb.toString();
     }
 }

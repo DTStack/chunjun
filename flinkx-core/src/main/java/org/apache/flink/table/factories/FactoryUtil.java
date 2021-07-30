@@ -73,20 +73,7 @@ public final class FactoryUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(FactoryUtil.class);
 
-    /** 插件路径 */
-    private static String pluginPath = null;
-
-    /** 上下文环境 */
-    private static StreamExecutionEnvironment env = null;
-
-    /** 插件加载方式，默认走SPI方式 */
-    private static String connectorLoadMode = ConnectorLoadMode.SPI.name();
-
-    /** shipfile需要的jar */
-    private static List<URL> classPathSet = new ArrayList<>();
-
-    /** shipfile需要的jar的classPath index */
-    private static int CLASS_FILE_NAME_INDEX = 0;
+    private static ThreadLocal<FactoryUtilHelp> factoryUtilHelpThreadLocal = new ThreadLocal();
 
     /** shipfile需要的jar的classPath name */
     public static final ConfigOption<String> CLASS_FILE_NAME_FMT =
@@ -181,18 +168,6 @@ public final class FactoryUtil {
      */
     public static final String FORMAT_SUFFIX = ".format";
 
-    public static void setPluginPath(String pluginPath) {
-        FactoryUtil.pluginPath = pluginPath;
-    }
-
-    public static void setEnv(StreamExecutionEnvironment env) {
-        FactoryUtil.env = env;
-    }
-
-    public static void setConnectorLoadMode(String connectorLoadMode) {
-        FactoryUtil.connectorLoadMode = connectorLoadMode;
-    }
-
     /**
      * Creates a {@link DynamicTableSource} from a {@link CatalogTable}.
      *
@@ -251,9 +226,11 @@ public final class FactoryUtil {
         } catch (Throwable t) {
             throw new ValidationException(
                     String.format(
-                            "Unable to create a sink for writing table '%s'.\n\n"
+                            "%s \n\n"
+                                    + "Unable to create a sink for writing table '%s'.\n\n"
                                     + "Table options are:\n\n"
                                     + "%s",
+                            t.getMessage(),
                             objectIdentifier.asSummaryString(),
                             catalogTable.getOptions().entrySet().stream()
                                     .map(e -> stringifyOption(e.getKey(), e.getValue()))
@@ -309,7 +286,7 @@ public final class FactoryUtil {
     public static <T extends Factory> T discoverFactory(
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
         final List<Factory> factories;
-        if (connectorLoadMode.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name())) {
+        if (org.apache.commons.lang3.StringUtils.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name(), factoryUtilHelpThreadLocal.get().connectorLoadMode)) {
             factories = loadFactories(classLoader, factoryClass, factoryIdentifier);
         } else {
             factories = discoverFactories(classLoader);
@@ -576,11 +553,15 @@ public final class FactoryUtil {
             final List<Factory> result = new LinkedList<>();
 
             // 1.通过factoryIdentifier查找jar路径
+            String pluginPath = org.apache.commons.lang3.StringUtils.equalsIgnoreCase(factoryUtilHelpThreadLocal.get().pluginLoadMode, "classpath") ?
+                    factoryUtilHelpThreadLocal.get().remotePluginPath : factoryUtilHelpThreadLocal.get().localPluginPath;
             String pluginJarPath = pluginPath + File.separatorChar + jarDirectorySuffix;
             URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath, factoryIdentifier);
-            URL[] formatsJarUrls = PluginUtil.getPluginJarUrls(pluginPath + File.separatorChar + PluginUtil.FORMATS_SUFFIX, factoryIdentifier);
+            URL[] formatsJarUrls = PluginUtil.getPluginJarUrls(
+                    pluginPath + File.separatorChar + PluginUtil.FORMATS_SUFFIX,
+                    factoryIdentifier);
             List<URL> jarUrlList = Arrays.stream(pluginJarUrls).collect(Collectors.toList());
-            if(formatsJarUrls.length > 0){
+            if (formatsJarUrls.length > 0) {
                 jarUrlList.addAll(Arrays.asList(formatsJarUrls));
             }
             URL[] jarUrls = jarUrlList.toArray(new URL[0]);
@@ -591,7 +572,7 @@ public final class FactoryUtil {
             Object currentClassloader = classLoader;
 
             // 非local模式下需要使用FlinkUserCodeClassLoader来加载jar
-            if (!(env instanceof MyLocalStreamEnvironment)) {
+            if (!(factoryUtilHelpThreadLocal.get().env instanceof MyLocalStreamEnvironment)) {
                 Field field = FlinkUserCodeClassLoaders.SafetyNetWrapperClassLoader.class.getDeclaredField(
                         "inner");
                 field.setAccessible(true);
@@ -606,13 +587,13 @@ public final class FactoryUtil {
 
             // 3.registerCachedFile 为了添加到shipfile中
             for (URL pluginJarUrl : jarUrls) {
-                if (!classPathSet.contains(pluginJarUrl)) {
-                    classPathSet.add(pluginJarUrl);
+                if (!factoryUtilHelpThreadLocal.get().classPathSet.contains(pluginJarUrl)) {
+                    factoryUtilHelpThreadLocal.get().classPathSet.add(pluginJarUrl);
                     String classFileName = String.format(
                             CLASS_FILE_NAME_FMT.defaultValue(),
-                            CLASS_FILE_NAME_INDEX);
-                    env.registerCachedFile(pluginJarUrl.getPath(), classFileName, true);
-                    CLASS_FILE_NAME_INDEX++;
+                            factoryUtilHelpThreadLocal.get().classFileNameIndex);
+                    factoryUtilHelpThreadLocal.get().env.registerCachedFile(pluginJarUrl.getPath(), classFileName, true);
+                    factoryUtilHelpThreadLocal.get().classFileNameIndex++;
                 }
             }
 
@@ -891,7 +872,61 @@ public final class FactoryUtil {
 
     // --------------------------------------------------------------------------------------------
 
-    private FactoryUtil() {
+    public FactoryUtil() {
         // no instantiation
+    }
+
+    public static void setFactoryUtilHelp(FactoryUtilHelp factoryUtilHelp) {
+        factoryUtilHelpThreadLocal.set(factoryUtilHelp);
+    }
+
+    public static ThreadLocal<FactoryUtilHelp> getFactoryUtilHelpThreadLocal() {
+        return factoryUtilHelpThreadLocal;
+    }
+
+    public class FactoryUtilHelp{
+
+        /** 插件路径 */
+        private String localPluginPath = null;
+
+        /** 远端插件路径 */
+        private String remotePluginPath = null;
+
+        /** 插件加载类型 */
+        private String pluginLoadMode = "shipfile";
+
+        /** 上下文环境 */
+        private StreamExecutionEnvironment env = null;
+
+        /** 插件加载方式，默认走SPI方式 */
+        private String connectorLoadMode = ConnectorLoadMode.SPI.name();
+
+        /** shipfile需要的jar */
+        private List<URL> classPathSet = new ArrayList<>();
+
+        /** shipfile需要的jar的classPath index */
+        private int classFileNameIndex = 0;
+
+        public FactoryUtilHelp(){}
+
+        public void setLocalPluginPath(String localPluginPath) {
+            this.localPluginPath = localPluginPath;
+        }
+
+        public void setRemotePluginPath(String remotePluginPath) {
+            this.remotePluginPath = remotePluginPath;
+        }
+
+        public void setPluginLoadMode(String pluginLoadMode) {
+            this.pluginLoadMode = pluginLoadMode;
+        }
+
+        public void setEnv(StreamExecutionEnvironment env) {
+            this.env = env;
+        }
+
+        public void setConnectorLoadMode(String connectorLoadMode) {
+            this.connectorLoadMode = connectorLoadMode;
+        }
     }
 }

@@ -20,7 +20,7 @@ package com.dtstack.flinkx.sink;
 
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.RowUtil;
@@ -49,7 +49,8 @@ import static com.dtstack.flinkx.sink.WriteErrorTypes.ERR_PRIMARY_CONFLICT;
 /**
  * The class handles dirty data management
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class DirtyDataManager {
@@ -59,11 +60,11 @@ public class DirtyDataManager {
     private String[] fieldNames;
     private String jobId;
     private FSDataOutputStream stream;
-    private EnumSet<HdfsDataOutputStream.SyncFlag> syncFlags = EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH);
+    private EnumSet<HdfsDataOutputStream.SyncFlag> syncFlags =
+            EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH);
 
     private static final String FIELD_DELIMITER = "\u0001";
     private static final String LINE_DELIMITER = "\n";
-
 
     private static List<String> PRIMARY_CONFLICT_KEYWORDS = new ArrayList<>();
     private Gson gson = new GsonBuilder().disableHtmlEscaping().create();
@@ -74,7 +75,8 @@ public class DirtyDataManager {
         PRIMARY_CONFLICT_KEYWORDS.add("primary key constraint");
     }
 
-    public DirtyDataManager(String path, Map<String, Object> configMap, String[] fieldNames, String jobId) {
+    public DirtyDataManager(
+            String path, Map<String, Object> configMap, String[] fieldNames, String jobId) {
         this.fieldNames = fieldNames;
         location = path + "/" + UUID.randomUUID() + ".txt";
         this.config = configMap;
@@ -84,7 +86,15 @@ public class DirtyDataManager {
     public String writeData(RowData rowData, WriteRecordException ex) {
         String content = RowUtil.rowToJson(rowData, fieldNames);
         String errorType = retrieveCategory(ex);
-        String line = StringUtils.join(new String[]{content,errorType, gson.toJson(ex.toString()), DateUtil.timestampToString(new Date()) }, FIELD_DELIMITER);
+        String line =
+                StringUtils.join(
+                        new String[] {
+                            content,
+                            errorType,
+                            gson.toJson(ex.toString()),
+                            DateUtil.timestampToString(new Date())
+                        },
+                        FIELD_DELIMITER);
         try {
             stream.write(line.getBytes(StandardCharsets.UTF_8));
             stream.write(LINE_DELIMITER.getBytes(StandardCharsets.UTF_8));
@@ -98,11 +108,11 @@ public class DirtyDataManager {
 
     private String retrieveCategory(WriteRecordException ex) {
         Throwable cause = ex.getCause();
-        if(cause instanceof NullPointerException) {
+        if (cause instanceof NullPointerException) {
             return ERR_NULL_POINTER;
         }
-        for(String keyword : PRIMARY_CONFLICT_KEYWORDS) {
-            if(cause.toString().toLowerCase().contains(keyword)) {
+        for (String keyword : PRIMARY_CONFLICT_KEYWORDS) {
+            if (cause.toString().toLowerCase().contains(keyword)) {
                 return ERR_PRIMARY_CONFLICT;
             }
         }
@@ -120,7 +130,7 @@ public class DirtyDataManager {
     }
 
     public void close() {
-        if(stream != null) {
+        if (stream != null) {
             try {
                 stream.flush();
                 stream.close();

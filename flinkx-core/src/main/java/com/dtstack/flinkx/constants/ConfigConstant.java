@@ -30,8 +30,6 @@ import static com.dtstack.flinkx.constants.ConstantValue.SHIP_FILE_PLUGIN_LOAD_M
  */
 public class ConfigConstant {
 
-    public static final String FLINK_CHECKPOINT_INTERVAL_KEY = "flink.checkpoint.interval";
-
     public static final String FLINK_CHECKPOINT_TIMEOUT_KEY = "flink.checkpoint.timeout";
 
     public static final String KEY_PASSWORD = "password";
@@ -84,17 +82,20 @@ public class ConfigConstant {
     /**失败重启间隔时间 sec*/
     public static final String  DELAYINTERVAL= "delay.interval";
 
-    /**时间语义*/
-    public static final String FLINK_TIME_CHARACTERISTIC_KEY = "time.characteristic";
-
     /**cp时间间隔*/
     public static final String SQL_CHECKPOINT_INTERVAL_KEY = "sql.checkpoint.interval";
+    public static final String FLINK_CHECKPOINT_INTERVAL_KEY = "flink.checkpoint.interval";
 
     /**cp是否对齐*/
     public static final String SQL_UNALIGNED_CHECKPOINTS = "sql.checkpoint.unalignedCheckpoints";
 
     /**cp模式*/
-    public static final String FLINK_CHECKPOINT_MODE_KEY = "sql.checkpoint.mode";
+    public static final String SQL_CHECKPOINT_MODE_KEY = "sql.checkpoint.mode";
+    public static final String FLINK_CHECKPOINT_MODE_KEY = "flink.checkpoint.mode";
+
+    /**cp失败容忍的最大次数*/
+    public static final String FLINK_CHECKPOINT_FAILURENUMBER_KEY = "flink.checkpoint.failurenumber";
+    public static final String SQL_CHECKPOINT_FAILURENUMBER_KEY = "sql.checkpoint.failurenumber";
 
     /**同时支持cp个数*/
     public static final String FLINK_MAXCONCURRENTCHECKPOINTS_KEY = "sql.max.concurrent.checkpoints";

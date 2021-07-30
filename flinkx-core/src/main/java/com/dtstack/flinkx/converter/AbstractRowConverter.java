@@ -18,9 +18,16 @@
 
 package com.dtstack.flinkx.converter;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.element.column.StringColumn;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
@@ -38,22 +45,28 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * @create: 2021/04/10
  */
 public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implements Serializable {
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private static final long serialVersionUID = 1L;
     protected RowType rowType;
     protected IDeserializationConverter[] toInternalConverters;
     protected ISerializationConverter[] toExternalConverters;
     protected LogicalType[] fieldTypes;
+    protected FlinkxCommonConf commonConf;
 
     public AbstractRowConverter() {}
 
     public AbstractRowConverter(RowType rowType) {
         this(rowType.getFieldCount());
         this.rowType = checkNotNull(rowType);
-        this.fieldTypes =
-                rowType.getFields().stream()
-                        .map(RowType.RowField::getType)
-                        .toArray(LogicalType[]::new);
+        this.fieldTypes = rowType.getFields().stream().map(RowType.RowField::getType).toArray(LogicalType[]::new);
+    }
+
+    public AbstractRowConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        this(rowType.getFieldCount());
+        this.rowType = checkNotNull(rowType);
+        this.fieldTypes = rowType.getFields().stream().map(RowType.RowField::getType).toArray(LogicalType[]::new);
+        this.commonConf = commonConf;
     }
 
     public AbstractRowConverter(int converterSize) {
@@ -61,19 +74,39 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         this.toExternalConverters = new ISerializationConverter[converterSize];
     }
 
-    protected IDeserializationConverter wrapIntoNullableInternalConverter(
-            IDeserializationConverter IDeserializationConverter) {
+    protected IDeserializationConverter wrapIntoNullableInternalConverter(IDeserializationConverter IDeserializationConverter) {
         return val -> {
             if (val == null) {
                 return null;
             } else {
-                return IDeserializationConverter.deserialize(val);
+                try {
+                    return IDeserializationConverter.deserialize(val);
+                } catch (Exception e) {
+                    LOG.error("value [{}] convent failed ", val);
+                    throw e;
+                }
             }
         };
     }
 
-    protected abstract ISerializationConverter wrapIntoNullableExternalConverter(
-            ISerializationConverter ISerializationConverter, T type);
+    /**
+     * 组装字段属性，常量、format、等等
+     * @param fieldConf
+     * @param baseColumn
+     * @return
+     */
+    protected AbstractBaseColumn assembleFieldProps(FieldConf fieldConf, AbstractBaseColumn baseColumn) {
+        if(StringUtils.isNotBlank(fieldConf.getValue())){
+            baseColumn = new StringColumn(fieldConf.getValue(), fieldConf.getFormat());
+        }else if(baseColumn instanceof StringColumn && StringUtils.isNotBlank(fieldConf.getFormat())){
+            baseColumn = new StringColumn(baseColumn.asString(), fieldConf.getFormat());
+        }
+        return baseColumn;
+    }
+
+    protected ISerializationConverter<SinkT> wrapIntoNullableExternalConverter(ISerializationConverter<SinkT> ISerializationConverter, T type){
+        return null;
+    }
 
     /**
      * Convert data retrieved from {@link ResultSet} to internal {@link RowData}.
@@ -82,30 +115,49 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      */
     public abstract RowData toInternal(SourceT input) throws Exception;
 
-    public abstract RowData toInternalLookup(LookupT input) throws Exception;
-
+    /**
+     *
+     * @param input input
+     * @return RowData
+     * @throws Exception Exception
+     */
+    public RowData toInternalLookup(LookupT input) throws Exception {
+        throw new RuntimeException("Subclass need rewriting");
+    }
     /**
      * BinaryRowData
      *
-     * @param rowData
-     * @param output
-     * @return
+     * @param rowData rowData
+     * @param output output
+     * @return return
      */
     public abstract SinkT toExternal(RowData rowData, SinkT output) throws Exception;
 
     /**
      * 将外部数据库类型转换为flink内部类型
      *
-     * @param type
-     * @return
+     * @param type type
+     * @return return
      */
-    protected abstract IDeserializationConverter createInternalConverter(T type);
+    protected IDeserializationConverter createInternalConverter(T type){
+        return null;
+    }
 
     /**
      * 将flink内部的数据类型转换为外部数据库系统类型
      *
-     * @param type
-     * @return
+     * @param type type
+     * @return return
      */
-    protected abstract ISerializationConverter createExternalConverter(T type);
+    protected ISerializationConverter createExternalConverter(T type){
+        return null;
+    }
+
+    public FlinkxCommonConf getCommonConf() {
+        return commonConf;
+    }
+
+    public void setCommonConf(FlinkxCommonConf commonConf) {
+        this.commonConf = commonConf;
+    }
 }

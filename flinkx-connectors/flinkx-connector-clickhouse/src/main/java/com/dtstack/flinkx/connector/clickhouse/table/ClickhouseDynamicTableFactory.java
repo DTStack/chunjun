@@ -18,8 +18,12 @@
 
 package com.dtstack.flinkx.connector.clickhouse.table;
 
-import com.dtstack.flinkx.connector.clickhouse.ClickhouseDialect;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.clickhouse.dialect.ClickhouseDialect;
+import com.dtstack.flinkx.connector.clickhouse.sink.ClickhouseOutputFormat;
+import com.dtstack.flinkx.connector.clickhouse.source.ClickhouseInputFormat;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 
 /**
@@ -41,5 +45,15 @@ public class ClickhouseDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     protected JdbcDialect getDialect() {
         return new ClickhouseDialect();
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getInputFormatBuilder() {
+        return new JdbcInputFormatBuilder(new ClickhouseInputFormat());
+    }
+
+    @Override
+    protected JdbcOutputFormatBuilder getOutputFormatBuilder() {
+        return new JdbcOutputFormatBuilder(new ClickhouseOutputFormat());
     }
 }

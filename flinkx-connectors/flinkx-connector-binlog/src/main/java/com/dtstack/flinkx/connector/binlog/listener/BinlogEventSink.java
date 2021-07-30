@@ -25,6 +25,7 @@ import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormat;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.element.ErrorMsgRowData;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.collections.CollectionUtils;
@@ -37,10 +38,9 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author toutian
- */
-public class BinlogEventSink extends AbstractCanalLifeCycle implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
+/** @author toutian */
+public class BinlogEventSink extends AbstractCanalLifeCycle
+        implements com.alibaba.otter.canal.sink.CanalEventSink<List<CanalEntry.Entry>> {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogEventSink.class);
 
@@ -55,7 +55,9 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
     }
 
     @Override
-    public boolean sink(List<CanalEntry.Entry> entries, InetSocketAddress inetSocketAddress, String s) throws CanalSinkException {
+    public boolean sink(
+            List<CanalEntry.Entry> entries, InetSocketAddress inetSocketAddress, String s)
+            throws CanalSinkException {
         for (CanalEntry.Entry entry : entries) {
             CanalEntry.EntryType entryType = entry.getEntryType();
             if (entryType != CanalEntry.EntryType.ROWDATA) {
@@ -68,7 +70,7 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
                 LOG.error("parser data[{}] error:{}", entry, ExceptionUtil.getErrorMessage(e));
             }
 
-            if(rowChange == null) {
+            if (rowChange == null) {
                 return false;
             }
 
@@ -76,66 +78,91 @@ public class BinlogEventSink extends AbstractCanalLifeCycle implements com.aliba
             String schema = header.getSchemaName();
             String table = header.getTableName();
             long executeTime = header.getExecuteTime();
-            processRowChange(rowChange, schema, table, executeTime);
+            try {
+                processRowChange(rowChange, schema, table, executeTime);
+            } catch (WriteRecordException e) {
+                // todo 脏数据记录
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace(
+                            "write error rowData, rowData = {}, e = {}",
+                            e.getRowData().toString(),
+                            ExceptionUtil.getErrorMessage(e));
+                }
+            }
         }
         return true;
     }
 
     /**
      * 处理RowData数据
+     *
      * @param rowChange 解析后的RowData数据
-     * @param schema  schema
+     * @param schema schema
      * @param table table
-     * @param executeTime   变更数据的执行时间
+     * @param executeTime 变更数据的执行时间
      */
     @SuppressWarnings("unchecked")
-    private void processRowChange(CanalEntry.RowChange rowChange, String schema, String table, long executeTime) {
+    private void processRowChange(
+            CanalEntry.RowChange rowChange, String schema, String table, long executeTime)
+            throws WriteRecordException {
         String eventType = rowChange.getEventType().toString();
         List<String> categories = format.getCategories();
-        if(CollectionUtils.isNotEmpty(categories) && !categories.contains(eventType)) {
+        if (CollectionUtils.isNotEmpty(categories) && !categories.contains(eventType)) {
             return;
         }
-
         BinlogEventRow binlogEventRow = new BinlogEventRow(rowChange, schema, table, executeTime);
-        LinkedList<RowData> rowDatalist = rowConverter.toInternal(binlogEventRow);
+        LinkedList<RowData> rowDatalist = null;
+        try {
+            rowDatalist = rowConverter.toInternal(binlogEventRow);
+        } catch (Exception e) {
+            throw new WriteRecordException("", e, 0, binlogEventRow);
+        }
         RowData rowData = null;
         try {
-            while ((rowData = rowDatalist.poll()) != null){
+            while (rowDatalist != null && (rowData = rowDatalist.poll()) != null) {
                 queue.put(rowData);
             }
-        }catch (InterruptedException e){
-            LOG.error("put rowData[{}] into queue interrupted error:{}", rowData, ExceptionUtil.getErrorMessage(e));
+        } catch (InterruptedException e) {
+            LOG.error(
+                    "put rowData[{}] into queue interrupted error:{}",
+                    rowData,
+                    ExceptionUtil.getErrorMessage(e));
         }
     }
 
-
     /**
      * 从队列中获取RowData数据，对于异常情况需要把异常抛出并停止任务
+     *
      * @return
      */
     public RowData takeRowDataFromQueue() {
         RowData rowData = null;
         try {
-            //最多阻塞100ms
+            // 最多阻塞100ms
             rowData = queue.poll(100, TimeUnit.MILLISECONDS);
-            if(rowData instanceof ErrorMsgRowData){
+            if (rowData instanceof ErrorMsgRowData) {
                 throw new RuntimeException(rowData.toString());
             }
         } catch (InterruptedException e) {
-            LOG.error("takeRowDataFromQueue interrupted error:{}", ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "takeRowDataFromQueue interrupted error:{}", ExceptionUtil.getErrorMessage(e));
         }
         return rowData;
     }
 
     /**
      * 处理异常数据
+     *
      * @param rowData
      */
     public void processErrorMsgRowData(ErrorMsgRowData rowData) {
         try {
             queue.put(rowData);
         } catch (InterruptedException e) {
-            LOG.error("processErrorMsgRowData interrupted rowData:{} error:{}", rowData, ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "processErrorMsgRowData interrupted rowData:{} error:{}",
+                    rowData,
+                    ExceptionUtil.getErrorMessage(e));
         }
     }
 

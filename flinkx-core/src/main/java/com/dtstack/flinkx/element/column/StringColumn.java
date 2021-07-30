@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.element.column;
 
 import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.throwable.CastException;
 import com.dtstack.flinkx.util.DateUtil;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -29,27 +30,25 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Date: 2021/04/26
- * Company: www.dtstack.com
+ * Date: 2021/04/26 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class StringColumn extends AbstractBaseColumn {
 
-    private SimpleDateFormat formatter;
+    private String format = "yyyy-MM-dd HH:mm:ss";
 
-    public StringColumn(String data) {
+    public StringColumn(final String data) {
         super(data);
     }
 
-    public StringColumn(final String data, SimpleDateFormat formatter) {
+    public StringColumn(final String data, String format) {
         super(data);
-        this.formatter = formatter;
+        this.format = format;
     }
 
-    @Override
-    public int getByteSize(Object data) {
-        return null == data ? 0 : ((String)data).getBytes(StandardCharsets.UTF_8).length;
+    public StringColumn(Byte aByte) {
+        super(aByte);
     }
 
     @Override
@@ -57,37 +56,49 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return (String) data;
+        return String.valueOf(data);
     }
 
     @Override
     public Date asDate() {
-        try {
-            if (null == this.asString()) {
-                return null;
-            }
-
-            Long time = null;
-            try {
-                //如果string是时间戳
-                time = NumberUtils.createLong((String) getData());
-            } catch (UnsupportedOperationException e) {
-                //doNothing
-            }
-            if (time != null) {
-                Date date = new Date(time);
-                return formatter.parse(formatter.format(date));
-            } else if (formatter != null) {
-                try {
-                    //如果是日期格式字符串
-                    return formatter.parse(this.asString());
-                } catch (ParseException ignored) {
-                }
-            }
-            return DateUtil.columnToDate(this.asString(), formatter);
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("String[\"%s\"]can not cast to Date.", this.asString()));
+        if (null == data) {
+            return null;
         }
+        Long time = null;
+        Date result = null;
+        String data = this.asString();
+        try {
+            // 如果string是时间戳
+            time = NumberUtils.createLong(data);
+        } catch (Exception ignored) {
+            //doNothing
+        }
+        SimpleDateFormat formatter = DateUtil.buildDateFormatter(format);
+        if (time != null) {
+            Date date = new Date(time);
+            try {
+                result = formatter.parse(formatter.format(date));
+            } catch (ParseException ignored) {
+                // doNothing
+            }
+        } else {
+            try {
+                // 如果是日期格式字符串
+                result = formatter.parse(data);
+            } catch (ParseException ignored) {
+                // doNothing
+            }
+        }
+
+        if (result == null) {
+            result = DateUtil.columnToDate(data, formatter);
+
+            if (result == null) {
+                throw new CastException("String", "Date", data);
+            }
+        }
+
+        return result;
     }
 
     @Override
@@ -100,53 +111,84 @@ public class StringColumn extends AbstractBaseColumn {
 
     @Override
     public Boolean asBoolean() {
-        if (null == this.getData()) {
+        if (null == data) {
             return null;
         }
 
-        //如果是数值类型
+        String data = this.asString();
+        // 如果是数值类型
         try {
-            return NumberUtils.toInt((String) getData()) != 0;
+            return NumberUtils.toInt(data) != 0;
         } catch (Exception ignored) {
-
+            // doNothing
         }
 
-        if ("true".equalsIgnoreCase(this.asString())) {
+        if ("true".equalsIgnoreCase(data)) {
             return true;
         }
 
-        if ("false".equalsIgnoreCase(this.asString())) {
+        if ("false".equalsIgnoreCase(data)) {
             return false;
         }
 
-        throw new RuntimeException(String.format("String[\"%s\"] can not cast to Boolean.", this.asString()));
+        throw new CastException("String", "Boolean", data);
     }
 
     @Override
     public BigDecimal asBigDecimal() {
-        if (null == this.getData()) {
+        if (null == data) {
             return null;
         }
-
-        this.validateDoubleSpecific((String) this.getData());
+        String data = this.asString();
+        this.validateDoubleSpecific(data);
 
         try {
-            return new BigDecimal(this.asString());
+            return new BigDecimal(data);
         } catch (Exception e) {
-            throw new RuntimeException(String.format("String [\"%s\"]can not cast to BigDecimal.", this.asString()));
+            throw new CastException("String", "BigDecimal", data);
         }
     }
 
     @Override
+    public Double asDouble() {
+        if (null == data) {
+            return null;
+        }
+
+        String data = this.asString();
+        if ("NaN".equals(data)) {
+            return Double.NaN;
+        }
+
+        if ("Infinity".equals(data)) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        if ("-Infinity".equals(data)) {
+            return Double.NEGATIVE_INFINITY;
+        }
+
+        return super.asDouble();
+    }
+
+    @Override
     public Timestamp asTimestamp() {
-        //todo
-        throw new UnsupportedOperationException(String.format("String [\"%s\"]can not cast to Timestamp", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        try {
+            return new Timestamp(super.asLong());
+        } catch (CastException e) {
+            throw new CastException("String", "Timestamp", (String) data);
+        }
     }
 
     private void validateDoubleSpecific(final String data) {
-        if ("NaN".equals(data) || "Infinity".equals(data)
-                || "-Infinity".equals(data)) {
-            throw new RuntimeException(String.format("String[\"%s\"]属于Double特殊类型，不能转为其他类型.", data));
+        if ("NaN".equals(data) || "Infinity".equals(data) || "-Infinity".equals(data)) {
+            throw new CastException(
+                    String.format(
+                            "String[%s]belongs to the special type of Double and cannot be converted to other types.",
+                            data));
         }
     }
 }

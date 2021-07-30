@@ -96,14 +96,12 @@ public class TableUtil {
      * @param types field types
      * @return
      */
-    public static RowType createRowType(
-            List<String> fieldNames, List<String> types, RawTypeConverter converter) {
+    public static RowType createRowType(List<String> fieldNames, List<String> types, RawTypeConverter converter) {
         TableSchema.Builder builder = TableSchema.builder();
         for (int i = 0; i < types.size(); i++) {
             DataType dataType = converter.apply(types.get(i));
             builder.add(TableColumn.physical(fieldNames.get(i), dataType));
         }
-
         return (RowType) builder.build().toRowDataType().getLogicalType();
     }
 

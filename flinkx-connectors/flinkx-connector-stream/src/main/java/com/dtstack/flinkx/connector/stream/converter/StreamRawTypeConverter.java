@@ -52,6 +52,8 @@ public class StreamRawTypeConverter {
             case "DECIMAL":
                 return DataTypes.DECIMAL(38, 18);
 
+            case "STRING":
+            case "VARCHAR":
             case "CHAR":
             case "CHARACTER":
                 return DataTypes.STRING();
@@ -63,12 +65,13 @@ public class StreamRawTypeConverter {
             case "DATETIME":
             case "TIMESTAMP":
                 return DataTypes.TIMESTAMP();
-
+            case "TIMESTAMP WITH LOCAL TIME ZONE":
+                return DataTypes.TIMESTAMP_WITH_LOCAL_TIME_ZONE();
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
 
             default:
-                throw new UnsupportedTypeException(type);
+                return DataTypes.STRING();
         }
     }
 }

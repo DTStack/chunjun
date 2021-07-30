@@ -30,7 +30,7 @@ import java.io.StringWriter;
  */
 public class ExceptionUtil {
 
-    private static Logger logger = LoggerFactory.getLogger(ExceptionUtil.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExceptionUtil.class);
 
     public static String getErrorMessage(Throwable e) {
         if (null == e) {
@@ -38,7 +38,7 @@ public class ExceptionUtil {
         }
 
         try (StringWriter stringWriter = new StringWriter();
-             PrintWriter writer = new PrintWriter(stringWriter)) {
+                PrintWriter writer = new PrintWriter(stringWriter)) {
             e.printStackTrace(writer);
             writer.flush();
             stringWriter.flush();

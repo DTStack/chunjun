@@ -31,7 +31,6 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>19.0</version>
         </dependency>
 
         <dependency>
@@ -163,12 +162,6 @@
             <version>${flink.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-metrics-prometheus_${scala.binary.version}</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
-
         <!--Hadoop-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -203,7 +196,11 @@
                     <artifactId>commons-logging</artifactId>
                     <groupId>commons-logging</groupId>
                 </exclusion>
-            </exclusions>
+				<exclusion>
+					<artifactId>netty-all</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+			</exclusions>
         </dependency>
 
         <dependency>
@@ -288,18 +285,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_pushgateway</artifactId>
-            <version>${prometheus.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient</artifactId>
-            <version>${prometheus.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
             <version>3.1</version>
@@ -311,7 +296,18 @@
             <version>2.6</version>
         </dependency>
 
-
+		<!-- Iceberg metastore-->
+<!--		<dependency>-->
+<!--			<groupId>org.apache.flink</groupId>-->
+<!--			<artifactId>flink-sql-connector-hive-2.3.6_${scala.binary.version}</artifactId>-->
+<!--			<version>${flink.version}</version>-->
+<!--		</dependency>-->
+		<!-- DTStack package iceberg master branch end of efaad97 commit -->
+		<dependency>
+			<groupId>com.dtstack.iceberg</groupId>
+			<artifactId>iceberg-flink-runtime</artifactId>
+			<version>0.12.efaad97</version>
+		</dependency>
     </dependencies>
 
     <build>
@@ -321,7 +317,7 @@
 				<groupId>net.alchim31.maven</groupId>
 				<artifactId>scala-maven-plugin</artifactId>
 				<executions>
-					<!-- Run scala compiler in the process-resources phase, so that dependencies on
+					<!-- Run scala compiler in the process-resources phas  e, so that dependencies on
 						scala classes can be resolved later in the (Java) compile phase -->
 					<execution>
 						<id>scala-compile-first</id>
@@ -379,22 +375,22 @@
                                 </includes>
                             </artifactSet>
                             <relocations>
-<!--                                <relocation>-->
-<!--                                    <pattern>com.google.common</pattern>-->
-<!--                                    <shadedPattern>shade.core.com.google.common</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>com.google.thirdparty</pattern>-->
-<!--                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>org.apache.http</pattern>-->
-<!--                                    <shadedPattern>shade.core.org.apache.http</shadedPattern>-->
-<!--                                </relocation>-->
-<!--                                <relocation>-->
-<!--                                    <pattern>io.prometheus.client</pattern>-->
-<!--                                    <shadedPattern>shade.core.io.prometheus.client</shadedPattern>-->
-<!--                                </relocation>-->
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>shade.core.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.thirdparty</pattern>
+                                    <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.http</pattern>
+                                    <shadedPattern>shade.core.org.apache.http</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.prometheus.client</pattern>
+                                    <shadedPattern>shade.core.io.prometheus.client</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>

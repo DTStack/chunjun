@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.stream.options;
 
 import org.apache.flink.configuration.ConfigOption;
+import org.apache.flink.configuration.ConfigOptions;
 
 import static org.apache.flink.configuration.ConfigOptions.key;
 
@@ -28,24 +29,31 @@ import static org.apache.flink.configuration.ConfigOptions.key;
  * @description 常量
  **/
 public class StreamOptions {
-    public static final ConfigOption<String> PRINT_IDENTIFIER =
-            key("print-identifier")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription(
-                            "Message that identify print and is prefixed to the output of the value.");
-
-    public static final ConfigOption<Boolean> STANDARD_ERROR =
-            key("standard-error")
+    public static final ConfigOption<Boolean> PRINT =
+            key("print")
                     .booleanType()
-                    .defaultValue(false)
+                    .defaultValue(true)
                     .withDescription(
-                            "True, if the format should print to standard error instead of standard out.");
+                            "if print .");
 
     public static final ConfigOption<Long> NUMBER_OF_ROWS =
             key("number-of-rows")
                     .longType()
-                    .defaultValue(100L)
+                    .defaultValue(0L)
                     .withDescription(
                             "Total number of rows to emit. By default, the source is unbounded.");
+
+    public static final ConfigOption<Integer> SINK_PARALLELISM =
+            ConfigOptions.key("sink.parallelism")
+                    .intType()
+                    .defaultValue(null)
+                    .withDescription("sink.parallelism.");
+
+    public static final ConfigOption<Long> ROWS_PER_SECOND =
+            key("rows-per-second")
+                    .longType()
+                    .defaultValue(0L)
+                    .withDescription(
+                            "rows-per-second.");
+
 }

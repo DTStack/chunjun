@@ -17,9 +17,10 @@
  */
 package com.dtstack.flinkx.connector.stream.converter;
 
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
@@ -27,44 +28,56 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.ByteColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * Date: 2021/04/26 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData, RowData, String> {
+public class StreamColumnConverter
+        extends AbstractRowConverter<ColumnRowData, RowData, RowData, String> {
 
     private static final long serialVersionUID = 1L;
     private static final AtomicLong id = new AtomicLong(0L);
 
-    public StreamColumnConverter(List<String> typeList) {
-        super(typeList.size());
+    public StreamColumnConverter(FlinkxCommonConf commonConf) {
+        List<String> typeList =
+                commonConf.getColumn().stream()
+                        .map(FieldConf::getType)
+                        .collect(Collectors.toList());
+        super.commonConf = commonConf;
+        super.toInternalConverters = new IDeserializationConverter[typeList.size()];
+        super.toExternalConverters = new ISerializationConverter[typeList.size()];
+
         for (int i = 0; i < typeList.size(); i++) {
-            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
-            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(typeList.get(i)), typeList.get(i));
+            toInternalConverters[i] = createInternalConverter(typeList.get(i));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(typeList.get(i)), typeList.get(i));
         }
     }
 
-    public StreamColumnConverter() {}
-
     @Override
-    protected ISerializationConverter<ColumnRowData> wrapIntoNullableExternalConverter( ISerializationConverter serializationConverter, String type) {
+    @SuppressWarnings("all")
+    protected ISerializationConverter<ColumnRowData> wrapIntoNullableExternalConverter(
+            ISerializationConverter serializationConverter, String type) {
         return (val, index, rowData) -> rowData.addField(((ColumnRowData) val).getField(index));
     }
 
     @Override
-    protected IDeserializationConverter createInternalConverter(String type) {
+    protected IDeserializationConverter<RowData, AbstractBaseColumn> createInternalConverter(
+            String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "ID":
                 return val -> new BigDecimalColumn(new BigDecimal(id.incrementAndGet()));
@@ -74,11 +87,13 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
             case "BOOLEAN":
                 return val -> new BooleanColumn(JMockData.mock(boolean.class));
             case "TINYINT":
-                return val -> new BigDecimalColumn(JMockData.mock(byte.class));
+            case "BYTE":
+                return val -> new ByteColumn(JMockData.mock(byte.class));
             case "CHAR":
             case "CHARACTER":
                 return val -> new StringColumn(JMockData.mock(char.class).toString());
             case "SHORT":
+            case "SMALLINT":
                 return val -> new BigDecimalColumn(JMockData.mock(short.class));
             case "LONG":
             case "BIGINT":
@@ -90,12 +105,11 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
             case "DECIMAL":
                 return val -> new BigDecimalColumn(JMockData.mock(BigDecimal.class));
             case "DATE":
-                return val -> new BigDecimalColumn(LocalDate.now().toEpochDay());
-            case "TIME":
-                return val -> new BigDecimalColumn((LocalTime.now().toNanoOfDay() / 1_000_000L));
             case "DATETIME":
             case "TIMESTAMP":
                 return val -> new TimestampColumn(System.currentTimeMillis());
+            case "TIME":
+                return val -> new TimestampColumn((LocalTime.now().toNanoOfDay() / 1_000_000L));
             default:
                 return val -> new StringColumn(JMockData.mock(String.class));
         }
@@ -108,29 +122,19 @@ public class StreamColumnConverter extends AbstractRowConverter<RowData, RowData
 
     @Override
     @SuppressWarnings("unchecked")
-    public RowData toInternal(RowData rowData) {
-        ColumnRowData data = new ColumnRowData(toInternalConverters.length);
-        for (int i = 0; i < toInternalConverters.length; i++) {
-            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(data));
+    public ColumnRowData toInternal(ColumnRowData rowData) throws Exception {
+        List<FieldConf> fieldConfList = commonConf.getColumn();
+        ColumnRowData result = new ColumnRowData(fieldConfList.size());
+        for (int i = 0; i < fieldConfList.size(); i++) {
+            AbstractBaseColumn baseColumn =
+                    (AbstractBaseColumn) toInternalConverters[i].deserialize(null);
+            result.addField(assembleFieldProps(fieldConfList.get(i), baseColumn));
         }
-        return data;
-    }
-
-    @Override
-    public RowData toInternalLookup(RowData input) {
-        return null;
+        return result;
     }
 
     @Override
     public RowData toExternal(RowData rowData, RowData output) {
-        ColumnRowData genericRowData = (ColumnRowData) rowData;
-        GenericRowData outputRowData = (GenericRowData) output;
-        for (int pos = 0; pos < rowData.getArity(); pos++) {
-            AbstractBaseColumn field = genericRowData.getField(pos);
-            if (field != null) {
-                outputRowData.setField(pos, field.asString());
-            }
-        }
-        return outputRowData;
+        return rowData;
     }
 }

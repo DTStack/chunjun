@@ -22,10 +22,11 @@ import com.dtstack.flinkx.connector.jdbc.JdbcDialectWrapper;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.CollectionUtil;
 
-import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -51,6 +52,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -60,7 +62,6 @@ import java.util.regex.Pattern;
  * @author huyifan_zju@
  */
 public class JdbcUtil {
-
     /**
      * jdbc连接URL的分割正则，用于获取URL?后的连接参数
      */
@@ -80,24 +81,24 @@ public class JdbcUtil {
     /**
      * 数据库连接的最大重试次数
      */
-    private static int MAX_RETRY_TIMES = 3;
+    private static final int MAX_RETRY_TIMES = 3;
     /**
      * 秒级时间戳的长度为10位
      */
-    private static int SECOND_LENGTH = 10;
+    private static final int SECOND_LENGTH = 10;
     /**
      * 毫秒级时间戳的长度为13位
      */
-    private static int MILLIS_LENGTH = 13;
+    private static final int MILLIS_LENGTH = 13;
     /**
      * 微秒级时间戳的长度为16位
      */
-    private static int MICRO_LENGTH = 16;
+    private static final int MICRO_LENGTH = 16;
     /**
      * 纳秒级时间戳的长度为19位
      */
-    private static int NANOS_LENGTH = 19;
-    private static int FORMAT_TIME_NANOS_LENGTH = 29;
+    private static final int NANOS_LENGTH = 19;
+    private static final int FORMAT_TIME_NANOS_LENGTH = 29;
 
     /**
      * 获取JDBC连接
@@ -129,24 +130,36 @@ public class JdbcUtil {
     }
 
     /**
-     * @param tableName
-     * @param dbConn
-     * @return
-     * @throws SQLException
+     * get full column name and type from database
+     * @param schema schema
+     * @param tableName tableName
+     * @param dbConn jdbc Connection
+     * @return fullColumnList and fullColumnTypeList
      */
-    public static Pair<List<String>, List<String>> getTableMetaData(
-            String schema, String tableName, Connection dbConn) throws SQLException {
-        ResultSet rs = dbConn.getMetaData().getColumns(null, schema, tableName, null);
-        List<String> rawFieldNames = new LinkedList<>();
-        List<String> rawFieldTypes = new LinkedList<>();
-        while (rs.next()) {
-            //COLUMN_NAME
-            rawFieldNames.add(rs.getString(4));
-            //TYPE_NAME
-            rawFieldTypes.add(rs.getString(6));
+    public static Pair<List<String>, List<String>> getTableMetaData(String schema, String tableName, Connection dbConn) {
+        try {
+            //check table exists
+            ResultSet tableRs = dbConn.getMetaData().getTables(null, schema, tableName, null);
+            if(!tableRs.next()){
+                String tableInfo = schema == null ? tableName : schema + "." + tableName;
+                throw new FlinkxRuntimeException(String.format("table %s not found.", tableInfo));
+            }
+
+
+            ResultSet rs = dbConn.getMetaData().getColumns(null, schema, tableName, null);
+            List<String> fullColumnList = new LinkedList<>();
+            List<String> fullColumnTypeList = new LinkedList<>();
+            while (rs.next()) {
+                //COLUMN_NAME
+                fullColumnList.add(rs.getString(4));
+                //TYPE_NAME
+                fullColumnTypeList.add(rs.getString(6));
+            }
+            rs.close();
+            return Pair.of(fullColumnList, fullColumnTypeList);
+        }catch (SQLException e){
+            throw new FlinkxRuntimeException(String.format("error to get meta from [%s.%s]", schema, tableName), e);
         }
-        rs.close();
-        return Pair.of(rawFieldNames, rawFieldTypes);
     }
 
     /**
@@ -402,5 +415,36 @@ public class JdbcUtil {
         } catch (SQLException throwables) {
             throw new RuntimeException(throwables);
         }
+    }
+
+    /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table **/
+    public static void resetSchemaAndTable(JdbcConf jdbcConf, String leftQuote, String rightQuote) {
+            LOG.info("before reset table info, schema: {}, table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
+            String pattern = String.format(
+                    "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
+                    leftQuote,
+                    rightQuote,
+                    leftQuote,
+                    rightQuote);
+            Pattern p = Pattern.compile(pattern);
+            Matcher matcher = p.matcher(jdbcConf.getTable());
+            String schema = null;
+            String table = null;
+            if (matcher.find()) {
+                schema = matcher.group("schema");
+                table = matcher.group("table");
+            } else {
+                String[] split = jdbcConf.getTable().split("\\.");
+                if (split.length == 2) {
+                    schema = split[0];
+                    table = split[1];
+                }
+            }
+
+            if (StringUtils.isNotBlank(schema)) {
+                jdbcConf.setSchema(schema);
+                jdbcConf.setTable(table);
+                LOG.info("after reset table info,schema: {},table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
+            }
     }
 }

@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.stream.table;
 
+import com.google.common.collect.Lists;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ReadableConfig;
@@ -29,7 +31,7 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.sink.StreamDynamicTableSink;
 import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
 
@@ -37,8 +39,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.dtstack.flinkx.connector.stream.options.StreamOptions.NUMBER_OF_ROWS;
-import static com.dtstack.flinkx.connector.stream.options.StreamOptions.PRINT_IDENTIFIER;
-import static com.dtstack.flinkx.connector.stream.options.StreamOptions.STANDARD_ERROR;
+import static com.dtstack.flinkx.connector.stream.options.StreamOptions.PRINT;
+import static com.dtstack.flinkx.connector.stream.options.StreamOptions.SINK_PARALLELISM;
+import static com.dtstack.flinkx.connector.stream.options.StreamOptions.ROWS_PER_SECOND;
 
 /**
  * @author chuixue
@@ -62,6 +65,9 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> options = new HashSet<>();
         options.add(NUMBER_OF_ROWS);
+        options.add(ROWS_PER_SECOND);
+        options.add(PRINT);
+        options.add(SINK_PARALLELISM);
         return options;
     }
 
@@ -75,10 +81,9 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
         helper.validate();
 
         // 3.封装参数
-        StreamSinkConf sinkConf = StreamSinkConf
-                .builder()
-                .setPrintIdentifier(config.get(PRINT_IDENTIFIER))
-                .setStdErr(config.get(STANDARD_ERROR));
+        StreamConf sinkConf = new StreamConf();
+        sinkConf.setPrint(config.get(PRINT));
+        sinkConf.setParallelism(config.get(SINK_PARALLELISM));
 
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
@@ -94,6 +99,11 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
         Configuration options = new Configuration();
         context.getCatalogTable().getOptions().forEach(options::setString);
         TableSchema schema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        return new StreamDynamicTableSource(schema, options.get(NUMBER_OF_ROWS));
+
+        StreamConf streamConf = new StreamConf();
+        streamConf.setSliceRecordCount(Lists.newArrayList(options.get(NUMBER_OF_ROWS)));
+        streamConf.setPermitsPerSecond(options.get(ROWS_PER_SECOND));
+
+        return new StreamDynamicTableSource(schema, streamConf);
     }
 }

@@ -19,11 +19,25 @@
 package com.dtstack.flinkx.connector.kafka.sink;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.api.common.state.ListState;
+import org.apache.flink.api.common.state.ListStateDescriptor;
+import org.apache.flink.api.common.state.OperatorStateStore;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.state.FunctionInitializationContext;
+import org.apache.flink.runtime.state.FunctionSnapshotContext;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaException;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
 import org.apache.flink.table.data.RowData;
 
+import com.dtstack.flinkx.restore.FormatState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -33,7 +47,13 @@ import java.util.Properties;
  */
 public class KafkaProducer extends FlinkKafkaProducer<RowData> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaProducer.class);
+
     private KafkaSerializationSchema<RowData> serializationSchema;
+    private Properties producerConfig;
+    protected static final String LOCATION_STATE_NAME = "data-sync-location-states";
+    protected transient ListState<FormatState> unionOffsetStates;
+    protected Map<Integer, FormatState> formatStateMap;
 
     public KafkaProducer(
             String defaultTopic,
@@ -43,13 +63,56 @@ public class KafkaProducer extends FlinkKafkaProducer<RowData> {
             int kafkaProducersPoolSize) {
         super(defaultTopic, serializationSchema, producerConfig, semantic, kafkaProducersPoolSize);
         this.serializationSchema = serializationSchema;
+        this.producerConfig = producerConfig;
     }
 
     @Override
     public void open(Configuration configuration) throws Exception {
         RuntimeContext runtimeContext = getRuntimeContext();
         ((DynamicKafkaSerializationSchema) serializationSchema).setRuntimeContext(runtimeContext);
-        ((DynamicKafkaSerializationSchema) serializationSchema).initMetric();
+        ((DynamicKafkaSerializationSchema) serializationSchema).setProducerConfig(producerConfig);
+        if (formatStateMap != null) {
+            ((DynamicKafkaSerializationSchema) serializationSchema)
+                    .setFormatState(formatStateMap.get(runtimeContext.getIndexOfThisSubtask()));
+        }
         super.open(configuration);
+    }
+
+    @Override
+    public void snapshotState(FunctionSnapshotContext context) throws Exception {
+        super.snapshotState(context);
+        FormatState formatState = ((DynamicKafkaSerializationSchema) serializationSchema).getFormatState();
+        if (formatState != null) {
+            LOG.info("OutputFormat format state:{}", formatState);
+            unionOffsetStates.clear();
+            unionOffsetStates.add(formatState);
+        }
+    }
+
+    @Override
+    public void initializeState(FunctionInitializationContext context) throws Exception {
+        super.initializeState(context);
+        LOG.info("Start initialize output format state");
+        OperatorStateStore stateStore = context.getOperatorStateStore();
+        unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
+                LOCATION_STATE_NAME,
+                TypeInformation.of(new TypeHint<FormatState>() {
+                })));
+
+        LOG.info("Is restored:{}", context.isRestored());
+        if (context.isRestored()) {
+            formatStateMap = new HashMap<>(16);
+            for (FormatState formatState : unionOffsetStates.get()) {
+                formatStateMap.put(formatState.getNumOfSubTask(), formatState);
+                LOG.info("Output format state into:{}", formatState.toString());
+            }
+        }
+        LOG.info("End initialize output format state");
+    }
+
+    @Override
+    public void close() throws FlinkKafkaException {
+        super.close();
+        ((DynamicKafkaSerializationSchema) serializationSchema).close();
     }
 }

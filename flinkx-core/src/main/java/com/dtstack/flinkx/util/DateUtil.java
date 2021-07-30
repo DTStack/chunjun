@@ -84,6 +84,8 @@ public class DateUtil {
     private static final Pattern TIME = Pattern.compile("^\\d{2}:\\d{2}:\\d{2}(\\.\\d{3,9})?Z$");
     private static final int MILLIS_PER_SECOND = 1000;
 
+    /** parse yyyy-MM-dd HH:mm:ss.SSSSSS format string, like '2021-06-12 12:01:21.011101'  **/
+    public static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
 
     public static ThreadLocal<Map<String,SimpleDateFormat>> datetimeFormatter = ThreadLocal.withInitial(() -> {
             TimeZone timeZone = TimeZone.getTimeZone(TIME_ZONE);

@@ -60,7 +60,8 @@ public class PGWalDynamicTableSource implements ScanTableSource {
         builder.setConf(conf);
         builder.setRowConverter(new PGWalRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat));
 
-        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+        return ParallelSourceFunctionProvider.of(
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
 
     @Override

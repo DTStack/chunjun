@@ -22,6 +22,7 @@ import com.dtstack.flinkx.conf.SyncConf;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.net.URLDecoder;
 import java.util.Properties;
 
@@ -73,5 +74,13 @@ public class PropertiesUtil {
         flinkxCommonConf.setDirtyDataPath(syncConf.getDirty().getPath());
         flinkxCommonConf.setDirtyDataHadoopConf(syncConf.getDirty().getHadoopConfig());
         flinkxCommonConf.setFieldNameList(syncConf.getDirty().getReaderColumnNameList());
+        flinkxCommonConf.setRestorePath(syncConf.getRestorePath());
+        if (syncConf.getMetricPluginConf() != null) {
+            flinkxCommonConf.setMetricPluginRoot(syncConf.getRemotePluginPath() == null ?
+                    syncConf.getPluginRoot() + File.separator + "metrics" : syncConf.getRemotePluginPath());
+            flinkxCommonConf.setMetricPluginName(syncConf.getMetricPluginConf().getPluginName());
+            flinkxCommonConf.setMetricProps(syncConf.getMetricPluginConf().getPluginProp());
+        }
+
     }
 }

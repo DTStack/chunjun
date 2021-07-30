@@ -14,6 +14,12 @@
 
     <dependencies>
 
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-kubernetes_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>
             <artifactId>flinkx-core</artifactId>
@@ -36,6 +42,10 @@
                     <artifactId>commons-cli</artifactId>
                     <groupId>commons-cli</groupId>
                 </exclusion>
+				<exclusion>
+					<artifactId>netty-all</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
             </exclusions>
         </dependency>
 
@@ -163,11 +173,15 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../lib/">
-                                    <fileset dir="target/">
-                                        <include name="${project.name}-${project.version}.jar" />
-                                    </fileset>
-                                </copy>
+								<move file="${basedir}/target/${artifactId}-${project.version}.jar"
+									  tofile="${basedir}/target/${artifactId}-${git.branch}.jar"/>
+								<copy todir="${basedir}/../lib/"
+									  file="${basedir}/target/${artifactId}-${git.branch}.jar"/>
+								<delete>
+									<fileset dir="${basedir}/../lib"
+											 includes="${artifactId}-*.jar"
+											 excludes="${artifactId}-${git.branch}.jar"/>
+								</delete>
                             </tasks>
                         </configuration>
                     </execution>

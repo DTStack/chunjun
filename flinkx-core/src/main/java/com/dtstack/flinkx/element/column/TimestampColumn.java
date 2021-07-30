@@ -18,10 +18,11 @@
 package com.dtstack.flinkx.element.column;
 
 import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Date: 2021/04/27
@@ -39,19 +40,24 @@ public class TimestampColumn extends AbstractBaseColumn {
         super(new Timestamp(data));
     }
 
-    @Override
-    public int getByteSize(Object data) {
-        return null == data ? 0 : data.toString().getBytes(StandardCharsets.UTF_8).length;
+    public TimestampColumn(Date data) {
+        super(new Timestamp(data.getTime()));
     }
 
     @Override
     public Boolean asBoolean() {
-        throw new RuntimeException(String.format("Timestamp[\"%s\"]can not cast to Boolean.", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Timestamp", "Boolean", this.asString());
     }
 
     @Override
     public byte[] asBytes() {
-        throw new RuntimeException(String.format("Timestamp[\"%s\"]can not cast to byte[].", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Timestamp", "Bytes", this.asString());
     }
 
     @Override
@@ -64,7 +70,10 @@ public class TimestampColumn extends AbstractBaseColumn {
 
     @Override
     public BigDecimal asBigDecimal() {
-        throw new RuntimeException(String.format("Timestamp[\"%s\"]can not cast to BigDecimal.", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Timestamp", "BigDecimal", this.asString());
     }
 
     @Override

@@ -22,12 +22,11 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.stream.conf.StreamSinkConf;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.util.TablePrintUtil;
 import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
-import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
@@ -40,8 +39,7 @@ import java.util.List;
 public class StreamOutputFormat extends BaseRichOutputFormat {
 
     // streamSinkConf属性
-    private StreamSinkConf streamSinkConf;
-    private GenericRowData lastRow;
+    private StreamConf streamConf;
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
@@ -49,41 +47,36 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeSingleRecordInternal(RowData rowData) {
+    protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
-            GenericRowData genericRowData = new GenericRowData(rowData.getArity());
-            GenericRowData row = (GenericRowData) rowConverter.toExternal(rowData, genericRowData);
-            if (streamSinkConf.getPrint()) {
+            @SuppressWarnings("unchecked")
+            RowData row =
+                    (RowData)
+                            rowConverter.toExternal(
+                                    rowData, new GenericRowData(rowData.getArity()));
+            if (streamConf.getPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames(rowData));
             }
             lastRow = row;
         } catch (Exception e) {
-            LOG.error("row = {}, e = {}", rowData, ExceptionUtil.getErrorMessage(e));
+            throw new WriteRecordException("", e, 0, rowData);
         }
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() {
+    protected void writeMultipleRecordsInternal() throws Exception {
         for (RowData row : rows) {
             writeSingleRecordInternal(row);
         }
     }
 
-    @Override
-    public FormatState getFormatState() throws Exception {
-        if (lastRow != null) {
-            TablePrintUtil.printTable(lastRow, getFieldNames(lastRow));
-        }
-        return super.getFormatState();
-    }
-
     public String[] getFieldNames(RowData rowData) {
         String[] fieldNames = null;
-        if(rowData instanceof ColumnRowData){
+        if (rowData instanceof ColumnRowData) {
             fieldNames = ((ColumnRowData) rowData).getHeaders();
         }
-        if(fieldNames == null){
-            List<FieldConf> fieldConfList = streamSinkConf.getColumn();
+        if (fieldNames == null) {
+            List<FieldConf> fieldConfList = streamConf.getColumn();
             if (CollectionUtils.isNotEmpty(fieldConfList)) {
                 fieldNames = fieldConfList.stream().map(FieldConf::getName).toArray(String[]::new);
             }
@@ -96,17 +89,7 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         // do nothing
     }
 
-    @Override
-    public void notifyCheckpointComplete(long checkpointId) {
-        // do nothing
-    }
-
-    @Override
-    public void notifyCheckpointAborted(long checkpointId) {
-        // do nothing
-    }
-
-    public void setStreamSinkConf(StreamSinkConf streamSinkConf) {
-        this.streamSinkConf = streamSinkConf;
+    public void setStreamConf(StreamConf streamConf) {
+        this.streamConf = streamConf;
     }
 }

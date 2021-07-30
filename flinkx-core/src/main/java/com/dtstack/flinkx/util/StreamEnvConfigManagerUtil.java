@@ -18,12 +18,7 @@
 
 package com.dtstack.flinkx.util;
 
-import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.common.restartstrategy.RestartStrategies;
-import org.apache.flink.api.common.time.Time;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.runtime.state.StateBackend;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
@@ -32,11 +27,6 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.api.EnvironmentSettings;
-import org.apache.flink.table.api.TableConfig;
-import org.apache.flink.table.api.TableEnvironment;
-import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
-import org.apache.flink.table.api.bridge.java.internal.StreamTableEnvironmentImpl;
 
 import com.dtstack.flinkx.constants.ConfigConstant;
 import com.dtstack.flinkx.enums.EStateBackend;
@@ -44,15 +34,9 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_STRATEGY;
 
@@ -64,135 +48,6 @@ import static com.dtstack.flinkx.constants.ConfigConstant.STRATEGY_STRATEGY;
  * @author maqi
  */
 public final class StreamEnvConfigManagerUtil {
-
-    /**
-     * 生成StreamTableEnvironment并设置参数
-     *
-     * @param env
-     * @param confProperties
-     * @param jobName
-     * @return
-     */
-    public static StreamTableEnvironment getStreamTableEnv(StreamExecutionEnvironment env, Properties confProperties, String jobName) {
-        // use blink and streammode
-        EnvironmentSettings settings = EnvironmentSettings.newInstance()
-                .useBlinkPlanner()
-                .inStreamingMode()
-                .build();
-
-        TableConfig tableConfig = new TableConfig();
-
-        StreamTableEnvironment tableEnv = StreamTableEnvironmentImpl.create(env, settings, tableConfig);
-        StreamEnvConfigManagerUtil.streamTableEnvironmentStateTTLConfig(tableEnv, confProperties);
-        StreamEnvConfigManagerUtil.streamTableEnvironmentEarlyTriggerConfig(tableEnv, confProperties);
-        StreamEnvConfigManagerUtil.streamTableEnvironmentName(tableEnv, jobName);
-        return tableEnv;
-    }
-
-    /**
-     * 配置StreamExecutionEnvironment运行时参数
-     *
-     * @param streamEnv
-     * @param confProperties
-     */
-    public static void streamExecutionEnvironmentConfig(StreamExecutionEnvironment streamEnv, Properties confProperties)
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
-
-        confProperties = PropertiesUtil.propertiesTrim(confProperties);
-        streamEnv.getConfig().disableClosureCleaner();
-
-        Configuration globalJobParameters = new Configuration();
-        //Configuration unsupported set properties key-value
-        Method method = Configuration.class.getDeclaredMethod("setValueInternal", String.class, Object.class);
-        method.setAccessible(true);
-        for (Map.Entry<Object, Object> prop : confProperties.entrySet()) {
-            method.invoke(globalJobParameters, prop.getKey(), prop.getValue());
-        }
-
-        ExecutionConfig exeConfig = streamEnv.getConfig();
-        if (exeConfig.getGlobalJobParameters() == null) {
-            exeConfig.setGlobalJobParameters(globalJobParameters);
-        } else if (exeConfig.getGlobalJobParameters() != null) {
-            exeConfig.setGlobalJobParameters(globalJobParameters);
-        }
-
-        disableChainOperator(streamEnv, globalJobParameters);
-
-        getEnvParallelism(confProperties).ifPresent(streamEnv::setParallelism);
-        getMaxEnvParallelism(confProperties).ifPresent(streamEnv::setMaxParallelism);
-        getBufferTimeoutMillis(confProperties).ifPresent(streamEnv::setBufferTimeout);
-        getStreamTimeCharacteristic(confProperties).ifPresent(streamEnv::setStreamTimeCharacteristic);
-        getAutoWatermarkInterval(confProperties).ifPresent(op -> {
-            if (streamEnv.getStreamTimeCharacteristic().equals(TimeCharacteristic.EventTime)) {
-                streamEnv.getConfig().setAutoWatermarkInterval(op);
-            }
-        });
-
-        if (isRestore(confProperties).get()) {
-            streamEnv.setRestartStrategy(RestartStrategies.failureRateRestart(
-                    ConfigConstant.FAILUEE_RATE,
-                    Time.of(getFailureInterval(confProperties).get(), TimeUnit.MINUTES),
-                    Time.of(getDelayInterval(confProperties).get(), TimeUnit.SECONDS)
-            ));
-        } else {
-            streamEnv.setRestartStrategy(RestartStrategies.noRestart());
-        }
-
-        // checkpoint config
-        Optional<Boolean> checkpointEnabled = isCheckpointEnabled(confProperties);
-        if (checkpointEnabled.get()) {
-            getCheckpointInterval(confProperties).ifPresent(streamEnv::enableCheckpointing);
-            getCheckpointMode(confProperties).ifPresent(streamEnv.getCheckpointConfig()::setCheckpointingMode);
-            getCheckpointTimeout(confProperties).ifPresent(streamEnv.getCheckpointConfig()::setCheckpointTimeout);
-            getMaxConcurrentCheckpoints(confProperties).ifPresent(streamEnv.getCheckpointConfig()::setMaxConcurrentCheckpoints);
-            getCheckpointCleanup(confProperties).ifPresent(streamEnv.getCheckpointConfig()::enableExternalizedCheckpoints);
-            enableUnalignedCheckpoints(confProperties).ifPresent(event -> streamEnv.getCheckpointConfig().enableUnalignedCheckpoints(event));
-            getStateBackend(confProperties).ifPresent(streamEnv::setStateBackend);
-        }
-    }
-
-    /**
-     * 设置TableEnvironment window提前触发
-     *
-     * @param tableEnv
-     * @param confProperties
-     */
-    public static void streamTableEnvironmentEarlyTriggerConfig(TableEnvironment tableEnv, Properties confProperties) {
-        confProperties = PropertiesUtil.propertiesTrim(confProperties);
-        String triggerTime = confProperties.getProperty(ConfigConstant.EARLY_TRIGGER);
-        if (StringUtils.isNumeric(triggerTime)) {
-            TableConfig qConfig = tableEnv.getConfig();
-            qConfig.getConfiguration().setString("table.exec.emit.early-fire.enabled", "true");
-            qConfig.getConfiguration().setString("table.exec.emit.early-fire.delay", triggerTime + "s");
-        }
-    }
-
-    /**
-     * 设置任务执行的name
-     *
-     * @param tableEnv
-     * @param name
-     */
-    public static void streamTableEnvironmentName(TableEnvironment tableEnv, String name) {
-        tableEnv.getConfig().getConfiguration().setString(PipelineOptions.NAME, name);
-    }
-
-    /**
-     * 设置TableEnvironment状态超时时间
-     *
-     * @param tableEnv
-     * @param confProperties
-     */
-    public static void streamTableEnvironmentStateTTLConfig(TableEnvironment tableEnv, Properties confProperties) {
-        confProperties = PropertiesUtil.propertiesTrim(confProperties);
-        Optional<Tuple2<Time, Time>> tableEnvTTL = getTableEnvTTL(confProperties);
-        if (tableEnvTTL.isPresent()) {
-            Tuple2<Time, Time> timeRange = tableEnvTTL.get();
-            TableConfig qConfig = tableEnv.getConfig();
-            qConfig.setIdleStateRetentionTime(timeRange.f0, timeRange.f1);
-        }
-    }
-
 
     // -----------------------StreamExecutionEnvironment config-----------------------------------------------
     public static Optional<Integer> getEnvParallelism(Properties properties) {
@@ -235,25 +90,6 @@ public final class StreamEnvConfigManagerUtil {
         return Optional.of(Integer.valueOf(failureInterval));
     }
 
-    /**
-     * #ProcessingTime(默认), IngestionTime, EventTime
-     *
-     * @param properties
-     */
-    public static Optional<TimeCharacteristic> getStreamTimeCharacteristic(Properties properties) {
-        if (!properties.containsKey(ConfigConstant.FLINK_TIME_CHARACTERISTIC_KEY)) {
-            return Optional.empty();
-        }
-        String characteristicStr = properties.getProperty(ConfigConstant.FLINK_TIME_CHARACTERISTIC_KEY);
-        Optional<TimeCharacteristic> characteristic = Arrays.stream(TimeCharacteristic.values())
-                .filter(tc -> characteristicStr.equalsIgnoreCase(tc.toString())).findAny();
-
-        if (!characteristic.isPresent()) {
-            throw new RuntimeException("illegal property :" + ConfigConstant.FLINK_TIME_CHARACTERISTIC_KEY);
-        }
-        return characteristic;
-    }
-
     public static Optional<Boolean> isCheckpointEnabled(Properties properties) {
         boolean checkpointEnabled = !(properties.getProperty(ConfigConstant.SQL_CHECKPOINT_INTERVAL_KEY) == null
                 && properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_INTERVAL_KEY) == null);
@@ -268,6 +104,19 @@ public final class StreamEnvConfigManagerUtil {
         return Optional.empty();
     }
 
+    /**
+     * Task fails after cp reaches the number of failures
+     * @param properties
+     * @return
+     */
+    public static Optional<Integer> getTolerableCheckpointFailureNumber(Properties properties) {
+        // 两个参数主要用来做上层兼容
+        int sqlInterval = Integer.parseInt(properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_FAILURENUMBER_KEY, Integer.MAX_VALUE+""));
+        int flinkInterval = Integer.parseInt(properties.getProperty(ConfigConstant.SQL_CHECKPOINT_FAILURENUMBER_KEY, Integer.MAX_VALUE+""));
+        int checkpointInterval = Math.min(sqlInterval, flinkInterval);
+        return Optional.of(checkpointInterval);
+    }
+
     public static Optional<Long> getCheckpointInterval(Properties properties) {
         // 两个参数主要用来做上层兼容
         Long sqlInterval = Long.valueOf(properties.getProperty(ConfigConstant.SQL_CHECKPOINT_INTERVAL_KEY, "0"));
@@ -277,12 +126,16 @@ public final class StreamEnvConfigManagerUtil {
     }
 
     public static Optional<CheckpointingMode> getCheckpointMode(Properties properties) {
-        String checkpointingModeStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_MODE_KEY);
+        String flinkCheckpointingModeStr = properties.getProperty(ConfigConstant.FLINK_CHECKPOINT_MODE_KEY);
+        String sqlCheckpointingModeStr = properties.getProperty(ConfigConstant.SQL_CHECKPOINT_MODE_KEY);
         CheckpointingMode checkpointingMode = null;
-        if (!StringUtils.isEmpty(checkpointingModeStr)) {
-            checkpointingMode = CheckpointingMode.valueOf(checkpointingModeStr.toUpperCase());
+        if (!StringUtils.isEmpty(flinkCheckpointingModeStr)) {
+            checkpointingMode = CheckpointingMode.valueOf(flinkCheckpointingModeStr.toUpperCase());
         }
-        return checkpointingMode == null ? Optional.of(CheckpointingMode.EXACTLY_ONCE) : Optional.of(checkpointingMode);
+        if (!StringUtils.isEmpty(sqlCheckpointingModeStr)) {
+            checkpointingMode = CheckpointingMode.valueOf(sqlCheckpointingModeStr.toUpperCase());
+        }
+        return checkpointingMode == null ? Optional.of(CheckpointingMode.AT_LEAST_ONCE) : Optional.of(checkpointingMode);
     }
 
     public static Optional<Long> getCheckpointTimeout(Properties properties) {
@@ -352,68 +205,6 @@ public final class StreamEnvConfigManagerUtil {
     }
 
     // -----------------TableEnvironment state ttl config------------------------------
-
-    private static final String TTL_PATTERN_STR = "^+?([1-9][0-9]*)([dDhHmMsS])$";
-    private static final Pattern TTL_PATTERN = Pattern.compile(TTL_PATTERN_STR);
-
-    public static Optional<Tuple2<Time, Time>> getTableEnvTTL(Properties properties) {
-        String ttlMintimeStr = properties.getProperty(ConfigConstant.SQL_TTL_MINTIME);
-        String ttlMaxtimeStr = properties.getProperty(ConfigConstant.SQL_TTL_MAXTIME);
-        if (StringUtils.isNotEmpty(ttlMintimeStr) || StringUtils.isNotEmpty(ttlMaxtimeStr)) {
-            verityTtl(ttlMintimeStr, ttlMaxtimeStr);
-            Matcher ttlMintimeStrMatcher = TTL_PATTERN.matcher(ttlMintimeStr);
-            Matcher ttlMaxtimeStrMatcher = TTL_PATTERN.matcher(ttlMaxtimeStr);
-
-            long ttlMintime = 0L;
-            long ttlMaxtime = 0L;
-            if (ttlMintimeStrMatcher.find()) {
-                ttlMintime = getTtlTime(Integer.parseInt(ttlMintimeStrMatcher.group(1)), ttlMintimeStrMatcher.group(2));
-            }
-            if (ttlMaxtimeStrMatcher.find()) {
-                ttlMaxtime = getTtlTime(Integer.parseInt(ttlMaxtimeStrMatcher.group(1)), ttlMaxtimeStrMatcher.group(2));
-            }
-            if (0L != ttlMintime && 0L != ttlMaxtime) {
-                return Optional.of(new Tuple2<>(Time.milliseconds(ttlMintime), Time.milliseconds(ttlMaxtime)));
-            }
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * ttl 校验
-     *
-     * @param ttlMintimeStr 最小时间
-     * @param ttlMaxtimeStr 最大时间
-     */
-    private static void verityTtl(String ttlMintimeStr, String ttlMaxtimeStr) {
-        if (null == ttlMintimeStr
-                || null == ttlMaxtimeStr
-                || !TTL_PATTERN.matcher(ttlMintimeStr).find()
-                || !TTL_PATTERN.matcher(ttlMaxtimeStr).find()) {
-            throw new RuntimeException("sql.ttl.min 、sql.ttl.max must be set at the same time . example sql.ttl.min=1h,sql.ttl.max=2h");
-        }
-    }
-
-    /**
-     * 不同单位时间到毫秒的转换
-     *
-     * @param timeNumber 时间值，如：30
-     * @param timeUnit   单位，d:天，h:小时，m:分，s:秒
-     * @return
-     */
-    private static Long getTtlTime(Integer timeNumber, String timeUnit) {
-        if ("d".equalsIgnoreCase(timeUnit)) {
-            return timeNumber * 1000L * 60 * 60 * 24;
-        } else if ("h".equalsIgnoreCase(timeUnit)) {
-            return timeNumber * 1000L * 60 * 60;
-        } else if ("m".equalsIgnoreCase(timeUnit)) {
-            return timeNumber * 1000L * 60;
-        } else if ("s".equalsIgnoreCase(timeUnit)) {
-            return timeNumber * 1000L;
-        } else {
-            throw new RuntimeException("not support " + timeNumber + timeUnit);
-        }
-    }
 
     public static void disableChainOperator(StreamExecutionEnvironment env, Configuration configuration) {
         if (configuration.getBoolean("disableChainOperator", false)) {

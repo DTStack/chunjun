@@ -22,17 +22,21 @@ import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import org.apache.flink.shaded.curator4.com.google.common.util.concurrent.RateLimiter;
+
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 import org.apache.commons.collections.CollectionUtils;
 
 /**
  * @Company: www.dtstack.com
+ *
  * @author jiangbo
  */
 public class StreamInputFormat extends BaseRichInputFormat {
     private StreamConf streamConf;
-
+    private RateLimiter rateLimiter;
     private long recordRead = 0;
     private long channelRecordNum;
 
@@ -40,7 +44,7 @@ public class StreamInputFormat extends BaseRichInputFormat {
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
         InputSplit[] inputSplits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            inputSplits[i] = new GenericInputSplit(i,minNumSplits);
+            inputSplits[i] = new GenericInputSplit(i, minNumSplits);
         }
 
         return inputSplits;
@@ -52,17 +56,25 @@ public class StreamInputFormat extends BaseRichInputFormat {
                 && streamConf.getSliceRecordCount().size() > inputSplit.getSplitNumber()) {
             channelRecordNum = streamConf.getSliceRecordCount().get(inputSplit.getSplitNumber());
         }
-
-        LOG.info("The record number of channel:[{}] is [{}]", inputSplit.getSplitNumber(), channelRecordNum);
+        if (streamConf.getPermitsPerSecond() > 0) {
+            rateLimiter = RateLimiter.create(streamConf.getPermitsPerSecond());
+        }
+        LOG.info(
+                "The record number of channel:[{}] is [{}]",
+                inputSplit.getSplitNumber(),
+                channelRecordNum);
     }
 
     @Override
     @SuppressWarnings("all")
-    public RowData nextRecordInternal(RowData rowData) {
+    public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         try {
+            if (rateLimiter != null) {
+                rateLimiter.acquire();
+            }
             rowData = rowConverter.toInternal(rowData);
         } catch (Exception e) {
-            LOG.error("", e);
+            throw new ReadRecordException("", e, 0, rowData);
         }
         return rowData;
     }

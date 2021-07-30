@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.element.column;
 
 import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -30,17 +31,8 @@ import java.sql.Timestamp;
  */
 public class BooleanColumn extends AbstractBaseColumn {
 
-    public BooleanColumn(boolean data) {
+    public BooleanColumn(Boolean data) {
         super(data);
-    }
-
-    public BooleanColumn(int data) {
-        super(new byte[data]);
-    }
-
-    @Override
-    public int getByteSize(Object data) {
-        return null == data ? 0 : 1;
     }
 
     @Override
@@ -53,7 +45,10 @@ public class BooleanColumn extends AbstractBaseColumn {
 
     @Override
     public byte[] asBytes() {
-        throw new RuntimeException(String.format("Boolean[\"%s\"]can not cast to byte[].", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Boolean", "Bytes", this.asString());
     }
 
     @Override
@@ -74,6 +69,9 @@ public class BooleanColumn extends AbstractBaseColumn {
 
     @Override
     public Timestamp asTimestamp() {
-        throw new RuntimeException(String.format("Boolean[\"%s\"]can not cast to Timestamp.", this.asString()));
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Boolean", "Timestamp", this.asString());
     }
 }

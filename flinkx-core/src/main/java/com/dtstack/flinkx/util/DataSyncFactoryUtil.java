@@ -18,6 +18,13 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.conf.MetricParam;
+import com.dtstack.flinkx.metrics.CustomReporter;
+
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
+import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
@@ -25,6 +32,7 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -37,8 +45,6 @@ import java.util.Set;
  */
 public class DataSyncFactoryUtil {
 
-    private DataSyncFactoryUtil() {}
-
     public static SourceFactory discoverSource(SyncConf config, StreamExecutionEnvironment env) {
         try {
             String pluginName = config.getJob().getReader().getName();
@@ -50,13 +56,31 @@ public class DataSyncFactoryUtil {
                     urlList,
                     cl -> {
                         Class<?> clazz = cl.loadClass(pluginClassName);
-                        Constructor constructor =
-                                clazz.getConstructor(
-                                        SyncConf.class, StreamExecutionEnvironment.class);
+                        Constructor<?> constructor = clazz.getConstructor(SyncConf.class, StreamExecutionEnvironment.class);
                         return (SourceFactory) constructor.newInstance(config, env);
                     });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new FlinkxRuntimeException(e);
+        }
+    }
+
+    public static CustomReporter discoverMetric(FlinkxCommonConf flinkxCommonConf,RuntimeContext context, boolean makeTaskFailedWhenReportFailed) {
+        try {
+            String pluginName = flinkxCommonConf.getMetricPluginName() ;
+            String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.metric);
+            Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, flinkxCommonConf.getMetricPluginRoot(), null);
+            MetricParam metricParam = new MetricParam(context,makeTaskFailedWhenReportFailed,flinkxCommonConf.getMetricProps());
+            return ClassLoaderManager.newInstance(
+                    urlList,
+                    cl -> {
+                        Class<?> clazz = cl.loadClass(pluginClassName);
+                        Constructor constructor =
+                                clazz.getConstructor(
+                                        MetricParam.class);
+                        return (CustomReporter) constructor.newInstance(metricParam);
+                    });
+        } catch (Exception e) {
+            throw new FlinkxRuntimeException(e);
         }
     }
 
@@ -71,11 +95,11 @@ public class DataSyncFactoryUtil {
                     urlList,
                     cl -> {
                         Class<?> clazz = cl.loadClass(pluginClassName);
-                        Constructor constructor = clazz.getConstructor(SyncConf.class);
+                        Constructor<?> constructor = clazz.getConstructor(SyncConf.class);
                         return (SinkFactory) constructor.newInstance(config);
                     });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new FlinkxRuntimeException(e);
         }
     }
 }

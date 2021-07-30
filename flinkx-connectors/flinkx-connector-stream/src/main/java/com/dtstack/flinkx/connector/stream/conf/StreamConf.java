@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.connector.stream.conf;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import java.util.List;
@@ -33,11 +32,11 @@ public class StreamConf extends FlinkxCommonConf {
 
     //reader
     private List<Long> sliceRecordCount;
-    private List<FieldConf> column;
 
     //writer
-    private boolean print = false;
-    private String writeDelimiter = "|";
+    private boolean print = true;
+
+    private long permitsPerSecond = 0;
 
     public List<Long> getSliceRecordCount() {
         return sliceRecordCount;
@@ -45,14 +44,6 @@ public class StreamConf extends FlinkxCommonConf {
 
     public void setSliceRecordCount(List<Long> sliceRecordCount) {
         this.sliceRecordCount = sliceRecordCount;
-    }
-
-    public List<FieldConf> getColumn() {
-        return column;
-    }
-
-    public void setColumn(List<FieldConf> column) {
-        this.column = column;
     }
 
     public boolean getPrint() {
@@ -63,21 +54,20 @@ public class StreamConf extends FlinkxCommonConf {
         this.print = print;
     }
 
-    public String getWriteDelimiter() {
-        return writeDelimiter;
+    public long getPermitsPerSecond() {
+        return permitsPerSecond;
     }
 
-    public void setWriteDelimiter(String writeDelimiter) {
-        this.writeDelimiter = writeDelimiter;
+    public void setPermitsPerSecond(long permitsPerSecond) {
+        this.permitsPerSecond = permitsPerSecond;
     }
 
     @Override
     public String toString() {
         return "StreamConf{" +
                 "sliceRecordCount=" + sliceRecordCount +
-                ", column=" + column +
                 ", print=" + print +
-                ", writeDelimiter='" + writeDelimiter + '\'' +
+                ", permitsPerSecond=" + permitsPerSecond +
                 '}';
     }
 }

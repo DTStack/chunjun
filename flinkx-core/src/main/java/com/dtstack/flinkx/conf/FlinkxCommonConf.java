@@ -47,6 +47,47 @@ public class FlinkxCommonConf implements Serializable {
     private boolean checkFormat = true;
     /** 并行度 */
     private Integer parallelism = 1;
+    /** table field column conf */
+    private List<FieldConf> column;
+    /** Number of batches written */
+    private int batchSize = 1;
+    /** Time when the timer is regularly written to the database */
+    private long flushIntervalMills = 10000L;
+    /** cp path */
+    private String restorePath;
+
+    /** metrics plugin root */
+    private String metricPluginRoot;
+
+    /** metrics plugin name */
+    private String metricPluginName;
+
+    /** metrics plugin properties */
+    private Map<String,Object> metricProps;
+
+    public String getMetricPluginRoot() {
+        return metricPluginRoot;
+    }
+
+    public void setMetricPluginRoot(String metricPluginRoot) {
+        this.metricPluginRoot = metricPluginRoot;
+    }
+
+    public String getMetricPluginName() {
+        return metricPluginName == null ? "prometheus" : metricPluginName;
+    }
+
+    public void setMetricPluginName(String metricPluginName) {
+        this.metricPluginName = metricPluginName;
+    }
+
+    public Map<String, Object> getMetricProps() {
+        return metricProps;
+    }
+
+    public void setMetricProps(Map<String, Object> metricProps) {
+        this.metricProps = metricProps;
+    }
 
     public long getSpeedBytes() {
         return speedBytes;
@@ -112,17 +153,56 @@ public class FlinkxCommonConf implements Serializable {
         this.parallelism = parallelism;
     }
 
+    public List<FieldConf> getColumn() {
+        return column;
+    }
+
+    public void setColumn(List<FieldConf> column) {
+        this.column = column;
+    }
+
+    public int getBatchSize() {
+        return batchSize;
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+    }
+
+    public long getFlushIntervalMills() {
+        return flushIntervalMills;
+    }
+
+    public void setFlushIntervalMills(long flushIntervalMills) {
+        this.flushIntervalMills = flushIntervalMills;
+    }
+
+    public String getRestorePath() {
+        return restorePath;
+    }
+
+    public void setRestorePath(String restorePath) {
+        this.restorePath = restorePath;
+    }
+
     @Override
     public String toString() {
         return "FlinkxCommonConf{" +
-                "bytes=" + speedBytes +
-                ", record=" + errorRecord +
-                ", percentage=" + errorPercentage +
+                "speedBytes=" + speedBytes +
+                ", errorRecord=" + errorRecord +
+                ", errorPercentage=" + errorPercentage +
                 ", dirtyDataPath='" + dirtyDataPath + '\'' +
                 ", dirtyDataHadoopConf=" + dirtyDataHadoopConf +
                 ", fieldNameList=" + fieldNameList +
                 ", checkFormat=" + checkFormat +
                 ", parallelism=" + parallelism +
+                ", column=" + column +
+                ", batchSize=" + batchSize +
+                ", flushIntervalMills=" + flushIntervalMills +
+                ", metricPluginRoot='" + metricPluginRoot + '\'' +
+                ", metricPluginName='" + metricPluginName + '\'' +
+                ", metricProps=" + metricProps +
+                ", restorePath=" + restorePath +
                 '}';
     }
 }
