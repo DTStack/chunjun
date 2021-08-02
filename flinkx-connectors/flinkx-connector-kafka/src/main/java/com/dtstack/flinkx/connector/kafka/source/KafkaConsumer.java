@@ -116,7 +116,7 @@ public class KafkaConsumer extends RichParallelSourceFunction<RowData>
 
     @Override
     public void initializeState(FunctionInitializationContext context) throws Exception {
-        //super.initializeState(context);
+        flinkKafkaConsumer.initializeState(context);
         OperatorStateStore stateStore = context.getOperatorStateStore();
         LOG.info("Start initialize input format state, is restored:{}", context.isRestored());
         unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
