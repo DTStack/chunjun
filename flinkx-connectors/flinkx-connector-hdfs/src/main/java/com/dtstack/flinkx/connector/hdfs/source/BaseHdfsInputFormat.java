@@ -17,14 +17,15 @@
  */
 package com.dtstack.flinkx.connector.hdfs.source;
 
-import org.apache.flink.core.io.InputSplit;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.PluginUtil;
+import org.apache.flink.api.common.cache.DistributedCache;
+import org.apache.flink.core.io.InputSplit;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
@@ -38,7 +39,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Date: 2021/06/08 Company: www.dtstack.com
+ * Date: 2021/06/08
+ * Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -50,7 +52,6 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
     protected Object key;
     /** the value to read data into */
     protected Object value;
-
     protected boolean openKerberos;
 
     protected transient FileSystem fs;
@@ -63,8 +64,8 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         openKerberos = FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig());
         if (openKerberos) {
-            UserGroupInformation ugi =
-                    FileSystemUtil.getUGI(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+            DistributedCache distributedCache = PluginUtil.createDistributedCacheFromContextClassLoader();
+            UserGroupInformation ugi = FileSystemUtil.getUGI(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), distributedCache);
             LOG.info("user:{}, ", ugi.getShortUserName());
             return ugi.doAs(
                     (PrivilegedAction<InputSplit[]>)
@@ -88,7 +89,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
         this.inputFormat = createInputFormat();
         openKerberos = FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig());
         if (openKerberos) {
-            ugi = FileSystemUtil.getUGI(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+            ugi = FileSystemUtil.getUGI(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), getRuntimeContext().getDistributedCache());
         }
     }
 
@@ -107,8 +108,7 @@ public abstract class BaseHdfsInputFormat extends BaseRichInputFormat {
 
     /** init Hadoop Job Config */
     protected void initHadoopJobConf() {
-        hadoopJobConf =
-                FileSystemUtil.getJobConf(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+        hadoopJobConf = FileSystemUtil.getJobConf(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
         hadoopJobConf.set(HdfsPathFilter.KEY_REGEX, hdfsConf.getFilterRegex());
         FileSystemUtil.setHadoopUserName(hadoopJobConf);
     }

@@ -36,6 +36,7 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.common.cache.DistributedCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,10 +67,10 @@ public class HiveUtil {
     private static final String NO_SUCH_TABLE_EXCEPTION = "NoSuchTableException";
     private static final List<String> tableExistException = Arrays.asList("TableExistsException", "AlreadyExistsException", "TableAlreadyExistsException");
 
-    public static void createHiveTableWithTableInfo(TableInfo tableInfo, ConnectionInfo connectionInfo) {
+    public static void createHiveTableWithTableInfo(TableInfo tableInfo, ConnectionInfo connectionInfo, DistributedCache distributedCache) {
         Connection connection = null;
         try {
-            connection = HiveDbUtil.getConnection(connectionInfo);
+            connection = HiveDbUtil.getConnection(connectionInfo, distributedCache);
             createTable(connection, tableInfo, connectionInfo);
             fillTableInfo(connection, tableInfo);
         } catch (Exception e) {
@@ -83,10 +84,10 @@ public class HiveUtil {
     /**
      * 创建hive的分区
      */
-    public static void createPartition(TableInfo tableInfo, String partition, ConnectionInfo connectionInfo) {
+    public static void createPartition(TableInfo tableInfo, String partition, ConnectionInfo connectionInfo, DistributedCache distributedCache) {
         Connection connection = null;
         try {
-            connection = HiveDbUtil.getConnection(connectionInfo);
+            connection = HiveDbUtil.getConnection(connectionInfo, distributedCache);
             String sql = String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
             HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {

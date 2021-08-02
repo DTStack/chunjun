@@ -56,14 +56,14 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
- * Date: 2021/06/20 Company: www.dtstack.com
+ * Date: 2021/06/20
+ * Company: www.dtstack.com
  *
  * @author tudou
  */
 public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
 
-    private static final ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO =
-            new ColumnTypeUtil.DecimalInfo(10, 0);
+    private static final ColumnTypeUtil.DecimalInfo PARQUET_DEFAULT_DECIMAL_INFO = new ColumnTypeUtil.DecimalInfo(10, 0);
     private SimpleGroupFactory groupFactory;
     private ParquetWriter<Group> writer;
     private MessageType schema;
@@ -75,13 +75,12 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         schema = buildSchema();
         GroupWriteSupport.setSchema(schema, conf);
         groupFactory = new SimpleGroupFactory(schema);
-        List<String> columnNameList =
-                hdfsConf.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList());
-        if (rowConverter instanceof HdfsParquetColumnConverter) {
-            ((HdfsParquetColumnConverter) rowConverter).setColumnNameList(columnNameList);
-            ((HdfsParquetColumnConverter) rowConverter).setDecimalColInfo(decimalColInfo);
-        } else if (rowConverter instanceof HdfsParquetRowConverter) {
-            ((HdfsParquetRowConverter) rowConverter).setColumnNameList(columnNameList);
+        List<String> columnNameList = hdfsConf.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList());
+        if(rowConverter instanceof HdfsParquetColumnConverter){
+            ((HdfsParquetColumnConverter)rowConverter).setColumnNameList(columnNameList);
+            ((HdfsParquetColumnConverter)rowConverter).setDecimalColInfo(decimalColInfo);
+        }else if(rowConverter instanceof HdfsParquetRowConverter){
+            ((HdfsParquetRowConverter)rowConverter).setColumnNameList(columnNameList);
         }
     }
 
@@ -113,55 +112,45 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                     compressionCodecName = CompressionCodecName.UNCOMPRESSED;
             }
 
-            ExampleParquetWriter.Builder builder =
-                    ExampleParquetWriter.builder(writePath)
-                            .withWriteMode(ParquetFileWriter.Mode.CREATE)
-                            .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
-                            .withCompressionCodec(compressionCodecName)
-                            .withConf(conf)
-                            .withType(schema)
-                            .withDictionaryEncoding(hdfsConf.isEnableDictionary())
-                            .withRowGroupSize(hdfsConf.getRowGroupSize());
+            ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(writePath)
+                    .withWriteMode(ParquetFileWriter.Mode.CREATE)
+                    .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
+                    .withCompressionCodec(compressionCodecName)
+                    .withConf(conf)
+                    .withType(schema)
+                    .withDictionaryEncoding(hdfsConf.isEnableDictionary())
+                    .withRowGroupSize(hdfsConf.getRowGroupSize());
 
-            // 开启kerberos 需要在ugi里进行build
-            if (FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig())) {
-                UserGroupInformation ugi =
-                        FileSystemUtil.getUGI(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
-                ugi.doAs(
-                        (PrivilegedAction<Object>)
-                                () -> {
-                                    try {
-                                        writer = builder.build();
-                                    } catch (IOException e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                    return null;
-                                });
-            } else {
+            //开启kerberos 需要在ugi里进行build
+            if(FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig())){
+                UserGroupInformation ugi = FileSystemUtil.getUGI(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), getRuntimeContext().getDistributedCache());
+                ugi.doAs((PrivilegedAction<Object>) () -> {
+                    try {
+                        writer = builder.build();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return null;
+                });
+            }else{
                 writer = builder.build();
             }
             currentFileIndex++;
-        } catch (Exception e) {
-            throw new FlinkxRuntimeException(
-                    HdfsUtil.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
+        } catch (Exception e){
+            throw new FlinkxRuntimeException(HdfsUtil.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
         }
     }
 
     @Override
     public void flushDataInternal() {
-        LOG.info(
-                "Close current parquet record writer, write data size:[{}]",
-                SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
+        LOG.info("Close current parquet record writer, write data size:[{}]", SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
         try {
             if (writer != null) {
                 writer.close();
                 writer = null;
             }
         } catch (IOException e) {
-            throw new FlinkxRuntimeException(
-                    HdfsUtil.parseErrorMsg(
-                            "error to flush stream.", ExceptionUtil.getErrorMessage(e)),
-                    e);
+            throw new FlinkxRuntimeException(HdfsUtil.parseErrorMsg("error to flush stream.", ExceptionUtil.getErrorMessage(e)), e);
         }
     }
 
@@ -176,10 +165,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         try {
             group = (Group) rowConverter.toExternal(rowData, group);
         } catch (Exception e) {
-            String errorMessage =
-                    HdfsUtil.parseErrorMsg(
-                            String.format("writer hdfs error，rowData:{%s}", rowData),
-                            ExceptionUtil.getErrorMessage(e));
+            String errorMessage = HdfsUtil.parseErrorMsg(String.format("writer hdfs error，rowData:{%s}", rowData), ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException(errorMessage, e, -1, rowData);
         }
 
@@ -188,8 +174,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
             rowsOfCurrentBlock++;
             lastRow = rowData;
         } catch (IOException e) {
-            throw new WriteRecordException(
-                    String.format("Data writing to hdfs is abnormal，rowData:{%s}", rowData), e);
+            throw new WriteRecordException(String.format("Data writing to hdfs is abnormal，rowData:{%s}", rowData), e);
         }
     }
 
@@ -263,18 +248,13 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                             .named(name);
                     break;
                 default:
-                    if (ColumnTypeUtil.isDecimalType(colType)) {
-                        ColumnTypeUtil.DecimalInfo decimalInfo =
-                                ColumnTypeUtil.getDecimalInfo(
-                                        colType, PARQUET_DEFAULT_DECIMAL_INFO);
-                        typeBuilder
-                                .optional(PrimitiveType.PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY)
+                    if(ColumnTypeUtil.isDecimalType(colType)){
+                        ColumnTypeUtil.DecimalInfo decimalInfo = ColumnTypeUtil.getDecimalInfo(colType, PARQUET_DEFAULT_DECIMAL_INFO);
+                        typeBuilder.optional(PrimitiveType.PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY)
                                 .as(OriginalType.DECIMAL)
                                 .precision(decimalInfo.getPrecision())
                                 .scale(decimalInfo.getScale())
-                                .length(
-                                        HdfsUtil.computeMinBytesForPrecision(
-                                                decimalInfo.getPrecision()))
+                                .length(HdfsUtil.computeMinBytesForPrecision(decimalInfo.getPrecision()))
                                 .named(name);
 
                         decimalColInfo.put(name, decimalInfo);

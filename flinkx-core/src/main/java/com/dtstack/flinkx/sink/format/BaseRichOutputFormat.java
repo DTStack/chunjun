@@ -384,7 +384,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                             config.getDirtyDataPath(),
                             config.getDirtyDataHadoopConf(),
                             config.getFieldNameList().toArray(new String[0]),
-                            jobId);
+                            jobId,
+                            getRuntimeContext().getDistributedCache());
             dirtyDataManager.open();
             LOG.info("init dirtyDataManager: {}", this.dirtyDataManager);
         }
