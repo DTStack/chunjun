@@ -19,16 +19,16 @@
 
 package com.dtstack.flinkx.util;
 
-import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.flink.api.common.cache.DistributedCache;
+import org.apache.flink.core.fs.Path;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,11 +39,15 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import static com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
 
@@ -252,6 +256,55 @@ public class PluginUtil {
                     LOG.warn("cannot add core jar into contextClassLoader, coreUrlList = {}", GsonUtil.GSON.toJson(coreUrlList), e);
                 }
             }
+        }
+    }
+
+    /**
+     * register shipfile to StreamExecutionEnvironment cachedFile
+     * @param shipfile the shipfile which needed to add into cacheFile
+     * @param env StreamExecutionEnvironment
+     */
+    public static void registerShipfileToCachedFile(String shipfile, StreamExecutionEnvironment env) {
+        if(StringUtils.isNotBlank(shipfile)){
+            String[] files = shipfile.split(ConstantValue.COMMA_SYMBOL);
+            Set<String> fileNameSet = new HashSet<>(8);
+            for (String filePath : files) {
+                String fileName = new File(filePath).getName();
+                if(fileNameSet.contains(fileName)){
+                    throw new IllegalArgumentException(String.format("can not add duplicate fileName to cachedFiles, duplicate fileName = %s, shipfile = %s", fileName, shipfile));
+                }else if(!new File(filePath).exists()){
+                    throw new IllegalArgumentException(String.format("file: [%s] is not exists", filePath));
+                }else{
+                    env.registerCachedFile(filePath, fileName, false);
+                    fileNameSet.add(fileName);
+                }
+            }
+            fileNameSet.clear();
+        }
+    }
+
+    /**
+     * Create DistributedCache from the URL of the ContextClassLoader
+     * @return
+     */
+    public static DistributedCache createDistributedCacheFromContextClassLoader(){
+        Map<String, Future<Path>> distributeCachedFiles = new HashMap<>();
+
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        if(contextClassLoader instanceof URLClassLoader){
+            URLClassLoader classLoader = (URLClassLoader) contextClassLoader;
+            URL[] urLs = classLoader.getURLs();
+
+            for (URL url : urLs) {
+                String path = url.getPath();
+                String name = path.substring(path.lastIndexOf(ConstantValue.SINGLE_SLASH_SYMBOL) + 1);
+                distributeCachedFiles.put(name,
+                        CompletableFuture.completedFuture(new org.apache.flink.core.fs.Path(path)));
+            }
+            return new DistributedCache(distributeCachedFiles);
+        }else{
+            LOG.warn("ClassLoader: {} is not instanceof URLClassLoader", contextClassLoader);
+            return null;
         }
     }
 }

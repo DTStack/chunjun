@@ -379,6 +379,7 @@ public class Main {
 
             FactoryUtil.setFactoryUtilHelp(factoryUtilHelp);
         }
+        PluginUtil.registerShipfileToCachedFile(options.getAddShipfile(), env);
     }
 
     /**

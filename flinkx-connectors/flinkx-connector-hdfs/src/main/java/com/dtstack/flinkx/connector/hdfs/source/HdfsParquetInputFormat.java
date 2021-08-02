@@ -17,10 +17,6 @@
  */
 package com.dtstack.flinkx.connector.hdfs.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.InputSplit.HdfsParquetSplit;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -28,10 +24,14 @@ import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.PluginUtil;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -57,7 +57,8 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Date: 2021/06/08 Company: www.dtstack.com
+ * Date: 2021/06/08
+ * Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -75,8 +76,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     private transient List<String> currentSplitFilePaths;
     private transient int currentFileIndex = 0;
 
-    private static List<String> getAllPartitionPath(
-            String tableLocation, FileSystem fs, PathFilter pathFilter) throws IOException {
+    private static List<String> getAllPartitionPath(String tableLocation, FileSystem fs, PathFilter pathFilter) throws IOException {
         List<String> pathList = Lists.newArrayList();
         Path inputPath = new Path(tableLocation);
 
@@ -98,8 +98,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         List<String> allFilePaths;
         HdfsPathFilter pathFilter = new HdfsPathFilter(hdfsConf.getFilterRegex());
 
-        try (FileSystem fs =
-                FileSystemUtil.getFileSystem(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS())) {
+        try (FileSystem fs = FileSystemUtil.getFileSystem(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), PluginUtil.createDistributedCacheFromContextClassLoader())) {
             allFilePaths = getAllPartitionPath(hdfsConf.getPath(), fs, pathFilter);
         } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
@@ -154,16 +153,14 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
         }
         for (; currentFileIndex <= currentSplitFilePaths.size() - 1; ) {
             if (openKerberos) {
-                ugi.doAs(
-                        (PrivilegedAction<Object>)
-                                () -> {
-                                    try {
-                                        nextFile();
-                                        return null;
-                                    } catch (IOException e) {
-                                        throw new FlinkxRuntimeException(e);
-                                    }
-                                });
+                ugi.doAs((PrivilegedAction<Object>) () -> {
+                    try {
+                        nextFile();
+                        return null;
+                    } catch (IOException e) {
+                        throw new FlinkxRuntimeException(e);
+                    }
+                });
             } else {
                 nextFile();
             }
@@ -183,8 +180,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
             List<Type> types = currentLine.getType().getFields();
             for (Type type : types) {
                 fullColNames.add(type.getName().toUpperCase());
-                fullColTypes.add(
-                        getTypeName(type.asPrimitiveType().getPrimitiveTypeName().getMethod));
+                fullColTypes.add(getTypeName(type.asPrimitiveType().getPrimitiveTypeName().getMethod));
             }
 
             for (FieldConf fieldConf : hdfsConf.getColumn()) {
@@ -202,27 +198,25 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     }
 
     private Group nextLineWithKerberos() {
-        return ugi.doAs(
-                (PrivilegedAction<Group>)
-                        () -> {
-                            try {
-                                return currentFileReader.read();
-                            } catch (IOException e) {
-                                throw new FlinkxRuntimeException(e);
-                            }
-                        });
+        return ugi.doAs((PrivilegedAction<Group>) () -> {
+            try {
+                return currentFileReader.read();
+            } catch (IOException e) {
+                throw new FlinkxRuntimeException(e);
+            }
+        });
     }
 
     /**
      * open next hdfs file for reading
-     *
      * @throws IOException
      */
     private void nextFile() throws IOException {
         Path path = new Path(currentSplitFilePaths.get(currentFileIndex));
         findCurrentPartition(path);
-        ParquetReader.Builder<Group> reader =
-                ParquetReader.builder(new GroupReadSupport(), path).withConf(hadoopJobConf);
+        ParquetReader.Builder<Group> reader = ParquetReader
+                .builder(new GroupReadSupport(), path)
+                .withConf(hadoopJobConf);
         currentFileReader = reader.build();
         currentFileIndex++;
     }
@@ -232,8 +226,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
     public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         List<FieldConf> fieldConfList = hdfsConf.getColumn();
         GenericRowData genericRowData;
-        if (fieldConfList.size() == 1
-                && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {
+        if (fieldConfList.size() == 1 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())){
             genericRowData = new GenericRowData(fullColNames.size());
             for (int i = 0; i < fullColNames.size(); i++) {
                 Object obj = getData(currentLine, fullColTypes.get(i), i);
@@ -246,9 +239,8 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 Object obj = null;
                 if (fieldConf.getValue() != null) {
                     obj = fieldConf.getValue();
-                } else if (fieldConf.getIndex() != null
-                        && fieldConf.getIndex() < fullColNames.size()) {
-                    if (currentLine.getFieldRepetitionCount(fieldConf.getIndex()) > 0) {
+                }else if(fieldConf.getIndex() != null && fieldConf.getIndex() < fullColNames.size()){
+                    if(currentLine.getFieldRepetitionCount(fieldConf.getIndex()) > 0){
                         obj = getData(currentLine, fieldConf.getType(), fieldConf.getIndex());
                     }
                 }

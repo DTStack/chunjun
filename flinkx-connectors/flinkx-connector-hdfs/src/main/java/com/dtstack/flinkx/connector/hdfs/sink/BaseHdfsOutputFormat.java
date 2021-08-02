@@ -25,7 +25,10 @@ import com.dtstack.flinkx.sink.format.BaseFileOutputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.PluginUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.flink.api.common.cache.DistributedCache;
+import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -124,12 +127,22 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void openSource() {
+        conf = FileSystemUtil.getConfiguration(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+        RuntimeContext runtimeContext = null;
         try {
-            conf =
-                    FileSystemUtil.getConfiguration(
-                            hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
-            fs = FileSystemUtil.getFileSystem(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
-        } catch (Exception e) {
+            runtimeContext = getRuntimeContext();
+        } catch (IllegalStateException e) {
+            //ignore
+        }
+        DistributedCache distributedCache;
+        if(runtimeContext == null){
+            distributedCache = PluginUtil.createDistributedCacheFromContextClassLoader();
+        }else {
+            distributedCache = runtimeContext.getDistributedCache();
+        }
+        try {
+            fs = FileSystemUtil.getFileSystem(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), distributedCache);
+        }catch (Exception e){
             throw new FlinkxRuntimeException("can't init fileSystem", e);
         }
     }
