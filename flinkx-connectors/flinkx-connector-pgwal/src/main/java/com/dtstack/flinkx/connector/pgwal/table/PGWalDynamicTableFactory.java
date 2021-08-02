@@ -60,7 +60,7 @@ import static org.apache.flink.util.Preconditions.checkState;
  *
  */
 public class PGWalDynamicTableFactory extends JdbcDynamicTableFactory {
-    public static final String IDENTIFIER = "PGWalFactory";
+    public static final String IDENTIFIER = "pgwal";
 
     private static final ConfigOption<String> DRIVER =
             ConfigOptions.key("driver")
