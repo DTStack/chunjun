@@ -84,8 +84,8 @@ CREATE TABLE side
       ,'lookup.cache-period' = '4600000' -- ALL维表每隔多久加载一次数据，默认：3600000毫秒
       ,'lookup.cache.max-rows' = '20000' -- lru维表缓存数据的条数，默认：10000条
       ,'lookup.cache.ttl' = '700000' -- lru维表缓存数据的时间，默认：60000毫秒
-      ,'lookup.fetchSize' = '2000' -- ALL维表每次从数据库加载的条数，默认：1000条
-      ,'lookup.asyncTimeout' = '30000' -- lru维表缓访问超时时间，默认：10000毫秒，暂时没用到
+      ,'lookup.fetch-size' = '2000' -- ALL维表每次从数据库加载的条数，默认：1000条
+      ,'lookup.async-timeout' = '30000' -- lru维表缓访问超时时间，默认：10000毫秒，暂时没用到
       );
 
 
@@ -148,9 +148,9 @@ CREATE TABLE sink
 
       'sink.buffer-flush.max-rows' = '1024', -- 批量写数据条数，默认：1024
       'sink.buffer-flush.interval' = '10000', -- 批量写时间间隔，默认：10000毫秒
-      'sink.allReplace' = 'true', -- 解释如下(其他rdb数据库类似)：默认：false。定义了PRIMARY KEY才有效，否则是追加语句
-                                  -- sink.allReplace = 'true' 生成如：INSERT INTO `result3`(`mid`, `mbb`, `sid`, `sbb`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `mid`=VALUES(`mid`), `mbb`=VALUES(`mbb`), `sid`=VALUES(`sid`), `sbb`=VALUES(`sbb`) 。会将所有的数据都替换。
-                                  -- sink.allReplace = 'false' 生成如：INSERT INTO `result3`(`mid`, `mbb`, `sid`, `sbb`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `mid`=IFNULL(VALUES(`mid`),`mid`), `mbb`=IFNULL(VALUES(`mbb`),`mbb`), `sid`=IFNULL(VALUES(`sid`),`sid`), `sbb`=IFNULL(VALUES(`sbb`),`sbb`) 。如果新值为null，数据库中的旧值不为null，则不会覆盖。
+      'sink.all-replace' = 'true', -- 解释如下(其他rdb数据库类似)：默认：false。定义了PRIMARY KEY才有效，否则是追加语句
+                                  -- sink.all-replace = 'true' 生成如：INSERT INTO `result3`(`mid`, `mbb`, `sid`, `sbb`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `mid`=VALUES(`mid`), `mbb`=VALUES(`mbb`), `sid`=VALUES(`sid`), `sbb`=VALUES(`sbb`) 。会将所有的数据都替换。
+                                  -- sink.all-replace = 'false' 生成如：INSERT INTO `result3`(`mid`, `mbb`, `sid`, `sbb`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `mid`=IFNULL(VALUES(`mid`),`mid`), `mbb`=IFNULL(VALUES(`mbb`),`mbb`), `sid`=IFNULL(VALUES(`sid`),`sid`), `sbb`=IFNULL(VALUES(`sbb`),`sbb`) 。如果新值为null，数据库中的旧值不为null，则不会覆盖。
       'sink.parallelism' = '1'    -- 写入结果的并行度，默认：null
       );
 

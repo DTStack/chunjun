@@ -94,7 +94,7 @@ ClickHouse 19.x及以上
 
 ​<br />
 
-- **lookup.fetchSize**
+- **lookup.fetch-size**
    - 描述：ALL维表每次从数据库加载的条数
    - 必选：否
    - 字段类型：String

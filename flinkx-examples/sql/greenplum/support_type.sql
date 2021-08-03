@@ -58,7 +58,7 @@ CREATE TABLE sink_greenplum (
       'username' = 'gpadmin',
       'password' = 'gpadmin',
       'sink.buffer-flush.max-rows' = '1',
-      'sink.allReplace' = 'true'
+      'sink.all-replace' = 'true'
 );
 
 INSERT INTO sink_greenplum

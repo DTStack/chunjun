@@ -46,7 +46,7 @@ CREATE TABLE sink (
   'username' = 'default',
   'password' = 'b6rCe7ZV',
   'sink.buffer-flush.max-rows' = '1',
-  'sink.allReplace' = 'true'
+  'sink.all-replace' = 'true'
 );
 
 INSERT INTO sink

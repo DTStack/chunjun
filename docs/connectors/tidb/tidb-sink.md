@@ -211,7 +211,7 @@ TiDB 3.0.10之后、TiDB 4.0
 
 <br />
 
-- **sink.allReplace**
+- **sink.all-replace**
    - 描述：是否全部替换数据库中的数据(如果数据库中原值不为null,新值为null,如果为true则会替换为null)
    - 必选：否
    - 参数类型：String

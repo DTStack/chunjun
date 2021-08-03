@@ -52,12 +52,12 @@ import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.READ_MODE;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.SCAN_PARALLELISM;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.TABLE_NAME;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.WORKER_COUNT;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TTL;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TYPE;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
@@ -68,14 +68,7 @@ import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_INTE
 import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_MAX_RETRIES;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_FETCH_SIZE;
-import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN;
-import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN_TYPE;
-import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_COLUMN;
-import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_STRATEGY;
-import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_POLLING_INTERVAL;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_QUERY_TIMEOUT;
-import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNNAME;
-import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNTYPE;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_START_LOCATION;
 
 /**
@@ -163,9 +156,9 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         optionalOptions.add(LOOKUP_CACHE_TTL);
         optionalOptions.add(LOOKUP_CACHE_TYPE);
         optionalOptions.add(LOOKUP_MAX_RETRIES);
-        optionalOptions.add(LOOKUP_ERRORLIMIT);
+        optionalOptions.add(LOOKUP_ERROR_LIMIT);
         optionalOptions.add(LOOKUP_FETCH_SIZE);
-        optionalOptions.add(LOOKUP_ASYNCTIMEOUT);
+        optionalOptions.add(LOOKUP_ASYNC_TIMEOUT);
         optionalOptions.add(LOOKUP_PARALLELISM);
 
         optionalOptions.add(SINK_BUFFER_FLUSH_MAX_ROWS);

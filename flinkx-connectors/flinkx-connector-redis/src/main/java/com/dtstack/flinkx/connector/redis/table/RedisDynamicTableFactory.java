@@ -52,12 +52,12 @@ import static com.dtstack.flinkx.connector.redis.options.RedisOptions.REDISTYPE;
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.TABLENAME;
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.TIMEOUT;
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.URL;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TTL;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TYPE;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
@@ -140,9 +140,9 @@ public class RedisDynamicTableFactory implements DynamicTableSourceFactory, Dyna
         optionalOptions.add(LOOKUP_CACHE_TTL);
         optionalOptions.add(LOOKUP_CACHE_TYPE);
         optionalOptions.add(LOOKUP_MAX_RETRIES);
-        optionalOptions.add(LOOKUP_ERRORLIMIT);
+        optionalOptions.add(LOOKUP_ERROR_LIMIT);
         optionalOptions.add(LOOKUP_FETCH_SIZE);
-        optionalOptions.add(LOOKUP_ASYNCTIMEOUT);
+        optionalOptions.add(LOOKUP_ASYNC_TIMEOUT);
         optionalOptions.add(LOOKUP_PARALLELISM);
         return optionalOptions;
     }
@@ -178,9 +178,9 @@ public class RedisDynamicTableFactory implements DynamicTableSourceFactory, Dyna
                 .setCacheTtl(readableConfig.get(LOOKUP_CACHE_TTL))
                 .setCache(readableConfig.get(LOOKUP_CACHE_TYPE))
                 .setMaxRetryTimes(readableConfig.get(LOOKUP_MAX_RETRIES))
-                .setErrorLimit(readableConfig.get(LOOKUP_ERRORLIMIT))
+                .setErrorLimit(readableConfig.get(LOOKUP_ERROR_LIMIT))
                 .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE))
-                .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT))
+                .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNC_TIMEOUT))
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
 

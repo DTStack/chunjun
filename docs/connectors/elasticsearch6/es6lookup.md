@@ -62,12 +62,12 @@ Elasticsearch 6.x
    - 必须：否
    - 参数类型：Integer
    - 默认值：3
-- lookup.errorLimit
+- lookup.error-limit
    - 描述：维表数据不合规条数
    - 必须：否
    - 参数类型：Long
    - 默认值：Long.MAX_VALUE
-- lookup.fetchSize
+- lookup.fetch-size
    - 描述：抓取维表数据的条数
    - 必须：否
    - 参数类型：Integer
