@@ -100,7 +100,7 @@ TiDB 3.0.10之后、TiDB 4.0
 <br />
 
 
-- **lookup.fetchSize**
+- **lookup.fetch-size**
    - 描述：ALL维表每次从数据库加载的条数，默认1000条
    - 必选：否
    - 参数类型：string

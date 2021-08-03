@@ -151,7 +151,7 @@ CREATE TABLE sink
       'username' = 'oracle',
       'password' = 'oracle',
       'sink.buffer-flush.max-rows' = '2000',
-      'sink.allReplace' = 'true',
+      'sink.all-replace' = 'true',
     'sink.buffer-flush.interval' = '0'
       );
 

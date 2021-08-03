@@ -41,12 +41,12 @@ import java.util.stream.Stream;
 
 import static com.dtstack.flinkx.connector.es.options.DtEsOptions.DT_BULK_FLUSH_MAX_ACTIONS_OPTION;
 import static com.dtstack.flinkx.connector.es.utils.EsConstants.IDENTIFIER;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TTL;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TYPE;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
@@ -99,9 +99,9 @@ public class EsDynamicTableFactory implements DynamicTableSourceFactory, Dynamic
                     LOOKUP_CACHE_TTL,
                     LOOKUP_CACHE_TYPE,
                     LOOKUP_MAX_RETRIES,
-                    LOOKUP_ERRORLIMIT,
+                    LOOKUP_ERROR_LIMIT,
                     LOOKUP_FETCH_SIZE,
-                    LOOKUP_ASYNCTIMEOUT,
+                    LOOKUP_ASYNC_TIMEOUT,
                     LOOKUP_PARALLELISM)
                     .collect(Collectors.toSet());
 
@@ -190,9 +190,9 @@ public class EsDynamicTableFactory implements DynamicTableSourceFactory, Dynamic
                 .setCacheTtl(readableConfig.get(LOOKUP_CACHE_TTL))
                 .setCache(readableConfig.get(LOOKUP_CACHE_TYPE))
                 .setMaxRetryTimes(readableConfig.get(LOOKUP_MAX_RETRIES))
-                .setErrorLimit(readableConfig.get(LOOKUP_ERRORLIMIT))
+                .setErrorLimit(readableConfig.get(LOOKUP_ERROR_LIMIT))
                 .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE))
-                .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT))
+                .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNC_TIMEOUT))
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
 

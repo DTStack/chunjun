@@ -35,10 +35,8 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraSinkConf;
 import com.dtstack.flinkx.connector.cassandra.sink.CassandraDynamicTableSink;
-import com.dtstack.flinkx.throwable.NoRestartException;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CLUSTER_NAME;
@@ -59,12 +57,12 @@ import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOpti
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.POOL_TIMEOUT_MILLISECONDS;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.READ_TIME_OUT_MILLISECONDS;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USE_SSL;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TTL;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TYPE;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
@@ -182,9 +180,9 @@ public class CassandraDynamicTableFactory
         optionalOptions.add(LOOKUP_CACHE_TTL);
         optionalOptions.add(LOOKUP_CACHE_TYPE);
         optionalOptions.add(LOOKUP_MAX_RETRIES);
-        optionalOptions.add(LOOKUP_ERRORLIMIT);
+        optionalOptions.add(LOOKUP_ERROR_LIMIT);
         optionalOptions.add(LOOKUP_FETCH_SIZE);
-        optionalOptions.add(LOOKUP_ASYNCTIMEOUT);
+        optionalOptions.add(LOOKUP_ASYNC_TIMEOUT);
         optionalOptions.add(LOOKUP_PARALLELISM);
 
         optionalOptions.add(SINK_BUFFER_FLUSH_MAX_ROWS);

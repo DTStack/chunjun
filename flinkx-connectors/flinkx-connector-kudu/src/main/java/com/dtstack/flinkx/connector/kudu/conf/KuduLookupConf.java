@@ -26,12 +26,12 @@ import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.BATCH_SIZE_B
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.IS_FAULT_TOLERANT;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.LIMIT_NUM;
 import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.TABLE_NAME;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TTL;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TYPE;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
@@ -95,9 +95,9 @@ public class KuduLookupConf extends LookupConf {
         conf.setCacheTtl(readableConfig.get(LOOKUP_CACHE_TTL));
         conf.setCache(readableConfig.get(LOOKUP_CACHE_TYPE));
         conf.setMaxRetryTimes(readableConfig.get(LOOKUP_MAX_RETRIES));
-        conf.setErrorLimit(readableConfig.get(LOOKUP_ERRORLIMIT));
+        conf.setErrorLimit(readableConfig.get(LOOKUP_ERROR_LIMIT));
         conf.setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE));
-        conf.setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT));
+        conf.setAsyncTimeout(readableConfig.get(LOOKUP_ASYNC_TIMEOUT));
         conf.setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
 
         // kudu lookup
