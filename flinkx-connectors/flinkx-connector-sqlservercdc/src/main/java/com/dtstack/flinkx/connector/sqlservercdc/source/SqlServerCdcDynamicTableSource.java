@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.sqlservercdc.source;
 
+import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
+import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
+import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableSchema;
@@ -28,12 +34,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
-
-import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
-import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
-import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
-import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 /**
  * @author chuixue

@@ -43,7 +43,16 @@ public class SqlServerCdcEventRow implements Serializable {
 
     private List<String> columnTypes;
 
-    public SqlServerCdcEventRow(String type, String schema, String table, String lsn, Long ts, ChangeTable changeTable, Object[] data, Object[] dataPrev, List<String> types) {
+    public SqlServerCdcEventRow(
+            String type,
+            String schema,
+            String table,
+            String lsn,
+            Long ts,
+            ChangeTable changeTable,
+            Object[] data,
+            Object[] dataPrev,
+            List<String> types) {
         this.type = type;
         this.schema = schema;
         this.table = table;

@@ -9,11 +9,10 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
- * <p>
- * this class is copied from (https://github.com/debezium/debezium).
- * but there are some different from the origin.
+ * Date: 2019/12/03 Company: www.dtstack.com
+ *
+ * <p>this class is copied from (https://github.com/debezium/debezium). but there are some different
+ * from the origin.
  *
  * @author tudou
  */
@@ -28,7 +27,13 @@ public class ChangeTable {
     private List<String> columnList;
     private final int changeTableObjectId;
 
-    public ChangeTable(TableId sourceTableId, String captureInstance, int changeTableObjectId, Lsn startLsn, Lsn stopLsn, List<String> columnList) {
+    public ChangeTable(
+            TableId sourceTableId,
+            String captureInstance,
+            int changeTableObjectId,
+            Lsn startLsn,
+            Lsn stopLsn,
+            List<String> columnList) {
         super();
         this.sourceTableId = sourceTableId;
         this.captureInstance = captureInstance;
@@ -36,7 +41,11 @@ public class ChangeTable {
         this.startLsn = startLsn;
         this.stopLsn = stopLsn;
         this.columnList = columnList;
-        this.changeTableId = sourceTableId != null ? new TableId(sourceTableId.getCatalogName(), CDC_SCHEMA, captureInstance + "_CT") : null;
+        this.changeTableId =
+                sourceTableId != null
+                        ? new TableId(
+                                sourceTableId.getCatalogName(), CDC_SCHEMA, captureInstance + "_CT")
+                        : null;
     }
 
     public String getCaptureInstance() {
@@ -65,15 +74,23 @@ public class ChangeTable {
 
     @Override
     public String toString() {
-        return "ChangeTable{" +
-                "captureInstance='" + captureInstance + '\'' +
-                ", sourceTableId=" + sourceTableId +
-                ", changeTableId=" + changeTableId +
-                ", startLsn=" + startLsn +
-                ", stopLsn=" + stopLsn +
-                ", columnList=" + columnList +
-                ", changeTableObjectId=" + changeTableObjectId +
-                '}';
+        return "ChangeTable{"
+                + "captureInstance='"
+                + captureInstance
+                + '\''
+                + ", sourceTableId="
+                + sourceTableId
+                + ", changeTableId="
+                + changeTableId
+                + ", startLsn="
+                + startLsn
+                + ", stopLsn="
+                + stopLsn
+                + ", columnList="
+                + columnList
+                + ", changeTableObjectId="
+                + changeTableObjectId
+                + '}';
     }
 
     @Override
@@ -85,17 +102,24 @@ public class ChangeTable {
             return false;
         }
         ChangeTable that = (ChangeTable) o;
-        return changeTableObjectId == that.changeTableObjectId &&
-                Objects.equals(captureInstance, that.captureInstance) &&
-                Objects.equals(sourceTableId, that.sourceTableId) &&
-                Objects.equals(changeTableId, that.changeTableId) &&
-                Objects.equals(startLsn, that.startLsn) &&
-                Objects.equals(stopLsn, that.stopLsn) &&
-                Objects.equals(columnList, that.columnList);
+        return changeTableObjectId == that.changeTableObjectId
+                && Objects.equals(captureInstance, that.captureInstance)
+                && Objects.equals(sourceTableId, that.sourceTableId)
+                && Objects.equals(changeTableId, that.changeTableId)
+                && Objects.equals(startLsn, that.startLsn)
+                && Objects.equals(stopLsn, that.stopLsn)
+                && Objects.equals(columnList, that.columnList);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(captureInstance, sourceTableId, changeTableId, startLsn, stopLsn, columnList, changeTableObjectId);
+        return Objects.hash(
+                captureInstance,
+                sourceTableId,
+                changeTableId,
+                startLsn,
+                stopLsn,
+                columnList,
+                changeTableObjectId);
     }
 }

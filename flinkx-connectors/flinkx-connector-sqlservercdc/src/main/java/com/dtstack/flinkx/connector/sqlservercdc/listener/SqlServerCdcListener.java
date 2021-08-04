@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.connector.sqlservercdc.listener;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.sqlservercdc.entity.ChangeTable;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.ChangeTablePointer;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.Lsn;
@@ -35,6 +33,9 @@ import com.dtstack.flinkx.util.Clock;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.Metronome;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
+
+import org.apache.flink.table.data.RowData;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
