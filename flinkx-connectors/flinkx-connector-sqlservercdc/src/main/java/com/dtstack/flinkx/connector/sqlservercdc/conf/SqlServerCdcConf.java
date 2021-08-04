@@ -23,10 +23,8 @@ import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import java.util.List;
 
-
 /**
- * Date: 2021/05/12
- * Company: www.dtstack.com
+ * Date: 2021/05/12 Company: www.dtstack.com
  *
  * @author shifang
  */
@@ -143,16 +141,31 @@ public class SqlServerCdcConf extends FlinkxCommonConf {
 
     @Override
     public String toString() {
-        return "SqlserverCdcConf{" +
-                "username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", url='" + url + '\'' +
-                ", databaseName='" + databaseName + '\'' +
-                ", cat='" + cat + '\'' +
-                ", pavingData=" + pavingData +
-                ", tableList=" + tableList +
-                ", pollInterval=" + pollInterval +
-                ", lsn='" + lsn + '\'' +
-                '}';
+        return "SqlserverCdcConf{"
+                + "username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", url='"
+                + url
+                + '\''
+                + ", databaseName='"
+                + databaseName
+                + '\''
+                + ", cat='"
+                + cat
+                + '\''
+                + ", pavingData="
+                + pavingData
+                + ", tableList="
+                + tableList
+                + ", pollInterval="
+                + pollInterval
+                + ", lsn='"
+                + lsn
+                + '\''
+                + '}';
     }
 }

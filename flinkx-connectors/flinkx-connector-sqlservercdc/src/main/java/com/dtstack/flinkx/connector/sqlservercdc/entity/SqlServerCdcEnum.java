@@ -23,32 +23,21 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Date: 2019/12/05
- * Company: www.dtstack.com
+ * Date: 2019/12/05 Company: www.dtstack.com
  *
  * @author tudou
  */
 public enum SqlServerCdcEnum {
 
-    /**
-     * 操作未知
-     */
+    /** 操作未知 */
     UNKNOWN(-1, "unknown"),
-    /**
-     * 删除操作
-     */
+    /** 删除操作 */
     DELETE(1, "delete"),
-    /**
-     * 插入操作
-     */
+    /** 插入操作 */
     INSERT(2, "insert"),
-    /**
-     * 更新前操作
-     */
+    /** 更新前操作 */
     UPDATE_BEFORE(3, "update_before"),
-    /**
-     * 更新后操作
-     */
+    /** 更新后操作 */
     UPDATE_AFTER(4, "update_after"),
 
     UPDATE(5, "update");

@@ -21,8 +21,7 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 /**
- * Date: 2021/05/06
- * Company: www.dtstack.com
+ * Date: 2021/05/06 Company: www.dtstack.com
  *
  * @author shifang
  */
@@ -52,13 +51,11 @@ public class SqlServerCdcOptions {
                     .noDefaultValue()
                     .withDescription("SqlServer option type.");
 
-
     public static final ConfigOption<String> TABLE =
             ConfigOptions.key("table")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("SqlServer table.");
-
 
     public static final ConfigOption<String> DATABASE =
             ConfigOptions.key("database")
@@ -66,19 +63,15 @@ public class SqlServerCdcOptions {
                     .noDefaultValue()
                     .withDescription("SqlServer database. ");
 
-
     public static final ConfigOption<String> LSN =
             ConfigOptions.key("lsn")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("SqlServer lsn.");
 
-
     public static final ConfigOption<Long> POLLINTERVAL =
             ConfigOptions.key("pollInterval")
                     .longType()
                     .defaultValue(1000L)
                     .withDescription("SqlServer pollInterval.");
-
-
 }
