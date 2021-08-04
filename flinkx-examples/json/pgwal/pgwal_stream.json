@@ -4,13 +4,13 @@
       "reader" : {
         "parameter" : {
           "temporary" : false,
-          "password" : "abc123",
+          "password" : "****",
           "databaseName" : "postgres",
           "cat" : "insert,update,delete",
           "tableList" : [ "public.pgresult" ],
           "allowCreateSlot" : true,
           "pavingData" : true,
-          "url" : "jdbc:postgresql://172.16.101.246:5432/postgres?useUnicode=true&characterEncoding=utf8",
+          "url" : "jdbc:postgresql://localhost:5432/postgres?useUnicode=true&characterEncoding=utf8",
           "username" : "dtstack_rep"
         },
         "name" : "pgwalreader"
