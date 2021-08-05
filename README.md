@@ -69,6 +69,7 @@ The following databases are currently supported:
 |                        | MySQL Binlog   | [doc](docs/connectors/binlog/binlog-source.md)      |                                                |
 |                        | Oracle LogMiner | [doc](docs/connectors/logminer/LogMiner-source.md)   |                                            |
 |                        | Sqlserver CDC | [doc](docs/connectors/sqlservercdc/SqlserverCDC-source.md) |                                                |
+|                        | Postgres  CDC | [doc](docs/connectors/pgwal/Postgres-CDC.md) |                                                |
 
 # Quick Start
 

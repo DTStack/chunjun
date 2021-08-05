@@ -126,7 +126,6 @@
                 </executions>
                 <configuration>
                     <dateFormat>yyyy.MM.dd HH:mm:ss</dateFormat>
-                    <verbose>true</verbose>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
                     <gitDescribe>
                         <always>false</always>

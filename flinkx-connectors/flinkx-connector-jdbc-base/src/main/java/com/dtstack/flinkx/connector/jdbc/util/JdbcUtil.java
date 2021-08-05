@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.jdbc.util;
 
+import com.dtstack.flinkx.connector.jdbc.JdbcDialectWrapper;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.util.CollectionUtil;
 
@@ -121,6 +123,10 @@ public class JdbcUtil {
         synchronized (ClassUtil.LOCK_STR){
             return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp), 3, 2000, false);
         }
+    }
+
+    public static Connection getConnection(JdbcConf conf, org.apache.flink.connector.jdbc.dialect.JdbcDialect dialect) {
+        return getConnection(conf, new JdbcDialectWrapper(dialect));
     }
 
     /**
