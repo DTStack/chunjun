@@ -17,14 +17,14 @@
  */
 package com.dtstack.flinkx.client.util;
 
+import com.dtstack.flinkx.options.Options;
+
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.PackagedProgram;
 import org.apache.flink.client.program.PackagedProgramUtils;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
-import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 
-import com.dtstack.flinkx.options.Options;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +34,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.apache.flink.configuration.CoreOptions.DEFAULT_PARALLELISM;
 
 /**
  * @program: flinkx
@@ -44,41 +45,45 @@ public class JobGraphUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(JobGraphUtil.class);
 
-    public static JobGraph buildJobGraph(Options launcherOptions, String[] programArgs) throws Exception {
-        String pluginRoot = launcherOptions.getPluginRoot();
+    public static JobGraph buildJobGraph(Options launcherOptions, String[] programArgs)
+            throws Exception {
+        String pluginRoot = launcherOptions.getFlinkxDistDir();
         String coreJarPath = PluginInfoUtil.getCoreJarPath(pluginRoot);
         File jarFile = new File(coreJarPath);
-        SavepointRestoreSettings savepointRestoreSettings = SavepointRestoreSettings.none();
-        if (StringUtils.isNotEmpty(launcherOptions.getS())) {
-            savepointRestoreSettings = SavepointRestoreSettings.forPath(launcherOptions.getS());
-        }
-        PackagedProgram program = PackagedProgram.newBuilder()
-                .setJarFile(jarFile)
-                .setEntryPointClassName(PluginInfoUtil.getMainClass())
-                .setConfiguration(launcherOptions.loadFlinkConfiguration())
-                .setSavepointRestoreSettings(savepointRestoreSettings)
-                .setArguments(programArgs)
-                .build();
-        JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, launcherOptions.loadFlinkConfiguration(), Integer.parseInt(launcherOptions.getParallelism()), false);
-        List<URL> pluginClassPath = jobGraph.getUserArtifacts()
-                .entrySet()
-                .stream()
-                .filter(tmp -> tmp.getKey().startsWith("class_path"))
-                .map(tmp -> new File(tmp.getValue().filePath))
-                .map(file -> {
-                    try {
-                        return file.toURI().toURL();
-                    } catch (MalformedURLException e) {
-                        LOG.error(e.getMessage());
-                    }
-                    return null;
-                })
-                .collect(Collectors.toList());
+        Configuration flinkConf = launcherOptions.loadFlinkConfiguration();
+        PackagedProgram program =
+                PackagedProgram.newBuilder()
+                        .setJarFile(jarFile)
+                        .setEntryPointClassName(PluginInfoUtil.getMainClass())
+                        .setConfiguration(launcherOptions.loadFlinkConfiguration())
+                        .setArguments(programArgs)
+                        .build();
+        JobGraph jobGraph =
+                PackagedProgramUtils.createJobGraph(
+                        program,
+                        launcherOptions.loadFlinkConfiguration(),
+                        flinkConf.getInteger(DEFAULT_PARALLELISM),
+                        false);
+        List<URL> pluginClassPath =
+                jobGraph.getUserArtifacts().entrySet().stream()
+                        .filter(tmp -> tmp.getKey().startsWith("class_path"))
+                        .map(tmp -> new File(tmp.getValue().filePath))
+                        .map(
+                                file -> {
+                                    try {
+                                        return file.toURI().toURL();
+                                    } catch (MalformedURLException e) {
+                                        LOG.error(e.getMessage());
+                                    }
+                                    return null;
+                                })
+                        .collect(Collectors.toList());
         jobGraph.setClasspaths(pluginClassPath);
         return jobGraph;
     }
 
-    public static PackagedProgram buildProgram(ClusterSpecification clusterSpecification) throws Exception {
+    public static PackagedProgram buildProgram(ClusterSpecification clusterSpecification)
+            throws Exception {
         String[] args = clusterSpecification.getProgramArgs();
         return PackagedProgram.newBuilder()
                 .setJarFile(clusterSpecification.getJarFile())
