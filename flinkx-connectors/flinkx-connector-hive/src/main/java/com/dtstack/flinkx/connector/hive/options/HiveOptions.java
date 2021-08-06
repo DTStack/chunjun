@@ -30,7 +30,7 @@ import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
  */
 public class HiveOptions extends HdfsOptions {
     public static final ConfigOption<String> JDBC_URL =
-            ConfigOptions.key("jdbcUrl")
+            ConfigOptions.key("url")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("hive jdbc url");
@@ -48,13 +48,13 @@ public class HiveOptions extends HdfsOptions {
                     .withDescription("hive jdbc password");
 
     public static final ConfigOption<String> TABLE_NAME =
-            ConfigOptions.key("tableName")
+            ConfigOptions.key("table-name")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("hive tableName");
 
     public static final ConfigOption<String> PARTITION_TYPE =
-            ConfigOptions.key("partitionType")
+            ConfigOptions.key("partition-type")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("Partition types, including DAY, HOUR, and MINUTE. If the partition does not exist, it will be created automatically. The time of the automatically created partition is based on the server time of the current task.");
