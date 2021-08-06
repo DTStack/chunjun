@@ -42,7 +42,7 @@ Hadoop 2.x、Hadoop 3.x
   - 默认值：无
 <br />
 
-- **defaultFS**
+- **column**
   - 描述：需要读取的字段
   - 注意：不支持*格式
   - 格式：
@@ -97,7 +97,56 @@ Hadoop 2.x、Hadoop 3.x
 
 
 ### 2、SQL
-除hadoopConfig外，其余参数均与Sync保持一致。
+- **path**
+  - 描述：读取的数据文件路径
+  - 必选：是
+  - 参数类型：string
+  - 默认值：无
+    <br />
+
+- **file-type**
+  - 描述：文件的类型，目前只支持用户配置为`text`、`orc`、`parquet`
+    - text：textfile文件格式
+    - orc：orcfile文件格式
+    - parquet：parquet文件格式
+  - 必选：否
+  - 参数类型：string
+  - 默认值：无
+    <br />
+
+- **default-fs**
+  - 描述：Hadoop hdfs文件系统namenode节点地址。格式：hdfs://ip:端口；例如：hdfs://127.0.0.1:9000
+  - 必选：是
+  - 参数类型：string
+  - 默认值：无
+    <br />
+
+- **column**
+  - 描述：需要读取的字段
+  - 注意：不支持*格式
+  - 格式：
+  ```text
+	"column": [{
+        "name": "col",
+        "type": "string",
+        "index": 1,
+        "isPart": false,
+        "format": "yyyy-MM-dd hh:mm:ss",
+        "value": "value"
+      }]
+  ```
+  - 属性说明:
+    - name：必选，字段名称
+    - type：必选，字段类型，需要和数据文件中实际的字段类型匹配
+    - index：非必选，字段在所有字段中的位置索引，从0开始计算，默认为-1，按照数组顺序依次读取，配置后读取指定字段列
+    - isPart：非必选，是否是分区字段，如果是分区字段，会自动从path上截取分区赋值，默认为fale
+    - format：非必选，按照指定格式，格式化日期
+    - value：非必选，常量字段，将value的值作为常量列返回
+  - 必选：是
+  - 参数类型：数组
+  - 默认值：无
+    <br />
+
 - **hadoopConfig**
   - 描述：集群HA模式时需要填写的core-site.xml及hdfs-site.xml中的配置，开启kerberos时包含kerberos相关配置
   - 必选：否
@@ -114,6 +163,27 @@ Hadoop 2.x、Hadoop 3.x
   'properties.fs.hdfs.impl.disable.cache' = 'true',
   'properties.fs.hdfs.impl' = 'org.apache.hadoop.hdfs.DistributedFileSystem'
   ```
+
+- **filter-regex**
+  - 描述：文件正则表达式,读取匹配到的文件
+  - 必选：否
+  - 参数类型：string
+  - 默认值：无
+    <br />
+
+- **field-delimiter**
+  - 描述：`fileType`为`text`时字段的分隔符
+  - 必选：否
+  - 参数类型：string
+  - 默认值：`\001`
+    <br />
+
+- **encoding**
+  - 描述：`fileType`为`text`时字段的字符编码
+  - 必选：否
+  - 参数类型：string
+  - 默认值：`UTF-8`
+
 - **scan.parallelism**
   - 描述：source的并行度
   - 必选：否

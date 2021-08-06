@@ -40,7 +40,7 @@ public class SqlServerCdcOptions {
                     .withDescription("SqlServer password.");
 
     public static final ConfigOption<String> JDBC_URL =
-            ConfigOptions.key("jdbcUrl")
+            ConfigOptions.key("url")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("SqlServer jdbcUrl.");
@@ -70,7 +70,7 @@ public class SqlServerCdcOptions {
                     .withDescription("SqlServer lsn.");
 
     public static final ConfigOption<Long> POLLINTERVAL =
-            ConfigOptions.key("pollInterval")
+            ConfigOptions.key("poll-interval")
                     .longType()
                     .defaultValue(1000L)
                     .withDescription("SqlServer pollInterval.");
