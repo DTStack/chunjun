@@ -23,11 +23,11 @@ CREATE TABLE source
       ,'username' = 'test'
       ,'password' = 'Abc12345'
       ,'cat' = 'insert,delete,update'
-      ,'jdbcUrl' = 'jdbc:sqlserver://localhost:1433;databaseName=db_test'
+      ,'url' = 'jdbc:sqlserver://localhost:1433;databaseName=db_test'
       ,'table' = 'test.test123'
       ,'timestamp-format.standard' = 'SQL'
       ,'database' = 'db_test'
-      ,'pollInterval' = '1000'
+      ,'poll-interval' = '1000'
       );
 
 CREATE TABLE sink
