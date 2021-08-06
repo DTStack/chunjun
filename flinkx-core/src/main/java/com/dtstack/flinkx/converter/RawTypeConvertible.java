@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.converter;
 
-import com.dtstack.flinkx.converter.RawTypeConverter;
-
 /**
  * The class implement this will be convert Raw Type to Flink Type. Implementations are
  * SourceFactory、SinkFactory、InputFormat、OutputFormat. When Flink running, Input/OutputFormat

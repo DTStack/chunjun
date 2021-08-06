@@ -28,8 +28,7 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * Date: 2021/04/26
- * Company: www.dtstack.com
+ * Date: 2021/04/26 Company: www.dtstack.com
  *
  * @author tudou
  */

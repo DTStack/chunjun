@@ -26,14 +26,16 @@ import java.util.List;
 /**
  * Range Split Utilities
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public final class RangeSplitUtil {
 
     public static long[] doLongSplit(long left, long right, int expectSliceNumber) {
-        BigInteger[] result = doBigIntegerSplit(BigInteger.valueOf(left),
-                BigInteger.valueOf(right), expectSliceNumber);
+        BigInteger[] result =
+                doBigIntegerSplit(
+                        BigInteger.valueOf(left), BigInteger.valueOf(right), expectSliceNumber);
         long[] returnResult = new long[result.length];
         for (int i = 0, len = result.length; i < len; i++) {
             returnResult[i] = result[i].longValue();
@@ -41,19 +43,22 @@ public final class RangeSplitUtil {
         return returnResult;
     }
 
-    public static BigInteger[] doBigIntegerSplit(BigInteger left, BigInteger right, int expectSliceNumber) {
+    public static BigInteger[] doBigIntegerSplit(
+            BigInteger left, BigInteger right, int expectSliceNumber) {
         if (expectSliceNumber < 1) {
-            throw new IllegalArgumentException(String.format(
-                    "切分份数不能小于1. 此处:expectSliceNumber=[%s].", expectSliceNumber));
+            throw new IllegalArgumentException(
+                    String.format("切分份数不能小于1. 此处:expectSliceNumber=[%s].", expectSliceNumber));
         }
 
         if (null == left || null == right) {
-            throw new IllegalArgumentException(String.format(
-                    "对 BigInteger 进行切分时，其左右区间不能为 null. 此处:left=[%s],right=[%s].", left, right));
+            throw new IllegalArgumentException(
+                    String.format(
+                            "对 BigInteger 进行切分时，其左右区间不能为 null. 此处:left=[%s],right=[%s].",
+                            left, right));
         }
 
         if (left.compareTo(right) == 0) {
-            return new BigInteger[]{left, right};
+            return new BigInteger[] {left, right};
         } else {
             // 调整大小顺序，确保 left < right
             if (left.compareTo(right) > 0) {
@@ -62,13 +67,13 @@ public final class RangeSplitUtil {
                 right = temp;
             }
 
-            //left < right
+            // left < right
             BigInteger endAndStartGap = right.subtract(left);
 
             BigInteger step = endAndStartGap.divide(BigInteger.valueOf(expectSliceNumber));
             BigInteger remainder = endAndStartGap.remainder(BigInteger.valueOf(expectSliceNumber));
 
-            //remainder 不可能超过expectSliceNumber,所以不需要检查remainder的 Integer 的范围
+            // remainder 不可能超过expectSliceNumber,所以不需要检查remainder的 Integer 的范围
 
             // 这里不能 step.intValue()==0，因为可能溢出
             if (step.compareTo(BigInteger.ZERO) == 0) {
@@ -84,8 +89,11 @@ public final class RangeSplitUtil {
             for (int i = 1; i < expectSliceNumber; i++) {
                 lowerBound = upperBound;
                 upperBound = lowerBound.add(step);
-                upperBound = upperBound.add((remainder.compareTo(BigInteger.valueOf(i)) >= 0)
-                        ? BigInteger.ONE : BigInteger.ZERO);
+                upperBound =
+                        upperBound.add(
+                                (remainder.compareTo(BigInteger.valueOf(i)) >= 0)
+                                        ? BigInteger.ONE
+                                        : BigInteger.ZERO);
                 result[i] = upperBound;
             }
 
@@ -94,16 +102,14 @@ public final class RangeSplitUtil {
     }
 
     /**
-     * 分隔数组 根据段数分段
-     * 多出部分在最后一个数组
-     * 不够的最后为空数组
+     * 分隔数组 根据段数分段 多出部分在最后一个数组 不够的最后为空数组
      *
-     * @param data     被分隔的数组
+     * @param data 被分隔的数组
      * @param segments 需要分隔的段数
      * @return
      */
     @SuppressWarnings("unchecked")
-    public static  <T> List<List<T>> subListBySegment(List<T> data, int segments) {
+    public static <T> List<List<T>> subListBySegment(List<T> data, int segments) {
         List<List<T>> result = new ArrayList<>();
         // 数据长度
         int size = data.size();
@@ -111,16 +117,16 @@ public final class RangeSplitUtil {
         if (size > 0 && segments > 0) {
             // 每段List
             List<T> cutList;
-            if(size <= segments){
+            if (size <= segments) {
                 for (int i = 0; i < segments; i++) {
-                    if(i < size){
+                    if (i < size) {
                         cutList = Collections.singletonList(data.get(i));
-                    }else{
+                    } else {
                         cutList = Collections.EMPTY_LIST;
                     }
                     result.add(cutList);
                 }
-            }else{
+            } else {
                 // 每段数量
                 int count = size / segments;
                 for (int i = 0; i < segments; i++) {

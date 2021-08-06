@@ -42,23 +42,21 @@ import java.util.regex.Pattern;
 import static org.apache.flink.table.api.DataTypes.DECIMAL;
 import static org.apache.flink.table.api.DataTypes.TIMESTAMP;
 
-
 /**
  * @program: flink.sql
  * @author: wuren
  * @create: 2020/07/09
- **/
+ */
 public class DataTypeUtil {
 
-    private final static Pattern COMPOSITE_TYPE_PATTERN = Pattern.compile("(.+?)<(.+)>");
-    private final static String ARRAY = "ARRAY";
-    private final static String MAP = "MAP";
-    private final static String ROW = "ROW";
-    private final static char FIELD_DELIMITER = ',';
-    private final static char TYPE_DELIMITER = ' ';
+    private static final Pattern COMPOSITE_TYPE_PATTERN = Pattern.compile("(.+?)<(.+)>");
+    private static final String ARRAY = "ARRAY";
+    private static final String MAP = "MAP";
+    private static final String ROW = "ROW";
+    private static final char FIELD_DELIMITER = ',';
+    private static final char TYPE_DELIMITER = ' ';
 
-    private DataTypeUtil() {
-    }
+    private DataTypeUtil() {}
 
     /**
      * 目前ARRAY里只支持ROW和其他基本类型
@@ -102,7 +100,8 @@ public class DataTypeUtil {
 
         String kvTypeString = matcher.group(2);
         String[] kvTypeStringList = StringUtils.split(kvTypeString, ",");
-        final String mapTypeErrorMsg = "There can only be key and value two types in map declaration.";
+        final String mapTypeErrorMsg =
+                "There can only be key and value two types in map declaration.";
         Preconditions.checkState(kvTypeStringList.length == 2, mapTypeErrorMsg);
         String keyTypeString = normalizeType(kvTypeStringList[0]);
         String valueTypeString = normalizeType(kvTypeStringList[1]);
@@ -131,8 +130,7 @@ public class DataTypeUtil {
     }
 
     /**
-     * 获取字段类型
-     * java数据类型转换成DataType
+     * 获取字段类型 java数据类型转换成DataType
      *
      * @param fieldClassList
      * @return
@@ -140,11 +138,13 @@ public class DataTypeUtil {
     public static DataType[] getFieldTypes(List<Class> fieldClassList) {
         DataType[] dataTypes = new DataType[fieldClassList.size()];
         for (int i = 0; i < fieldClassList.size(); i++) {
-            if (StringUtils.equalsIgnoreCase(BigDecimal.class.getName(), fieldClassList.get(i).getName())) {
+            if (StringUtils.equalsIgnoreCase(
+                    BigDecimal.class.getName(), fieldClassList.get(i).getName())) {
                 dataTypes[i] = DECIMAL(DecimalType.MAX_PRECISION, 18);
                 continue;
             }
-            if (StringUtils.equalsIgnoreCase(Timestamp.class.getName(), fieldClassList.get(i).getName())) {
+            if (StringUtils.equalsIgnoreCase(
+                    Timestamp.class.getName(), fieldClassList.get(i).getName())) {
                 dataTypes[i] = TIMESTAMP(3).bridgedTo(Timestamp.class);
                 continue;
             }
@@ -168,8 +168,8 @@ public class DataTypeUtil {
         return types;
     }
 
-
-    private static Tuple2<TypeInformation[], String[]> genFieldInfo(Iterable<String> fieldInfoStrs) {
+    private static Tuple2<TypeInformation[], String[]> genFieldInfo(
+            Iterable<String> fieldInfoStrs) {
         ArrayList<TypeInformation> types = Lists.newArrayList();
         ArrayList<String> fieldNames = Lists.newArrayList();
 
@@ -226,7 +226,8 @@ public class DataTypeUtil {
             case "TIMESTAMP":
                 return Types.SQL_TIMESTAMP();
             default:
-                throw new RuntimeException("type " + string + "not supported, please refer to the flink doc!");
+                throw new RuntimeException(
+                        "type " + string + "not supported, please refer to the flink doc!");
         }
     }
 
@@ -253,18 +254,11 @@ public class DataTypeUtil {
     }
 
     private static Iterable<String> splitTypeInfo(String string) {
-        return Splitter
-            .on(TYPE_DELIMITER)
-            .trimResults()
-            .omitEmptyStrings()
-            .split(string);
+        return Splitter.on(TYPE_DELIMITER).trimResults().omitEmptyStrings().split(string);
     }
 
     private static Iterable<String> splitCompositeTypeField(String string) {
-        return Splitter
-            .on(FIELD_DELIMITER)
-            .trimResults()
-            .split(string);
+        return Splitter.on(FIELD_DELIMITER).trimResults().split(string);
     }
 
     private static String replaceBlank(String s) {
@@ -272,9 +266,7 @@ public class DataTypeUtil {
     }
 
     private static Matcher matchCompositeType(String s) {
-        return COMPOSITE_TYPE_PATTERN.matcher(
-            replaceBlank(s)
-        );
+        return COMPOSITE_TYPE_PATTERN.matcher(replaceBlank(s));
     }
 
     private static String normalizeType(String s) {

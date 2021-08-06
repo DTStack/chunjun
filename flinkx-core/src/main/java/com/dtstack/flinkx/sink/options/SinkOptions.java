@@ -23,10 +23,11 @@ import org.apache.flink.configuration.ConfigOptions;
 
 /**
  * TODO move to table package
+ *
  * @author chuixue
  * @create 2021-06-21 19:41
  * @description
- **/
+ */
 public class SinkOptions {
     // write config options
     public static final ConfigOption<Integer> SINK_BUFFER_FLUSH_MAX_ROWS =

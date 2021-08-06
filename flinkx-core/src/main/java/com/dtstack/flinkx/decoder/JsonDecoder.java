@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.decoder;
 
 import com.dtstack.flinkx.util.JsonUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +27,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */

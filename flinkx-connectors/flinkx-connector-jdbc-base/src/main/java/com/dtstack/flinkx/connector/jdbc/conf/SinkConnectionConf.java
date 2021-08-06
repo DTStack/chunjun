@@ -18,12 +18,11 @@
 package com.dtstack.flinkx.connector.jdbc.conf;
 
 /**
- * Date: 2021/04/12
- * Company: www.dtstack.com
+ * Date: 2021/04/12 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class SinkConnectionConf extends ConnectionConf{
+public class SinkConnectionConf extends ConnectionConf {
 
     protected String jdbcUrl;
 
@@ -57,13 +56,23 @@ public class SinkConnectionConf extends ConnectionConf{
 
     @Override
     public String toString() {
-        return "SinkConnectionConf{" +
-                "table=" + table +
-                ", schema='" + schema + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", jdbcUrl='" + jdbcUrl + '\'' +
-                ", allReplace=" + allReplace +
-                '}';
+        return "SinkConnectionConf{"
+                + "table="
+                + table
+                + ", schema='"
+                + schema
+                + '\''
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", jdbcUrl='"
+                + jdbcUrl
+                + '\''
+                + ", allReplace="
+                + allReplace
+                + '}';
     }
 }

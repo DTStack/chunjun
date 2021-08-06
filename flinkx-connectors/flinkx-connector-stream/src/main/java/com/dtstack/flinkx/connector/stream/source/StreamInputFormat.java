@@ -18,15 +18,16 @@
 
 package com.dtstack.flinkx.connector.stream.source;
 
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
+
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import org.apache.flink.shaded.curator4.com.google.common.util.concurrent.RateLimiter;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.source.format.BaseRichInputFormat;
-import com.dtstack.flinkx.throwable.ReadRecordException;
 import org.apache.commons.collections.CollectionUtils;
 
 /**

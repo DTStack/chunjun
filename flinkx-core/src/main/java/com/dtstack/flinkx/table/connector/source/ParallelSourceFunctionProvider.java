@@ -29,11 +29,13 @@ import java.util.Optional;
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/05
- **/
-public interface ParallelSourceFunctionProvider extends SourceFunctionProvider, ParallelismProvider {
+ */
+public interface ParallelSourceFunctionProvider
+        extends SourceFunctionProvider, ParallelismProvider {
 
     /** Helper method for creating a SourceFunction provider with a provided source parallelism. */
-    static SourceFunctionProvider of(SourceFunction<RowData> sourceFunction, boolean isBounded, Integer parallelism) {
+    static SourceFunctionProvider of(
+            SourceFunction<RowData> sourceFunction, boolean isBounded, Integer parallelism) {
         return new ParallelSourceFunctionProvider() {
             @Override
             public SourceFunction<RowData> createSourceFunction() {

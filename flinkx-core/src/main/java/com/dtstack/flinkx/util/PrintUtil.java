@@ -16,14 +16,12 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.util;
-
-import org.apache.flink.api.common.JobExecutionResult;
 
 import com.dtstack.flinkx.conf.JobConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConfigConstant;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -40,13 +38,14 @@ public class PrintUtil {
 
     private static Logger LOG = LoggerFactory.getLogger(PrintUtil.class);
 
-    public static void printResult(Map<String, Object> result){
+    public static void printResult(Map<String, Object> result) {
         List<String> names = Lists.newArrayList();
         List<String> values = Lists.newArrayList();
-        result.forEach((name, val) -> {
-            names.add(name);
-            values.add(String.valueOf(val));
-        });
+        result.forEach(
+                (name, val) -> {
+                    names.add(name);
+                    values.add(String.valueOf(val));
+                });
 
         int maxLength = 0;
         for (String name : names) {
@@ -61,7 +60,7 @@ public class PrintUtil {
             builder.append(name + StringUtils.repeat(" ", maxLength - name.length()));
             builder.append("|  ").append(values.get(i));
 
-            if(i+1 < names.size()){
+            if (i + 1 < names.size()) {
                 builder.append("\n");
             }
         }
@@ -69,22 +68,20 @@ public class PrintUtil {
         LOG.info(builder.toString());
     }
 
-    /**
-     * 打印job配置信息
-     */
-    public static void printJobConfig(SyncConf config){
+    /** 打印job配置信息 */
+    public static void printJobConfig(SyncConf config) {
 
-        //深拷贝对象
+        // 深拷贝对象
         JobConf job = JsonUtil.toObject(JsonUtil.toJson(config.getJob()), JobConf.class);
 
-        //隐藏密码信息
+        // 隐藏密码信息
         Map<String, Object> readerParameter = job.getReader().getParameter();
-        if(readerParameter.containsKey(ConfigConstant.KEY_PASSWORD)){
+        if (readerParameter.containsKey(ConfigConstant.KEY_PASSWORD)) {
             readerParameter.put(ConfigConstant.KEY_PASSWORD, ConfigConstant.KEY_CONFUSED_PASSWORD);
         }
 
         Map<String, Object> writerParameter = job.getWriter().getParameter();
-        if(writerParameter.containsKey(ConfigConstant.KEY_PASSWORD)){
+        if (writerParameter.containsKey(ConfigConstant.KEY_PASSWORD)) {
             writerParameter.put(ConfigConstant.KEY_PASSWORD, ConfigConstant.KEY_CONFUSED_PASSWORD);
         }
         LOG.info(config.asString());

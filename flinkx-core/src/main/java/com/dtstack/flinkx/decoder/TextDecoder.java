@@ -22,8 +22,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -35,5 +34,4 @@ public class TextDecoder implements IDecode, Serializable {
     public Map<String, Object> decode(final String message) {
         return Collections.singletonMap("message", message);
     }
-
 }

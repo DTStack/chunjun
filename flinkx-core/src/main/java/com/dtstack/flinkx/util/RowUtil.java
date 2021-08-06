@@ -32,7 +32,8 @@ import java.util.Map;
 /**
  * Row Utilities
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class RowUtil {
@@ -40,10 +41,10 @@ public class RowUtil {
 
     public static String rowToJson(RowData rowData, String[] colName) {
         Preconditions.checkNotNull(colName);
-        Map<String,Object> map = new LinkedHashMap<>(colName.length);
+        Map<String, Object> map = new LinkedHashMap<>(colName.length);
 
-        GenericRowData row = (GenericRowData)rowData;
-        for(int i = 0; i < colName.length; ++i) {
+        GenericRowData row = (GenericRowData) rowData;
+        for (int i = 0; i < colName.length; ++i) {
             String key = colName[i];
             Object value = row.getField(i);
             map.put(key, value);
@@ -54,20 +55,21 @@ public class RowUtil {
 
     /**
      * row转字符串
+     *
      * @param rowData rowData
      * @param writeDelimiter 分隔符
      * @return 字符串
      */
     public static String rowToStringWithDelimiter(RowData rowData, String writeDelimiter) {
-        if(rowData == null){
+        if (rowData == null) {
             return "";
-        }else{
+        } else {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < rowData.getArity(); i++) {
                 if (i > 0) {
                     sb.append(writeDelimiter);
                 }
-                sb.append(StringUtils.arrayAwareToString(((GenericRowData)rowData).getField(i)));
+                sb.append(StringUtils.arrayAwareToString(((GenericRowData) rowData).getField(i)));
             }
             return sb.toString();
         }

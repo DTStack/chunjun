@@ -19,27 +19,24 @@
 package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.constants.ConstantValue;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 
-/**
- * @author tiezhu
- */
+/** @author tiezhu */
 public class JsonModifyUtil {
 
-    public static String JsonValueReplace(String json, HashMap<String, String> parameter){
-        for(String item: parameter.keySet()){
-            if(json.contains("${"+item+"}")){
-                json = json.replace("${"+item+"}", parameter.get(item));
+    public static String JsonValueReplace(String json, HashMap<String, String> parameter) {
+        for (String item : parameter.keySet()) {
+            if (json.contains("${" + item + "}")) {
+                json = json.replace("${" + item + "}", parameter.get(item));
             }
         }
         return json;
     }
 
-    /**
-     * 将命令行中的修改命令转化为HashMap保存
-     */
+    /** 将命令行中的修改命令转化为HashMap保存 */
     public static HashMap<String, String> CommandTransform(String command) {
         HashMap<String, String> parameter = new HashMap<>();
         String[] split = StringUtils.split(command, ConstantValue.COMMA_SYMBOL);

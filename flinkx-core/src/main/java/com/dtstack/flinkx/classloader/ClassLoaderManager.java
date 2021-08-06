@@ -20,6 +20,7 @@ package com.dtstack.flinkx.classloader;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,8 @@ public class ClassLoaderManager {
 
     private static Map<String, URLClassLoader> pluginClassLoader = new ConcurrentHashMap<>();
 
-    public static <R> R newInstance(Set<URL> jarUrls, ClassLoaderSupplier<R> supplier) throws Exception {
+    public static <R> R newInstance(Set<URL> jarUrls, ClassLoaderSupplier<R> supplier)
+            throws Exception {
         ClassLoader classLoader = retrieveClassLoad(new ArrayList<>(jarUrls));
         return ClassLoaderSupplierCallBack.callbackAndReset(supplier, classLoader);
     }
@@ -56,18 +58,23 @@ public class ClassLoaderManager {
     private static URLClassLoader retrieveClassLoad(List<URL> jarUrls) {
         jarUrls.sort(Comparator.comparing(URL::toString));
         String jarUrlkey = StringUtils.join(jarUrls, "_");
-        return pluginClassLoader.computeIfAbsent(jarUrlkey, k -> {
-            try {
-                URL[] urls = jarUrls.toArray(new URL[0]);
-                ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
-                URLClassLoader classLoader = new URLClassLoader(urls, parentClassLoader);
-                LOG.info("jarUrl:{} create ClassLoad successful...", jarUrlkey);
-                return classLoader;
-            } catch (Throwable e) {
-                LOG.error("retrieve ClassLoad happens error:{}", ExceptionUtil.getErrorMessage(e));
-                throw new RuntimeException("retrieve ClassLoad happens error");
-            }
-        });
+        return pluginClassLoader.computeIfAbsent(
+                jarUrlkey,
+                k -> {
+                    try {
+                        URL[] urls = jarUrls.toArray(new URL[0]);
+                        ClassLoader parentClassLoader =
+                                Thread.currentThread().getContextClassLoader();
+                        URLClassLoader classLoader = new URLClassLoader(urls, parentClassLoader);
+                        LOG.info("jarUrl:{} create ClassLoad successful...", jarUrlkey);
+                        return classLoader;
+                    } catch (Throwable e) {
+                        LOG.error(
+                                "retrieve ClassLoad happens error:{}",
+                                ExceptionUtil.getErrorMessage(e));
+                        throw new RuntimeException("retrieve ClassLoad happens error");
+                    }
+                });
     }
 
     public static Set<URL> getClassPath() {
@@ -88,11 +95,14 @@ public class ClassLoaderManager {
         return classLoader;
     }
 
-    private static void urlClassLoaderAddUrl(URLClassLoader classLoader, URL url) throws InvocationTargetException, IllegalAccessException {
+    private static void urlClassLoaderAddUrl(URLClassLoader classLoader, URL url)
+            throws InvocationTargetException, IllegalAccessException {
         Method method = ReflectionUtils.getDeclaredMethod(classLoader, "addURL", URL.class);
 
         if (method == null) {
-            throw new RuntimeException("can't not find declared method addURL, curr classLoader is " + classLoader.getClass());
+            throw new RuntimeException(
+                    "can't not find declared method addURL, curr classLoader is "
+                            + classLoader.getClass());
         }
         method.setAccessible(true);
         method.invoke(classLoader, url);

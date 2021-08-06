@@ -1,11 +1,12 @@
 package com.dtstack.flinkx.connector.stream.util;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,11 +138,12 @@ public class TablePrintUtil {
 
     /**
      * 打印数据表格
+     *
      * @param row
      */
     public static void printTable(RowData row, String[] fieldNames) {
         GenericRowData genericRowData = new GenericRowData(row.getArity());
-        if(row instanceof ColumnRowData){
+        if (row instanceof ColumnRowData) {
             ColumnRowData columnRowData = (ColumnRowData) row;
             for (int pos = 0; pos < row.getArity(); pos++) {
                 AbstractBaseColumn field = columnRowData.getField(pos);
@@ -149,21 +151,21 @@ public class TablePrintUtil {
                     genericRowData.setField(pos, field.asString());
                 }
             }
-        }else if(row instanceof GenericRowData){
+        } else if (row instanceof GenericRowData) {
             genericRowData = (GenericRowData) row;
-        }else{
+        } else {
             throw new UnsupportedTypeException(row.getClass().getSimpleName());
         }
 
         List<String[]> data = new ArrayList<>(2);
         boolean emptyFieldNames = false;
-        if(fieldNames == null){
+        if (fieldNames == null) {
             fieldNames = new String[genericRowData.getArity()];
             emptyFieldNames = true;
         }
         String[] recordStr = new String[genericRowData.getArity()];
         for (int i = 0; i < genericRowData.getArity(); i++) {
-            if(emptyFieldNames){
+            if (emptyFieldNames) {
                 fieldNames[i] = "col" + i;
             }
             recordStr[i] = String.valueOf(genericRowData.getField(i));

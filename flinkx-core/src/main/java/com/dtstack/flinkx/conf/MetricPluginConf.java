@@ -32,7 +32,7 @@ public class MetricPluginConf implements Serializable {
 
     private String pluginName = "prometheus";
 
-    private Map<String,Object> pluginProp;
+    private Map<String, Object> pluginProp;
 
     public String getPluginName() {
         return pluginName;
@@ -52,9 +52,12 @@ public class MetricPluginConf implements Serializable {
 
     @Override
     public String toString() {
-        return "MetricPluginConf{" +
-                "pluginName='" + pluginName + '\'' +
-                ", pluginProp=" + pluginProp +
-                '}';
+        return "MetricPluginConf{"
+                + "pluginName='"
+                + pluginName
+                + '\''
+                + ", pluginProp="
+                + pluginProp
+                + '}';
     }
 }

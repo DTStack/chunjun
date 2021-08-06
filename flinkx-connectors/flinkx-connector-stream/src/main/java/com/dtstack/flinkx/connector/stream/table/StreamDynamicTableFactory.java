@@ -18,7 +18,9 @@
 
 package com.dtstack.flinkx.connector.stream.table;
 
-import com.google.common.collect.Lists;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.connector.stream.sink.StreamDynamicTableSink;
+import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
@@ -31,24 +33,23 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.connector.stream.sink.StreamDynamicTableSink;
-import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
+import com.google.common.collect.Lists;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static com.dtstack.flinkx.connector.stream.options.StreamOptions.NUMBER_OF_ROWS;
 import static com.dtstack.flinkx.connector.stream.options.StreamOptions.PRINT;
-import static com.dtstack.flinkx.connector.stream.options.StreamOptions.SINK_PARALLELISM;
 import static com.dtstack.flinkx.connector.stream.options.StreamOptions.ROWS_PER_SECOND;
+import static com.dtstack.flinkx.connector.stream.options.StreamOptions.SINK_PARALLELISM;
 
 /**
  * @author chuixue
  * @create 2021-04-08 11:56
  * @description
- **/
-public class StreamDynamicTableFactory implements DynamicTableSinkFactory, DynamicTableSourceFactory {
+ */
+public class StreamDynamicTableFactory
+        implements DynamicTableSinkFactory, DynamicTableSourceFactory {
     public static final String IDENTIFIER = "stream-x";
 
     @Override
@@ -98,7 +99,8 @@ public class StreamDynamicTableFactory implements DynamicTableSinkFactory, Dynam
     public DynamicTableSource createDynamicTableSource(Context context) {
         Configuration options = new Configuration();
         context.getCatalogTable().getOptions().forEach(options::setString);
-        TableSchema schema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema schema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
         StreamConf streamConf = new StreamConf();
         streamConf.setSliceRecordCount(Lists.newArrayList(options.get(NUMBER_OF_ROWS)));

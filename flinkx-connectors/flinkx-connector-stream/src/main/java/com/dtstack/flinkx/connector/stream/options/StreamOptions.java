@@ -27,14 +27,10 @@ import static org.apache.flink.configuration.ConfigOptions.key;
  * @author chuixue
  * @create 2021-04-09 10:19
  * @description 常量
- **/
+ */
 public class StreamOptions {
     public static final ConfigOption<Boolean> PRINT =
-            key("print")
-                    .booleanType()
-                    .defaultValue(true)
-                    .withDescription(
-                            "if print .");
+            key("print").booleanType().defaultValue(true).withDescription("if print .");
 
     public static final ConfigOption<Long> NUMBER_OF_ROWS =
             key("number-of-rows")
@@ -50,10 +46,5 @@ public class StreamOptions {
                     .withDescription("sink.parallelism.");
 
     public static final ConfigOption<Long> ROWS_PER_SECOND =
-            key("rows-per-second")
-                    .longType()
-                    .defaultValue(0L)
-                    .withDescription(
-                            "rows-per-second.");
-
+            key("rows-per-second").longType().defaultValue(0L).withDescription("rows-per-second.");
 }

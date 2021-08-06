@@ -20,10 +20,10 @@ package com.dtstack.flinkx.util;
 
 import org.junit.Assert;
 import org.junit.Test;
+
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-
 
 /**
  * @author jiangbo
@@ -118,7 +118,9 @@ public class DateUtilTest {
         java.util.Date result = DateUtil.stringToDate("", null);
         Assert.assertNull(result);
 
-        result = DateUtil.stringToDate("2020/03/18 13:26:00", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
+        result =
+                DateUtil.stringToDate(
+                        "2020/03/18 13:26:00", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
         Assert.assertEquals(result, new java.util.Date(1584509160000L));
 
         try {

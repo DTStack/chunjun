@@ -28,8 +28,8 @@ import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 
 /**
- * Date: 2019/9/17
- * Company: www.dtstack.com
+ * Date: 2019/9/17 Company: www.dtstack.com
+ *
  * @author maqi
  */
 public class DTC3P0DataSourceProvider extends C3P0DataSourceProvider {
@@ -53,14 +53,13 @@ public class DTC3P0DataSourceProvider extends C3P0DataSourceProvider {
         Integer acquireRetryDelay = config.getInteger("acquire_retry_delay");
         Boolean breakAfterAcquireFailure = config.getBoolean("break_after_acquire_failure");
 
-        //add c3p0 params
+        // add c3p0 params
         String preferredTestQuery = config.getString("preferred_test_query");
         Integer idleConnectionTestPeriod = config.getInteger("idle_connection_test_period");
         Boolean testConnectionOnCheckin = config.getBoolean("test_connection_on_checkin");
 
-
-
-        // If you want to configure any other C3P0 properties you can add a file c3p0.properties to the classpath
+        // If you want to configure any other C3P0 properties you can add a file c3p0.properties to
+        // the classpath
         ComboPooledDataSource cpds = new ComboPooledDataSource();
         cpds.setJdbcUrl(url);
         if (driverClass != null) {
@@ -94,13 +93,13 @@ public class DTC3P0DataSourceProvider extends C3P0DataSourceProvider {
         if (maxIdleTime != null) {
             cpds.setMaxIdleTime(maxIdleTime);
         }
-        if(acquireRetryAttempts != null){
+        if (acquireRetryAttempts != null) {
             cpds.setAcquireRetryAttempts(acquireRetryAttempts);
         }
-        if(acquireRetryDelay != null){
+        if (acquireRetryDelay != null) {
             cpds.setAcquireRetryDelay(acquireRetryDelay);
         }
-        if(breakAfterAcquireFailure != null){
+        if (breakAfterAcquireFailure != null) {
             cpds.setBreakAfterAcquireFailure(breakAfterAcquireFailure);
         }
 

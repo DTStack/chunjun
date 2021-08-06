@@ -26,7 +26,7 @@ import java.util.Map;
  * @author chuixue
  * @create 2021-04-10 22:10
  * @description
- **/
+ */
 public class JdbcLookupConf extends LookupConf {
     /** vertx pool size */
     protected int asyncPoolSize = 5;
@@ -36,6 +36,7 @@ public class JdbcLookupConf extends LookupConf {
     }
 
     protected Map<String, Object> druidConf;
+
     public int getAsyncPoolSize() {
         return asyncPoolSize;
     }

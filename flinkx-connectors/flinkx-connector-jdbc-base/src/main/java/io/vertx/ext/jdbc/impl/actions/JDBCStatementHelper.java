@@ -51,19 +51,24 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 /**
  * @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
- * 改动内容：在convertSqlValue方法中，对Time、Date、Timestamp类型直接返回，不强转为string
- * 改动原因：在vertx获取异步查询数据的时候将Time、Date、Timestamp转换为string，导致类型转换问题
+ *     改动内容：在convertSqlValue方法中，对Time、Date、Timestamp类型直接返回，不强转为string
+ *     改动原因：在vertx获取异步查询数据的时候将Time、Date、Timestamp转换为string，导致类型转换问题
  */
 public final class JDBCStatementHelper {
 
     private static final Logger log = LoggerFactory.getLogger(JDBCStatementHelper.class);
 
-    private static final JsonArray EMPTY = new JsonArray(Collections.unmodifiableList(new ArrayList<>()));
+    private static final JsonArray EMPTY =
+            new JsonArray(Collections.unmodifiableList(new ArrayList<>()));
 
-    private static final Pattern DATETIME = Pattern.compile("^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3,9})?Z$");
+    private static final Pattern DATETIME =
+            Pattern.compile(
+                    "^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3,9})?Z$");
     private static final Pattern DATE = Pattern.compile("^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}$");
     private static final Pattern TIME = Pattern.compile("^\\d{2}:\\d{2}:\\d{2}$");
-    private static final Pattern UUID = Pattern.compile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$");
+    private static final Pattern UUID =
+            Pattern.compile(
+                    "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$");
 
     private final boolean castUUID;
     private final boolean castDate;
@@ -101,7 +106,8 @@ public final class JDBCStatementHelper {
         }
     }
 
-    public void fillStatement(CallableStatement statement, JsonArray in, JsonArray out) throws SQLException {
+    public void fillStatement(CallableStatement statement, JsonArray in, JsonArray out)
+            throws SQLException {
         if (in == null) {
             in = EMPTY;
         }
@@ -139,10 +145,12 @@ public final class JDBCStatementHelper {
 
             // found a out value, use it as a output parameter
             if (value != null) {
-                // We're using the int from the enum instead of the enum itself to allow working with Drivers
+                // We're using the int from the enum instead of the enum itself to allow working
+                // with Drivers
                 // that have not been upgraded to Java8 yet.
                 if (value instanceof String) {
-                    statement.registerOutParameter(i + 1, JDBCType.valueOf((String) value).getVendorTypeNumber());
+                    statement.registerOutParameter(
+                            i + 1, JDBCType.valueOf((String) value).getVendorTypeNumber());
                 } else if (value instanceof Number) {
                     // for cases where vendors have special codes (e.g.: Oracle)
                     statement.registerOutParameter(i + 1, ((Number) value).intValue());
@@ -275,7 +283,10 @@ public final class JDBCStatementHelper {
             // sql time
             if (castTime && TIME.matcher(value).matches()) {
                 // convert from local time to instant
-                Instant instant = LocalTime.parse(value).atDate(LocalDate.of(1970, 1, 1)).toInstant(ZoneOffset.UTC);
+                Instant instant =
+                        LocalTime.parse(value)
+                                .atDate(LocalDate.of(1970, 1, 1))
+                                .toInstant(ZoneOffset.UTC);
                 // calculate the timezone offset in millis
                 int offset = TimeZone.getDefault().getOffset(instant.toEpochMilli());
                 // need to remove the offset since time has no TZ component
@@ -285,7 +296,10 @@ public final class JDBCStatementHelper {
             // sql date
             if (castDate && DATE.matcher(value).matches()) {
                 // convert from local date to instant
-                Instant instant = LocalDate.parse(value).atTime(LocalTime.of(0, 0, 0, 0)).toInstant(ZoneOffset.UTC);
+                Instant instant =
+                        LocalDate.parse(value)
+                                .atTime(LocalTime.of(0, 0, 0, 0))
+                                .toInstant(ZoneOffset.UTC);
                 // calculate the timezone offset in millis
                 int offset = TimeZone.getDefault().getOffset(instant.toEpochMilli());
                 // need to remove the offset since time has no TZ component

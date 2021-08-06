@@ -18,11 +18,12 @@
 
 package com.dtstack.flinkx.converter;
 
+import com.dtstack.flinkx.util.SnowflakeIdWorker;
+
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +38,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Date: 2021/04/29
- * Company: www.dtstack.com
+ * Date: 2021/04/29 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -70,7 +70,8 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
                     .appendLiteral(' ')
                     .append(SQL_TIME_FORMAT)
                     .toFormatter();
-    protected static final DateTimeFormatter ISO8601_TIMESTAMP_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    protected static final DateTimeFormatter ISO8601_TIMESTAMP_FORMAT =
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     protected static DateTimeFormatter SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT =
             new DateTimeFormatterBuilder()
                     .append(DateTimeFormatter.ISO_LOCAL_DATE)
@@ -86,7 +87,8 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
                     .appendPattern("'Z'")
                     .toFormatter();
 
-    protected final Map<String, IDeserializationConverter[]> cdcConverterCacheMap = new ConcurrentHashMap<>(32);
+    protected final Map<String, IDeserializationConverter[]> cdcConverterCacheMap =
+            new ConcurrentHashMap<>(32);
     protected final SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
     protected boolean pavingData;
     protected boolean splitUpdate;
@@ -95,6 +97,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
 
     /**
      * 将外部数据库类型转换为flink内部类型
+     *
      * @param input
      * @return
      * @throws Exception
@@ -109,7 +112,6 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
      */
     protected abstract IDeserializationConverter createInternalConverter(T type);
 
-
     protected IDeserializationConverter wrapIntoNullableInternalConverter(
             IDeserializationConverter IDeserializationConverter) {
         return val -> {
@@ -123,11 +125,12 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
 
     /**
      * 根据eventType获取RowKind
+     *
      * @param type
      * @return
      */
-    protected RowKind getRowKindByType(String type){
-        switch (type.toUpperCase(Locale.ENGLISH)){
+    protected RowKind getRowKindByType(String type) {
+        switch (type.toUpperCase(Locale.ENGLISH)) {
             case "INSERT":
             case "UPDATE":
                 return RowKind.INSERT;
@@ -140,18 +143,23 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
 
     /**
      * 通过convertor将map中的数据按照顺序取出并转换成对应的类型，最终设置到rowData中
+     *
      * @param fieldNameList
      * @param converters
      * @param valueMap
      * @return
      */
     @SuppressWarnings("unchecked")
-    protected RowData createRowDataByConverters(List<String> fieldNameList, IDeserializationConverter[] converters, Map<Object, Object> valueMap) throws Exception {
+    protected RowData createRowDataByConverters(
+            List<String> fieldNameList,
+            IDeserializationConverter[] converters,
+            Map<Object, Object> valueMap)
+            throws Exception {
         GenericRowData genericRowData = new GenericRowData(fieldNameList.size());
-        for (int i = 0; i <fieldNameList.size(); i++) {
+        for (int i = 0; i < fieldNameList.size(); i++) {
             String fieldName = fieldNameList.get(i);
             Object value = valueMap.get(fieldName);
-            if(value != null){
+            if (value != null) {
                 value = converters[i].deserialize(value);
             }
             genericRowData.setField(i, value);

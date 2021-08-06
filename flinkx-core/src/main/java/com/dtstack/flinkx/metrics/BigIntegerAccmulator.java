@@ -23,8 +23,7 @@ import org.apache.flink.api.common.accumulators.SimpleAccumulator;
 import java.math.BigInteger;
 
 /**
- * Date: 2020/06/28
- * Company: www.dtstack.com
+ * Date: 2020/06/28 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -38,7 +37,7 @@ public class BigIntegerAccmulator implements SimpleAccumulator<BigInteger> {
 
     @Override
     public void add(BigInteger value) {
-        if(this.max.compareTo(value) < 0){
+        if (this.max.compareTo(value) < 0) {
             this.max = value;
         }
     }
@@ -50,7 +49,7 @@ public class BigIntegerAccmulator implements SimpleAccumulator<BigInteger> {
 
     @Override
     public void merge(Accumulator<BigInteger, BigInteger> other) {
-        if(this.max.compareTo(other.getLocalValue()) < 0){
+        if (this.max.compareTo(other.getLocalValue()) < 0) {
             this.max = other.getLocalValue();
         }
     }

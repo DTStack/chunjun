@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.util;
 
 import java.math.BigDecimal;
@@ -26,13 +25,10 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 /**
- * Convert val to specified numeric type
- * Date: 2017/4/21
- * Company: www.dtstack.com
+ * Convert val to specified numeric type Date: 2017/4/21 Company: www.dtstack.com
  *
  * @author xuchao
  */
-
 public class MathUtil {
     public static Long getLongVal(Object obj) {
         if (obj == null) {
@@ -80,7 +76,8 @@ public class MathUtil {
             return ((BigInteger) obj).intValue();
         }
 
-        throw new RuntimeException("not support type of " + obj.getClass() + " convert to Integer.");
+        throw new RuntimeException(
+                "not support type of " + obj.getClass() + " convert to Integer.");
     }
 
     public static Integer getIntegerVal(Object obj, int defaultVal) {
@@ -143,7 +140,6 @@ public class MathUtil {
         return getDoubleVal(obj);
     }
 
-
     public static Boolean getBoolean(Object obj) {
         if (obj == null) {
             return null;
@@ -155,7 +151,8 @@ public class MathUtil {
             return (Boolean) obj;
         }
 
-        throw new RuntimeException("not support type of " + obj.getClass() + " convert to Boolean.");
+        throw new RuntimeException(
+                "not support type of " + obj.getClass() + " convert to Boolean.");
     }
 
     public static Boolean getBoolean(Object obj, boolean defaultVal) {
@@ -219,7 +216,8 @@ public class MathUtil {
         } else if (obj instanceof Number) {
             return BigDecimal.valueOf(((Number) obj).doubleValue());
         }
-        throw new RuntimeException("not support type of " + obj.getClass() + " convert to BigDecimal.");
+        throw new RuntimeException(
+                "not support type of " + obj.getClass() + " convert to BigDecimal.");
     }
 
     public static Date getDate(Object obj) {
@@ -249,7 +247,6 @@ public class MathUtil {
         }
         throw new RuntimeException("not support type of " + obj.getClass() + " convert to Time.");
     }
-
 
     public static Timestamp getTimestamp(Object obj) {
         if (obj == null) {

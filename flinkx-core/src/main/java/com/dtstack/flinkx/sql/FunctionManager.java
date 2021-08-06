@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.sql;
 
+import com.dtstack.flinkx.throwable.FlinkxSqlParseException;
+
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.functions.AggregateFunction;
 import org.apache.flink.table.functions.ScalarFunction;
 import org.apache.flink.table.functions.TableFunction;
 
-import com.dtstack.flinkx.throwable.FlinkxSqlParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

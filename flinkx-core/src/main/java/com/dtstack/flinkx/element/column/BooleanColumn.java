@@ -24,8 +24,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
- * Date: 2021/04/27
- * Company: www.dtstack.com
+ * Date: 2021/04/27 Company: www.dtstack.com
  *
  * @author tudou
  */

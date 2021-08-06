@@ -18,6 +18,18 @@
 
 package com.dtstack.flinkx.connector.jdbc.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
+import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
+import com.dtstack.flinkx.enums.CacheType;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -31,17 +43,6 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.lookup.JdbcAllTableFunction;
-import com.dtstack.flinkx.connector.jdbc.lookup.JdbcLruTableFunction;
-import com.dtstack.flinkx.enums.CacheType;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

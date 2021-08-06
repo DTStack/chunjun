@@ -22,8 +22,7 @@ import com.dtstack.flinkx.constants.ConfigConstant;
 import java.io.Serializable;
 
 /**
- * Date: 2021/01/18
- * Company: www.dtstack.com
+ * Date: 2021/01/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -73,11 +72,18 @@ public class LogConf implements Serializable {
 
     @Override
     public String toString() {
-        return "LogConf{" +
-                "isLogger=" + isLogger +
-                ", level='" + level + '\'' +
-                ", path='" + path + '\'' +
-                ", pattern='" + pattern + '\'' +
-                '}';
+        return "LogConf{"
+                + "isLogger="
+                + isLogger
+                + ", level='"
+                + level
+                + '\''
+                + ", path='"
+                + path
+                + '\''
+                + ", pattern='"
+                + pattern
+                + '\''
+                + '}';
     }
 }

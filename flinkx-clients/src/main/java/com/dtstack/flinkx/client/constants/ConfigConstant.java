@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.client.constants;
 
-
 /**
  * @program: flinkx
  * @author: xiuzhu
@@ -25,8 +24,7 @@ package com.dtstack.flinkx.client.constants;
  */
 public class ConfigConstant {
 
-    public final static String KUBERNETES_HOST_ALIASES_KEY = "kubernetes.host.aliases";
+    public static final String KUBERNETES_HOST_ALIASES_KEY = "kubernetes.host.aliases";
 
     public static final String KUBERNETES_HOST_ALIASES_ENV = "KUBERNETES_HOST_ALIASES";
-
 }

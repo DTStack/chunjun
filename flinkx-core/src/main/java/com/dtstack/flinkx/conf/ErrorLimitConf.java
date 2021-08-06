@@ -20,8 +20,7 @@ package com.dtstack.flinkx.conf;
 import java.io.Serializable;
 
 /**
- * Date: 2021/01/18
- * Company: www.dtstack.com
+ * Date: 2021/01/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -51,9 +50,6 @@ public class ErrorLimitConf implements Serializable {
 
     @Override
     public String toString() {
-        return "ErrorLimitConf{" +
-                "record=" + record +
-                ", percentage=" + percentage +
-                '}';
+        return "ErrorLimitConf{" + "record=" + record + ", percentage=" + percentage + '}';
     }
 }
