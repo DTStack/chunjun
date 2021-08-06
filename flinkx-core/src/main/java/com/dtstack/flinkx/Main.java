@@ -17,6 +17,33 @@
  */
 package com.dtstack.flinkx;
 
+import com.dtstack.flinkx.conf.RestartConf;
+import com.dtstack.flinkx.conf.SpeedConf;
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.enums.ClusterMode;
+import com.dtstack.flinkx.enums.EJobType;
+import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.options.OptionParser;
+import com.dtstack.flinkx.options.Options;
+import com.dtstack.flinkx.sink.SinkFactory;
+import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.sql.parser.SqlParser;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.util.DataSyncFactoryUtil;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.ExecuteProcessHelper;
+import com.dtstack.flinkx.util.FactoryHelper;
+import com.dtstack.flinkx.util.MathUtil;
+import com.dtstack.flinkx.util.PluginUtil;
+import com.dtstack.flinkx.util.PrintUtil;
+import com.dtstack.flinkx.util.PropertiesUtil;
+import com.dtstack.flinkx.util.StreamEnvConfigManagerUtil;
+import com.dtstack.flinkx.util.TableUtil;
+import com.google.common.base.Preconditions;
+import org.apache.commons.io.Charsets;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -41,34 +68,8 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.expressions.Expression;
 import org.apache.flink.table.expressions.ExpressionParser;
 import org.apache.flink.table.factories.FactoryUtil;
+import org.apache.flink.table.factories.TableFactoryService;
 import org.apache.flink.table.types.DataType;
-
-import com.dtstack.flinkx.conf.RestartConf;
-import com.dtstack.flinkx.conf.SpeedConf;
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.constants.ConfigConstant;
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.enums.ClusterMode;
-import com.dtstack.flinkx.enums.EJobType;
-import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
-import com.dtstack.flinkx.options.OptionParser;
-import com.dtstack.flinkx.options.Options;
-import com.dtstack.flinkx.sink.SinkFactory;
-import com.dtstack.flinkx.source.SourceFactory;
-import com.dtstack.flinkx.sql.parser.SqlParser;
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-import com.dtstack.flinkx.util.DataSyncFactoryUtil;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.ExecuteProcessHelper;
-import com.dtstack.flinkx.util.MathUtil;
-import com.dtstack.flinkx.util.PluginUtil;
-import com.dtstack.flinkx.util.PrintUtil;
-import com.dtstack.flinkx.util.PropertiesUtil;
-import com.dtstack.flinkx.util.StreamEnvConfigManagerUtil;
-import com.dtstack.flinkx.util.TableUtil;
-import com.google.common.base.Preconditions;
-import org.apache.commons.io.Charsets;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,7 +158,8 @@ public class Main {
         } catch (Exception e) {
             LOG.error(ExceptionUtil.getErrorMessage(e));
         } finally {
-            FactoryUtil.getFactoryUtilHelpThreadLocal().remove();
+            FactoryUtil.getFactoryHelperThreadLocal().remove();
+            TableFactoryService.getFactoryHelperThreadLocal().remove();
         }
     }
 
@@ -370,14 +372,14 @@ public class Main {
                             options.getMode(),
                             options.getPluginLoadMode()),
                     "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
-            FactoryUtil.FactoryUtilHelp factoryUtilHelp = new FactoryUtil().new FactoryUtilHelp();
-            factoryUtilHelp.setLocalPluginPath(options.getPluginRoot());
-            factoryUtilHelp.setRemotePluginPath(options.getRemotePluginPath());
-            factoryUtilHelp.setPluginLoadMode(options.getPluginLoadMode());
-            factoryUtilHelp.setEnv(env);
-            factoryUtilHelp.setConnectorLoadMode(options.getConnectorLoadMode());
+            FactoryHelper factoryHelper = new FactoryHelper();
+            factoryHelper.setLocalPluginPath(options.getPluginRoot());
+            factoryHelper.setRemotePluginPath(options.getRemotePluginPath());
+            factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
+            factoryHelper.setEnv(env);
 
-            FactoryUtil.setFactoryUtilHelp(factoryUtilHelp);
+            FactoryUtil.setFactoryUtilHelp(factoryHelper);
+            TableFactoryService.setFactoryUtilHelp(factoryHelper);
         }
         PluginUtil.registerShipfileToCachedFile(options.getAddShipfile(), env);
     }

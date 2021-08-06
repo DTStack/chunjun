@@ -83,39 +83,6 @@ public class PluginUtil {
     private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
     /**
-     * 获取插件jar包
-     * @param pluginDir 插件包路径
-     * @param factoryIdentifier SQL任务插件包名称，如：kafka-x
-     * @return
-     * @throws MalformedURLException
-     */
-    public static URL[] getPluginJarUrls(String pluginDir, String factoryIdentifier) throws MalformedURLException {
-        List<URL> urlList = new ArrayList<>();
-
-        File dirFile = new File(pluginDir);
-
-        if (!dirFile.exists() || !dirFile.isDirectory()) {
-            throw new RuntimeException("plugin path:" + pluginDir + " is not exist.");
-        }
-
-        File[] files = dirFile.listFiles(tmpFile -> tmpFile.isFile() && tmpFile.getName().endsWith(JAR_SUFFIX));
-        if (files == null || files.length == 0) {
-            throw new RuntimeException("plugin path:" + pluginDir + " is null.");
-        }
-
-        for (File file : files) {
-            URL pluginJarUrl = file.toURI().toURL();
-            urlList.add(pluginJarUrl);
-        }
-
-        if (urlList.size() == 0) {
-            throw new RuntimeException("no match jar in :" + pluginDir + " directory ，factoryIdentifier is :" + factoryIdentifier);
-        }
-
-        return urlList.toArray(new URL[0]);
-    }
-
-    /**
      * 根据插件名称查找插件路径
      * @param pluginName 插件名称，如: kafkareader、kafkasource等
      * @param pluginRoot

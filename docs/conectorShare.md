@@ -80,7 +80,6 @@
       ```shell
       java -cp  "./*" com.dtstack.flinkx.client.Launcher \
       -mode local \
-      -connectorLoadMode spi \
       -jobType sql \
       -jobName flink1.12_SPI \
       -job /yourjobpath/sqlFile.sql \
@@ -92,7 +91,6 @@
       ```shell
       java -cp  "./*" com.dtstack.flinkx.client.Launcher \
       -mode yarnPer \
-      -connectorLoadMode spi \
       -jobType sql \
       -jobName flink1.12_SPI \
       -job /yourjobpath/sqlFile.sql \
