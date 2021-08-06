@@ -335,7 +335,6 @@ bin/flinkx \
     -job flinkx-local-test/src/main/demo/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
-    -connectorLoadMode classloader \
     -pluginRoot flinkxplugins \
     -flinkLibJar $FLINK_HOME/lib \
     -flinkconf $FLINK_HOME/conf \
@@ -359,7 +358,6 @@ bin/flinkx \
     -job flinkx-local-test/src/main/demo/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
-    -connectorLoadMode classloader \
     -pluginRoot flinkxplugins \
     -remotePluginPath /opt/flinkxplugins \
     -pluginLoadMode classpath \
@@ -376,7 +374,6 @@ bin/flinkx \
 | ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------- |
 | **mode**          | 执行模式，也就是flink集群的工作模式      | 1.**local**: 本地模式<br />2.**standalone**: 独立部署模式的flink集群<br />3.**yarn-session**: yarn-session模式的flink集群，需要提前在yarn上启动一个flink session，使用默认名称"Flink session cluster"<br />4.**yarn-per-job**: yarn模式的flink集群，单独为当前任务启动一个flink session，使用默认名称"Flink per-job cluster"<br />5.**kubernetes-session**: kubernetes session模式提交任务，需要提前在kubernetes上启动flink session <br />6.**kubernetes-application**: kubernetes run application模式提交任务 | 否    | local                   |
 | **jobType**        | 任务类型                 | 1.**sync**:数据同步任务<br />    2.**sql**:flinksql任务                                                                                                                                                                                                                                      | 是    | 无                       |
-| **connectorLoadMode**  | 插件加载方式         | 1.**classloader**:类加载器的方式加载插件,在flinkx-clients模块中Launcher类中可本地、on yarn、on k8s运行<br />    2.**spi**:spi的方式,目前只是在flinkx-local-test模块下的LocalTest类中本地开发调试用                                                                                                                                                                                                                                      | 否    | classloader                       |
 | **job**            | 同步、flinksql任务描述文件的存放路径；该描述文件中使用json、sql存放任务信息                  | 无                                                                                                                                                                                                                                           | 是    | 无                       |
 | **jobName**          | 任务名称                                                   | 无                                                                                                                                                                                                                                           | 否    | Flink Job               |
 | **pluginRoot**     | 插件根目录地址，也就是打包后产生的pluginRoot目录。                         | 无                                                                                                                                                                                                                                           | 否    | $FLINKX_HOME/flinkxplugins    |

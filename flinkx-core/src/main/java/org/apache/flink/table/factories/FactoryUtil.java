@@ -18,13 +18,13 @@
 
 package org.apache.flink.table.factories;
 
+import com.dtstack.flinkx.util.FactoryHelper;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.DelegatingConfiguration;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.catalog.Catalog;
@@ -36,20 +36,10 @@ import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.utils.EncodingUtils;
 import org.apache.flink.util.Preconditions;
-
-import com.dtstack.flinkx.enums.ConnectorLoadMode;
-import com.dtstack.flinkx.util.PluginUtil;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -62,7 +52,7 @@ import java.util.stream.Collectors;
 
 /**
  * Utility for working with {@link Factory}s.
- * 改动内容：增加方法loadFactories，增加变量pluginPath、env、connectorLoadMode、classPathSet
+ * 改动内容：增加方法loadFactories，增加变量pluginPath、env、classPathSet
  * 改动原因：flink原生加载插件的方式是使用spi，不符合我们需求。在原来基础上增加通过classloader指定jar加载插件
  */
 @PublicEvolving
@@ -70,14 +60,7 @@ public final class FactoryUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(FactoryUtil.class);
 
-    private static ThreadLocal<FactoryUtilHelp> factoryUtilHelpThreadLocal = new ThreadLocal();
-
-    /** shipfile需要的jar的classPath name */
-    public static final ConfigOption<String> CLASS_FILE_NAME_FMT =
-            ConfigOptions.key("class_file_name_fmt")
-                    .stringType()
-                    .defaultValue("class_path_%d")
-                    .withDescription("");
+    private static final ThreadLocal<FactoryHelper> factoryHelperThreadLocal = new ThreadLocal<>();
 
     /** factory包名前缀 */
     public static final ConfigOption<String> CONNECTORS_PACKAGE_PREFIX =
@@ -284,7 +267,8 @@ public final class FactoryUtil {
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
         final List<Factory> factories;
         if (factoryIdentifier.toLowerCase().endsWith("-x")) {
-            loadFactories(classLoader, factoryClass, factoryIdentifier);
+            String s = factoryIdentifier.substring(0, factoryIdentifier.length() - 2);
+            factoryHelperThreadLocal.get().registerCachedFile(s, classLoader, false);
         }
 
         factories = discoverFactories(classLoader);
@@ -335,55 +319,6 @@ public final class FactoryUtil {
         }
 
         return (T) matchingFactories.get(0);
-    }
-
-    /**
-     * 使用classLoader方式加载插件
-     * @param classLoader
-     * @param factoryClass
-     * @param factoryIdentifier
-     * @param <T>
-     * @return
-     */
-    private static <T extends Factory> List<Factory> loadFactories(
-            ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
-        final List<Factory> factories;
-        // syncplugins后面jar包的路径比如 kafka、mysql
-        String jarDirectorySuffix;
-        String fullClassName;
-        if (DynamicTableSourceFactory.class.isAssignableFrom(factoryClass)
-                || DynamicTableSinkFactory.class.isAssignableFrom(factoryClass)) {
-            String factoryIdentifierPrefix = jarDirectorySuffix = factoryIdentifier.substring(0, factoryIdentifier.length() - 2);
-
-            String[] packageName = StringUtils.splitByWholeSeparator(factoryIdentifierPrefix, "-");
-
-            fullClassName =
-                    CONNECTORS_PACKAGE_PREFIX.defaultValue()
-                            + StringUtils.join(packageName)
-                            + ".table."
-                            + Arrays.stream(packageName).map(StringUtils::capitalize).collect(Collectors.joining())
-                            + CONNECTORS_PACKAGE_SUFFIX.defaultValue();
-
-        }
-//        else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass)
-//                || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
-//
-//            // format都放到sqlplugins下的format目录下
-//            fullClassName =
-//                    FORMAT_PACKAGE_PREFIX.defaultValue()
-//                            + factoryIdentifier
-//                            + "."
-//                            + StringUtils.capitalize(factoryIdentifier)
-//                            + FORMAT_PACKAGE_SUFFIX.defaultValue();
-//
-//            jarDirectorySuffix = FORMATS.key();
-//        }
-        else {
-            throw new RuntimeException(factoryClass + " can not Identify");
-        }
-
-        factories = doLoadFactories(classLoader, jarDirectorySuffix, factoryIdentifier, fullClassName);
-        return factories;
     }
 
     /**
@@ -531,65 +466,6 @@ public final class FactoryUtil {
             return result;
         } catch (ServiceConfigurationError e) {
             LOG.error("Could not load service provider for factories.", e);
-            throw new TableException("Could not load service provider for factories.", e);
-        }
-    }
-
-    /**
-     * 通过classloader方式加载 Factory
-     * @param classLoader
-     * @param jarDirectorySuffix
-     * @param factoryIdentifier 用来区分是否是format，插件不会使用该参数
-     * @param fullClassName
-     * @return
-     */
-    private static List<Factory> doLoadFactories(
-            ClassLoader classLoader,
-            String jarDirectorySuffix,
-            String factoryIdentifier,
-            String fullClassName) {
-        try {
-            final List<Factory> result = new LinkedList<>();
-
-            // 1.通过factoryIdentifier查找jar路径
-            String pluginPath = org.apache.commons.lang3.StringUtils.equalsIgnoreCase(factoryUtilHelpThreadLocal.get().pluginLoadMode, "classpath") ?
-                    factoryUtilHelpThreadLocal.get().remotePluginPath : factoryUtilHelpThreadLocal.get().localPluginPath;
-            String pluginJarPath = pluginPath + File.separatorChar + jarDirectorySuffix;
-            URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath, factoryIdentifier);
-//            URL[] formatsJarUrls = PluginUtil.getPluginJarUrls(
-//                    pluginPath + File.separatorChar + PluginUtil.FORMATS_SUFFIX,
-//                    factoryIdentifier);
-            List<URL> jarUrlList = Arrays.stream(pluginJarUrls).collect(Collectors.toList());
-//            if (formatsJarUrls.length > 0) {
-//                jarUrlList.addAll(Arrays.asList(formatsJarUrls));
-//            }
-            URL[] jarUrls = jarUrlList.toArray(new URL[0]);
-
-            // 2.反射创建对象
-            Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            add.setAccessible(true);
-            Object currentClassloader = classLoader;
-
-            for (URL jarUrl : jarUrls) {
-                add.invoke(currentClassloader, jarUrl);
-            }
-           /* Factory factory = (Factory) classLoader.loadClass(fullClassName).newInstance();
-            result.add(factory);*/
-
-            // 3.registerCachedFile 为了添加到shipfile中
-            for (URL pluginJarUrl : jarUrls) {
-                if (!factoryUtilHelpThreadLocal.get().classPathSet.contains(pluginJarUrl)) {
-                    factoryUtilHelpThreadLocal.get().classPathSet.add(pluginJarUrl);
-                    String classFileName = String.format(
-                            CLASS_FILE_NAME_FMT.defaultValue(),
-                            factoryUtilHelpThreadLocal.get().classFileNameIndex);
-                    factoryUtilHelpThreadLocal.get().env.registerCachedFile(pluginJarUrl.getPath(), classFileName, true);
-                    factoryUtilHelpThreadLocal.get().classFileNameIndex++;
-                }
-            }
-
-            return result;
-        } catch (Exception e) {
             throw new TableException("Could not load service provider for factories.", e);
         }
     }
@@ -867,57 +743,12 @@ public final class FactoryUtil {
         // no instantiation
     }
 
-    public static void setFactoryUtilHelp(FactoryUtilHelp factoryUtilHelp) {
-        factoryUtilHelpThreadLocal.set(factoryUtilHelp);
+    public static void setFactoryUtilHelp(FactoryHelper factoryHelper) {
+        factoryHelperThreadLocal.set(factoryHelper);
     }
 
-    public static ThreadLocal<FactoryUtilHelp> getFactoryUtilHelpThreadLocal() {
-        return factoryUtilHelpThreadLocal;
+    public static ThreadLocal<FactoryHelper> getFactoryHelperThreadLocal() {
+        return factoryHelperThreadLocal;
     }
 
-    public class FactoryUtilHelp{
-
-        /** 插件路径 */
-        private String localPluginPath = null;
-
-        /** 远端插件路径 */
-        private String remotePluginPath = null;
-
-        /** 插件加载类型 */
-        private String pluginLoadMode = "shipfile";
-
-        /** 上下文环境 */
-        private StreamExecutionEnvironment env = null;
-
-        /** 插件加载方式，默认走SPI方式 */
-        private String connectorLoadMode = ConnectorLoadMode.SPI.name();
-
-        /** shipfile需要的jar */
-        private List<URL> classPathSet = new ArrayList<>();
-
-        /** shipfile需要的jar的classPath index */
-        private int classFileNameIndex = 0;
-
-        public FactoryUtilHelp(){}
-
-        public void setLocalPluginPath(String localPluginPath) {
-            this.localPluginPath = localPluginPath;
-        }
-
-        public void setRemotePluginPath(String remotePluginPath) {
-            this.remotePluginPath = remotePluginPath;
-        }
-
-        public void setPluginLoadMode(String pluginLoadMode) {
-            this.pluginLoadMode = pluginLoadMode;
-        }
-
-        public void setEnv(StreamExecutionEnvironment env) {
-            this.env = env;
-        }
-
-        public void setConnectorLoadMode(String connectorLoadMode) {
-            this.connectorLoadMode = connectorLoadMode;
-        }
-    }
 }
