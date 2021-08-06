@@ -17,7 +17,11 @@
  */
 package com.dtstack.flinkx.connector.pgwal.table;
 
+import com.dtstack.flinkx.connector.api.PGCDCServiceProcessor;
+import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
+import com.dtstack.flinkx.connector.pgwal.options.PGWalOptions;
 import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.ConfigOption;
@@ -40,11 +44,6 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.connector.api.PGCDCServiceProcessor;
-import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
-import com.dtstack.flinkx.connector.pgwal.options.PGWalOptions;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Arrays;
@@ -56,9 +55,7 @@ import java.util.Set;
 
 import static org.apache.flink.util.Preconditions.checkState;
 
-/**
- *
- */
+/** */
 public class PGWalDynamicTableFactory extends JdbcDynamicTableFactory {
     public static final String IDENTIFIER = "pgwal-x";
 
@@ -198,33 +195,37 @@ public class PGWalDynamicTableFactory extends JdbcDynamicTableFactory {
                 final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
                 TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
-//                JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(new JdbcInputFormat());
-//                String[] fieldNames = physicalSchema.getFieldNames();
-//                List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-//                int index = 0;
-//                for (String name : fieldNames) {
-//                    FieldConf field = new FieldConf();
-//                    field.setName(name);
-//                    field.setIndex(index++);
-//                    columnList.add(field);
-//                }
-//                jdbcConf.setColumn(columnList);
-//
-//                String restoreColumn = jdbcConf.getRestoreColumn();
-//                if(StringUtils.isNotBlank(restoreColumn)){
-//                    FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), restoreColumn);
-//                    if (fieldConf != null) {
-//                        jdbcConf.setRestoreColumn(restoreColumn);
-//                        jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
-//                        jdbcConf.setRestoreColumnType(jdbcConf.getIncreColumnType());
-//                    } else {
-//                        throw new IllegalArgumentException("unknown restore column name: " + restoreColumn);
-//                    }
-//                }
-//
-//                builder.setJdbcDialect(jdbcDialect);
-//                builder.setJdbcConf(jdbcConf);
-//                builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
+                //                JdbcInputFormatBuilder builder = new JdbcInputFormatBuilder(new
+                // JdbcInputFormat());
+                //                String[] fieldNames = physicalSchema.getFieldNames();
+                //                List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
+                //                int index = 0;
+                //                for (String name : fieldNames) {
+                //                    FieldConf field = new FieldConf();
+                //                    field.setName(name);
+                //                    field.setIndex(index++);
+                //                    columnList.add(field);
+                //                }
+                //                jdbcConf.setColumn(columnList);
+                //
+                //                String restoreColumn = jdbcConf.getRestoreColumn();
+                //                if(StringUtils.isNotBlank(restoreColumn)){
+                //                    FieldConf fieldConf =
+                // FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), restoreColumn);
+                //                    if (fieldConf != null) {
+                //                        jdbcConf.setRestoreColumn(restoreColumn);
+                //                        jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
+                //
+                // jdbcConf.setRestoreColumnType(jdbcConf.getIncreColumnType());
+                //                    } else {
+                //                        throw new IllegalArgumentException("unknown restore column
+                // name: " + restoreColumn);
+                //                    }
+                //                }
+                //
+                //                builder.setJdbcDialect(jdbcDialect);
+                //                builder.setJdbcConf(jdbcConf);
+                //                builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
 
                 PGWalConf conf = new PGWalConf();
 
@@ -249,15 +250,15 @@ public class PGWalDynamicTableFactory extends JdbcDynamicTableFactory {
         final Optional<JdbcDialect> dialect = JdbcDialects.get(jdbcUrl);
         checkState(dialect.isPresent(), "Cannot handle such jdbc url: " + jdbcUrl);
 
-        checkAllOrNone(config, new ConfigOption[]{USERNAME, PASSWORD});
+        checkAllOrNone(config, new ConfigOption[] {USERNAME, PASSWORD});
 
         checkAllOrNone(
                 config,
-                new ConfigOption[]{
-                        SCAN_PARTITION_COLUMN,
-                        SCAN_PARTITION_NUM,
-                        SCAN_PARTITION_LOWER_BOUND,
-                        SCAN_PARTITION_UPPER_BOUND
+                new ConfigOption[] {
+                    SCAN_PARTITION_COLUMN,
+                    SCAN_PARTITION_NUM,
+                    SCAN_PARTITION_LOWER_BOUND,
+                    SCAN_PARTITION_UPPER_BOUND
                 });
 
         if (config.getOptional(SCAN_PARTITION_LOWER_BOUND).isPresent()
@@ -275,7 +276,7 @@ public class PGWalDynamicTableFactory extends JdbcDynamicTableFactory {
             }
         }
 
-        checkAllOrNone(config, new ConfigOption[]{LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
+        checkAllOrNone(config, new ConfigOption[] {LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
 
         if (config.get(LOOKUP_MAX_RETRIES) < 0) {
             throw new IllegalArgumentException(
@@ -345,14 +346,21 @@ public class PGWalDynamicTableFactory extends JdbcDynamicTableFactory {
 
     private PGWalConf getConf(ReadableConfig config) {
         PGWalConf conf = new PGWalConf();
-        conf.setCredentials(config.get(PGWalOptions.USERNAME_CONFIG_OPTION), config.get(PGWalOptions.PASSWORD_CONFIG_OPTION));
+        conf.setCredentials(
+                config.get(PGWalOptions.USERNAME_CONFIG_OPTION),
+                config.get(PGWalOptions.PASSWORD_CONFIG_OPTION));
         conf.setJdbcUrl(config.get(PGWalOptions.JDBC_URL_CONFIG_OPTION));
-        conf.setNamespace(config.get(PGWalOptions.CATALOG_CONFIG_OPTION), config.get(PGWalOptions.DATABASE_CONFIG_OPTION));
+        conf.setNamespace(
+                config.get(PGWalOptions.CATALOG_CONFIG_OPTION),
+                config.get(PGWalOptions.DATABASE_CONFIG_OPTION));
         conf.setPavingData(config.get(PGWalOptions.PAVING_CONFIG_OPTION));
         conf.setTableList(config.get(PGWalOptions.TABLES_CONFIG_OPTION));
         conf.setStatusInterval(config.get(PGWalOptions.STATUS_INTERVAL_CONFIG_OPTION));
         conf.setLsn(config.get(PGWalOptions.LSN_CONFIG_OPTION));
-        conf.setSlotAttribute(config.get(PGWalOptions.SLOT_NAME_CONFIG_OPTION), config.get(PGWalOptions.ALLOW_CREATE_SLOT_CONFIG_OPTION), config.get(PGWalOptions.TEMPORARY_CONFIG_OPTION));
+        conf.setSlotAttribute(
+                config.get(PGWalOptions.SLOT_NAME_CONFIG_OPTION),
+                config.get(PGWalOptions.ALLOW_CREATE_SLOT_CONFIG_OPTION),
+                config.get(PGWalOptions.TEMPORARY_CONFIG_OPTION));
         return conf;
     }
 }

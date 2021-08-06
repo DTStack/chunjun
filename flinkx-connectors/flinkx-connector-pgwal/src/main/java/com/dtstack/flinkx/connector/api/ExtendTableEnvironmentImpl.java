@@ -7,7 +7,8 @@ import org.apache.flink.table.catalog.FunctionCatalog;
 import org.apache.flink.table.delegation.Executor;
 import org.apache.flink.table.module.ModuleManager;
 
-public class ExtendTableEnvironmentImpl extends TableEnvironmentImpl implements ExtendTableEnvironment {
+public class ExtendTableEnvironmentImpl extends TableEnvironmentImpl
+        implements ExtendTableEnvironment {
 
     protected ExtendTableEnvironmentImpl(
             CatalogManager catalogManager,

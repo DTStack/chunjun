@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class PostgresType {
-    public static final PostgresType UNKNOWN = new PostgresType("unknown", -1, Integer.MIN_VALUE, null, null, null, null);
+    public static final PostgresType UNKNOWN =
+            new PostgresType("unknown", -1, Integer.MIN_VALUE, null, null, null, null);
 
     private final String name;
     private final int oid;
@@ -18,11 +19,34 @@ public class PostgresType {
     private final int modifiers;
     private final List<String> enumValues;
 
-    private PostgresType(String name, int oid, int jdbcId, TypeInfo typeInfo, List<String> enumValues, PostgresType parentType, PostgresType elementType) {
-        this(name, oid, jdbcId, TypeRegistry.NO_TYPE_MODIFIER, typeInfo, enumValues, parentType, elementType);
+    private PostgresType(
+            String name,
+            int oid,
+            int jdbcId,
+            TypeInfo typeInfo,
+            List<String> enumValues,
+            PostgresType parentType,
+            PostgresType elementType) {
+        this(
+                name,
+                oid,
+                jdbcId,
+                TypeRegistry.NO_TYPE_MODIFIER,
+                typeInfo,
+                enumValues,
+                parentType,
+                elementType);
     }
 
-    private PostgresType(String name, int oid, int jdbcId, int modifiers, TypeInfo typeInfo, List<String> enumValues, PostgresType parentType, PostgresType elementType) {
+    private PostgresType(
+            String name,
+            int oid,
+            int jdbcId,
+            int modifiers,
+            TypeInfo typeInfo,
+            List<String> enumValues,
+            PostgresType parentType,
+            PostgresType elementType) {
         Objects.requireNonNull(name);
         this.name = name;
         this.oid = oid;
@@ -34,17 +58,15 @@ public class PostgresType {
         this.enumValues = enumValues;
     }
 
-    /**
-     * @return true if this type is an array
-     */
+    /** @return true if this type is an array */
     public boolean isArrayType() {
         return elementType != null;
     }
 
     /**
-     * The type system allows for the creation of user defined types (UDTs) which can be based
-     * on any existing type.  When a type does not extend another type, it is considered to be
-     * a base or root type in the type hierarchy.
+     * The type system allows for the creation of user defined types (UDTs) which can be based on
+     * any existing type. When a type does not extend another type, it is considered to be a base or
+     * root type in the type hierarchy.
      *
      * @return true if this type is a base/root type
      */
@@ -52,57 +74,37 @@ public class PostgresType {
         return parentType == null;
     }
 
-    /**
-     * @return true if this type is an enum type
-     */
+    /** @return true if this type is an enum type */
     public boolean isEnumType() {
         return enumValues != null;
     }
 
-    /**
-     *
-     * @return symbolic name of the type
-     */
+    /** @return symbolic name of the type */
     public String getName() {
         return name;
     }
 
-    /**
-     *
-     * @return PostgreSQL OID of this type
-     */
+    /** @return PostgreSQL OID of this type */
     public int getOid() {
         return oid;
     }
 
-    /**
-     *
-     * @return JDBC id of the type as reported by JDBC metadata
-     */
+    /** @return JDBC id of the type as reported by JDBC metadata */
     public int getJdbcId() {
         return jdbcId;
     }
 
-    /**
-     *
-     * @return the type of element in arrays or null for primitive types
-     */
+    /** @return the type of element in arrays or null for primitive types */
     public PostgresType getElementType() {
         return elementType;
     }
 
-    /**
-     *
-     * @return the parent postgres type this type is based upon
-     */
+    /** @return the parent postgres type this type is based upon */
     public PostgresType getParentType() {
         return parentType;
     }
 
-    /**
-     *
-     * @return the postgres type at the top/root level for this type's hierarchy
-     */
+    /** @return the postgres type at the top/root level for this type's hierarchy */
     public PostgresType getRootType() {
         PostgresType rootType = this;
         while (!rootType.isRootType()) {
@@ -115,10 +117,7 @@ public class PostgresType {
         return enumValues;
     }
 
-    /**
-     *
-     * @return the default length of the type
-     */
+    /** @return the default length of the type */
     public int getDefaultLength() {
         if (typeInfo == null) {
             return TypeRegistry.UNKNOWN_LENGTH;
@@ -126,8 +125,7 @@ public class PostgresType {
         if (parentType != null) {
             if (modifiers == TypeRegistry.NO_TYPE_MODIFIER) {
                 return parentType.getDefaultLength();
-            }
-            else {
+            } else {
                 int size = typeInfo.getPrecision(parentType.getOid(), modifiers);
                 if (size == 0) {
                     size = typeInfo.getDisplaySize(parentType.getOid(), modifiers);
@@ -144,10 +142,7 @@ public class PostgresType {
         return size;
     }
 
-    /**
-     *
-     * @return the default scale of the type
-     */
+    /** @return the default scale of the type */
     public int getDefaultScale() {
         if (typeInfo == null) {
             return TypeRegistry.UNKNOWN_LENGTH;
@@ -155,8 +150,7 @@ public class PostgresType {
         if (parentType != null) {
             if (modifiers == TypeRegistry.NO_TYPE_MODIFIER) {
                 return parentType.getDefaultScale();
-            }
-            else {
+            } else {
                 return typeInfo.getScale(parentType.getOid(), modifiers);
             }
         }
@@ -184,6 +178,7 @@ public class PostgresType {
 
     /**
      * Get the underlying postgres type information object
+     *
      * @return the type information object; may be null
      */
     public TypeInfo getTypeInfo() {
@@ -237,8 +232,23 @@ public class PostgresType {
 
     @Override
     public String toString() {
-        return "PostgresType [name=" + name + ", oid=" + oid + ", jdbcId=" + jdbcId + ", modifiers=" + modifiers + ", defaultLength=" + getDefaultLength()
-                + ", defaultScale=" + getDefaultScale() + ", parentType=" + parentType + ", elementType=" + elementType + "]";
+        return "PostgresType [name="
+                + name
+                + ", oid="
+                + oid
+                + ", jdbcId="
+                + jdbcId
+                + ", modifiers="
+                + modifiers
+                + ", defaultLength="
+                + getDefaultLength()
+                + ", defaultScale="
+                + getDefaultScale()
+                + ", parentType="
+                + parentType
+                + ", elementType="
+                + elementType
+                + "]";
     }
 
     public static class Builder {
@@ -252,7 +262,13 @@ public class PostgresType {
         private int elementTypeOid;
         private List<String> enumValues;
 
-        public Builder(TypeRegistry typeRegistry, String name, int oid, int jdbcId, int modifiers, TypeInfo typeInfo) {
+        public Builder(
+                TypeRegistry typeRegistry,
+                String name,
+                int oid,
+                int jdbcId,
+                int modifiers,
+                TypeInfo typeInfo) {
             this.typeRegistry = typeRegistry;
             this.name = name;
             this.oid = oid;
@@ -291,7 +307,8 @@ public class PostgresType {
                 elementType = typeRegistry.get(elementTypeOid);
             }
 
-            return new PostgresType(name, oid, jdbcId, modifiers, typeInfo, enumValues, parentType, elementType);
+            return new PostgresType(
+                    name, oid, jdbcId, modifiers, typeInfo, enumValues, parentType, elementType);
         }
     }
 }

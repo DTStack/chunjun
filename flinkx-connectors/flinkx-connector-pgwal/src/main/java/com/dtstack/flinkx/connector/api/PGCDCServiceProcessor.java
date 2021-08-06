@@ -1,12 +1,13 @@
 package com.dtstack.flinkx.connector.api;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
 import com.dtstack.flinkx.connector.pgwal.converter.PGWalColumnConverter;
 import com.dtstack.flinkx.connector.pgwal.util.PGUtil;
 import com.dtstack.flinkx.connector.pgwal.util.PgDecoder;
 import com.dtstack.flinkx.util.RetryUtil;
+
+import org.apache.flink.table.data.RowData;
+
 import com.google.gson.Gson;
 import org.postgresql.jdbc.PgConnection;
 import org.postgresql.replication.LogSequenceNumber;
@@ -19,8 +20,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class PGCDCServiceProcessor
-        extends DatabaseBaseRichInputFormat<RowData, RowData>
+public class PGCDCServiceProcessor extends DatabaseBaseRichInputFormat<RowData, RowData>
         implements ServiceProcessor<RowData, RowData> {
 
     private static Gson gson = new Gson();
@@ -40,22 +40,27 @@ public class PGCDCServiceProcessor
     public void init(Map<String, Object> param) throws SQLException {
         this.param = param;
 
-        this.conn = RetryUtil.executeWithRetry(
-                () -> (PgConnection) PGUtil.getConnection(conf.jdbcUrl, conf.username, conf.password),
-                3,
-                2000,
-                true);
+        this.conn =
+                RetryUtil.executeWithRetry(
+                        () ->
+                                (PgConnection)
+                                        PGUtil.getConnection(
+                                                conf.jdbcUrl, conf.username, conf.password),
+                        3,
+                        2000,
+                        true);
         converter = new PGWalColumnConverter(conf.pavingData, conf.pavingData);
         decoder = new PgDecoder(PGUtil.queryTypes(conn), conf);
-        ChainedLogicalStreamBuilder builder = conn.getReplicationAPI()
-                .replicationStream()
-                .logical()
-                .withSlotName(conf.getSlotName())
-                //协议版本。当前仅支持版本1
-                .withSlotOption("proto_version", "1")
-                //逗号分隔的要订阅的发布名称列表（接收更改）。 单个发布名称被视为标准对象名称，并可根据需要引用
-                .withSlotOption("publication_names", PGUtil.PUBLICATION_NAME)
-                .withStatusInterval(conf.getStatusInterval(), TimeUnit.SECONDS);
+        ChainedLogicalStreamBuilder builder =
+                conn.getReplicationAPI()
+                        .replicationStream()
+                        .logical()
+                        .withSlotName(conf.getSlotName())
+                        // 协议版本。当前仅支持版本1
+                        .withSlotOption("proto_version", "1")
+                        // 逗号分隔的要订阅的发布名称列表（接收更改）。 单个发布名称被视为标准对象名称，并可根据需要引用
+                        .withSlotOption("publication_names", PGUtil.PUBLICATION_NAME)
+                        .withStatusInterval(conf.getStatusInterval(), TimeUnit.SECONDS);
         long lsn = (Long) param.get("lsn");
         if (lsn != 0) {
             builder.withStartPosition(LogSequenceNumber.valueOf(lsn));

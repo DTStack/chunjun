@@ -17,20 +17,6 @@
  */
 package com.dtstack.flinkx.connector.pgwal.converter;
 
-import org.apache.flink.table.api.DataTypes;
-import org.apache.flink.table.api.ValidationException;
-import org.apache.flink.table.catalog.UnresolvedIdentifier;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.AbstractDataType;
-import org.apache.flink.table.types.AtomicDataType;
-import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.UnresolvedDataType;
-import org.apache.flink.table.types.extraction.DataTypeExtractor;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.utils.LogicalTypeParser;
-import org.apache.flink.table.types.utils.TypeConversions;
-import org.apache.flink.types.RowKind;
-
 import com.dtstack.flinkx.connector.pgwal.util.ChangeLog;
 import com.dtstack.flinkx.connector.pgwal.util.ColumnInfo;
 import com.dtstack.flinkx.connector.pgwal.util.PgMessageTypeEnum;
@@ -45,6 +31,21 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+
+import org.apache.flink.table.api.DataTypes;
+import org.apache.flink.table.api.ValidationException;
+import org.apache.flink.table.catalog.UnresolvedIdentifier;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.AbstractDataType;
+import org.apache.flink.table.types.AtomicDataType;
+import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.UnresolvedDataType;
+import org.apache.flink.table.types.extraction.DataTypeExtractor;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.utils.LogicalTypeParser;
+import org.apache.flink.table.types.utils.TypeConversions;
+import org.apache.flink.types.RowKind;
+
 import com.google.common.collect.Lists;
 import org.postgresql.jdbc.PgSQLXML;
 
@@ -65,16 +66,26 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- *
- */
+/** */
 public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, LogicalType> {
 
     private static final Map<String, LogicalType> registered = new HashMap<>();
 
     static {
-        registered.put("uuid", new GenericLogicalType<java.util.UUID>(true, "uuid", Lists.newArrayList(UUID.class, String.class), Lists.newArrayList(String.class)));
-        registered.put("xml", new GenericLogicalType<PgSQLXML>(true, "xml", Lists.newArrayList(PgSQLXML.class, String.class), Lists.newArrayList(String.class)));
+        registered.put(
+                "uuid",
+                new GenericLogicalType<java.util.UUID>(
+                        true,
+                        "uuid",
+                        Lists.newArrayList(UUID.class, String.class),
+                        Lists.newArrayList(String.class)));
+        registered.put(
+                "xml",
+                new GenericLogicalType<PgSQLXML>(
+                        true,
+                        "xml",
+                        Lists.newArrayList(PgSQLXML.class, String.class),
+                        Lists.newArrayList(String.class)));
     }
 
     public PGWalColumnConverter(boolean pavingData, boolean splitUpdate) {
@@ -85,9 +96,7 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
     interface DeserializationConverter<A, B> {
         B convert(A raw, Context context);
 
-        class Context {
-
-        }
+        class Context {}
     }
 
     @Override
@@ -103,19 +112,25 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
         List<ColumnInfo> columnList = entity.getColumnList();
 
         if (converters == null || needChange(entity)) {
-            cdcConverterCacheMap.put(key, columnList
-                    .stream()
-                    .map(column -> createInternalConverter(translateDataType(column.getType()).getLogicalType())).toArray(IDeserializationConverter[]::new));
+            cdcConverterCacheMap.put(
+                    key,
+                    columnList.stream()
+                            .map(
+                                    column ->
+                                            createInternalConverter(
+                                                    translateDataType(column.getType())
+                                                            .getLogicalType()))
+                            .toArray(IDeserializationConverter[]::new));
         }
 
         converters = cdcConverterCacheMap.get(key);
 
         int size;
         if (pavingData) {
-            //5: type, schema, table, ts, opTime
+            // 5: type, schema, table, ts, opTime
             size = 5 + entity.getNewData().length + entity.getOldData().length;
         } else {
-            //7: type, schema, table, ts, opTime, before, after
+            // 7: type, schema, table, ts, opTime, before, after
             size = 7;
         }
 
@@ -133,21 +148,33 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
         List<Object> afterList = Stream.of(entity.getNewData()).collect(Collectors.toList());
 
         List<AbstractBaseColumn> beforeColumnList = new ArrayList<>(beforeList.size());
-        List<String> beforeHeaderList = entity.getOldData() == null ? new ArrayList<>() : columnList.stream().map(ColumnInfo::getName).collect(Collectors.toList());
+        List<String> beforeHeaderList =
+                entity.getOldData() == null
+                        ? new ArrayList<>()
+                        : columnList.stream().map(ColumnInfo::getName).collect(Collectors.toList());
         List<AbstractBaseColumn> afterColumnList = new ArrayList<>(afterList.size());
-        List<String> afterHeaderList = entity.getNewData() == null ? new ArrayList<>() : columnList.stream().map(ColumnInfo::getName).collect(Collectors.toList());
+        List<String> afterHeaderList =
+                entity.getNewData() == null
+                        ? new ArrayList<>()
+                        : columnList.stream().map(ColumnInfo::getName).collect(Collectors.toList());
 
         if (pavingData) {
-            beforeHeaderList = parseColumnList(converters, beforeList, beforeColumnList, beforeHeaderList, BEFORE_);
-            afterHeaderList = parseColumnList(converters, afterList, afterColumnList, afterHeaderList, AFTER_);
+            beforeHeaderList =
+                    parseColumnList(
+                            converters, beforeList, beforeColumnList, beforeHeaderList, BEFORE_);
+            afterHeaderList =
+                    parseColumnList(
+                            converters, afterList, afterColumnList, afterHeaderList, AFTER_);
         } else {
-            beforeColumnList.add(new MapColumn(processColumnList(entity.getColumnList(), entity.getOldData())));
+            beforeColumnList.add(
+                    new MapColumn(processColumnList(entity.getColumnList(), entity.getOldData())));
             beforeHeaderList.add(BEFORE);
-            afterColumnList.add(new MapColumn(processColumnList(entity.getColumnList(), entity.getNewData())));
+            afterColumnList.add(
+                    new MapColumn(processColumnList(entity.getColumnList(), entity.getNewData())));
             afterHeaderList.add(AFTER);
         }
 
-        //update类型且要拆分
+        // update类型且要拆分
         if (splitUpdate && PgMessageTypeEnum.UPDATE == entity.getType()) {
             ColumnRowData copy = columnRowData.copy();
             copy.setRowKind(RowKind.UPDATE_BEFORE);
@@ -175,10 +202,10 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
     }
 
     private DataType translateDataType(String type) {
-        //phase 1, direct mapping
+        // phase 1, direct mapping
         Map<String, DataType> typeMapping = new HashMap<>();
         typeMapping.put("int8", DataTypes.BIGINT());
-//        typeMapping.put("int2", DataTypes.SMALLINT());
+        //        typeMapping.put("int2", DataTypes.SMALLINT());
         typeMapping.put("int2", DataTypes.TINYINT());
         typeMapping.put("bit", DataTypes.TINYINT());
         typeMapping.put("int4", DataTypes.INT());
@@ -188,40 +215,37 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
         typeMapping.put("time", DataTypes.TIME());
         typeMapping.put("timestamp", DataTypes.TIMESTAMP());
 
-        typeMapping.put("numeric", DataTypes.DECIMAL(10, 10));//TEST
+        typeMapping.put("numeric", DataTypes.DECIMAL(10, 10)); // TEST
 
-        //phase 2, need more information to parse
+        // phase 2, need more information to parse
         if (typeMapping.containsKey(type)) return typeMapping.get(type);
 
         /**
-         *         typeMapping.put("char(1)", DataTypes.CHAR());
-         *         typeMapping.put("varchar", DataTypes.VARCHAR());
-         *         typeMapping.put("bytea", DataTypes.VARBINARY());
-         *         typeMapping.put("bytea", DataTypes.BINARY());
-         *         typeMapping.put("text", DataTypes.VARBINARY());
-         *         typeMapping.put("bytea", DataTypes.VARBINARY());
-         *         typeMapping.put("bit", DataTypes.BINARY());
+         * typeMapping.put("char(1)", DataTypes.CHAR()); typeMapping.put("varchar",
+         * DataTypes.VARCHAR()); typeMapping.put("bytea", DataTypes.VARBINARY());
+         * typeMapping.put("bytea", DataTypes.BINARY()); typeMapping.put("text",
+         * DataTypes.VARBINARY()); typeMapping.put("bytea", DataTypes.VARBINARY());
+         * typeMapping.put("bit", DataTypes.BINARY());
          */
-        List<String> needMoreInfo = Lists.newArrayList("char", "varchar", "bytea", "text", "numeric");
+        List<String> needMoreInfo =
+                Lists.newArrayList("char", "varchar", "bytea", "text", "numeric");
         if (needMoreInfo.contains(type)) {
             return DataTypeFactory.getDataType(type);
         }
 
-        //phase 3  extend
+        // phase 3  extend
         /**
-         *         typeMapping.put("text", DataTypes.CLOB());
-         *         typeMapping.put("oid", DataTypes.BLOB());
-         *         typeMapping.put("numeric", DataTypes.NUMERIC());
-         *         typeMapping.put("uuid", DataTypes.UUID());
-         *         typeMapping.put("numeric", DataTypes.NUMERIC());
-         *         typeMapping.put("json", DataTypes.JSON_OBJECT());
-         *         typeMapping.put("xml", DataTypes.XML());
+         * typeMapping.put("text", DataTypes.CLOB()); typeMapping.put("oid", DataTypes.BLOB());
+         * typeMapping.put("numeric", DataTypes.NUMERIC()); typeMapping.put("uuid",
+         * DataTypes.UUID()); typeMapping.put("numeric", DataTypes.NUMERIC());
+         * typeMapping.put("json", DataTypes.JSON_OBJECT()); typeMapping.put("xml",
+         * DataTypes.XML());
          */
         return new DataTypeFactoryMock().createDataType(type);
     }
 
     private boolean needChange(ChangeLog entity) {
-        //DDL ?
+        // DDL ?
         return false;
     }
 
@@ -241,7 +265,6 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
      * @param columnList
      * @param headerList
      * @param after
-     *
      * @return
      */
     private List<String> parseColumnList(
@@ -249,12 +272,14 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
             List<Object> entryColumnList,
             List<AbstractBaseColumn> columnList,
             List<String> headerList,
-            String after) throws Exception {
+            String after)
+            throws Exception {
         List<String> originList = new ArrayList<>();
         for (int i = 0; i < entryColumnList.size(); i++) {
             Object entryColumn = entryColumnList.get(i);
             if (entryColumn != null) {
-                AbstractBaseColumn column = converters[i].deserialize(entryColumnList.get(i).toString());
+                AbstractBaseColumn column =
+                        converters[i].deserialize(entryColumnList.get(i).toString());
                 columnList.add(column);
                 originList.add(after + headerList.get(i));
             }
@@ -266,8 +291,9 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
     protected IDeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:
-//                return (DeserializationConverter<String, Boolean>) (raw, context) -> null;
-            return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
+                //                return (DeserializationConverter<String, Boolean>) (raw, context)
+                // -> null;
+                return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
                 return val -> new BigDecimalColumn((String) val);
             case SMALLINT:
@@ -285,10 +311,14 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
             case VARCHAR:
                 return val -> new StringColumn((String) val);
             case DATE:
-                return val -> new BigDecimalColumn(Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
+                return val ->
+                        new BigDecimalColumn(
+                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
-                        new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
+                        new BigDecimalColumn(
+                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> {
@@ -339,18 +369,19 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
         }
     }
 
-    static class GenericLogicalType<T>
-            extends org.apache.flink.table.types.logical.LogicalType {
+    static class GenericLogicalType<T> extends org.apache.flink.table.types.logical.LogicalType {
 
         private List<Class> in;
         private List<Class> out;
         private T wrapper;
         private String desc;
 
-        public GenericLogicalType(Boolean isNullable, String desc, List<Class> in, List<Class> out) {
+        public GenericLogicalType(
+                Boolean isNullable, String desc, List<Class> in, List<Class> out) {
             super(isNullable, org.apache.flink.table.types.logical.LogicalTypeRoot.RAW);
             this.desc = desc;
-            TypeVariable<? extends Class<? extends GenericLogicalType>>[] parameters = this.getClass().getTypeParameters();
+            TypeVariable<? extends Class<? extends GenericLogicalType>>[] parameters =
+                    this.getClass().getTypeParameters();
             this.wrapper = (T) parameters[0];
             this.in = in;
             this.out = out;
@@ -394,7 +425,6 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
         public String type() {
             return desc;
         }
-
     }
 
     static class DataTypeFactoryMock implements org.apache.flink.table.catalog.DataTypeFactory {

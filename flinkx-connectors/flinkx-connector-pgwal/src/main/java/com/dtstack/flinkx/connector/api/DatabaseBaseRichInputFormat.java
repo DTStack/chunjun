@@ -1,13 +1,5 @@
 package com.dtstack.flinkx.connector.api;
 
-import com.dtstack.flinkx.source.format.BaseRichInputFormat;
-
-import com.dtstack.flinkx.throwable.ReadRecordException;
-
-import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
@@ -15,7 +7,14 @@ import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.metrics.BigIntegerAccmulator;
 import com.dtstack.flinkx.metrics.StringAccumulator;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.StringUtil;
+
+import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -39,11 +38,11 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
     /** 用户脚本中填写的字段名称集合 */
     protected List<String> column = new ArrayList<>();
     /** 用户脚本中填写的字段类型集合 */
-
     protected StringAccumulator maxValueAccumulator;
+
     protected BigIntegerAccmulator endLocationAccumulator;
     protected BigIntegerAccmulator startLocationAccumulator;
-    //轮询增量标识字段类型
+    // 轮询增量标识字段类型
     protected ColumnType type;
     private ServiceProcessor<T, OUT> processor;
     private ServiceProcessor.Context context;
@@ -103,7 +102,7 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
         if (!jdbcConf.isIncrement()) {
             return;
         }
-        //初始化增量、轮询字段类型
+        // 初始化增量、轮询字段类型
         type = ColumnType.fromString(jdbcConf.getIncreColumnType());
         startLocationAccumulator = new BigIntegerAccmulator();
         endLocationAccumulator = new BigIntegerAccmulator();
@@ -114,27 +113,30 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
             startLocationAccumulator.add(new BigInteger(startLocation));
         }
 
-        //轮询任务endLocation设置为startLocation的值
+        // 轮询任务endLocation设置为startLocation的值
         if (jdbcConf.isPolling()) {
             if (StringUtils.isNotEmpty(startLocation)) {
                 endLocationAccumulator.add(new BigInteger(startLocation));
             }
         } else if (jdbcConf.isUseMaxFunc()) {
-            //如果不是轮询任务，则只能是增量任务，若useMaxFunc设置为true，则去数据库查询当前增量字段的最大值
+            // 如果不是轮询任务，则只能是增量任务，若useMaxFunc设置为true，则去数据库查询当前增量字段的最大值
             getMaxValue(inputSplit);
-            //endLocation设置为数据库中查询的最大值
+            // endLocation设置为数据库中查询的最大值
             String endLocation = ((JdbcInputSplit) inputSplit).getEndLocation();
-            endLocationAccumulator.add(new BigInteger(StringUtil.stringToTimestampStr(endLocation, type)));
+            endLocationAccumulator.add(
+                    new BigInteger(StringUtil.stringToTimestampStr(endLocation, type)));
         } else {
-            //增量任务，且useMaxFunc设置为false，如果startLocation不为空，则将endLocation初始值设置为startLocation的值，防止数据库无增量数据时下次获取到的startLocation为空
+            // 增量任务，且useMaxFunc设置为false，如果startLocation不为空，则将endLocation初始值设置为startLocation的值，防止数据库无增量数据时下次获取到的startLocation为空
             if (StringUtils.isNotEmpty(startLocation)) {
                 endLocationAccumulator.add(new BigInteger(startLocation));
             }
         }
 
-        //将累加器信息添加至prometheus
-//        customPrometheusReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
-//        customPrometheusReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+        // 将累加器信息添加至prometheus
+        //        customPrometheusReporter.registerMetric(startLocationAccumulator,
+        // Metrics.START_LOCATION);
+        //        customPrometheusReporter.registerMetric(endLocationAccumulator,
+        // Metrics.END_LOCATION);
         getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
         getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
     }
@@ -148,12 +150,14 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
         String maxValue;
         if (inputSplit.getSplitNumber() == 0) {
             maxValue = getMaxValueFromDb();
-            //将累加器信息上传至flink，供其他通道通过flink rest api获取该最大值
+            // 将累加器信息上传至flink，供其他通道通过flink rest api获取该最大值
             maxValueAccumulator = new StringAccumulator();
             maxValueAccumulator.add(maxValue);
             getRuntimeContext().addAccumulator(Metrics.MAX_VALUE, maxValueAccumulator);
         } else {
-            maxValue = String.valueOf(accumulatorCollector.getAccumulatorValue(Metrics.MAX_VALUE, true));
+            maxValue =
+                    String.valueOf(
+                            accumulatorCollector.getAccumulatorValue(Metrics.MAX_VALUE, true));
         }
 
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
@@ -174,24 +178,27 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
 
             String queryMaxValueSql;
             if (StringUtils.isNotEmpty(jdbcConf.getCustomSql())) {
-                queryMaxValueSql = String.format(
-                        "select max(%s.%s) as max_value from ( %s ) %s",
-                        JdbcUtil.TEMPORARY_TABLE_NAME,
-                        jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                        jdbcConf.getCustomSql(),
-                        JdbcUtil.TEMPORARY_TABLE_NAME);
+                queryMaxValueSql =
+                        String.format(
+                                "select max(%s.%s) as max_value from ( %s ) %s",
+                                JdbcUtil.TEMPORARY_TABLE_NAME,
+                                jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
+                                jdbcConf.getCustomSql(),
+                                JdbcUtil.TEMPORARY_TABLE_NAME);
             } else {
-                queryMaxValueSql = String.format(
-                        "select max(%s) as max_value from %s",
-                        jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                        jdbcDialect.quoteIdentifier(jdbcConf.getTable()));
+                queryMaxValueSql =
+                        String.format(
+                                "select max(%s) as max_value from %s",
+                                jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
+                                jdbcDialect.quoteIdentifier(jdbcConf.getTable()));
             }
 
-            String startSql = buildStartLocationSql(
-                    jdbcConf.getIncreColumnType(),
-                    jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                    jdbcConf.getStartLocation(),
-                    jdbcConf.isUseMaxFunc());
+            String startSql =
+                    buildStartLocationSql(
+                            jdbcConf.getIncreColumnType(),
+                            jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
+                            jdbcConf.getStartLocation(),
+                            jdbcConf.isUseMaxFunc());
             if (StringUtils.isNotEmpty(startSql)) {
                 queryMaxValueSql += " where " + startSql;
             }
@@ -211,11 +218,16 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
                         maxValue = String.valueOf(rs.getDate("max_value").getTime());
                         break;
                     default:
-                        maxValue = StringUtil.stringToTimestampStr(String.valueOf(rs.getObject("max_value")), type);
+                        maxValue =
+                                StringUtil.stringToTimestampStr(
+                                        String.valueOf(rs.getObject("max_value")), type);
                 }
             }
 
-            LOG.info(String.format("Takes [%s] milliseconds to get the maximum value [%s]", System.currentTimeMillis() - startTime, maxValue));
+            LOG.info(
+                    String.format(
+                            "Takes [%s] milliseconds to get the maximum value [%s]",
+                            System.currentTimeMillis() - startTime, maxValue));
 
             return maxValue;
         } catch (Throwable e) {
@@ -226,15 +238,13 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
     }
 
     /**
-     * 判断增量任务是否还能继续读取数据
-     * 增量任务，startLocation = endLocation且两者都不为null，返回false，其余情况返回true
+     * 判断增量任务是否还能继续读取数据 增量任务，startLocation = endLocation且两者都不为null，返回false，其余情况返回true
      *
      * @param split 数据分片
-     *
      * @return
      */
     protected boolean canReadData(InputSplit split) {
-        //只排除增量同步
+        // 只排除增量同步
         if (!jdbcConf.isIncrement() || jdbcConf.isPolling()) {
             return true;
         }
@@ -244,7 +254,8 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
             return true;
         }
 
-        return !StringUtils.equals(jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation());
+        return !StringUtils.equals(
+                jdbcInputSplit.getStartLocation(), jdbcInputSplit.getEndLocation());
     }
 
     /**
@@ -254,7 +265,6 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
      * @param incrementCol 增量字段名称
      * @param startLocation 开始位置
      * @param useMaxFunc 是否保存结束位置数据
-     *
      * @return
      */
     protected String buildStartLocationSql(
@@ -269,7 +279,7 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
 
         String operator = useMaxFunc ? " >= " : " > ";
 
-        //增量轮询，startLocation使用占位符代替
+        // 增量轮询，startLocation使用占位符代替
         if (jdbcConf.isPolling()) {
             return incrementCol + operator + "?";
         }
@@ -283,15 +293,11 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
      * @param incrementColType 增量字段类型
      * @param incrementCol 增量字段名称
      * @param location 边界位置(起始/结束)
-     * @param operator 判断符( >, >=,  <)
-     *
+     * @param operator 判断符( >, >=, <)
      * @return
      */
     protected String getLocationSql(
-            String incrementColType,
-            String incrementCol,
-            String location,
-            String operator) {
+            String incrementColType, String incrementCol, String location, String operator) {
         String endTimeStr;
         String endLocationSql;
 
@@ -312,7 +318,6 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
      * 构建时间边界字符串
      *
      * @param location 边界位置(起始/结束)
-     *
      * @return
      */
     protected String getTimeStr(Long location) {
@@ -335,19 +340,14 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
         return JdbcUtil.getConnection(jdbcConf, jdbcDialect);
     }
 
-    /**
-     * 使用自定义的指标输出器把增量指标打到普罗米修斯
-     */
+    /** 使用自定义的指标输出器把增量指标打到普罗米修斯 */
     protected boolean useCustomPrometheusReporter() {
         return jdbcConf.isIncrement();
     }
 
-    /**
-     * 为了保证增量数据的准确性，指标输出失败时使任务失败
-     */
+    /** 为了保证增量数据的准确性，指标输出失败时使任务失败 */
     @Override
     protected boolean makeTaskFailedWhenReportFailed() {
         return true;
     }
-
 }

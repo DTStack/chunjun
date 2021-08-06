@@ -21,6 +21,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+
 import org.postgresql.PGConnection;
 import org.postgresql.PGProperty;
 import org.postgresql.core.ServerVersion;
@@ -39,9 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- *
- */
+/** */
 public class PGUtil {
     public static final String SLOT_PRE = "flinkx_";
     public static final String DRIVER_NAME = "org.postgresql.Driver";
@@ -51,29 +50,34 @@ public class PGUtil {
     public static final String QUERY_LEVEL = "SHOW wal_level;";
     public static final String QUERY_MAX_SLOT = "SHOW max_replication_slots;";
     public static final String QUERY_SLOT = "SELECT * FROM pg_replication_slots;";
-    public static final String QUERY_TABLE_REPLICA_IDENTITY = "SELECT relreplident FROM pg_catalog.pg_class c LEFT JOIN pg_catalog.pg_namespace n "
-            + "ON c.relnamespace=n.oid WHERE n.nspname='%s' and c.relname='%s';";
+    public static final String QUERY_TABLE_REPLICA_IDENTITY =
+            "SELECT relreplident FROM pg_catalog.pg_class c LEFT JOIN pg_catalog.pg_namespace n "
+                    + "ON c.relnamespace=n.oid WHERE n.nspname='%s' and c.relname='%s';";
     public static final String UPDATE_REPLICA_IDENTITY = "ALTER TABLE %s REPLICA IDENTITY FULL;";
-    public static final String QUERY_PUBLICATION = "SELECT COUNT(1) FROM pg_publication WHERE pubname = '%s';";
+    public static final String QUERY_PUBLICATION =
+            "SELECT COUNT(1) FROM pg_publication WHERE pubname = '%s';";
     public static final String CREATE_PUBLICATION = "CREATE PUBLICATION %s FOR ALL TABLES;";
-    public static final String QUERY_TYPES = "SELECT t.oid AS oid, t.typname AS name FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n "
-            + "ON (t.typnamespace = n.oid) WHERE n.nspname != 'pg_toast' AND t.typcategory <> 'A';";
+    public static final String QUERY_TYPES =
+            "SELECT t.oid AS oid, t.typname AS name FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n "
+                    + "ON (t.typnamespace = n.oid) WHERE n.nspname != 'pg_toast' AND t.typcategory <> 'A';";
     private static final Logger LOG = LoggerFactory.getLogger(PGUtil.class);
-    private final static Object lock = new Object();
+    private static final Object lock = new Object();
 
     public static String formatTableName(String schemaName, String tableName) {
         StringBuilder stringBuilder = new StringBuilder();
         if (tableName.contains(ConstantValue.POINT_SYMBOL)) {
             return tableName;
         } else {
-            return stringBuilder.append(schemaName).append(ConstantValue.POINT_SYMBOL).append(tableName).toString();
+            return stringBuilder
+                    .append(schemaName)
+                    .append(ConstantValue.POINT_SYMBOL)
+                    .append(tableName)
+                    .toString();
         }
     }
 
-    public static PGConnection getConnection(
-            String jdbcUrl,
-            String username,
-            String password) throws SQLException {
+    public static PGConnection getConnection(String jdbcUrl, String username, String password)
+            throws SQLException {
         Connection dbConn;
         ClassUtil.forName(DRIVER_NAME, PGUtil.class.getClassLoader());
         Properties props = new Properties();
@@ -95,32 +99,31 @@ public class PGUtil {
     }
 
     public static ReplicationSlotInfoWrapper checkPostgres(
-            PgConnection conn,
-            boolean allowCreateSlot,
-            String slotName,
-            List<String> tableList) {
+            PgConnection conn, boolean allowCreateSlot, String slotName, List<String> tableList) {
         ResultSet resultSet = null;
         ReplicationSlotInfoWrapper slotInfoWrapper = null;
 
         try {
-            //1. check postgres version
+            // 1. check postgres version
             // this Judge maybe not need?
             if (!conn.haveMinimumServerVersion(ServerVersion.v10)) {
                 String version = conn.getDBVersionNumber();
                 LOG.error("postgres version must > 10, current = [{}]", version);
-                throw new UnsupportedOperationException("postgres version must >= 10, current = " + version);
+                throw new UnsupportedOperationException(
+                        "postgres version must >= 10, current = " + version);
             }
 
-            //2. check postgres wal_level
+            // 2. check postgres wal_level
             resultSet = conn.execSQLQuery(QUERY_LEVEL);
             resultSet.next();
             String wal_level = resultSet.getString(1);
             if (!"logical".equalsIgnoreCase(wal_level)) {
                 LOG.error("postgres wal_level must be logical, current = [{}]", wal_level);
-                throw new UnsupportedOperationException("postgres wal_level must be logical, current = " + wal_level);
+                throw new UnsupportedOperationException(
+                        "postgres wal_level must be logical, current = " + wal_level);
             }
 
-            //3.check postgres slot
+            // 3.check postgres slot
             resultSet = conn.execSQLQuery(QUERY_MAX_SLOT);
             resultSet.next();
             int maxSlot = resultSet.getInt(1);
@@ -128,16 +131,19 @@ public class PGUtil {
             resultSet = conn.execSQLQuery(QUERY_SLOT);
 
             while (resultSet.next()) {
-                ReplicationSlotInfoWrapper wrapper = new ReplicationSlotInfoWrapper(
-                        resultSet.getString("slot_name"),
-                        resultSet.getString("active"),
-                        resultSet.getString("confirmed_flush_lsn"));
+                ReplicationSlotInfoWrapper wrapper =
+                        new ReplicationSlotInfoWrapper(
+                                resultSet.getString("slot_name"),
+                                resultSet.getString("active"),
+                                resultSet.getString("confirmed_flush_lsn"));
 
                 if (wrapper.getSlotName().equalsIgnoreCase(slotName) && !wrapper.isActive()) {
-//                slotInfoWrapper.setSlotType(resultSet.getString("slot_type"));
-//                slotInfoWrapper.setDatabase(resultSet.getString("database"));
-//                slotInfoWrapper.setTemporary(resultSet.getString("temporary"));
-//                slotInfoWrapper.setRestartLsn(resultSet.getString("restart_lsn"));
+                    //                slotInfoWrapper.setSlotType(resultSet.getString("slot_type"));
+                    //                slotInfoWrapper.setDatabase(resultSet.getString("database"));
+                    //
+                    // slotInfoWrapper.setTemporary(resultSet.getString("temporary"));
+                    //
+                    // slotInfoWrapper.setRestartLsn(resultSet.getString("restart_lsn"));
                     slotInfoWrapper = wrapper;
                     break;
                 }
@@ -146,20 +152,30 @@ public class PGUtil {
 
             if (slotInfoWrapper == null) {
                 if (!allowCreateSlot) {
-                    String msg = String.format("there is no available slot named [%s], please check whether slotName[%s] is correct, or set allowCreateSlot = true", slotName, slotName);
+                    String msg =
+                            String.format(
+                                    "there is no available slot named [%s], please check whether slotName[%s] is correct, or set allowCreateSlot = true",
+                                    slotName, slotName);
                     LOG.error(msg);
                     throw new UnsupportedOperationException(msg);
                 } else if (slotCount >= maxSlot) {
-                    LOG.error("the number of slot reaches max_replication_slots[{}], please turn up max_replication_slots or remove unused slot", maxSlot);
-                    throw new UnsupportedOperationException("the number of slot reaches max_replication_slots[" + maxSlot + "], please turn up max_replication_slots or remove unused slot");
+                    LOG.error(
+                            "the number of slot reaches max_replication_slots[{}], please turn up max_replication_slots or remove unused slot",
+                            maxSlot);
+                    throw new UnsupportedOperationException(
+                            "the number of slot reaches max_replication_slots["
+                                    + maxSlot
+                                    + "], please turn up max_replication_slots or remove unused slot");
                 }
             }
 
-            //4.check table replica identity
+            // 4.check table replica identity
             for (String table : tableList) {
-                //schema.tableName
+                // schema.tableName
                 String[] tables = table.split("\\.");
-                resultSet = conn.execSQLQuery(String.format(QUERY_TABLE_REPLICA_IDENTITY, tables[0], tables[1]));
+                resultSet =
+                        conn.execSQLQuery(
+                                String.format(QUERY_TABLE_REPLICA_IDENTITY, tables[0], tables[1]));
                 resultSet.next();
                 if (!"f".equals(resultSet.getString(1))) {
                     LOG.warn("update {} replica identity, set to full", table);
@@ -167,12 +183,14 @@ public class PGUtil {
                 }
             }
 
-            //5.check publication
+            // 5.check publication
             resultSet = conn.execSQLQuery(String.format(QUERY_PUBLICATION, PUBLICATION_NAME));
             resultSet.next();
             long count = resultSet.getLong(1);
             if (count == 0L) {
-                LOG.warn("no publication named [{}] existed, flinkx will create one", PUBLICATION_NAME);
+                LOG.warn(
+                        "no publication named [{}] existed, flinkx will create one",
+                        PUBLICATION_NAME);
                 conn.createStatement().execute(String.format(CREATE_PUBLICATION, PUBLICATION_NAME));
             }
         } catch (SQLException e) {
@@ -190,20 +208,20 @@ public class PGUtil {
     }
 
     public static ReplicationSlotInfoWrapper createSlot(
-            PGConnection conn,
-            String slotName,
-            Boolean isTemp) throws SQLException {
-        ChainedLogicalCreateSlotBuilder builder = conn.getReplicationAPI()
-                .createReplicationSlot()
-                .logical()
-                .withSlotName(slotName)
-                .withOutputPlugin("pgoutput");
+            PGConnection conn, String slotName, Boolean isTemp) throws SQLException {
+        ChainedLogicalCreateSlotBuilder builder =
+                conn.getReplicationAPI()
+                        .createReplicationSlot()
+                        .logical()
+                        .withSlotName(slotName)
+                        .withOutputPlugin("pgoutput");
         if (isTemp) {
             builder.withTemporaryOption();
         }
         ReplicationSlotInfo replicationSlotInfo = builder.make();
 
-        ReplicationSlotInfoWrapper wrapper = new ReplicationSlotInfoWrapper(replicationSlotInfo, isTemp);
+        ReplicationSlotInfoWrapper wrapper =
+                new ReplicationSlotInfoWrapper(replicationSlotInfo, isTemp);
         return wrapper;
     }
 

@@ -23,6 +23,7 @@ import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.GsonUtil;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
@@ -32,9 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
-/**
- *
- */
+/** */
 public class PGWalInputFormatBuilder extends BaseRichInputFormatBuilder<PGWalInputFormat> {
 
     public PGWalInputFormatBuilder() {
