@@ -27,8 +27,8 @@ CREATE TABLE source
       ,'properties.dfs.nameservices' = 'ns'
       ,'properties.fs.hdfs.impl.disable.cache' = 'true'
       ,'properties.fs.hdfs.impl' = 'org.apache.hadoop.hdfs.DistributedFileSystem'
-      ,'defaultFS' = 'hdfs://ns'
-      ,'fileType' = 'parquet'
+      ,'default-fs' = 'hdfs://ns'
+      ,'file-type' = 'parquet'
       );
 
 CREATE TABLE sink

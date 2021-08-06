@@ -33,31 +33,31 @@ import java.util.Map;
  */
 public class HdfsOptions extends BaseFileOptions {
     public static final ConfigOption<String> DEFAULT_FS =
-            ConfigOptions.key("defaultFS")
+            ConfigOptions.key("default-fs")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("Hadoop hdfs file system nameNode node address");
 
     public static final ConfigOption<String> FILE_TYPE =
-            ConfigOptions.key("fileType")
+            ConfigOptions.key("file-type")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("File type, currently only supports user configuration as text, orc, parquet");
 
     public static final ConfigOption<String> FILTER_REGEX =
-            ConfigOptions.key("filterRegex")
+            ConfigOptions.key("filter-regex")
                     .stringType()
                     .defaultValue("")
                     .withDescription("File regular expression, read the matched file");
 
     public static final ConfigOption<String> FIELD_DELIMITER =
-            ConfigOptions.key("fieldDelimiter")
+            ConfigOptions.key("field-delimiter")
                     .stringType()
                     .defaultValue("\001")
                     .withDescription("The separator of the field when fileType is text");
 
     public static final ConfigOption<Boolean> ENABLE_DICTIONARY =
-            ConfigOptions.key("enableDictionary")
+            ConfigOptions.key("enable-dictionary")
                     .booleanType()
                     .defaultValue(true)
                     .withDescription("enable dictionary");
