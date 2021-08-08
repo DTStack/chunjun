@@ -18,7 +18,8 @@
 package com.dtstack.flinkx.connector.pgwal.util;
 
 /**
- * reference to https://github.com/debezium/debezium & http://www.postgres.cn/docs/10/protocol-logicalrep-message-formats.html
+ * reference to https://github.com/debezium/debezium &
+ * http://www.postgres.cn/docs/10/protocol-logicalrep-message-formats.html
  */
 public enum PgMessageTypeEnum {
     RELATION,

@@ -23,71 +23,42 @@ import java.util.List;
 
 import static org.apache.flink.configuration.ConfigOptions.key;
 
-/**
- *
- */
+/** */
 public class PGWalOptions {
 
     public static final ConfigOption<String> USERNAME_CONFIG_OPTION =
-            key("username")
-                    .stringType()
-                    .noDefaultValue();
+            key("username").stringType().noDefaultValue();
 
     public static final ConfigOption<String> PASSWORD_CONFIG_OPTION =
-            key("password")
-                    .stringType()
-                    .noDefaultValue();
+            key("password").stringType().noDefaultValue();
 
     public static final ConfigOption<String> JDBC_URL_CONFIG_OPTION =
-            key("url")
-                    .stringType()
-                    .noDefaultValue();
+            key("url").stringType().noDefaultValue();
 
     public static final ConfigOption<String> DATABASE_CONFIG_OPTION =
-            key("databaseName")
-                    .stringType()
-                    .noDefaultValue();
+            key("databaseName").stringType().noDefaultValue();
 
     public static final ConfigOption<String> CATALOG_CONFIG_OPTION =
-            key("cat")
-                    .stringType()
-                    .noDefaultValue();
+            key("cat").stringType().noDefaultValue();
 
     public static final ConfigOption<Boolean> PAVING_CONFIG_OPTION =
-            key("pavingData")
-                    .booleanType()
-                    .defaultValue(false);
+            key("pavingData").booleanType().defaultValue(false);
 
     public static final ConfigOption<List<String>> TABLES_CONFIG_OPTION =
-            key("tableList")
-                    .stringType()
-                    .asList()
-                    .defaultValues();
+            key("tableList").stringType().asList().defaultValues();
 
     public static final ConfigOption<Integer> STATUS_INTERVAL_CONFIG_OPTION =
-            key("statusInterval")
-                    .intType()
-                    .defaultValue(20000);
-
+            key("statusInterval").intType().defaultValue(20000);
 
     public static final ConfigOption<Long> LSN_CONFIG_OPTION =
-            key("lsn")
-                    .longType()
-                    .defaultValue(0L);
+            key("lsn").longType().defaultValue(0L);
 
     public static final ConfigOption<String> SLOT_NAME_CONFIG_OPTION =
-            key("slotName")
-                    .stringType()
-                    .noDefaultValue();
+            key("slotName").stringType().noDefaultValue();
 
     public static final ConfigOption<Boolean> ALLOW_CREATE_SLOT_CONFIG_OPTION =
-            key("allowCreateSlot")
-                    .booleanType()
-                    .defaultValue(true);
+            key("allowCreateSlot").booleanType().defaultValue(true);
 
     public static final ConfigOption<Boolean> TEMPORARY_CONFIG_OPTION =
-            key("temporary")
-                    .booleanType()
-                    .defaultValue(true);
-
+            key("temporary").booleanType().defaultValue(true);
 }

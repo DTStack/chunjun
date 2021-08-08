@@ -17,12 +17,12 @@
  */
 package com.dtstack.flinkx.connector.pgwal.conf;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,34 +30,41 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * config of pg cdc
- */
+/** config of pg cdc */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PGWalConf extends FlinkxCommonConf {
 
     public String username;
     public String password;
+
     @JsonProperty("url")
     public String jdbcUrl;
+
     public String cat;
     public boolean pavingData = true;
+
     @JsonProperty("tableList")
     public List<String> tables;
+
     @JsonProperty("databaseName")
     private String database;
+
     private String slotName = "";
+
     @JsonProperty("allowCreateSlot")
     private Boolean allowCreated = false;
+
     @JsonProperty("temporary")
     private Boolean isTemp = false;
+
     private Integer statusInterval = 10;
     private Long lsn = 0L;
     private List<FieldConf> column;
     private boolean slotAvailable;
 
     public void setCredentials(String username, String password) {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(username), "user name should not be empty");
+        Preconditions.checkArgument(
+                StringUtils.isNotEmpty(username), "user name should not be empty");
         this.username = username;
         this.password = password;
     }
@@ -115,10 +122,12 @@ public class PGWalConf extends FlinkxCommonConf {
         if (tables == null) return new ArrayList<>();
 
         return tables.stream()
-                .map((name -> {
-                    String[] nameArray = name.split("\\.");
-                    return nameArray[nameArray.length - 1];
-                })).collect(Collectors.toList());
+                .map(
+                        (name -> {
+                            String[] nameArray = name.split("\\.");
+                            return nameArray[nameArray.length - 1];
+                        }))
+                .collect(Collectors.toList());
     }
 
     public String getDatabase() {

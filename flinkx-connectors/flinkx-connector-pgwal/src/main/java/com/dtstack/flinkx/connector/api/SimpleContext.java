@@ -16,7 +16,11 @@ public class SimpleContext implements ServiceProcessor.Context {
 
     @Override
     public <V> V get(Class<V> data) {
-        return (V) params.values().stream().filter(value -> data.isAssignableFrom(value.getClass())).findAny().get();
+        return (V)
+                params.values().stream()
+                        .filter(value -> data.isAssignableFrom(value.getClass()))
+                        .findAny()
+                        .get();
     }
 
     @Override

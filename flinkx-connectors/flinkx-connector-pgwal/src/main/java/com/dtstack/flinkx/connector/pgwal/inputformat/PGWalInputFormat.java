@@ -17,12 +17,6 @@
  */
 package com.dtstack.flinkx.connector.pgwal.inputformat;
 
-import com.dtstack.flinkx.source.format.BaseRichInputFormat;
-
-import org.apache.flink.core.io.GenericInputSplit;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
 import com.dtstack.flinkx.connector.pgwal.listener.PgWalListener;
 import com.dtstack.flinkx.connector.pgwal.util.PGUtil;
@@ -30,8 +24,14 @@ import com.dtstack.flinkx.connector.pgwal.util.ReplicationSlotInfoWrapper;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.element.ErrorMsgRowData;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.RetryUtil;
+
+import org.apache.flink.core.io.GenericInputSplit;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang.StringUtils;
 import org.postgresql.PGConnection;
 import org.postgresql.jdbc.PgConnection;
@@ -48,12 +48,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- *
- */
+/** */
 public class PGWalInputFormat extends BaseRichInputFormat {
     private static final Logger LOG = LoggerFactory.getLogger(PGWalInputFormat.class);
-    private static Thread.UncaughtExceptionHandler exceptionHandler = (t, e) -> LOG.error(e.getMessage(), e);
+    private static Thread.UncaughtExceptionHandler exceptionHandler =
+            (t, e) -> LOG.error(e.getMessage(), e);
     private static AtomicInteger threadNumber = new AtomicInteger(0);
     private PGWalConf conf;
     private List<String> categories = new ArrayList<>();
@@ -76,15 +75,20 @@ public class PGWalInputFormat extends BaseRichInputFormat {
     public void openInputFormat() throws IOException {
         super.openInputFormat();
         LOG.debug("");
-        executor = Executors.newFixedThreadPool(1, r -> {
-            Thread t = new Thread(r, "PG WAL IO-" + threadNumber.getAndIncrement() + 0);
-            if (t.getPriority() != Thread.NORM_PRIORITY) {
-                t.setPriority(Thread.NORM_PRIORITY);
-            }
+        executor =
+                Executors.newFixedThreadPool(
+                        1,
+                        r -> {
+                            Thread t =
+                                    new Thread(
+                                            r, "PG WAL IO-" + threadNumber.getAndIncrement() + 0);
+                            if (t.getPriority() != Thread.NORM_PRIORITY) {
+                                t.setPriority(Thread.NORM_PRIORITY);
+                            }
 
-            t.setUncaughtExceptionHandler(exceptionHandler);
-            return t;
-        });
+                            t.setUncaughtExceptionHandler(exceptionHandler);
+                            return t;
+                        });
         queue = new ArrayBlockingQueue<>(2 << 10);
     }
 
@@ -98,14 +102,21 @@ public class PGWalInputFormat extends BaseRichInputFormat {
         if (StringUtils.isBlank(conf.getSlotName())) {
             conf.setSlotName(PGUtil.SLOT_PRE + jobId);
         }
-        PGConnection conn = RetryUtil.executeWithRetry(
-                () ->
-                        PGUtil.getConnection(conf.getJdbcUrl(), conf.getUsername(), conf.getPassword()),
-                PGUtil.RETRY_TIMES,
-                PGUtil.SLEEP_TIME,
-                true);
+        PGConnection conn =
+                RetryUtil.executeWithRetry(
+                        () ->
+                                PGUtil.getConnection(
+                                        conf.getJdbcUrl(), conf.getUsername(), conf.getPassword()),
+                        PGUtil.RETRY_TIMES,
+                        PGUtil.SLEEP_TIME,
+                        true);
 
-        ReplicationSlotInfoWrapper availableSlot = PGUtil.checkPostgres((PgConnection) conn, conf.getAllowCreated(), conf.getSlotName(), conf.getTables());
+        ReplicationSlotInfoWrapper availableSlot =
+                PGUtil.checkPostgres(
+                        (PgConnection) conn,
+                        conf.getAllowCreated(),
+                        conf.getSlotName(),
+                        conf.getTables());
         if (availableSlot == null) {
             try {
                 PGUtil.createSlot(conn, conf.getSlotName(), conf.getTemp());
@@ -145,12 +156,12 @@ public class PGWalInputFormat extends BaseRichInputFormat {
     protected RowData nextRecordInternal(RowData row) {
         try {
             RowData rowData = queue.take();
-//            if (map.size() == 1) {
-//                throw new IOException((String) map.get("e"));
-//            } else {
-//                startLsn = (long) map.get("lsn");
-//                row = Row.of(map);
-//            }
+            //            if (map.size() == 1) {
+            //                throw new IOException((String) map.get("e"));
+            //            } else {
+            //                startLsn = (long) map.get("lsn");
+            //                row = Row.of(map);
+            //            }
             return rowData;
         } catch (InterruptedException e) {
             LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));

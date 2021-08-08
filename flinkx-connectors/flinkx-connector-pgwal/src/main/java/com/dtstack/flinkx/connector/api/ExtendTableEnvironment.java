@@ -7,6 +7,4 @@ public interface ExtendTableEnvironment extends TableEnvironment {
     static ExtendTableEnvironment create(CDCSettings settings) {
         return ExtendTableEnvironmentImpl.create(settings);
     }
-
-
 }

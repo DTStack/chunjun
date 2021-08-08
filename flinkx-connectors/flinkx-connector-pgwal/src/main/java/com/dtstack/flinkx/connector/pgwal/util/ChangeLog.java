@@ -19,9 +19,7 @@ package com.dtstack.flinkx.connector.pgwal.util;
 
 import java.util.List;
 
-/**
- *
- */
+/** */
 public class ChangeLog {
     private long transactionId;
     private String id;
@@ -42,8 +40,7 @@ public class ChangeLog {
         this.id = schema + "." + table;
     }
 
-    public ChangeLog() {
-    }
+    public ChangeLog() {}
 
     public ChangeLog(PgMessageTypeEnum type, long transactionId, long ts) {
         this.type = type;

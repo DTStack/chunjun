@@ -1,13 +1,14 @@
 package com.dtstack.flinkx.connector.api;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
 import com.dtstack.flinkx.connector.pgwal.converter.PGWalColumnConverter;
 import com.dtstack.flinkx.connector.pgwal.listener.PgWalListener;
 import com.dtstack.flinkx.connector.pgwal.util.ChangeLog;
 import com.dtstack.flinkx.connector.pgwal.util.PgDecoder;
 import com.dtstack.flinkx.element.ErrorMsgRowData;
+
+import org.apache.flink.table.data.RowData;
+
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

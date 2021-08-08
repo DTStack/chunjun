@@ -1,7 +1,5 @@
 package com.dtstack.flinkx.connector.api;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 public interface DataProcessor<T> {

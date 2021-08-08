@@ -17,34 +17,27 @@
  */
 package com.dtstack.flinkx.connector.pgwal.source;
 
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
+import com.dtstack.flinkx.connector.pgwal.inputformat.PGWalInputFormatBuilder;
 import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.util.JsonUtil;
 
-import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
-import com.dtstack.flinkx.connector.pgwal.converter.PGWalColumnConverter;
-import com.dtstack.flinkx.connector.pgwal.converter.PGWalRowConverter;
-import com.dtstack.flinkx.connector.pgwal.inputformat.PGWalInputFormatBuilder;
-import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.source.SourceFactory;
-import com.dtstack.flinkx.util.JsonUtil;
-import com.dtstack.flinkx.util.TableUtil;
-
-/**
- *
- */
+/** */
 public class PgwalSourceFactory extends SourceFactory {
 
     private final PGWalConf conf;
 
     public PgwalSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
-        conf = JsonUtil.toObject(JsonUtil.toJson(config.getReader().getParameter()), PGWalConf.class);
+        conf =
+                JsonUtil.toObject(
+                        JsonUtil.toJson(config.getReader().getParameter()), PGWalConf.class);
         conf.setColumn(config.getReader().getFieldList());
         super.initFlinkxCommonConf(conf);
     }
@@ -52,15 +45,16 @@ public class PgwalSourceFactory extends SourceFactory {
     @Override
     public DataStream<RowData> createSource() {
         PGWalInputFormatBuilder builder = new PGWalInputFormatBuilder();
-//        builder.setConf(conf);
-//        AbstractCDCRowConverter rowConverter;
-//        if (useAbstractBaseColumn) {
-//            rowConverter = new PGWalColumnConverter(conf.isPavingData(), false);
-//        } else {
-//            final RowType rowType = (RowType) TableUtil.getDataType(conf.getColumn()).getLogicalType();
-//            rowConverter = new PGWalRowConverter(rowType, TimestampFormat.SQL);
-//        }
-//        builder.setRowConverter(rowConverter);
+        //        builder.setConf(conf);
+        //        AbstractCDCRowConverter rowConverter;
+        //        if (useAbstractBaseColumn) {
+        //            rowConverter = new PGWalColumnConverter(conf.isPavingData(), false);
+        //        } else {
+        //            final RowType rowType = (RowType)
+        // TableUtil.getDataType(conf.getColumn()).getLogicalType();
+        //            rowConverter = new PGWalRowConverter(rowType, TimestampFormat.SQL);
+        //        }
+        //        builder.setRowConverter(rowConverter);
         return createInput(builder.finish());
     }
 

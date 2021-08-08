@@ -11,7 +11,13 @@ public class ReplicationSlotInfoWrapper {
     private ReplicationSlotInfo slotInfo;
 
     public ReplicationSlotInfoWrapper(String slotName, String active, String lsn) {
-        this.slotInfo = new ReplicationSlotInfo(slotName, ReplicationType.LOGICAL, LogSequenceNumber.valueOf(lsn), null, "pgoutput");
+        this.slotInfo =
+                new ReplicationSlotInfo(
+                        slotName,
+                        ReplicationType.LOGICAL,
+                        LogSequenceNumber.valueOf(lsn),
+                        null,
+                        "pgoutput");
         this.active = "t".equalsIgnoreCase(active);
         this.isTemp = false;
     }
