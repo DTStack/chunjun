@@ -22,6 +22,7 @@
 		<module>flinkx-connector-postgresql</module>
 		<module>flinkx-connector-gbase</module>
         <module>flinkx-connector-hbase-base</module>
+		<module>flinkx-connector-hbase</module>
 		<module>flinkx-connector-kingbase</module>
 		<module>flinkx-connector-clickhouse</module>
 		<module>flinkx-connector-sqlserver</module>
@@ -47,13 +48,12 @@
 		<module>flinkx-connector-phoenix5</module>
 
 		<!--CDC-->
+		<module>flinkx-connector-restapi</module>
+		<module>flinkx-connector-socket</module>
 		<module>flinkx-connector-binlog</module>
 		<module>flinkx-connector-pgwal</module>
         <module>flinkx-connector-sqlservercdc</module>
 		<module>flinkx-connector-oraclelogminer</module>
-
-		<module>flinkx-connector-restapi</module>
-		<module>flinkx-connector-socket</module>
 	</modules>
 
 
