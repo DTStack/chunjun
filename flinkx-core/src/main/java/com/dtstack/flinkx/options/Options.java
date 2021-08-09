@@ -45,7 +45,7 @@ public class Options {
     private String job;
 
     @OptionRequired(description = "Flink Job Name")
-    private String jobName = "Flink Job";
+    private String jobName = "Flink_Job";
 
     @OptionRequired(description = "Flink configuration directory")
     private String flinkconf;

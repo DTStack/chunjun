@@ -25,6 +25,9 @@ import com.dtstack.flinkx.metrics.CustomReporter;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.configuration.ConfigUtils;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
@@ -51,6 +54,16 @@ public class DataSyncFactoryUtil {
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.source);
             Set<URL> urlList = PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
             urlList.addAll(PluginUtil.getJarFileDirPath(PluginUtil.FORMATS_SUFFIX, config.getPluginRoot(), null));
+            ConfigUtils.encodeCollectionToConfig(
+                    (Configuration)ReflectionUtils.getDeclaredMethod(env, "getConfiguration").invoke(env),
+                    PipelineOptions.JARS,
+                    urlList,
+                    URL::toString);
+            ConfigUtils.encodeCollectionToConfig(
+                    (Configuration)ReflectionUtils.getDeclaredMethod(env, "getConfiguration").invoke(env),
+                    PipelineOptions.CLASSPATHS,
+                    urlList,
+                    URL::toString);
 
             return ClassLoaderManager.newInstance(
                     urlList,

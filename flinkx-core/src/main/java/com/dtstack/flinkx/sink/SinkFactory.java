@@ -32,6 +32,11 @@ import com.dtstack.flinkx.converter.RawTypeConvertible;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.api.common.io.OutputFormat;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.Preconditions;
 
 import java.util.List;
 
@@ -91,7 +96,6 @@ public abstract class SinkFactory implements RawTypeConvertible {
     /**
      * 初始化FlinkxCommonConf
      *
-     * @param flinkxCommonConf
      */
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf) {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);

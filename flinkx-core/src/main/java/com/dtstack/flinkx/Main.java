@@ -137,13 +137,7 @@ public class Main {
      * @param confProperties
      * @throws Exception
      */
-    private static void exeSqlJob(
-            StreamExecutionEnvironment env,
-            StreamTableEnvironment tableEnv,
-            String job,
-            Options options,
-            Properties confProperties)
-            throws Exception {
+    private static void exeSqlJob(StreamExecutionEnvironment env, StreamTableEnvironment tableEnv, String job, Options options, Properties confProperties) throws Exception {
         try {
             configStreamExecutionEnvironment(env, options, null, confProperties);
             List<URL> jarUrlList = ExecuteProcessHelper.getExternalJarUrls(options.getAddjar());
@@ -173,13 +167,7 @@ public class Main {
      * @param confProperties
      * @throws Exception
      */
-    private static void exeSyncJob(
-            StreamExecutionEnvironment env,
-            StreamTableEnvironment tableEnv,
-            String job,
-            Options options,
-            Properties confProperties)
-            throws Exception {
+    private static void exeSyncJob(StreamExecutionEnvironment env, StreamTableEnvironment tableEnv, String job, Options options, Properties confProperties) throws Exception {
         SyncConf config = parseFlinkxConf(job, options);
         buildRestartStrategy(confProperties, config);
         configStreamExecutionEnvironment(env, options, config, confProperties);
@@ -189,15 +177,11 @@ public class Main {
 
         SpeedConf speed = config.getSpeed();
         if (speed.getReaderChannel() > 0) {
-            dataStreamSource =
-                    ((DataStreamSource<RowData>) dataStreamSource)
-                            .setParallelism(speed.getReaderChannel());
+            dataStreamSource = ((DataStreamSource<RowData>) dataStreamSource).setParallelism(speed.getReaderChannel());
         }
 
         DataStream<RowData> dataStream;
-        boolean transformer =
-                config.getTransformer() != null
-                        && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
+        boolean transformer = config.getTransformer() != null && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
 
         if (transformer) {
             dataStream = syncStreamToTable(tableEnv, config, dataStreamSource);
@@ -236,9 +220,7 @@ public class Main {
         String fieldNames =
                 String.join(ConstantValue.COMMA_SYMBOL, config.getReader().getFieldNameList());
         List<Expression> expressionList = ExpressionParser.parseExpressionList(fieldNames);
-        Table sourceTable =
-                tableEnv.fromDataStream(
-                        sourceDataStream, expressionList.toArray(new Expression[0]));
+        Table sourceTable = tableEnv.fromDataStream(sourceDataStream, expressionList.toArray(new Expression[0]));
         tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
 
         String transformSql = config.getJob().getTransformer().getTransformSql();
@@ -246,10 +228,8 @@ public class Main {
 
         DataType[] tableDataTypes = adaptTable.getSchema().getFieldDataTypes();
         String[] tableFieldNames = adaptTable.getSchema().getFieldNames();
-        TypeInformation<RowData> typeInformation =
-                TableUtil.getTypeInformation(tableDataTypes, tableFieldNames);
-        DataStream<RowData> dataStream =
-                tableEnv.toRetractStream(adaptTable, typeInformation).map(f -> f.f1);
+        TypeInformation<RowData> typeInformation = TableUtil.getTypeInformation(tableDataTypes, tableFieldNames);
+        DataStream<RowData> dataStream = tableEnv.toRetractStream(adaptTable, typeInformation).map(f -> f.f1);
         tableEnv.createTemporaryView(config.getWriter().getTable().getTableName(), dataStream);
 
         return dataStream;
@@ -299,6 +279,10 @@ public class Main {
             if (StringUtils.isNotBlank(options.getS())) {
                 config.setRestorePath(options.getS());
             }
+
+            if(StringUtils.isNotBlank(options.getS())){
+                config.setRestorePath(options.getS());
+            }
         } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
         }
@@ -320,7 +304,7 @@ public class Main {
         if (StringUtils.equalsIgnoreCase(ClusterMode.local.name(), options.getMode())) {
             env = new MyLocalStreamEnvironment(flinkConf);
         } else {
-            env = StreamExecutionEnvironment.getExecutionEnvironment();
+            env = StreamExecutionEnvironment.getExecutionEnvironment(flinkConf);
         }
         return env;
     }
@@ -331,8 +315,7 @@ public class Main {
      * @param env StreamExecutionEnvironment
      * @return
      */
-    private static StreamTableEnvironment createStreamTableEnvironment(
-            StreamExecutionEnvironment env) {
+    private static StreamTableEnvironment createStreamTableEnvironment(StreamExecutionEnvironment env) {
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
         Configuration configuration = tEnv.getConfig().getConfiguration();
         // Iceberg need this config setting up true.
@@ -357,8 +340,7 @@ public class Main {
         configEnvironment(env, properties);
         if (env instanceof MyLocalStreamEnvironment) {
             if (StringUtils.isNotEmpty(options.getS())) {
-                ((MyLocalStreamEnvironment) env)
-                        .setSettings(SavepointRestoreSettings.forPath(options.getS()));
+                ((MyLocalStreamEnvironment) env).setSettings(SavepointRestoreSettings.forPath(options.getS()));
             }
         }
 
@@ -457,17 +439,13 @@ public class Main {
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
-    private static void configEnvironment(
-            StreamExecutionEnvironment streamEnv, Properties confProperties)
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    private static void configEnvironment(StreamExecutionEnvironment streamEnv, Properties confProperties) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         confProperties = PropertiesUtil.propertiesTrim(confProperties);
         streamEnv.getConfig().disableClosureCleaner();
 
         Configuration globalJobParameters = new Configuration();
         // Configuration unsupported set properties key-value
-        Method method =
-                Configuration.class.getDeclaredMethod(
-                        "setValueInternal", String.class, Object.class);
+        Method method = Configuration.class.getDeclaredMethod("setValueInternal", String.class, Object.class);
         method.setAccessible(true);
         for (Map.Entry<Object, Object> prop : confProperties.entrySet()) {
             method.invoke(globalJobParameters, prop.getKey(), prop.getValue());
@@ -506,26 +484,16 @@ public class Main {
      * @param properties
      * @return
      */
-    private static void configCheckpoint(StreamExecutionEnvironment env, Properties properties)
-            throws IOException {
-        Optional<Boolean> checkpointEnabled =
-                StreamEnvConfigManagerUtil.isCheckpointEnabled(properties);
+    private static void configCheckpoint(StreamExecutionEnvironment env, Properties properties) throws IOException {
+        Optional<Boolean> checkpointEnabled = StreamEnvConfigManagerUtil.isCheckpointEnabled(properties);
         if (checkpointEnabled.get()) {
-            StreamEnvConfigManagerUtil.getTolerableCheckpointFailureNumber(properties)
-                    .ifPresent(env.getCheckpointConfig()::setTolerableCheckpointFailureNumber);
-            StreamEnvConfigManagerUtil.getCheckpointInterval(properties)
-                    .ifPresent(env::enableCheckpointing);
-            StreamEnvConfigManagerUtil.getCheckpointMode(properties)
-                    .ifPresent(env.getCheckpointConfig()::setCheckpointingMode);
-            StreamEnvConfigManagerUtil.getCheckpointTimeout(properties)
-                    .ifPresent(env.getCheckpointConfig()::setCheckpointTimeout);
-            StreamEnvConfigManagerUtil.getMaxConcurrentCheckpoints(properties)
-                    .ifPresent(env.getCheckpointConfig()::setMaxConcurrentCheckpoints);
-            StreamEnvConfigManagerUtil.getCheckpointCleanup(properties)
-                    .ifPresent(env.getCheckpointConfig()::enableExternalizedCheckpoints);
-            StreamEnvConfigManagerUtil.enableUnalignedCheckpoints(properties)
-                    .ifPresent(
-                            event -> env.getCheckpointConfig().enableUnalignedCheckpoints(event));
+            StreamEnvConfigManagerUtil.getTolerableCheckpointFailureNumber(properties).ifPresent(env.getCheckpointConfig()::setTolerableCheckpointFailureNumber);
+            StreamEnvConfigManagerUtil.getCheckpointInterval(properties).ifPresent(env::enableCheckpointing);
+            StreamEnvConfigManagerUtil.getCheckpointMode(properties).ifPresent(env.getCheckpointConfig()::setCheckpointingMode);
+            StreamEnvConfigManagerUtil.getCheckpointTimeout(properties).ifPresent(env.getCheckpointConfig()::setCheckpointTimeout);
+            StreamEnvConfigManagerUtil.getMaxConcurrentCheckpoints(properties).ifPresent(env.getCheckpointConfig()::setMaxConcurrentCheckpoints);
+            StreamEnvConfigManagerUtil.getCheckpointCleanup(properties).ifPresent(env.getCheckpointConfig()::enableExternalizedCheckpoints);
+            StreamEnvConfigManagerUtil.enableUnalignedCheckpoints(properties).ifPresent(event -> env.getCheckpointConfig().enableUnalignedCheckpoints(event));
             StreamEnvConfigManagerUtil.getStateBackend(properties).ifPresent(env::setStateBackend);
         }
     }

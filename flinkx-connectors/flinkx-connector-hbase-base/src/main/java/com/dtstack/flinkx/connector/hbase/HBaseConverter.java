@@ -18,13 +18,50 @@
 
 package com.dtstack.flinkx.connector.hbase;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 /**
  * @author wuren
  * @program flinkx
  * @create 2021/04/30
  *
- * TODO 把HBaseSerde修改成HBaseConverter
  **/
+public class HBaseConverter extends AbstractRowConverter<RowData, RowData, Object, LogicalType> {
 
-public class HBaseConverter {
+    public HBaseConverter(RowType rowType) {
+        super(rowType);
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
+            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(rowType.getTypeAt(i)));
+            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+        }
+    }
+
+    @Override
+    public RowData toInternal(RowData input) throws Exception {
+        GenericRowData row = new GenericRowData(input.getArity());
+        if(input instanceof GenericRowData){
+            GenericRowData genericRowData = (GenericRowData) input;
+            for (int i = 0; i < input.getArity(); i++) {
+                row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
+            }
+        }else{
+            throw new FlinkxRuntimeException("Error RowData type, RowData:[" + input + "] should be instance of GenericRowData.");
+        }
+        return row;
+    }
+
+    @Override
+    public Object toExternal(RowData rowData, Object data) throws Exception {
+        for (int index = 0; index < rowData.getArity(); index++) {
+            toExternalConverters[index].serialize(rowData, index, data);
+        }
+        return data;
+    }
 }

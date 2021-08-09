@@ -70,6 +70,10 @@
 					<artifactId>commons-cli</artifactId>
 					<groupId>commons-cli</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>snappy-java</artifactId>
+					<groupId>org.xerial.snappy</groupId>
+				</exclusion>
 			</exclusions>
 			<groupId>org.apache.hadoop</groupId>
 			<version>${hadoop.version}</version>
@@ -124,6 +128,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-hbase-2.2_2.12</artifactId>
+			<version>1.12.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-sqlserver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-postgresql</artifactId>
 			<version>${project.version}</version>
@@ -134,6 +150,12 @@
 		<!--			<artifactId>flinkx-connector-elasticsearch5</artifactId>-->
 		<!--			<version>${project.version}</version>-->
 		<!--		</dependency>-->
+
+<!--		<dependency>-->
+<!--			<groupId>com.dtstack.flinkx</groupId>-->
+<!--			<artifactId>flinkx-connector-elasticsearch5</artifactId>-->
+<!--			<version>${project.version}</version>-->
+<!--		</dependency>-->
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
@@ -185,13 +207,91 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-clickhouse</artifactId>
+			<artifactId>flinkx-connector-emqx</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-sqlserver</artifactId>
+			<artifactId>flinkx-connector-db2</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-greenplum</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+<!--		<dependency>-->
+<!--			<groupId>com.dtstack.flinkx</groupId>-->
+<!--			<artifactId>flinkx-connector-hdfs</artifactId>-->
+<!--			<version>${project.version}</version>-->
+<!--		</dependency>-->
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-tidb</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-hive</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-redis</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-mongodb</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-solr</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-file</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-ftp</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-oraclelogminer</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-kudu</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-metrics-prometheus</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-hbase</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -293,5 +393,4 @@
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
-
 </project>
