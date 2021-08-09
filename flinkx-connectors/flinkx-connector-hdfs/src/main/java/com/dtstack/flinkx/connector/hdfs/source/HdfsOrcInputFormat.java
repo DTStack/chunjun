@@ -96,29 +96,33 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         HdfsOrcInputSplit hdfsOrcInputSplit = (HdfsOrcInputSplit) inputSplit;
         OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();
 
+        if (openKerberos) {
+            ugi.doAs(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    try {
+                        init(orcSplit);
+                        openOrcReader(inputSplit);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    return null;
+                }
+            });
+        } else {
+            init(orcSplit);
+            openOrcReader(inputSplit);
+        }
+    }
+
+    public void init(OrcSplit orcSplit) throws IOException {
         try {
             if (!isInit.get()) {
                 init(orcSplit.getPath());
                 isInit.set(true);
             }
         } catch (Exception e) {
-            throw new IOException("Error initializing inspector", e);
-        }
-
-        if (openKerberos) {
-            ugi.doAs(
-                    (PrivilegedAction<Object>)
-                            () -> {
-                                try {
-                                    openOrcReader(inputSplit);
-                                } catch (Exception e) {
-                                    throw new FlinkxRuntimeException(
-                                            "error to open Internal, split = " + inputSplit, e);
-                                }
-                                return null;
-                            });
-        } else {
-            openOrcReader(inputSplit);
+            throw new IOException("init inspector error", e);
         }
     }
 
