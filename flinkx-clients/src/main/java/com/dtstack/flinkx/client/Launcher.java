@@ -17,9 +17,6 @@
  */
 package com.dtstack.flinkx.client;
 
-import org.apache.flink.client.deployment.ClusterDeploymentException;
-import org.apache.flink.configuration.ConfigConstants;
-
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.client.kubernetes.KubernetesApplicationClusterClientHelper;
 import com.dtstack.flinkx.client.kubernetes.KubernetesSessionClusterClientHelper;
@@ -32,6 +29,10 @@ import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.ExecuteProcessHelper;
 import com.dtstack.flinkx.util.JsonModifyUtil;
+
+import org.apache.flink.client.deployment.ClusterDeploymentException;
+import org.apache.flink.configuration.ConfigConstants;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +138,7 @@ public class Launcher {
     }
 
     private static void findDefaultHadoopConf(Options launcherOptions) {
-        if (StringUtils.isNotEmpty(launcherOptions.getYarnconf())) {
+        if (StringUtils.isNotEmpty(launcherOptions.getHadoopConfDir())) {
             return;
         }
 
@@ -148,7 +149,7 @@ public class Launcher {
                 hadoopHome = hadoopHome.substring(0, hadoopHome.lastIndexOf(File.separator));
             }
 
-            launcherOptions.setYarnconf(hadoopHome + "/etc/hadoop");
+            launcherOptions.setHadoopConfDir(hadoopHome + "/etc/hadoop");
         }
     }
 
@@ -161,18 +162,18 @@ public class Launcher {
                 flinkHome = flinkHome.substring(0, flinkHome.lastIndexOf(File.separator));
             }
 
-            if (StringUtils.isEmpty(launcherOptions.getFlinkconf())) {
-                launcherOptions.setFlinkconf(flinkHome + "/conf");
+            if (StringUtils.isEmpty(launcherOptions.getFlinkConfDir())) {
+                launcherOptions.setFlinkConfDir(flinkHome + "/conf");
             }
 
-            if (StringUtils.isEmpty(launcherOptions.getFlinkLibJar())) {
-                launcherOptions.setFlinkLibJar(flinkHome + "/lib");
+            if (StringUtils.isEmpty(launcherOptions.getFlinkLibDir())) {
+                launcherOptions.setFlinkLibDir(flinkHome + "/lib");
             }
         }
     }
 
     private static void findDefaultPluginRoot(Options launcherOptions) {
-        String pluginRoot = launcherOptions.getPluginRoot();
+        String pluginRoot = launcherOptions.getFlinkxDistDir();
         if (StringUtils.isEmpty(pluginRoot)) {
             String flinkxHome = getSystemProperty(KEY_FLINKX_HOME);
             if (StringUtils.isNotEmpty(flinkxHome)) {
@@ -183,7 +184,7 @@ public class Launcher {
                     pluginRoot = flinkxHome + File.separator + PLUGINS_DIR_NAME;
                 }
 
-                launcherOptions.setPluginRoot(pluginRoot);
+                launcherOptions.setFlinkxDistDir(pluginRoot);
             }
         }
         System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, pluginRoot);
