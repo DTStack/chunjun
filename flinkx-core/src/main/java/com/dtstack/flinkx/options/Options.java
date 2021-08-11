@@ -219,23 +219,51 @@ public class Options {
 
     @Override
     public String toString() {
-        return "Options{" +
-                "jobType='" + jobType + '\'' +
-                ", mode='" + mode + '\'' +
-                ", job='" + job + '\'' +
-                ", jobName='" + jobName + '\'' +
-                ", flinkConfDir='" + flinkConfDir + '\'' +
-                ", flinkxDistDir='" + flinkxDistDir + '\'' +
-                ", hadoopConfDir='" + hadoopConfDir + '\'' +
-                ", flinkLibDir='" + flinkLibDir + '\'' +
-                ", confProp='" + confProp + '\'' +
-                ", p='" + p + '\'' +
-                ", pluginLoadMode='" + pluginLoadMode + '\'' +
-                ", remotePluginPath='" + remotePluginPath + '\'' +
-                ", addjar='" + addjar + '\'' +
-                ", addShipfile='" + addShipfile + '\'' +
-                ", flinkConfiguration=" + flinkConfiguration +
-                '}';
+        return "Options{"
+                + "jobType='"
+                + jobType
+                + '\''
+                + ", mode='"
+                + mode
+                + '\''
+                + ", job='"
+                + job
+                + '\''
+                + ", jobName='"
+                + jobName
+                + '\''
+                + ", flinkConfDir='"
+                + flinkConfDir
+                + '\''
+                + ", flinkxDistDir='"
+                + flinkxDistDir
+                + '\''
+                + ", hadoopConfDir='"
+                + hadoopConfDir
+                + '\''
+                + ", flinkLibDir='"
+                + flinkLibDir
+                + '\''
+                + ", confProp='"
+                + confProp
+                + '\''
+                + ", p='"
+                + p
+                + '\''
+                + ", pluginLoadMode='"
+                + pluginLoadMode
+                + '\''
+                + ", remotePluginPath='"
+                + remotePluginPath
+                + '\''
+                + ", addjar='"
+                + addjar
+                + '\''
+                + ", addShipfile='"
+                + addShipfile
+                + '\''
+                + ", flinkConfiguration="
+                + flinkConfiguration
+                + '}';
     }
-}
 }
