@@ -57,7 +57,7 @@ FlinkX目前支持下面这些数据库：
 |                        | Database Type  | Source                                                    | Sink                                                      | Lookup
 |:----------------------:|:--------------:|:---------------------------------------------------------:|:---------------------------------------------------------:|:---------------------------------------------------------:|
 | Batch Synchronization  | MySQL          | [doc](docs/connectors/mysql/mysql-source.md)              | [doc](docs/connectors/mysql/mysql-sink.md)                |[doc](docs/connectors/mysql/mysql-lookup.md)               |
-|                        | TiDB           |                                                           |  [doc](docs/connectors/tidb/tidb-sink.md)                 |[doc](docs/connectors/tidb/tidb-lookup.md)                 |   
+|                        | TiDB           |                                                           | 参考mysql                                                  |参考mysql                                                  |   
 |                        | Oracle         | [doc](docs/connectors/oracle/oracle-source.md)            | [doc](docs/connectors/oracle/oracle-sink.md)              |[doc](docs/connectors/oracle/oracle-lookup.md)             |
 |                        | SqlServer      | [doc](docs/connectors/sqlserver/sqlserver-source.md)      | [doc](docs/connectors/sqlserver/sqlserver-sink.md)        |[doc](docs/connectors/sqlserver/sqlserver-lookup.md)       |
 |                        | PostgreSQL     | [doc](docs/connectors/postgres/postgres-source.md)        | [doc](docs/connectors/postgres/postgres-sink.md)          |[doc](docs/connectors/postgres/postgres-lookup.md)         |
