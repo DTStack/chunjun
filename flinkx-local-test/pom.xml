@@ -229,11 +229,6 @@
 <!--			<version>${project.version}</version>-->
 <!--		</dependency>-->
 
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-tidb</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
@@ -291,7 +286,7 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-hbase</artifactId>
+			<artifactId>flinkx-connector-hbase-1.4</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -319,11 +314,6 @@
 		<!--			<version>${project.version}</version>-->
 		<!--		</dependency>-->
 
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-tidb</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
