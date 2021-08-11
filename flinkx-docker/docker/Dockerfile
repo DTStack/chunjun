@@ -37,8 +37,8 @@ RUN groupadd --system --gid=9999 flink && \
 WORKDIR $FLINK_HOME
 
 # Copy Flinkx Plugins
-ENV FLINKX_HOME=/opt/flinkxplugins
-COPY flinkxplugins $FLINKX_HOME
+ENV FLINKX_HOME=/opt/flinkx-dist
+COPY flinkx-dist $FLINKX_HOME
 RUN chown -R flink:flink $FLINKX_HOME
 
 # Install Arthas

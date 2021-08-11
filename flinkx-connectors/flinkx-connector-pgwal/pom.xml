@@ -179,12 +179,12 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../flinkxplugins/pgwal"
+								<copy todir="${basedir}/../../${dist.dir}/pgwal"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../flinkxplugins/pgwal/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../flinkxplugins/pgwal/${project.artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/pgwal/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/pgwal/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../flinkxplugins/pgwal/"
+									<fileset dir="${basedir}/../../${dist.dir}/pgwal/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>

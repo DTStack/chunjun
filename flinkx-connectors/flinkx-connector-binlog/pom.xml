@@ -176,12 +176,12 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../flinkxplugins/binlog"
+								<copy todir="${basedir}/../../${dist.dir}/binlog"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../flinkxplugins/binlog/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../flinkxplugins/binlog/${project.artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/binlog/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/binlog/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../flinkxplugins/binlog/"
+									<fileset dir="${basedir}/../../${dist.dir}/binlog/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>

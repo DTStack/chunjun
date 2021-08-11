@@ -29,6 +29,7 @@
         <hadoop.version>2.7.5</hadoop.version>
         <http.version>4.5.3</http.version>
 		<guava.version>19.0</guava.version>
+		<dist.dir>flinkx-dist</dist.dir>
 	</properties>
 
     <dependencies>

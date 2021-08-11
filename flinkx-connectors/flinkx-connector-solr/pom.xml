@@ -68,15 +68,15 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../flinkxplugins/${dir.name}">
+								<copy todir="${basedir}/../../${dist.dir}/${dir.name}">
 									<fileset dir="target/">
 										<include name="${artifactId}-${project.version}.jar"/>
 									</fileset>
 								</copy>
 								<!--suppress UnresolvedMavenProperty -->
 								<move
-									file="${basedir}/../../flinkxplugins/${dir.name}/${artifactId}-${project.version}.jar"
-									tofile="${basedir}/../../flinkxplugins/${dir.name}/${artifactId}-${git.branch}.jar"/>
+									file="${basedir}/../../${dist.dir}/${dir.name}/${artifactId}-${project.version}.jar"
+									tofile="${basedir}/../../${dist.dir}/${dir.name}/${artifactId}-${git.branch}.jar"/>
 							</tasks>
 						</configuration>
 					</execution>

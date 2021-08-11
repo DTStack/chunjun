@@ -57,7 +57,7 @@ public class Launcher {
     public static final String KEY_FLINK_HOME = "FLINK_HOME";
     public static final String KEY_HADOOP_HOME = "HADOOP_HOME";
 
-    public static final String PLUGINS_DIR_NAME = "flinkxplugins";
+    public static final String PLUGINS_DIR_NAME = "flinkx-dist";
 
     public static void main(String[] args) throws Exception {
         OptionParser optionParser = new OptionParser(args);

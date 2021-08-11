@@ -83,7 +83,7 @@
       -jobType sql \
       -jobName flink1.12_SPI \
       -job /yourjobpath/sqlFile.sql \
-      -pluginRoot /flinkx/flinkxplugins
+      -pluginRoot /flinkx/flinkx-dist
       ```
       ![conectorShare_local.png](images/conectorShare_local.png)
         
@@ -94,7 +94,7 @@
       -jobType sql \
       -jobName flink1.12_SPI \
       -job /yourjobpath/sqlFile.sql \
-      -pluginRoot /flinkx/flinkxplugins \
+      -pluginRoot /flinkx/flinkx-dist \
       -flinkconf /flink/conf \
       -yarnconf /yarn/conf \
       -flinkLibJar /yarn/lib \

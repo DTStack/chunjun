@@ -165,7 +165,7 @@ bin/flinkx \
 	-mode local \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins
+	-pluginRoot flinkx-dist
 ```
 
 可以在flink-conf.yaml配置文件里配置端口：
@@ -182,7 +182,7 @@ bin/flinkx \
 	-mode local \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins
+	-pluginRoot flinkx-dist
 ```
 
 任务运行后可以通过8888端口访问flink界面查看任务运行情况：
@@ -192,7 +192,7 @@ bin/flinkx \
 </div>
 
 ### Standalone模式运行
-NOTE:将flinkxplugins目录拷贝到$FLINK_HOME/lib下，并修改$FLINK_HOME/conf/flink-conf.yml中的classloader为classloader.resolve-order: parent-first
+NOTE:将flinkx-dist目录拷贝到$FLINK_HOME/lib下，并修改$FLINK_HOME/conf/flink-conf.yml中的classloader为classloader.resolve-order: parent-first
 
 命令模板：
 
@@ -201,7 +201,7 @@ bin/flinkx \
 	-mode standalone \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins \
+	-pluginRoot flinkx-dist \
 	-flinkconf $FLINK_HOME/conf \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
 ```
@@ -225,7 +225,7 @@ $FLINK_HOME/bin/start-cluster.sh
 ./bin/flinkx \
 	-mode standalone \
 	-jobType sync \
-	-pluginRoot flinkxplugins \
+	-pluginRoot flinkx-dist \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
 	-flinkconf $FLINK_HOME/conf
 ```
@@ -246,7 +246,7 @@ bin/flinkx \
 	-mode yarn-session \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins \
+	-pluginRoot flinkx-dist \
 	-flinkconf $FLINK_HOME/conf \
 	-yarnconf $HADOOP_HOME/etc/hadoop \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
@@ -274,7 +274,7 @@ bin/flinkx \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
 	-flinkconf $FLINK_HOME/conf \
-	-pluginRoot flinkxplugins \
+	-pluginRoot flinkx-dist \
 	-yarnconf $HADOOP_HOME/etc/hadoop
 ```
 
@@ -293,7 +293,7 @@ bin/flinkx \
 	-mode yarn-per-job \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins \
+	-pluginRoot flinkx-dist \
 	-flinkconf $FLINK_HOME/conf \
 	-yarnconf $HADOOP_HOME/etc/hadoop \
 	-flinkLibJar $FLINK_HOME/lib \
@@ -308,7 +308,7 @@ bin/flinkx \
 	-mode yarn-per-job \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins \
+	-pluginRoot flinkx-dist \
 	-yarnconf $HADOOP_HOME/etc/hadoop \
 	-flinkLibJar $FLINK_HOME/lib \
 ```
@@ -335,7 +335,7 @@ bin/flinkx \
     -job flinkx-local-test/src/main/demo/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
-    -pluginRoot flinkxplugins \
+    -pluginRoot flinkx-dist \
     -flinkLibJar $FLINK_HOME/lib \
     -flinkconf $FLINK_HOME/conf \
     -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.cluster-id\":\"${cluster_id}\",\"kubernetes.namespace\":\"${namespace}\"}"
@@ -358,8 +358,8 @@ bin/flinkx \
     -job flinkx-local-test/src/main/demo/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
-    -pluginRoot flinkxplugins \
-    -remotePluginPath /opt/flinkxplugins \
+    -pluginRoot flinkx-dist \
+    -remotePluginPath /opt/flinkx-dist \
     -pluginLoadMode classpath \
     -flinkLibJar $FLINK_HOME/lib \
     -flinkconf $FLINK_HOME/conf \
@@ -376,7 +376,7 @@ bin/flinkx \
 | **jobType**        | 任务类型                 | 1.**sync**:数据同步任务<br />    2.**sql**:flinksql任务                                                                                                                                                                                                                                      | 是    | 无                       |
 | **job**            | 同步、flinksql任务描述文件的存放路径；该描述文件中使用json、sql存放任务信息                  | 无                                                                                                                                                                                                                                           | 是    | 无                       |
 | **jobName**          | 任务名称                                                   | 无                                                                                                                                                                                                                                           | 否    | Flink Job               |
-| **pluginRoot**     | 插件根目录地址，也就是打包后产生的pluginRoot目录。                         | 无                                                                                                                                                                                                                                           | 否    | $FLINKX_HOME/flinkxplugins    |
+| **pluginRoot**     | 插件根目录地址，也就是打包后产生的pluginRoot目录。                         | 无                                                                                                                                                                                                                                           | 否    | $FLINKX_HOME/flinkx-dist    |
 | **flinkconf**      | flink配置文件所在的目录（单机模式下不需要）                               | $FLINK_HOME/conf                                                                                                                                                                                                                            | 否    | $FLINK_HOME/conf        |
 | **flinkLibJar**    | flink lib所在的目录（单机模式下不需要），如/opt/dtstack/flink-1.10.1/lib | $FLINK_HOME/lib                                                                                                                                                                                                                             | 否    | $FLINK_HOME/lib         |
 | **yarnconf**       | Hadoop配置文件（包括hdfs和yarn）所在的目录                           | $HADOOP_HOME/etc/hadoop                                                                                                                                                                                                                     | 否    | $HADOOP_HOME/etc/hadoop |

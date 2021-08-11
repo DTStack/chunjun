@@ -19,6 +19,7 @@ package com.dtstack.flinkx.local.test;
 
 import com.dtstack.flinkx.Main;
 import com.dtstack.flinkx.util.GsonUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,7 @@ public class LocalTest {
         String userDir = System.getProperty("user.dir");
 
         String jobPath = userDir + "/flinkx-local-test/src/main/demo/json/socket/socket_stream.json";
-        String flinkxPluginPath = userDir + "/flinkxplugins";
+        String flinkxPluginPath = userDir + "/flinkx-dist";
         String s = "";
 
         // 任务配置参数
