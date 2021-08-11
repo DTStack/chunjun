@@ -18,14 +18,6 @@
 
 package com.dtstack.flinkx.connector.cassandra.lookup;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.PagingIterable;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.core.querybuilder.Select;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraCommonConf;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraLookupConf;
 import com.dtstack.flinkx.connector.cassandra.util.CassandraService;
@@ -35,17 +27,24 @@ import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 import com.dtstack.flinkx.lookup.cache.CacheMissVal;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PagingIterable;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.querybuilder.Clause;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,7 +164,7 @@ public class CassandraLruTableFunction extends AbstractLruTableFunction {
                     }
 
                     @Override
-                    public void onFailure(@NotNull Throwable t) {
+                    public void onFailure(Throwable t) {
                         LOG.error("Failed to query the data.", t);
                         cluster.closeAsync();
                         future.completeExceptionally(t);
