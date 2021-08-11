@@ -244,7 +244,11 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     private Pair<BaseHdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tableName, RowData rowData, Map<String, Object> event) {
         String partitionValue = partitionFormat.format(new Date());
         String partitionPath = String.format(HiveUtil.PARTITION_TEMPLATE, hiveConf.getPartition(), partitionValue);
-        String hiveTablePath = tableName + ConstantValue.SINGLE_SLASH_SYMBOL + partitionPath;
+        String hiveTablePath = tableName;
+
+        if(!hiveConf.isNonPartitionTable()){
+            hiveTablePath +=  ConstantValue.SINGLE_SLASH_SYMBOL + partitionPath;
+        }
 
         Pair<String, BaseHdfsOutputFormat> formatPair = outputFormatMap.get(tableName);
         BaseHdfsOutputFormat outputFormat = null;
@@ -253,9 +257,12 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         }
         TableInfo tableInfo = checkCreateTable(tableName, rowData, event);
         if (outputFormat == null) {
-            HiveUtil.createPartition(tableInfo, partitionPath, connectionInfo);
-            String path = tableInfo.getPath() + ConstantValue.SINGLE_SLASH_SYMBOL + partitionPath;
 
+            String path = tableInfo.getPath();
+            if(!hiveConf.isNonPartitionTable()) {
+                HiveUtil.createPartition(tableInfo, partitionPath, connectionInfo);
+                path = tableInfo.getPath() + ConstantValue.SINGLE_SLASH_SYMBOL + partitionPath;
+            }
             outputFormat = createHdfsOutputFormat(tableInfo, path, hiveTablePath, rowData instanceof ColumnRowData);
             if(formatPair != null){
                 try {

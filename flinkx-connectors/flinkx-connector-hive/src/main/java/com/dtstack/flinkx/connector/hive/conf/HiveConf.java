@@ -45,6 +45,7 @@ public class HiveConf extends HdfsConf {
     private Map<String, TableInfo> tableInfos = new HashMap<>();
     private String tableName;
     private boolean autoCreateTable;
+    private boolean nonPartitionTable;
 
     public String getJdbcUrl() {
         return jdbcUrl;
@@ -150,6 +151,14 @@ public class HiveConf extends HdfsConf {
         this.autoCreateTable = autoCreateTable;
     }
 
+    public boolean isNonPartitionTable() {
+        return nonPartitionTable;
+    }
+
+    public void setNonPartitionTable(boolean nonPartitionTable) {
+        this.nonPartitionTable = nonPartitionTable;
+    }
+
     @Override
     public String toString() {
         return "HiveConf{" +
@@ -166,6 +175,7 @@ public class HiveConf extends HdfsConf {
                 ", tableInfos=" + tableInfos +
                 ", tableName='" + tableName + '\'' +
                 ", autoCreateTable=" + autoCreateTable +
+                ", nonPartitionTable=" + nonPartitionTable +
                 '}';
     }
 }

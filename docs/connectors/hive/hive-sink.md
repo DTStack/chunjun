@@ -40,12 +40,19 @@ Hive 1.x、Hive 2.x
   - 默认值：无
 <br />
 
-- **partition**
-  - 描述：分区字段名称
+- **nonPartitionTable**
+  - 描述：非分区表
   - 必选：否
-  - 字段类型：string
-  - 默认值：`pt`
+  - 字段类型：boolean
+  - 默认值：false
 <br />
+
+- **partition**
+        - 描述：分区字段名称
+        - 必选：否
+        - 字段类型：string
+        - 默认值：`pt`
+      <br />
 
 - **partitionType**
   - 描述：分区类型，包括 DAY、HOUR、MINUTE三种。**若分区不存在则会自动创建，自动创建的分区时间以当前任务运行的服务器时间为准**

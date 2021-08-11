@@ -91,6 +91,7 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
         options.add(HiveOptions.PASSWORD);
         options.add(HiveOptions.PARTITION_TYPE);
         options.add(HiveOptions.PARTITION);
+        options.add(HiveOptions.NON_PARTITION_TABLE);
 
         return options;
     }
@@ -135,6 +136,7 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
         hiveConf.setPassword(config.get(HiveOptions.PASSWORD));
         hiveConf.setPartitionType(config.get(HiveOptions.PARTITION_TYPE));
         hiveConf.setPartition(config.get(HiveOptions.PARTITION));
+        hiveConf.setNonPartitionTable(config.get(HiveOptions.NON_PARTITION_TABLE));
 
         return hiveConf;
     }

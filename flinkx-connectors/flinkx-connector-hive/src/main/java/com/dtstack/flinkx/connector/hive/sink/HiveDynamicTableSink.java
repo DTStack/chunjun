@@ -51,7 +51,7 @@ public class HiveDynamicTableSink implements DynamicTableSink {
     @SuppressWarnings("all")
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
         HiveOutputFormatBuilder builder = new HiveOutputFormatBuilder();
-        hiveConf.setTableInfos(HiveUtil.formatHiveTableInfo(hiveConf.getTablesColumn(), hiveConf.getPartition(), hiveConf.getFieldDelimiter(), hiveConf.getFileType()));
+        hiveConf.setTableInfos(HiveUtil.formatHiveTableInfo(hiveConf.getTablesColumn(), hiveConf.getPartition(), hiveConf.getFieldDelimiter(), hiveConf.getFileType(), hiveConf.isNonPartitionTable()));
         builder.setHiveConf(hiveConf);
         return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), hiveConf.getParallelism());
     }

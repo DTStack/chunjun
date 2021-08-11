@@ -179,7 +179,7 @@ public class HiveUtil {
         return version;
     }
 
-    public static String getCreateTableHql(TableInfo tableInfo) {
+    public static String getCreateTableHql(TableInfo tableInfo,boolean isNonPartitionTable) {
         //不要使用create table if not exist，可能以后会在业务逻辑中判断表是否已经存在
         StringBuilder sql = new StringBuilder(256);
         sql.append("CREATE TABLE %s (");
@@ -190,7 +190,7 @@ public class HiveUtil {
             }
         }
         sql.append(") ");
-        if (!tableInfo.getPartitionList().isEmpty()) {
+        if (!tableInfo.getPartitionList().isEmpty() && !isNonPartitionTable) {
             sql.append(" PARTITIONED BY (");
             for (String partitionField : tableInfo.getPartitionList()) {
                 sql.append(String.format("`%s` string", partitionField));
@@ -229,7 +229,7 @@ public class HiveUtil {
         return distributeTableMapping;
     }
 
-    public static Map<String, TableInfo> formatHiveTableInfo(String tablesColumn, String partition, String fieldDelimiter, String fileType) {
+    public static Map<String, TableInfo> formatHiveTableInfo(String tablesColumn, String partition, String fieldDelimiter, String fileType, boolean isNonPartitionTable) {
         Map<String, TableInfo> tableInfos = new HashMap<>(16);
         if (StringUtils.isNotEmpty(tablesColumn)) {
             Map<String, List<Map<String, Object>>> tableColumnMap = GsonUtil.GSON.fromJson(tablesColumn, new com.google.gson.reflect.TypeToken<TreeMap<String, List<Map<String, Object>> >>(){}.getType());
@@ -244,7 +244,7 @@ public class HiveUtil {
                 for (Map<String, Object> column : tableColumns) {
                     tableInfo.addColumnAndType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY), MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE));
                 }
-                String createTableSql = HiveUtil.getCreateTableHql(tableInfo);
+                String createTableSql = HiveUtil.getCreateTableHql(tableInfo, isNonPartitionTable);
                 tableInfo.setCreateTableSql(createTableSql);
 
                 tableInfos.put(tableName, tableInfo);

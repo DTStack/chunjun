@@ -45,7 +45,7 @@ public class HiveSinkFactory extends SinkFactory {
         hiveConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getWriter().getParameter()), HiveConf.class);
         hiveConf.setColumn(config.getWriter().getFieldList());
         hiveConf.setDistributeTableMapping(HiveUtil.formatHiveDistributeInfo(hiveConf.getDistributeTable()));
-        hiveConf.setTableInfos(HiveUtil.formatHiveTableInfo(hiveConf.getTablesColumn(), hiveConf.getPartition(), hiveConf.getFieldDelimiter(), hiveConf.getFileType()));
+        hiveConf.setTableInfos(HiveUtil.formatHiveTableInfo(hiveConf.getTablesColumn(), hiveConf.getPartition(), hiveConf.getFieldDelimiter(), hiveConf.getFileType(), hiveConf.isNonPartitionTable()));
         if (StringUtils.isBlank(hiveConf.getAnalyticalRules())) {
             hiveConf.setTableName(hiveConf.getTableInfos().entrySet().iterator().next().getValue().getTableName());
         } else {

@@ -65,4 +65,9 @@ public class HiveOptions extends HdfsOptions {
                     .defaultValue("pt")
                     .withDescription("Partition field name");
 
+    public static final ConfigOption<Boolean> NON_PARTITION_TABLE =
+            ConfigOptions.key("nonPartitionTable")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("non-partitioned table");
 }
