@@ -51,7 +51,7 @@ public class Options {
     @OptionRequired(description = "Flink configuration directory")
     private String flinkConfDir;
 
-    @OptionRequired(description = "env properties")
+    @OptionRequired(description = "FlinkX dist dir")
     private String flinkxDistDir;
 
     @OptionRequired(description = "Yarn and Hadoop configuration directory")
@@ -69,8 +69,8 @@ public class Options {
     @OptionRequired(description = "plugin load mode, by classpath or shipfile")
     private String pluginLoadMode = "shipfile";
 
-    @OptionRequired(description = "Sync remote plugin root path")
-    private String remotePluginPath;
+    @OptionRequired(description = "remote FlinkX dist dir")
+    private String remoteFlinkxDistDir;
 
     @OptionRequired(description = "sql ext jar,eg udf jar")
     private String addjar;
@@ -177,12 +177,12 @@ public class Options {
         this.pluginLoadMode = pluginLoadMode;
     }
 
-    public String getRemotePluginPath() {
-        return remotePluginPath;
+    public String getRemoteFlinkxDistDir() {
+        return remoteFlinkxDistDir;
     }
 
-    public void setRemotePluginPath(String remotePluginPath) {
-        this.remotePluginPath = remotePluginPath;
+    public void setRemoteFlinkxDistDir(String remoteFlinkxDistDir) {
+        this.remoteFlinkxDistDir = remoteFlinkxDistDir;
     }
 
     public String getAddjar() {
@@ -254,7 +254,7 @@ public class Options {
                 + pluginLoadMode
                 + '\''
                 + ", remotePluginPath='"
-                + remotePluginPath
+                + remoteFlinkxDistDir
                 + '\''
                 + ", addjar='"
                 + addjar

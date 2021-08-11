@@ -247,8 +247,8 @@ public class Main {
                 config.setPluginRoot(options.getFlinkxDistDir());
             }
 
-            if (StringUtils.isNotBlank(options.getRemotePluginPath())) {
-                config.setRemotePluginPath(options.getRemotePluginPath());
+            if (StringUtils.isNotBlank(options.getRemoteFlinkxDistDir())) {
+                config.setRemotePluginPath(options.getRemoteFlinkxDistDir());
             }
         } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
@@ -271,13 +271,13 @@ public class Main {
         } else {
             Preconditions.checkArgument(
                     ExecuteProcessHelper.checkRemoteSqlPluginPath(
-                            options.getRemotePluginPath(),
+                            options.getRemoteFlinkxDistDir(),
                             options.getMode(),
                             options.getPluginLoadMode()),
                     "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
             FactoryHelper factoryHelper = new FactoryHelper();
             factoryHelper.setLocalPluginPath(options.getFlinkxDistDir());
-            factoryHelper.setRemotePluginPath(options.getRemotePluginPath());
+            factoryHelper.setRemotePluginPath(options.getRemoteFlinkxDistDir());
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
 

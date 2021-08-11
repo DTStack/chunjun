@@ -158,7 +158,7 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
         String coreJarFileName = PluginInfoUtil.getCoreJarName(launcherOptions.getFlinkxDistDir());
         String remoteCoreJarPath =
                 "local://"
-                        + launcherOptions.getRemotePluginPath()
+                        + launcherOptions.getRemoteFlinkxDistDir()
                         + File.separator
                         + coreJarFileName;
         configuration.set(PipelineOptions.JARS, Collections.singletonList(remoteCoreJarPath));
