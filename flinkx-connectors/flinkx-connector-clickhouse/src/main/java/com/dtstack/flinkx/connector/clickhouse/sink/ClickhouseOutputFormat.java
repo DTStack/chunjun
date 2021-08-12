@@ -32,7 +32,7 @@ import java.sql.SQLException;
 public class ClickhouseOutputFormat extends JdbcOutputFormat {
 
     @Override
-    protected Connection getConnection() throws SQLException{
+    protected Connection getConnection() throws SQLException {
         return ClickhouseUtil.getConnection(jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
     }
 }
