@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.phoenix5.sink;
 
+import com.dtstack.flinkx.enums.Semantic;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
@@ -49,7 +50,9 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
             dbConn = getConnection();
             // Turn off automatic transaction commit by default, and manually control the
             // transaction.
-            dbConn.setAutoCommit(false);
+            if (Semantic.EXACTLY_ONCE == semantic) {
+                dbConn.setAutoCommit(false);
+            }
             initColumnList();
             fieldNamedPreparedStatement =
                     FieldNamedPreparedStatement.prepareStatement(
@@ -59,7 +62,9 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
         } finally {
-            JdbcUtil.commit(dbConn);
+            if (Semantic.EXACTLY_ONCE == semantic) {
+                JdbcUtil.commit(dbConn);
+            }
         }
 
         RowType rowType =

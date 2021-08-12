@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.sink.format;
 
+import com.dtstack.flinkx.enums.Semantic;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.api.common.io.FinalizeOnMaster;
@@ -155,6 +156,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     protected LongCounter conversionErrCounter;
     protected LongCounter otherErrCounter;
 
+    protected Semantic semantic;
+
     @Override
     public void initializeGlobal(int parallelism) {
         // 任务开始前操作，在configure前调用。
@@ -187,6 +190,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.rows = new ArrayList<>(batchSize);
         this.flushIntervalMills = config.getFlushIntervalMills();
         this.flushEnable = new AtomicBoolean(true);
+        this.semantic = Semantic.valueOf(config.getSemantic());
 
         checkpointMode =
                 context.getCheckpointMode() == null
@@ -556,7 +560,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
      */
     public synchronized FormatState getFormatState() throws Exception {
         // not EXACTLY_ONCE model,Does not interact with the db
-        if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
+        if (Semantic.EXACTLY_ONCE == semantic) {
             try {
                 LOG.info(
                         "getFormatState:Start preCommit, rowsOfCurrentTransaction: {}",
@@ -567,6 +571,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             } finally {
                 flushEnable.compareAndSet(true, false);
             }
+        }else{
+            writeRecordInternal();
         }
         // set metric after preCommit
         formatState.setNumberWrite(numWriteCounter.getLocalValue());
@@ -619,7 +625,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
      * @param checkpointId
      */
     public synchronized void notifyCheckpointComplete(long checkpointId) {
-        if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
+        if (Semantic.EXACTLY_ONCE == semantic) {
             try {
                 commit(checkpointId);
                 LOG.info("notifyCheckpointComplete:Commit success , checkpointId:{}", checkpointId);
@@ -645,7 +651,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
      * @param checkpointId
      */
     public synchronized void notifyCheckpointAborted(long checkpointId) {
-        if (CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
+        if (Semantic.EXACTLY_ONCE == semantic) {
             try {
                 rollback(checkpointId);
                 LOG.info(
