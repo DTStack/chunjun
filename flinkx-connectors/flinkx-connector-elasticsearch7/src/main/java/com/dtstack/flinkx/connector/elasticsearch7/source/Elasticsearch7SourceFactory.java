@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
@@ -36,6 +38,8 @@ import org.apache.flink.util.TimeUtils;
 
 import org.elasticsearch.client.common.TimeUtil;
 
+import java.util.List;
+
 /**
  * @description:
  * @program: flinkx-all
@@ -51,9 +55,15 @@ public class Elasticsearch7SourceFactory extends SourceFactory {
         elasticsearchConf =
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getReader().getParameter()), ElasticsearchConf.class);
-        elasticsearchConf.setColumn(syncConf.getReader().getFieldList());
+        List<FieldConf> fieldList = syncConf.getReader().getFieldList();
+        String[] fieldNames = new String[fieldList.size()];
+        for (int i = 0; i < fieldList.size() ; i++) {
+            fieldNames[i] = fieldList.get(i).getName();
+        }
+
         super.initFlinkxCommonConf(elasticsearchConf);
-        elasticsearchConf.setParallelism(1);
+        elasticsearchConf.setColumn(fieldList);
+        elasticsearchConf.setFieldNames(fieldNames);
     }
 
     @Override
@@ -63,7 +73,7 @@ public class Elasticsearch7SourceFactory extends SourceFactory {
         final RowType rowType = TableUtil.createRowType(
                 elasticsearchConf.getColumn(),
                 getRawTypeConverter());
-        builder.setRowConverter(new ElasticsearchColumnConverter(elasticsearchConf, rowType));
+        builder.setRowConverter(new ElasticsearchColumnConverter(rowType));
         return createInput(builder.finish());
     }
 

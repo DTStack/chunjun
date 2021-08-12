@@ -98,7 +98,7 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
                             Map<String,Object> result = searchHit.getSourceAsMap();
                             RowData rowData;
                             try {
-                                rowData = fillData(result);
+                                rowData = rowConverter.toInternalLookup(result);
                                 if (openCache()) {
                                     cacheContent.add(result);
                                 }
@@ -126,11 +126,6 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
                 future.completeExceptionally(new RuntimeException("Response failed!"));
             }
         });
-    }
-
-    @Override
-    protected RowData fillData(Object sideInput) throws Exception {
-        return rowConverter.toInternalLookup(sideInput);
     }
 
     /**

@@ -40,13 +40,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_BULK_FLUSH_MAX_ACTIONS_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_CLIENT_CONNECT_TIMEOUT_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_CLIENT_KEEPALIVE_TIME_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_CLIENT_MAX_CONNECTION_PER_ROUTE_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_CLIENT_REQUEST_TIMEOUT_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_CLIENT_SOCKET_TIMEOUT_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_PARALLELISM_OPTION;
 import static com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchConstants.IDENTIFIER;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TTL;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TYPE;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
@@ -100,9 +107,9 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
                     LOOKUP_CACHE_TTL,
                     LOOKUP_CACHE_TYPE,
                     LOOKUP_MAX_RETRIES,
-                    LOOKUP_ERRORLIMIT,
+                    LOOKUP_ERROR_LIMIT,
                     LOOKUP_FETCH_SIZE,
-                    LOOKUP_ASYNCTIMEOUT,
+                    LOOKUP_ASYNC_TIMEOUT,
                     LOOKUP_PARALLELISM)
                     .collect(Collectors.toSet());
 
@@ -166,6 +173,12 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
         elasticsearchConf.setType(readableConfig.get(DOCUMENT_TYPE_OPTION));
         elasticsearchConf.setKeyDelimiter(readableConfig.get(KEY_DELIMITER_OPTION));
         elasticsearchConf.setBatchSize(readableConfig.get(BULK_FLUSH_MAX_ACTIONS_OPTION));
+        elasticsearchConf.setParallelism(readableConfig.get(DT_PARALLELISM_OPTION));
+        elasticsearchConf.setConnectTimeout(readableConfig.get(DT_CLIENT_CONNECT_TIMEOUT_OPTION));
+        elasticsearchConf.setSocketTimeout(readableConfig.get(DT_CLIENT_SOCKET_TIMEOUT_OPTION));
+        elasticsearchConf.setKeepAliveTime(readableConfig.get(DT_CLIENT_KEEPALIVE_TIME_OPTION));
+        elasticsearchConf.setMaxConnPerRoute(readableConfig.get(DT_CLIENT_MAX_CONNECTION_PER_ROUTE_OPTION));
+        elasticsearchConf.setRequestTimeout(readableConfig.get(DT_CLIENT_REQUEST_TIMEOUT_OPTION));
         String username = readableConfig.get(USERNAME_OPTION);
         String password = readableConfig.get(PASSWORD_OPTION);
         if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
@@ -191,9 +204,9 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
                 .setCacheTtl(readableConfig.get(LOOKUP_CACHE_TTL))
                 .setCache(readableConfig.get(LOOKUP_CACHE_TYPE))
                 .setMaxRetryTimes(readableConfig.get(LOOKUP_MAX_RETRIES))
-                .setErrorLimit(readableConfig.get(LOOKUP_ERRORLIMIT))
+                .setErrorLimit(readableConfig.get(LOOKUP_ERROR_LIMIT))
                 .setFetchSize(readableConfig.get(LOOKUP_FETCH_SIZE))
-                .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNCTIMEOUT))
+                .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNC_TIMEOUT))
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
 
