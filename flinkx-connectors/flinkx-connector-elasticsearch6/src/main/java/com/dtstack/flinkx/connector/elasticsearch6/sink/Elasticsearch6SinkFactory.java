@@ -50,7 +50,6 @@ public class Elasticsearch6SinkFactory extends SinkFactory {
                         JsonUtil.toJson(syncConf.getWriter().getParameter()), Elasticsearch6Conf.class);
         elasticsearchConf.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(elasticsearchConf);
-        elasticsearchConf.setParallelism(1);
     }
 
     @Override

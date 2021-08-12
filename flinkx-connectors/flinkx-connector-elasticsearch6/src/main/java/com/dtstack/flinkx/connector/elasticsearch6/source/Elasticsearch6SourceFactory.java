@@ -60,7 +60,6 @@ public class Elasticsearch6SourceFactory extends SourceFactory {
         super.initFlinkxCommonConf(elasticsearchConf);
         elasticsearchConf.setColumn(fieldList);
         elasticsearchConf.setFieldNames(fieldNames);
-        elasticsearchConf.setParallelism(1);
     }
 
     @Override

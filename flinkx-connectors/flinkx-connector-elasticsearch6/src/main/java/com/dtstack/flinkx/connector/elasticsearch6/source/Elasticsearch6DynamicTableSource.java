@@ -89,7 +89,9 @@ public class Elasticsearch6DynamicTableSource
         builder.setEsConf(elasticsearchConf);
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                elasticsearchConf.getParallelism());
     }
 
     @Override

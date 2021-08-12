@@ -64,7 +64,9 @@ public class Elasticsearch6DynamicTableSink implements DynamicTableSink {
         builder.setRowConverter(new Elasticsearch6RowConverter(rowType));
         builder.setEsConf(elasticsearchConf);
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()), 1);
+        return SinkFunctionProvider.of(
+                new DtOutputFormatSinkFunction<>(builder.finish()),
+                elasticsearchConf.getParallelism());
     }
 
     @Override

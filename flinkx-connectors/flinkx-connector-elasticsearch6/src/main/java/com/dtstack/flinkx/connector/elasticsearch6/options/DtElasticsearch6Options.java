@@ -17,4 +17,10 @@ public class DtElasticsearch6Options {
                     .defaultValue(1000)
                     .withDescription("Maximum number of actions to buffer for each bulk request.");
 
+    public static final ConfigOption<Integer> DT_PARALLELISM_OPTION =
+            ConfigOptions.key("parallelism")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription("Parallelism for connector running.");
+
 }
