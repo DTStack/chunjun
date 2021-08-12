@@ -100,6 +100,13 @@ FTP服务搭建<br />windows：[地址](https://help.aliyun.com/document_detail/
    - 默认值：false
 <br />
 
+- **ftpFileName**
+   - 描述：文件名
+   - 必选：否
+   - 字段类型：String
+   - 默认值：无
+<br />
+
 - **timeout**
    - 描述：连接超时时间，单位毫秒
    - 必选：否

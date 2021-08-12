@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.ftp.handler;
 
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-import com.jcraft.jsch.SftpException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,8 +27,9 @@ import java.util.List;
 
 /**
  * The skeleton of Ftp Utility class
- *
+ * <p>
  * Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public interface IFtpHandler {
@@ -39,10 +39,11 @@ public interface IFtpHandler {
      *
      * @param ftpConfig 连接配置
      */
-    void loginFtpServer(FtpConfig ftpConfig) ;
+    void loginFtpServer(FtpConfig ftpConfig);
 
     /**
      * 登出服务器
+     *
      * @throws IOException logout error
      */
     void logoutFtpServer() throws IOException;
@@ -51,6 +52,7 @@ public interface IFtpHandler {
      * 判断给定的目录是否存在
      *
      * @param directoryPath 要检查的路径
+     *
      * @return true:存在，false:不存在
      */
     boolean isDirExist(String directoryPath);
@@ -59,6 +61,7 @@ public interface IFtpHandler {
      * 检查给定的文件是否存在
      *
      * @param filePath 要检查的文件路径
+     *
      * @return true:存在,false:不存在
      */
     boolean isFileExist(String filePath);
@@ -67,6 +70,7 @@ public interface IFtpHandler {
      * 获取文件输入流
      *
      * @param filePath 文件路径
+     *
      * @return 数据流
      */
     InputStream getInputStream(String filePath);
@@ -75,6 +79,7 @@ public interface IFtpHandler {
      * 列出指定路径下的目录
      *
      * @param path 路径
+     *
      * @return 目录列表
      */
     List<String> listDirs(String path);
@@ -83,6 +88,7 @@ public interface IFtpHandler {
      * 列出指定路径下的目录
      *
      * @param path 路径
+     *
      * @return 目录列表
      */
     long getFileSize(String path) throws IOException;
@@ -91,6 +97,7 @@ public interface IFtpHandler {
      * 列出路径下的文件
      *
      * @param path 路径
+     *
      * @return 文件列表
      */
     List<String> getFiles(String path);
@@ -106,6 +113,7 @@ public interface IFtpHandler {
      * 获取输出数据流
      *
      * @param filePath 文件路径
+     *
      * @return 数据流
      */
     OutputStream getOutputStream(String filePath);
@@ -130,12 +138,14 @@ public interface IFtpHandler {
      *
      * @param oldPath 原来的路径名称
      * @param newPath 新的路径名称
+     *
      * @throws Exception 可能会出现文件不存在，连接异常等
      */
     void rename(String oldPath, String newPath) throws Exception;
 
     /**
      * 关闭ftp输入流
+     *
      * @throws IOException 文件句柄操作异常
      */
     void completePendingCommand() throws IOException;

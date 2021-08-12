@@ -22,6 +22,7 @@ import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
 import com.dtstack.flinkx.connector.ftp.enums.EFtpMode;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,14 +36,15 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The concrete Ftp Utility class used for standard ftp
- *
+ * <p>
  * Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class FtpHandler implements IFtpHandler {
@@ -50,11 +52,8 @@ public class FtpHandler implements IFtpHandler {
     private static final Logger LOG = LoggerFactory.getLogger(FtpHandler.class);
 
     private static final String DISCONNECT_FAIL_MESSAGE = "Failed to disconnect from ftp server";
-
-    private FTPClient ftpClient = null;
-
     private static final String SP = "/";
-
+    private FTPClient ftpClient = null;
     private String controlEncoding;
 
     public FTPClient getFtpClient() {
@@ -84,7 +83,8 @@ public class FtpHandler implements IFtpHandler {
             int reply = ftpClient.getReplyCode();
             if (!FTPReply.isPositiveCompletion(reply)) {
                 ftpClient.disconnect();
-                String message = String.format("与ftp服务器建立连接失败,请检查用户名和密码是否正确: [%s]",
+                String message = String.format(
+                        "与ftp服务器建立连接失败,请检查用户名和密码是否正确: [%s]",
                         "message:host =" + ftpConfig.getHost() + ",username = " + ftpConfig.getUsername() + ",port =" + ftpConfig.getPort());
                 LOG.error(message);
                 throw new RuntimeException(message);
@@ -97,12 +97,12 @@ public class FtpHandler implements IFtpHandler {
     }
 
     @Override
-    public void logoutFtpServer() throws IOException{
+    public void logoutFtpServer() throws IOException {
         if (ftpClient.isConnected()) {
             try {
                 ftpClient.logout();
             } finally {
-                if(ftpClient.isConnected()){
+                if (ftpClient.isConnected()) {
                     ftpClient.disconnect();
                 }
             }
@@ -116,16 +116,17 @@ public class FtpHandler implements IFtpHandler {
 
             originDir = ftpClient.printWorkingDirectory();
             ftpClient.enterLocalPassiveMode();
-            FTPFile[] ftpFiles = ftpClient.listFiles(new String(directoryPath.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING));
-            if(ftpFiles.length == 0 && !ftpClient.changeWorkingDirectory(new String(directoryPath.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING))){
+            FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(directoryPath));
+            if (ftpFiles.length == 0 && !ftpClient.changeWorkingDirectory(encodePath(directoryPath))) {
                 return false;
             }
-            boolean positiveCompletion = FTPReply.isPositiveCompletion(ftpClient.cwd(new String(directoryPath.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING)));
-            if(positiveCompletion && ftpFiles.length == 1 && ftpFiles[0].isFile()){
+            boolean positiveCompletion = FTPReply.isPositiveCompletion(ftpClient.cwd(encodePath(directoryPath)));
+            if (positiveCompletion && ftpFiles.length == 1 && ftpFiles[0].isFile()) {
                 String[] split = directoryPath.split(String.valueOf(IOUtils.DIR_SEPARATOR_UNIX));
                 //还要再判断文件名相同 并且如果这是一个文件
-                if(ftpFiles[0].getName().equals(split[split.length-1])){
-                    return  ftpClient.listFiles(new String((directoryPath + IOUtils.DIR_SEPARATOR_UNIX + ftpFiles[0].getName()).getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING)).length != 0;
+                if (ftpFiles[0].getName().equals(split[split.length - 1])) {
+                    String ftpFilePath = directoryPath + IOUtils.DIR_SEPARATOR_UNIX + ftpFiles[0].getName();
+                    return ftpClient.listFiles(encodePath(ftpFilePath)).length != 0;
                 }
             }
             return positiveCompletion;
@@ -135,7 +136,7 @@ public class FtpHandler implements IFtpHandler {
             LOG.error(message);
             throw new RuntimeException(message, e);
         } finally {
-            if(originDir != null) {
+            if (originDir != null) {
                 try {
                     ftpClient.changeWorkingDirectory(originDir);
                 } catch (IOException e) {
@@ -155,21 +156,21 @@ public class FtpHandler implements IFtpHandler {
         List<String> sources = new ArrayList<>();
         ftpClient.enterLocalPassiveMode();
 
-        if(!isExist(path)){
+        if (!isExist(path)) {
             return sources;
         }
-        if(isFileExist(path)) {
+        if (isFileExist(path)) {
             sources.add(path);
             return sources;
-        }else{
+        } else {
             path = path + SP;
         }
         try {
-            FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(controlEncoding),FTP.DEFAULT_CONTROL_ENCODING));
-            if(ftpFiles != null) {
-                for(FTPFile ftpFile : ftpFiles) {
+            FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(path));
+            if (ftpFiles != null) {
+                for (FTPFile ftpFile : ftpFiles) {
                     // .和..是特殊文件
-                    if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                    if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                         continue;
                     }
                     sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
@@ -184,28 +185,31 @@ public class FtpHandler implements IFtpHandler {
 
     /**
      * 递归获取指定路径下的所有文件(暂无过滤)
+     *
      * @param path
      * @param file
+     *
      * @return
+     *
      * @throws IOException
      */
-    private List<String> getFiles(String path, FTPFile file)throws IOException {
+    private List<String> getFiles(String path, FTPFile file) throws IOException {
         List<String> sources = new ArrayList<>();
-        if(file.isDirectory()){
-            if(!path.endsWith(SP)) {
+        if (file.isDirectory()) {
+            if (!path.endsWith(SP)) {
                 path = path + SP;
             }
             ftpClient.enterLocalPassiveMode();
-            FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(controlEncoding),FTP.DEFAULT_CONTROL_ENCODING));
-            if(ftpFiles != null) {
-                for(FTPFile ftpFile : ftpFiles) {
-                    if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+            FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(path));
+            if (ftpFiles != null) {
+                for (FTPFile ftpFile : ftpFiles) {
+                    if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                         continue;
                     }
                     sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
                 }
             }
-        }else{
+        } else {
             sources.add(path);
         }
         LOG.info("path = {}, FTPFile is directory = {}", path, file.isDirectory());
@@ -213,18 +217,18 @@ public class FtpHandler implements IFtpHandler {
     }
 
     @Override
-    public void mkDirRecursive(String directoryPath){
+    public void mkDirRecursive(String directoryPath) {
         StringBuilder dirPath = new StringBuilder();
         dirPath.append(IOUtils.DIR_SEPARATOR_UNIX);
-        String[] dirSplit = StringUtils.split(directoryPath,IOUtils.DIR_SEPARATOR_UNIX);
+        String[] dirSplit = StringUtils.split(directoryPath, IOUtils.DIR_SEPARATOR_UNIX);
         String message = String.format("创建目录:%s时发生异常,请确认与ftp服务器的连接正常,拥有目录创建权限", directoryPath);
         try {
             // ftp server不支持递归创建目录,只能一级一级创建
-            for(String dirName : dirSplit){
+            for (String dirName : dirSplit) {
                 dirPath.append(dirName);
                 boolean mkdirSuccess = mkDirSingleHierarchy(dirPath.toString());
                 dirPath.append(IOUtils.DIR_SEPARATOR_UNIX);
-                if(!mkdirSuccess){
+                if (!mkdirSuccess) {
                     throw new RuntimeException(message);
                 }
             }
@@ -239,10 +243,10 @@ public class FtpHandler implements IFtpHandler {
 
     private boolean mkDirSingleHierarchy(String directoryPath) throws IOException {
         boolean isDirExist = this.ftpClient
-                .changeWorkingDirectory(new String(directoryPath.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING));
+                .changeWorkingDirectory(encodePath(directoryPath));
         // 如果directoryPath目录不存在,则创建
         if (!isDirExist) {
-            int replayCode = this.ftpClient.mkd(new String(directoryPath.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING));
+            int replayCode = this.ftpClient.mkd(encodePath(directoryPath));
             if (replayCode != FTPReply.COMMAND_OK
                     && replayCode != FTPReply.PATHNAME_CREATED && replayCode != FTPReply.FILE_ACTION_OK) {
                 LOG.warn("create path [{}] failed ,replayCode is {} and reply is  {} ", directoryPath, replayCode, ftpClient.getReplyString());
@@ -256,12 +260,13 @@ public class FtpHandler implements IFtpHandler {
     public OutputStream getOutputStream(String filePath) {
         try {
             this.printWorkingDirectory();
-            String parentDir = filePath.substring(0,
+            String parentDir = filePath.substring(
+                    0,
                     StringUtils.lastIndexOf(filePath, IOUtils.DIR_SEPARATOR_UNIX));
             this.ftpClient.changeWorkingDirectory(parentDir);
             this.printWorkingDirectory();
             OutputStream writeOutputStream = this.ftpClient
-                    .appendFileStream(new String(filePath.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING));
+                    .appendFileStream(encodePath(filePath));
             String message = String.format(
                     "打开FTP文件[%s]获取写出流时出错,请确认文件%s有权限创建，有权限写出等", filePath,
                     filePath);
@@ -281,45 +286,47 @@ public class FtpHandler implements IFtpHandler {
 
     private void printWorkingDirectory() {
         try {
-            LOG.info(String.format("current working directory:%s",
+            LOG.info(String.format(
+                    "current working directory:%s",
                     this.ftpClient.printWorkingDirectory()));
         } catch (Exception e) {
-            LOG.warn(String.format("printWorkingDirectory error:%s",
+            LOG.warn(String.format(
+                    "printWorkingDirectory error:%s",
                     e.getMessage()));
         }
     }
 
     @Override
     public void deleteAllFilesInDir(String dir, List<String> exclude) {
-        if(isDirExist(dir)) {
-            if(!dir.endsWith(SP)) {
+        if (isDirExist(dir)) {
+            if (!dir.endsWith(SP)) {
                 dir = dir + SP;
             }
 
             try {
-                FTPFile[] ftpFiles = ftpClient.listFiles(new String(dir.getBytes(controlEncoding),FTP.DEFAULT_CONTROL_ENCODING));
-                if(ftpFiles != null) {
-                    for(FTPFile ftpFile : ftpFiles) {
-                        if(CollectionUtils.isNotEmpty(exclude) && exclude.contains(ftpFile.getName())){
+                FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(dir));
+                if (ftpFiles != null) {
+                    for (FTPFile ftpFile : ftpFiles) {
+                        if (CollectionUtils.isNotEmpty(exclude) && exclude.contains(ftpFile.getName())) {
                             continue;
                         }
-                        if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                        if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                             continue;
                         }
                         deleteAllFilesInDir(dir + ftpFile.getName(), exclude);
                     }
                 }
 
-                if(CollectionUtils.isEmpty(exclude)){
-                    ftpClient.rmd(new String(dir.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING));
+                if (CollectionUtils.isEmpty(exclude)) {
+                    ftpClient.rmd(encodePath(dir));
                 }
             } catch (IOException e) {
                 LOG.error("", e);
                 throw new RuntimeException(e);
             }
-        } else if(isFileExist(dir)) {
+        } else if (isFileExist(dir)) {
             try {
-                ftpClient.deleteFile(new String(dir.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING));
+                ftpClient.deleteFile(encodePath(dir));
             } catch (IOException e) {
                 LOG.error("", e);
                 throw new RuntimeException(e);
@@ -328,7 +335,7 @@ public class FtpHandler implements IFtpHandler {
     }
 
     @Override
-    public boolean deleteFile(String filePath) throws IOException{
+    public boolean deleteFile(String filePath) throws IOException {
         try {
             if (isFileExist(filePath)) {
                 return ftpClient.deleteFile(filePath);
@@ -343,7 +350,7 @@ public class FtpHandler implements IFtpHandler {
     public InputStream getInputStream(String filePath) {
         try {
             ftpClient.enterLocalPassiveMode();
-            InputStream is = ftpClient.retrieveFileStream(new String(filePath.getBytes(controlEncoding),FTP.DEFAULT_CONTROL_ENCODING));
+            InputStream is = ftpClient.retrieveFileStream(encodePath(filePath));
             return is;
         } catch (IOException e) {
             String message = String.format("读取文件 : [%s] 时出错,请确认文件：[%s]存在且配置的用户有权限读取", filePath, filePath);
@@ -355,16 +362,16 @@ public class FtpHandler implements IFtpHandler {
     @Override
     public List<String> listDirs(String path) {
         List<String> sources = new ArrayList<>();
-        if(isDirExist(path)) {
-            if(!path.endsWith(SP)) {
+        if (isDirExist(path)) {
+            if (!path.endsWith(SP)) {
                 path = path + SP;
             }
 
             try {
-                FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(controlEncoding),FTP.DEFAULT_CONTROL_ENCODING));
-                if(ftpFiles != null) {
-                    for(FTPFile ftpFile : ftpFiles) {
-                        if(StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)){
+                FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(path));
+                if (ftpFiles != null) {
+                    for (FTPFile ftpFile : ftpFiles) {
+                        if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                             continue;
                         }
                         sources.add(path + ftpFile.getName());
@@ -381,16 +388,16 @@ public class FtpHandler implements IFtpHandler {
 
     @Override
     public void rename(String oldPath, String newPath) throws IOException {
-        ftpClient.rename(new String(oldPath.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING), new String(newPath.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING));
+        ftpClient.rename(encodePath(oldPath), encodePath(newPath));
     }
 
     @Override
     public void completePendingCommand() throws IOException {
         try {
             // throw exception when return false
-            if(!ftpClient.completePendingCommand()){
+            if (!ftpClient.completePendingCommand()) {
                 throw new IOException("I/O error occurs while sending or receiving data");
-            };
+            }
         } catch (IOException e) {
             LOG.error("I/O error occurs while sending or receiving data");
             throw new IOException(ExceptionUtil.getErrorMessage(e));
@@ -408,7 +415,9 @@ public class FtpHandler implements IFtpHandler {
 
     /**
      * 判断路径是否存在
+     *
      * @param path 判断的路径
+     *
      * @return true 存在  false 不存在
      */
     private boolean isExist(String path) {
@@ -416,12 +425,11 @@ public class FtpHandler implements IFtpHandler {
         try {
             originDir = ftpClient.printWorkingDirectory();
             ftpClient.enterLocalPassiveMode();
-            FTPFile[] ftpFiles = ftpClient.listFiles(new String(path.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING));
+            FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(path));
             //空文件夹 或者 不存在的文件夹 length都是0 但是changeWorkingDirectory为true代表是空文件夹
-            return ftpFiles.length != 0 || ftpClient.changeWorkingDirectory(new String(path.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING));
+            return ftpFiles.length != 0 || ftpClient.changeWorkingDirectory(encodePath(path));
         } catch (IOException e) {
             String message = String.format("判断：[%s]是否存在时发生I/O异常,请确认与ftp服务器的连接正常", path);
-            LOG.error(message);
             throw new RuntimeException(message, e);
         } finally {
             if (originDir != null) {
@@ -432,5 +440,9 @@ public class FtpHandler implements IFtpHandler {
                 }
             }
         }
+    }
+
+    private String encodePath(String path) throws UnsupportedEncodingException {
+        return new String(path.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING);
     }
 }

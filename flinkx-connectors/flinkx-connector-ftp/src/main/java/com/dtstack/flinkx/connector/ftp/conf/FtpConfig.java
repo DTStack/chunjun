@@ -27,33 +27,21 @@ import com.dtstack.flinkx.constants.ConstantValue;
  */
 public class FtpConfig extends BaseFileConf {
 
+    public Integer timeout = ConfigConstants.DEFAULT_TIMEOUT;
     private String username;
-
     private String password;
-
     private String privateKeyPath;
-
     private String protocol;
-
     private String fieldDelimiter = ConfigConstants.DEFAULT_FIELD_DELIMITER;
-
     private String connectPattern = ConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
-
     private String host;
-
     private Integer port;
-
     private boolean isFirstLineHeader = false;
-
     /** ftp客户端编码格式 **/
     private String controlEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
-
     /** linux是否展示隐藏文件 **/
     private boolean listHiddenFiles = true;
-
     private String ftpFileName;
-
-    public Integer timeout = ConfigConstants.DEFAULT_TIMEOUT;
 
     public String getUsername() {
         return username;
@@ -119,7 +107,7 @@ public class FtpConfig extends BaseFileConf {
         this.port = port;
     }
 
-    public void setDefaultPort(){
+    public void setDefaultPort() {
         if (ConfigConstants.SFTP_PROTOCOL.equalsIgnoreCase(protocol)) {
             port = ConfigConstants.DEFAULT_SFTP_PORT;
         } else {

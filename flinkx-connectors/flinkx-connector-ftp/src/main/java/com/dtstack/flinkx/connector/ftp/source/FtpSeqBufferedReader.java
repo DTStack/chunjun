@@ -61,14 +61,14 @@ public class FtpSeqBufferedReader {
         this.ftpConfig = ftpConfig;
     }
 
-    public String readLine() throws IOException{
-        if (br == null){
+    public String readLine() throws IOException {
+        if (br == null) {
             nextStream();
         }
 
-        if(br != null){
+        if (br != null) {
             String line = br.readLine();
-            if (line == null){
+            if (line == null) {
                 close();
                 return readLine();
             }
@@ -79,8 +79,8 @@ public class FtpSeqBufferedReader {
         }
     }
 
-    private void nextStream() throws IOException{
-        if(iter.hasNext()){
+    private void nextStream() throws IOException {
+        if (iter.hasNext()) {
             String file = iter.next();
             InputStream in = ftpHandler.getInputStream(file);
             if (in == null) {
@@ -99,20 +99,20 @@ public class FtpSeqBufferedReader {
     }
 
     public void close() throws IOException {
-        if (br != null){
+        if (br != null) {
             br.close();
             br = null;
 
-            if (ftpHandler instanceof FtpHandler){
+            if (ftpHandler instanceof FtpHandler) {
                 try {
                     ((FtpHandler) ftpHandler).getFtpClient().completePendingCommand();
                 } catch (Exception e) {
                     //如果出现了超时异常，就直接获取一个新的ftpHandler
-                    LOG.warn("FTPClient completePendingCommand has error ->",e);
-                    try{
+                    LOG.warn("FTPClient completePendingCommand has error ->", e);
+                    try {
                         ftpHandler.logoutFtpServer();
-                    }catch (Exception exception){
-                        LOG.warn("FTPClient logout has error ->",exception);
+                    } catch (Exception exception) {
+                        LOG.warn("FTPClient logout has error ->", exception);
                     }
                     ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
                     ftpHandler.loginFtpServer(ftpConfig);
