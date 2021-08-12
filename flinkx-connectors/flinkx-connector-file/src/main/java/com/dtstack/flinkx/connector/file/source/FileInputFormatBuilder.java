@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.file.source;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
