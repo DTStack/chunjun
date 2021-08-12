@@ -127,7 +127,7 @@ public class Launcher {
     }
 
     private static void findDefaultConfigDir(Options launcherOptions) {
-        findDefaultPluginRoot(launcherOptions);
+        findDefaultFlinkxDistDir(launcherOptions);
 
         if (ClusterMode.local.name().equalsIgnoreCase(launcherOptions.getMode())) {
             return;
@@ -172,22 +172,22 @@ public class Launcher {
         }
     }
 
-    private static void findDefaultPluginRoot(Options launcherOptions) {
-        String pluginRoot = launcherOptions.getFlinkxDistDir();
-        if (StringUtils.isEmpty(pluginRoot)) {
+    private static void findDefaultFlinkxDistDir(Options launcherOptions) {
+        String distDir = launcherOptions.getFlinkxDistDir();
+        if (StringUtils.isEmpty(distDir)) {
             String flinkxHome = getSystemProperty(KEY_FLINKX_HOME);
             if (StringUtils.isNotEmpty(flinkxHome)) {
                 flinkxHome = flinkxHome.trim();
                 if (flinkxHome.endsWith(File.separator)) {
-                    pluginRoot = flinkxHome + PLUGINS_DIR_NAME;
+                    distDir = flinkxHome + PLUGINS_DIR_NAME;
                 } else {
-                    pluginRoot = flinkxHome + File.separator + PLUGINS_DIR_NAME;
+                    distDir = flinkxHome + File.separator + PLUGINS_DIR_NAME;
                 }
 
-                launcherOptions.setFlinkxDistDir(pluginRoot);
+                launcherOptions.setFlinkxDistDir(distDir);
             }
         }
-        System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, pluginRoot);
+        System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, distDir);
     }
 
     private static String getSystemProperty(String name) {

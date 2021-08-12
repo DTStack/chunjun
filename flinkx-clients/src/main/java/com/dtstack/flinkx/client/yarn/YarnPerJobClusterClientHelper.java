@@ -103,11 +103,11 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
 
     private YarnClusterDescriptor createPerJobClusterDescriptor(
             Options launcherOptions, Configuration flinkConfig) throws MalformedURLException {
-        String flinkJarPath = launcherOptions.getFlinkLibDir();
+        String flinkLibDir = launcherOptions.getFlinkLibDir();
         String flinkConfDir = launcherOptions.getFlinkConfDir();
 
-        if (StringUtils.isBlank(flinkJarPath)) {
-            throw new IllegalArgumentException("The Flink jar path is null");
+        if (StringUtils.isBlank(flinkLibDir)) {
+            throw new IllegalArgumentException("The Flink lib dir is null");
         }
 
         File log4jPath =
@@ -143,14 +143,14 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
                         YarnClientYarnClusterInformationRetriever.create(yarnClient),
                         false);
 
-        if (!new File(flinkJarPath).exists()) {
-            throw new IllegalArgumentException("The Flink jar path is not exist");
+        if (!new File(flinkLibDir).exists()) {
+            throw new IllegalArgumentException("The Flink lib dir is not exist");
         }
 
         boolean isRemoteJarPath =
                 !CollectionUtil.isNullOrEmpty(flinkConfig.get(YarnConfigOptions.PROVIDED_LIB_DIRS));
         List<File> shipFiles = new ArrayList<>();
-        File[] jars = new File(flinkJarPath).listFiles();
+        File[] jars = new File(flinkLibDir).listFiles();
         if (jars != null) {
             for (File jar : jars) {
                 if (jar.toURI().toURL().toString().contains("flink-dist")) {
