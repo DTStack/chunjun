@@ -28,7 +28,7 @@ redis维表，支持全量和异步方式<br />
   - 默认值：无
 <br />
 
-- **tableName**
+- **table-name**
   - 描述：tableName
   - 必选：是
   - 参数类型：string
@@ -42,14 +42,14 @@ redis维表，支持全量和异步方式<br />
   - 默认值：无
 <br />
 
-- **redisType**
+- **redis-type**
   - 描述： redis模式（1 单机，2 哨兵， 3 集群），默认：1
   - 必选：否
   - 参数类型：string
   - 默认值：1
 <br />
 
-- **masterName**
+- **master-name**
   - 描述： 主节点名称（哨兵模式下为必填项）
   - 必选：否
   - 参数类型：string
@@ -70,21 +70,21 @@ redis维表，支持全量和异步方式<br />
   - 默认值：10000
 <br />
 
-- **maxTotal**
+- **max.total**
   - 描述：最大连接数 ，默认：8
   - 必选：否
   - 参数类型：string
   - 默认值：8
 <br />
 
-- **maxIdle**
+- **max.idle**
   - 描述：最大空闲连接数，默认：8
   - 必选：否
   - 参数类型：string
   - 默认值：8
 <br />
 
-- **minIdle**
+- **min.idle**
   - 描述： 最小空闲连接数 ，默认：0
   - 必选：否
   - 参数类型：string

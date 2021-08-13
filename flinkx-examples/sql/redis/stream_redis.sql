@@ -47,15 +47,15 @@ CREATE TABLE sink
 ) WITH (
       'connector' = 'redis-x' --必填
       ,'url' = 'localhost:6379' --必填，格式ip:port[,ip:port]
-      ,'tableName' = 'cx' --必填
+      ,'table-name' = 'cx' --必填
       ,'password' = '123456' -- 密码 无默认，非必填项
-      ,'redisType' = '1' -- redis模式（1 单机，2 哨兵， 3 集群），默认：1
-      ,'masterName' = 'lala' -- 主节点名称（哨兵模式下为必填项）
+      ,'redis-type' = '1' -- redis模式（1 单机，2 哨兵， 3 集群），默认：1
+      ,'master-name' = 'lala' -- 主节点名称（哨兵模式下为必填项）
       ,'database' = '0' -- redis 的数据库地址，默认：0
       ,'timeout' = '10000' -- 连接超时时间，默认：10000毫秒
-      ,'maxTotal' = '5' -- 最大连接数 ，默认：8
-      ,'maxIdle' = '5' -- 最大空闲连接数，默认：8
-      ,'minIdle' = '0' -- 最小空闲连接数 ，默认：0
+      ,'max.total' = '5' -- 最大连接数 ，默认：8
+      ,'max.idle' = '5' -- 最大空闲连接数，默认：8
+      ,'min.idle' = '0' -- 最小空闲连接数 ，默认：0
       -- ,'keyExpiredTime' = '1000' -- redis sink的key的过期时间。默认是0（永不过期），单位是s。默认：0
       ,'sink.parallelism' = '3' -- sink并行度
       );
