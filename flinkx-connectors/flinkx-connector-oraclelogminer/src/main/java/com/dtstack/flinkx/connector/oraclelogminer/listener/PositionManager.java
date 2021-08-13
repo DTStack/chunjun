@@ -16,8 +16,9 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.connector.oraclelogminer.listener;
+
+import java.math.BigDecimal;
 
 /**
  * @author jiangbo
@@ -25,13 +26,13 @@ package com.dtstack.flinkx.connector.oraclelogminer.listener;
  */
 public class PositionManager {
 
-    private Long scn;
+    private BigDecimal scn;
 
-    public void updatePosition(Long scn) {
+    public void updatePosition(BigDecimal scn) {
         this.scn = scn;
     }
 
-    public Long getPosition() {
+    public BigDecimal getPosition() {
         return this.scn;
     }
 }
