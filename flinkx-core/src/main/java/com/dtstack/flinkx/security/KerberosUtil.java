@@ -129,6 +129,10 @@ public class KerberosUtil {
         System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5FilePath);
     }
 
+    public static void loadKrb5Conf(Map<String, Object> kerberosConfig) {
+        loadKrb5Conf(kerberosConfig, null);
+    }
+
     /**
      * kerberosConfig
      * {
@@ -171,6 +175,10 @@ public class KerberosUtil {
             fileName = loadFromSftp(kerberosConfig, fileName);
             return fileName;
         }
+    }
+
+    public static String loadFile(Map<String, Object> kerberosConfig, String filePath) {
+        return loadFile(kerberosConfig, filePath, null);
     }
 
     private static void checkFileExists(String filePath) {

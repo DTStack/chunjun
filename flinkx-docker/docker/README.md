@@ -17,7 +17,7 @@ sh build/build.sh
 
 3.拷贝构建的插件包到镜像构建目录下
 ```
-cp -r flinkxplugins ./flinkx-docker/docker
+cp -r flink-dist ./flinkx-docker/docker
 ```
 
 4.构建镜像

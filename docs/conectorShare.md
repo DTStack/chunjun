@@ -83,7 +83,7 @@
       -jobType sql \
       -jobName flink1.12_SPI \
       -job /yourjobpath/sqlFile.sql \
-      -pluginRoot /flinkx/flinkxplugins
+      -flinkxDistDir /flinkx/flinkx-dist
       ```
       ![conectorShare_local.png](images/conectorShare_local.png)
         
@@ -94,10 +94,10 @@
       -jobType sql \
       -jobName flink1.12_SPI \
       -job /yourjobpath/sqlFile.sql \
-      -pluginRoot /flinkx/flinkxplugins \
-      -flinkconf /flink/conf \
-      -yarnconf /yarn/conf \
-      -flinkLibJar /yarn/lib \
+      -flinkxDistDir /flinkx/flinkx-dist \
+      -flinkConfDir /flink/conf \
+      -hadoopConfDir /hadoop/etc \
+      -flinkLibDir /flink/lib \
       -queue default
       ```
       ![conectorShare_yarnPer.png](images/conectorShare_yarnPer.png)

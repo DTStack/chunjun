@@ -19,24 +19,20 @@ package com.dtstack.flinkx.client.yarn;
 
 import com.dtstack.flinkx.client.ClusterClientHelper;
 import com.dtstack.flinkx.client.JobDeployer;
-
-import com.dtstack.flinkx.client.KerberosInfo;
 import com.dtstack.flinkx.client.util.PluginInfoUtil;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.ValueUtil;
-import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.program.ClusterClient;
-
 import org.apache.flink.client.program.ClusterClientProvider;
 import org.apache.flink.configuration.Configuration;
-
+import org.apache.flink.configuration.JobManagerOptions;
+import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
-
 import org.apache.flink.util.CollectionUtil;
 import org.apache.flink.yarn.YarnClientYarnClusterInformationRetriever;
 import org.apache.flink.yarn.YarnClusterDescriptor;
@@ -44,6 +40,7 @@ import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.flink.yarn.configuration.YarnLogConfigUtil;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.client.api.YarnClient;
@@ -59,6 +56,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import static org.apache.flink.configuration.TaskManagerOptions.NUM_TASK_SLOTS;
 
 /**
  * @program: flinkx
@@ -69,11 +67,10 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
 
     private static final Logger LOG = LoggerFactory.getLogger(YarnPerJobClusterClientHelper.class);
 
-    public final static int MIN_JM_MEMORY = 1024;
-    public final static int MIN_TM_MEMORY = 1024;
-    public final static String JOBMANAGER_MEMORY_MB = "jobmanager.memory.process.size";
-    public final static String TASKMANAGER_MEMORY_MB = "taskmanager.memory.process.size";
-    public final static String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
+    public static final int MIN_JM_MEMORY = 1024;
+    public static final int MIN_TM_MEMORY = 1024;
+    public static final String JOBMANAGER_MEMORY_MB = "jobmanager.memory.process.size";
+    public static final String TASKMANAGER_MEMORY_MB = "taskmanager.memory.process.size";
 
     @Override
     public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
@@ -82,21 +79,21 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
         if (StringUtils.isBlank(confProp)) {
             throw new IllegalArgumentException("per-job mode must have confProp!");
         }
-        String libJar = launcherOptions.getFlinkLibJar();
+        String libJar = launcherOptions.getFlinkLibDir();
         if (StringUtils.isBlank(libJar)) {
             throw new IllegalArgumentException("per-job mode must have flink lib path!");
         }
 
         Configuration flinkConfig = jobDeployer.getEffectiveConfiguration();
 
-        KerberosInfo kerberosInfo = new KerberosInfo(launcherOptions.getKrb5conf(),launcherOptions.getKeytab(),launcherOptions.getPrincipal(), flinkConfig);
-        kerberosInfo.verify();
         SecurityUtils.install(new SecurityConfiguration(flinkConfig));
 
         ClusterSpecification clusterSpecification = createClusterSpecification(jobDeployer);
-        YarnClusterDescriptor descriptor = createPerJobClusterDescriptor(launcherOptions, flinkConfig);
+        YarnClusterDescriptor descriptor =
+                createPerJobClusterDescriptor(launcherOptions, flinkConfig);
 
-        ClusterClientProvider<ApplicationId> provider = descriptor.deployJobCluster(clusterSpecification, new JobGraph(), true);
+        ClusterClientProvider<ApplicationId> provider =
+                descriptor.deployJobCluster(clusterSpecification, new JobGraph(), true);
         String applicationId = provider.getClusterClient().getClusterId().toString();
         String flinkJobId = clusterSpecification.getJobGraph().getJobID().toString();
         LOG.info("deploy per_job with appId: {}}, jobId: {}", applicationId, flinkJobId);
@@ -104,44 +101,56 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
         return provider.getClusterClient();
     }
 
-    private YarnClusterDescriptor createPerJobClusterDescriptor(Options launcherOptions, Configuration flinkConfig) throws MalformedURLException {
-        String flinkJarPath = launcherOptions.getFlinkLibJar();
-        String flinkConfDir = launcherOptions.getFlinkconf();
+    private YarnClusterDescriptor createPerJobClusterDescriptor(
+            Options launcherOptions, Configuration flinkConfig) throws MalformedURLException {
+        String flinkLibDir = launcherOptions.getFlinkLibDir();
+        String flinkConfDir = launcherOptions.getFlinkConfDir();
 
-        if (StringUtils.isBlank(flinkJarPath)) {
-            throw new IllegalArgumentException("The Flink jar path is null");
+        if (StringUtils.isBlank(flinkLibDir)) {
+            throw new IllegalArgumentException("The Flink lib dir is null");
         }
 
-        File log4jPath = new File(flinkConfDir + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
+        File log4jPath =
+                new File(flinkConfDir + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
         if (log4jPath.exists()) {
-            flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, log4jPath.getAbsolutePath());
+            flinkConfig.setString(
+                    YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE,
+                    log4jPath.getAbsolutePath());
         } else {
-            File logbackPath = new File(flinkConfDir + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
+            File logbackPath =
+                    new File(
+                            flinkConfDir
+                                    + File.separator
+                                    + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
             if (logbackPath.exists()) {
-                flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, logbackPath.getAbsolutePath());
+                flinkConfig.setString(
+                        YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE,
+                        logbackPath.getAbsolutePath());
             }
-
         }
 
-        YarnConfiguration yarnConfig = YarnConfLoader.getYarnConf(launcherOptions.getYarnconf());
+        YarnConfiguration yarnConfig =
+                YarnConfLoader.getYarnConf(launcherOptions.getHadoopConfDir());
         YarnClient yarnClient = YarnClient.createYarnClient();
         yarnClient.init(yarnConfig);
         yarnClient.start();
 
-        YarnClusterDescriptor descriptor = new YarnClusterDescriptor(
-                flinkConfig,
-                yarnConfig,
-                yarnClient,
-                YarnClientYarnClusterInformationRetriever.create(yarnClient),
-                false);
+        YarnClusterDescriptor descriptor =
+                new YarnClusterDescriptor(
+                        flinkConfig,
+                        yarnConfig,
+                        yarnClient,
+                        YarnClientYarnClusterInformationRetriever.create(yarnClient),
+                        false);
 
-        if (!new File(flinkJarPath).exists()) {
-            throw new IllegalArgumentException("The Flink jar path is not exist");
+        if (!new File(flinkLibDir).exists()) {
+            throw new IllegalArgumentException("The Flink lib dir is not exist");
         }
 
-        boolean isRemoteJarPath = !CollectionUtil.isNullOrEmpty(flinkConfig.get(YarnConfigOptions.PROVIDED_LIB_DIRS));
+        boolean isRemoteJarPath =
+                !CollectionUtil.isNullOrEmpty(flinkConfig.get(YarnConfigOptions.PROVIDED_LIB_DIRS));
         List<File> shipFiles = new ArrayList<>();
-        File[] jars = new File(flinkJarPath).listFiles();
+        File[] jars = new File(flinkLibDir).listFiles();
         if (jars != null) {
             for (File jar : jars) {
                 if (jar.toURI().toURL().toString().contains("flink-dist")) {
@@ -156,36 +165,49 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
         return descriptor;
     }
 
-    private ClusterSpecification createClusterSpecification(JobDeployer jobDeployer) throws IOException {
+    private ClusterSpecification createClusterSpecification(JobDeployer jobDeployer)
+            throws IOException {
         Options launcherOptions = jobDeployer.getLauncherOptions();
         List<String> programArgs = jobDeployer.getProgramArgs();
 
-        Properties conProp = MapUtil.jsonStrToObject(launcherOptions.getConfProp(), Properties.class);
+        Properties conProp =
+                MapUtil.jsonStrToObject(launcherOptions.getConfProp(), Properties.class);
         int jobManagerMemoryMb = 1024;
         int taskManagerMemoryMb = 1024;
         int slotsPerTaskManager = 1;
 
         if (conProp != null) {
-            if (conProp.containsKey(JOBMANAGER_MEMORY_MB)) {
-                jobManagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(JOBMANAGER_MEMORY_MB)));
+            if (conProp.containsKey(JobManagerOptions.TOTAL_PROCESS_MEMORY.key())) {
+                jobManagerMemoryMb =
+                        Math.max(
+                                MIN_JM_MEMORY,
+                                ValueUtil.getInt(
+                                        conProp.getProperty(
+                                                JobManagerOptions.TOTAL_PROCESS_MEMORY.key())));
             }
-            if (conProp.containsKey(TASKMANAGER_MEMORY_MB)) {
-                taskManagerMemoryMb = Math.max(MIN_TM_MEMORY, ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB)));
+            if (conProp.containsKey(TaskManagerOptions.TOTAL_PROCESS_MEMORY.key())) {
+                taskManagerMemoryMb =
+                        Math.max(
+                                MIN_TM_MEMORY,
+                                ValueUtil.getInt(
+                                        conProp.getProperty(
+                                                TaskManagerOptions.TOTAL_PROCESS_MEMORY.key())));
             }
-            if (conProp.containsKey(SLOTS_PER_TASKMANAGER)) {
-                slotsPerTaskManager = ValueUtil.getInt(conProp.get(SLOTS_PER_TASKMANAGER));
+            if (conProp.containsKey(NUM_TASK_SLOTS.key())) {
+                slotsPerTaskManager = ValueUtil.getInt(conProp.get(NUM_TASK_SLOTS.key()));
             }
         }
 
-        ClusterSpecification clusterSpecification = new ClusterSpecification.ClusterSpecificationBuilder()
-                .setMasterMemoryMB(jobManagerMemoryMb)
-                .setTaskManagerMemoryMB(taskManagerMemoryMb)
-                .setSlotsPerTaskManager(slotsPerTaskManager)
-                .createClusterSpecification();
+        ClusterSpecification clusterSpecification =
+                new ClusterSpecification.ClusterSpecificationBuilder()
+                        .setMasterMemoryMB(jobManagerMemoryMb)
+                        .setTaskManagerMemoryMB(taskManagerMemoryMb)
+                        .setSlotsPerTaskManager(slotsPerTaskManager)
+                        .createClusterSpecification();
 
         clusterSpecification.setCreateProgramDelay(true);
 
-        String pluginRoot = launcherOptions.getPluginRoot();
+        String pluginRoot = launcherOptions.getFlinkxDistDir();
         String coreJarPath = PluginInfoUtil.getCoreJarPath(pluginRoot);
         File jarFile = new File(coreJarPath);
         clusterSpecification.setConfiguration(launcherOptions.loadFlinkConfiguration());
@@ -195,7 +217,8 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
 
         clusterSpecification.setProgramArgs(programArgs.toArray(new String[0]));
         clusterSpecification.setCreateProgramDelay(true);
-        clusterSpecification.setYarnConfiguration(YarnConfLoader.getYarnConf(launcherOptions.getYarnconf()));
+        clusterSpecification.setYarnConfiguration(
+                YarnConfLoader.getYarnConf(launcherOptions.getHadoopConfDir()));
 
         return clusterSpecification;
     }

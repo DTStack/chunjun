@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.phoenix5.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.phoenix5.conf.Phoenix5Conf;
 import com.dtstack.flinkx.connector.phoenix5.util.Phoenix5Helper;
@@ -30,10 +27,13 @@ import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RangeSplitUtil;
+
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.hbase.NoTagsKeyValue;
 import org.apache.hadoop.hbase.client.Result;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +70,6 @@ public class HBaseInputFormat extends JdbcInputFormat {
         return splits;
     }
 
-    @NotNull
     private InputSplit[] getInputSplits(int minNumSplits, List<Pair<byte[], byte[]>> rangeList) {
         if (rangeList.size() < minNumSplits) {
             String message =

@@ -67,12 +67,12 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../flinkxplugins/stream"
+                                <copy todir="${basedir}/../../${dist.dir}/stream"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-                                <move file="${basedir}/../../flinkxplugins/stream/${project.artifactId}-${project.version}.jar"
-                                      tofile="${basedir}/../../flinkxplugins/stream/${project.artifactId}-${git.branch}.jar"/>
+                                <move file="${basedir}/../../${dist.dir}/stream/${project.artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../../${dist.dir}/stream/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../flinkxplugins/stream/"
+									<fileset dir="${basedir}/../../${dist.dir}/stream/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>

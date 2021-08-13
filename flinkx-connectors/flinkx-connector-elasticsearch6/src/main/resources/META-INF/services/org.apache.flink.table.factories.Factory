@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-com.dtstack.flinkx.connector.es.table.EsDynamicTableFactory
+com.dtstack.flinkx.connector.elasticsearch6.table.Elasticsearch6DynamicTableFactory
