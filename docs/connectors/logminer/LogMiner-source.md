@@ -279,7 +279,7 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
 <br/>
 
 - **transaction-expire-time**
-    - 描述：logminer可缓存的失效时间，单位分支
+    - 描述：logminer可缓存的失效时间，单位分钟
     - 必选：否
     - 字段类型：int
     - 默认值：20
