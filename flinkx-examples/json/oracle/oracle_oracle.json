@@ -10,6 +10,8 @@
               "jdbcUrl": ["jdbc:oracle:thin:@localhost:1521:orcl"],
               "table": ["oracle_all_type_source"]
             }],
+            "increColumn": "t_timestamp",
+            "startLocation": "1530439980000",
             "column": [{
               "name": "id",
               "type": "decimal"
@@ -48,9 +50,6 @@
               "type": "int"
             },{
               "name": "t_integer",
-              "type": "decimal"
-            },{
-              "name": "t_long",
               "type": "decimal"
             },{
               "name": "t_national_char",
@@ -107,7 +106,7 @@
         "writer": {
           "name": "oraclewriter",
           "parameter": {
-            "mode": "update",
+            "mode": "insert",
             "updateKey": ["id"],
             "allReplace": true,
             "username": "oracle",
@@ -156,9 +155,6 @@
               "type": "int"
             },{
               "name": "t_integer",
-              "type": "decimal"
-            },{
-              "name": "t_long",
               "type": "decimal"
             },{
               "name": "t_national_char",

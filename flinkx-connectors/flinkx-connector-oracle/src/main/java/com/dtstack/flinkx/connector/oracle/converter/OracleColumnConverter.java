@@ -19,10 +19,6 @@
 package com.dtstack.flinkx.connector.oracle.converter;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
-
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -33,6 +29,10 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import oracle.sql.TIMESTAMP;
 
 import java.io.BufferedReader;
@@ -46,7 +46,6 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalTime;
-
 
 /**
  * company www.dtstack.com
@@ -82,7 +81,7 @@ public class OracleColumnConverter extends JdbcColumnConverter {
                 return val -> {
                     if (type instanceof ClobType) {
                         oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
-                        try (BufferedReader bf = new BufferedReader(clob.getCharacterStream())){
+                        try (BufferedReader bf = new BufferedReader(clob.getCharacterStream())) {
                             StringBuilder stringBuilder = new StringBuilder();
                             String next, line = bf.readLine();
                             for (boolean last = (line == null); !last; line = next) {
@@ -157,11 +156,13 @@ public class OracleColumnConverter extends JdbcColumnConverter {
             case CHAR:
             case VARCHAR:
                 return (val, index, statement) -> {
-                    if(type instanceof ClobType){
-                        try (StringReader reader = new StringReader(((ColumnRowData) val).getField(index).asString())) {
+                    if (type instanceof ClobType) {
+                        try (StringReader reader =
+                                new StringReader(
+                                        ((ColumnRowData) val).getField(index).asString())) {
                             statement.setClob(index, reader);
                         }
-                    }else {
+                    } else {
                         statement.setString(
                                 index, ((ColumnRowData) val).getField(index).asString());
                     }
@@ -184,11 +185,11 @@ public class OracleColumnConverter extends JdbcColumnConverter {
             case BINARY:
             case VARBINARY:
                 return (val, index, statement) -> {
-                    if(type instanceof BlobType){
-                        try(InputStream is = new ByteArrayInputStream(val.getBinary(index))) {
+                    if (type instanceof BlobType) {
+                        try (InputStream is = new ByteArrayInputStream(val.getBinary(index))) {
                             statement.setBlob(index, is);
                         }
-                    }else {
+                    } else {
                         statement.setBytes(index, val.getBinary(index));
                     }
                 };
@@ -217,5 +218,4 @@ public class OracleColumnConverter extends JdbcColumnConverter {
             }
         }
     }
-
 }
