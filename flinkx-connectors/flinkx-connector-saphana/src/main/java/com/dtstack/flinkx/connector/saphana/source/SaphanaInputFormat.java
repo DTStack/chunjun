@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.connector.saphana.source;
 
-import org.apache.flink.core.io.InputSplit;
-
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
+
+import org.apache.flink.core.io.InputSplit;
 
 import java.util.Properties;
 
