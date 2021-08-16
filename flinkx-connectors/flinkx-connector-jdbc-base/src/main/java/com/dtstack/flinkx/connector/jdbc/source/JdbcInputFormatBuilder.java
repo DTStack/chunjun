@@ -24,6 +24,7 @@ import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;

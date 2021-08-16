@@ -25,8 +25,9 @@ import java.util.List;
 
 /**
  * The Class describing each InputSplit of Ftp
- *
+ * <p>
  * Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class FtpInputSplit implements InputSplit {

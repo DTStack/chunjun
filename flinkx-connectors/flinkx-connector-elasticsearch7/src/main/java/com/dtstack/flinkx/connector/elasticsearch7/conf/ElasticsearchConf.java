@@ -71,6 +71,84 @@ public class ElasticsearchConf extends FlinkxCommonConf implements Serializable 
 
     private String keyDelimiter = "_";
 
+    /**
+     * client socket timeout
+     */
+    private int socketTimeout;
+
+    /**
+     * client keepAlive time
+     */
+    private int keepAliveTime;
+
+    /**
+     * client connect timeout
+     */
+    private int connectTimeout;
+
+    /**
+     * client request timeout
+     */
+    private int requestTimeout;
+
+    /**
+     * Assigns maximum connection per route value.
+     */
+    private int maxConnPerRoute;
+
+    /**
+     * table field names
+     */
+    private String[] fieldNames;
+
+    public String[] getFieldNames() {
+        return fieldNames;
+    }
+
+    public void setFieldNames(String[] fieldNames) {
+        this.fieldNames = fieldNames;
+    }
+
+    public int getMaxConnPerRoute() {
+        return maxConnPerRoute;
+    }
+
+    public void setMaxConnPerRoute(int maxConnPerRoute) {
+        this.maxConnPerRoute = maxConnPerRoute;
+    }
+
+    public int getRequestTimeout() {
+        return requestTimeout;
+    }
+
+    public void setRequestTimeout(int requestTimeout) {
+        this.requestTimeout = requestTimeout;
+    }
+
+    public int getSocketTimeout() {
+        return socketTimeout;
+    }
+
+    public void setSocketTimeout(int socketTimeout) {
+        this.socketTimeout = socketTimeout;
+    }
+
+    public int getKeepAliveTime() {
+        return keepAliveTime;
+    }
+
+    public void setKeepAliveTime(int keepAliveTime) {
+        this.keepAliveTime = keepAliveTime;
+    }
+
+    public int getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    public void setConnectTimeout(int connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
     public List<String> getHosts() {
         return hosts;
     }

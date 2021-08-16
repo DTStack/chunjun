@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.connector.ftp.source;
 
+import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
+import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
@@ -28,11 +33,6 @@ import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
-import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 /**
  * @program: flinkx

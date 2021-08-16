@@ -33,47 +33,30 @@ public class Elasticsearch6Conf extends FlinkxCommonConf implements Serializable
 
     private static final long serialVersionUID = 2L;
 
-    /**
-     * elasticsearch address -> ip:port
-     * localhost:9200
-     */
+    /** elasticsearch address -> ip:port localhost:9200 */
     private List<String> hosts;
 
-    /**
-     * es index name
-     */
+    /** es index name */
     private String index;
 
-    /**
-     * es type name
-     */
+    /** es type name */
     private String type;
 
-    /**
-     * es doc id
-     */
+    /** es doc id */
     private List<String> ids;
 
-    /**
-     * is open basic auth.
-     */
+    /** is open basic auth. */
     private boolean authMesh = false;
 
-    /**
-     * basic auth : username
-     */
+    /** basic auth : username */
     private String username;
 
-    /**
-     * basic auth : password
-     */
+    /** basic auth : password */
     private String password;
 
     private String keyDelimiter = "_";
 
-    /**
-     * table field names
-     */
+    /** table field names */
     private String[] fieldNames;
 
     public List<String> getHosts() {

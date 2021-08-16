@@ -17,15 +17,12 @@
  */
 package com.dtstack.flinkx.metrics.rdb;
 
-
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
-
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+
 import org.apache.commons.collections.MapUtils;
-
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,27 +31,29 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
+
 /**
+ * Utilities for relational database connection and sql execution company: www.dtstack.com
  *
- * Utilities for relational database connection and sql execution
- * company: www.dtstack.com
  * @author huyifan_zju@
  */
 public class JdbcUtil {
-
 
     public static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
     private static final Logger LOG = LoggerFactory.getLogger(JdbcUtil.class);
 
     /**
      * 获取JDBC连接
+     *
      * @param jdbcConf
      * @param jdbcDialect
      * @return
      */
-    public static Connection getConnection(JdbcMetricConf jdbcConf, JdbcDialect jdbcDialect){
+    public static Connection getConnection(JdbcMetricConf jdbcConf, JdbcDialect jdbcDialect) {
         TelnetUtil.telnet(jdbcConf.getJdbcUrl());
-        ClassUtil.forName(jdbcDialect.defaultDriverName().get(), Thread.currentThread().getContextClassLoader());
+        ClassUtil.forName(
+                jdbcDialect.defaultDriverName().get(),
+                Thread.currentThread().getContextClassLoader());
         Map<String, String> properties = jdbcConf.getProperties();
         Properties prop = new Properties();
         if (MapUtils.isNotEmpty(properties)) {
@@ -69,27 +68,27 @@ public class JdbcUtil {
             prop.put("password", jdbcConf.getPassword());
         }
         Properties finalProp = prop;
-        synchronized (ClassUtil.LOCK_STR){
-            return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp), 3, 2000, false);
+        synchronized (ClassUtil.LOCK_STR) {
+            return RetryUtil.executeWithRetry(
+                    () -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp),
+                    3,
+                    2000,
+                    false);
         }
     }
-
-
-
 
     /**
      * 手动提交事物
+     *
      * @param conn Connection
      */
-    public static void commit(Connection conn){
+    public static void commit(Connection conn) {
         try {
-            if (null != conn && !conn.isClosed() && !conn.getAutoCommit()){
+            if (null != conn && !conn.isClosed() && !conn.getAutoCommit()) {
                 conn.commit();
             }
-        } catch (SQLException e){
+        } catch (SQLException e) {
             LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
-
-
 }

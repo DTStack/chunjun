@@ -21,6 +21,7 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
+
 import org.apache.commons.lang.StringUtils;
 
 /** @author sishu.yss @Company: www.dtstack.com */

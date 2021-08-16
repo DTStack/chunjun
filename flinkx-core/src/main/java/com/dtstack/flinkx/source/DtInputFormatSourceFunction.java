@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.source;
 
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -39,9 +43,6 @@ import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 
-import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.source.format.BaseRichInputFormat;
-import com.dtstack.flinkx.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

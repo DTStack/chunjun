@@ -17,12 +17,13 @@
  */
 package com.dtstack.flinkx.connector.oraclelogminer.options;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 /**
- * Date: 2021/05/06
- * Company: www.dtstack.com
+ * Date: 2021/05/06 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -45,7 +46,6 @@ public class LogminerOptions {
                     .noDefaultValue()
                     .withDescription("Oracle password.");
 
-
     public static final ConfigOption<Integer> FETCHSIZE =
             ConfigOptions.key("fetch-size")
                     .intType()
@@ -64,13 +64,11 @@ public class LogminerOptions {
                     .defaultValue("current")
                     .withDescription("Oracle LogMiner start type.");
 
-
     public static final ConfigOption<Long> START_TIME =
             ConfigOptions.key("start-time")
                     .longType()
                     .defaultValue(0L)
                     .withDescription("Oracle LogMiner start TIMESTAMP.");
-
 
     public static final ConfigOption<String> START_SCN =
             ConfigOptions.key("start-scn")
@@ -95,4 +93,29 @@ public class LogminerOptions {
                     .booleanType()
                     .defaultValue(false)
                     .withDescription("Oracle LogMiner supportAutoAddLog.");
+
+    public static final ConfigOption<Integer> IO_THREADS =
+            ConfigOptions.key("io-threads")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription("Oracle LogMiner load redoLog threads.");
+
+    public static final ConfigOption<Long> MAX_LOAD_FILE_SIZE =
+            ConfigOptions.key("max-log-file-size")
+                    .longType()
+                    .defaultValue(5 * ConstantValue.STORE_SIZE_G)
+                    .withDescription("Oracle LogMiner load redoLog size.");
+
+    public static final ConfigOption<Integer> TRANSACTION_CACHE_NUM_SIZE =
+            ConfigOptions.key("transaction-cache-num-size")
+                    .intType()
+                    .defaultValue(800)
+                    .withDescription("Oracle LogMiner cache size.");
+
+    public static final ConfigOption<Integer> TRANSACTION_EXPIRE_TIME =
+            ConfigOptions.key("transaction-expire-time")
+                    .intType()
+                    .defaultValue(20)
+                    .withDescription(
+                            "Oracle LogMiner cache expire time  and  default value is 20 minutes");
 }

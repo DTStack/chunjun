@@ -29,8 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Date: 2021/01/18
- * Company: www.dtstack.com
+ * Date: 2021/01/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -48,8 +47,8 @@ public class OperatorConf implements Serializable {
     /** fieldNameList */
     private List<String> fieldNameList;
 
-    public List<FieldConf> getFieldList(){
-        if(fieldList == null){
+    public List<FieldConf> getFieldList() {
+        if (fieldList == null) {
             List list = (List) parameter.get(ConfigConstant.KEY_COLUMN);
             fieldList = FieldConf.getFieldList(list);
             fieldNameList = new ArrayList<>(fieldList.size());
@@ -90,72 +89,80 @@ public class OperatorConf implements Serializable {
 
     /**
      * 从parameter中获取指定key的value，若无则返回defaultValue
+     *
      * @param key
      * @param defaultValue
      * @return
      */
     public int getIntVal(String key, int defaultValue) {
         Object ret = parameter.get(key);
-        if(ret == null) {
+        if (ret == null) {
             return defaultValue;
         }
-        if(ret instanceof Integer) {
+        if (ret instanceof Integer) {
             return (Integer) ret;
         }
-        if(ret instanceof String) {
+        if (ret instanceof String) {
             return Integer.parseInt((String) ret);
         }
-        if(ret instanceof Long) {
-            return ((Long)ret).intValue();
+        if (ret instanceof Long) {
+            return ((Long) ret).intValue();
         }
-        if(ret instanceof Float) {
-            return ((Float)ret).intValue();
+        if (ret instanceof Float) {
+            return ((Float) ret).intValue();
         }
-        if(ret instanceof Double) {
-            return ((Double)ret).intValue();
+        if (ret instanceof Double) {
+            return ((Double) ret).intValue();
         }
-        if(ret instanceof BigInteger) {
-            return ((BigInteger)ret).intValue();
+        if (ret instanceof BigInteger) {
+            return ((BigInteger) ret).intValue();
         }
-        if(ret instanceof BigDecimal) {
-            return ((BigDecimal)ret).intValue();
+        if (ret instanceof BigDecimal) {
+            return ((BigDecimal) ret).intValue();
         }
-        throw new RuntimeException(String.format("can't %s from %s to int, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
+        throw new RuntimeException(
+                String.format(
+                        "can't %s from %s to int, internalMap = %s",
+                        key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
     }
 
     /**
      * 从parameter中获取指定key的value，若无则返回defaultValue
+     *
      * @param key
      * @param defaultValue
      * @return
      */
     public long getLongVal(String key, long defaultValue) {
         Object ret = parameter.get(key);
-        if(ret == null) {
+        if (ret == null) {
             return defaultValue;
         }
-        if(ret instanceof Integer) {
+        if (ret instanceof Integer) {
             return ((Integer) ret).longValue();
         }
-        if(ret instanceof String) {
+        if (ret instanceof String) {
             return Long.parseLong((String) ret);
         }
-        if(ret instanceof Long) {
-            return (Long)ret;
+        if (ret instanceof Long) {
+            return (Long) ret;
         }
-        if(ret instanceof Float) {
-            return ((Float)ret).longValue();
+        if (ret instanceof Float) {
+            return ((Float) ret).longValue();
         }
-        if(ret instanceof Double) {
-            return ((Double)ret).longValue();
+        if (ret instanceof Double) {
+            return ((Double) ret).longValue();
         }
-        if(ret instanceof BigInteger) {
-            return ((BigInteger)ret).longValue();
+        if (ret instanceof BigInteger) {
+            return ((BigInteger) ret).longValue();
         }
-        if(ret instanceof BigDecimal) {
-            return ((BigDecimal)ret).longValue();
+        if (ret instanceof BigDecimal) {
+            return ((BigDecimal) ret).longValue();
         }
-        throw new RuntimeException(String.format("can't %s from %s to long, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
+        throw new RuntimeException(
+                String.format(
+                        "can't %s from %s to long, internalMap = %s",
+                        key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
     }
 
     public boolean getBooleanVal(String key, boolean defaultValue) {
@@ -166,42 +173,52 @@ public class OperatorConf implements Serializable {
         if (ret instanceof Boolean) {
             return (Boolean) ret;
         }
-        throw new RuntimeException(String.format("can't %s from %s to boolean, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
+        throw new RuntimeException(
+                String.format(
+                        "can't %s from %s to boolean, internalMap = %s",
+                        key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
     }
 
     /**
      * 从指定key中获取Properties配置信息
+     *
      * @param key
      * @param p
      * @return Properties
      */
     @SuppressWarnings("unchecked")
-    public Properties getProperties(String key, Properties p ){
+    public Properties getProperties(String key, Properties p) {
         Object ret = parameter.get(key);
-        if(p == null){
+        if (p == null) {
             p = new Properties();
         }
         if (ret == null) {
             return p;
         }
-        if(ret instanceof Map){
+        if (ret instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) ret;
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 p.setProperty(entry.getKey(), String.valueOf(entry.getValue()));
             }
             return p;
-        }else{
-            throw new RuntimeException(String.format("cant't %s from %s to map, internalMap = %s", key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
+        } else {
+            throw new RuntimeException(
+                    String.format(
+                            "cant't %s from %s to map, internalMap = %s",
+                            key, ret.getClass().getName(), GsonUtil.GSON.toJson(parameter)));
         }
     }
 
-
     @Override
     public String toString() {
-        return "OperatorConf{" +
-                "name='" + name + '\'' +
-                ", parameter=" + parameter +
-                ", table=" + table +
-                '}';
+        return "OperatorConf{"
+                + "name='"
+                + name
+                + '\''
+                + ", parameter="
+                + parameter
+                + ", table="
+                + table
+                + '}';
     }
 }

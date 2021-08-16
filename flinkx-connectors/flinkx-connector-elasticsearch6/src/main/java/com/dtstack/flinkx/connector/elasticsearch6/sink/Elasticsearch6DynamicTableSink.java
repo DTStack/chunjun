@@ -18,16 +18,16 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.sink;
 
+import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
+import com.dtstack.flinkx.connector.elasticsearch6.converter.Elasticsearch6RowConverter;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
-
-import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
-import com.dtstack.flinkx.connector.elasticsearch6.converter.Elasticsearch6RowConverter;
-import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 /**
  * @description:
@@ -40,7 +40,8 @@ public class Elasticsearch6DynamicTableSink implements DynamicTableSink {
     private final TableSchema physicalSchema;
     private final Elasticsearch6Conf elasticsearchConf;
 
-    public Elasticsearch6DynamicTableSink(TableSchema physicalSchema, Elasticsearch6Conf elasticsearchConf) {
+    public Elasticsearch6DynamicTableSink(
+            TableSchema physicalSchema, Elasticsearch6Conf elasticsearchConf) {
         this.physicalSchema = physicalSchema;
         this.elasticsearchConf = elasticsearchConf;
     }
@@ -64,7 +65,9 @@ public class Elasticsearch6DynamicTableSink implements DynamicTableSink {
         builder.setRowConverter(new Elasticsearch6RowConverter(rowType));
         builder.setEsConf(elasticsearchConf);
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()), 1);
+        return SinkFunctionProvider.of(
+                new DtOutputFormatSinkFunction<>(builder.finish()),
+                elasticsearchConf.getParallelism());
     }
 
     @Override

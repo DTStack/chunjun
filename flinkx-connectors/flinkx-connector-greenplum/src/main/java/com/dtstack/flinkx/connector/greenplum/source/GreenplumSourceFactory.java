@@ -18,11 +18,11 @@
 
 package com.dtstack.flinkx.connector.greenplum.source;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.greenplum.dialect.GreenplumDialect;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * company www.dtstack.com
@@ -34,5 +34,4 @@ public class GreenplumSourceFactory extends JdbcSourceFactory {
     public GreenplumSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env, new GreenplumDialect());
     }
-
 }

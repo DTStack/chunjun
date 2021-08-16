@@ -18,12 +18,13 @@
 
 package com.dtstack.flinkx.connector.stream.util;
 
+import com.dtstack.flinkx.conf.FieldConf;
+
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.github.jsonzou.jmockdata.JMockData;
 import com.github.jsonzou.jmockdata.MockConfig;
 import org.apache.commons.lang.StringUtils;
@@ -47,54 +48,103 @@ public class MockDataUtil {
     private static AtomicLong id = new AtomicLong(0L);
     private static int minSize = 320;
     private static int maxSize = 320;
-    private static MockConfig mockConfig = new MockConfig().subConfig(String.class).sizeRange(minSize,maxSize).globalConfig();
+    private static MockConfig mockConfig =
+            new MockConfig().subConfig(String.class).sizeRange(minSize, maxSize).globalConfig();
 
-    public static Object mockData(String type){
+    public static Object mockData(String type) {
         Object mockData;
-        switch (type.trim().toLowerCase()){
-            case "id": mockData = id.incrementAndGet();break;
+        switch (type.trim().toLowerCase()) {
+            case "id":
+                mockData = id.incrementAndGet();
+                break;
             case "int":
-            case "integer": mockData = JMockData.mock(int.class);break;
-            case "byte": mockData = JMockData.mock(byte.class);break;
-            case "boolean": mockData = JMockData.mock(boolean.class);break;
+            case "integer":
+                mockData = JMockData.mock(int.class);
+                break;
+            case "byte":
+                mockData = JMockData.mock(byte.class);
+                break;
+            case "boolean":
+                mockData = JMockData.mock(boolean.class);
+                break;
             case "char":
-            case "character": mockData = JMockData.mock(char.class);break;
-            case "short": mockData = JMockData.mock(short.class);break;
-            case "long": mockData = JMockData.mock(long.class);break;
-            case "float": mockData = JMockData.mock(float.class);break;
-            case "double": mockData = JMockData.mock(double.class);break;
-            case "date": mockData = JMockData.mock(Date.class);break;
-            case "timestamp": mockData = JMockData.mock(Timestamp.class);break;
-            case "bigdecimal": mockData = JMockData.mock(BigDecimal.class);break;
-            case "biginteger": mockData = JMockData.mock(BigInteger.class);break;
-            case "int[]": mockData = JMockData.mock(int[].class);break;
-            case "byte[]": mockData = JMockData.mock(byte[].class);break;
-            case "boolean[]": mockData = JMockData.mock(boolean[].class);break;
+            case "character":
+                mockData = JMockData.mock(char.class);
+                break;
+            case "short":
+                mockData = JMockData.mock(short.class);
+                break;
+            case "long":
+                mockData = JMockData.mock(long.class);
+                break;
+            case "float":
+                mockData = JMockData.mock(float.class);
+                break;
+            case "double":
+                mockData = JMockData.mock(double.class);
+                break;
+            case "date":
+                mockData = JMockData.mock(Date.class);
+                break;
+            case "timestamp":
+                mockData = JMockData.mock(Timestamp.class);
+                break;
+            case "bigdecimal":
+                mockData = JMockData.mock(BigDecimal.class);
+                break;
+            case "biginteger":
+                mockData = JMockData.mock(BigInteger.class);
+                break;
+            case "int[]":
+                mockData = JMockData.mock(int[].class);
+                break;
+            case "byte[]":
+                mockData = JMockData.mock(byte[].class);
+                break;
+            case "boolean[]":
+                mockData = JMockData.mock(boolean[].class);
+                break;
             case "char[]":
-            case "character[]": mockData = JMockData.mock(char[].class);break;
-            case "short[]": mockData = JMockData.mock(short[].class);break;
-            case "long[]": mockData = JMockData.mock(long[].class);break;
-            case "float[]": mockData = JMockData.mock(float[].class);break;
-            case "double[]": mockData = JMockData.mock(double[].class);break;
-            case "string[]": mockData = JMockData.mock(String[].class);break;
+            case "character[]":
+                mockData = JMockData.mock(char[].class);
+                break;
+            case "short[]":
+                mockData = JMockData.mock(short[].class);
+                break;
+            case "long[]":
+                mockData = JMockData.mock(long[].class);
+                break;
+            case "float[]":
+                mockData = JMockData.mock(float[].class);
+                break;
+            case "double[]":
+                mockData = JMockData.mock(double[].class);
+                break;
+            case "string[]":
+                mockData = JMockData.mock(String[].class);
+                break;
             case "binary":
                 String str = JMockData.mock(String.class, mockConfig);
-                mockData = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));break;
-            default: mockData = StringData.fromString(JMockData.mock(String.class));break;
+                mockData = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
+                break;
+            default:
+                mockData = StringData.fromString(JMockData.mock(String.class));
+                break;
         }
 
         return mockData;
     }
 
-    public static RowData getMockRow(List<FieldConf> columns){
+    public static RowData getMockRow(List<FieldConf> columns) {
         GenericRowData mockRow = new GenericRowData(RowKind.INSERT, columns.size());
         mockRow.setRowKind(RowKind.INSERT);
         for (int i = 0; i < columns.size(); i++) {
-            if(columns.get(i).getValue() != null){
-                if("null".equalsIgnoreCase(columns.get(i).getValue())){
+            if (columns.get(i).getValue() != null) {
+                if ("null".equalsIgnoreCase(columns.get(i).getValue())) {
                     mockRow.setField(i, null);
                 } else {
-                    mockRow.setField(i,getField(columns.get(i).getValue(), columns.get(i).getType()));
+                    mockRow.setField(
+                            i, getField(columns.get(i).getValue(), columns.get(i).getType()));
                 }
             } else {
                 mockRow.setField(i, mockData(columns.get(i).getType()));
@@ -104,22 +154,31 @@ public class MockDataUtil {
         return mockRow;
     }
 
-    private static Object getField(String value,String type){
-        if (StringUtils.isEmpty(value)){
+    private static Object getField(String value, String type) {
+        if (StringUtils.isEmpty(value)) {
             return value;
         }
 
         Object field;
-        switch (type.toLowerCase()){
+        switch (type.toLowerCase()) {
             case "integer":
             case "smallint":
             case "tinyint":
-            case "int" : field = NumberUtils.toInt(value);break;
-            case "bigint" :
-            case "long" : field = NumberUtils.toLong(value);break;
-            case "float" : field = NumberUtils.toFloat(value);break;
-            case "double" : field = NumberUtils.toDouble(value);break;
-            default: field = value;
+            case "int":
+                field = NumberUtils.toInt(value);
+                break;
+            case "bigint":
+            case "long":
+                field = NumberUtils.toLong(value);
+                break;
+            case "float":
+                field = NumberUtils.toFloat(value);
+                break;
+            case "double":
+                field = NumberUtils.toDouble(value);
+                break;
+            default:
+                field = value;
         }
 
         return field;

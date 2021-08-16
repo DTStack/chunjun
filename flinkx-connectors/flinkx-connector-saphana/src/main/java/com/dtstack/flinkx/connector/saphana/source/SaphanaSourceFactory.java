@@ -16,15 +16,14 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.connector.saphana.source;
-
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.connector.saphana.dialect.SaphanaDialect;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * company www.dtstack.com

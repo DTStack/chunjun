@@ -18,16 +18,16 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.sink;
 
+import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
+import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRowConverter;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
-
-import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 /**
  * @description:
@@ -64,8 +64,9 @@ public class ElasticsearchDynamicTableSink implements DynamicTableSink {
         builder.setRowConverter(new ElasticsearchRowConverter(rowType));
         builder.setEsConf(elasticsearchConf);
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()),
-                1);
+        return SinkFunctionProvider.of(
+                new DtOutputFormatSinkFunction<>(builder.finish()),
+                elasticsearchConf.getParallelism());
     }
 
     @Override

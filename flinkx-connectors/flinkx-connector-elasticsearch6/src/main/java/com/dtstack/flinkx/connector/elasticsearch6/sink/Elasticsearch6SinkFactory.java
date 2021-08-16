@@ -18,20 +18,19 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.sink;
 
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
+import com.dtstack.flinkx.connector.elasticsearch6.converter.Elasticsearch6ColumnConverter;
 import com.dtstack.flinkx.connector.elasticsearch6.converter.Elasticsearch6RawTypeConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.sink.SinkFactory;
+import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
-import com.dtstack.flinkx.connector.elasticsearch6.converter.Elasticsearch6ColumnConverter;
-import com.dtstack.flinkx.converter.RawTypeConverter;
-import com.dtstack.flinkx.sink.SinkFactory;
-import com.dtstack.flinkx.util.JsonUtil;
-import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * @description:
@@ -47,19 +46,18 @@ public class Elasticsearch6SinkFactory extends SinkFactory {
         super(syncConf);
         elasticsearchConf =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()), Elasticsearch6Conf.class);
+                        JsonUtil.toJson(syncConf.getWriter().getParameter()),
+                        Elasticsearch6Conf.class);
         elasticsearchConf.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(elasticsearchConf);
-        elasticsearchConf.setParallelism(1);
     }
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         Elasticsearch6OutputFormatBuilder builder = new Elasticsearch6OutputFormatBuilder();
         builder.setEsConf(elasticsearchConf);
-        final RowType rowType = TableUtil.createRowType(
-                elasticsearchConf.getColumn(),
-                getRawTypeConverter());
+        final RowType rowType =
+                TableUtil.createRowType(elasticsearchConf.getColumn(), getRawTypeConverter());
         builder.setRowConverter(new Elasticsearch6ColumnConverter(rowType));
         return createOutput(dataSet, builder.finish());
     }

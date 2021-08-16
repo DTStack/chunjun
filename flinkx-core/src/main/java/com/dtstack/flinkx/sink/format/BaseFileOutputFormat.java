@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.sink.format;
 
-import org.apache.flink.streaming.api.CheckpointingMode;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.BaseFileConf;
 import com.dtstack.flinkx.enums.SizeUnitType;
 import com.dtstack.flinkx.sink.WriteMode;
 import com.dtstack.flinkx.throwable.WriteRecordException;
+
+import org.apache.flink.streaming.api.CheckpointingMode;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;

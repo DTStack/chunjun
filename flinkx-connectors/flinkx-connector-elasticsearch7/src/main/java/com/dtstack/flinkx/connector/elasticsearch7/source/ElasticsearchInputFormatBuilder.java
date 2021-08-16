@@ -19,8 +19,8 @@
 package com.dtstack.flinkx.connector.elasticsearch7.source;
 
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
 import com.google.common.base.Preconditions;
 
 /**

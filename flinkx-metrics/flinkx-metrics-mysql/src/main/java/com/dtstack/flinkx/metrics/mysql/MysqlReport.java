@@ -32,5 +32,4 @@ public class MysqlReport extends RdbReporter {
         super(metricParam);
         super.jdbcDialect = new MysqlDialect();
     }
-
 }

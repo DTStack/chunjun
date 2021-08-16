@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.ftp.sink;
 
+import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
+import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -25,10 +29,6 @@ import org.apache.flink.table.connector.format.EncodingFormat;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.data.RowData;
-
-import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
-import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 /**
  * @program: flinkx

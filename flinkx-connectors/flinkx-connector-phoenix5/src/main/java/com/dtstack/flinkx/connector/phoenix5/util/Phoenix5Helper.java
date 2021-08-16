@@ -17,11 +17,6 @@
  */
 package com.dtstack.flinkx.connector.phoenix5.util;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.util.Preconditions;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.phoenix5.conf.Phoenix5Conf;
 import com.dtstack.flinkx.connector.phoenix5.converter.HBaseColumnConverter;
@@ -34,6 +29,12 @@ import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.util.Preconditions;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.conf.Configuration;
@@ -288,7 +289,8 @@ public class Phoenix5Helper implements Serializable {
                     ConnectionFactory.createConnection(hConfiguration);
             hTable = hConn.getTable(TableName.valueOf(conf.getTable()));
         } catch (IOException e) {
-            throw new FlinkxRuntimeException("Obtain org.apache.hadoop.hbase.client.Connection fail.",e);
+            throw new FlinkxRuntimeException(
+                    "Obtain org.apache.hadoop.hbase.client.Connection fail.", e);
         }
         return hTable.getScanner(getScan(keyRangeList, conf));
     }

@@ -39,13 +39,15 @@ public class SqlserverOutputFormat extends JdbcOutputFormat {
         super.openInternal(taskNumber, numTasks);
 
         Statement statement = null;
-        String sql = ((SqlserverDialect)jdbcDialect).getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());
+        String sql =
+                ((SqlserverDialect) jdbcDialect)
+                        .getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());
         try {
             statement = dbConn.createStatement();
             statement.execute(sql);
         } catch (SQLException e) {
             throw new FlinkxRuntimeException(e);
-        }finally {
+        } finally {
             JdbcUtil.closeDbResources(null, statement, null, false);
         }
     }

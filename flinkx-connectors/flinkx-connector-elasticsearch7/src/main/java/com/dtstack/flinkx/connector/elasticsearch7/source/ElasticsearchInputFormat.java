@@ -21,16 +21,15 @@ package com.dtstack.flinkx.connector.elasticsearch7.source;
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
 import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchRequestHelper;
 import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchUtil;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-
-import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.ClearScrollRequest;
 import org.elasticsearch.action.search.ClearScrollResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -96,7 +95,9 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
         rhlClient = ElasticsearchUtil.createClient(elasticsearchConf);
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
 
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        String[] fieldsNames = elasticsearchConf.getFieldNames();
+        SearchSourceBuilder searchSourceBuilder =
+                ElasticsearchRequestHelper.createSourceBuilder(fieldsNames, null, null);
         searchSourceBuilder.size(elasticsearchConf.getBatchSize());
 
         if(StringUtils.isNotEmpty(query)){

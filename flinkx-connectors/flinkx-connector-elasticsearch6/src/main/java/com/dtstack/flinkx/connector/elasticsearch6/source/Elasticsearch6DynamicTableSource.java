@@ -18,6 +18,17 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.source;
 
+import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
+import com.dtstack.flinkx.connector.elasticsearch6.converter.Elasticsearch6RowConverter;
+import com.dtstack.flinkx.connector.elasticsearch6.lookup.Elasticsearch6AllTableFunction;
+import com.dtstack.flinkx.connector.elasticsearch6.lookup.Elasticsearch6LruTableFunction;
+import com.dtstack.flinkx.enums.CacheType;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -30,17 +41,6 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
-
-import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
-import com.dtstack.flinkx.connector.elasticsearch6.converter.Elasticsearch6RowConverter;
-import com.dtstack.flinkx.connector.elasticsearch6.lookup.Elasticsearch6AllTableFunction;
-import com.dtstack.flinkx.connector.elasticsearch6.lookup.Elasticsearch6LruTableFunction;
-import com.dtstack.flinkx.enums.CacheType;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
 
 /**
  * @description:
@@ -56,7 +56,9 @@ public class Elasticsearch6DynamicTableSource
     protected final LookupConf lookupConf;
 
     public Elasticsearch6DynamicTableSource(
-            TableSchema physicalSchema, Elasticsearch6Conf elasticsearchConf, LookupConf lookupConf) {
+            TableSchema physicalSchema,
+            Elasticsearch6Conf elasticsearchConf,
+            LookupConf lookupConf) {
         this.physicalSchema = physicalSchema;
         this.elasticsearchConf = elasticsearchConf;
         this.lookupConf = lookupConf;
@@ -89,7 +91,9 @@ public class Elasticsearch6DynamicTableSource
         builder.setEsConf(elasticsearchConf);
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                elasticsearchConf.getParallelism());
     }
 
     @Override

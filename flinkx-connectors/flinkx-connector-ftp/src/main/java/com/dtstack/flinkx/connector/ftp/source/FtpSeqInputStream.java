@@ -27,8 +27,9 @@ import java.util.List;
 
 /**
  * The InputStream Implementation that read multiple ftp files one by one.
- *
+ * <p>
  * Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class FtpSeqInputStream extends InputStream {
@@ -58,8 +59,7 @@ public class FtpSeqInputStream extends InputStream {
             if (in == null) {
                 throw new NullPointerException();
             }
-        }
-        else {
+        } else {
             in = null;
         }
 

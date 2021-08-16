@@ -18,10 +18,10 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.converter;
 
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
-
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import java.util.Locale;
 
@@ -35,7 +35,7 @@ public class Elasticsearch6RawTypeConverter {
 
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
-            // Numeric Types
+                // Numeric Types
             case "BYTE":
             case "INT2":
             case "SMALLINT":
@@ -69,7 +69,7 @@ public class Elasticsearch6RawTypeConverter {
             case "TIME":
             case "TIMETZ":
                 return DataTypes.TIME();
-            // interval 类型还不知道如何支持
+                // interval 类型还不知道如何支持
             case "BOOLEAN":
             case "BOOL":
                 return DataTypes.BOOLEAN();

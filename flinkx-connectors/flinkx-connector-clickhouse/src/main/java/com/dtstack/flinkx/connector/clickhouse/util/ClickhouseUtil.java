@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.clickhouse.util;
 
 import com.dtstack.flinkx.util.SysUtil;
+
 import ru.yandex.clickhouse.BalancedClickhouseDataSource;
 import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
 

@@ -17,14 +17,15 @@
  */
 package com.dtstack.flinkx.connector.phoenix5.util;
 
-import org.apache.flink.util.Preconditions;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+
+import org.apache.flink.util.Preconditions;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.phoenix.query.QueryServices;

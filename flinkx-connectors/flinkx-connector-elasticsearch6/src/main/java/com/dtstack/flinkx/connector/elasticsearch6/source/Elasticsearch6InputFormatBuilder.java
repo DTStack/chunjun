@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.elasticsearch6.source;
 
 import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
 import com.google.common.base.Preconditions;
 
 /**

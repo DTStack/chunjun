@@ -181,7 +181,6 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
         }
     }
 
-
     @Override
     public void setBlob(int fieldIndex, InputStream is) throws SQLException {
         for (int index : indexMapping[fieldIndex]) {
@@ -192,7 +191,7 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
     @Override
     public void setClob(int fieldIndex, Reader reader) throws SQLException {
         for (int index : indexMapping[fieldIndex]) {
-            statement.setClob(index,reader);
+            statement.setClob(index, reader);
         }
     }
 
@@ -236,7 +235,6 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
      *
      * @param sql sql to parse
      * @param paramMap map to hold parameter-index mappings
-     *
      * @return the parsed sql
      */
     public static String parseNamedStatement(String sql, Map<String, List<Integer>> paramMap) {

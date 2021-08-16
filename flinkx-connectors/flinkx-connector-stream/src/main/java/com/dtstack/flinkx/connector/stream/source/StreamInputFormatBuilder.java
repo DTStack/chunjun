@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.stream.source;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
 import org.apache.commons.collections.CollectionUtils;
 
 /**

@@ -17,11 +17,10 @@
  */
 package com.dtstack.flinkx.metrics.rdb;
 
-
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -53,7 +52,6 @@ public interface JdbcDialect extends Serializable {
      * @return True if the dialect can be applied on the given jdbc url.
      */
     boolean canHandle(String url);
-
 
     /**
      * Check if this dialect instance support a specific data type in table schema.
@@ -242,7 +240,7 @@ public interface JdbcDialect extends Serializable {
         sql.append(" WHERE ");
         if (StringUtils.isNotBlank(where)) {
             sql.append(where);
-        }else{
+        } else {
             sql.append(" 1=1 ");
         }
         return sql.toString();

@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.saphana.dialect;
 
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -29,6 +26,10 @@ import com.dtstack.flinkx.connector.saphana.converter.SaphanaRawTypeConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.enums.EDatabaseType;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
@@ -113,7 +114,8 @@ public class SaphanaDialect implements JdbcDialect {
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         return new SaphanaColumnConverter(rowType, commonConf);
     }
 
@@ -156,16 +158,13 @@ public class SaphanaDialect implements JdbcDialect {
      */
     private String buildConnectString(boolean allReplace, String col) {
         return allReplace
-                ? "T1."
-                + quoteIdentifier(col)
-                + " = T2."
-                + quoteIdentifier(col)
+                ? "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col)
                 : "T1."
-                + quoteIdentifier(col)
-                + " =IFNULL(T2."
-                + quoteIdentifier(col)
-                + ",T1."
-                + quoteIdentifier(col)
-                + ")";
+                        + quoteIdentifier(col)
+                        + " =IFNULL(T2."
+                        + quoteIdentifier(col)
+                        + ",T1."
+                        + quoteIdentifier(col)
+                        + ")";
     }
 }

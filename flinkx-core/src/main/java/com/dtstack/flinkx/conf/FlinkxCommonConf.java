@@ -30,8 +30,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Date: 2021/04/08
- * Company: www.dtstack.com
+ * Date: 2021/04/08 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -73,7 +72,7 @@ public class FlinkxCommonConf implements Serializable {
     private String semantic;
 
     /** metrics plugin properties */
-    private Map<String,Object> metricProps;
+    private Map<String, Object> metricProps;
 
     public String getSemantic() {
         return semantic == null ? Semantic.AT_LEAST_ONCE.getAlisName() : semantic;
@@ -205,23 +204,41 @@ public class FlinkxCommonConf implements Serializable {
 
     @Override
     public String toString() {
-        return "FlinkxCommonConf{" +
-                "speedBytes=" + speedBytes +
-                ", errorRecord=" + errorRecord +
-                ", errorPercentage=" + errorPercentage +
-                ", dirtyDataPath='" + dirtyDataPath + '\'' +
-                ", dirtyDataHadoopConf=" + dirtyDataHadoopConf +
-                ", fieldNameList=" + fieldNameList +
-                ", checkFormat=" + checkFormat +
-                ", parallelism=" + parallelism +
-                ", column=" + column +
-                ", batchSize=" + batchSize +
-                ", flushIntervalMills=" + flushIntervalMills +
-                ", metricPluginRoot='" + metricPluginRoot + '\'' +
-                ", metricPluginName='" + metricPluginName + '\'' +
-                ", metricProps=" + metricProps +
-                ", restorePath=" + restorePath +
-                '}';
+        return "FlinkxCommonConf{"
+                + "speedBytes="
+                + speedBytes
+                + ", errorRecord="
+                + errorRecord
+                + ", errorPercentage="
+                + errorPercentage
+                + ", dirtyDataPath='"
+                + dirtyDataPath
+                + '\''
+                + ", dirtyDataHadoopConf="
+                + dirtyDataHadoopConf
+                + ", fieldNameList="
+                + fieldNameList
+                + ", checkFormat="
+                + checkFormat
+                + ", parallelism="
+                + parallelism
+                + ", column="
+                + column
+                + ", batchSize="
+                + batchSize
+                + ", flushIntervalMills="
+                + flushIntervalMills
+                + ", metricPluginRoot='"
+                + metricPluginRoot
+                + '\''
+                + ", metricPluginName='"
+                + metricPluginName
+                + '\''
+                + ", metricProps="
+                + metricProps
+                + ", restorePath="
+                + restorePath
+                + '}';
     }
 
     public Map<String, Object> asMap() throws IllegalAccessException {

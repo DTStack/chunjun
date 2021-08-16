@@ -254,6 +254,37 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
 
 <br/>
 
+- **io-threads**
+    - 描述：IO处理线程数,最大线程数为3
+    - 必选：否
+    - 字段类型：int
+    - 默认值：1
+
+<br/>
+
+- **max-log-file-size**
+    - 描述：logminer一次性加载的日志文件的大小，默认5g，单位byte
+    - 必选：否
+    - 字段类型：long
+    - 默认值：5*1024*1024*1024
+
+<br/>
+
+- **transaction-cache-num-size**
+    - 描述：logminer可缓存DML的数量
+    - 必选：否
+    - 字段类型：long
+    - 默认值：800
+
+<br/>
+
+- **transaction-expire-time**
+    - 描述：logminer可缓存的失效时间，单位分钟
+    - 必选：否
+    - 字段类型：int
+    - 默认值：20
+
+<br/>
 ## 七、数据结构
 在2021-06-29 23:42:19(时间戳：1624981339000)执行：
 ```sql

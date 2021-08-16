@@ -19,30 +19,22 @@
 package com.dtstack.flinkx.connector.elasticsearch7.source;
 
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-
 import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRowConverter;
 import com.dtstack.flinkx.connector.elasticsearch7.lookup.ElasticsearchAllTableFunction;
 import com.dtstack.flinkx.connector.elasticsearch7.lookup.ElasticsearchLruTableFunction;
-import com.dtstack.flinkx.connector.elasticsearch7.sink.ElasticsearchOutputFormatBuilder;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
-
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-
 import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
-import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
-import org.apache.flink.table.connector.source.SourceFunctionProvider;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
@@ -90,6 +82,8 @@ public class ElasticsearchDynamicTableSource implements ScanTableSource, LookupT
 
         ElasticsearchInputFormatBuilder builder = new ElasticsearchInputFormatBuilder();
         builder.setRowConverter(new ElasticsearchRowConverter(rowType));
+        String[] fieldNames = physicalSchema.getFieldNames();
+        elasticsearchConf.setFieldNames(fieldNames);
         builder.setEsConf(elasticsearchConf);
 
         return ParallelSourceFunctionProvider.of(

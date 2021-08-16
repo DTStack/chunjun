@@ -16,20 +16,15 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.lookup.cache;
-
 
 import com.dtstack.flinkx.enums.ECacheContentType;
 
 /**
- * Reason:
- * Date: 2018/9/10
- * Company: www.dtstack.com
+ * Reason: Date: 2018/9/10 Company: www.dtstack.com
  *
  * @author xuchao
  */
-
 public class CacheObj {
 
     private ECacheContentType type;

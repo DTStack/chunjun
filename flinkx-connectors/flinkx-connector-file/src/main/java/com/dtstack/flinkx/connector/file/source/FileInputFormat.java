@@ -18,13 +18,13 @@
 
 package com.dtstack.flinkx.connector.file.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.BaseFileConf;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.GsonUtil;
+
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
 
 import java.io.File;
 import java.io.IOException;

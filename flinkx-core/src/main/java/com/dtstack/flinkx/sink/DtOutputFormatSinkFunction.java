@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.sink;
 
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -37,9 +41,6 @@ import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 
-import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
-import com.dtstack.flinkx.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

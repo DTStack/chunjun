@@ -20,8 +20,7 @@ package com.dtstack.flinkx.conf;
 import java.io.Serializable;
 
 /**
- * Date: 2021/01/18
- * Company: www.dtstack.com
+ * Date: 2021/01/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -91,13 +90,21 @@ public class RestoreConf implements Serializable {
 
     @Override
     public String toString() {
-        return "RestoreConf{" +
-                "isStream=" + isStream +
-                ", isRestore=" + isRestore +
-                ", restoreColumnName='" + restoreColumnName + '\'' +
-                ", restoreColumnType='" + restoreColumnType + '\'' +
-                ", restoreColumnIndex=" + restoreColumnIndex +
-                ", maxRowNumForCheckpoint=" + maxRowNumForCheckpoint +
-                '}';
+        return "RestoreConf{"
+                + "isStream="
+                + isStream
+                + ", isRestore="
+                + isRestore
+                + ", restoreColumnName='"
+                + restoreColumnName
+                + '\''
+                + ", restoreColumnType='"
+                + restoreColumnType
+                + '\''
+                + ", restoreColumnIndex="
+                + restoreColumnIndex
+                + ", maxRowNumForCheckpoint="
+                + maxRowNumForCheckpoint
+                + '}';
     }
 }
