@@ -17,9 +17,6 @@
  */
 package com.dtstack.flinkx.connector.kingbase.dialect;
 
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -30,6 +27,10 @@ import com.dtstack.flinkx.connector.kingbase.util.KingbaseConstants;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.enums.EDatabaseType;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import io.vertx.core.json.JsonArray;
 
 import java.sql.ResultSet;
@@ -71,12 +72,14 @@ public class KingbaseDialect implements JdbcDialect {
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(RowType rowType) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getRowConverter(RowType rowType) {
         return new KingbaseRowConverter(rowType);
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         return new KingbaseColumnConverter(rowType, commonConf);
     }
 
@@ -98,14 +101,13 @@ public class KingbaseDialect implements JdbcDialect {
                         + " ON CONFLICT ("
                         + uniqueColumns
                         + ") DO UPDATE SET  "
-                        + updateClause
-        );
+                        + updateClause);
     }
 
     /**
-     * if allReplace is true: use ISNULL() FUNCTION to handle null values.
-     * For example: SET dname = isnull(EXCLUDED.dname,t1.dname)
-     * else allReplace is false: SET dname = EXCLUDED.dname
+     * if allReplace is true: use ISNULL() FUNCTION to handle null values. For example: SET dname =
+     * isnull(EXCLUDED.dname,t1.dname) else allReplace is false: SET dname = EXCLUDED.dname
+     *
      * @param fieldNames
      * @param allReplace
      * @return
@@ -113,19 +115,29 @@ public class KingbaseDialect implements JdbcDialect {
     private String buildUpdateClause(String[] fieldNames, boolean allReplace) {
         String updateClause;
         if (allReplace) {
-            updateClause = Arrays.stream(fieldNames)
-                    .map(f -> quoteIdentifier(f) + "=ISNULL(EXCLUDED." + quoteIdentifier(f) + ", t1." + quoteIdentifier(f)+")")
-                    .collect(Collectors.joining(", "));
+            updateClause =
+                    Arrays.stream(fieldNames)
+                            .map(
+                                    f ->
+                                            quoteIdentifier(f)
+                                                    + "=ISNULL(EXCLUDED."
+                                                    + quoteIdentifier(f)
+                                                    + ", t1."
+                                                    + quoteIdentifier(f)
+                                                    + ")")
+                            .collect(Collectors.joining(", "));
         } else {
-            updateClause = Arrays.stream(fieldNames)
-                    .map(f -> quoteIdentifier(f) + "=EXCLUDED." + quoteIdentifier(f))
-                    .collect(Collectors.joining(", "));
+            updateClause =
+                    Arrays.stream(fieldNames)
+                            .map(f -> quoteIdentifier(f) + "=EXCLUDED." + quoteIdentifier(f))
+                            .collect(Collectors.joining(", "));
         }
         return updateClause;
     }
 
     /**
      * override: add alias for table which is used in upsert statement
+     *
      * @param schema
      * @param tableName
      * @param fieldNames
