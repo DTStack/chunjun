@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.connector.phoenix5.converter;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -28,10 +33,6 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.NoTagsKeyValue;
 import org.apache.hadoop.hbase.client.Result;

@@ -23,19 +23,19 @@ import com.dtstack.flinkx.sink.WriteMode;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Date: 2021/06/08
- * Company: www.dtstack.com
+ * Date: 2021/06/08 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class BaseFileConf extends FlinkxCommonConf{
+public class BaseFileConf extends FlinkxCommonConf {
 
     private String path;
     private String fileName;
-    /** 写入模式 **/
+    /** 写入模式 * */
     private String writeMode = WriteMode.APPEND.name();
     /** 压缩方式 */
     private String compress;
+
     private String encoding = StandardCharsets.UTF_8.name();
     private long maxFileSize = ConstantValue.STORE_SIZE_G;
     private long nextCheckRows = 5000;
@@ -98,14 +98,26 @@ public class BaseFileConf extends FlinkxCommonConf{
 
     @Override
     public String toString() {
-        return "BaseFileConf{" +
-                "path='" + path + '\'' +
-                ", fileName='" + fileName + '\'' +
-                ", writeMode='" + writeMode + '\'' +
-                ", compress='" + compress + '\'' +
-                ", encoding='" + encoding + '\'' +
-                ", maxFileSize=" + maxFileSize +
-                ", nextCheckRows=" + nextCheckRows +
-                '}';
+        return "BaseFileConf{"
+                + "path='"
+                + path
+                + '\''
+                + ", fileName='"
+                + fileName
+                + '\''
+                + ", writeMode='"
+                + writeMode
+                + '\''
+                + ", compress='"
+                + compress
+                + '\''
+                + ", encoding='"
+                + encoding
+                + '\''
+                + ", maxFileSize="
+                + maxFileSize
+                + ", nextCheckRows="
+                + nextCheckRows
+                + '}';
     }
 }

@@ -21,6 +21,7 @@ package com.dtstack.flinkx.sink.format;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -40,11 +40,19 @@ public class MapUtilTest {
         target.put("key11", treeMap);
 
         Map<String, Object> result = MapUtil.convertToHashMap(target);
-        Assert.assertEquals(result, new HashMap<String, Object>() {{
-            put("key11", new HashMap<String, Object>(){{
-                put("key1", "val1");}
-            });
-        }});
+        Assert.assertEquals(
+                result,
+                new HashMap<String, Object>() {
+                    {
+                        put(
+                                "key11",
+                                new HashMap<String, Object>() {
+                                    {
+                                        put("key1", "val1");
+                                    }
+                                });
+                    }
+                });
     }
 
     @Test
@@ -80,13 +88,18 @@ public class MapUtilTest {
     public void testJsonStrToObject() {
         try {
             Map<String, Object> result = MapUtil.jsonStrToObject("{\"key\":\"val\"}", Map.class);
-            Assert.assertEquals(result, new HashMap<String, Object>() {{
-                put("key", "val");
-            }});
+            Assert.assertEquals(
+                    result,
+                    new HashMap<String, Object>() {
+                        {
+                            put("key", "val");
+                        }
+                    });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 }
 
-//Generated with love by TestMe :) Please report issues and submit feature requests at: http://weirddev.com/forum#!/testme
+// Generated with love by TestMe :) Please report issues and submit feature requests at:
+// http://weirddev.com/forum#!/testme

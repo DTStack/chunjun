@@ -18,8 +18,10 @@
 package com.dtstack.flinkx.connector.oraclelogminer.inputformat;
 
 import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.flinkx.connector.oraclelogminer.entity.OracleInfo;
 import com.dtstack.flinkx.connector.oraclelogminer.listener.LogMinerConnection;
 import com.dtstack.flinkx.connector.oraclelogminer.util.SqlUtil;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -27,6 +29,7 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
@@ -49,7 +52,7 @@ import java.util.Locale;
  */
 public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder {
 
-    private OracleLogMinerInputFormat format;
+    private final OracleLogMinerInputFormat format;
 
     public OracleLogMinerInputFormatBuilder() {
         super.format = format = new OracleLogMinerInputFormat();
@@ -98,7 +101,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
         if (StringUtils.isBlank(config.getReadPosition())
                 || !list.contains(config.getReadPosition().toUpperCase(Locale.ENGLISH))) {
             sb.append(
-                            "readPosition must be one of [all, current, time, scn], current readPosition is [")
+                    "readPosition must be one of [all, current, time, scn], current readPosition is [")
                     .append(config.getReadPosition())
                     .append("];\n");
         }
@@ -125,27 +128,54 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
 
         if (logMinerConf.getParallelism() > 1) {
             sb.append(
-                            "logMiner can not support readerChannel bigger than 1, current readerChannel is [")
+                    "logMiner can not support readerChannel bigger than 1, current readerChannel is [")
                     .append(logMinerConf.getParallelism())
                     .append("];\n");
         }
 
         ClassUtil.forName(config.getDriverName(), getClass().getClassLoader());
         try (Connection connection =
-                        RetryUtil.executeWithRetry(
-                                () ->
-                                        DriverManager.getConnection(
-                                                config.getJdbcUrl(),
-                                                config.getUsername(),
-                                                config.getPassword()),
-                                LogMinerConnection.RETRY_TIMES,
-                                LogMinerConnection.SLEEP_TIME,
-                                false);
-                Statement statement = connection.createStatement(); ) {
+                     RetryUtil.executeWithRetry(
+                             () ->
+                                     DriverManager.getConnection(
+                                             config.getJdbcUrl(),
+                                             config.getUsername(),
+                                             config.getPassword()),
+                             LogMinerConnection.RETRY_TIMES,
+                             LogMinerConnection.SLEEP_TIME,
+                             false);
+             Statement statement = connection.createStatement()) {
             statement.setQueryTimeout(config.getQueryTimeout().intValue());
 
-            int oracleVersion = connection.getMetaData().getDatabaseMajorVersion();
-            LOG.info("current Oracle version is：{}", oracleVersion);
+            OracleInfo oracleInfo = LogMinerConnection.getOracleInfo(connection);
+
+            checkOracleInfo(oracleInfo, sb);
+
+            if (sb.length() > 0) {
+                throw new IllegalArgumentException(sb.toString());
+            }
+
+            if (StringUtils.isNotBlank(config.getListenerTables())) {
+                checkTableFormat(sb, config.getListenerTables(), oracleInfo.isCdbMode());
+            }
+
+            // cdb模式 需要切换到根容器
+            if (oracleInfo.isCdbMode()) {
+                try {
+                    statement.execute(
+                            String.format(
+                                    SqlUtil.SQL_ALTER_SESSION_CONTAINER,
+                                    LogMinerConnection.CDB_CONTAINER_ROOT));
+                } catch (SQLException e) {
+                    LOG.warn(
+                            "alter session container to CDB$ROOT error,errorInfo is {} ",
+                            ExceptionUtil.getErrorMessage(e));
+                    sb.append("your account can't alter session container to CDB$ROOT \n");
+                }
+                if (sb.length() > 0) {
+                    throw new IllegalArgumentException(sb.toString());
+                }
+            }
 
             // 1、校验Oracle账号用户角色组
             ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ROLES);
@@ -180,7 +210,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             int privilegeCount = 0;
             List<String> privilegeList;
             // Oracle 11
-            if (oracleVersion <= 11) {
+            if (oracleInfo.getVersion() <= 11) {
                 privilegeList = SqlUtil.ORACLE_11_PRIVILEGES_NEEDED;
             } else {
                 privilegeList = SqlUtil.PRIVILEGES_NEEDED;
@@ -192,7 +222,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             }
 
             if (privilegeCount != privilegeList.size()) {
-                if (oracleVersion <= 11) {
+                if (oracleInfo.getVersion() <= 11) {
                     sb.append("Insufficient permissions, ")
                             .append("current permissions are :")
                             .append(GsonUtil.GSON.toJson(privileges))
@@ -231,6 +261,11 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
 
             rs.close();
 
+            if (format.logMinerConf.getIoThreads() > 3) {
+               sb.append(
+                        "logMinerConfig param ioThreads must less than " + 3);
+            }
+
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
@@ -247,6 +282,41 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
                     .append(ExceptionUtil.getErrorMessage(e));
 
             throw new RuntimeException(detailsInfo.toString(), e);
+        }
+    }
+
+    private void checkOracleInfo(OracleInfo oracleInfo, StringBuilder sb) {
+
+        // 10以下数据源不支持
+        if (oracleInfo.getVersion() < 10) {
+            sb.append(
+                    "we not support "
+                            + oracleInfo.getVersion()
+                            + ". we only support versions greater than or equal to oracle10 \n");
+        }
+    }
+
+    /** 检查监听表格式 pdb.schema.table 或者 schema.table */
+    private void checkTableFormat(StringBuilder sb, String listenerTables, boolean isCdb)
+            throws SQLException {
+        String[] tableWithPdbs = listenerTables.split(ConstantValue.COMMA_SYMBOL);
+
+        for (String tableWithPdb : tableWithPdbs) {
+            String[] tables = tableWithPdb.split("\\.");
+            // 格式是pdb.schema.table 或者schema.table
+            if (tables.length != 2 && tables.length != 3) {
+                if (isCdb) {
+                    sb.append(
+                            "The monitored table "
+                                    + tableWithPdb
+                                    + " does not conform to the specification.，The correct format is pdbName.schema.table \n ");
+                } else {
+                    sb.append(
+                            "The monitored table "
+                                    + tableWithPdb
+                                    + " does not conform to the specification.，The correct format is schema.table \n ");
+                }
+            }
         }
     }
 }

@@ -41,7 +41,7 @@ public class JdbcMetricConf implements Serializable {
 
     private String password;
 
-    Map<String,String> properties;
+    Map<String, String> properties;
 
     public Map<String, String> getProperties() {
         return properties;
@@ -101,14 +101,27 @@ public class JdbcMetricConf implements Serializable {
 
     @Override
     public String toString() {
-        return "JdbcMetricConf{" +
-                "jdbcUrl='" + jdbcUrl + '\'' +
-                ", database='" + database + '\'' +
-                ", schema='" + schema + '\'' +
-                ", table='" + table + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", properties=" + properties +
-                '}';
+        return "JdbcMetricConf{"
+                + "jdbcUrl='"
+                + jdbcUrl
+                + '\''
+                + ", database='"
+                + database
+                + '\''
+                + ", schema='"
+                + schema
+                + '\''
+                + ", table='"
+                + table
+                + '\''
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", properties="
+                + properties
+                + '}';
     }
 }

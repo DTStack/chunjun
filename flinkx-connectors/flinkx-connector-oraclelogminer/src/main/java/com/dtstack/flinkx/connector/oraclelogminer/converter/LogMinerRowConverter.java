@@ -17,6 +17,13 @@
  */
 package com.dtstack.flinkx.connector.oraclelogminer.converter;
 
+import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRow;
+import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRowData;
+import com.dtstack.flinkx.connector.oraclelogminer.listener.LogParser;
+import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.util.DateUtil;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
@@ -26,12 +33,6 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRow;
-import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRowData;
-import com.dtstack.flinkx.connector.oraclelogminer.listener.LogParser;
-import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.util.DateUtil;
 import com.google.common.collect.Maps;
 
 import java.math.BigDecimal;
@@ -46,13 +47,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2021/04/29
- * Company: www.dtstack.com
+ * Date: 2021/04/29 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, LogicalType> {
-
 
     public LogMinerRowConverter(RowType rowType) {
         super.fieldNameList = rowType.getFieldNames();
@@ -70,16 +69,17 @@ public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, Logi
 
         List<EventRowData> beforeRowDataList = eventRow.getBeforeColumnList();
         Map<Object, Object> beforeMap = Maps.newHashMapWithExpectedSize(beforeRowDataList.size());
-        beforeRowDataList.forEach(x -> {
-            beforeMap.put(x.getName(), x.getData());
-        });
-
+        beforeRowDataList.forEach(
+                x -> {
+                    beforeMap.put(x.getName(), x.getData());
+                });
 
         List<EventRowData> afterRowDataList = eventRow.getAfterColumnList();
         Map<Object, Object> afterMap = Maps.newHashMapWithExpectedSize(afterRowDataList.size());
-        afterRowDataList.forEach(x -> {
-            afterMap.put(x.getName(), x.getData());
-        });
+        afterRowDataList.forEach(
+                x -> {
+                    afterMap.put(x.getName(), x.getData());
+                });
 
         switch (eventType) {
             case "INSERT":
@@ -93,11 +93,13 @@ public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, Logi
                 result.add(delete);
                 break;
             case "UPDATE":
-                RowData updateBefore = createRowDataByConverters(fieldNameList, converters, beforeMap);
+                RowData updateBefore =
+                        createRowDataByConverters(fieldNameList, converters, beforeMap);
                 updateBefore.setRowKind(RowKind.UPDATE_BEFORE);
                 result.add(updateBefore);
 
-                RowData updateAfter = createRowDataByConverters(fieldNameList, converters, afterMap);
+                RowData updateAfter =
+                        createRowDataByConverters(fieldNameList, converters, afterMap);
                 updateAfter.setRowKind(RowKind.UPDATE_AFTER);
                 result.add(updateAfter);
                 break;
@@ -126,47 +128,58 @@ public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, Logi
             case INTERVAL_DAY_TIME:
                 return (IDeserializationConverter<String, Long>) Long::parseLong;
             case DATE:
-                return (IDeserializationConverter<String, Integer>) val -> {
-                    val = LogParser.parseTime(val);
-                    LocalDate date = SQL_TIMESTAMP_FORMAT.parse(val).query(TemporalQueries.localDate());
-                    return (int) date.toEpochDay();
-                };
+                return (IDeserializationConverter<String, Integer>)
+                        val -> {
+                            val = LogParser.parseTime(val);
+                            LocalDate date =
+                                    SQL_TIMESTAMP_FORMAT
+                                            .parse(val)
+                                            .query(TemporalQueries.localDate());
+                            return (int) date.toEpochDay();
+                        };
             case TIME_WITHOUT_TIME_ZONE:
-                return (IDeserializationConverter<String, Integer>) val -> {
-                    val = LogParser.parseTime(val);
-                    TemporalAccessor parsedTime = SQL_TIME_FORMAT.parse(val);
-                    LocalTime localTime = parsedTime.query(TemporalQueries.localTime());
-                    return localTime.toSecondOfDay() * 1000;
-                };
+                return (IDeserializationConverter<String, Integer>)
+                        val -> {
+                            val = LogParser.parseTime(val);
+                            TemporalAccessor parsedTime = SQL_TIME_FORMAT.parse(val);
+                            LocalTime localTime = parsedTime.query(TemporalQueries.localTime());
+                            return localTime.toSecondOfDay() * 1000;
+                        };
             case TIMESTAMP_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
-                return (IDeserializationConverter<String, TimestampData>) val -> {
-                    val = LogParser.parseTime(val);
-                    TemporalAccessor parse = DateUtil.DATETIME_FORMATTER.parse(val);
-                    LocalTime localTime = parse.query(TemporalQueries.localTime());
-                    LocalDate localDate = parse.query(TemporalQueries.localDate());
-                    return TimestampData.fromLocalDateTime(LocalDateTime.of(localDate, localTime));
-                };
+                return (IDeserializationConverter<String, TimestampData>)
+                        val -> {
+                            val = LogParser.parseTime(val);
+                            TemporalAccessor parse = DateUtil.DATETIME_FORMATTER.parse(val);
+                            LocalTime localTime = parse.query(TemporalQueries.localTime());
+                            LocalDate localDate = parse.query(TemporalQueries.localDate());
+                            return TimestampData.fromLocalDateTime(
+                                    LocalDateTime.of(localDate, localTime));
+                        };
             case FLOAT:
                 return (IDeserializationConverter<String, Float>) Float::parseFloat;
             case DOUBLE:
                 return (IDeserializationConverter<String, Double>) Double::parseDouble;
             case CHAR:
             case VARCHAR:
-                return (IDeserializationConverter<String, StringData>) val -> {
-                    val = LogParser.parseString(val);
-                    return  StringData.fromString(val);
-                };
+                return (IDeserializationConverter<String, StringData>)
+                        val -> {
+                            val = LogParser.parseString(val);
+                            return StringData.fromString(val);
+                        };
             case DECIMAL:
-                return (IDeserializationConverter<String, DecimalData>) val -> {
-                    final int precision = ((DecimalType) type).getPrecision();
-                    final int scale = ((DecimalType) type).getScale();
-                    return DecimalData.fromBigDecimal(new BigDecimal(val), precision, scale);
-                };
+                return (IDeserializationConverter<String, DecimalData>)
+                        val -> {
+                            final int precision = ((DecimalType) type).getPrecision();
+                            final int scale = ((DecimalType) type).getScale();
+                            return DecimalData.fromBigDecimal(
+                                    new BigDecimal(val), precision, scale);
+                        };
             case BINARY:
             case VARBINARY:
-                return (IDeserializationConverter<String, byte[]>) val -> val.getBytes(StandardCharsets.UTF_8);
+                return (IDeserializationConverter<String, byte[]>)
+                        val -> val.getBytes(StandardCharsets.UTF_8);
             default:
                 throw new UnsupportedOperationException("Unsupported type: " + type);
         }

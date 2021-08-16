@@ -21,6 +21,7 @@ package com.dtstack.flinkx.connector.ftp.source;
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
 import org.apache.commons.lang.StringUtils;
 
 /** @author jiangbo */

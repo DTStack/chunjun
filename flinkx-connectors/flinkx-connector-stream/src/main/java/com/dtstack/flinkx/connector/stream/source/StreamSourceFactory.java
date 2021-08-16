@@ -18,11 +18,6 @@
 
 package com.dtstack.flinkx.connector.stream.source;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
@@ -34,6 +29,11 @@ import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
 /**
  * Date: 2021/04/07 Company: www.dtstack.com
  *
@@ -44,7 +44,9 @@ public class StreamSourceFactory extends SourceFactory {
 
     public StreamSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
-        streamConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getReader().getParameter()), StreamConf.class);
+        streamConf =
+                GsonUtil.GSON.fromJson(
+                        GsonUtil.GSON.toJson(config.getReader().getParameter()), StreamConf.class);
         streamConf.setColumn(config.getReader().getFieldList());
         super.initFlinkxCommonConf(streamConf);
     }
@@ -58,7 +60,8 @@ public class StreamSourceFactory extends SourceFactory {
             rowConverter = new StreamColumnConverter(streamConf);
         } else {
             checkConstant(streamConf);
-            final RowType rowType = TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());
+            final RowType rowType =
+                    TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());
             rowConverter = new StreamRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);

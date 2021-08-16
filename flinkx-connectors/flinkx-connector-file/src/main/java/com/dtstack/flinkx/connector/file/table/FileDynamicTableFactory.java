@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.file.table;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
 import com.dtstack.flinkx.connector.file.options.FileOptions;
-
 import com.dtstack.flinkx.connector.file.source.FileDynamicTableSource;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;

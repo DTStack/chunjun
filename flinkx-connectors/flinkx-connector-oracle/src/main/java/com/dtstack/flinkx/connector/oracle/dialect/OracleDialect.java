@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.oracle.dialect;
 
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -29,6 +26,10 @@ import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
 import com.dtstack.flinkx.connector.oracle.converter.OracleRowConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
@@ -67,9 +68,7 @@ public class OracleDialect implements JdbcDialect {
 
     @Override
     public Optional<String> getReplaceStatement(
-            String schema,
-            String tableName,
-            String[] fieldNames) {
+            String schema, String tableName, String[] fieldNames) {
         throw new RuntimeException("Oracle does not support replace sql");
     }
 
@@ -116,14 +115,15 @@ public class OracleDialect implements JdbcDialect {
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(
-            RowType rowType) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getRowConverter(RowType rowType) {
         return new OracleRowConverter(rowType);
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
-        return  new OracleColumnConverter(rowType, commonConf);
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        return new OracleColumnConverter(rowType, commonConf);
     }
 
     /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */
@@ -160,17 +160,14 @@ public class OracleDialect implements JdbcDialect {
      */
     private String buildConnectString(boolean allReplace, String col) {
         return allReplace
-                ? "T1."
-                + quoteIdentifier(col)
-                + " = T2."
-                + quoteIdentifier(col)
+                ? "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col)
                 : "T1."
-                + quoteIdentifier(col)
-                + " =NVL(T2."
-                + quoteIdentifier(col)
-                + ",T1."
-                + quoteIdentifier(col)
-                + ")";
+                        + quoteIdentifier(col)
+                        + " =NVL(T2."
+                        + quoteIdentifier(col)
+                        + ",T1."
+                        + quoteIdentifier(col)
+                        + ")";
     }
 
     @Override

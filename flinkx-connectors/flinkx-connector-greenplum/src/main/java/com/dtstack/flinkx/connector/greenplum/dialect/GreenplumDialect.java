@@ -67,9 +67,7 @@ public class GreenplumDialect extends PostgresqlDialect {
 
     @Override
     public Optional<String> getReplaceStatement(
-            String schema,
-            String tableName,
-            String[] fieldNames) {
+            String schema, String tableName, String[] fieldNames) {
         throw new RuntimeException("Greenplum does not support replace sql");
     }
 }

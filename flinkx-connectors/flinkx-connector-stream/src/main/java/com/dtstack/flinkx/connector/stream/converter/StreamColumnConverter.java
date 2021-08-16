@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.connector.stream.converter;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -31,6 +29,9 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.ByteColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+
+import org.apache.flink.table.data.RowData;
+
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;

@@ -23,19 +23,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 
- * Date: 2019年9月16日 下午1:24:39
- * Company: www.dtstack.com
- * @author sishu.yss
+ * Date: 2019年9月16日 下午1:24:39 Company: www.dtstack.com
  *
+ * @author sishu.yss
  */
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OptionRequired {
 
-	boolean required() default false;
+    boolean required() default false;
 
-	boolean hasArg() default true;
+    boolean hasArg() default true;
 
-	String description() default "";
+    String description() default "";
 }

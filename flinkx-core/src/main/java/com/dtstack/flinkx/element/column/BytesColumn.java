@@ -26,8 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 
 /**
- * Date: 2021/04/27
- * Company: www.dtstack.com
+ * Date: 2021/04/27 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -56,7 +55,7 @@ public class BytesColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return (byte[])data;
+        return (byte[]) data;
     }
 
     @Override
@@ -64,7 +63,7 @@ public class BytesColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return new String((byte[])data, Charset.forName(encoding));
+        return new String((byte[]) data, Charset.forName(encoding));
     }
 
     @Override

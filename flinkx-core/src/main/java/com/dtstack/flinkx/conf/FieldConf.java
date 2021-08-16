@@ -19,6 +19,7 @@ package com.dtstack.flinkx.conf;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.GsonUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -30,8 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Date: 2021/04/06
- * Company: www.dtstack.com
+ * Date: 2021/04/06 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -59,6 +59,7 @@ public class FieldConf implements Serializable {
 
     /**
      * 获取fieldList
+     *
      * @param fieldList
      * @return
      */
@@ -72,7 +73,7 @@ public class FieldConf implements Serializable {
                     list.add(getField(map, i));
                 }
             } else if (fieldList.get(0) instanceof String) {
-                if(fieldList.size() == 1 && ConstantValue.STAR_SYMBOL.equals(fieldList.get(0))){
+                if (fieldList.size() == 1 && ConstantValue.STAR_SYMBOL.equals(fieldList.get(0))) {
                     FieldConf field = new FieldConf();
                     field.setName(ConstantValue.STAR_SYMBOL);
                     field.setIndex(0);
@@ -86,7 +87,8 @@ public class FieldConf implements Serializable {
                     }
                 }
             } else {
-                throw new IllegalArgumentException("column argument error, fieldList = " + GsonUtil.GSON.toJson(fieldList));
+                throw new IllegalArgumentException(
+                        "column argument error, fieldList = " + GsonUtil.GSON.toJson(fieldList));
             }
         } else {
             list = Collections.emptyList();
@@ -96,11 +98,12 @@ public class FieldConf implements Serializable {
 
     /**
      * 构造field
+     *
      * @param map 属性map
      * @param index 字段索引
      * @return
      */
-    public static FieldConf getField(Map map, int index){
+    public static FieldConf getField(Map map, int index) {
         FieldConf field = new FieldConf();
 
         Object name = map.get("name");
@@ -110,9 +113,9 @@ public class FieldConf implements Serializable {
         field.setType(type != null ? String.valueOf(type) : null);
 
         Object colIndex = map.get("index");
-        if(Objects.nonNull(colIndex)){
-            field.setIndex((Integer)colIndex);
-        }else{
+        if (Objects.nonNull(colIndex)) {
+            field.setIndex((Integer) colIndex);
+        } else {
             field.setIndex(index);
         }
 
@@ -120,7 +123,7 @@ public class FieldConf implements Serializable {
         field.setValue(value != null ? String.valueOf(value) : null);
 
         Object format = map.get("format");
-        if(format != null && String.valueOf(format).trim().length() > 0){
+        if (format != null && String.valueOf(format).trim().length() > 0) {
             field.setFormat(String.valueOf(format));
         }
 
@@ -141,13 +144,14 @@ public class FieldConf implements Serializable {
 
     /**
      * 根据name查找对应FieldConf
+     *
      * @param fieldList
      * @param name
      * @return
      */
-    public static FieldConf getSameNameMetaColumn(List<FieldConf> fieldList , String name){
+    public static FieldConf getSameNameMetaColumn(List<FieldConf> fieldList, String name) {
         for (FieldConf field : fieldList) {
-            if(StringUtils.isNotEmpty(field.getName()) && field.getName().equals(name)){
+            if (StringUtils.isNotEmpty(field.getName()) && field.getName().equals(name)) {
                 return field;
             }
         }
@@ -228,17 +232,29 @@ public class FieldConf implements Serializable {
 
     @Override
     public String toString() {
-        return "FieldConf{" +
-                "name='" + name + '\'' +
-                ", type='" + type + '\'' +
-                ", index=" + index +
-                ", value='" + value + '\'' +
-                ", format=" + format +
-                ", splitter='" + splitter + '\'' +
-                ", isPart=" + isPart +
-                ", notNull=" + notNull +
-                ", length=" + length +
-                '}';
+        return "FieldConf{"
+                + "name='"
+                + name
+                + '\''
+                + ", type='"
+                + type
+                + '\''
+                + ", index="
+                + index
+                + ", value='"
+                + value
+                + '\''
+                + ", format="
+                + format
+                + ", splitter='"
+                + splitter
+                + '\''
+                + ", isPart="
+                + isPart
+                + ", notNull="
+                + notNull
+                + ", length="
+                + length
+                + '}';
     }
-
 }

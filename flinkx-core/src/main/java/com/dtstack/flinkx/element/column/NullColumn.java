@@ -24,8 +24,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 /**
- * Date: 2021/04/26
- * Company: www.dtstack.com
+ * Date: 2021/04/26 Company: www.dtstack.com
  *
  * @author tudou
  */

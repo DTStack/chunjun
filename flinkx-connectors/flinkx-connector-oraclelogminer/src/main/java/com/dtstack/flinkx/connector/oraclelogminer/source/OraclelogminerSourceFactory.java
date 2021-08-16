@@ -17,12 +17,6 @@
  */
 package com.dtstack.flinkx.connector.oraclelogminer.source;
 
-import org.apache.flink.formats.json.TimestampFormat;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.flinkx.connector.oraclelogminer.converter.LogMinerColumnConverter;
@@ -34,6 +28,12 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -48,13 +48,15 @@ public class OraclelogminerSourceFactory extends SourceFactory {
 
     public OraclelogminerSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
-        logMinerConf = JsonUtil.toObject(JsonUtil.toJson(config.getReader().getParameter()), LogMinerConf.class);
+        logMinerConf =
+                JsonUtil.toObject(
+                        JsonUtil.toJson(config.getReader().getParameter()), LogMinerConf.class);
         logMinerConf.setColumn(config.getReader().getFieldList());
         buildTableListenerRegex();
         super.initFlinkxCommonConf(logMinerConf);
     }
 
-    private void buildTableListenerRegex(){
+    private void buildTableListenerRegex() {
         if (CollectionUtils.isEmpty(logMinerConf.getTable())) {
             return;
         }
@@ -63,17 +65,19 @@ public class OraclelogminerSourceFactory extends SourceFactory {
         logMinerConf.setListenerTables(tableListener);
     }
 
-
     @Override
     public DataStream<RowData> createSource() {
         OracleLogMinerInputFormatBuilder builder = new OracleLogMinerInputFormatBuilder();
         builder.setLogMinerConfig(logMinerConf);
         AbstractCDCRowConverter rowConverter;
         if (useAbstractBaseColumn) {
-            rowConverter = new LogMinerColumnConverter(logMinerConf.isPavingData(), logMinerConf.isSplitUpdate());
+            rowConverter =
+                    new LogMinerColumnConverter(
+                            logMinerConf.isPavingData(), logMinerConf.isSplitUpdate());
         } else {
-            final RowType rowType = TableUtil.createRowType(logMinerConf.getColumn(), getRawTypeConverter());
-             rowConverter = new LogMinerRowConverter(rowType);
+            final RowType rowType =
+                    TableUtil.createRowType(logMinerConf.getColumn(), getRawTypeConverter());
+            rowConverter = new LogMinerRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);
         return createInput(builder.finish());

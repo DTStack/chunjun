@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.util;
 
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -28,22 +27,23 @@ import java.sql.Timestamp;
 /**
  * Utilities for Type conversion
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class ValueUtil {
 
     public static Integer getInt(Object obj) {
-        if(obj == null) {
+        if (obj == null) {
             return null;
-        } else if(obj instanceof String) {
+        } else if (obj instanceof String) {
             return Integer.valueOf((String) obj);
         } else {
             try {
                 Method method = obj.getClass().getMethod("intValue");
                 return (int) method.invoke(obj);
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                throw new RuntimeException("Unable to convert " + obj + " into Interger",e);
+                throw new RuntimeException("Unable to convert " + obj + " into Interger", e);
             }
         }
     }
@@ -94,7 +94,8 @@ public class ValueUtil {
             return ((BigInteger) obj).intValue();
         }
 
-        throw new RuntimeException("not support type of " + obj.getClass() + " convert to Integer.");
+        throw new RuntimeException(
+                "not support type of " + obj.getClass() + " convert to Integer.");
     }
 
     public static Integer getIntegerVal(Object obj, int defaultVal) {
@@ -157,7 +158,6 @@ public class ValueUtil {
         return getDoubleVal(obj);
     }
 
-
     public static Boolean getBooleanVal(Object obj) {
         if (obj == null) {
             return null;
@@ -169,7 +169,8 @@ public class ValueUtil {
             return (Boolean) obj;
         }
 
-        throw new RuntimeException("not support type of " + obj.getClass() + " convert to Boolean.");
+        throw new RuntimeException(
+                "not support type of " + obj.getClass() + " convert to Boolean.");
     }
 
     public static Boolean getBooleanVal(Object obj, boolean defaultVal) {
@@ -233,11 +234,11 @@ public class ValueUtil {
         } else if (obj instanceof Number) {
             return BigDecimal.valueOf(((Number) obj).doubleValue());
         }
-        throw new RuntimeException("not support type of " + obj.getClass() + " convert to BigDecimal.");
+        throw new RuntimeException(
+                "not support type of " + obj.getClass() + " convert to BigDecimal.");
     }
 
-    public static Timestamp getTimestampVal(Object obj){
+    public static Timestamp getTimestampVal(Object obj) {
         return DateUtil.columnToTimestamp(obj, null);
     }
-
 }

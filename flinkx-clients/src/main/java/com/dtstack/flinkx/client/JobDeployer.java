@@ -18,12 +18,11 @@
 package com.dtstack.flinkx.client;
 
 import com.dtstack.flinkx.options.Options;
-
 import com.dtstack.flinkx.util.MapUtil;
 
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.configuration.Configuration;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -54,10 +53,14 @@ public class JobDeployer {
             String confProp = launcherOptions.getConfProp();
             if (StringUtils.isNotBlank(confProp)) {
                 Properties properties = MapUtil.jsonStrToObject(confProp, Properties.class);
-                properties.forEach((key, val) -> effectiveConfiguration.setString(key.toString(), val.toString()));
+                properties.forEach(
+                        (key, val) ->
+                                effectiveConfiguration.setString(key.toString(), val.toString()));
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException("Illegal parameter in Flink config, Invalid confProp: " + launcherOptions.getConfProp());
+            throw new IllegalArgumentException(
+                    "Illegal parameter in Flink config, Invalid confProp: "
+                            + launcherOptions.getConfProp());
         }
 
         return effectiveConfiguration;

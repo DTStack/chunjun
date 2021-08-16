@@ -22,18 +22,16 @@ import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import java.util.List;
 
 /**
- * Date: 2021/04/07
- * Company: www.dtstack.com
+ * Date: 2021/04/07 Company: www.dtstack.com
  *
- * @author tudou
- * 这里是Stream公共的参数
+ * @author tudou 这里是Stream公共的参数
  */
 public class StreamConf extends FlinkxCommonConf {
 
-    //reader
+    // reader
     private List<Long> sliceRecordCount;
 
-    //writer
+    // writer
     private boolean print = true;
 
     private long permitsPerSecond = 0;
@@ -64,10 +62,13 @@ public class StreamConf extends FlinkxCommonConf {
 
     @Override
     public String toString() {
-        return "StreamConf{" +
-                "sliceRecordCount=" + sliceRecordCount +
-                ", print=" + print +
-                ", permitsPerSecond=" + permitsPerSecond +
-                '}';
+        return "StreamConf{"
+                + "sliceRecordCount="
+                + sliceRecordCount
+                + ", print="
+                + print
+                + ", permitsPerSecond="
+                + permitsPerSecond
+                + '}';
     }
 }

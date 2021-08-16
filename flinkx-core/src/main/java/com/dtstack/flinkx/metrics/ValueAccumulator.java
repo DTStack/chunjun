@@ -20,8 +20,7 @@ package com.dtstack.flinkx.metrics;
 import org.apache.flink.api.common.accumulators.LongCounter;
 
 /**
- * Date: 2021/05/18
- * Company: www.dtstack.com
+ * Date: 2021/05/18 Company: www.dtstack.com
  *
  * @author tudou
  */

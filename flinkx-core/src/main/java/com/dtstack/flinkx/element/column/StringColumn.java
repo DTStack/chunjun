@@ -20,6 +20,7 @@ package com.dtstack.flinkx.element.column;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.throwable.CastException;
 import com.dtstack.flinkx.util.DateUtil;
+
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.math.BigDecimal;
@@ -71,7 +72,7 @@ public class StringColumn extends AbstractBaseColumn {
             // 如果string是时间戳
             time = NumberUtils.createLong(data);
         } catch (Exception ignored) {
-            //doNothing
+            // doNothing
         }
         SimpleDateFormat formatter = DateUtil.buildDateFormatter(format);
         if (time != null) {

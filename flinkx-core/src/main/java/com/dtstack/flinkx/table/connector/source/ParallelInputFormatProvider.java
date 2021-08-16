@@ -29,14 +29,14 @@ import java.util.Optional;
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/19
- **/
+ */
 public interface ParallelInputFormatProvider extends InputFormatProvider, ParallelismProvider {
 
     /** Helper method for creating a InputFormat provider with a provided source parallelism. */
     static InputFormatProvider of(InputFormat<RowData, ?> inputFormat, Integer parallelism) {
         return new ParallelInputFormatProvider() {
             @Override
-            public InputFormat<RowData, ?>  createInputFormat() {
+            public InputFormat<RowData, ?> createInputFormat() {
                 return inputFormat;
             }
 

@@ -20,8 +20,7 @@ package com.dtstack.flinkx.conf;
 import java.io.Serializable;
 
 /**
- * Date: 2021/04/06
- * Company: www.dtstack.com
+ * Date: 2021/04/06 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -41,8 +40,6 @@ public class TransformerConf implements Serializable {
 
     @Override
     public String toString() {
-        return "TransformerConf{" +
-                "TransformSql='" + transformSql + '\'' +
-                '}';
+        return "TransformerConf{" + "TransformSql='" + transformSql + '\'' + '}';
     }
 }

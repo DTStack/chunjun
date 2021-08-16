@@ -22,6 +22,7 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.constants.ConstantValue;
+
 import org.apache.commons.lang.StringUtils;
 
 /**

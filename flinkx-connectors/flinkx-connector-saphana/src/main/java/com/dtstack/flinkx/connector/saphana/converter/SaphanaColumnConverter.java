@@ -19,10 +19,6 @@
 package com.dtstack.flinkx.connector.saphana.converter;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
-
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -33,6 +29,10 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.sap.db.jdbc.HanaClob;
 
 import java.io.BufferedReader;
@@ -92,10 +92,9 @@ public class SaphanaColumnConverter extends JdbcColumnConverter {
                     }
                 };
             case DATE:
-                return val -> new BigDecimalColumn(Date
-                        .valueOf(String.valueOf(val))
-                        .toLocalDate()
-                        .toEpochDay());
+                return val ->
+                        new BigDecimalColumn(
+                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
                         new BigDecimalColumn(
@@ -121,9 +120,8 @@ public class SaphanaColumnConverter extends JdbcColumnConverter {
                         statement.setBoolean(
                                 index, ((ColumnRowData) val).getField(index).asBoolean());
             case TINYINT:
-                return (val, index, statement) -> statement.setShort(
-                        index,
-                        (short) (val.getByte(index) & 0xff));
+                return (val, index, statement) ->
+                        statement.setShort(index, (short) (val.getByte(index) & 0xff));
             case SMALLINT:
                 return (val, index, statement) -> statement.setShort(index, val.getShort(index));
             case INTEGER:

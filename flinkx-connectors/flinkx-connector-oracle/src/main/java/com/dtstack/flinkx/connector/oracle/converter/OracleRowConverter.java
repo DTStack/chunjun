@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.oracle.converter;
 
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
@@ -26,11 +32,6 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import oracle.sql.TIMESTAMP;
 
 import java.math.BigDecimal;
@@ -46,8 +47,7 @@ import java.time.LocalTime;
  *
  * @author jier
  */
-public class OracleRowConverter
-        extends JdbcRowConverter {
+public class OracleRowConverter extends JdbcRowConverter {
 
     private static final long serialVersionUID = 1L;
 
@@ -83,26 +83,30 @@ public class OracleRowConverter
                 return val ->
                         val instanceof BigInteger
                                 ? DecimalData.fromBigDecimal(
-                                new BigDecimal((BigInteger) val, 0), precision, scale)
+                                        new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
                 return val -> Long.valueOf(((Timestamp) val).getTime() / 1000).intValue();
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
-                        / 1_000_000L);
+                return val ->
+                        (int)
+                                ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> {
                     if (val instanceof String) {
                         // oracle.sql.TIMESTAMP will return cast to String in lookup
                         return TimestampData.fromTimestamp(Timestamp.valueOf((String) val));
-                    } else {
+                    } else if (val instanceof TIMESTAMP) {
                         try {
                             return TimestampData.fromTimestamp(((TIMESTAMP) val).timestampValue());
                         } catch (SQLException e) {
                             throw new UnsupportedTypeException(
                                     "Unsupported type:" + type + ",value:" + val);
                         }
+                    } else {
+                        return TimestampData.fromTimestamp(((Timestamp) val));
                     }
                 };
             case CHAR:
@@ -146,8 +150,10 @@ public class OracleRowConverter
             case VARBINARY:
                 return (val, index, statement) -> statement.setBytes(index, val.getBinary(index));
             case DATE:
-                return (val, index, statement) -> statement.setDate(
-                        index, new Date(new Timestamp(val.getInt(index) * 1000L).getTime()));
+                return (val, index, statement) ->
+                        statement.setDate(
+                                index,
+                                new Date(new Timestamp(val.getInt(index) * 1000L).getTime()));
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTime(

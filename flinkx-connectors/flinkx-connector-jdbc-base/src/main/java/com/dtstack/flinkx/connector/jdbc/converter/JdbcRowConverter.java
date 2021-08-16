@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.connector.jdbc.converter;
 
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+
 import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
@@ -31,10 +36,6 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.utils.TypeConversions;
 
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
 import io.vertx.core.json.JsonArray;
 
 import java.math.BigDecimal;
@@ -47,23 +48,37 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
-public class JdbcRowConverter extends AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
+public class JdbcRowConverter
+        extends AbstractRowConverter<
+                ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
 
     private static final long serialVersionUID = 1L;
 
     public JdbcRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+            toInternalConverters[i] =
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i)));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
         }
     }
 
     @Override
-    protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(ISerializationConverter<FieldNamedPreparedStatement> serializationConverter, LogicalType type) {
-        final int sqlType = JdbcTypeUtil.typeInformationToSqlType(TypeConversions.fromDataTypeToLegacyInfo(TypeConversions.fromLogicalToDataType(type)));
+    protected ISerializationConverter<FieldNamedPreparedStatement>
+            wrapIntoNullableExternalConverter(
+                    ISerializationConverter<FieldNamedPreparedStatement> serializationConverter,
+                    LogicalType type) {
+        final int sqlType =
+                JdbcTypeUtil.typeInformationToSqlType(
+                        TypeConversions.fromDataTypeToLegacyInfo(
+                                TypeConversions.fromLogicalToDataType(type)));
         return (val, index, statement) -> {
-            if (val == null || val.isNullAt(index) || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
+            if (val == null
+                    || val.isNullAt(index)
+                    || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
                 statement.setNull(index, sqlType);
             } else {
                 serializationConverter.serialize(val, index, statement);
@@ -132,9 +147,13 @@ public class JdbcRowConverter extends AbstractRowConverter<ResultSet, JsonArray,
                                         new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
-                return val -> (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
+                return val ->
+                        (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay() / 1_000_000L);
+                return val ->
+                        (int)
+                                ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> TimestampData.fromTimestamp((Timestamp) val);

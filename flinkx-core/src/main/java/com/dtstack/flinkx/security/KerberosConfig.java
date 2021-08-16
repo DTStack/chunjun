@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.security;
 
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
 import com.google.common.base.Strings;
 
 import java.io.Serializable;

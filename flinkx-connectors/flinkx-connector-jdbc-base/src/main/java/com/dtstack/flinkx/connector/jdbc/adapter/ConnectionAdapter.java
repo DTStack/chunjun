@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.connector.jdbc.adapter;
 
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
+
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -30,12 +31,12 @@ import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 
 /**
- * Date: 2021/02/18
- * Company: www.dtstack.com
+ * Date: 2021/02/18 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class ConnectionAdapter implements JsonSerializer<ConnectionConf>, JsonDeserializer<ConnectionConf> {
+public class ConnectionAdapter
+        implements JsonSerializer<ConnectionConf>, JsonDeserializer<ConnectionConf> {
 
     /** ReaderConnection or WriterConnection */
     private String className;
@@ -45,7 +46,9 @@ public class ConnectionAdapter implements JsonSerializer<ConnectionConf>, JsonDe
     }
 
     @Override
-    public ConnectionConf deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public ConnectionConf deserialize(
+            JsonElement json, Type typeOfT, JsonDeserializationContext context)
+            throws JsonParseException {
         // 指定包名+类名
         String thePackage = "com.dtstack.flinkx.connector.jdbc.conf." + className;
         try {
@@ -56,7 +59,8 @@ public class ConnectionAdapter implements JsonSerializer<ConnectionConf>, JsonDe
     }
 
     @Override
-    public JsonElement serialize(ConnectionConf src, Type typeOfSrc, JsonSerializationContext context) {
+    public JsonElement serialize(
+            ConnectionConf src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject result = new JsonObject();
         result.add("type", new JsonPrimitive(src.getClass().getSimpleName()));
         result.add("properties", context.serialize(src, src.getClass()));

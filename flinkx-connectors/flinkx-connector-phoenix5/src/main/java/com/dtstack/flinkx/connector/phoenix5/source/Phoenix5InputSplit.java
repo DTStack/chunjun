@@ -17,9 +17,9 @@
  */
 package com.dtstack.flinkx.connector.phoenix5.source;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 import org.apache.flink.core.io.GenericInputSplit;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Vector;
 

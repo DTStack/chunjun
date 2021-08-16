@@ -18,10 +18,11 @@
 
 package com.dtstack.flinkx.connector.phoenix5.source;
 
-import org.apache.flink.core.io.InputSplit;
-
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.phoenix5.util.Phoenix5Util;
+
+import org.apache.flink.core.io.InputSplit;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

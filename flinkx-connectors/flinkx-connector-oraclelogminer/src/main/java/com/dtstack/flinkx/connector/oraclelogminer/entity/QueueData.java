@@ -19,22 +19,23 @@ package com.dtstack.flinkx.connector.oraclelogminer.entity;
 
 import org.apache.flink.table.data.RowData;
 
+import java.math.BigInteger;
+
 /**
- * Date: 2020/06/01
- * Company: www.dtstack.com
+ * Date: 2020/06/01 Company: www.dtstack.com
  *
- * @author tudou
+ * @author dujie
  */
 public class QueueData {
-    private long scn;
-    private RowData data;
+    private final BigInteger scn;
+    private final RowData data;
 
-    public QueueData(long lsn,RowData data) {
+    public QueueData(BigInteger lsn, RowData data) {
         this.scn = lsn;
         this.data = data;
     }
 
-    public long getScn() {
+    public BigInteger getScn() {
         return scn;
     }
 
@@ -44,9 +45,6 @@ public class QueueData {
 
     @Override
     public String toString() {
-        return "QueueData{" +
-                "scn=" + scn +
-                ", data=" + data +
-                '}';
+        return "QueueData{" + "scn=" + scn + ", data=" + data + '}';
     }
 }

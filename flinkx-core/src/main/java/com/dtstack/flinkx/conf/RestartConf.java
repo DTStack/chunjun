@@ -22,8 +22,7 @@ import com.dtstack.flinkx.constants.ConfigConstant;
 import java.io.Serializable;
 
 /**
- * Date: 2021/01/18
- * Company: www.dtstack.com
+ * Date: 2021/01/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -83,12 +82,18 @@ public class RestartConf implements Serializable {
 
     @Override
     public String toString() {
-        return "RestartConf{" +
-                "strategy='" + strategy + '\'' +
-                ", restartAttempts=" + restartAttempts +
-                ", delayInterval=" + delayInterval +
-                ", failureRate=" + failureRate +
-                ", failureInterval=" + failureInterval +
-                '}';
+        return "RestartConf{"
+                + "strategy='"
+                + strategy
+                + '\''
+                + ", restartAttempts="
+                + restartAttempts
+                + ", delayInterval="
+                + delayInterval
+                + ", failureRate="
+                + failureRate
+                + ", failureInterval="
+                + failureInterval
+                + '}';
     }
 }

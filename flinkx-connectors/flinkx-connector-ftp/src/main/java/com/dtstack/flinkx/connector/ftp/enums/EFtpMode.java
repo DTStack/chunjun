@@ -32,5 +32,5 @@ public enum EFtpMode {
     /**
      * 主动方式
      */
-    PORT;
+    PORT
 }

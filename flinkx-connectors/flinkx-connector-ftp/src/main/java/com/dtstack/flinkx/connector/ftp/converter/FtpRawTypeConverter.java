@@ -41,7 +41,7 @@ public class FtpRawTypeConverter {
         int rightIndex = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
         String dataType = type;
         String precision = null;
-        if (leftIndex > 0 && rightIndex > 0){
+        if (leftIndex > 0 && rightIndex > 0) {
             dataType = type.substring(0, leftIndex);
             precision = type.substring(leftIndex + 1, type.length() - 1);
         }
@@ -61,9 +61,9 @@ public class FtpRawTypeConverter {
             case "DOUBLE":
                 return DataTypes.DOUBLE();
             case "DECIMAL":
-                if(precision != null){
+                if (precision != null) {
                     String[] split = precision.split(ConstantValue.COMMA_SYMBOL);
-                    if(split.length == 2){
+                    if (split.length == 2) {
                         return DataTypes.DECIMAL(Integer.parseInt(split[0].trim()), Integer.parseInt(split[1].trim()));
                     }
                 }
@@ -75,9 +75,9 @@ public class FtpRawTypeConverter {
             case "BINARY":
                 return DataTypes.BINARY(BinaryType.DEFAULT_LENGTH);
             case "TIMESTAMP":
-                if(precision != null){
+                if (precision != null) {
                     String[] split = precision.split(ConstantValue.COMMA_SYMBOL);
-                    if(split.length == 1){
+                    if (split.length == 1) {
                         return DataTypes.TIMESTAMP(Integer.parseInt(split[0].trim()));
                     }
                 }

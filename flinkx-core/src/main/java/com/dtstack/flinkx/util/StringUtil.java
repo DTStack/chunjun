@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.util;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.WriteRecordException;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 

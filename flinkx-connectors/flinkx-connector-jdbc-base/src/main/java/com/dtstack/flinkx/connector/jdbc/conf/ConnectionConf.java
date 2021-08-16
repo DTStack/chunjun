@@ -21,8 +21,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Date: 2021/04/12
- * Company: www.dtstack.com
+ * Date: 2021/04/12 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -36,12 +35,14 @@ public abstract class ConnectionConf implements Serializable {
 
     /**
      * 获取JDBC URL连接
+     *
      * @return
      */
     public abstract String obtainJdbcUrl();
 
     /**
      * 设置JDBC URL连接
+     *
      * @param jdbcUrl JDBC URL连接
      */
     public abstract void putJdbcUrl(String jdbcUrl);

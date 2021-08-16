@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.metrics.mysql;
 
-
 import com.dtstack.flinkx.metrics.rdb.JdbcDialect;
 
 import java.util.Optional;
@@ -50,19 +49,19 @@ public class MysqlDialect implements JdbcDialect {
         return "`" + identifier + "`";
     }
 
-    private String createTableSql = "CREATE TABLE if not exists %s.%s (\n"
-            + "  `id` int(11) NOT NULL AUTO_INCREMENT,\n"
-            + "  `job_id` varchar(100) DEFAULT NULL,\n"
-            + "  `job_name` varchar(100) DEFAULT NULL,\n"
-            + "  `task_id` varchar(100) DEFAULT NULL,\n"
-            + "  `task_name` varchar(100) DEFAULT NULL,\n"
-            + "  `subtask_index` varchar(100) DEFAULT NULL,\n"
-            + "  `metric_name` varchar(100) DEFAULT NULL,\n"
-            + "  `metric_value` varchar(100) DEFAULT NULL,\n"
-            + "  `gmt_create` datetime DEFAULT CURRENT_TIMESTAMP,\n"
-            + "  PRIMARY KEY (`id`)\n"
-            + ")";
-
+    private String createTableSql =
+            "CREATE TABLE if not exists %s.%s (\n"
+                    + "  `id` int(11) NOT NULL AUTO_INCREMENT,\n"
+                    + "  `job_id` varchar(100) DEFAULT NULL,\n"
+                    + "  `job_name` varchar(100) DEFAULT NULL,\n"
+                    + "  `task_id` varchar(100) DEFAULT NULL,\n"
+                    + "  `task_name` varchar(100) DEFAULT NULL,\n"
+                    + "  `subtask_index` varchar(100) DEFAULT NULL,\n"
+                    + "  `metric_name` varchar(100) DEFAULT NULL,\n"
+                    + "  `metric_value` varchar(100) DEFAULT NULL,\n"
+                    + "  `gmt_create` datetime DEFAULT CURRENT_TIMESTAMP,\n"
+                    + "  PRIMARY KEY (`id`)\n"
+                    + ")";
 
     @Override
     public String getCreateStatement(String schema, String tableName) {

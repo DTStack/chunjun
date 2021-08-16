@@ -18,17 +18,17 @@
 
 package com.dtstack.flinkx.connector.saphana.converter;
 
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -43,8 +43,7 @@ import java.time.LocalTime;
  *
  * @author jier
  */
-public class SaphanaRowConverter
-        extends JdbcRowConverter {
+public class SaphanaRowConverter extends JdbcRowConverter {
 
     private static final long serialVersionUID = 1L;
 
@@ -77,15 +76,16 @@ public class SaphanaRowConverter
                 return val ->
                         val instanceof BigInteger
                                 ? DecimalData.fromBigDecimal(
-                                new BigDecimal((BigInteger) val, 0), precision, scale)
+                                        new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
-                return val -> (int) ((Date.valueOf(String.valueOf(val)))
-                        .toLocalDate()
-                        .toEpochDay());
+                return val ->
+                        (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
-                        / 1_000_000L);
+                return val ->
+                        (int)
+                                ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> TimestampData.fromTimestamp((Timestamp) val);
@@ -113,9 +113,8 @@ public class SaphanaRowConverter
                 return (val, index, statement) ->
                         statement.setBoolean(index, val.getBoolean(index));
             case TINYINT:
-                return (val, index, statement) -> statement.setShort(
-                        index,
-                        (short) (val.getByte(index) & 0xff));
+                return (val, index, statement) ->
+                        statement.setShort(index, (short) (val.getByte(index) & 0xff));
             case SMALLINT:
                 return (val, index, statement) -> statement.setShort(index, val.getShort(index));
             case INTEGER:

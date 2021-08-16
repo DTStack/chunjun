@@ -24,7 +24,8 @@ import java.util.List;
 /**
  * Statistics Metrics
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class Metrics {
@@ -77,15 +78,15 @@ public class Metrics {
 
     public static final String SUFFIX_RATE = "PerSecond";
 
-    public static final List<String> METRIC_SINK_LIST = Arrays.asList(
-            NUM_ERRORS,
-            NUM_NULL_ERRORS,
-            NUM_DUPLICATE_ERRORS,
-            NUM_CONVERSION_ERRORS,
-            NUM_OTHER_ERRORS,
-            NUM_WRITES,
-            WRITE_BYTES,
-            NUM_READS,
-            WRITE_DURATION);
-
+    public static final List<String> METRIC_SINK_LIST =
+            Arrays.asList(
+                    NUM_ERRORS,
+                    NUM_NULL_ERRORS,
+                    NUM_DUPLICATE_ERRORS,
+                    NUM_CONVERSION_ERRORS,
+                    NUM_OTHER_ERRORS,
+                    NUM_WRITES,
+                    WRITE_BYTES,
+                    NUM_READS,
+                    WRITE_DURATION);
 }

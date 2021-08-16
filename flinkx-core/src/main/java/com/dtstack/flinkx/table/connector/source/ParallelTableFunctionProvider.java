@@ -29,9 +29,8 @@ import java.util.Optional;
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/19
- **/
-public interface ParallelTableFunctionProvider
-        extends TableFunctionProvider, ParallelismProvider {
+ */
+public interface ParallelTableFunctionProvider extends TableFunctionProvider, ParallelismProvider {
 
     /** Helper method for creating a TableFunction provider with a provided lookup parallelism. */
     static TableFunctionProvider of(TableFunction<RowData> tableFunction, Integer parallelism) {

@@ -60,7 +60,7 @@ public class RedisOptions {
                     .withDescription("url");
 
     public static final ConfigOption<String> TABLENAME =
-            ConfigOptions.key("tableName")
+            ConfigOptions.key("table-name")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("tableName");
@@ -72,13 +72,13 @@ public class RedisOptions {
                     .withDescription("password");
 
     public static final ConfigOption<Integer> REDISTYPE =
-            ConfigOptions.key("redisType")
+            ConfigOptions.key("redis-type")
                     .intType()
                     .defaultValue(1)
                     .withDescription("redisType");
 
     public static final ConfigOption<String> MASTERNAME =
-            ConfigOptions.key("masterName")
+            ConfigOptions.key("master-name")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("masterName");
@@ -96,25 +96,25 @@ public class RedisOptions {
                     .withDescription("timeout");
 
     public static final ConfigOption<Integer> MAXTOTAL =
-            ConfigOptions.key("maxTotal")
+            ConfigOptions.key("max.total")
                     .intType()
                     .defaultValue(8)
                     .withDescription("maxTotal");
 
     public static final ConfigOption<Integer> MAXIDLE =
-            ConfigOptions.key("maxIdle")
+            ConfigOptions.key("max.idle")
                     .intType()
                     .defaultValue(8)
                     .withDescription("maxIdle");
 
     public static final ConfigOption<Integer> MINIDLE =
-            ConfigOptions.key("minIdle")
+            ConfigOptions.key("min.idle")
                     .intType()
                     .defaultValue(0)
                     .withDescription("minIdle");
 
     public static final ConfigOption<Integer> KEYEXPIREDTIME =
-            ConfigOptions.key("keyExpiredTime")
+            ConfigOptions.key("key.expired-time")
                     .intType()
                     .defaultValue(0)
                     .withDescription("keyExpiredTime");

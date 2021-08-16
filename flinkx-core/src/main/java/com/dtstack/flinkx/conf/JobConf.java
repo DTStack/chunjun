@@ -21,8 +21,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 
 /**
- * Date: 2021/01/18
- * Company: www.dtstack.com
+ * Date: 2021/01/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -32,15 +31,15 @@ public class JobConf implements Serializable {
     private LinkedList<ContentConf> content;
     private SettingConf setting = new SettingConf();
 
-    public OperatorConf getReader(){
+    public OperatorConf getReader() {
         return content.get(0).getReader();
     }
 
-    public OperatorConf getWriter(){
+    public OperatorConf getWriter() {
         return content.get(0).getWriter();
     }
 
-    public TransformerConf getTransformer(){
+    public TransformerConf getTransformer() {
         return content.get(0).getTransformer();
     }
 
@@ -62,9 +61,6 @@ public class JobConf implements Serializable {
 
     @Override
     public String toString() {
-        return "JobConf{" +
-                "content=" + content +
-                ", setting=" + setting +
-                '}';
+        return "JobConf{" + "content=" + content + ", setting=" + setting + '}';
     }
 }

@@ -18,12 +18,11 @@
 package com.dtstack.flinkx.enums;
 
 /**
- * Date: 2021/04/07
- * Company: www.dtstack.com
+ * Date: 2021/04/07 Company: www.dtstack.com
  *
  * @author tudou
  */
-public enum  OperatorType {
+public enum OperatorType {
     source,
     sink,
     metric

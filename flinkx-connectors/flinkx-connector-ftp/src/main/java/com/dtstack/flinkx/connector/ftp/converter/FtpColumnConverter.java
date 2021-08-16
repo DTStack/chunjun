@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.ftp.converter;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -34,6 +31,9 @@ import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.DateUtil;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
 
 import java.util.ArrayList;
 import java.util.List;

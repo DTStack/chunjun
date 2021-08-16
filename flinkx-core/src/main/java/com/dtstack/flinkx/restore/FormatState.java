@@ -36,9 +36,7 @@ public class FormatState implements Serializable {
 
     private Object state;
 
-    /**
-     * store metric info
-     */
+    /** store metric info */
     private Map<String, LongCounter> metric;
 
     private long numberRead;
@@ -49,8 +47,7 @@ public class FormatState implements Serializable {
 
     private int fileIndex = -1;
 
-    public FormatState() {
-    }
+    public FormatState() {}
 
     public FormatState(int numOfSubTask, Object state) {
         this.numOfSubTask = numOfSubTask;
@@ -122,14 +119,22 @@ public class FormatState implements Serializable {
 
     @Override
     public String toString() {
-        return "FormatState{" +
-                "numOfSubTask=" + numOfSubTask +
-                ", state=" + state +
-                ", metric=" + metric +
-                ", numberRead=" + numberRead +
-                ", numberWrite=" + numberWrite +
-                ", jobId='" + jobId + '\'' +
-                ", fileIndex=" + fileIndex +
-                '}';
+        return "FormatState{"
+                + "numOfSubTask="
+                + numOfSubTask
+                + ", state="
+                + state
+                + ", metric="
+                + metric
+                + ", numberRead="
+                + numberRead
+                + ", numberWrite="
+                + numberWrite
+                + ", jobId='"
+                + jobId
+                + '\''
+                + ", fileIndex="
+                + fileIndex
+                + '}';
     }
 }

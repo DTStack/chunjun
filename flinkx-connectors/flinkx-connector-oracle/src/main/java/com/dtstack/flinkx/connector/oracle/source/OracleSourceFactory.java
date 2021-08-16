@@ -18,11 +18,12 @@
 
 package com.dtstack.flinkx.connector.oracle.source;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.connector.oracle.dialect.OracleDialect;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * company www.dtstack.com
@@ -32,6 +33,11 @@ import com.dtstack.flinkx.connector.oracle.dialect.OracleDialect;
 public class OracleSourceFactory extends JdbcSourceFactory {
 
     public OracleSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env,  new OracleDialect());
+        super(syncConf, env, new OracleDialect());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new OracleInputFormat());
     }
 }

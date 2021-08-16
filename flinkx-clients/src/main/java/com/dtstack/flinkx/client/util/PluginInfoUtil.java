@@ -42,12 +42,15 @@ public class PluginInfoUtil {
         String coreJarFileName = null;
         File pluginDir = new File(pluginRoot);
         if (pluginDir.exists() && pluginDir.isDirectory()) {
-            File[] jarFiles = pluginDir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.toLowerCase().startsWith(CORE_JAR_NAME_PREFIX) && name.toLowerCase().endsWith(".jar");
-                }
-            });
+            File[] jarFiles =
+                    pluginDir.listFiles(
+                            new FilenameFilter() {
+                                @Override
+                                public boolean accept(File dir, String name) {
+                                    return name.toLowerCase().startsWith(CORE_JAR_NAME_PREFIX)
+                                            && name.toLowerCase().endsWith(".jar");
+                                }
+                            });
 
             if (jarFiles != null && jarFiles.length > 0) {
                 coreJarFileName = jarFiles[0].getName();
