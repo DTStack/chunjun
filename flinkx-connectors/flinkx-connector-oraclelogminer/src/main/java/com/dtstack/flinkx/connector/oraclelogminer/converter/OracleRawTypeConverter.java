@@ -16,13 +16,12 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.connector.oraclelogminer.converter;
+
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
-
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -34,14 +33,11 @@ import java.util.Locale;
  */
 public class OracleRawTypeConverter {
 
-
     /**
      * 将Oracle数据库中的类型，转换成flink的DataType类型。
      *
      * @param type
-     *
      * @return
-     *
      * @throws SQLException
      */
     public static DataType apply(String type) {
@@ -81,11 +77,11 @@ public class OracleRawTypeConverter {
                 throw new UnsupportedTypeException(type);
             default:
                 if (type.startsWith("TIMESTAMP")) {
-                   if(type.contains("TIME ZONE")){
-                       return DataTypes.TIMESTAMP_WITH_LOCAL_TIME_ZONE();
-                   }else {
-                       return DataTypes.TIMESTAMP();
-                   }
+                    if (type.contains("TIME ZONE")) {
+                        return DataTypes.TIMESTAMP_WITH_LOCAL_TIME_ZONE();
+                    } else {
+                        return DataTypes.TIMESTAMP();
+                    }
                 }
                 throw new UnsupportedTypeException(type);
         }

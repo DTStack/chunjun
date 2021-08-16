@@ -19,17 +19,17 @@
 package com.dtstack.flinkx.connector.oraclelogminer.entity;
 
 /**
- * Date: 2021/05/20
- * Company: www.dtstack.com
+ * Date: 2021/05/20 Company: www.dtstack.com
+ *
  * @author dujie
  */
 public class EventRowData {
-    /** fieldName **/
+    /** fieldName * */
     private String name;
-    /** field value **/
+    /** field value * */
     private String data;
-    private boolean isNull;
 
+    private boolean isNull;
 
     public EventRowData(String name, String data, boolean isNull) {
         this.name = name;
@@ -63,10 +63,15 @@ public class EventRowData {
 
     @Override
     public String toString() {
-        return "Column{" +
-                "name='" + name + '\'' +
-                ", data='" + data + '\'' +
-                ", isNull=" + isNull +
-                '}';
+        return "Column{"
+                + "name='"
+                + name
+                + '\''
+                + ", data='"
+                + data
+                + '\''
+                + ", isNull="
+                + isNull
+                + '}';
     }
 }
