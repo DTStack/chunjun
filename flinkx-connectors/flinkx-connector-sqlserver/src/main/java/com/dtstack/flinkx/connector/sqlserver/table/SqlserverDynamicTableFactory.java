@@ -29,6 +29,8 @@ import com.dtstack.flinkx.connector.sqlserver.source.SqlserverInputFormat;
 /**
  * Company：www.dtstack.com
  *
+ * <p>** sql task currently only supports Microsoft driver **
+ *
  * @author shitou
  * @date 2021/5/21 17:39
  */
