@@ -19,6 +19,7 @@ package com.dtstack.flinkx.connector.db2.sink;
 
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -26,6 +27,7 @@ import java.util.List;
 
 /**
  * Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2021-06-15
  */
@@ -33,6 +35,9 @@ public class Db2OutputFormat extends JdbcOutputFormat {
 
     @Override
     protected Pair<List<String>, List<String>> getTableMetaData() {
-        return JdbcUtil.getTableMetaData(StringUtils.upperCase(jdbcConf.getSchema()), StringUtils.upperCase(jdbcConf.getTable()), dbConn);
+        return JdbcUtil.getTableMetaData(
+                StringUtils.upperCase(jdbcConf.getSchema()),
+                StringUtils.upperCase(jdbcConf.getTable()),
+                dbConn);
     }
 }
