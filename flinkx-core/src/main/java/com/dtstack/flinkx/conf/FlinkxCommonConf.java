@@ -76,7 +76,7 @@ public class FlinkxCommonConf implements Serializable {
     private Map<String,Object> metricProps;
 
     public String getSemantic() {
-        return semantic == null ? Semantic.AT_LEAST_ONCE.name() : semantic.toUpperCase(Locale.ENGLISH);
+        return semantic == null ? Semantic.AT_LEAST_ONCE.getAlisName() : semantic;
     }
 
     public void setSemantic(String semantic) {

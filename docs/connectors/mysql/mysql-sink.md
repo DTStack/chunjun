@@ -122,11 +122,11 @@ mysql5.x
   - 描述：sink端是否支持二阶段提交
   - 注意：
     - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
-    - 当前只支持exactly_once 和at_least_once 
+    - 当前只支持exactly-once 和at-least-once 
   - 必选：否
   - 参数类型：String
-    - 示例："semantic": "EXACTLY_ONCE"
-  - 默认值：AT_LEAST_ONCE
+    - 示例："semantic": "exactly-once"
+  - 默认值：at-least-once
 <br />
 
 ### 2、SQL
@@ -197,11 +197,11 @@ mysql5.x
   - 描述：sink端是否支持二阶段提交
   - 注意：
     - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
-    - 当前只支持exactly_once 和at_least_once 
+    - 当前只支持exactly-once 和at-least-once 
   - 必选：否
   - 参数类型：String
-    - 示例："semantic": "EXACTLY_ONCE"
-  - 默认值：AT_LEAST_ONCE
+    - 示例："semantic": "exactly-once"
+  - 默认值：at-least-once
 <br />
 
 ## 五、数据类型

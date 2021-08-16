@@ -190,7 +190,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.rows = new ArrayList<>(batchSize);
         this.flushIntervalMills = config.getFlushIntervalMills();
         this.flushEnable = new AtomicBoolean(true);
-        this.semantic = Semantic.valueOf(config.getSemantic());
+        this.semantic = Semantic.getByName(config.getSemantic());
 
         checkpointMode =
                 context.getCheckpointMode() == null

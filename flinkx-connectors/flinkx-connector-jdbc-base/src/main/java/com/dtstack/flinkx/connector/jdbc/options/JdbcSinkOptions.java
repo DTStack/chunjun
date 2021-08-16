@@ -43,6 +43,6 @@ public class JdbcSinkOptions {
     public static final ConfigOption<String> SINK_SEMANTIC =
             ConfigOptions.key("sink.semantic")
                     .stringType()
-                    .defaultValue("AT_LEAST_ONCE")
+                    .defaultValue("at-least-once")
                     .withDescription("sink.semantic.");
 }
