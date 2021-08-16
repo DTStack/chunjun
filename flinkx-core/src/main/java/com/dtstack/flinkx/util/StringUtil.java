@@ -37,6 +37,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -136,6 +137,10 @@ public class StringUtil {
             case DATETIME:
                 ret = DateUtil.columnToTimestamp(str, customTimeFormat);
                 break;
+            case OBJECT:
+                ret = GsonUtil.GSON.fromJson(str, Map.class);
+                break;
+
             default:
                 ret = str;
         }
