@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.file.converter;
 
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
