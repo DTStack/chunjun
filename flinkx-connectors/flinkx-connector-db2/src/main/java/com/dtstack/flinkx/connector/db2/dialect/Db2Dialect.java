@@ -25,15 +25,18 @@ import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
-import io.vertx.core.json.JsonArray;
+
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+
+import io.vertx.core.json.JsonArray;
 
 import java.sql.ResultSet;
 import java.util.Optional;
 
 /**
  * Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2021-06-15
  */
@@ -69,12 +72,14 @@ public class Db2Dialect implements JdbcDialect {
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(RowType rowType) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getRowConverter(RowType rowType) {
         return new Db2RowConverter(rowType);
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         return new Db2ColumnConverter(rowType, commonConf);
     }
 }
