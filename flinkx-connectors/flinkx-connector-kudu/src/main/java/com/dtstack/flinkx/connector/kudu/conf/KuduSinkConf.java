@@ -18,10 +18,11 @@
 
 package com.dtstack.flinkx.connector.kudu.conf;
 
-import org.apache.flink.configuration.ReadableConfig;
-
 import com.dtstack.flinkx.sink.WriteMode;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import org.apache.flink.configuration.ReadableConfig;
 
 import java.util.Locale;
 
@@ -51,6 +52,20 @@ public class KuduSinkConf extends KuduCommonConf {
 
     private boolean ignoreDuplicate = false;
 
+    public static KuduSinkConf from(ReadableConfig readableConfig) {
+        KuduSinkConf conf = (KuduSinkConf) KuduCommonConf.from(readableConfig, new KuduSinkConf());
+
+        // sink
+        conf.setWriteMode(readableConfig.get(WRITE_MODE));
+        conf.setMaxBufferSize(readableConfig.get(MAX_BUFFER_SIZE));
+        conf.setIgnoreDuplicate(readableConfig.get(IGNORE_DUPLICATE));
+        conf.setIgnoreNotFound(readableConfig.get(IGNORE_NOT_FOUND));
+        conf.setFlushMode(readableConfig.get(FLUSH_MODE));
+        conf.setFlushInterval(readableConfig.get(FLUSH_INTERVAL));
+
+        return conf;
+    }
+
     public String getFlushMode() {
         return flushMode;
     }
@@ -67,10 +82,13 @@ public class KuduSinkConf extends KuduCommonConf {
         switch (writeMode.toLowerCase(Locale.ENGLISH)) {
             case "insert":
                 this.writeMode = WriteMode.INSERT;
+                break;
             case "update":
                 this.writeMode = WriteMode.UPDATE;
+                break;
             case "upsert":
                 this.writeMode = WriteMode.UPSERT;
+                break;
             default:
                 this.writeMode = WriteMode.APPEND;
         }
@@ -116,19 +134,5 @@ public class KuduSinkConf extends KuduCommonConf {
                 .append("flush-interval", flushInterval)
                 .append("write-mode", writeMode)
                 .toString();
-    }
-
-    public static KuduSinkConf from(ReadableConfig readableConfig) {
-        KuduSinkConf conf = (KuduSinkConf) KuduCommonConf.from(readableConfig, new KuduSinkConf());
-
-        // sink
-        conf.setWriteMode(readableConfig.get(WRITE_MODE));
-        conf.setMaxBufferSize(readableConfig.get(MAX_BUFFER_SIZE));
-        conf.setIgnoreDuplicate(readableConfig.get(IGNORE_DUPLICATE));
-        conf.setIgnoreNotFound(readableConfig.get(IGNORE_NOT_FOUND));
-        conf.setFlushMode(readableConfig.get(FLUSH_MODE));
-        conf.setFlushInterval(readableConfig.get(FLUSH_INTERVAL));
-
-        return conf;
     }
 }
