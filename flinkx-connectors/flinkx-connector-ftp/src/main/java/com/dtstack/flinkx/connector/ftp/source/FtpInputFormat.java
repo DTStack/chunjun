@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.ftp.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
 import com.dtstack.flinkx.connector.ftp.converter.FtpColumnConverter;
@@ -32,6 +28,11 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.GsonUtil;
+
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.collections.CollectionUtils;
 
 import java.io.IOException;
@@ -136,13 +137,10 @@ public class FtpInputFormat extends BaseRichInputFormat {
                         FieldConf fieldConf = columns.get(i);
 
                         Object value = null;
-                        if (fieldConf.getIndex() != null && fieldConf.getIndex() < fields.length) {
-                            value = fields[fieldConf.getIndex()];
-                            if (((String) value).length() == 0) {
-                                value = fieldConf.getValue();
-                            }
-                        } else if (fieldConf.getValue() != null) {
+                        if (fieldConf.getValue() != null) {
                             value = fieldConf.getValue();
+                        } else if (fieldConf.getIndex() != null && fieldConf.getIndex() < fields.length) {
+                            value = fields[fieldConf.getIndex()];
                         }
                         genericRowData.setField(i, value);
                     }

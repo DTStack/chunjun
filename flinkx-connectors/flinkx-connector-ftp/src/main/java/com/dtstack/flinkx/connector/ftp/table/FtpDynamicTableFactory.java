@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.ftp.table;
 
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
 import com.dtstack.flinkx.connector.ftp.options.FtpOptions;
-
 import com.dtstack.flinkx.connector.ftp.sink.FtpDynamicTableSink;
 import com.dtstack.flinkx.connector.ftp.source.FtpDynamicTableSource;
 
@@ -54,6 +53,33 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
 
     private static final String IDENTIFIER = "ftp-x";
 
+    private static FtpConfig getFtpConfByOptions(ReadableConfig config) {
+        FtpConfig ftpConfig = new FtpConfig();
+        ftpConfig.setPath(config.get(FtpOptions.PATH));
+        ftpConfig.setHost(config.get(FtpOptions.HOST));
+        ftpConfig.setProtocol(config.get(FtpOptions.PROTOCOL));
+        ftpConfig.setUsername(config.get(FtpOptions.USERNAME));
+        ftpConfig.setPassword(config.get(FtpOptions.PASSWORD));
+
+        ftpConfig.setEncoding(config.get(FtpOptions.ENCODING));
+
+        if (config.get(FtpOptions.TIMEOUT) != null) {
+            ftpConfig.setTimeout(config.get(FtpOptions.TIMEOUT));
+        }
+
+        if (config.get(FtpOptions.CONNECT_PATTERN) != null) {
+            ftpConfig.setConnectPattern(config.get(FtpOptions.CONNECT_PATTERN));
+        }
+
+        if (config.get(FtpOptions.PORT) == null) {
+            ftpConfig.setDefaultPort();
+        } else {
+            ftpConfig.setPort(config.get(FtpOptions.PORT));
+        }
+
+        return ftpConfig;
+    }
+
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
 
@@ -83,38 +109,11 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
 
         EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat =
                 helper.discoverOptionalEncodingFormat(SerializationFormatFactory.class, FtpOptions.FORMAT)
-                .orElseGet(() -> helper.discoverEncodingFormat(SerializationFormatFactory.class, FtpOptions.FORMAT));
+                        .orElseGet(() -> helper.discoverEncodingFormat(SerializationFormatFactory.class, FtpOptions.FORMAT));
 
         FtpConfig ftpConfig = getFtpConfByOptions(config);
 
         return new FtpDynamicTableSink(physicalSchema, ftpConfig, valueEncodingFormat);
-    }
-
-    private static FtpConfig getFtpConfByOptions(ReadableConfig config) {
-        FtpConfig ftpConfig = new FtpConfig();
-        ftpConfig.setPath(config.get(FtpOptions.PATH));
-        ftpConfig.setHost(config.get(FtpOptions.HOST));
-        ftpConfig.setProtocol(config.get(FtpOptions.PROTOCOL));
-        ftpConfig.setUsername(config.get(FtpOptions.USERNAME));
-        ftpConfig.setPassword(config.get(FtpOptions.PASSWORD));
-
-        ftpConfig.setEncoding(config.get(FtpOptions.ENCODING));
-
-        if (config.get(FtpOptions.TIMEOUT) != null) {
-            ftpConfig.setTimeout(config.get(FtpOptions.TIMEOUT));
-        }
-
-        if (config.get(FtpOptions.CONNECT_PATTERN) != null) {
-            ftpConfig.setConnectPattern(config.get(FtpOptions.CONNECT_PATTERN));
-        }
-
-        if (config.get(FtpOptions.PORT) == null) {
-            ftpConfig.setDefaultPort();
-        } else {
-            ftpConfig.setPort(config.get(FtpOptions.PORT));
-        }
-
-        return ftpConfig;
     }
 
     @Override

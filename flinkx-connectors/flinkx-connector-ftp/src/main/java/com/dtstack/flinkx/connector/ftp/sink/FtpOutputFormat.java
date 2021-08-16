@@ -18,15 +18,18 @@
 
 package com.dtstack.flinkx.connector.ftp.sink;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
 import com.dtstack.flinkx.connector.ftp.handler.FtpHandlerFactory;
 import com.dtstack.flinkx.connector.ftp.handler.IFtpHandler;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.sink.format.BaseFileOutputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
+import org.apache.flink.table.data.RowData;
+
+import org.apache.commons.lang.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -45,11 +48,9 @@ import java.util.List;
  */
 public class FtpOutputFormat extends BaseFileOutputFormat {
 
-    protected FtpConfig ftpConfig;
-
     /** 换行符 */
     private static final int NEWLINE = 10;
-
+    protected FtpConfig ftpConfig;
     protected List<String> columnTypes;
 
     protected List<String> columnNames;
@@ -113,9 +114,10 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 nextBlock();
             }
 
-            String line = (String) rowConverter.toExternal(rowData, new String());
+            String line = (String) rowConverter.toExternal(rowData, "");
             this.writer.write(line);
             this.writer.write(NEWLINE);
+            this.writer.flush();
             rowsOfCurrentBlock++;
             lastRow = rowData;
         } catch (Exception ex) {
@@ -133,7 +135,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 os.close();
                 os = null;
             }
-            // avoid Failure of FtpClient operating
+            //avoid Failure of FtpClient operating
             this.ftpHandler.completePendingCommand();
         } catch (Exception e) {
             throw new FlinkxRuntimeException("can't close source.", e);
@@ -153,21 +155,20 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         try {
             List<String> dataFiles = ftpHandler.getFiles(tmpPath);
             for (String dataFile : dataFiles) {
-                if (!dataFile.startsWith(filePrefix)) {
+                File tmpDataFile = new File(dataFile);
+                if (!tmpDataFile.getName().startsWith(filePrefix)) {
                     continue;
                 }
-                currentFilePath = tmpPath + File.separatorChar + dataFile;
-                String newFilePath = outputFilePath + File.separatorChar + dataFile;
+
+                currentFilePath = dataFile;
+                String fileName = handleUserSpecificFileName(tmpDataFile.getName(), dataFiles.size());
+                String newFilePath = outputFilePath + File.separatorChar + fileName;
                 ftpHandler.rename(currentFilePath, newFilePath);
                 copyList.add(newFilePath);
                 LOG.info("copy temp file:{} to dir:{}", currentFilePath, outputFilePath);
             }
         } catch (Exception e) {
-            throw new FlinkxRuntimeException(
-                    String.format(
-                            "can't copy temp file:[%s] to dir:[%s]",
-                            currentFilePath, outputFilePath),
-                    e);
+            throw new FlinkxRuntimeException(String.format("can't copy temp file:[%s] to dir:[%s]", currentFilePath, outputFilePath), e);
         }
         return copyList;
     }
@@ -183,8 +184,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 }
             }
         } catch (IOException e) {
-            throw new FlinkxRuntimeException(
-                    String.format("can't delete commit file:[%s]", currentFilePath), e);
+            throw new FlinkxRuntimeException(String.format("can't delete commit file:[%s]", currentFilePath), e);
         }
     }
 
@@ -194,18 +194,17 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         try {
             List<String> dataFiles = ftpHandler.getFiles(tmpPath);
             for (String dataFile : dataFiles) {
-                File file = new File(dataFile);
-                dataFilePath = file.getAbsolutePath();
-                String newDataFilePath = outputFilePath + File.separatorChar + file.getName();
+                File tmpDataFile = new File(dataFile);
+                dataFilePath = tmpDataFile.getAbsolutePath();
+
+                String fileName = handleUserSpecificFileName(tmpDataFile.getName(), dataFiles.size());
+                String newDataFilePath = ftpConfig.getPath() + File.separatorChar + fileName;
                 ftpHandler.rename(dataFilePath, newDataFilePath);
                 LOG.info("move temp file:{} to dir:{}", dataFilePath, outputFilePath);
             }
             ftpHandler.deleteAllFilesInDir(tmpPath, null);
         } catch (Exception e) {
-            throw new FlinkxRuntimeException(
-                    String.format(
-                            "can't copy temp file:[%s] to dir:[%s]", dataFilePath, outputFilePath),
-                    e);
+            throw new FlinkxRuntimeException(String.format("can't copy temp file:[%s] to dir:[%s]", dataFilePath, outputFilePath), e);
         }
     }
 
@@ -245,4 +244,38 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     protected void notSupportBatchWrite(String writerName) {
         throw new UnsupportedOperationException(writerName + "不支持批量写入");
     }
+
+
+    private String handleUserSpecificFileName(String tmpDataFileName, int fileNumber) {
+        String fileName = ftpConfig.getFtpFileName();
+        if (StringUtils.isNotBlank(fileName)) {
+            if (fileNumber == 1) {
+                fileName = handlerSingleFile(tmpDataFileName);
+            } else {
+                fileName = handlerMultiChannel(tmpDataFileName);
+            }
+        } else {
+            fileName = tmpDataFileName;
+        }
+        return fileName;
+    }
+
+    private String handlerSingleFile(String tmpDataFileName) {
+        return ftpConfig.getFtpFileName();
+    }
+
+    private String handlerMultiChannel(String tmpDataFileName) {
+        final String[] splitFileName = tmpDataFileName.split("_");
+        String fileName = ftpConfig.getFtpFileName();
+        if (fileName.contains(".")) {
+            final int dotPosition = fileName.lastIndexOf(ConstantValue.POINT_SYMBOL);
+            final String prefixName = fileName.substring(0, dotPosition);
+            final String extensionName = fileName.substring(dotPosition + 1);
+            fileName = prefixName + "_" + splitFileName[1] + "_" + splitFileName[2] + "." + extensionName;
+        } else {
+            fileName = fileName + "_" + splitFileName[1] + "_" + splitFileName[2];
+        }
+        return fileName;
+    }
+
 }

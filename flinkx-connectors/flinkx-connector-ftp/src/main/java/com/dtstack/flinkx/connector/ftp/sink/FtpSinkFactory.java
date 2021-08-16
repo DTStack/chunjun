@@ -25,13 +25,12 @@ import com.dtstack.flinkx.connector.ftp.converter.FtpColumnConverter;
 import com.dtstack.flinkx.connector.ftp.converter.FtpRawTypeConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
-
 import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.StringUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
-import com.dtstack.flinkx.util.StringUtil;
 
 import java.util.List;
 
@@ -55,7 +54,7 @@ public class FtpSinkFactory extends SinkFactory {
             ftpConfig.setDefaultPort();
         }
 
-        if(!ConfigConstants.DEFAULT_FIELD_DELIMITER.equals(ftpConfig.getFieldDelimiter())){
+        if (!ConfigConstants.DEFAULT_FIELD_DELIMITER.equals(ftpConfig.getFieldDelimiter())) {
             String fieldDelimiter = StringUtil.convertRegularExpr(ftpConfig.getFieldDelimiter());
             ftpConfig.setFieldDelimiter(fieldDelimiter);
         }

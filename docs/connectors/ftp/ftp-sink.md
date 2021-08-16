@@ -86,11 +86,25 @@ FTP服务搭建<br />windows：[地址](https://help.aliyun.com/document_detail/
    - 默认值：UTF-8
 <br />
 
+- **controlEncoding**
+   - 描述：FTP客户端编码格式
+   - 必选：否
+   - 字段类型：String
+   - 默认值：UTF-8
+<br />
+
 - **isFirstLineHeader**
    - 描述：首行是否为标题行，如果是则不读取第一行
    - 必选：否
    - 字段类型：boolean
    - 默认值：false
+<br />
+
+- **ftpFileName**
+   - 描述：文件名
+   - 必选：否
+   - 字段类型：String
+   - 默认值：无
 <br />
 
 - **timeout**
