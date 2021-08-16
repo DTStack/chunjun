@@ -75,38 +75,38 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
  * @author: lany
  * @create: 2021/06/21 10:06
  */
-public class Elasticsearch6DynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+public class Elasticsearch6DynamicTableFactory
+        implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     private static final Set<ConfigOption<?>> requiredOptions =
             Stream.of(HOSTS_OPTION, INDEX_OPTION, DOCUMENT_TYPE_OPTION).collect(Collectors.toSet());
     private static final Set<ConfigOption<?>> optionalOptions =
             Stream.of(
-                    KEY_DELIMITER_OPTION,
-                    FAILURE_HANDLER_OPTION,
-                    FLUSH_ON_CHECKPOINT_OPTION,
-                    BULK_FLASH_MAX_SIZE_OPTION,
-                    BULK_FLUSH_MAX_ACTIONS_OPTION,
-                    BULK_FLUSH_INTERVAL_OPTION,
-                    BULK_FLUSH_BACKOFF_TYPE_OPTION,
-                    BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
-                    BULK_FLUSH_BACKOFF_DELAY_OPTION,
-//                    CONNECTION_MAX_RETRY_TIMEOUT_OPTION, un support
-                    CONNECTION_PATH_PREFIX,
-                    FORMAT_OPTION,
-                    PASSWORD_OPTION,
-                    USERNAME_OPTION,
-                    DT_BULK_FLUSH_MAX_ACTIONS_OPTION,
-                    DT_PARALLELISM_OPTION,
-                    LOOKUP_CACHE_PERIOD,
-                    LOOKUP_CACHE_MAX_ROWS,
-                    LOOKUP_CACHE_TTL,
-                    LOOKUP_CACHE_TYPE,
-                    LOOKUP_MAX_RETRIES,
-                    LOOKUP_ERROR_LIMIT,
-                    LOOKUP_FETCH_SIZE,
-                    LOOKUP_ASYNC_TIMEOUT,
-                    LOOKUP_PARALLELISM
-                    )
+                            KEY_DELIMITER_OPTION,
+                            FAILURE_HANDLER_OPTION,
+                            FLUSH_ON_CHECKPOINT_OPTION,
+                            BULK_FLASH_MAX_SIZE_OPTION,
+                            BULK_FLUSH_MAX_ACTIONS_OPTION,
+                            BULK_FLUSH_INTERVAL_OPTION,
+                            BULK_FLUSH_BACKOFF_TYPE_OPTION,
+                            BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
+                            BULK_FLUSH_BACKOFF_DELAY_OPTION,
+                            //                    CONNECTION_MAX_RETRY_TIMEOUT_OPTION, un support
+                            CONNECTION_PATH_PREFIX,
+                            FORMAT_OPTION,
+                            PASSWORD_OPTION,
+                            USERNAME_OPTION,
+                            DT_BULK_FLUSH_MAX_ACTIONS_OPTION,
+                            DT_PARALLELISM_OPTION,
+                            LOOKUP_CACHE_PERIOD,
+                            LOOKUP_CACHE_MAX_ROWS,
+                            LOOKUP_CACHE_TTL,
+                            LOOKUP_CACHE_TYPE,
+                            LOOKUP_MAX_RETRIES,
+                            LOOKUP_ERROR_LIMIT,
+                            LOOKUP_FETCH_SIZE,
+                            LOOKUP_ASYNC_TIMEOUT,
+                            LOOKUP_PARALLELISM)
                     .collect(Collectors.toSet());
 
     @Override
@@ -123,7 +123,8 @@ public class Elasticsearch6DynamicTableFactory implements DynamicTableSourceFact
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        return new Elasticsearch6DynamicTableSink(physicalSchema, getElasticsearchConf(config, physicalSchema));
+        return new Elasticsearch6DynamicTableSink(
+                physicalSchema, getElasticsearchConf(config, physicalSchema));
     }
 
     @Override
@@ -140,7 +141,8 @@ public class Elasticsearch6DynamicTableFactory implements DynamicTableSourceFact
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        return new Elasticsearch6DynamicTableSource(physicalSchema,
+        return new Elasticsearch6DynamicTableSource(
+                physicalSchema,
                 getElasticsearchConf(config, physicalSchema),
                 getElasticsearchLookupConf(config, context.getObjectIdentifier().getObjectName()));
     }
@@ -160,7 +162,8 @@ public class Elasticsearch6DynamicTableFactory implements DynamicTableSourceFact
         return optionalOptions;
     }
 
-    private Elasticsearch6Conf getElasticsearchConf(ReadableConfig readableConfig, TableSchema schema) {
+    private Elasticsearch6Conf getElasticsearchConf(
+            ReadableConfig readableConfig, TableSchema schema) {
         Elasticsearch6Conf elasticsearchConf = new Elasticsearch6Conf();
         boolean isAuthMesh = false;
 
@@ -179,10 +182,7 @@ public class Elasticsearch6DynamicTableFactory implements DynamicTableSourceFact
         }
         elasticsearchConf.setAuthMesh(isAuthMesh);
 
-        List<String> keyFields =
-                schema.getPrimaryKey()
-                        .map(pk -> pk.getColumns())
-                        .orElse(null);
+        List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
         elasticsearchConf.setIds(keyFields);
         return elasticsearchConf;
     }
@@ -200,5 +200,4 @@ public class Elasticsearch6DynamicTableFactory implements DynamicTableSourceFact
                 .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNC_TIMEOUT))
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
-
 }

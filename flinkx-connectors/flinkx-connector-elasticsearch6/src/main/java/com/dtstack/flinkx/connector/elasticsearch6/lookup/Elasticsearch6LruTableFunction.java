@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.lookup;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-
 import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
 import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6RequestHelper;
 import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6Util;
@@ -30,6 +27,10 @@ import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 import com.dtstack.flinkx.lookup.cache.CacheMissVal;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+
 import com.google.common.collect.Lists;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchRequest;
@@ -80,70 +81,68 @@ public class Elasticsearch6LruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys) throws Exception {
+    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys)
+            throws Exception {
         String cacheKey = buildCacheKey(keys);
         SearchRequest searchRequest = buildSearchRequest(keys);
-        rhlClient.searchAsync(searchRequest, new ActionListener<SearchResponse>() {
-            @Override
-            public void onResponse(SearchResponse searchResponse) {
-                try {
-                    SearchHit[] searchHits = searchResponse.getHits().getHits();
-                    if (searchHits.length > 0) {
+        rhlClient.searchAsync(
+                searchRequest,
+                new ActionListener<SearchResponse>() {
+                    @Override
+                    public void onResponse(SearchResponse searchResponse) {
+                        try {
+                            SearchHit[] searchHits = searchResponse.getHits().getHits();
+                            if (searchHits.length > 0) {
 
-                        List<Map<String, Object>> cacheContent = Lists.newArrayList();
-                        List<RowData> rowList = Lists.newArrayList();
-                        for (SearchHit searchHit: searchHits) {
-                            Map<String,Object> result = searchHit.getSourceAsMap();
-                            RowData rowData;
-                            try {
-                                rowData = rowConverter.toInternalLookup(result);
-                                if (openCache()) {
-                                    cacheContent.add(result);
+                                List<Map<String, Object>> cacheContent = Lists.newArrayList();
+                                List<RowData> rowList = Lists.newArrayList();
+                                for (SearchHit searchHit : searchHits) {
+                                    Map<String, Object> result = searchHit.getSourceAsMap();
+                                    RowData rowData;
+                                    try {
+                                        rowData = rowConverter.toInternalLookup(result);
+                                        if (openCache()) {
+                                            cacheContent.add(result);
+                                        }
+                                        rowList.add(rowData);
+                                    } catch (Exception e) {
+                                        LOG.error("error:{} \n  data:{}", e.getMessage(), result);
+                                    }
                                 }
-                                rowList.add(rowData);
-                            } catch (Exception e) {
-                                LOG.error("error:{} \n  data:{}", e.getMessage(), result);
+                                dealCacheData(
+                                        cacheKey,
+                                        CacheObj.buildCacheObj(
+                                                ECacheContentType.MultiLine, cacheContent));
+
+                                future.complete(rowList);
+                            } else {
+                                dealMissKey(future);
+                                dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
                             }
+                        } catch (Exception e) {
+                            LOG.error("", e);
+                            throw new RuntimeException("SearchError", e);
                         }
-                        dealCacheData(
-                                cacheKey,
-                                CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
-
-                        future.complete(rowList);
-                    } else {
-                        dealMissKey(future);
-                        dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
                     }
-                } catch (Exception e) {
-                    LOG.error("", e);
-                    throw new RuntimeException("SearchError", e);
-                }
-            }
 
-            @Override
-            public void onFailure(Exception e) {
-                future.completeExceptionally(new RuntimeException("Response failed!"));
-            }
-        });
+                    @Override
+                    public void onFailure(Exception e) {
+                        future.completeExceptionally(new RuntimeException("Response failed!"));
+                    }
+                });
     }
 
     /**
      * build search request
+     *
      * @return
      */
     private SearchRequest buildSearchRequest(Object... keys) {
-        SearchSourceBuilder sourceBuilder = Elasticsearch6RequestHelper.createSourceBuilder(
-                fieldNames,
-                keyNames,
-                keys);
+        SearchSourceBuilder sourceBuilder =
+                Elasticsearch6RequestHelper.createSourceBuilder(fieldNames, keyNames, keys);
         sourceBuilder.size(lookupConf.getFetchSize());
 
         return Elasticsearch6RequestHelper.createSearchRequest(
-                elasticsearchConf.getIndex(),
-                elasticsearchConf.getType(),
-                null,
-                sourceBuilder
-        );
+                elasticsearchConf.getIndex(), elasticsearchConf.getType(), null, sourceBuilder);
     }
-
 }

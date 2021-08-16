@@ -22,5 +22,4 @@ public class DtElasticsearch6Options {
                     .intType()
                     .defaultValue(1)
                     .withDescription("Parallelism for connector running.");
-
 }
