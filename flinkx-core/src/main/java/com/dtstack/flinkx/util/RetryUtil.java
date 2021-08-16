@@ -20,13 +20,15 @@ package com.dtstack.flinkx.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
  * Utilities for handling operations that needs retrying several times
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public final class RetryUtil {
@@ -38,32 +40,38 @@ public final class RetryUtil {
     /**
      * 重试次数工具方法.
      *
-     * @param callable               实际逻辑
-     * @param retryTimes             最大重试次数（>1）
+     * @param callable 实际逻辑
+     * @param retryTimes 最大重试次数（>1）
      * @param sleepTimeInMilliSecond 运行失败后休眠对应时间再重试
-     * @param exponential            休眠时间是否指数递增
-     * @param <T>                    返回值类型
+     * @param exponential 休眠时间是否指数递增
+     * @param <T> 返回值类型
      * @return 经过重试的callable的执行结果
      */
-    public static <T> T executeWithRetry(Callable<T> callable,
-                                         int retryTimes,
-                                         long sleepTimeInMilliSecond,
-                                         boolean exponential){
+    public static <T> T executeWithRetry(
+            Callable<T> callable,
+            int retryTimes,
+            long sleepTimeInMilliSecond,
+            boolean exponential) {
         Retry retry = new Retry();
         return retry.doRetry(callable, retryTimes, sleepTimeInMilliSecond, exponential, null);
     }
 
     private static class Retry {
 
-        public <T> T doRetry(Callable<T> callable, int retryTimes, long sleepTimeInMilliSecond, boolean exponential, List<Class<?>> retryExceptionClasss){
+        public <T> T doRetry(
+                Callable<T> callable,
+                int retryTimes,
+                long sleepTimeInMilliSecond,
+                boolean exponential,
+                List<Class<?>> retryExceptionClasss) {
 
             if (null == callable) {
                 throw new IllegalArgumentException("系统编程错误, 入参callable不能为空 ! ");
             }
 
             if (retryTimes < 1) {
-                throw new IllegalArgumentException(String.format(
-                        "系统编程错误, 入参retrytime[%d]不能小于1 !", retryTimes));
+                throw new IllegalArgumentException(
+                        String.format("系统编程错误, 入参retrytime[%d]不能小于1 !", retryTimes));
             }
 
             Exception saveException = null;
@@ -73,7 +81,11 @@ public final class RetryUtil {
                 } catch (Exception e) {
                     saveException = e;
                     if (i == 0) {
-                        LOG.error(String.format("Exception when calling callable, 异常Msg:%s", ExceptionUtil.getErrorMessage(saveException)), saveException);
+                        LOG.error(
+                                String.format(
+                                        "Exception when calling callable, 异常Msg:%s",
+                                        ExceptionUtil.getErrorMessage(saveException)),
+                                saveException);
                     }
 
                     if (null != retryExceptionClasss && !retryExceptionClasss.isEmpty()) {
@@ -95,12 +107,12 @@ public final class RetryUtil {
                         long timeToSleep;
                         if (exponential) {
                             timeToSleep = sleepTimeInMilliSecond * (long) Math.pow(2, i);
-                            if(timeToSleep >= MAX_SLEEP_MILLISECOND) {
+                            if (timeToSleep >= MAX_SLEEP_MILLISECOND) {
                                 timeToSleep = MAX_SLEEP_MILLISECOND;
                             }
                         } else {
                             timeToSleep = sleepTimeInMilliSecond;
-                            if(timeToSleep >= MAX_SLEEP_MILLISECOND) {
+                            if (timeToSleep >= MAX_SLEEP_MILLISECOND) {
                                 timeToSleep = MAX_SLEEP_MILLISECOND;
                             }
                         }
@@ -110,11 +122,15 @@ public final class RetryUtil {
                         } catch (InterruptedException ignored) {
                         }
 
-                        long realTimeSleep = System.currentTimeMillis()-startTime;
+                        long realTimeSleep = System.currentTimeMillis() - startTime;
 
-                        LOG.error(String.format("Exception when calling callable, 即将尝试执行第%s次重试.本次重试计划等待[%s]ms,实际等待[%s]ms, 异常Msg:[%s]",
-                                i+1, timeToSleep,realTimeSleep, ExceptionUtil.getErrorMessage(e)));
-
+                        LOG.error(
+                                String.format(
+                                        "Exception when calling callable, 即将尝试执行第%s次重试.本次重试计划等待[%s]ms,实际等待[%s]ms, 异常Msg:[%s]",
+                                        i + 1,
+                                        timeToSleep,
+                                        realTimeSleep,
+                                        ExceptionUtil.getErrorMessage(e)));
                     }
                 }
             }

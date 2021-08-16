@@ -18,18 +18,19 @@
 
 package com.dtstack.flinkx.sink;
 
-import org.apache.flink.api.common.io.OutputFormat;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.Preconditions;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.converter.RawTypeConvertible;
 import com.dtstack.flinkx.util.PropertiesUtil;
+
+import org.apache.flink.api.common.io.OutputFormat;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.Preconditions;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.io.OutputFormat;

@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.security.KerberosUtil;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.api.common.cache.DistributedCache;

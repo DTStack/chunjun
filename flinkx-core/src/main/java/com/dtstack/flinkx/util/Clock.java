@@ -9,37 +9,36 @@ import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
- * <p>
- * this class is copied from (https://github.com/debezium/debezium).
+ * Date: 2019/12/03 Company: www.dtstack.com
+ *
+ * <p>this class is copied from (https://github.com/debezium/debezium).
  *
  * @author tudou
  */
 public interface Clock {
 
-    /**
-     * The {@link Clock} instance that uses the {@link System} methods.
-     */
-    static final Clock SYSTEM = new Clock() {
-        @Override
-        public long currentTimeInMillis() {
-            return System.currentTimeMillis();
-        }
+    /** The {@link Clock} instance that uses the {@link System} methods. */
+    static final Clock SYSTEM =
+            new Clock() {
+                @Override
+                public long currentTimeInMillis() {
+                    return System.currentTimeMillis();
+                }
 
-        @Override
-        public long currentTimeInNanos() {
-            return System.nanoTime();
-        }
+                @Override
+                public long currentTimeInNanos() {
+                    return System.nanoTime();
+                }
 
-        @Override
-        public Instant currentTimeAsInstant() {
-            return Instant.now();
-        }
-    };
+                @Override
+                public Instant currentTimeAsInstant() {
+                    return Instant.now();
+                }
+            };
 
     /**
      * Get the {@link Clock} instance that uses the {@link System} methods.
+     *
      * @return the system clock; never null
      */
     static Clock system() {
@@ -48,6 +47,7 @@ public interface Clock {
 
     /**
      * Get current time
+     *
      * @return time
      */
     default Instant currentTime() {
@@ -56,6 +56,7 @@ public interface Clock {
 
     /**
      * Get the current time in nanoseconds.
+     *
      * @return the current time in nanoseconds.
      */
     default long currentTimeInNanos() {
@@ -64,6 +65,7 @@ public interface Clock {
 
     /**
      * Get the current time in microseconds.
+     *
      * @return the current time in microseconds.
      */
     default long currentTimeInMicros() {
@@ -81,8 +83,8 @@ public interface Clock {
 
     /**
      * Get the current time in milliseconds.
+     *
      * @return the current time in milliseconds.
      */
     public long currentTimeInMillis();
-
 }

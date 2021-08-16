@@ -17,12 +17,13 @@
  */
 package com.dtstack.flinkx.client;
 
+import com.dtstack.flinkx.security.KerberosUtils;
+import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.SecurityOptions;
 import org.apache.flink.runtime.util.HadoopUtils;
 
-import com.dtstack.flinkx.security.KerberosUtils;
-import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;

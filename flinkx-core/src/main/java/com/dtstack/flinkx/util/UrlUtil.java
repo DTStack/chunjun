@@ -48,32 +48,40 @@ public class UrlUtil {
     private static Charset charset = StandardCharsets.UTF_8;
 
     public static InputStream open(String url, int retryTimes) throws Exception {
-        return RetryUtil.executeWithRetry(() -> {
-            //设置超时时间，防止阻塞
-            URLConnection urlConnection = new URL(url).openConnection();
-            urlConnection.setConnectTimeout(CONNECTION_TIMEOUT_MILLI_SECOND);
-            urlConnection.setReadTimeout(CONNECTION_TIMEOUT_MILLI_SECOND);
-            return urlConnection.getInputStream();
-        }, retryTimes, SLEEP_TIME_MILLI_SECOND, false);
+        return RetryUtil.executeWithRetry(
+                () -> {
+                    // 设置超时时间，防止阻塞
+                    URLConnection urlConnection = new URL(url).openConnection();
+                    urlConnection.setConnectTimeout(CONNECTION_TIMEOUT_MILLI_SECOND);
+                    urlConnection.setReadTimeout(CONNECTION_TIMEOUT_MILLI_SECOND);
+                    return urlConnection.getInputStream();
+                },
+                retryTimes,
+                SLEEP_TIME_MILLI_SECOND,
+                false);
     }
 
-    public static InputStream open(String url) throws Exception{
-        return RetryUtil.executeWithRetry(() -> {
-            URLConnection urlConnection = new URL(url).openConnection();
-            urlConnection.setConnectTimeout(CONNECTION_TIMEOUT_MILLI_SECOND);
-            urlConnection.setReadTimeout(CONNECTION_TIMEOUT_MILLI_SECOND);
-            return urlConnection.getInputStream();
-        }, MAX_RETRY_TIMES, SLEEP_TIME_MILLI_SECOND, false);
+    public static InputStream open(String url) throws Exception {
+        return RetryUtil.executeWithRetry(
+                () -> {
+                    URLConnection urlConnection = new URL(url).openConnection();
+                    urlConnection.setConnectTimeout(CONNECTION_TIMEOUT_MILLI_SECOND);
+                    urlConnection.setReadTimeout(CONNECTION_TIMEOUT_MILLI_SECOND);
+                    return urlConnection.getInputStream();
+                },
+                MAX_RETRY_TIMES,
+                SLEEP_TIME_MILLI_SECOND,
+                false);
     }
 
-    public static void get(String url, long sleepTime, int retryTimes, Callback callback){
+    public static void get(String url, long sleepTime, int retryTimes, Callback callback) {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             int num = 0;
             while (true) {
                 String response = UrlUtil.get(httpClient, url);
                 callback.call(response);
                 if (callback.isReturn() || num > retryTimes) {
-                    return ;
+                    return;
                 }
 
                 num++;
@@ -84,41 +92,52 @@ public class UrlUtil {
         }
     }
 
-    public static String get(CloseableHttpClient httpClient, String url) throws Exception{
-        return RetryUtil.executeWithRetry(() -> {
-            String respBody = null;
-            HttpGet httpGet = new HttpGet(url);
-            //设置超时时间，防止阻塞
-            RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(CONNECTION_TIMEOUT_MILLI_SECOND).setConnectTimeout(CONNECTION_TIMEOUT_MILLI_SECOND).build();
-            httpGet.setConfig(requestConfig);
-            CloseableHttpResponse response = httpClient.execute(httpGet);
+    public static String get(CloseableHttpClient httpClient, String url) throws Exception {
+        return RetryUtil.executeWithRetry(
+                () -> {
+                    String respBody = null;
+                    HttpGet httpGet = new HttpGet(url);
+                    // 设置超时时间，防止阻塞
+                    RequestConfig requestConfig =
+                            RequestConfig.custom()
+                                    .setSocketTimeout(CONNECTION_TIMEOUT_MILLI_SECOND)
+                                    .setConnectTimeout(CONNECTION_TIMEOUT_MILLI_SECOND)
+                                    .build();
+                    httpGet.setConfig(requestConfig);
+                    CloseableHttpResponse response = httpClient.execute(httpGet);
 
-            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
-                HttpEntity entity = response.getEntity();
-                respBody = EntityUtils.toString(entity,charset);
-            }
+                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                        HttpEntity entity = response.getEntity();
+                        respBody = EntityUtils.toString(entity, charset);
+                    }
 
-            response.close();
-            return respBody;
-        },MAX_RETRY_TIMES,SLEEP_TIME_MILLI_SECOND,false);
+                    response.close();
+                    return respBody;
+                },
+                MAX_RETRY_TIMES,
+                SLEEP_TIME_MILLI_SECOND,
+                false);
     }
 
-    public static interface Callback{
+    public static interface Callback {
 
         /**
          * 请求结果处理函数
+         *
          * @param response 请求响应结果
          */
         void call(String response);
 
         /**
          * 判断是否结束请求循环
+         *
          * @return true:结束，false:继续请求
          */
         boolean isReturn();
 
         /**
          * 对异常进行处理的函数
+         *
          * @param e 待处理的异常
          */
         void processError(Exception e);

@@ -52,19 +52,19 @@ public class StringUtilTest {
         Assert.assertEquals(result, Byte.valueOf("123"));
 
         result = StringUtil.string2col("1", "SMALLINT", null);
-        Assert.assertEquals(result, (short)1);
+        Assert.assertEquals(result, (short) 1);
 
         result = StringUtil.string2col("1", "INT", null);
         Assert.assertEquals(result, 1);
 
         result = StringUtil.string2col("1", "MEDIUMINT", null);
-        Assert.assertEquals(result, (long)1);
+        Assert.assertEquals(result, (long) 1);
 
         result = StringUtil.string2col("1", "BIGINT", null);
-        Assert.assertEquals(result, (long)1);
+        Assert.assertEquals(result, (long) 1);
 
         result = StringUtil.string2col("1.1", "float", null);
-        Assert.assertEquals(result, (float)1.1);
+        Assert.assertEquals(result, (float) 1.1);
 
         result = StringUtil.string2col("1.1", "double", null);
         Assert.assertEquals(result, 1.1);
@@ -75,7 +75,9 @@ public class StringUtilTest {
         result = StringUtil.string2col("value", "string", null);
         Assert.assertEquals(result, "value");
 
-        result = StringUtil.string2col("20200312-174412", "string", new SimpleDateFormat("yyyyMMdd-HHmmss"));
+        result =
+                StringUtil.string2col(
+                        "20200312-174412", "string", new SimpleDateFormat("yyyyMMdd-HHmmss"));
         Assert.assertEquals(result, "2020-03-12 17:44:12");
 
         result = StringUtil.string2col("true", "boolean", null);
@@ -144,5 +146,4 @@ public class StringUtilTest {
         InputStream inputStream = new ByteArrayInputStream(str.getBytes());
         Assert.assertEquals(str, StringUtil.inputStream2String(inputStream));
     }
-
 }

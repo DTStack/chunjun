@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.connector.phoenix5.sink;
 
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
@@ -27,6 +25,9 @@ import com.dtstack.flinkx.connector.phoenix5.converter.Phoenix5RawTypeConverter;
 import com.dtstack.flinkx.connector.phoenix5.util.Phoenix5Util;
 import com.dtstack.flinkx.enums.EWriteMode;
 import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.flink.table.types.logical.RowType;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Connection;

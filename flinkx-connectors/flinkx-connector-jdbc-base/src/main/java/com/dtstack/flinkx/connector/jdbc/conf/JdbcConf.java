@@ -24,8 +24,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Date: 2021/04/12
- * Company: www.dtstack.com
+ * Date: 2021/04/12 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -37,9 +36,9 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     protected String insertSqlMode;
     /** for sqlserver */
     private boolean withNoLock;
-    //common
+    // common
     private Properties properties;
-    //reader
+    // reader
     private String username;
     private String password;
     private List<ConnectionConf> connection;
@@ -71,14 +70,9 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private String restoreColumnType;
     /** restore字段索引 */
     private int restoreColumnIndex = -1;
-    /**
-     * 用于标记是否保存endLocation位置的一条或多条数据
-     *  true：不保存
-     *  false(默认)：保存
-     *  某些情况下可能出现最后几条数据被重复记录的情况，可以将此参数配置为true
-     */
+    /** 用于标记是否保存endLocation位置的一条或多条数据 true：不保存 false(默认)：保存 某些情况下可能出现最后几条数据被重复记录的情况，可以将此参数配置为true */
     private boolean useMaxFunc = false;
-    //writer
+    // writer
     private String mode = "INSERT";
     private List<String> preSql;
     private List<String> postSql;
@@ -90,14 +84,13 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         return connection.get(0).getTable().get(0);
     }
 
-    public void setTable(String table){
-        connection.get(0).getTable().set(0,table);
+    public void setTable(String table) {
+        connection.get(0).getTable().set(0, table);
     }
 
-    public void setSchema(String schema){
+    public void setSchema(String schema) {
         connection.get(0).setSchema(schema);
     }
-
 
     public String getSchema() {
         return connection.get(0).getSchema();
@@ -107,11 +100,11 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         return connection.get(0).obtainJdbcUrl();
     }
 
-    public void setJdbcUrl(String url){
+    public void setJdbcUrl(String url) {
         connection.get(0).putJdbcUrl(url);
     }
 
-    //------------------- getter、setter -------------------
+    // ------------------- getter、setter -------------------
 
     public List<String> getFullColumn() {
         return fullColumn;
@@ -363,38 +356,84 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
 
     @Override
     public String toString() {
-        return "JdbcConf{" +
-                "fullColumn=" + fullColumn +
-                ", insertSqlMode='" + insertSqlMode + '\'' +
-                ", withNoLock=" + withNoLock +
-                ", properties=" + properties +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", connection=" + connection +
-                ", where='" + where + '\'' +
-                ", customSql='" + customSql + '\'' +
-                ", orderByColumn='" + orderByColumn + '\'' +
-                ", querySql='" + querySql + '\'' +
-                ", splitPk='" + splitPk + '\'' +
-                ", splitStrategy='" + splitStrategy + '\'' +
-                ", fetchSize=" + fetchSize +
-                ", queryTimeOut=" + queryTimeOut +
-                ", increment=" + increment +
-                ", polling=" + polling +
-                ", increColumn='" + increColumn + '\'' +
-                ", increColumnIndex=" + increColumnIndex +
-                ", increColumnType='" + increColumnType + '\'' +
-                ", startLocation='" + startLocation + '\'' +
-                ", pollingInterval=" + pollingInterval +
-                ", restoreColumn='" + restoreColumn + '\'' +
-                ", restoreColumnType='" + restoreColumnType + '\'' +
-                ", restoreColumnIndex=" + restoreColumnIndex +
-                ", useMaxFunc=" + useMaxFunc +
-                ", mode='" + mode + '\'' +
-                ", preSql=" + preSql +
-                ", postSql=" + postSql +
-                ", updateKey=" + updateKey +
-                ", allReplace=" + allReplace +
-                '}';
+        return "JdbcConf{"
+                + "fullColumn="
+                + fullColumn
+                + ", insertSqlMode='"
+                + insertSqlMode
+                + '\''
+                + ", withNoLock="
+                + withNoLock
+                + ", properties="
+                + properties
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", connection="
+                + connection
+                + ", where='"
+                + where
+                + '\''
+                + ", customSql='"
+                + customSql
+                + '\''
+                + ", orderByColumn='"
+                + orderByColumn
+                + '\''
+                + ", querySql='"
+                + querySql
+                + '\''
+                + ", splitPk='"
+                + splitPk
+                + '\''
+                + ", splitStrategy='"
+                + splitStrategy
+                + '\''
+                + ", fetchSize="
+                + fetchSize
+                + ", queryTimeOut="
+                + queryTimeOut
+                + ", increment="
+                + increment
+                + ", polling="
+                + polling
+                + ", increColumn='"
+                + increColumn
+                + '\''
+                + ", increColumnIndex="
+                + increColumnIndex
+                + ", increColumnType='"
+                + increColumnType
+                + '\''
+                + ", startLocation='"
+                + startLocation
+                + '\''
+                + ", pollingInterval="
+                + pollingInterval
+                + ", restoreColumn='"
+                + restoreColumn
+                + '\''
+                + ", restoreColumnType='"
+                + restoreColumnType
+                + '\''
+                + ", restoreColumnIndex="
+                + restoreColumnIndex
+                + ", useMaxFunc="
+                + useMaxFunc
+                + ", mode='"
+                + mode
+                + '\''
+                + ", preSql="
+                + preSql
+                + ", postSql="
+                + postSql
+                + ", updateKey="
+                + updateKey
+                + ", allReplace="
+                + allReplace
+                + '}';
     }
 }

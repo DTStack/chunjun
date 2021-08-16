@@ -22,10 +22,12 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
-import org.apache.commons.lang3.StringUtils;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,13 +61,19 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     public AbstractRowConverter(RowType rowType) {
         this(rowType.getFieldCount());
         this.rowType = checkNotNull(rowType);
-        this.fieldTypes = rowType.getFields().stream().map(RowType.RowField::getType).toArray(LogicalType[]::new);
+        this.fieldTypes =
+                rowType.getFields().stream()
+                        .map(RowType.RowField::getType)
+                        .toArray(LogicalType[]::new);
     }
 
     public AbstractRowConverter(RowType rowType, FlinkxCommonConf commonConf) {
         this(rowType.getFieldCount());
         this.rowType = checkNotNull(rowType);
-        this.fieldTypes = rowType.getFields().stream().map(RowType.RowField::getType).toArray(LogicalType[]::new);
+        this.fieldTypes =
+                rowType.getFields().stream()
+                        .map(RowType.RowField::getType)
+                        .toArray(LogicalType[]::new);
         this.commonConf = commonConf;
     }
 
@@ -74,7 +82,8 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         this.toExternalConverters = new ISerializationConverter[converterSize];
     }
 
-    protected IDeserializationConverter wrapIntoNullableInternalConverter(IDeserializationConverter IDeserializationConverter) {
+    protected IDeserializationConverter wrapIntoNullableInternalConverter(
+            IDeserializationConverter IDeserializationConverter) {
         return val -> {
             if (val == null) {
                 return null;
@@ -91,20 +100,24 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
 
     /**
      * 组装字段属性，常量、format、等等
+     *
      * @param fieldConf
      * @param baseColumn
      * @return
      */
-    protected AbstractBaseColumn assembleFieldProps(FieldConf fieldConf, AbstractBaseColumn baseColumn) {
-        if(StringUtils.isNotBlank(fieldConf.getValue())){
+    protected AbstractBaseColumn assembleFieldProps(
+            FieldConf fieldConf, AbstractBaseColumn baseColumn) {
+        if (StringUtils.isNotBlank(fieldConf.getValue())) {
             baseColumn = new StringColumn(fieldConf.getValue(), fieldConf.getFormat());
-        }else if(baseColumn instanceof StringColumn && StringUtils.isNotBlank(fieldConf.getFormat())){
+        } else if (baseColumn instanceof StringColumn
+                && StringUtils.isNotBlank(fieldConf.getFormat())) {
             baseColumn = new StringColumn(baseColumn.asString(), fieldConf.getFormat());
         }
         return baseColumn;
     }
 
-    protected ISerializationConverter<SinkT> wrapIntoNullableExternalConverter(ISerializationConverter<SinkT> ISerializationConverter, T type){
+    protected ISerializationConverter<SinkT> wrapIntoNullableExternalConverter(
+            ISerializationConverter<SinkT> ISerializationConverter, T type) {
         return null;
     }
 
@@ -116,7 +129,6 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     public abstract RowData toInternal(SourceT input) throws Exception;
 
     /**
-     *
      * @param input input
      * @return RowData
      * @throws Exception Exception
@@ -139,7 +151,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      * @param type type
      * @return return
      */
-    protected IDeserializationConverter createInternalConverter(T type){
+    protected IDeserializationConverter createInternalConverter(T type) {
         return null;
     }
 
@@ -149,7 +161,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      * @param type type
      * @return return
      */
-    protected ISerializationConverter createExternalConverter(T type){
+    protected ISerializationConverter createExternalConverter(T type) {
         return null;
     }
 

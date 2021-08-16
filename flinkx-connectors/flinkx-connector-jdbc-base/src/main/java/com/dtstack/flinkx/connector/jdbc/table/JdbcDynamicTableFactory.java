@@ -101,7 +101,8 @@ public abstract class JdbcDynamicTableFactory
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
-        final FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
         // 1.所有的requiredOptions和optionalOptions参数
         final ReadableConfig config = helper.getOptions();
 
@@ -109,10 +110,12 @@ public abstract class JdbcDynamicTableFactory
         helper.validateExcept(VERTX_PREFIX, DRUID_PREFIX);
         validateConfigOptions(config);
         // 3.封装参数
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         JdbcDialect jdbcDialect = getDialect();
 
-        final Map<String, Object> druidConf = getLibConfMap(context.getCatalogTable().getOptions(), DRUID_PREFIX);
+        final Map<String, Object> druidConf =
+                getLibConfMap(context.getCatalogTable().getOptions(), DRUID_PREFIX);
 
         return new JdbcDynamicTableSource(
                 getSourceConnectionConf(helper.getOptions()),
@@ -122,8 +125,7 @@ public abstract class JdbcDynamicTableFactory
                         druidConf),
                 physicalSchema,
                 jdbcDialect,
-                getInputFormatBuilder()
-                );
+                getInputFormatBuilder());
     }
 
     @Override
@@ -139,7 +141,8 @@ public abstract class JdbcDynamicTableFactory
         JdbcDialect jdbcDialect = getDialect();
 
         // 3.封装参数
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
         return new JdbcDynamicTableSink(
                 getSinkConnectionConf(helper.getOptions(), physicalSchema),
@@ -166,13 +169,15 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setFlushIntervalMills(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
         jdbcConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
 
-        List<String> keyFields = schema.getPrimaryKey().map(UniqueConstraint::getColumns).orElse(null);
+        List<String> keyFields =
+                schema.getPrimaryKey().map(UniqueConstraint::getColumns).orElse(null);
         jdbcConf.setUpdateKey(keyFields);
         resetTableInfo(jdbcConf);
         return jdbcConf;
     }
 
-    protected LookupConf getJdbcLookupConf(ReadableConfig readableConfig, String tableName, Map<String, Object> druidConf) {
+    protected LookupConf getJdbcLookupConf(
+            ReadableConfig readableConfig, String tableName, Map<String, Object> druidConf) {
         return JdbcLookupConf.build()
                 .setDruidConf(druidConf)
                 .setAsyncPoolSize(readableConfig.get(VERTX_WORKER_POOL_SIZE))
@@ -202,14 +207,17 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setPassword(readableConfig.get(PASSWORD));
 
         jdbcConf.setParallelism(readableConfig.get(SCAN_PARALLELISM));
-        jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE) == 0 ? getDefaultFetchSize() : readableConfig.get(SCAN_FETCH_SIZE));
+        jdbcConf.setFetchSize(
+                readableConfig.get(SCAN_FETCH_SIZE) == 0
+                        ? getDefaultFetchSize()
+                        : readableConfig.get(SCAN_FETCH_SIZE));
         jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
 
         jdbcConf.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
         jdbcConf.setSplitStrategy(readableConfig.get(SCAN_PARTITION_STRATEGY));
 
         String increColumn = readableConfig.get(SCAN_INCREMENT_COLUMN);
-        if(StringUtils.isNotBlank(increColumn)){
+        if (StringUtils.isNotBlank(increColumn)) {
             jdbcConf.setIncrement(true);
             jdbcConf.setIncreColumn(increColumn);
             jdbcConf.setIncreColumnType(readableConfig.get(SCAN_INCREMENT_COLUMN_TYPE));
@@ -224,7 +232,10 @@ public abstract class JdbcDynamicTableFactory
         if (pollingInterval.isPresent() && pollingInterval.get() > 0) {
             jdbcConf.setPolling(true);
             jdbcConf.setPollingInterval(pollingInterval.get());
-            jdbcConf.setFetchSize(readableConfig.get(SCAN_FETCH_SIZE) == 0 ? SCAN_DEFAULT_FETCH_SIZE.defaultValue() : readableConfig.get(SCAN_FETCH_SIZE));
+            jdbcConf.setFetchSize(
+                    readableConfig.get(SCAN_FETCH_SIZE) == 0
+                            ? SCAN_DEFAULT_FETCH_SIZE.defaultValue()
+                            : readableConfig.get(SCAN_FETCH_SIZE));
         }
 
         resetTableInfo(jdbcConf);
@@ -285,7 +296,8 @@ public abstract class JdbcDynamicTableFactory
 
         if (config.getOptional(SCAN_POLLING_INTERVAL).isPresent()
                 && config.getOptional(SCAN_POLLING_INTERVAL).get() > 0) {
-            checkState(StringUtils.isNotBlank(config.get(SCAN_INCREMENT_COLUMN)),
+            checkState(
+                    StringUtils.isNotBlank(config.get(SCAN_INCREMENT_COLUMN)),
                     "scan.increment.column can not null or empty in polling-interval mode.");
         }
 
@@ -338,9 +350,10 @@ public abstract class JdbcDynamicTableFactory
 
     /**
      * 从数据库中每次读取的条数，离线读取的时候每个插件需要测试，防止大数据量下生成大量临时文件
+     *
      * @return
      */
-    protected int getDefaultFetchSize(){
+    protected int getDefaultFetchSize() {
         return SCAN_DEFAULT_FETCH_SIZE.defaultValue();
     }
 
@@ -362,11 +375,10 @@ public abstract class JdbcDynamicTableFactory
         return new JdbcOutputFormatBuilder(new JdbcOutputFormat());
     }
 
-
-    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
-    protected void resetTableInfo(JdbcConf jdbcConf){
-        if(StringUtils.isBlank(jdbcConf.getSchema())){
-           JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
+    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段* */
+    protected void resetTableInfo(JdbcConf jdbcConf) {
+        if (StringUtils.isBlank(jdbcConf.getSchema())) {
+            JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
         }
     }
 }

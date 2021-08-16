@@ -21,24 +21,19 @@ package com.dtstack.flinkx.enums;
 /**
  * Data write type
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author jiangbo
  */
 public enum EWriteMode {
 
-    /**
-     * insert into
-     */
+    /** insert into */
     INSERT,
 
-    /**
-     * insert into ... on duplicate key update
-     */
+    /** insert into ... on duplicate key update */
     UPDATE,
 
-    /**
-     * replace into
-     */
+    /** replace into */
     REPLACE,
 
     UPSERT

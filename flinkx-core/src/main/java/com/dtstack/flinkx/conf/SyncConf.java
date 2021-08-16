@@ -17,9 +17,10 @@
  */
 package com.dtstack.flinkx.conf;
 
+import com.dtstack.flinkx.util.GsonUtil;
+
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.util.GsonUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,8 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2021/01/18
- * Company: www.dtstack.com
+ * Date: 2021/01/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -43,14 +43,16 @@ public class SyncConf implements Serializable {
     private String pluginRoot;
     /** FlinkX运行时服务器上的远程端插件包路径 */
     private String remotePluginPath;
+
     private String restorePath;
 
     /**
      * 解析job字符串
+     *
      * @param jobJson job json字符串
      * @return FlinkxJobConfig
      */
-    public static SyncConf parseJob(String jobJson){
+    public static SyncConf parseJob(String jobJson) {
         SyncConf config = GsonUtil.GSON.fromJson(jobJson, SyncConf.class);
         checkJob(config);
         return config;
@@ -58,58 +60,88 @@ public class SyncConf implements Serializable {
 
     /**
      * 校验Job配置
+     *
      * @param config FlinkxJobConfig
      */
     private static void checkJob(SyncConf config) {
         List<ContentConf> content = config.getJob().getContent();
 
-        Preconditions.checkNotNull(content, "[content] in the task script is empty, please check the task script configuration.");
-        Preconditions.checkArgument(content.size() != 0, "[content] in the task script is empty, please check the task script configuration.");
+        Preconditions.checkNotNull(
+                content,
+                "[content] in the task script is empty, please check the task script configuration.");
+        Preconditions.checkArgument(
+                content.size() != 0,
+                "[content] in the task script is empty, please check the task script configuration.");
 
         // 检查reader配置
         OperatorConf reader = config.getReader();
-        Preconditions.checkNotNull(reader, "[reader] in the task script is empty, please check the task script configuration.");
+        Preconditions.checkNotNull(
+                reader,
+                "[reader] in the task script is empty, please check the task script configuration.");
         String readerName = reader.getName();
-        Preconditions.checkNotNull(readerName, "[name] under [reader] in task script is empty, please check task script configuration.");
+        Preconditions.checkNotNull(
+                readerName,
+                "[name] under [reader] in task script is empty, please check task script configuration.");
         Map<String, Object> readerParameter = reader.getParameter();
-        Preconditions.checkNotNull(readerParameter, "[parameter] under [reader] in the task script is empty, please check the configuration of the task script.");
-
+        Preconditions.checkNotNull(
+                readerParameter,
+                "[parameter] under [reader] in the task script is empty, please check the configuration of the task script.");
 
         // 检查writer配置
         OperatorConf writer = config.getWriter();
-        Preconditions.checkNotNull(writer, "[writer] in the task script is empty, please check the task script configuration.");
+        Preconditions.checkNotNull(
+                writer,
+                "[writer] in the task script is empty, please check the task script configuration.");
         String writerName = writer.getName();
-        Preconditions.checkNotNull(writerName, "[name] under [writer] in the task script is empty, please check the configuration of the task script.");
+        Preconditions.checkNotNull(
+                writerName,
+                "[name] under [writer] in the task script is empty, please check the configuration of the task script.");
         Map<String, Object> writerParameter = reader.getParameter();
-        Preconditions.checkNotNull(writerParameter, "[parameter] under [writer] in the task script is empty, please check the configuration of the task script.");
-        boolean transformer = config.getTransformer() != null && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
-        if(transformer){
-            if(CollectionUtils.isEmpty(writer.getFieldList())){
-                throw new IllegalArgumentException("[column] under [writer] can not be empty when [transformSql] is not empty.");
+        Preconditions.checkNotNull(
+                writerParameter,
+                "[parameter] under [writer] in the task script is empty, please check the configuration of the task script.");
+        boolean transformer =
+                config.getTransformer() != null
+                        && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
+        if (transformer) {
+            if (CollectionUtils.isEmpty(writer.getFieldList())) {
+                throw new IllegalArgumentException(
+                        "[column] under [writer] can not be empty when [transformSql] is not empty.");
             }
         }
 
         List<FieldConf> readerFieldList = config.getReader().getFieldList();
-        //检查并设置restore
+        // 检查并设置restore
         RestoreConf restore = config.getRestore();
-        if(restore.isStream()){
-            //实时任务restore必须设置为true，用于数据ck恢复
+        if (restore.isStream()) {
+            // 实时任务restore必须设置为true，用于数据ck恢复
             restore.setRestore(true);
-        }else if(restore.isRestore()){  //离线任务开启断点续传
-            FieldConf fieldColumnByName = FieldConf.getSameNameMetaColumn(readerFieldList, restore.getRestoreColumnName());
+        } else if (restore.isRestore()) { // 离线任务开启断点续传
+            FieldConf fieldColumnByName =
+                    FieldConf.getSameNameMetaColumn(
+                            readerFieldList, restore.getRestoreColumnName());
             FieldConf fieldColumnByIndex = null;
-            if(restore.getRestoreColumnIndex() >= 0){
+            if (restore.getRestoreColumnIndex() >= 0) {
                 fieldColumnByIndex = readerFieldList.get(restore.getRestoreColumnIndex());
             }
 
             FieldConf fieldColumn;
 
-            if(fieldColumnByName == null && fieldColumnByIndex == null){
-                throw new IllegalArgumentException("Can not find restore column from json with column name:" + restore.getRestoreColumnName());
-            }else if(fieldColumnByName != null && fieldColumnByIndex != null && fieldColumnByName != fieldColumnByIndex){
-                throw new IllegalArgumentException(String.format("The column name and column index point to different columns, column name = [%s]，point to [%s]; column index = [%s], point to [%s].",
-                        restore.getRestoreColumnName(), fieldColumnByName, restore.getRestoreColumnIndex(), fieldColumnByIndex));
-            }else{
+            if (fieldColumnByName == null && fieldColumnByIndex == null) {
+                throw new IllegalArgumentException(
+                        "Can not find restore column from json with column name:"
+                                + restore.getRestoreColumnName());
+            } else if (fieldColumnByName != null
+                    && fieldColumnByIndex != null
+                    && fieldColumnByName != fieldColumnByIndex) {
+                throw new IllegalArgumentException(
+                        String.format(
+                                "The column name and column index point to different columns, column name = [%s]，point to [%s]; column index = [%s], point to [%s].",
+                                restore.getRestoreColumnName(),
+                                fieldColumnByName,
+                                restore.getRestoreColumnIndex(),
+                                fieldColumnByIndex));
+            } else {
                 fieldColumn = fieldColumnByName != null ? fieldColumnByName : fieldColumnByIndex;
             }
 
@@ -118,39 +150,39 @@ public class SyncConf implements Serializable {
         }
     }
 
-    public OperatorConf getReader(){
+    public OperatorConf getReader() {
         return job.getReader();
     }
 
-    public OperatorConf getWriter(){
+    public OperatorConf getWriter() {
         return job.getWriter();
     }
 
-    public TransformerConf getTransformer(){
+    public TransformerConf getTransformer() {
         return job.getTransformer();
     }
 
-    public SpeedConf getSpeed(){
+    public SpeedConf getSpeed() {
         return job.getSetting().getSpeed();
     }
 
-    public DirtyConf getDirty(){
+    public DirtyConf getDirty() {
         return job.getSetting().getDirty();
     }
 
-    public ErrorLimitConf getErrorLimit(){
+    public ErrorLimitConf getErrorLimit() {
         return job.getSetting().getErrorLimit();
     }
 
-    public LogConf getLog(){
+    public LogConf getLog() {
         return job.getSetting().getLog();
     }
 
-    public RestartConf getRestart(){
+    public RestartConf getRestart() {
         return job.getSetting().getRestart();
     }
 
-    public RestoreConf getRestore(){
+    public RestoreConf getRestore() {
         return job.getSetting().getRestore();
     }
 
@@ -192,23 +224,37 @@ public class SyncConf implements Serializable {
 
     @Override
     public String toString() {
-        return "FlinkxConf{" +
-                "job=" + job +
-                ", pluginRoot='" + pluginRoot + '\'' +
-                ", remotePluginPath='" + remotePluginPath + '\'' +
-                ", restorePath='" + restorePath + '\'' +
-                '}';
+        return "FlinkxConf{"
+                + "job="
+                + job
+                + ", pluginRoot='"
+                + pluginRoot
+                + '\''
+                + ", remotePluginPath='"
+                + remotePluginPath
+                + '\''
+                + ", restorePath='"
+                + restorePath
+                + '\''
+                + '}';
     }
 
     /**
      * 转换成字符串，不带job脚本内容
+     *
      * @return
      */
     public String asString() {
-        return "FlinkxConf{" +
-                ", pluginRoot='" + pluginRoot + '\'' +
-                ", remotePluginPath='" + remotePluginPath + '\'' +
-                ", restorePath='" + restorePath + '\'' +
-                '}';
+        return "FlinkxConf{"
+                + ", pluginRoot='"
+                + pluginRoot
+                + '\''
+                + ", remotePluginPath='"
+                + remotePluginPath
+                + '\''
+                + ", restorePath='"
+                + restorePath
+                + '\''
+                + '}';
     }
 }

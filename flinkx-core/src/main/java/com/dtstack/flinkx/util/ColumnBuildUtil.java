@@ -21,6 +21,7 @@ package com.dtstack.flinkx.util;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -31,7 +32,7 @@ import java.util.List;
  * @author chuixue
  * @create 2021-07-05 14:54
  * @description
- **/
+ */
 public class ColumnBuildUtil {
 
     /**
@@ -41,8 +42,12 @@ public class ColumnBuildUtil {
      * @param fullColumnList fullColumnList
      * @param fullColumnTypeList fullColumnTypeList
      */
-    public static Pair<List<String>, List<String>> handleColumnList(List<FieldConf> fieldList, List<String> fullColumnList, List<String> fullColumnTypeList) {
-        if (fieldList.size() == 1 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())) {
+    public static Pair<List<String>, List<String>> handleColumnList(
+            List<FieldConf> fieldList,
+            List<String> fullColumnList,
+            List<String> fullColumnTypeList) {
+        if (fieldList.size() == 1
+                && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())) {
             return Pair.of(fullColumnList, fullColumnTypeList);
         }
 
@@ -62,7 +67,10 @@ public class ColumnBuildUtil {
                     }
                 }
                 if (!find) {
-                    throw new FlinkxRuntimeException(String.format("can not find field:[%s] in columnNameList:[%s]", name, GsonUtil.GSON.toJson(fullColumnList)));
+                    throw new FlinkxRuntimeException(
+                            String.format(
+                                    "can not find field:[%s] in columnNameList:[%s]",
+                                    name, GsonUtil.GSON.toJson(fullColumnList)));
                 }
             }
         }

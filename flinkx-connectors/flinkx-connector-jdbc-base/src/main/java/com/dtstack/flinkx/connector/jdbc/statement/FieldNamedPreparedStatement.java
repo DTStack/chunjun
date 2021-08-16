@@ -108,10 +108,7 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
      */
     int[] executeBatch() throws SQLException;
 
-    /**
-     *
-     * @see PreparedStatement#clearBatch()
-     */
+    /** @see PreparedStatement#clearBatch() */
     void clearBatch() throws SQLException;
 
     /**
@@ -262,5 +259,4 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
      * @see PreparedStatement#close()
      */
     void close() throws SQLException;
-
 }

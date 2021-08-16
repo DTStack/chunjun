@@ -18,11 +18,6 @@
 
 package com.dtstack.flinkx.connector.phoenix5;
 
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -31,6 +26,10 @@ import com.dtstack.flinkx.connector.phoenix5.converter.Phoenix5RawTypeConverter;
 import com.dtstack.flinkx.connector.phoenix5.converter.Phoenix5RowConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import io.vertx.core.json.JsonArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -23,8 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2021/04/06
- * Company: www.dtstack.com
+ * Date: 2021/04/06 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -64,10 +63,14 @@ public class DirtyConf implements Serializable {
 
     @Override
     public String toString() {
-        return "DirtyConf{" +
-                "path='" + path + '\'' +
-                ", hadoopConfig=" + hadoopConfig +
-                ", readerColumnNameList=" + readerColumnNameList +
-                '}';
+        return "DirtyConf{"
+                + "path='"
+                + path
+                + '\''
+                + ", hadoopConfig="
+                + hadoopConfig
+                + ", readerColumnNameList="
+                + readerColumnNameList
+                + '}';
     }
 }

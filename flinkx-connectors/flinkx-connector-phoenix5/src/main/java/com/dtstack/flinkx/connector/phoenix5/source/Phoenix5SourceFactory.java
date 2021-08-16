@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.phoenix5.source;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
@@ -30,6 +26,11 @@ import com.dtstack.flinkx.connector.phoenix5.Phoenix5Dialect;
 import com.dtstack.flinkx.connector.phoenix5.conf.Phoenix5Conf;
 import com.dtstack.flinkx.connector.phoenix5.converter.Phoenix5RawTypeConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**

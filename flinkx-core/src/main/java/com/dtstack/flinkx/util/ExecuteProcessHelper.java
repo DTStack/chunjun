@@ -18,12 +18,13 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.enums.ClusterMode;
+import com.dtstack.flinkx.enums.EPluginLoadMode;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.dtstack.flinkx.enums.ClusterMode;
-import com.dtstack.flinkx.enums.EPluginLoadMode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.Charsets;

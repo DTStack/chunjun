@@ -19,11 +19,8 @@ package com.dtstack.flinkx.client.kubernetes;
 
 import com.dtstack.flinkx.client.ClusterClientHelper;
 import com.dtstack.flinkx.client.JobDeployer;
-
 import com.dtstack.flinkx.client.util.JobGraphUtil;
 import com.dtstack.flinkx.options.Options;
-
-import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.client.program.ClusterClient;
@@ -35,6 +32,7 @@ import org.apache.flink.kubernetes.kubeclient.DefaultKubeClientFactory;
 import org.apache.flink.kubernetes.kubeclient.FlinkKubeClient;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +45,8 @@ import java.util.List;
  */
 public class KubernetesSessionClusterClientHelper implements ClusterClientHelper {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KubernetesSessionClusterClientHelper.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(KubernetesSessionClusterClientHelper.class);
 
     @Override
     public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
@@ -61,18 +60,18 @@ public class KubernetesSessionClusterClientHelper implements ClusterClientHelper
             throw new IllegalArgumentException("Kubernetes Session Mode Must Set CLUSTER_ID!");
         }
 
-        FlinkKubeClient flinkKubeClient = DefaultKubeClientFactory.getInstance().fromConfiguration(configuration);
-        try (
-                KubernetesClusterDescriptor descriptor = new KubernetesClusterDescriptor(configuration, flinkKubeClient);
-                ) {
+        FlinkKubeClient flinkKubeClient =
+                DefaultKubeClientFactory.getInstance().fromConfiguration(configuration);
+        try (KubernetesClusterDescriptor descriptor =
+                new KubernetesClusterDescriptor(configuration, flinkKubeClient); ) {
             ClusterClientProvider<String> retrieve = descriptor.retrieve(clusterId);
             ClusterClient<String> clusterClient = retrieve.getClusterClient();
 
-            JobGraph jobGraph = JobGraphUtil.buildJobGraph(launcherOptions, programArgs.toArray(new String[0]));
-            JobID jobID = (JobID)clusterClient.submitJob(jobGraph).get();
+            JobGraph jobGraph =
+                    JobGraphUtil.buildJobGraph(launcherOptions, programArgs.toArray(new String[0]));
+            JobID jobID = (JobID) clusterClient.submitJob(jobGraph).get();
             LOG.info("submit job successfully, jobID = {}", jobID);
             return clusterClient;
         }
-
     }
 }

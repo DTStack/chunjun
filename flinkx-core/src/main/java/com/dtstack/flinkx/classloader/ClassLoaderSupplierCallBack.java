@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.classloader;
 
 /**
@@ -26,7 +25,8 @@ package com.dtstack.flinkx.classloader;
  */
 public class ClassLoaderSupplierCallBack {
 
-    public static <R> R callbackAndReset(ClassLoaderSupplier<R> supplier, ClassLoader toSetClassLoader) throws Exception {
+    public static <R> R callbackAndReset(
+            ClassLoaderSupplier<R> supplier, ClassLoader toSetClassLoader) throws Exception {
         ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(toSetClassLoader);
         try {

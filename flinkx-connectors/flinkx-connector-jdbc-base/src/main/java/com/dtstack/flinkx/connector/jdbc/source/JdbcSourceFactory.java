@@ -18,17 +18,12 @@
 
 package com.dtstack.flinkx.connector.jdbc.source;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
@@ -36,6 +31,12 @@ import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -60,10 +61,15 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     private static final int DEFAULT_FETCH_SIZE = 1024;
     private static final int DEFAULT_QUERY_TIMEOUT = 300;
 
-    public JdbcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
+    public JdbcSourceFactory(
+            SyncConf syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
         super(syncConf, env);
         this.jdbcDialect = jdbcDialect;
-        Gson gson = new GsonBuilder().registerTypeAdapter(ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf")).create();
+        Gson gson =
+                new GsonBuilder()
+                        .registerTypeAdapter(
+                                ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf"))
+                        .create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), getConfClass());
         jdbcConf.setColumn(syncConf.getReader().getFieldList());
@@ -86,10 +92,9 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         resetTableInfo();
     }
 
-    protected Class<? extends JdbcConf>  getConfClass() {
+    protected Class<? extends JdbcConf> getConfClass() {
         return JdbcConf.class;
     }
-
 
     @Override
     public DataStream<RowData> createSource() {
@@ -107,7 +112,8 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         AbstractRowConverter rowConverter = null;
         if (!useAbstractBaseColumn) {
             checkConstant(jdbcConf);
-            final RowType rowType = TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
+            final RowType rowType =
+                    TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
             rowConverter = jdbcDialect.getRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);
@@ -120,7 +126,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
      *
      * @return JdbcInputFormatBuilder
      */
-    protected JdbcInputFormatBuilder getBuilder(){
+    protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new JdbcInputFormat());
     }
 
@@ -165,7 +171,10 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                 }
             }
             if (type == null || name == null) {
-                throw new IllegalArgumentException(String.format("config error : increColumn's name or type is null, column = %s, increColumn = %s", GsonUtil.GSON.toJson(fieldConfList), increColumn));
+                throw new IllegalArgumentException(
+                        String.format(
+                                "config error : increColumn's name or type is null, column = %s, increColumn = %s",
+                                GsonUtil.GSON.toJson(fieldConfList), increColumn));
             }
 
             jdbcConf.setIncrement(true);
@@ -188,9 +197,9 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         return jdbcDialect.getRawTypeConverter();
     }
 
-    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
-    protected void resetTableInfo(){
-        if(StringUtils.isBlank(jdbcConf.getSchema())){
+    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段* */
+    protected void resetTableInfo() {
+        if (StringUtils.isBlank(jdbcConf.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
         }
     }

@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.phoenix5.converter;
 
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
@@ -31,11 +37,6 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.utils.TypeConversions;
 
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import io.vertx.core.json.JsonArray;
 
 import java.math.BigDecimal;

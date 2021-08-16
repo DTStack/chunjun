@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.phoenix5.sink;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
+
 import org.apache.commons.lang.StringUtils;
 
 /**

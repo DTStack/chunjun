@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.phoenix5.table;
 
-import org.apache.flink.configuration.ConfigOption;
-import org.apache.flink.table.connector.source.DynamicTableSource;
-
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
@@ -30,6 +27,9 @@ import com.dtstack.flinkx.connector.phoenix5.sink.Phoenix5OutputFormat;
 import com.dtstack.flinkx.connector.phoenix5.sink.Phoenix5OutputFormatBuilder;
 import com.dtstack.flinkx.connector.phoenix5.source.Phoenix5InputFormat;
 import com.dtstack.flinkx.connector.phoenix5.source.Phoenix5InputFormatBuilder;
+
+import org.apache.flink.configuration.ConfigOption;
+import org.apache.flink.table.connector.source.DynamicTableSource;
 
 import java.util.Set;
 

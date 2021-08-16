@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.stream.converter;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -30,9 +34,6 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
@@ -49,7 +50,8 @@ import static java.time.temporal.ChronoField.MILLI_OF_DAY;
  * @create 2021-04-10 11:39
  * @description 数据类型转换器
  */
-public class StreamRowConverter extends AbstractRowConverter<RowData, RowData, RowData, LogicalType> {
+public class StreamRowConverter
+        extends AbstractRowConverter<RowData, RowData, RowData, LogicalType> {
 
     private static final long serialVersionUID = 1L;
 

@@ -26,7 +26,7 @@ import java.io.Serializable;
  * @author chuixue
  * @create 2021-04-10 13:11
  * @description
- **/
+ */
 public class LookupConf implements Serializable {
     /** 表名 */
     protected String tableName = "";
@@ -145,17 +145,29 @@ public class LookupConf implements Serializable {
 
     @Override
     public String toString() {
-        return "LookupConf{" +
-                "tableName='" + tableName + '\'' +
-                ", period=" + period +
-                ", cacheSize=" + cacheSize +
-                ", cacheTtl=" + cacheTtl +
-                ", cache='" + cache + '\'' +
-                ", maxRetryTimes=" + maxRetryTimes +
-                ", errorLimit=" + errorLimit +
-                ", fetchSize=" + fetchSize +
-                ", asyncTimeout=" + asyncTimeout +
-                ", parallelism=" + parallelism +
-                '}';
+        return "LookupConf{"
+                + "tableName='"
+                + tableName
+                + '\''
+                + ", period="
+                + period
+                + ", cacheSize="
+                + cacheSize
+                + ", cacheTtl="
+                + cacheTtl
+                + ", cache='"
+                + cache
+                + '\''
+                + ", maxRetryTimes="
+                + maxRetryTimes
+                + ", errorLimit="
+                + errorLimit
+                + ", fetchSize="
+                + fetchSize
+                + ", asyncTimeout="
+                + asyncTimeout
+                + ", parallelism="
+                + parallelism
+                + '}';
     }
 }

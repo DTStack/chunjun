@@ -21,8 +21,7 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 /**
- * Date: 2021/06/17
- * Company: www.dtstack.com
+ * Date: 2021/06/17 Company: www.dtstack.com
  *
  * @author tudou
  */

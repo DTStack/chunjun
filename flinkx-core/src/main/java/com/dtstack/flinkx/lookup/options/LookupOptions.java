@@ -27,7 +27,7 @@ import org.apache.flink.configuration.ConfigOptions;
  * @author chuixue
  * @create 2021-04-10 16:10
  * @description lookup common config
- **/
+ */
 public class LookupOptions {
     // look up config options
     public static final ConfigOption<Long> LOOKUP_CACHE_PERIOD =
