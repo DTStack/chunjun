@@ -17,15 +17,15 @@
  */
 package com.dtstack.flinkx.connector.kingbase.converter;
 
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -51,7 +51,6 @@ public class KingbaseRowConverter extends JdbcRowConverter {
      * override reason: tinying type in KingBase is byte type, couldn't case int.
      *
      * @param type
-     *
      * @return
      */
     @Override
@@ -79,12 +78,16 @@ public class KingbaseRowConverter extends JdbcRowConverter {
                 return val ->
                         val instanceof BigInteger
                                 ? DecimalData.fromBigDecimal(
-                                new BigDecimal((BigInteger) val, 0), precision, scale)
+                                        new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
-                return val -> (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
+                return val ->
+                        (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay() / 1_000_000L);
+                return val ->
+                        (int)
+                                ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> TimestampData.fromTimestamp((Timestamp) val);

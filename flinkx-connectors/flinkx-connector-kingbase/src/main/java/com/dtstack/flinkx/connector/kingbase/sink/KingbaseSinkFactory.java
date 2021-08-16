@@ -22,7 +22,6 @@ import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.flinkx.connector.kingbase.dialect.KingbaseDialect;
 
-
 /**
  * @description:
  * @program: flinkx-all
