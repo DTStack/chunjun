@@ -69,13 +69,13 @@ public class FlinkxCommonConf implements Serializable {
     private String metricPluginName;
 
     /** two phase mode */
-    private String semantic;
+    private String semantic = "at-least-once";
 
     /** metrics plugin properties */
     private Map<String, Object> metricProps;
 
     public String getSemantic() {
-        return semantic == null ? Semantic.AT_LEAST_ONCE.getAlisName() : semantic;
+        return semantic;
     }
 
     public void setSemantic(String semantic) {
