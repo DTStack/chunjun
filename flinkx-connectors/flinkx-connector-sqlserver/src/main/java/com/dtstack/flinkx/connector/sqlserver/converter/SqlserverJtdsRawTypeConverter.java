@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.sqlserver.converter;
 
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
@@ -30,15 +31,13 @@ import java.util.Locale;
  * @author shitou
  * @date 2021/5/19 14:26
  */
-public class SqlserverRawTypeConverter {
+public class SqlserverJtdsRawTypeConverter {
 
     /**
      * Convert the data type in SqlServer to the DataType type in flink
      *
      * @param type
-     *
      * @return
-     *
      * @throws UnsupportedTypeException
      */
     public static DataType apply(String type) throws UnsupportedTypeException {
