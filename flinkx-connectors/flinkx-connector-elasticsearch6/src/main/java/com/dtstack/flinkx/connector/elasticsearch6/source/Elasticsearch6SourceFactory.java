@@ -19,12 +19,6 @@
 package com.dtstack.flinkx.connector.elasticsearch6.source;
 
 import com.dtstack.flinkx.conf.FieldConf;
-
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
 import com.dtstack.flinkx.connector.elasticsearch6.converter.Elasticsearch6ColumnConverter;
@@ -33,6 +27,11 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
 import java.util.List;
 
@@ -50,26 +49,25 @@ public class Elasticsearch6SourceFactory extends SourceFactory {
         super(syncConf, env);
         elasticsearchConf =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getReader().getParameter()), Elasticsearch6Conf.class);
+                        JsonUtil.toJson(syncConf.getReader().getParameter()),
+                        Elasticsearch6Conf.class);
         List<FieldConf> fieldList = syncConf.getReader().getFieldList();
         String[] fieldNames = new String[fieldList.size()];
-        for (int i = 0; i < fieldList.size() ; i++) {
+        for (int i = 0; i < fieldList.size(); i++) {
             fieldNames[i] = fieldList.get(i).getName();
         }
 
         super.initFlinkxCommonConf(elasticsearchConf);
         elasticsearchConf.setColumn(fieldList);
         elasticsearchConf.setFieldNames(fieldNames);
-        elasticsearchConf.setParallelism(1);
     }
 
     @Override
     public DataStream<RowData> createSource() {
         Elasticsearch6InputFormatBuilder builder = new Elasticsearch6InputFormatBuilder();
         builder.setEsConf(elasticsearchConf);
-        final RowType rowType = TableUtil.createRowType(
-                elasticsearchConf.getColumn(),
-                getRawTypeConverter());
+        final RowType rowType =
+                TableUtil.createRowType(elasticsearchConf.getColumn(), getRawTypeConverter());
         builder.setRowConverter(new Elasticsearch6ColumnConverter(rowType));
         return createInput(builder.finish());
     }

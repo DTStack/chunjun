@@ -18,10 +18,11 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.utils;
 
+import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
+
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -50,58 +51,64 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 public class Elasticsearch6Util {
 
     /**
-     *
      * @param elasticsearchConf
      * @return
      */
     public static RestHighLevelClient createClient(Elasticsearch6Conf elasticsearchConf) {
         List<HttpHost> httpAddresses = getHosts(elasticsearchConf.getHosts());
-        RestClientBuilder restClientBuilder = RestClient.builder(
-                httpAddresses.
-                        toArray(new HttpHost[httpAddresses.size()]));
+        RestClientBuilder restClientBuilder =
+                RestClient.builder(httpAddresses.toArray(new HttpHost[httpAddresses.size()]));
         if (elasticsearchConf.isAuthMesh()) {
             // basic auth
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(AuthScope.ANY,
-                    new UsernamePasswordCredentials(elasticsearchConf.getUsername(),
-                            elasticsearchConf.getPassword()));
-            restClientBuilder.setHttpClientConfigCallback(httpAsyncClientBuilder ->
-                    httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+            credentialsProvider.setCredentials(
+                    AuthScope.ANY,
+                    new UsernamePasswordCredentials(
+                            elasticsearchConf.getUsername(), elasticsearchConf.getPassword()));
+            restClientBuilder.setHttpClientConfigCallback(
+                    httpAsyncClientBuilder ->
+                            httpAsyncClientBuilder.setDefaultCredentialsProvider(
+                                    credentialsProvider));
         }
 
         RestHighLevelClient rhlClient = new RestHighLevelClient(restClientBuilder);
         return rhlClient;
     }
 
-
-    /**
-     * parse address to HttpHosts
-     */
-    public static List<HttpHost> parseAddress(String address){
+    /** parse address to HttpHosts */
+    public static List<HttpHost> parseAddress(String address) {
         Preconditions.checkArgument(address != null, "address is not allowed null.");
         List<String> addressStrs = Arrays.asList(address.split(SEPARATOR));
 
         Preconditions.checkArgument(addressStrs.size() != 0, "address is not null.");
         return addressStrs.stream()
                 .map(add -> add.split(":"))
-                .map(addressArray -> {
-                    String host = addressArray[0].trim();
-                    int port = addressArray.length > 1 ? Integer.valueOf(addressArray[1].trim()) : ES_DEFAULT_PORT;
-                    return new HttpHost(host.trim(), port, ES_DEFAULT_SCHEMA);
-                }).collect(Collectors.toList());
+                .map(
+                        addressArray -> {
+                            String host = addressArray[0].trim();
+                            int port =
+                                    addressArray.length > 1
+                                            ? Integer.valueOf(addressArray[1].trim())
+                                            : ES_DEFAULT_PORT;
+                            return new HttpHost(host.trim(), port, ES_DEFAULT_SCHEMA);
+                        })
+                .collect(Collectors.toList());
     }
 
     /**
      * generate doc id by id fields.
+     *
      * @param
      * @return
      */
-    public static String generateDocId(List<String> idFieldNames, Map<String, Object> dataMap, String keyDelimiter) {
+    public static String generateDocId(
+            List<String> idFieldNames, Map<String, Object> dataMap, String keyDelimiter) {
         String doc_id = "";
         if (null != idFieldNames) {
-            doc_id = idFieldNames.stream()
-                    .map(idFiledName -> dataMap.get(idFiledName).toString())
-                    .collect(Collectors.joining(keyDelimiter));
+            doc_id =
+                    idFieldNames.stream()
+                            .map(idFiledName -> dataMap.get(idFiledName).toString())
+                            .collect(Collectors.joining(keyDelimiter));
         }
         return doc_id;
     }
@@ -146,6 +153,4 @@ public class Elasticsearch6Util {
                     e);
         }
     }
-
-
 }

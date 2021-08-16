@@ -18,15 +18,16 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.source;
 
-import org.apache.flink.core.io.GenericInputSplit;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
 import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6RequestHelper;
 import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6Util;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
+
+import org.apache.flink.core.io.GenericInputSplit;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.ClearScrollRequest;

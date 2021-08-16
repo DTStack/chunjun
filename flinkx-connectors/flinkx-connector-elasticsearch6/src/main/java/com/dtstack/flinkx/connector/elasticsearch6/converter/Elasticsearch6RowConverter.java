@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.converter;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -29,9 +33,6 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,12 +57,14 @@ import scala.Tuple3;
  * @author: lany
  * @create: 2021/06/16 15:37
  */
-public class Elasticsearch6RowConverter extends AbstractRowConverter<Map<String, Object>, Map<String, Object>, Map<String, Object>, LogicalType> {
+public class Elasticsearch6RowConverter
+        extends AbstractRowConverter<
+                Map<String, Object>, Map<String, Object>, Map<String, Object>, LogicalType> {
 
     private static final long serialVersionUID = 2L;
 
     private Logger LOG = LoggerFactory.getLogger(Elasticsearch6RowConverter.class);
-    private List<Tuple3<String,Integer, LogicalType>> typeIndexList = new ArrayList<>();
+    private List<Tuple3<String, Integer, LogicalType>> typeIndexList = new ArrayList<>();
 
     public Elasticsearch6RowConverter(RowType rowType) {
         super(rowType);
@@ -69,8 +72,7 @@ public class Elasticsearch6RowConverter extends AbstractRowConverter<Map<String,
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters[i] =
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i))
-                    );
+                            createInternalConverter(rowType.getTypeAt(i)));
             toExternalConverters[i] =
                     wrapIntoNullableExternalConverter(
                             createExternalConverter(fieldTypes[i]), fieldTypes[i]);
@@ -80,13 +82,12 @@ public class Elasticsearch6RowConverter extends AbstractRowConverter<Map<String,
 
     @Override
     protected ISerializationConverter wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter,
-            LogicalType type) {
+            ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, rowData) -> {
             if (val == null
                     || val.isNullAt(index)
                     || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
-                Map<String,Object> result = (Map<String,Object>) rowData;
+                Map<String, Object> result = (Map<String, Object>) rowData;
                 result.put(typeIndexList.get(index)._1(), null);
             } else {
                 serializationConverter.serialize(val, index, rowData);
@@ -107,26 +108,27 @@ public class Elasticsearch6RowConverter extends AbstractRowConverter<Map<String,
     private GenericRowData genericRowData(Map<String, Object> input) throws Exception {
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (String key : input.keySet()) {
-            List<Tuple3<String,Integer, LogicalType>> collect = typeIndexList.stream()
-                    .filter(x -> x._1().equals(key))
-                    .collect(Collectors.toList());
+            List<Tuple3<String, Integer, LogicalType>> collect =
+                    typeIndexList.stream()
+                            .filter(x -> x._1().equals(key))
+                            .collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(collect)) {
                 LOG.warn("Result Map : key [{}] not in columns", key);
                 continue;
             }
 
-            Tuple3<String,Integer, LogicalType> typeTuple =  collect.get(0);
+            Tuple3<String, Integer, LogicalType> typeTuple = collect.get(0);
             genericRowData.setField(
                     typeTuple._2(),
-                    toInternalConverters[typeTuple._2()].deserialize(input.get(key))
-            );
+                    toInternalConverters[typeTuple._2()].deserialize(input.get(key)));
         }
         return genericRowData;
     }
 
     @Override
-    public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output) throws Exception {
+    public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output)
+            throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
             toExternalConverters[index].serialize(rowData, index, output);
         }
@@ -134,53 +136,39 @@ public class Elasticsearch6RowConverter extends AbstractRowConverter<Map<String,
     }
 
     @Override
-    protected ISerializationConverter<Map<String, Object>> createExternalConverter(LogicalType type) {
+    protected ISerializationConverter<Map<String, Object>> createExternalConverter(
+            LogicalType type) {
         switch (type.getTypeRoot()) {
             case TINYINT:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getByte(index));
+                return (val, index, output) ->
+                        output.put(typeIndexList.get(index)._1(), val.getByte(index));
             case SMALLINT:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getShort(index)
-                );
+                return (val, index, output) ->
+                        output.put(typeIndexList.get(index)._1(), val.getShort(index));
             case INTEGER:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getInt(index)
-                );
+                return (val, index, output) ->
+                        output.put(typeIndexList.get(index)._1(), val.getInt(index));
             case BIGINT:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getLong(index)
-                );
+                return (val, index, output) ->
+                        output.put(typeIndexList.get(index)._1(), val.getLong(index));
             case FLOAT:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getFloat(index)
-                );
+                return (val, index, output) ->
+                        output.put(typeIndexList.get(index)._1(), val.getFloat(index));
             case DOUBLE:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getDouble(index)
-                );
+                return (val, index, output) ->
+                        output.put(typeIndexList.get(index)._1(), val.getDouble(index));
             case DECIMAL:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getDecimal(index, 10, 8).toBigDecimal()
-                );
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index)._1(),
+                                val.getDecimal(index, 10, 8).toBigDecimal());
             case VARCHAR:
             case CHAR:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getString(index).toString()
-                );
+                return (val, index, output) ->
+                        output.put(typeIndexList.get(index)._1(), val.getString(index).toString());
             case BOOLEAN:
-                return (val, index, output) -> output.put(
-                        typeIndexList.get(index)._1(),
-                        val.getBoolean(index)
-                );
+                return (val, index, output) ->
+                        output.put(typeIndexList.get(index)._1(), val.getBoolean(index));
             case DATE:
                 return (val, index, output) -> {
                     output.put(
@@ -190,15 +178,13 @@ public class Elasticsearch6RowConverter extends AbstractRowConverter<Map<String,
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, output) -> {
                     try {
-                        String result = Time.valueOf(
-                                LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L)).toString();
-                        output.put(
-                                typeIndexList.get(index)._1(),
-                                result
-                        );
+                        String result =
+                                Time.valueOf(LocalTime.ofNanoOfDay(val.getInt(index) * 1_000_000L))
+                                        .toString();
+                        output.put(typeIndexList.get(index)._1(), result);
                     } catch (Exception e) {
                         LOG.error("converter error. Value: {}, Type: {}", val, type.getTypeRoot());
-                        throw new RuntimeException("Converter error.",e);
+                        throw new RuntimeException("Converter error.", e);
                     }
                 };
             case TIMESTAMP_WITH_TIME_ZONE:
@@ -207,14 +193,14 @@ public class Elasticsearch6RowConverter extends AbstractRowConverter<Map<String,
                     String result;
                     try {
                         final int timestampPrecision = ((TimestampType) type).getPrecision();
-                        result = val.getTimestamp(index, timestampPrecision).toTimestamp().toString();
-                        output.put(
-                                typeIndexList.get(index)._1(),
-                                result
-                        );
+                        result =
+                                val.getTimestamp(index, timestampPrecision)
+                                        .toTimestamp()
+                                        .toString();
+                        output.put(typeIndexList.get(index)._1(), result);
                     } catch (Exception e) {
                         LOG.error("converter error. Value: {}, Type: {}", val, type.getTypeRoot());
-                        throw new RuntimeException("Converter error.",e);
+                        throw new RuntimeException("Converter error.", e);
                     }
                 };
             default:
@@ -257,9 +243,9 @@ public class Elasticsearch6RowConverter extends AbstractRowConverter<Map<String,
                 return val ->
                         val instanceof BigInteger
                                 ? DecimalData.fromBigDecimal(
-                                new BigDecimal((BigInteger) val, 0), precision, scale)
+                                        new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal(
-                                new BigDecimal(String.valueOf(val)), precision, scale);
+                                        new BigDecimal(String.valueOf(val)), precision, scale);
             case DATE:
                 return val ->
                         (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
@@ -285,7 +271,5 @@ public class Elasticsearch6RowConverter extends AbstractRowConverter<Map<String,
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
-
     }
-
 }

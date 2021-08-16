@@ -18,14 +18,15 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.lookup;
 
-import org.apache.flink.table.data.GenericRowData;
-
 import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
 import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6RequestHelper;
 import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6Util;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+
+import org.apache.flink.table.data.GenericRowData;
+
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -76,9 +77,9 @@ public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
         try {
             searchResponse = rhlClient.search(requestBuilder);
             searchHits = searchResponse.getHits().getHits();
-            for(SearchHit searchHit : searchHits) {
-                Map<String,Object> oneRow = new HashMap<>();
-                Map<String,Object> source = searchHit.getSourceAsMap();
+            for (SearchHit searchHit : searchHits) {
+                Map<String, Object> oneRow = new HashMap<>();
+                Map<String, Object> source = searchHit.getSourceAsMap();
                 try {
                     GenericRowData rowData = (GenericRowData) rowConverter.toInternal(source);
                     for (int i = 0; i < fieldsName.length; i++) {
@@ -94,26 +95,19 @@ public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
             LOG.error("", e);
             throw new RuntimeException("SearchError", e);
         }
-
     }
 
     /**
      * build search request
+     *
      * @return
      */
     private SearchRequest buildSearchRequest() {
-        SearchSourceBuilder sourceBuilder = Elasticsearch6RequestHelper.createSourceBuilder(
-                fieldsName,
-                null,
-                null);
+        SearchSourceBuilder sourceBuilder =
+                Elasticsearch6RequestHelper.createSourceBuilder(fieldsName, null, null);
         sourceBuilder.size(lookupConf.getFetchSize());
 
         return Elasticsearch6RequestHelper.createSearchRequest(
-                elasticsearchConf.getIndex(),
-                elasticsearchConf.getType(),
-                null,
-                sourceBuilder
-        );
+                elasticsearchConf.getIndex(), elasticsearchConf.getType(), null, sourceBuilder);
     }
-
 }

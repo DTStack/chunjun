@@ -71,7 +71,8 @@ public enum ColumnType {
     TIME,
     DECIMAL,
     YEAR,
-    BIT;
+    BIT,
+    OBJECT;
 
     public static List<ColumnType> TIME_TYPE = Arrays.asList(DATE, DATETIME, TIME, TIMESTAMP);
 

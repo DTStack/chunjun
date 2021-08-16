@@ -26,19 +26,13 @@ package com.dtstack.flinkx.connector.elasticsearch6.utils;
  */
 public interface Elasticsearch6Constants {
 
-    /**
-     * address separator
-     */
+    /** address separator */
     String SEPARATOR = ",";
 
-    /**
-     * es default url prefix
-     */
+    /** es default url prefix */
     String ES_DEFAULT_SCHEMA = "http";
 
-    /**
-     * es default port
-     */
+    /** es default port */
     Integer ES_DEFAULT_PORT = 9200;
 
     String IDENTIFIER = "es-x";

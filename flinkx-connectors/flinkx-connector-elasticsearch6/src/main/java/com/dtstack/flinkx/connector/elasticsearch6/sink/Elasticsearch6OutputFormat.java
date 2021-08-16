@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.sink;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
 import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6RequestHelper;
 import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6Util;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.WriteRecordException;
+
+import org.apache.flink.table.data.RowData;
+
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
