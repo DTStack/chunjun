@@ -19,10 +19,17 @@
 package com.dtstack.flinkx.connector.oraclelogminer.entity;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.List;
 
+/**
+ * Date: 2021/08/13 Company: www.dtstack.com
+ *
+ * @author dujie
+ *
+ * 事件数据
+ */
 public class EventRow implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -30,7 +37,7 @@ public class EventRow implements Serializable {
 
     private List<EventRowData> afterColumnList;
 
-    private BigDecimal scn;
+    private BigInteger scn;
 
     /** INSERT UPDATE DELETE * */
     private String type;
@@ -46,7 +53,7 @@ public class EventRow implements Serializable {
     public EventRow(
             List<EventRowData> beforeColumn,
             List<EventRowData> afterColumn,
-            BigDecimal scn,
+            BigInteger scn,
             String type,
             String schema,
             String table,
@@ -78,11 +85,11 @@ public class EventRow implements Serializable {
         this.afterColumnList = afterColumnList;
     }
 
-    public BigDecimal getScn() {
+    public BigInteger getScn() {
         return scn;
     }
 
-    public void setScn(BigDecimal scn) {
+    public void setScn(BigInteger scn) {
         this.scn = scn;
     }
 

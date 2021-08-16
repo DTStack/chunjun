@@ -18,12 +18,18 @@
 
 package com.dtstack.flinkx.connector.oraclelogminer.entity;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
-/** v$logmnr_contents 对应的实体 logminer读取出的数据实体 */
+/**
+ * Date: 2021/08/13 Company: www.dtstack.com
+ *
+ * @author dujie
+ *
+ * v$logmnr_contents 对应的实体 logminer读取出的数据实体
+ */
 public class RecordLog {
 
-    private BigDecimal scn;
+    private BigInteger scn;
     /** undo语句* */
     private String sqlUndo;
     /** redo语句* */
@@ -44,7 +50,7 @@ public class RecordLog {
     private int operationCode;
 
     public RecordLog(
-            BigDecimal scn,
+            BigInteger scn,
             String sqlUndo,
             String sqlRedo,
             String xidUsn,
@@ -66,11 +72,11 @@ public class RecordLog {
         this.tableName = tableName;
     }
 
-    public BigDecimal getScn() {
+    public BigInteger getScn() {
         return scn;
     }
 
-    public void setScn(BigDecimal scn) {
+    public void setScn(BigInteger scn) {
         this.scn = scn;
     }
 

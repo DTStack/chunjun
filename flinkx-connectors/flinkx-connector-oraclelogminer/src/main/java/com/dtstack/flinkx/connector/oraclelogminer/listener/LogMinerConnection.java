@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -114,9 +114,9 @@ public class LogMinerConnection {
     /** oracle数据源信息 * */
     public OracleInfo oracleInfo;
     /** 加载到logminer里的日志文件中 最小的nextChange * */
-    protected BigDecimal startScn = null;
+    protected BigInteger startScn = null;
     /** 加载到logminer里的日志文件中 最小的nextChange * */
-    protected BigDecimal endScn = null;
+    protected BigInteger endScn = null;
 
     private Connection connection;
     private CallableStatement logMinerStartStmt;
@@ -244,7 +244,7 @@ public class LogMinerConnection {
     }
 
     /** 启动LogMiner */
-    public void startOrUpdateLogMiner(BigDecimal startScn, BigDecimal endScn) {
+    public void startOrUpdateLogMiner(BigInteger startScn, BigInteger endScn) {
 
         String startSql;
         try {
@@ -278,10 +278,10 @@ public class LogMinerConnection {
 
             resetLogminerStmt(startSql);
             if (logMinerConfig.getSupportAutoAddLog()) {
-                logMinerStartStmt.setBigDecimal(1, startScn);
+                logMinerStartStmt.setString(1, startScn.toString());
             } else {
-                logMinerStartStmt.setBigDecimal(1, startScn);
-                logMinerStartStmt.setBigDecimal(2, endScn);
+                logMinerStartStmt.setString(1, startScn.toString());
+                logMinerStartStmt.setString(2, endScn.toString());
             }
 
             logMinerStartStmt.execute();
@@ -316,8 +316,8 @@ public class LogMinerConnection {
             configStatement(logMinerSelectStmt);
 
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
-            logMinerSelectStmt.setBigDecimal(1, startScn);
-            logMinerSelectStmt.setBigDecimal(2, endScn);
+            logMinerSelectStmt.setString(1, startScn.toString());
+            logMinerSelectStmt.setString(2, endScn.toString());
             long before = System.currentTimeMillis();
 
             logMinerData = logMinerSelectStmt.executeQuery();
@@ -350,7 +350,7 @@ public class LogMinerConnection {
             configStatement(logMinerSelectStmt);
 
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
-            logMinerSelectStmt.setBigDecimal(1, recordLog.getScn());
+            logMinerSelectStmt.setString(1, recordLog.getScn().toString());
             logMinerSelectStmt.setString(2, recordLog.getRowId());
             logMinerSelectStmt.setString(3, recordLog.getXidUsn());
             logMinerSelectStmt.setString(4, recordLog.getXidSlt());
@@ -363,7 +363,7 @@ public class LogMinerConnection {
             logMinerSelectStmt.setString(11, recordLog.getXidUsn());
             logMinerSelectStmt.setString(12, recordLog.getXidSlt());
             logMinerSelectStmt.setString(13, recordLog.getXidSqn());
-            logMinerSelectStmt.setBigDecimal(14, recordLog.getScn());
+            logMinerSelectStmt.setString(14, recordLog.getScn().toString());
 
             logMinerData = logMinerSelectStmt.executeQuery();
 
@@ -377,9 +377,9 @@ public class LogMinerConnection {
         }
     }
 
-    public BigDecimal getStartScn(BigDecimal startScn) {
+    public BigInteger getStartScn(BigInteger startScn) {
         // restart from checkpoint
-        if (null != startScn && startScn.compareTo(BigDecimal.ZERO) != 0) {
+        if (null != startScn && startScn.compareTo(BigInteger.ZERO) != 0) {
             return startScn;
         }
 
@@ -404,7 +404,7 @@ public class LogMinerConnection {
                         "[startSCN] must not be null or empty when readMode is [scn]");
             }
 
-            startScn = new BigDecimal(logMinerConfig.getStartScn());
+            startScn = new BigInteger(logMinerConfig.getStartScn());
         } else {
             throw new IllegalArgumentException(
                     "unsupported readMode : " + logMinerConfig.getReadPosition());
@@ -413,8 +413,8 @@ public class LogMinerConnection {
         return startScn;
     }
 
-    private BigDecimal getMinScn() {
-        BigDecimal minScn = null;
+    private BigInteger getMinScn() {
+        BigInteger minScn = null;
         PreparedStatement minScnStmt = null;
         ResultSet minScnResultSet = null;
 
@@ -424,7 +424,7 @@ public class LogMinerConnection {
 
             minScnResultSet = minScnStmt.executeQuery();
             while (minScnResultSet.next()) {
-                minScn = minScnResultSet.getBigDecimal(KEY_FIRST_CHANGE);
+                minScn = new BigInteger(minScnResultSet.getString(KEY_FIRST_CHANGE));
             }
 
             return minScn;
@@ -436,8 +436,8 @@ public class LogMinerConnection {
         }
     }
 
-    protected BigDecimal getCurrentScn() {
-        BigDecimal currentScn = null;
+    protected BigInteger getCurrentScn() {
+        BigInteger currentScn = null;
         CallableStatement currentScnStmt = null;
         ResultSet currentScnResultSet = null;
 
@@ -447,7 +447,7 @@ public class LogMinerConnection {
 
             currentScnResultSet = currentScnStmt.executeQuery();
             while (currentScnResultSet.next()) {
-                currentScn = currentScnResultSet.getBigDecimal(KEY_CURRENT_SCN);
+                currentScn = new BigInteger(currentScnResultSet.getString(KEY_CURRENT_SCN));
             }
 
             return currentScn;
@@ -459,8 +459,8 @@ public class LogMinerConnection {
         }
     }
 
-    private BigDecimal getLogFileStartPositionByTime(Long time) {
-        BigDecimal logFileFirstChange = null;
+    private BigInteger getLogFileStartPositionByTime(Long time) {
+        BigInteger logFileFirstChange = null;
 
         PreparedStatement lastLogFileStmt = null;
         ResultSet lastLogFileResultSet = null;
@@ -484,7 +484,7 @@ public class LogMinerConnection {
             }
             lastLogFileResultSet = lastLogFileStmt.executeQuery();
             while (lastLogFileResultSet.next()) {
-                logFileFirstChange = lastLogFileResultSet.getBigDecimal(KEY_FIRST_CHANGE);
+                logFileFirstChange = new BigInteger(lastLogFileResultSet.getString(KEY_FIRST_CHANGE));
             }
 
             return logFileFirstChange;
@@ -518,27 +518,27 @@ public class LogMinerConnection {
     }
 
     /** 根据leftScn 以及加载的日志大小限制 获取可加载的scn范围 以及此范围对应的日志文件 */
-    protected BigDecimal getEndScn(BigDecimal startScn, List<LogFile> logFiles)
+    protected BigInteger getEndScn(BigInteger startScn, List<LogFile> logFiles)
             throws SQLException {
 
         List<LogFile> logFileLists = new ArrayList<>();
         PreparedStatement statement = null;
         ResultSet rs = null;
-        BigDecimal onlineNextChange = null;
+        BigInteger onlineNextChange = null;
         try {
             statement =
                     connection.prepareStatement(
                             oracleInfo.isOracle10()
                                     ? SqlUtil.SQL_QUERY_LOG_FILE_10
                                     : SqlUtil.SQL_QUERY_LOG_FILE);
-            statement.setBigDecimal(1, startScn);
-            statement.setBigDecimal(2, startScn);
+            statement.setString(1, startScn.toString());
+            statement.setString(2, startScn.toString());
             rs = statement.executeQuery();
             while (rs.next()) {
                 LogFile logFile = new LogFile();
                 logFile.setFileName(rs.getString("name"));
-                logFile.setFirstChange(rs.getBigDecimal("first_change#"));
-                logFile.setNextChange(rs.getBigDecimal("next_change#"));
+                logFile.setFirstChange(new BigInteger(rs.getString("first_change#")));
+                logFile.setNextChange(new BigInteger(rs.getString("next_change#")));
                 logFile.setThread(rs.getLong("thread#"));
                 logFile.setBytes(rs.getLong("BYTES"));
                 logFileLists.add(logFile);
@@ -564,7 +564,7 @@ public class LogMinerConnection {
                                         .sorted(Comparator.comparing(LogFile::getFirstChange))
                                         .collect(Collectors.toList())));
 
-        BigDecimal endScn = startScn;
+        BigInteger endScn = startScn;
 
         long fileSize = 0L;
         Collection<List<LogFile>> values = map.values();
@@ -585,7 +585,7 @@ public class LogMinerConnection {
                 break;
             }
             // 找到最小的nextSCN
-            BigDecimal minNextScn =
+            BigInteger minNextScn =
                     tempList.stream()
                             .sorted(Comparator.comparing(LogFile::getNextChange))
                             .collect(Collectors.toList())
@@ -622,8 +622,8 @@ public class LogMinerConnection {
                 while (rs.next()) {
                     LogFile logFile = new LogFile();
                     logFile.setFileName(rs.getString("filename"));
-                    logFile.setFirstChange(rs.getBigDecimal("low_scn"));
-                    logFile.setNextChange(rs.getBigDecimal("next_scn"));
+                    logFile.setFirstChange(new BigInteger(rs.getString("low_scn")));
+                    logFile.setNextChange(new BigInteger(rs.getString("next_scn")));
                     logFile.setThread(rs.getLong("thread_id"));
                     logFile.setBytes(rs.getLong("filesize"));
                     logFile.setStatus(rs.getInt("status"));
@@ -658,7 +658,7 @@ public class LogMinerConnection {
             if (SqlUtil.isCreateTemporaryTableSql(sqlRedo.toString())) {
                 continue;
             }
-            BigDecimal scn = logMinerData.getBigDecimal(KEY_SCN);
+            BigInteger scn = new BigInteger(logMinerData.getString(KEY_SCN));
             String operation = logMinerData.getString(KEY_OPERATION);
             int operationCode = logMinerData.getInt(KEY_OPERATION_CODE);
             String tableName = logMinerData.getString(KEY_TABLE_NAME);
@@ -994,18 +994,18 @@ public class LogMinerConnection {
                         .collect(Collectors.toList());
 
         // 默认每次往前查询4000个scn
-        BigDecimal step = new BigDecimal(4000);
+        BigInteger step = new BigInteger("4000");
         if (CollectionUtils.isNotEmpty(logFiles)) {
             // nextChange-firstChange 为一个文件包含多少的scn，将其*2 代表加载此scn之前2个文件
             step =
                     logFiles.get(0)
                             .getNextChange()
                             .subtract(logFiles.get(0).getFirstChange())
-                            .multiply(new BigDecimal(2));
+                            .multiply(new BigInteger("2"));
         }
 
-        BigDecimal startScn = rollbackRecord.getScn().subtract(step);
-        BigDecimal endScn = rollbackRecord.getScn();
+        BigInteger startScn = rollbackRecord.getScn().subtract(step);
+        BigInteger endScn = rollbackRecord.getScn();
 
         for (int i = 0; i < 2; i++) {
             queryDataForRollbackConnection.startOrUpdateLogMiner(startScn, endScn);

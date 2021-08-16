@@ -30,7 +30,7 @@ import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * @author jiangbo
@@ -63,15 +63,9 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
     private void initPosition() {
         if (null != formatState && formatState.getState() != null) {
-            BigDecimal position;
-            // 升级之后，进行续跑，以前版本的值是long，需要转换为BigDecimal
-            if (formatState.getState() instanceof Long) {
-                position = new BigDecimal(formatState.getState().toString());
-            } else {
-                position = (BigDecimal) formatState.getState();
-            }
+            BigInteger position = new BigInteger(formatState.getState().toString());
             // 查询数据时时左闭右开区间 所以需要将上次消费位点+1
-            position = position.add(BigDecimal.ONE);
+            position = position.add(BigInteger.ONE);
             positionManager.updatePosition(position);
         }
     }

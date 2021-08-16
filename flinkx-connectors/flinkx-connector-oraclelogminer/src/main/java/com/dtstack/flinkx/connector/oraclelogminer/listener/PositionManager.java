@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.oraclelogminer.listener;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * @author jiangbo
@@ -26,13 +26,13 @@ import java.math.BigDecimal;
  */
 public class PositionManager {
 
-    private BigDecimal scn;
+    private BigInteger scn;
 
-    public void updatePosition(BigDecimal scn) {
+    public void updatePosition(BigInteger scn) {
         this.scn = scn;
     }
 
-    public BigDecimal getPosition() {
+    public BigInteger getPosition() {
         return this.scn;
     }
 }

@@ -18,7 +18,13 @@
 
 package com.dtstack.flinkx.connector.oraclelogminer.entity;
 
-/** logminer监听的oracle信息 */
+/**
+ * Date: 2021/08/13 Company: www.dtstack.com
+ *
+ * @author dujie
+ *
+ * logminer监听的oracle数据源信息
+ */
 public class OracleInfo {
 
     /** 数据库版本 * */

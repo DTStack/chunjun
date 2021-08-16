@@ -34,7 +34,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.DriverManager;
 import java.util.LinkedList;
 import java.util.Objects;
@@ -98,7 +98,7 @@ public class LogMinerListener implements Runnable {
     }
 
     public void start() {
-        BigDecimal startScn = logMinerHelper.getStartScn(positionManager.getPosition());
+        BigInteger startScn = logMinerHelper.getStartScn(positionManager.getPosition());
 
         positionManager.updatePosition(startScn);
         logMinerHelper.setStartScn(startScn);
@@ -160,7 +160,7 @@ public class LogMinerListener implements Runnable {
         String msg = sb.toString();
         LOG.warn(msg);
         try {
-            queue.put(new QueueData(BigDecimal.ZERO, new ErrorMsgRowData(msg)));
+            queue.put(new QueueData(BigInteger.ZERO, new ErrorMsgRowData(msg)));
             Thread.sleep(2000L);
         } catch (InterruptedException ex) {
             LOG.warn(
@@ -232,7 +232,7 @@ public class LogMinerListener implements Runnable {
         return rowData;
     }
 
-    public BigDecimal getCurrentPosition() {
+    public BigInteger getCurrentPosition() {
         return positionManager.getPosition();
     }
 }

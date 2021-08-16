@@ -22,25 +22,31 @@ import com.dtstack.flinkx.connector.oraclelogminer.entity.RecordLog;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Date: 2021/08/13 Company: www.dtstack.com
+ *
+ * @author dujie
+ *     <p>事务管理器 监听的DML语句缓存，在commit/rollback时删除
+ */
 public class TransactionManager {
 
     public static Logger LOG = LoggerFactory.getLogger(TransactionManager.class);
 
-    /** 缓存的结构为 xidUsn+xidSLt+xidSqn(事务id)+rowId,scn* */
-    private final Cache<String, LinkedHashMap<BigDecimal, LinkedList<RecordLog>>> recordCache;
+    /** 缓存的结构为 xidUsn+xidSLt+xidSqn(事务id)+rowId,Transaction* */
+    private final Cache<String, List<Transaction>> recordCache;
 
     /**
      * recordCache的二级缓存，缓存二级key，结构为： xidUsn+xidSLt+xidSqn(事务id)， xidUsn+xidSLt+xidSqn(事务id)+rowId列表
@@ -71,26 +77,31 @@ public class TransactionManager {
         if (recordLog.getOperationCode() == 2) {
             return;
         }
+
+        recordLog.setSqlUndo(recordLog.getSqlUndo().replace("IS NULL", "= NULL"));
+        recordLog.setSqlRedo(recordLog.getSqlRedo().replace("IS NULL", "= NULL"));
+
         String key =
                 recordLog.getXidUsn()
                         + recordLog.getXidSlt()
                         + recordLog.getXidSqn()
                         + recordLog.getRowId();
-        Map<BigDecimal, LinkedList<RecordLog>> bigDecimalListMap = recordCache.getIfPresent(key);
-        if (Objects.isNull(bigDecimalListMap)) {
-            LinkedHashMap<BigDecimal, LinkedList<RecordLog>> data = new LinkedHashMap<>(32);
+        List<Transaction> transactionList = recordCache.getIfPresent(key);
+        if (CollectionUtils.isEmpty(transactionList)) {
+            List<Transaction> data = new ArrayList<>(32);
             recordCache.put(key, data);
-            bigDecimalListMap = data;
+            transactionList = data;
         }
-        LinkedList<RecordLog> recordList = bigDecimalListMap.get(recordLog.getScn());
-        if (CollectionUtils.isEmpty(recordList)) {
-            recordList = new LinkedList<>();
-            bigDecimalListMap.put(recordLog.getScn(), recordList);
-        }
+        Optional<Transaction> transaction =
+                transactionList.stream()
+                        .filter(i -> i.getScn().compareTo(recordLog.getScn()) == 0)
+                        .findFirst();
 
-        recordLog.setSqlUndo(recordLog.getSqlUndo().replace("IS NULL", "= NULL"));
-        recordLog.setSqlRedo(recordLog.getSqlRedo().replace("IS NULL", "= NULL"));
-        recordList.add(recordLog);
+        if (!transaction.isPresent()) {
+            transactionList.add(new Transaction(recordLog.getScn(), Lists.newArrayList(recordLog)));
+        } else {
+            transaction.get().addRecord(recordLog);
+        }
 
         String txId = recordLog.getXidUsn() + recordLog.getXidSlt() + recordLog.getXidSqn();
         LinkedList<String> keyList = secondKeyCache.getIfPresent(txId);
@@ -145,40 +156,31 @@ public class TransactionManager {
      * @return dml Log
      */
     public RecordLog queryUndoLogFromCache(
-            String xidUsn, String xidSlt, String xidSqn, String rowId, BigDecimal scn) {
+            String xidUsn, String xidSlt, String xidSqn, String rowId, BigInteger scn) {
         String key = xidUsn + xidSlt + xidSqn + rowId;
-        LinkedHashMap<BigDecimal, LinkedList<RecordLog>> recordMap = recordCache.getIfPresent(key);
-        if (MapUtils.isEmpty(recordMap)) {
+        List<Transaction> transactionList = recordCache.getIfPresent(key);
+        if (CollectionUtils.isEmpty(transactionList)) {
             return null;
         }
         // 根据scn号查找 如果scn号相同 则取此对应的最后DML语句  dml按顺序添加，rollback倒序取对应的语句
-        LinkedList<RecordLog> recordLogList = recordMap.get(scn);
-        BigDecimal recordKey = scn;
+        Optional<Transaction> transactionOptional =
+                transactionList.stream().filter(i -> i.getScn().compareTo(scn) == 0).findFirst();
+        // 如果scn相同的DML语句没有 则取同一个事务里rowId相同的最后一个
+        Transaction transaction =
+                transactionOptional.orElse(transactionList.get(transactionList.size() - 1));
         RecordLog recordLog = null;
-        if (CollectionUtils.isEmpty(recordLogList)) {
-            // 如果scn相同的DML语句没有 则取同一个事务里rowId相同的最后一个
-            Iterator<Map.Entry<BigDecimal, LinkedList<RecordLog>>> iterator =
-                    recordMap.entrySet().iterator();
-            Map.Entry<BigDecimal, LinkedList<RecordLog>> tail = null;
-            while (iterator.hasNext()) {
-                tail = iterator.next();
-            }
-            if (Objects.nonNull(tail)) {
-                recordLogList = tail.getValue();
-                recordKey = tail.getKey();
-            }
-        }
-        if (CollectionUtils.isNotEmpty(recordLogList)) {
-            recordLog = recordLogList.getLast();
-            recordLogList.removeLast();
+
+        if (!transaction.isEmpty()) {
+            recordLog = transaction.getLast();
+            transaction.removeLast();
             LOG.info("query a insert sql for rollback in cache,rollback scn is {}", scn);
         }
 
-        if (CollectionUtils.isEmpty(recordLogList)) {
-            recordMap.remove(recordKey);
+        if (transaction.isEmpty()) {
+            transactionList.remove(transaction);
         }
 
-        if (recordMap.isEmpty()) {
+        if (transactionList.isEmpty()) {
             recordCache.invalidate(key);
         }
 

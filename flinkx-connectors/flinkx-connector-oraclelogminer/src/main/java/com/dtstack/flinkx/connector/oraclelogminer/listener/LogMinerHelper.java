@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -54,18 +54,18 @@ public class LogMinerHelper {
     private final LogMinerConf config;
     private final String logMinerSelectSql;
     private final LogMinerListener listener;
-    private final BigDecimal step = new BigDecimal("3000");
-    private BigDecimal startScn;
-    private BigDecimal endScn;
+    private final BigInteger step = new BigInteger("3000");
+    private BigInteger startScn;
+    private BigInteger endScn;
     /** 当前正在读取的connection索引 * */
     private int currentIndex;
     /** 当前正在读取的connection * */
     private LogMinerConnection currentConnection;
     /** 当前正在读取的connection的endScn * */
-    private BigDecimal currentReadEndScn;
+    private BigInteger currentReadEndScn;
 
     public LogMinerHelper(
-            LogMinerListener listener, LogMinerConf logMinerConfig, BigDecimal startScn) {
+            LogMinerListener listener, LogMinerConf logMinerConfig, BigInteger startScn) {
         this.listener = listener;
         this.transactionManager =
                 new TransactionManager(
@@ -119,14 +119,14 @@ public class LogMinerHelper {
         }
     }
 
-    public BigDecimal getStartScn(BigDecimal scn) {
+    public BigInteger getStartScn(BigInteger scn) {
         return activeConnectionList.get(0).getStartScn(scn);
     }
 
     /** 预先加载日志文件 初始化 或者 currentConnection 读取完，下一个connection不存在时 */
     private void preLoad() throws SQLException {
 
-        BigDecimal currentMaxScn = null;
+        BigInteger currentMaxScn = null;
         // 遍历获取可以加载数据的connection
         List<LogMinerConnection> needLoadList =
                 activeConnectionList.stream()
@@ -149,9 +149,9 @@ public class LogMinerHelper {
                     || currentMaxScn.subtract(this.endScn).compareTo(step) > 0) {
 
                 // 按照加载日志文件大小限制，根据endScn作为起点找到对应的一组加载范围
-                BigDecimal currentStartScn = Objects.nonNull(this.endScn) ? this.endScn : startScn;
+                BigInteger currentStartScn = Objects.nonNull(this.endScn) ? this.endScn : startScn;
 
-                BigDecimal endScn =
+                BigInteger endScn =
                         logMinerConnection.getEndScn(currentStartScn, new ArrayList<>(32));
                 logMinerConnection.startOrUpdateLogMiner(currentStartScn, endScn);
                 // 读取v$logmnr_contents 数据由线程池加载
@@ -220,7 +220,7 @@ public class LogMinerHelper {
             connection.startOrUpdateLogMiner(
                     connection.startScn.compareTo(listener.getCurrentPosition()) > 0
                             ? connection.startScn
-                            : listener.getCurrentPosition().add(BigDecimal.ONE),
+                            : listener.getCurrentPosition().add(BigInteger.ONE),
                     connection.endScn);
             loadData(connection, logMinerSelectSql);
         } catch (Exception e) {
@@ -330,7 +330,7 @@ public class LogMinerHelper {
         return activeConnectionList.get(currentIndex).next();
     }
 
-    public void setStartScn(BigDecimal startScn) {
+    public void setStartScn(BigInteger startScn) {
         this.startScn = startScn;
     }
 }

@@ -19,23 +19,23 @@ package com.dtstack.flinkx.connector.oraclelogminer.entity;
 
 import org.apache.flink.table.data.RowData;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * Date: 2020/06/01 Company: www.dtstack.com
  *
- * @author tudou
+ * @author dujie
  */
 public class QueueData {
-    private final BigDecimal scn;
+    private final BigInteger scn;
     private final RowData data;
 
-    public QueueData(BigDecimal lsn, RowData data) {
+    public QueueData(BigInteger lsn, RowData data) {
         this.scn = lsn;
         this.data = data;
     }
 
-    public BigDecimal getScn() {
+    public BigInteger getScn() {
         return scn;
     }
 

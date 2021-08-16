@@ -43,7 +43,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -284,7 +284,7 @@ public class LogParser {
         return rowConverter.toInternal(eventRow);
     }
 
-    private void printDelay( BigDecimal scn, long ts, Timestamp timestamp) {
+    private void printDelay(BigInteger scn, long ts, Timestamp timestamp) {
 
         long res = ts >> 22;
 
