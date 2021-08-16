@@ -322,15 +322,15 @@ public abstract class JdbcDynamicTableFactory
                             SINK_MAX_RETRIES.key(), config.get(SINK_MAX_RETRIES)));
         }
         try {
-            Semantic.valueOf(config.get(SINK_SEMANTIC).toUpperCase(Locale.ENGLISH));
+            Semantic.getByName(config.get(SINK_SEMANTIC));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(
                     String.format(
                             "The value of '%s' option should only be %s or %s, but is %s.",
                             SINK_SEMANTIC.key(),
-                            Semantic.EXACTLY_ONCE.name(),
-                            Semantic.AT_LEAST_ONCE.name(),
-                            config.get(SINK_MAX_RETRIES)));
+                            Semantic.EXACTLY_ONCE.getAlisName(),
+                            Semantic.AT_LEAST_ONCE.getAlisName(),
+                            config.get(SINK_SEMANTIC)));
         }
     }
 
