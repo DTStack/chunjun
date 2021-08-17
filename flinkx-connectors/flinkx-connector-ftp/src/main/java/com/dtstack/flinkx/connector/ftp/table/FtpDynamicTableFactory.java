@@ -48,7 +48,6 @@ import java.util.Set;
  * @author: xiuzhu
  * @create: 2021/06/19
  */
-
 public class FtpDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     private static final String IDENTIFIER = "ftp-x";
@@ -88,10 +87,12 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         final ReadableConfig config = helper.getOptions();
         helper.validate();
 
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        DecodingFormat<DeserializationSchema<RowData>> decodingFormat = helper.discoverDecodingFormat(
-                DeserializationFormatFactory.class, FtpOptions.FORMAT);
+        DecodingFormat<DeserializationSchema<RowData>> decodingFormat =
+                helper.discoverDecodingFormat(
+                        DeserializationFormatFactory.class, FtpOptions.FORMAT);
 
         FtpConfig ftpConfig = getFtpConfByOptions(config);
 
@@ -105,11 +106,17 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         final ReadableConfig config = helper.getOptions();
         helper.validate();
 
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
         EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat =
-                helper.discoverOptionalEncodingFormat(SerializationFormatFactory.class, FtpOptions.FORMAT)
-                        .orElseGet(() -> helper.discoverEncodingFormat(SerializationFormatFactory.class, FtpOptions.FORMAT));
+                helper.discoverOptionalEncodingFormat(
+                                SerializationFormatFactory.class, FtpOptions.FORMAT)
+                        .orElseGet(
+                                () ->
+                                        helper.discoverEncodingFormat(
+                                                SerializationFormatFactory.class,
+                                                FtpOptions.FORMAT));
 
         FtpConfig ftpConfig = getFtpConfByOptions(config);
 
@@ -142,5 +149,4 @@ public class FtpDynamicTableFactory implements DynamicTableSourceFactory, Dynami
         options.add(FtpOptions.FORMAT);
         return options;
     }
-
 }

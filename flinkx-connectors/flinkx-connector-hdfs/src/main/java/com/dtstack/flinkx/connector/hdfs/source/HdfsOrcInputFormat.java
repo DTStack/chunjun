@@ -17,16 +17,17 @@
  */
 package com.dtstack.flinkx.connector.hdfs.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.InputSplit.HdfsOrcInputSplit;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.ReadRecordException;
+
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
@@ -97,18 +98,19 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();
 
         if (openKerberos) {
-            ugi.doAs(new PrivilegedAction<Object>() {
-                @Override
-                public Object run() {
-                    try {
-                        init(orcSplit);
-                        openOrcReader(inputSplit);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                    return null;
-                }
-            });
+            ugi.doAs(
+                    new PrivilegedAction<Object>() {
+                        @Override
+                        public Object run() {
+                            try {
+                                init(orcSplit);
+                                openOrcReader(inputSplit);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                            return null;
+                        }
+                    });
         } else {
             init(orcSplit);
             openOrcReader(inputSplit);

@@ -19,6 +19,7 @@
 package org.apache.flink.table.factories;
 
 import com.dtstack.flinkx.util.FactoryHelper;
+
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -36,10 +37,12 @@ import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.utils.EncodingUtils;
 import org.apache.flink.util.Preconditions;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -51,8 +54,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Utility for working with {@link Factory}s.
- * 改动内容：增加方法loadFactories，增加变量pluginPath、env、classPathSet
+ * Utility for working with {@link Factory}s. 改动内容：增加方法loadFactories，增加变量pluginPath、env、classPathSet
  * 改动原因：flink原生加载插件的方式是使用spi，不符合我们需求。在原来基础上增加通过classloader指定jar加载插件
  */
 @PublicEvolving
@@ -89,7 +91,6 @@ public final class FactoryUtil {
                     .stringType()
                     .defaultValue("FormatFactory")
                     .withDescription("");
-
 
     public static final ConfigOption<Integer> PROPERTY_VERSION =
             ConfigOptions.key("property-version")
@@ -128,7 +129,6 @@ public final class FactoryUtil {
                             "Defines a custom parallelism for the scan. "
                                     + "By default, if this option is not defined, the planner will derive the parallelism "
                                     + "for each statement individually by also considering the global configuration.");
-
 
     public static final ConfigOption<Integer> SINK_PARALLELISM =
             ConfigOptions.key("sink.parallelism")
@@ -361,9 +361,7 @@ public final class FactoryUtil {
         optionalOptions.forEach(option -> readOption(options, option));
     }
 
-    /**
-     * Validates unconsumed option keys.
-     */
+    /** Validates unconsumed option keys. */
     public static void validateUnconsumedKeys(
             String factoryIdentifier, Set<String> allOptionKeys, Set<String> consumedOptionKeys) {
         final Set<String> remainingOptionKeys = new HashSet<>(allOptionKeys);
@@ -543,8 +541,8 @@ public final class FactoryUtil {
          * as factory identifier.
          */
         public <I, F extends DecodingFormatFactory<I>>
-        Optional<DecodingFormat<I>> discoverOptionalDecodingFormat(
-                Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
+                Optional<DecodingFormat<I>> discoverOptionalDecodingFormat(
+                        Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
             return discoverOptionalFormatFactory(formatFactoryClass, formatOption)
                     .map(
                             formatFactory -> {
@@ -583,8 +581,8 @@ public final class FactoryUtil {
          * as factory identifier.
          */
         public <I, F extends EncodingFormatFactory<I>>
-        Optional<EncodingFormat<I>> discoverOptionalEncodingFormat(
-                Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
+                Optional<EncodingFormat<I>> discoverOptionalEncodingFormat(
+                        Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
             return discoverOptionalFormatFactory(formatFactoryClass, formatOption)
                     .map(
                             formatFactory -> {
@@ -633,9 +631,7 @@ public final class FactoryUtil {
             validate();
         }
 
-        /**
-         * Returns all options of the table.
-         */
+        /** Returns all options of the table. */
         public ReadableConfig getOptions() {
             return allOptions;
         }
@@ -750,5 +746,4 @@ public final class FactoryUtil {
     public static ThreadLocal<FactoryHelper> getFactoryHelperThreadLocal() {
         return factoryHelperThreadLocal;
     }
-
 }

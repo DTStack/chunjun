@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.cassandra.conf;
 
 import org.apache.flink.configuration.ReadableConfig;
 
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.ASYNC_WRITE;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CLUSTER_NAME;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CONNECT_TIMEOUT_MILLISECONDS;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CONSISTENCY;
@@ -37,7 +38,6 @@ import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOpti
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.TABLE_NAME;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USER_NAME;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USE_SSL;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.ASYNC_WRITE;
 
 /**
  * @author tiezhu
@@ -84,25 +84,51 @@ public class CassandraSinkConf extends CassandraCommonConf {
 
     @Override
     public String toString() {
-        return "CassandraSinkConf{" +
-                "host='" + host + '\'' +
-                ", port=" + port +
-                ", userName='" + userName + '\'' +
-                ", password='" + "**********" + '\'' +
-                ", tableName='" + tableName + '\'' +
-                ", keyspaces='" + keyspaces + '\'' +
-                ", hostDistance='" + hostDistance + '\'' +
-                ", useSSL=" + useSSL +
-                ", clusterName='" + clusterName + '\'' +
-                ", consistency='" + consistency + '\'' +
-                ", coreConnectionsPerHost=" + coreConnectionsPerHost +
-                ", maxConnectionsPerHost=" + maxConnectionsPerHost +
-                ", maxRequestsPerConnection=" + maxRequestsPerConnection +
-                ", maxQueueSize=" + maxQueueSize +
-                ", readTimeoutMillis=" + readTimeoutMillis +
-                ", connectTimeoutMillis=" + connectTimeoutMillis +
-                ", poolTimeoutMillis=" + poolTimeoutMillis +
-                ", asyncWrite=" + asyncWrite +
-                '}';
+        return "CassandraSinkConf{"
+                + "host='"
+                + host
+                + '\''
+                + ", port="
+                + port
+                + ", userName='"
+                + userName
+                + '\''
+                + ", password='"
+                + "**********"
+                + '\''
+                + ", tableName='"
+                + tableName
+                + '\''
+                + ", keyspaces='"
+                + keyspaces
+                + '\''
+                + ", hostDistance='"
+                + hostDistance
+                + '\''
+                + ", useSSL="
+                + useSSL
+                + ", clusterName='"
+                + clusterName
+                + '\''
+                + ", consistency='"
+                + consistency
+                + '\''
+                + ", coreConnectionsPerHost="
+                + coreConnectionsPerHost
+                + ", maxConnectionsPerHost="
+                + maxConnectionsPerHost
+                + ", maxRequestsPerConnection="
+                + maxRequestsPerConnection
+                + ", maxQueueSize="
+                + maxQueueSize
+                + ", readTimeoutMillis="
+                + readTimeoutMillis
+                + ", connectTimeoutMillis="
+                + connectTimeoutMillis
+                + ", poolTimeoutMillis="
+                + poolTimeoutMillis
+                + ", asyncWrite="
+                + asyncWrite
+                + '}';
     }
 }

@@ -20,8 +20,8 @@ package com.dtstack.flinkx.connector.ftp.conf;
 
 /**
  * The class containing Ftp configuration constants
- * <p>
- * Company: www.dtstack.com
+ *
+ * <p>Company: www.dtstack.com
  *
  * @author huyifan.zju@163.com
  */
@@ -40,5 +40,4 @@ public class ConfigConstants {
     public static final String FTP_PROTOCOL = "ftp";
 
     public static final String DEFAULT_FIELD_DELIMITER = ",";
-
 }

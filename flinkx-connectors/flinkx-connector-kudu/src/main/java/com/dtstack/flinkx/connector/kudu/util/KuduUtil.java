@@ -25,6 +25,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.security.KerberosConfig;
 import com.dtstack.flinkx.security.KerberosUtils;
 import com.dtstack.flinkx.throwable.NoRestartException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.hadoop.security.UserGroupInformation;

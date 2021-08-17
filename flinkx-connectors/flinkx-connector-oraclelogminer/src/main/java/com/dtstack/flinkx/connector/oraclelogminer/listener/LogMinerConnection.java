@@ -140,7 +140,7 @@ public class LogMinerConnection {
         oracleInfo.setVersion(connection.getMetaData().getDatabaseMajorVersion());
 
         try (Statement statement = connection.createStatement();
-             ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ENCODING)) {
+                ResultSet rs = statement.executeQuery(SqlUtil.SQL_QUERY_ENCODING)) {
             rs.next();
             oracleInfo.setEncoding(rs.getString(1));
         }
@@ -148,14 +148,14 @@ public class LogMinerConnection {
         // 目前只有19才会判断是否是cdb模式
         if (oracleInfo.getVersion() == 19) {
             try (Statement statement = connection.createStatement();
-                 ResultSet rs = statement.executeQuery(SqlUtil.SQL_IS_CDB)) {
+                    ResultSet rs = statement.executeQuery(SqlUtil.SQL_IS_CDB)) {
                 rs.next();
                 oracleInfo.setCdbMode(rs.getString(1).equalsIgnoreCase("YES"));
             }
         }
 
         try (Statement statement = connection.createStatement();
-             ResultSet rs = statement.executeQuery(SqlUtil.SQL_IS_RAC)) {
+                ResultSet rs = statement.executeQuery(SqlUtil.SQL_IS_RAC)) {
             rs.next();
             oracleInfo.setRacMode(rs.getString(1).equalsIgnoreCase("TRUE"));
         }
@@ -185,7 +185,7 @@ public class LogMinerConnection {
             // TO_DATE('18-APR-21', 'DD-MON-RR')
 
             try (PreparedStatement preparedStatement =
-                         connection.prepareStatement(SqlUtil.SQL_ALTER_NLS_SESSION_PARAMETERS)) {
+                    connection.prepareStatement(SqlUtil.SQL_ALTER_NLS_SESSION_PARAMETERS)) {
                 preparedStatement.setQueryTimeout(logMinerConfig.getQueryTimeout().intValue());
                 preparedStatement.execute();
             }
@@ -193,9 +193,9 @@ public class LogMinerConnection {
             // cdb需要会话在CDB$ROOT里
             if (oracleInfo.isCdbMode()) {
                 try (PreparedStatement preparedStatement =
-                             connection.prepareStatement(
-                                     String.format(
-                                             SqlUtil.SQL_ALTER_SESSION_CONTAINER, CDB_CONTAINER_ROOT))) {
+                        connection.prepareStatement(
+                                String.format(
+                                        SqlUtil.SQL_ALTER_SESSION_CONTAINER, CDB_CONTAINER_ROOT))) {
                     preparedStatement.setQueryTimeout(logMinerConfig.getQueryTimeout().intValue());
                     preparedStatement.execute();
                 }
@@ -484,7 +484,8 @@ public class LogMinerConnection {
             }
             lastLogFileResultSet = lastLogFileStmt.executeQuery();
             while (lastLogFileResultSet.next()) {
-                logFileFirstChange = new BigInteger(lastLogFileResultSet.getString(KEY_FIRST_CHANGE));
+                logFileFirstChange =
+                        new BigInteger(lastLogFileResultSet.getString(KEY_FIRST_CHANGE));
             }
 
             return logFileFirstChange;
@@ -616,7 +617,7 @@ public class LogMinerConnection {
     private List<LogFile> queryAddedLogFiles() throws SQLException {
         List<LogFile> logFileLists = new ArrayList<>();
         try (PreparedStatement statement =
-                     connection.prepareStatement(SqlUtil.SQL_QUERY_ADDED_LOG)) {
+                connection.prepareStatement(SqlUtil.SQL_QUERY_ADDED_LOG)) {
             statement.setQueryTimeout(logMinerConfig.getQueryTimeout().intValue());
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {

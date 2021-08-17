@@ -18,11 +18,6 @@
 
 package com.dtstack.flinkx.connector.cassandra.lookup;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.core.querybuilder.Select;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraCommonConf;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraLookupConf;
 import com.dtstack.flinkx.connector.cassandra.util.CassandraService;
@@ -32,6 +27,11 @@ import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.functions.FunctionContext;
 
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.querybuilder.Select;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

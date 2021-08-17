@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.sink;
 
-import org.apache.flink.api.common.cache.DistributedCache;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.RowUtil;
+
+import org.apache.flink.api.common.cache.DistributedCache;
+import org.apache.flink.table.data.RowData;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +51,8 @@ import static com.dtstack.flinkx.sink.WriteErrorTypes.ERR_PRIMARY_CONFLICT;
 /**
  * The class handles dirty data management
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class DirtyDataManager {
@@ -65,7 +67,8 @@ public class DirtyDataManager {
 
     private static final String FIELD_DELIMITER = "\u0001";
     private static final String LINE_DELIMITER = "\n";
-    private final EnumSet<HdfsDataOutputStream.SyncFlag> syncFlags = EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH);
+    private final EnumSet<HdfsDataOutputStream.SyncFlag> syncFlags =
+            EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH);
     private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
     static {
@@ -74,7 +77,12 @@ public class DirtyDataManager {
         PRIMARY_CONFLICT_KEYWORDS.add("primary key constraint");
     }
 
-    public DirtyDataManager(String path, Map<String, Object> configMap, String[] fieldNames, String jobId, DistributedCache distributedCache) {
+    public DirtyDataManager(
+            String path,
+            Map<String, Object> configMap,
+            String[] fieldNames,
+            String jobId,
+            DistributedCache distributedCache) {
         this.fieldNames = fieldNames;
         location = path + "/" + UUID.randomUUID() + ".txt";
         this.config = configMap;
@@ -85,7 +93,15 @@ public class DirtyDataManager {
     public String writeData(RowData rowData, WriteRecordException ex) {
         String content = RowUtil.rowToJson(rowData, fieldNames);
         String errorType = retrieveCategory(ex);
-        String line = StringUtils.join(new String[]{content,errorType, gson.toJson(ex.toString()), DateUtil.timestampToString(new Date()) }, FIELD_DELIMITER);
+        String line =
+                StringUtils.join(
+                        new String[] {
+                            content,
+                            errorType,
+                            gson.toJson(ex.toString()),
+                            DateUtil.timestampToString(new Date())
+                        },
+                        FIELD_DELIMITER);
         try {
             stream.write(line.getBytes(StandardCharsets.UTF_8));
             stream.write(LINE_DELIMITER.getBytes(StandardCharsets.UTF_8));

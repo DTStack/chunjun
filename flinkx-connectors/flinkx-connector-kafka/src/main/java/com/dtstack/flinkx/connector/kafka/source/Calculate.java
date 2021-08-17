@@ -25,8 +25,8 @@ import java.io.Serializable;
 
 /**
  * company: www.dtstack.com
- * @author: toutian
- * create: 2019/12/24
+ *
+ * @author: toutian create: 2019/12/24
  */
 @FunctionalInterface
 public interface Calculate extends Serializable {

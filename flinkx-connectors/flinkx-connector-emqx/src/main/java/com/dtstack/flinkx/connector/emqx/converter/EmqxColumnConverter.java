@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.emqx.converter;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.decoder.IDecode;
@@ -30,6 +27,10 @@ import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.util.MapUtil;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.Collections;

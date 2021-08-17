@@ -17,6 +17,11 @@
  */
 package com.dtstack.flinkx.connector.binlog.table;
 
+import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
+import com.dtstack.flinkx.connector.binlog.options.BinlogOptions;
+import com.dtstack.flinkx.connector.binlog.source.BinlogDynamicTableSource;
+import com.dtstack.flinkx.constants.ConstantValue;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.formats.json.JsonOptions;
@@ -26,19 +31,13 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
-import com.dtstack.flinkx.connector.binlog.options.BinlogOptions;
-import com.dtstack.flinkx.connector.binlog.source.BinlogDynamicTableSource;
-import com.dtstack.flinkx.constants.ConstantValue;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Date: 2021/04/27
- * Company: www.dtstack.com
+ * Date: 2021/04/27 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -94,7 +93,8 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         BinlogConf binlogConf = getBinlogConf(config);
 
         return new BinlogDynamicTableSource(
@@ -103,10 +103,11 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
 
     /**
      * 初始化BinlogConf
+     *
      * @param config BinlogConf
      * @return
      */
-    private BinlogConf getBinlogConf(ReadableConfig config){
+    private BinlogConf getBinlogConf(ReadableConfig config) {
         BinlogConf binlogConf = new BinlogConf();
         binlogConf.setHost(config.get(BinlogOptions.HOST));
         binlogConf.setPort(config.get(BinlogOptions.PORT));
@@ -128,7 +129,8 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
         binlogConf.setPeriod(config.get(BinlogOptions.PERIOD));
         binlogConf.setBufferSize(config.get(BinlogOptions.BUFFER_SIZE));
         binlogConf.setPavingData(true);
-        binlogConf.setTable(Arrays.asList(config.get(BinlogOptions.TABLE).split(ConstantValue.COMMA_SYMBOL)));
+        binlogConf.setTable(
+                Arrays.asList(config.get(BinlogOptions.TABLE).split(ConstantValue.COMMA_SYMBOL)));
         binlogConf.setConnectionCharset(config.get(BinlogOptions.CONNECTION_CHARSET));
         binlogConf.setDetectingEnable(config.get(BinlogOptions.DETECTING_ENABLE));
         binlogConf.setDetectingSQL(config.get(BinlogOptions.DETECTING_SQL));

@@ -18,14 +18,15 @@
 
 package com.dtstack.flinkx.connector.redis.lookup;
 
-import org.apache.flink.table.data.GenericRowData;
-
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.connector.redis.connection.RedisSyncClient;
 import com.dtstack.flinkx.connector.redis.enums.RedisConnectType;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+
+import org.apache.flink.table.data.GenericRowData;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;

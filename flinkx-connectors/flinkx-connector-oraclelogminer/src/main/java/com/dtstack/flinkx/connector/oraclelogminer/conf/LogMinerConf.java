@@ -262,28 +262,59 @@ public class LogMinerConf extends FlinkxCommonConf {
 
     @Override
     public String toString() {
-        return "LogMinerConf{" +
-                "driverName='" + driverName + '\'' +
-                ", jdbcUrl='" + jdbcUrl + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", fetchSize=" + fetchSize +
-                ", listenerTables='" + listenerTables + '\'' +
-                ", timestampFormat='" + timestampFormat + '\'' +
-                ", cat='" + cat + '\'' +
-                ", readPosition='" + readPosition + '\'' +
-                ", startTime=" + startTime +
-                ", startScn='" + startScn + '\'' +
-                ", pavingData=" + pavingData +
-                ", table=" + table +
-                ", queryTimeout=" + queryTimeout +
-                ", supportAutoAddLog=" + supportAutoAddLog +
-                ", splitUpdate=" + splitUpdate +
-                ", maxLogFileSize=" + maxLogFileSize +
-                ", ioThreads=" + ioThreads +
-                ", retryTimes=" + retryTimes +
-                ", transactionCacheNumSize=" + transactionCacheNumSize +
-                ", transactionExpireTime=" + transactionExpireTime +
-                "} " + super.toString();
+        return "LogMinerConf{"
+                + "driverName='"
+                + driverName
+                + '\''
+                + ", jdbcUrl='"
+                + jdbcUrl
+                + '\''
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", fetchSize="
+                + fetchSize
+                + ", listenerTables='"
+                + listenerTables
+                + '\''
+                + ", timestampFormat='"
+                + timestampFormat
+                + '\''
+                + ", cat='"
+                + cat
+                + '\''
+                + ", readPosition='"
+                + readPosition
+                + '\''
+                + ", startTime="
+                + startTime
+                + ", startScn='"
+                + startScn
+                + '\''
+                + ", pavingData="
+                + pavingData
+                + ", table="
+                + table
+                + ", queryTimeout="
+                + queryTimeout
+                + ", supportAutoAddLog="
+                + supportAutoAddLog
+                + ", splitUpdate="
+                + splitUpdate
+                + ", maxLogFileSize="
+                + maxLogFileSize
+                + ", ioThreads="
+                + ioThreads
+                + ", retryTimes="
+                + retryTimes
+                + ", transactionCacheNumSize="
+                + transactionCacheNumSize
+                + ", transactionExpireTime="
+                + transactionExpireTime
+                + "} "
+                + super.toString();
     }
 }

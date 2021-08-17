@@ -24,8 +24,7 @@ import java.math.BigInteger;
  * Date: 2021/08/13 Company: www.dtstack.com
  *
  * @author dujie
- *
- * v$logmnr_contents 对应的实体 logminer读取出的数据实体
+ *     <p>v$logmnr_contents 对应的实体 logminer读取出的数据实体
  */
 public class RecordLog {
 

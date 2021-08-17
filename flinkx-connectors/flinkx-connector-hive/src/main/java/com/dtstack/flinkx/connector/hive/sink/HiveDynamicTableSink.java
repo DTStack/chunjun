@@ -17,14 +17,14 @@
  */
 package com.dtstack.flinkx.connector.hive.sink;
 
+import com.dtstack.flinkx.connector.hive.conf.HiveConf;
+import com.dtstack.flinkx.connector.hive.util.HiveUtil;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
-
-import com.dtstack.flinkx.connector.hive.conf.HiveConf;
-import com.dtstack.flinkx.connector.hive.util.HiveUtil;
-import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 /**
  * Date: 2021/06/22 Company: www.dtstack.com

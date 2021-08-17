@@ -24,8 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -41,7 +40,7 @@ public class Cdh2HiveMetadataParser extends AbstractHiveMetadataParser {
             Map<String, Object> row = iter.next();
             colName = (String) row.get("col_name");
             dataType = (String) row.get("data_type");
-            comment = (String)row.get("comment");
+            comment = (String) row.get("comment");
 
             if (colName != null && colName.trim().length() > 0) {
                 colName = colName.trim();
@@ -56,10 +55,10 @@ public class Cdh2HiveMetadataParser extends AbstractHiveMetadataParser {
                 }
             }
 
-            if(dataType != null && dataType.trim().length() > 0){
+            if (dataType != null && dataType.trim().length() > 0) {
                 dataType = dataType.trim();
 
-                if(dataType.contains("field.delim")){
+                if (dataType.contains("field.delim")) {
                     tableInfo.setDelimiter(comment.trim());
                 }
             }

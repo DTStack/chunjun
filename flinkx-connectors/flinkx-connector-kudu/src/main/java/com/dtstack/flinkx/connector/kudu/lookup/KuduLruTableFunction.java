@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.kudu.lookup;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-
 import com.dtstack.flinkx.connector.kudu.conf.KuduCommonConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduLookupConf;
 import com.dtstack.flinkx.connector.kudu.util.KuduUtil;
@@ -29,6 +26,10 @@ import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 import com.dtstack.flinkx.lookup.cache.CacheMissVal;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.stumbleupon.async.Callback;

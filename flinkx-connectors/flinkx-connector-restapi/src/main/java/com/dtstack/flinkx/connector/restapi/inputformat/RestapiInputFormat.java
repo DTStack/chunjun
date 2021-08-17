@@ -17,10 +17,6 @@
  */
 package com.dtstack.flinkx.connector.restapi.inputformat;
 
-import org.apache.flink.core.io.GenericInputSplit;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.restapi.client.HttpClient;
 import com.dtstack.flinkx.connector.restapi.client.HttpRequestParam;
 import com.dtstack.flinkx.connector.restapi.client.ResponseValue;
@@ -29,6 +25,10 @@ import com.dtstack.flinkx.connector.restapi.common.MetaParam;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
+
+import org.apache.flink.core.io.GenericInputSplit;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
 
 import java.io.IOException;
 import java.util.List;

@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.redis.sink;
 
+import com.dtstack.flinkx.connector.redis.conf.RedisConf;
+import com.dtstack.flinkx.connector.redis.converter.RedisRowConverter;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
@@ -25,9 +29,6 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.connector.redis.conf.RedisConf;
-import com.dtstack.flinkx.connector.redis.converter.RedisRowConverter;
-import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 import com.google.common.collect.Lists;
 
 /**

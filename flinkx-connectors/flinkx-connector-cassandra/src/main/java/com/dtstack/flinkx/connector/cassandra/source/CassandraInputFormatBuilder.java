@@ -21,6 +21,7 @@ package com.dtstack.flinkx.connector.cassandra.source;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.throwable.NoRestartException;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**

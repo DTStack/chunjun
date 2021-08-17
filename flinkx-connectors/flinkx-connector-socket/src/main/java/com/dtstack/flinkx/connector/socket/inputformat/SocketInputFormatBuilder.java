@@ -23,6 +23,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.dtstack.flinkx.util.ValueUtil;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**

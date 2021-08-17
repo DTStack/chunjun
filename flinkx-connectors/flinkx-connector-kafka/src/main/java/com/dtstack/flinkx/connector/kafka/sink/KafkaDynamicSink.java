@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.kafka.sink;
 
+import com.dtstack.flinkx.connector.kafka.sink.DynamicKafkaSerializationSchema.MetadataConverter;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
@@ -37,7 +39,6 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.connector.kafka.sink.DynamicKafkaSerializationSchema.MetadataConverter;
 import org.apache.kafka.common.header.Header;
 
 import javax.annotation.Nullable;
@@ -169,8 +170,7 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
     @Override
     public Map<String, DataType> listWritableMetadata() {
         final Map<String, DataType> metadataMap = new LinkedHashMap<>();
-        Stream.of(KafkaDynamicSink.WritableMetadata
-                .values())
+        Stream.of(KafkaDynamicSink.WritableMetadata.values())
                 .forEachOrdered(m -> metadataMap.put(m.key, m.dataType));
         return metadataMap;
     }
@@ -272,8 +272,7 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
 
         // determine the positions of metadata in the consumed row
         final int[] metadataPositions =
-                Stream.of(KafkaDynamicSink.WritableMetadata
-                        .values())
+                Stream.of(KafkaDynamicSink.WritableMetadata.values())
                         .mapToInt(
                                 m -> {
                                     final int pos = metadataKeys.indexOf(m.key);
@@ -299,7 +298,8 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
                         metadataPositions,
                         upsertMode);
 
-        return new KafkaProducer(topic,
+        return new KafkaProducer(
+                topic,
                 kafkaSerializer,
                 properties,
                 FlinkKafkaProducer.Semantic.valueOf(semantic.toString()),

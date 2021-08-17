@@ -18,9 +18,10 @@
 
 package com.dtstack.flinkx.connector.restapi.common;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import com.dtstack.flinkx.constants.ConstantValue;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -41,15 +42,12 @@ public class MetaParam implements Serializable {
     private String nextValue;
     private SimpleDateFormat timeFormat;
     private String format;
-    /**
-     * 是否是嵌套key
-     **/
+    /** 是否是嵌套key */
     private Boolean isNest = false;
+
     private ParamType paramType;
 
-
-    public MetaParam() {
-    }
+    public MetaParam() {}
 
     public MetaParam(String key, String value, ParamType paramType) {
         this.key = key;
@@ -67,7 +65,7 @@ public class MetaParam implements Serializable {
     /**
      * metaparam设置各自类型
      *
-     * @param params    参数
+     * @param params 参数
      * @param paramType 类型
      */
     public static void setMetaColumnsType(List<MetaParam> params, ParamType paramType) {
@@ -85,33 +83,38 @@ public class MetaParam implements Serializable {
     public static void initTimeFormat(List<MetaParam> params) {
 
         if (CollectionUtils.isNotEmpty(params)) {
-            params.forEach(i -> {
-                if (StringUtils.isNotBlank(i.getFormat())) {
-                    i.setTimeFormat(new SimpleDateFormat(i.getFormat()));
-                }
-            });
+            params.forEach(
+                    i -> {
+                        if (StringUtils.isNotBlank(i.getFormat())) {
+                            i.setTimeFormat(new SimpleDateFormat(i.getFormat()));
+                        }
+                    });
         }
     }
 
-
-    /**
-     * 获取一个metaparam的唯一名称 如body里的time参数 其全名称为body.name，因为name可能在body header里都有
-     */
+    /** 获取一个metaparam的唯一名称 如body里的time参数 其全名称为body.name，因为name可能在body header里都有 */
     public String getAllName() {
         switch (paramType) {
             case PARAM:
-                return ParamType.PARAM.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getKey();
+                return ParamType.PARAM.name().toLowerCase(Locale.ENGLISH)
+                        + ConstantValue.POINT_SYMBOL
+                        + getKey();
             case BODY:
-                return ParamType.BODY.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getKey();
+                return ParamType.BODY.name().toLowerCase(Locale.ENGLISH)
+                        + ConstantValue.POINT_SYMBOL
+                        + getKey();
             case HEADER:
-                return ParamType.HEADER.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getKey();
+                return ParamType.HEADER.name().toLowerCase(Locale.ENGLISH)
+                        + ConstantValue.POINT_SYMBOL
+                        + getKey();
             case RESPONSE:
-                return ParamType.RESPONSE.name().toLowerCase(Locale.ENGLISH) + ConstantValue.POINT_SYMBOL + getKey();
+                return ParamType.RESPONSE.name().toLowerCase(Locale.ENGLISH)
+                        + ConstantValue.POINT_SYMBOL
+                        + getKey();
             default:
                 return getKey();
         }
     }
-
 
     /**
      * 获取这个metaparam的变量名 如body里的参数name 其变量名为 ${body.name}
@@ -119,9 +122,12 @@ public class MetaParam implements Serializable {
      * @return metaparam的变量名
      */
     public String getVariableName() {
-        return new StringBuilder().append(com.dtstack.flinkx.connector.restapi.common.ConstantValue.PREFIX).append(getAllName()).append(com.dtstack.flinkx.connector.restapi.common.ConstantValue.SUFFIX).toString();
+        return new StringBuilder()
+                .append(com.dtstack.flinkx.connector.restapi.common.ConstantValue.PREFIX)
+                .append(getAllName())
+                .append(com.dtstack.flinkx.connector.restapi.common.ConstantValue.SUFFIX)
+                .toString();
     }
-
 
     /**
      * 根据是否是第一次 获取真正的表达式
@@ -143,7 +149,6 @@ public class MetaParam implements Serializable {
     public void setNextValue(String nextValue) {
         this.nextValue = nextValue;
     }
-
 
     public String getKey() {
         return key;
@@ -168,7 +173,6 @@ public class MetaParam implements Serializable {
     public void setTimeFormat(SimpleDateFormat timeFormat) {
         this.timeFormat = timeFormat;
     }
-
 
     public ParamType getParamType() {
         return paramType;
@@ -196,15 +200,26 @@ public class MetaParam implements Serializable {
 
     @Override
     public String toString() {
-        return "MetaParam{" +
-                "key='" + key + '\'' +
-                ", value='" + value + '\'' +
-                ", nextValue='" + nextValue + '\'' +
-                ", timeFormat=" + timeFormat +
-                ", isNest=" + isNest +
-                ", format='" + format + '\'' +
-                ", paramType=" + paramType +
-                '}';
+        return "MetaParam{"
+                + "key='"
+                + key
+                + '\''
+                + ", value='"
+                + value
+                + '\''
+                + ", nextValue='"
+                + nextValue
+                + '\''
+                + ", timeFormat="
+                + timeFormat
+                + ", isNest="
+                + isNest
+                + ", format='"
+                + format
+                + '\''
+                + ", paramType="
+                + paramType
+                + '}';
     }
 
     @Override

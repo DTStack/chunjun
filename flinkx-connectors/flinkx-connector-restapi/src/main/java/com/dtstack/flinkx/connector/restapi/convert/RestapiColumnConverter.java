@@ -18,17 +18,10 @@
 
 package com.dtstack.flinkx.connector.restapi.convert;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.restapi.client.DefaultRestHandler;
 import com.dtstack.flinkx.connector.restapi.common.ConstantValue;
 import com.dtstack.flinkx.connector.restapi.common.HttpRestConfig;
-
-import com.dtstack.flinkx.util.GsonUtil;
-
-import com.dtstack.flinkx.util.MapUtil;
-
-import org.apache.flink.table.data.RowData;
-
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
@@ -39,9 +32,12 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.MapUtil;
+
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.collections.CollectionUtils;
-
-
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -49,14 +45,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
 /**
  * @author shifang
  * @create 2021-06-07 15:51
  * @description
  */
 public class RestapiColumnConverter
-        extends AbstractRowConverter<String, Object, Map<String,Object>, String> {
+        extends AbstractRowConverter<String, Object, Map<String, Object>, String> {
 
     /** restapi Conf */
     private HttpRestConfig httpRestConfig;
@@ -78,25 +73,28 @@ public class RestapiColumnConverter
         }
     }
 
-
     @Override
-    protected ISerializationConverter<Map<String,Object>> wrapIntoNullableExternalConverter(
+    protected ISerializationConverter<Map<String, Object>> wrapIntoNullableExternalConverter(
             ISerializationConverter serializationConverter, String type) {
         return null;
     }
 
     @Override
-    public RowData toInternal(String input) throws Exception{
+    public RowData toInternal(String input) throws Exception {
         ColumnRowData row;
-        if (httpRestConfig.getDecode().equals(ConstantValue.DEFAULT_DECODE) && toInternalConverters != null
+        if (httpRestConfig.getDecode().equals(ConstantValue.DEFAULT_DECODE)
+                && toInternalConverters != null
                 && toInternalConverters.length > 0) {
-            Map<String, Object> result = DefaultRestHandler.gson.fromJson(input, GsonUtil.gsonMapTypeToken);
+            Map<String, Object> result =
+                    DefaultRestHandler.gson.fromJson(input, GsonUtil.gsonMapTypeToken);
             row = new ColumnRowData(toInternalConverters.length);
             List<FieldConf> column = httpRestConfig.getColumn();
             for (int i = 0; i < column.size(); i++) {
-                Object value = MapUtil.getValueByKey(result,
-                        column.get(i).getName(),
-                        httpRestConfig.getFieldDelimiter());
+                Object value =
+                        MapUtil.getValueByKey(
+                                result,
+                                column.get(i).getName(),
+                                httpRestConfig.getFieldDelimiter());
                 row.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(value));
             }
         } else {
@@ -112,10 +110,10 @@ public class RestapiColumnConverter
     }
 
     @Override
-    public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output) throws Exception {
-       return null;
+    public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output)
+            throws Exception {
+        return null;
     }
-
 
     @Override
     protected IDeserializationConverter createInternalConverter(String type) {
@@ -153,8 +151,7 @@ public class RestapiColumnConverter
     }
 
     @Override
-    protected ISerializationConverter<Map<String,Object>> createExternalConverter(String type) {
+    protected ISerializationConverter<Map<String, Object>> createExternalConverter(String type) {
         return null;
     }
-
 }

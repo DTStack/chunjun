@@ -17,13 +17,14 @@
  */
 package com.dtstack.flinkx.connector.restapi.outputformat;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.restapi.common.HttpUtil;
 import com.dtstack.flinkx.connector.restapi.common.RestapiWriterConfig;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
+import org.apache.flink.table.data.RowData;
+
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

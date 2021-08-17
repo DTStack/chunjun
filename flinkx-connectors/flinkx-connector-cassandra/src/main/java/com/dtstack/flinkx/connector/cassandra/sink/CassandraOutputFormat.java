@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.connector.cassandra.sink;
 
+import com.dtstack.flinkx.connector.cassandra.conf.CassandraSinkConf;
+import com.dtstack.flinkx.connector.cassandra.util.CassandraService;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.throwable.WriteRecordException;
+
 import org.apache.flink.table.data.RowData;
 
 import com.datastax.driver.core.BatchStatement;
@@ -29,10 +34,6 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.dtstack.flinkx.connector.cassandra.conf.CassandraSinkConf;
-import com.dtstack.flinkx.connector.cassandra.util.CassandraService;
-import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
-import com.dtstack.flinkx.throwable.WriteRecordException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

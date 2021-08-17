@@ -28,7 +28,6 @@ import org.apache.flink.configuration.ConfigOptions;
  * @author: xiuzhu
  * @create: 2021/06/19
  */
-
 public class FtpOptions extends BaseFileOptions {
 
     public static final ConfigOption<String> FORMAT =
@@ -58,16 +57,14 @@ public class FtpOptions extends BaseFileOptions {
                     .withDescription("ftp protocol");
 
     public static final ConfigOption<String> HOST =
-            ConfigOptions.key("host")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("ftp host");
+            ConfigOptions.key("host").stringType().noDefaultValue().withDescription("ftp host");
 
     public static final ConfigOption<Integer> PORT =
             ConfigOptions.key("port")
                     .intType()
                     .noDefaultValue()
-                    .withDescription("When protocol is FTP, the default port is 21; When the protocol is SFTP, the port defaults to 22");
+                    .withDescription(
+                            "When protocol is FTP, the default port is 21; When the protocol is SFTP, the port defaults to 22");
 
     public static final ConfigOption<Integer> TIMEOUT =
             ConfigOptions.key("timeout")
@@ -75,11 +72,9 @@ public class FtpOptions extends BaseFileOptions {
                     .defaultValue(5000)
                     .withDescription("ftp timeout");
 
-
     public static final ConfigOption<String> CONNECT_PATTERN =
             ConfigOptions.key("connect-pattern")
                     .stringType()
                     .defaultValue("PASV")
                     .withDescription("ftp connectPattern");
-
 }

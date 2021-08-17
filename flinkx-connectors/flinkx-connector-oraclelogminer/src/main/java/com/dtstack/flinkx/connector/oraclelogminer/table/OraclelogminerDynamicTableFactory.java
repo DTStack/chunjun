@@ -118,7 +118,8 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
 
         logMinerConf.setIoThreads(config.get(LogminerOptions.IO_THREADS));
 
-        logMinerConf.setTransactionCacheNumSize(config.get(LogminerOptions.TRANSACTION_CACHE_NUM_SIZE));
+        logMinerConf.setTransactionCacheNumSize(
+                config.get(LogminerOptions.TRANSACTION_CACHE_NUM_SIZE));
         logMinerConf.setTransactionExpireTime(config.get(LogminerOptions.TRANSACTION_EXPIRE_TIME));
 
         logMinerConf.setPavingData(true);

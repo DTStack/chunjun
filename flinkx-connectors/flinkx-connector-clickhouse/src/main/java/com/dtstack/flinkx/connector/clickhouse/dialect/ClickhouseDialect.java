@@ -54,12 +54,14 @@ public class ClickhouseDialect implements JdbcDialect {
     }
 
     @Override
-    public String getUpdateStatement(String schema, String tableName, String[] fieldNames, String[] conditionFields) {
+    public String getUpdateStatement(
+            String schema, String tableName, String[] fieldNames, String[] conditionFields) {
         throw new FlinkxRuntimeException("Clickhouse does not support update sql");
     }
 
     @Override
-    public Optional<String> getReplaceStatement(String schema, String tableName, String[] fieldNames) {
+    public Optional<String> getReplaceStatement(
+            String schema, String tableName, String[] fieldNames) {
         throw new FlinkxRuntimeException("Clickhouse does not support replace sql");
     }
 
@@ -70,6 +72,8 @@ public class ClickhouseDialect implements JdbcDialect {
 
     @Override
     public String getSplitModFilter(JdbcInputSplit split, String splitPkName) {
-        return String.format(" modulo(%s,%s) = %s", quoteIdentifier(splitPkName), split.getTotalNumberOfSplits(), split.getMod());
+        return String.format(
+                " modulo(%s,%s) = %s",
+                quoteIdentifier(splitPkName), split.getTotalNumberOfSplits(), split.getMod());
     }
 }

@@ -87,7 +87,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * <p>The Kafka version specific behavior is defined mainly in the specific subclasses of the {@link
  * AbstractFetcher}.
  *
- * 修改原因：让子类可以重写snapshotState、initializeState方法，使得kafka可以续跑后指标可以恢复
+ * <p>修改原因：让子类可以重写snapshotState、initializeState方法，使得kafka可以续跑后指标可以恢复
  * 修改内容：将snapshotState、initializeState方法改为非final
  *
  * @param <T> The type of records produced by this data source
@@ -153,8 +153,8 @@ public abstract class FlinkKafkaConsumerBaseBack<T> extends RichParallelSourceFu
 
     /**
      * The offset commit mode for the consumer. The value of this can only be determined in {@link
-     * FlinkKafkaConsumerBaseBack#open(Configuration)} since it depends on whether or not checkpointing
-     * is enabled for the job.
+     * FlinkKafkaConsumerBaseBack#open(Configuration)} since it depends on whether or not
+     * checkpointing is enabled for the job.
      */
     private OffsetCommitMode offsetCommitMode;
 
@@ -416,7 +416,8 @@ public abstract class FlinkKafkaConsumerBaseBack<T> extends RichParallelSourceFu
      *
      * @return The consumer object, to allow function chaining.
      */
-    public FlinkKafkaConsumerBaseBack<T> setCommitOffsetsOnCheckpoints(boolean commitOnCheckpoints) {
+    public FlinkKafkaConsumerBaseBack<T> setCommitOffsetsOnCheckpoints(
+            boolean commitOnCheckpoints) {
         this.enableCommitOnCheckpoints = commitOnCheckpoints;
         return this;
     }

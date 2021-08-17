@@ -26,7 +26,7 @@ import com.dtstack.flinkx.connector.mysql.dialect.MysqlDialect;
  * @program: flinkx
  * @author: wuren
  * @create: 2021/03/17
- **/
+ */
 public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
 
     // 默认是Mysql流式拉取

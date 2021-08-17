@@ -74,7 +74,8 @@ public class FileDynamicTableFactory implements DynamicTableSourceFactory {
 
     private DecodingFormat<DeserializationSchema<RowData>> getDecodingFormat(
             FactoryUtil.TableFactoryHelper helper) {
-        return helper.discoverDecodingFormat(DeserializationFormatFactory.class, FileOptions.FORMAT);
+        return helper.discoverDecodingFormat(
+                DeserializationFormatFactory.class, FileOptions.FORMAT);
     }
 
     @Override

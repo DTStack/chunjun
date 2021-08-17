@@ -18,7 +18,6 @@
 
 package org.apache.flink.runtime.executiongraph;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.cache.DistributedCache;
@@ -64,6 +63,7 @@ import org.apache.flink.util.DynamicCodeLoadingException;
 import org.apache.flink.util.InstantiationUtil;
 import org.apache.flink.util.SerializedValue;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
@@ -85,9 +85,8 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
  * Utility class to encapsulate the logic of building an {@link ExecutionGraph} from a {@link
- * JobGraph}.
- * 改动内容：jobManager中支持获取上传的文件#240
- * 改动原因：flink 1.12中改为异步提交导致上传的文件异步提交后立即被删除，jobManager初始化时无法获取这些文件
+ * JobGraph}. 改动内容：jobManager中支持获取上传的文件#240 改动原因：flink
+ * 1.12中改为异步提交导致上传的文件异步提交后立即被删除，jobManager初始化时无法获取这些文件
  */
 public class ExecutionGraphBuilder {
 
@@ -199,24 +198,24 @@ public class ExecutionGraphBuilder {
                     (prior != null)
                             ? prior
                             : new ExecutionGraph(
-                            jobInformation,
-                            futureExecutor,
-                            ioExecutor,
-                            rpcTimeout,
-                            restartStrategy,
-                            maxPriorAttemptsHistoryLength,
-                            failoverStrategyFactory,
-                            slotProvider,
-                            classLoader,
-                            blobWriter,
-                            allocationTimeout,
-                            partitionReleaseStrategyFactory,
-                            shuffleMaster,
-                            partitionTracker,
-                            jobGraph.getScheduleMode(),
-                            executionDeploymentListener,
-                            executionStateUpdateListener,
-                            initializationTimestamp);
+                                    jobInformation,
+                                    futureExecutor,
+                                    ioExecutor,
+                                    rpcTimeout,
+                                    restartStrategy,
+                                    maxPriorAttemptsHistoryLength,
+                                    failoverStrategyFactory,
+                                    slotProvider,
+                                    classLoader,
+                                    blobWriter,
+                                    allocationTimeout,
+                                    partitionReleaseStrategyFactory,
+                                    shuffleMaster,
+                                    partitionTracker,
+                                    jobGraph.getScheduleMode(),
+                                    executionDeploymentListener,
+                                    executionStateUpdateListener,
+                                    initializationTimestamp);
         } catch (IOException e) {
             throw new JobException("Could not create the ExecutionGraph.", e);
         }
@@ -236,30 +235,41 @@ public class ExecutionGraphBuilder {
 
         final long initMasterStart = System.nanoTime();
 
-        //dtstack fixed:
+        // dtstack fixed:
         log.info("trying to download shipFile from blobServer for job {} ({}).", jobName, jobId);
         try {
-            Set<Map.Entry<String, DistributedCache.DistributedCacheEntry>> entries = DistributedCache.readFileInfoFromConfig(executionGraph.getJobConfiguration());
+            Set<Map.Entry<String, DistributedCache.DistributedCacheEntry>> entries =
+                    DistributedCache.readFileInfoFromConfig(executionGraph.getJobConfiguration());
             Method addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             addURL.setAccessible(true);
             for (Map.Entry<String, DistributedCache.DistributedCacheEntry> entry : entries) {
                 String key = entry.getKey();
-                if(!StringUtils.startsWith(key, "class_path")){
+                if (!StringUtils.startsWith(key, "class_path")) {
                     DistributedCache.DistributedCacheEntry cacheEntry = entry.getValue();
-                    BlobServer blobServer = (BlobServer)executionGraph.getBlobWriter();
-                    PermanentBlobKey blobKey = InstantiationUtil.deserializeObject(cacheEntry.blobKey, Thread.currentThread().getContextClassLoader());
+                    BlobServer blobServer = (BlobServer) executionGraph.getBlobWriter();
+                    PermanentBlobKey blobKey =
+                            InstantiationUtil.deserializeObject(
+                                    cacheEntry.blobKey,
+                                    Thread.currentThread().getContextClassLoader());
                     File file = blobServer.getFile(jobId, blobKey);
                     String path = file.getAbsolutePath();
-                    File newFile = new File(path.substring(0, path.lastIndexOf(File.separatorChar) + 1) + key);
+                    File newFile =
+                            new File(
+                                    path.substring(0, path.lastIndexOf(File.separatorChar) + 1)
+                                            + key);
                     org.apache.commons.io.FileUtils.copyFile(file, newFile);
                     addURL.invoke(classLoader, newFile.toURI().toURL());
                     log.info("add File:[{}] to url", newFile);
                 }
             }
-        }catch (Exception e){
-            log.warn("error to download shipFile from blobServer for job {} ({}).", jobName, jobId, e);
+        } catch (Exception e) {
+            log.warn(
+                    "error to download shipFile from blobServer for job {} ({}).",
+                    jobName,
+                    jobId,
+                    e);
         }
-        //dtstack fixed end
+        // dtstack fixed end
 
         log.info("Running initialization on master for job {} ({}).", jobName, jobId);
 

@@ -32,15 +32,15 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
-
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.TableUtil;
-import org.apache.commons.collections.CollectionUtils;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
+
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,31 +66,36 @@ public class RestapiSourceFactory extends SourceFactory {
         MetaParam.initTimeFormat(httpRestConfig.getBody());
         MetaParam.initTimeFormat(httpRestConfig.getParam());
         MetaParam.initTimeFormat(httpRestConfig.getHeader());
-        //post请求 如果contentTy没有设置，则默认设置为 application/json
-        if (HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode()) && httpRestConfig
-                .getHeader()
-                .stream()
-                .noneMatch(i -> ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()))) {
+        // post请求 如果contentTy没有设置，则默认设置为 application/json
+        if (HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode())
+                && httpRestConfig.getHeader().stream()
+                        .noneMatch(i -> ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()))) {
             if (CollectionUtils.isEmpty(httpRestConfig.getHeader())) {
-                httpRestConfig.setHeader(Collections.singletonList(new MetaParam(
-                        ConstantValue.CONTENT_TYPE_NAME,
-                        ConstantValue.CONTENT_TYPE_DEFAULT_VALUE,
-                        ParamType.HEADER)));
+                httpRestConfig.setHeader(
+                        Collections.singletonList(
+                                new MetaParam(
+                                        ConstantValue.CONTENT_TYPE_NAME,
+                                        ConstantValue.CONTENT_TYPE_DEFAULT_VALUE,
+                                        ParamType.HEADER)));
             } else {
                 httpRestConfig
                         .getHeader()
-                        .add(new MetaParam(ConstantValue.CONTENT_TYPE_NAME,
-                                ConstantValue.CONTENT_TYPE_DEFAULT_VALUE,
-                                ParamType.HEADER));
+                        .add(
+                                new MetaParam(
+                                        ConstantValue.CONTENT_TYPE_NAME,
+                                        ConstantValue.CONTENT_TYPE_DEFAULT_VALUE,
+                                        ParamType.HEADER));
             }
         }
         if (syncConf.getTransformer() == null
-                || org.apache.commons.lang3.StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
-            typeInformation = TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
+                || org.apache.commons.lang3.StringUtils.isBlank(
+                        syncConf.getTransformer().getTransformSql())) {
+            typeInformation =
+                    TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
         } else {
-            typeInformation = TableUtil.getTypeInformation(
-                    subColumns(httpRestConfig.getColumn()),
-                    getRawTypeConverter());
+            typeInformation =
+                    TableUtil.getTypeInformation(
+                            subColumns(httpRestConfig.getColumn()), getRawTypeConverter());
             useAbstractBaseColumn = false;
         }
         super.initFlinkxCommonConf(httpRestConfig);
@@ -98,17 +103,20 @@ public class RestapiSourceFactory extends SourceFactory {
 
     private List<FieldConf> subColumns(List<FieldConf> fields) {
         List<FieldConf> columnsNoDelimiter = new ArrayList();
-        fields.forEach(fieldConf -> {
-            FieldConf newField = new FieldConf();
-            String[] split = fieldConf
-                    .getName()
-                    .split(StringUtil.escapeExprSpecialWord(httpRestConfig.getFieldDelimiter()));
-            newField.setName(split[split.length - 1]);
-            newField.setType(fieldConf.getType());
-            columnsNoDelimiter.add(newField);
-        });
+        fields.forEach(
+                fieldConf -> {
+                    FieldConf newField = new FieldConf();
+                    String[] split =
+                            fieldConf
+                                    .getName()
+                                    .split(
+                                            StringUtil.escapeExprSpecialWord(
+                                                    httpRestConfig.getFieldDelimiter()));
+                    newField.setName(split[split.length - 1]);
+                    newField.setType(fieldConf.getType());
+                    columnsNoDelimiter.add(newField);
+                });
         return columnsNoDelimiter;
-
     }
 
     @Override
@@ -119,8 +127,7 @@ public class RestapiSourceFactory extends SourceFactory {
             rowConverter = new RestapiColumnConverter(httpRestConfig);
         } else {
             final RowType rowType =
-                    TableUtil.createRowType(
-                            httpRestConfig.getColumn(), getRawTypeConverter());
+                    TableUtil.createRowType(httpRestConfig.getColumn(), getRawTypeConverter());
             rowConverter = new RestapiRowConverter(rowType, httpRestConfig);
         }
         builder.setHttpRestConfig(httpRestConfig);

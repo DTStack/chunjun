@@ -50,6 +50,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     /** 换行符 */
     private static final int NEWLINE = 10;
+
     protected FtpConfig ftpConfig;
     protected List<String> columnTypes;
 
@@ -135,7 +136,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 os.close();
                 os = null;
             }
-            //avoid Failure of FtpClient operating
+            // avoid Failure of FtpClient operating
             this.ftpHandler.completePendingCommand();
         } catch (Exception e) {
             throw new FlinkxRuntimeException("can't close source.", e);
@@ -161,14 +162,19 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 }
 
                 currentFilePath = dataFile;
-                String fileName = handleUserSpecificFileName(tmpDataFile.getName(), dataFiles.size());
+                String fileName =
+                        handleUserSpecificFileName(tmpDataFile.getName(), dataFiles.size());
                 String newFilePath = outputFilePath + File.separatorChar + fileName;
                 ftpHandler.rename(currentFilePath, newFilePath);
                 copyList.add(newFilePath);
                 LOG.info("copy temp file:{} to dir:{}", currentFilePath, outputFilePath);
             }
         } catch (Exception e) {
-            throw new FlinkxRuntimeException(String.format("can't copy temp file:[%s] to dir:[%s]", currentFilePath, outputFilePath), e);
+            throw new FlinkxRuntimeException(
+                    String.format(
+                            "can't copy temp file:[%s] to dir:[%s]",
+                            currentFilePath, outputFilePath),
+                    e);
         }
         return copyList;
     }
@@ -184,7 +190,8 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 }
             }
         } catch (IOException e) {
-            throw new FlinkxRuntimeException(String.format("can't delete commit file:[%s]", currentFilePath), e);
+            throw new FlinkxRuntimeException(
+                    String.format("can't delete commit file:[%s]", currentFilePath), e);
         }
     }
 
@@ -197,14 +204,18 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 File tmpDataFile = new File(dataFile);
                 dataFilePath = tmpDataFile.getAbsolutePath();
 
-                String fileName = handleUserSpecificFileName(tmpDataFile.getName(), dataFiles.size());
+                String fileName =
+                        handleUserSpecificFileName(tmpDataFile.getName(), dataFiles.size());
                 String newDataFilePath = ftpConfig.getPath() + File.separatorChar + fileName;
                 ftpHandler.rename(dataFilePath, newDataFilePath);
                 LOG.info("move temp file:{} to dir:{}", dataFilePath, outputFilePath);
             }
             ftpHandler.deleteAllFilesInDir(tmpPath, null);
         } catch (Exception e) {
-            throw new FlinkxRuntimeException(String.format("can't copy temp file:[%s] to dir:[%s]", dataFilePath, outputFilePath), e);
+            throw new FlinkxRuntimeException(
+                    String.format(
+                            "can't copy temp file:[%s] to dir:[%s]", dataFilePath, outputFilePath),
+                    e);
         }
     }
 
@@ -245,7 +256,6 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         throw new UnsupportedOperationException(writerName + "不支持批量写入");
     }
 
-
     private String handleUserSpecificFileName(String tmpDataFileName, int fileNumber) {
         String fileName = ftpConfig.getFtpFileName();
         if (StringUtils.isNotBlank(fileName)) {
@@ -271,11 +281,17 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             final int dotPosition = fileName.lastIndexOf(ConstantValue.POINT_SYMBOL);
             final String prefixName = fileName.substring(0, dotPosition);
             final String extensionName = fileName.substring(dotPosition + 1);
-            fileName = prefixName + "_" + splitFileName[1] + "_" + splitFileName[2] + "." + extensionName;
+            fileName =
+                    prefixName
+                            + "_"
+                            + splitFileName[1]
+                            + "_"
+                            + splitFileName[2]
+                            + "."
+                            + extensionName;
         } else {
             fileName = fileName + "_" + splitFileName[1] + "_" + splitFileName[2];
         }
         return fileName;
     }
-
 }

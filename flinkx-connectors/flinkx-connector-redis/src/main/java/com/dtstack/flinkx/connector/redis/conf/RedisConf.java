@@ -30,7 +30,7 @@ import java.util.List;
  * @author chuixue
  * @create 2021-06-16 15:15
  * @description
- **/
+ */
 public class RedisConf extends FlinkxCommonConf {
     /** ip and port */
     private String hostPort;
@@ -38,13 +38,27 @@ public class RedisConf extends FlinkxCommonConf {
     private String password;
     /** database */
     private int database = 0;
-    /** keyIndexes indicates which columns at the source end need to be used as keys (the first column starts from 0). If the first column and the second column need to be combined as the key, then the value of keyIndexes is [0,1]. */
+    /**
+     * keyIndexes indicates which columns at the source end need to be used as keys (the first
+     * column starts from 0). If the first column and the second column need to be combined as the
+     * key, then the value of keyIndexes is [0,1].
+     */
     private List<Integer> keyIndexes = new ArrayList<>();
-    /** This configuration item takes into account the situation when there are more than two columns per row of the source data (if your source data has only two columns, namely key and value, you can ignore this configuration item and do not need to fill in). When the value type is string, the value is The separator between the two, such as value1\u0001value2\u0001value3. */
+    /**
+     * This configuration item takes into account the situation when there are more than two columns
+     * per row of the source data (if your source data has only two columns, namely key and value,
+     * you can ignore this configuration item and do not need to fill in). When the value type is
+     * string, the value is The separator between the two, such as value1\u0001value2\u0001value3.
+     */
     private String keyFieldDelimiter = "\\u0001";
-    /** When writing to Redis, the time format of Date: "yyyy-MM-dd HH:mm:ss".Write the date as long */
+    /**
+     * When writing to Redis, the time format of Date: "yyyy-MM-dd HH:mm:ss".Write the date as long
+     */
     private String dateFormat;
-    /** Redis value cache invalidation time (if you need to be permanently valid, you can leave this configuration item unfilled) */
+    /**
+     * Redis value cache invalidation time (if you need to be permanently valid, you can leave this
+     * configuration item unfilled)
+     */
     private long expireTime = 0L;
     /** The timeout period for writing to Redis. */
     private int timeout = 3000;
@@ -52,7 +66,12 @@ public class RedisConf extends FlinkxCommonConf {
     private RedisDataType type;
     /** Operation type of redis database */
     private RedisDataMode mode;
-    /** This configuration item takes into account the situation when there are more than two columns per row of the source data (if your source data has only two columns, namely key and value, you can ignore this configuration item and do not need to fill in). When the value type is string, the value is The separator between the two, such as value1\u0001value2\u0001value3. */
+    /**
+     * This configuration item takes into account the situation when there are more than two columns
+     * per row of the source data (if your source data has only two columns, namely key and value,
+     * you can ignore this configuration item and do not need to fill in). When the value type is
+     * string, the value is The separator between the two, such as value1\u0001value2\u0001value3.
+     */
     private String valueFieldDelimiter = "\\u0001";
     /** redis mode (1 stand-alone, 2 sentries, 3 clusters) */
     private RedisConnectType redisConnectType = RedisConnectType.STANDALONE;
@@ -215,25 +234,50 @@ public class RedisConf extends FlinkxCommonConf {
 
     @Override
     public String toString() {
-        return "RedisConf{" +
-                "hostPort='" + hostPort + '\'' +
-                ", password='" + password + '\'' +
-                ", database=" + database +
-                ", keyIndexes=" + keyIndexes +
-                ", keyFieldDelimiter='" + keyFieldDelimiter + '\'' +
-                ", dateFormat='" + dateFormat + '\'' +
-                ", expireTime=" + expireTime +
-                ", timeout=" + timeout +
-                ", type=" + type +
-                ", mode=" + mode +
-                ", valueFieldDelimiter='" + valueFieldDelimiter + '\'' +
-                ", redisConnectType=" + redisConnectType +
-                ", masterName='" + masterName + '\'' +
-                ", tableName='" + tableName + '\'' +
-                ", maxTotal=" + maxTotal +
-                ", maxIdle=" + maxIdle +
-                ", minIdle=" + minIdle +
-                ", updateKey=" + updateKey +
-                '}';
+        return "RedisConf{"
+                + "hostPort='"
+                + hostPort
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", database="
+                + database
+                + ", keyIndexes="
+                + keyIndexes
+                + ", keyFieldDelimiter='"
+                + keyFieldDelimiter
+                + '\''
+                + ", dateFormat='"
+                + dateFormat
+                + '\''
+                + ", expireTime="
+                + expireTime
+                + ", timeout="
+                + timeout
+                + ", type="
+                + type
+                + ", mode="
+                + mode
+                + ", valueFieldDelimiter='"
+                + valueFieldDelimiter
+                + '\''
+                + ", redisConnectType="
+                + redisConnectType
+                + ", masterName='"
+                + masterName
+                + '\''
+                + ", tableName='"
+                + tableName
+                + '\''
+                + ", maxTotal="
+                + maxTotal
+                + ", maxIdle="
+                + maxIdle
+                + ", minIdle="
+                + minIdle
+                + ", updateKey="
+                + updateKey
+                + '}';
     }
 }

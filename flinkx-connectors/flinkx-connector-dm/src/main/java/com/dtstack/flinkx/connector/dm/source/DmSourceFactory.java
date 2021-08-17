@@ -18,20 +18,19 @@
 
 package com.dtstack.flinkx.connector.dm.source;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.dm.dialect.DmDialect;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @author kunni
- */
+/** @author kunni */
 public class DmSourceFactory extends JdbcSourceFactory {
 
     public DmSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env,  new DmDialect());
+        super(syncConf, env, new DmDialect());
         // 避免result.next阻塞
         if (jdbcConf.isPolling()
                 && StringUtils.isEmpty(jdbcConf.getStartLocation())

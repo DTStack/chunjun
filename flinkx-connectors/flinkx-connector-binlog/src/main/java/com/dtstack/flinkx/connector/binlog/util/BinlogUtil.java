@@ -19,6 +19,7 @@ package com.dtstack.flinkx.connector.binlog.util;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -35,8 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
+ * Date: 2019/12/03 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -45,14 +45,17 @@ public class BinlogUtil {
     public static final int RETRY_TIMES = 3;
     public static final int SLEEP_TIME = 2000;
     private static final Logger LOG = LoggerFactory.getLogger(BinlogUtil.class);
-    //是否开启binlog
-    private static final String CHECK_BINLOG_ENABLE = "show variables where variable_name = 'log_bin';";
-    //查看binlog format
-    private static final String CHECK_BINLOG_FORMAT = "show variables where variable_name = 'binlog_format';";
-    //校验用户是否有权限
+    // 是否开启binlog
+    private static final String CHECK_BINLOG_ENABLE =
+            "show variables where variable_name = 'log_bin';";
+    // 查看binlog format
+    private static final String CHECK_BINLOG_FORMAT =
+            "show variables where variable_name = 'binlog_format';";
+    // 校验用户是否有权限
     private static final String CHECK_USER_PRIVILEGE = "show master status ;";
     private static final String AUTHORITY_TEMPLATE = "SELECT count(1) FROM %s LIMIT 1";
-    private static final String QUERY_SCHEMA_TABLE_TEMPLATE = "SELECT TABLE_NAME From information_schema.TABLES WHERE TABLE_SCHEMA='%s' LIMIT 1";
+    private static final String QUERY_SCHEMA_TABLE_TEMPLATE =
+            "SELECT TABLE_NAME From information_schema.TABLES WHERE TABLE_SCHEMA='%s' LIMIT 1";
 
     /**
      * 校验是否开启binlog
@@ -73,7 +76,10 @@ public class BinlogUtil {
                 return false;
             }
         } catch (SQLException e) {
-            LOG.error("error to query BINLOG is enabled , sql = {}, e = {}", CHECK_BINLOG_ENABLE, ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "error to query BINLOG is enabled , sql = {}, e = {}",
+                    CHECK_BINLOG_ENABLE,
+                    ExceptionUtil.getErrorMessage(e));
             throw e;
         }
     }
@@ -97,7 +103,10 @@ public class BinlogUtil {
                 return false;
             }
         } catch (SQLException e) {
-            LOG.error("error to query binLog format, sql = {}, e = {}", CHECK_BINLOG_FORMAT, ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "error to query binLog format, sql = {}, e = {}",
+                    CHECK_BINLOG_FORMAT,
+                    ExceptionUtil.getErrorMessage(e));
             throw e;
         }
     }
@@ -112,7 +121,9 @@ public class BinlogUtil {
         try (Statement statement = conn.createStatement()) {
             statement.execute(CHECK_USER_PRIVILEGE);
         } catch (SQLException e) {
-            LOG.error("'show master status' has an error!,please check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation, e = {}", ExceptionUtil.getErrorMessage(e));
+            LOG.error(
+                    "'show master status' has an error!,please check. you need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation, e = {}",
+                    ExceptionUtil.getErrorMessage(e));
             return false;
         }
         return true;
@@ -120,6 +131,7 @@ public class BinlogUtil {
 
     /**
      * 校验MySQL表权限
+     *
      * @param connection MySQL connection
      * @param database database名称
      * @param filter 过滤字符串
@@ -127,21 +139,23 @@ public class BinlogUtil {
      * @return 没有权限的表
      * @throws SQLException
      */
-    public static List<String> checkTablesPrivilege(Connection connection, String database, String filter, List<String> tables) throws SQLException {
+    public static List<String> checkTablesPrivilege(
+            Connection connection, String database, String filter, List<String> tables)
+            throws SQLException {
         if (CollectionUtils.isNotEmpty(tables)) {
             HashMap<String, String> checkedTable = new HashMap<>(tables.size());
-            //按照.切割字符串需要转义
+            // 按照.切割字符串需要转义
             String regexSchemaSplit = "\\" + ConstantValue.POINT_SYMBOL;
             tables.stream()
-                    //每一个表格式化为schema.tableName格式
+                    // 每一个表格式化为schema.tableName格式
                     .map(t -> formatTableName(database, t))
-                    //只需要每个schema下的一个表进行判断
+                    // 只需要每个schema下的一个表进行判断
                     .forEach(t -> checkedTable.putIfAbsent(t.split(regexSchemaSplit)[0], t));
 
-            //检验每个schema下的第一个表的权限
+            // 检验每个schema下的第一个表的权限
             return checkSourceAuthority(connection, null, checkedTable.values());
         } else if (StringUtils.isBlank(filter)) {
-            //检验schema下任意一张表的权限
+            // 检验schema下任意一张表的权限
             return checkSourceAuthority(connection, database, null);
         }
         return null;
@@ -149,14 +163,16 @@ public class BinlogUtil {
 
     /**
      * @param schema 需要校验权限的schemaName
-     * @param tables 需要校验权限的tableName
-     *               schemaName权限验证 取schemaName下第一个表进行验证判断整个schemaName下是否具有权限
+     * @param tables 需要校验权限的tableName schemaName权限验证 取schemaName下第一个表进行验证判断整个schemaName下是否具有权限
      */
-    public static List<String> checkSourceAuthority(Connection connection, String schema, Collection<String> tables) throws SQLException {
+    public static List<String> checkSourceAuthority(
+            Connection connection, String schema, Collection<String> tables) throws SQLException {
         try (Statement statement = connection.createStatement()) {
-            //Schema不为空且用户没有指定tables 就获取一张表判断权限
+            // Schema不为空且用户没有指定tables 就获取一张表判断权限
             if (StringUtils.isNotBlank(schema) && CollectionUtils.isEmpty(tables)) {
-                try (ResultSet resultSet = statement.executeQuery(String.format(QUERY_SCHEMA_TABLE_TEMPLATE, schema))) {
+                try (ResultSet resultSet =
+                        statement.executeQuery(
+                                String.format(QUERY_SCHEMA_TABLE_TEMPLATE, schema))) {
                     if (resultSet.next()) {
                         String tableName = resultSet.getString(1);
                         if (StringUtils.isNotBlank(tableName)) {
@@ -172,7 +188,7 @@ public class BinlogUtil {
             List<String> failedTables = new ArrayList<>(tables.size());
             for (String tableName : tables) {
                 try {
-                    //判断用户是否具备tableName下的读权限
+                    // 判断用户是否具备tableName下的读权限
                     statement.executeQuery(String.format(AUTHORITY_TEMPLATE, tableName));
                 } catch (SQLException e) {
                     failedTables.add(tableName);
@@ -181,13 +197,17 @@ public class BinlogUtil {
 
             return failedTables;
         } catch (SQLException sqlException) {
-            LOG.error("error to check table select privilege error, sql = {}, e = {}", AUTHORITY_TEMPLATE, ExceptionUtil.getErrorMessage(sqlException));
+            LOG.error(
+                    "error to check table select privilege error, sql = {}, e = {}",
+                    AUTHORITY_TEMPLATE,
+                    ExceptionUtil.getErrorMessage(sqlException));
             throw sqlException;
         }
     }
 
     /**
      * 从JDBC URL中获取database名称
+     *
      * @param jdbcUrl
      * @return
      */
@@ -202,6 +222,7 @@ public class BinlogUtil {
 
     /**
      * 每一个表格式化为schema.tableName格式
+     *
      * @param schemaName
      * @param tableName
      * @return
@@ -211,7 +232,11 @@ public class BinlogUtil {
         if (tableName.contains(ConstantValue.POINT_SYMBOL)) {
             return tableName;
         } else {
-            return stringBuilder.append(schemaName).append(ConstantValue.POINT_SYMBOL).append(tableName).toString();
+            return stringBuilder
+                    .append(schemaName)
+                    .append(ConstantValue.POINT_SYMBOL)
+                    .append(tableName)
+                    .toString();
         }
     }
 }

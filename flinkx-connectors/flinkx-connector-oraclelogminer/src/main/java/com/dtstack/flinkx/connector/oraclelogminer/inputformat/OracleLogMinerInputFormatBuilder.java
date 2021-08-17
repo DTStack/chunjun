@@ -101,7 +101,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
         if (StringUtils.isBlank(config.getReadPosition())
                 || !list.contains(config.getReadPosition().toUpperCase(Locale.ENGLISH))) {
             sb.append(
-                    "readPosition must be one of [all, current, time, scn], current readPosition is [")
+                            "readPosition must be one of [all, current, time, scn], current readPosition is [")
                     .append(config.getReadPosition())
                     .append("];\n");
         }
@@ -128,23 +128,23 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
 
         if (logMinerConf.getParallelism() > 1) {
             sb.append(
-                    "logMiner can not support readerChannel bigger than 1, current readerChannel is [")
+                            "logMiner can not support readerChannel bigger than 1, current readerChannel is [")
                     .append(logMinerConf.getParallelism())
                     .append("];\n");
         }
 
         ClassUtil.forName(config.getDriverName(), getClass().getClassLoader());
         try (Connection connection =
-                     RetryUtil.executeWithRetry(
-                             () ->
-                                     DriverManager.getConnection(
-                                             config.getJdbcUrl(),
-                                             config.getUsername(),
-                                             config.getPassword()),
-                             LogMinerConnection.RETRY_TIMES,
-                             LogMinerConnection.SLEEP_TIME,
-                             false);
-             Statement statement = connection.createStatement()) {
+                        RetryUtil.executeWithRetry(
+                                () ->
+                                        DriverManager.getConnection(
+                                                config.getJdbcUrl(),
+                                                config.getUsername(),
+                                                config.getPassword()),
+                                LogMinerConnection.RETRY_TIMES,
+                                LogMinerConnection.SLEEP_TIME,
+                                false);
+                Statement statement = connection.createStatement()) {
             statement.setQueryTimeout(config.getQueryTimeout().intValue());
 
             OracleInfo oracleInfo = LogMinerConnection.getOracleInfo(connection);
@@ -262,8 +262,7 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
             rs.close();
 
             if (format.logMinerConf.getIoThreads() > 3) {
-               sb.append(
-                        "logMinerConfig param ioThreads must less than " + 3);
+                sb.append("logMinerConfig param ioThreads must less than " + 3);
             }
 
             if (sb.length() > 0) {

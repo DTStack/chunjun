@@ -17,6 +17,10 @@
  */
 package com.dtstack.flinkx.connector.binlog.converter;
 
+import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
+import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.data.DecimalData;
@@ -29,9 +33,6 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
-import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.google.common.collect.Maps;
 
 import java.math.BigDecimal;
@@ -48,8 +49,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2021/04/29
- * Company: www.dtstack.com
+ * Date: 2021/04/29 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -72,7 +72,8 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
         String eventType = rowChange.getEventType().toString();
         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
             List<CanalEntry.Column> beforeColumnsList = rowData.getBeforeColumnsList();
-            Map<Object, Object> beforeMap = Maps.newHashMapWithExpectedSize(beforeColumnsList.size());
+            Map<Object, Object> beforeMap =
+                    Maps.newHashMapWithExpectedSize(beforeColumnsList.size());
             for (CanalEntry.Column column : beforeColumnsList) {
                 if (!column.getIsNull()) {
                     beforeMap.put(column.getName(), column.getValue());
@@ -86,23 +87,26 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
                 }
             }
 
-            switch (eventType){
+            switch (eventType) {
                 case "INSERT":
                     RowData insert = createRowDataByConverters(fieldNameList, converters, afterMap);
                     insert.setRowKind(RowKind.INSERT);
                     result.add(insert);
                     break;
                 case "DELETE":
-                    RowData delete = createRowDataByConverters(fieldNameList, converters, beforeMap);
+                    RowData delete =
+                            createRowDataByConverters(fieldNameList, converters, beforeMap);
                     delete.setRowKind(RowKind.DELETE);
                     result.add(delete);
                     break;
                 case "UPDATE":
-                    RowData updateBefore = createRowDataByConverters(fieldNameList, converters, beforeMap);
+                    RowData updateBefore =
+                            createRowDataByConverters(fieldNameList, converters, beforeMap);
                     updateBefore.setRowKind(RowKind.UPDATE_BEFORE);
                     result.add(updateBefore);
 
-                    RowData updateAfter = createRowDataByConverters(fieldNameList, converters, afterMap);
+                    RowData updateAfter =
+                            createRowDataByConverters(fieldNameList, converters, afterMap);
                     updateAfter.setRowKind(RowKind.UPDATE_AFTER);
                     result.add(updateAfter);
                     break;
@@ -131,58 +135,74 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
             case INTERVAL_DAY_TIME:
                 return (IDeserializationConverter<String, Long>) Long::parseLong;
             case DATE:
-                return (IDeserializationConverter<String, Integer>) val -> {
-                    LocalDate date = DateTimeFormatter.ISO_LOCAL_DATE.parse(val).query(TemporalQueries.localDate());
-                    return (int)date.toEpochDay();
-                };
+                return (IDeserializationConverter<String, Integer>)
+                        val -> {
+                            LocalDate date =
+                                    DateTimeFormatter.ISO_LOCAL_DATE
+                                            .parse(val)
+                                            .query(TemporalQueries.localDate());
+                            return (int) date.toEpochDay();
+                        };
             case TIME_WITHOUT_TIME_ZONE:
-                return (IDeserializationConverter<String, Integer>) val -> {
-                    TemporalAccessor parsedTime = SQL_TIME_FORMAT.parse(val);
-                    LocalTime localTime = parsedTime.query(TemporalQueries.localTime());
-                    return localTime.toSecondOfDay() * 1000;
-                };
+                return (IDeserializationConverter<String, Integer>)
+                        val -> {
+                            TemporalAccessor parsedTime = SQL_TIME_FORMAT.parse(val);
+                            LocalTime localTime = parsedTime.query(TemporalQueries.localTime());
+                            return localTime.toSecondOfDay() * 1000;
+                        };
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return (IDeserializationConverter<String, TimestampData>) val -> {
-                    TemporalAccessor parsedTimestamp;
-                    switch(this.timestampFormat) {
-                        case SQL:
-                            parsedTimestamp = SQL_TIMESTAMP_FORMAT.parse(val);
-                            break;
-                        case ISO_8601:
-                            parsedTimestamp = ISO8601_TIMESTAMP_FORMAT.parse(val);
-                            break;
-                        default:
-                            throw new TableException(String.format("Unsupported timestamp format '%s'. Validator should have checked that.", this.timestampFormat));
-                    }
+                return (IDeserializationConverter<String, TimestampData>)
+                        val -> {
+                            TemporalAccessor parsedTimestamp;
+                            switch (this.timestampFormat) {
+                                case SQL:
+                                    parsedTimestamp = SQL_TIMESTAMP_FORMAT.parse(val);
+                                    break;
+                                case ISO_8601:
+                                    parsedTimestamp = ISO8601_TIMESTAMP_FORMAT.parse(val);
+                                    break;
+                                default:
+                                    throw new TableException(
+                                            String.format(
+                                                    "Unsupported timestamp format '%s'. Validator should have checked that.",
+                                                    this.timestampFormat));
+                            }
 
-                    LocalTime localTime = parsedTimestamp.query(TemporalQueries.localTime());
-                    LocalDate localDate = parsedTimestamp.query(TemporalQueries.localDate());
-                    return TimestampData.fromLocalDateTime(LocalDateTime.of(localDate, localTime));
-                };
+                            LocalTime localTime =
+                                    parsedTimestamp.query(TemporalQueries.localTime());
+                            LocalDate localDate =
+                                    parsedTimestamp.query(TemporalQueries.localDate());
+                            return TimestampData.fromLocalDateTime(
+                                    LocalDateTime.of(localDate, localTime));
+                        };
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
-                return (IDeserializationConverter<String, TimestampData>) val -> {
-                    TemporalAccessor parsedTimestampWithLocalZone;
-                    switch (timestampFormat) {
-                        case SQL:
-                            parsedTimestampWithLocalZone =
-                                    SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse(val);
-                            break;
-                        case ISO_8601:
-                            parsedTimestampWithLocalZone =
-                                    ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse(val);
-                            break;
-                        default:
-                            throw new TableException(
-                                    String.format(
-                                            "Unsupported timestamp format '%s'. Validator should have checked that.",
-                                            timestampFormat));
-                    }
-                    LocalTime localTime = parsedTimestampWithLocalZone.query(TemporalQueries.localTime());
-                    LocalDate localDate = parsedTimestampWithLocalZone.query(TemporalQueries.localDate());
+                return (IDeserializationConverter<String, TimestampData>)
+                        val -> {
+                            TemporalAccessor parsedTimestampWithLocalZone;
+                            switch (timestampFormat) {
+                                case SQL:
+                                    parsedTimestampWithLocalZone =
+                                            SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse(val);
+                                    break;
+                                case ISO_8601:
+                                    parsedTimestampWithLocalZone =
+                                            ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse(val);
+                                    break;
+                                default:
+                                    throw new TableException(
+                                            String.format(
+                                                    "Unsupported timestamp format '%s'. Validator should have checked that.",
+                                                    timestampFormat));
+                            }
+                            LocalTime localTime =
+                                    parsedTimestampWithLocalZone.query(TemporalQueries.localTime());
+                            LocalDate localDate =
+                                    parsedTimestampWithLocalZone.query(TemporalQueries.localDate());
 
-                    return TimestampData.fromInstant(
-                            LocalDateTime.of(localDate, localTime).toInstant(ZoneOffset.UTC));
-                };
+                            return TimestampData.fromInstant(
+                                    LocalDateTime.of(localDate, localTime)
+                                            .toInstant(ZoneOffset.UTC));
+                        };
             case FLOAT:
                 return (IDeserializationConverter<String, Float>) Float::parseFloat;
             case DOUBLE:
@@ -191,19 +211,22 @@ public class BinlogRowConverter extends AbstractCDCRowConverter<BinlogEventRow, 
             case VARCHAR:
                 return (IDeserializationConverter<String, StringData>) StringData::fromString;
             case DECIMAL:
-                return (IDeserializationConverter<String, DecimalData>) val -> {
-                    final int precision = ((DecimalType)type).getPrecision();
-                    final int scale = ((DecimalType)type).getScale();
-                    return DecimalData.fromBigDecimal(new BigDecimal(val), precision, scale);
-                };
+                return (IDeserializationConverter<String, DecimalData>)
+                        val -> {
+                            final int precision = ((DecimalType) type).getPrecision();
+                            final int scale = ((DecimalType) type).getScale();
+                            return DecimalData.fromBigDecimal(
+                                    new BigDecimal(val), precision, scale);
+                        };
             case BINARY:
             case VARBINARY:
-                return (IDeserializationConverter<String, byte[]>) val ->val.getBytes(StandardCharsets.UTF_8);
-//            case ARRAY:
-//            case MAP:
-//            case MULTISET:
-//            case ROW:
-//            case RAW:
+                return (IDeserializationConverter<String, byte[]>)
+                        val -> val.getBytes(StandardCharsets.UTF_8);
+                //            case ARRAY:
+                //            case MAP:
+                //            case MULTISET:
+                //            case ROW:
+                //            case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type: " + type);
         }

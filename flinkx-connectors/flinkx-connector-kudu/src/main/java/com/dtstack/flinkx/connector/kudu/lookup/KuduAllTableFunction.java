@@ -24,10 +24,10 @@ import com.dtstack.flinkx.connector.kudu.util.KuduUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.util.ThreadUtil;
-import com.google.common.collect.Maps;
 
 import org.apache.flink.table.data.GenericRowData;
 
+import com.google.common.collect.Maps;
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduScanner;
@@ -37,7 +37,6 @@ import org.apache.kudu.client.RowResultIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;

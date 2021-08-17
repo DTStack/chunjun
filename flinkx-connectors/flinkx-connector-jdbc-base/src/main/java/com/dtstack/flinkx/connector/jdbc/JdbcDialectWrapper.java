@@ -11,7 +11,6 @@ public class JdbcDialectWrapper implements JdbcDialect {
         this.dialect = dialect;
     }
 
-
     @Override
     public String dialectName() {
         return dialect.dialectName();

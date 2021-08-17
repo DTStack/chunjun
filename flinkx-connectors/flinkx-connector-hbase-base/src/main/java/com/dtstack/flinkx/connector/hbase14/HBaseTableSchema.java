@@ -42,7 +42,7 @@ import static org.apache.flink.table.types.utils.TypeConversions.fromLogicalToDa
  * @author wuren
  * @program flinkx
  * @create 2021/04/30
- **/
+ */
 
 /** Helps to specify an HBase Table's schema. */
 public class HBaseTableSchema implements Serializable {

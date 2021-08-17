@@ -22,9 +22,7 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.dm.dialect.DmDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
 
-/**
- * @author kunni
- */
+/** @author kunni */
 public class DmSinkFactory extends JdbcSinkFactory {
 
     public DmSinkFactory(SyncConf syncConf) {

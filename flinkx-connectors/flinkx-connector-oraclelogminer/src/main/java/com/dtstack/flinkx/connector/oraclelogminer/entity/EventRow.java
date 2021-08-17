@@ -27,8 +27,7 @@ import java.util.List;
  * Date: 2021/08/13 Company: www.dtstack.com
  *
  * @author dujie
- *
- * 事件数据
+ *     <p>事件数据
  */
 public class EventRow implements Serializable {
     private static final long serialVersionUID = 1L;

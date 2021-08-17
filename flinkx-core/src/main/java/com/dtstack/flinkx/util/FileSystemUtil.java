@@ -20,9 +20,10 @@ package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.security.KerberosUtil;
 
+import org.apache.flink.api.common.cache.DistributedCache;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
@@ -45,15 +46,20 @@ public class FileSystemUtil {
 
     private static final String AUTHENTICATION_TYPE = "Kerberos";
     private static final String KEY_HADOOP_SECURITY_AUTHORIZATION = "hadoop.security.authorization";
-    private static final String KEY_HADOOP_SECURITY_AUTHENTICATION = "hadoop.security.authentication";
+    private static final String KEY_HADOOP_SECURITY_AUTHENTICATION =
+            "hadoop.security.authentication";
     private static final String KEY_DEFAULT_FS = "fs.default.name";
     private static final String KEY_FS_HDFS_IMPL_DISABLE_CACHE = "fs.hdfs.impl.disable.cache";
     private static final String KEY_HA_DEFAULT_FS = "fs.defaultFS";
     private static final String KEY_DFS_NAMESERVICES = "dfs.nameservices";
     private static final String KEY_HADOOP_USER_NAME = "hadoop.user.name";
 
-    public static FileSystem getFileSystem(Map<String, Object> hadoopConfigMap, String defaultFs, DistributedCache distributedCache) throws Exception {
-        if(isOpenKerberos(hadoopConfigMap)){
+    public static FileSystem getFileSystem(
+            Map<String, Object> hadoopConfigMap,
+            String defaultFs,
+            DistributedCache distributedCache)
+            throws Exception {
+        if (isOpenKerberos(hadoopConfigMap)) {
             return getFsWithKerberos(hadoopConfigMap, defaultFs, distributedCache);
         }
 
@@ -71,7 +77,10 @@ public class FileSystemUtil {
 
         try {
             String previousUserName = UserGroupInformation.getLoginUser().getUserName();
-            LOG.info("Hadoop user from '{}' switch to '{}' with SIMPLE auth", previousUserName, hadoopUserName);
+            LOG.info(
+                    "Hadoop user from '{}' switch to '{}' with SIMPLE auth",
+                    previousUserName,
+                    hadoopUserName);
             UserGroupInformation ugi = UserGroupInformation.createRemoteUser(hadoopUserName);
             UserGroupInformation.setLoginUser(ugi);
         } catch (Exception e) {
@@ -88,22 +97,27 @@ public class FileSystemUtil {
                 MapUtils.getString(hadoopConfig, KEY_HADOOP_SECURITY_AUTHENTICATION));
     }
 
-    private static FileSystem getFsWithKerberos(Map<String, Object> hadoopConfig, String defaultFs, DistributedCache distributedCache) throws Exception{
+    private static FileSystem getFsWithKerberos(
+            Map<String, Object> hadoopConfig, String defaultFs, DistributedCache distributedCache)
+            throws Exception {
         UserGroupInformation ugi = getUGI(hadoopConfig, defaultFs, distributedCache);
 
-        return ugi.doAs(new PrivilegedAction<FileSystem>() {
-            @Override
-            public FileSystem run(){
-                try {
-                    return FileSystem.get(getConfiguration(hadoopConfig, defaultFs));
-                } catch (Exception e){
-                    throw new RuntimeException("Get FileSystem with kerberos error:", e);
-                }
-            }
-        });
+        return ugi.doAs(
+                new PrivilegedAction<FileSystem>() {
+                    @Override
+                    public FileSystem run() {
+                        try {
+                            return FileSystem.get(getConfiguration(hadoopConfig, defaultFs));
+                        } catch (Exception e) {
+                            throw new RuntimeException("Get FileSystem with kerberos error:", e);
+                        }
+                    }
+                });
     }
 
-    public static UserGroupInformation getUGI(Map<String, Object> hadoopConfig, String defaultFs, DistributedCache distributedCache) throws IOException {
+    public static UserGroupInformation getUGI(
+            Map<String, Object> hadoopConfig, String defaultFs, DistributedCache distributedCache)
+            throws IOException {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hadoopConfig);
 
         keytabFileName = KerberosUtil.loadFile(hadoopConfig, keytabFileName, distributedCache);
@@ -111,7 +125,9 @@ public class FileSystemUtil {
         KerberosUtil.loadKrb5Conf(hadoopConfig, distributedCache);
         KerberosUtil.refreshConfig();
 
-        UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
+        UserGroupInformation ugi =
+                KerberosUtil.loginAndReturnUgi(
+                        getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
 
         return ugi;
     }
@@ -120,11 +136,12 @@ public class FileSystemUtil {
         confMap = fillConfig(confMap, defaultFs);
 
         Configuration conf = new Configuration();
-        confMap.forEach((key, val) -> {
-            if(val != null){
-                conf.set(key, val.toString());
-            }
-        });
+        confMap.forEach(
+                (key, val) -> {
+                    if (val != null) {
+                        conf.set(key, val.toString());
+                    }
+                });
 
         return conf;
     }
@@ -133,11 +150,12 @@ public class FileSystemUtil {
         confMap = fillConfig(confMap, defaultFs);
 
         JobConf jobConf = new JobConf();
-        confMap.forEach((key, val) -> {
-            if(val != null){
-                jobConf.set(key, val.toString());
-            }
-        });
+        confMap.forEach(
+                (key, val) -> {
+                    if (val != null) {
+                        jobConf.set(key, val.toString());
+                    }
+                });
 
         return jobConf;
     }

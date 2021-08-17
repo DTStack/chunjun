@@ -28,7 +28,6 @@ import org.apache.flink.configuration.ConfigOptions;
  * @author: xiuzhu
  * @create: 2021/06/25
  */
-
 public class FileOptions extends BaseFileOptions {
 
     public static final ConfigOption<String> FORMAT =
@@ -38,5 +37,4 @@ public class FileOptions extends BaseFileOptions {
                     .withDescription(
                             "Defines the format identifier for encoding value data. "
                                     + "The identifier is used to discover a suitable format factory.");
-
 }

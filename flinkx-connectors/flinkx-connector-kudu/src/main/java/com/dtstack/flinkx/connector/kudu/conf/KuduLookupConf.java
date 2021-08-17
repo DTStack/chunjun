@@ -110,21 +110,37 @@ public class KuduLookupConf extends LookupConf {
 
     @Override
     public String toString() {
-        return "KuduLookupConf{" +
-                "commonConf=" + commonConf +
-                ", batchSizeBytes=" + batchSizeBytes +
-                ", limitNum=" + limitNum +
-                ", isFaultTolerant=" + isFaultTolerant +
-                ", tableName='" + tableName + '\'' +
-                ", period=" + period +
-                ", cacheSize=" + cacheSize +
-                ", cacheTtl=" + cacheTtl +
-                ", cache='" + cache + '\'' +
-                ", maxRetryTimes=" + maxRetryTimes +
-                ", errorLimit=" + errorLimit +
-                ", fetchSize=" + fetchSize +
-                ", asyncTimeout=" + asyncTimeout +
-                ", parallelism=" + parallelism +
-                '}';
+        return "KuduLookupConf{"
+                + "commonConf="
+                + commonConf
+                + ", batchSizeBytes="
+                + batchSizeBytes
+                + ", limitNum="
+                + limitNum
+                + ", isFaultTolerant="
+                + isFaultTolerant
+                + ", tableName='"
+                + tableName
+                + '\''
+                + ", period="
+                + period
+                + ", cacheSize="
+                + cacheSize
+                + ", cacheTtl="
+                + cacheTtl
+                + ", cache='"
+                + cache
+                + '\''
+                + ", maxRetryTimes="
+                + maxRetryTimes
+                + ", errorLimit="
+                + errorLimit
+                + ", fetchSize="
+                + fetchSize
+                + ", asyncTimeout="
+                + asyncTimeout
+                + ", parallelism="
+                + parallelism
+                + '}';
     }
 }

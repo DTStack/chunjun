@@ -145,7 +145,8 @@ public class FtpInputFormat extends BaseRichInputFormat {
                         Object value = null;
                         if (fieldConf.getValue() != null) {
                             value = fieldConf.getValue();
-                        } else if (fieldConf.getIndex() != null && fieldConf.getIndex() < fields.length) {
+                        } else if (fieldConf.getIndex() != null
+                                && fieldConf.getIndex() < fields.length) {
                             value = fields[fieldConf.getIndex()];
                         }
                         genericRowData.setField(i, value);

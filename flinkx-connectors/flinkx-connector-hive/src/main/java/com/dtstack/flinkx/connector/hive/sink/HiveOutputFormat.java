@@ -17,10 +17,6 @@
  */
 package com.dtstack.flinkx.connector.hive.sink;
 
-import org.apache.flink.streaming.api.CheckpointingMode;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.RowKind;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsRawTypeConverter;
@@ -43,6 +39,11 @@ import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.JsonUtil;
+
+import org.apache.flink.streaming.api.CheckpointingMode;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
+
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -269,7 +270,11 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         }
         TableInfo tableInfo = checkCreateTable(tableName, rowData, event);
         if (outputFormat == null) {
-            HiveUtil.createPartition(tableInfo, partitionPath, connectionInfo, getRuntimeContext().getDistributedCache());
+            HiveUtil.createPartition(
+                    tableInfo,
+                    partitionPath,
+                    connectionInfo,
+                    getRuntimeContext().getDistributedCache());
             String path = tableInfo.getPath() + ConstantValue.SINGLE_SLASH_SYMBOL + partitionPath;
 
             outputFormat =
@@ -376,7 +381,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                         "tableName:" + tableName + " of the tableInfo is null");
             }
             tableInfo.setTablePath(tablePath);
-            HiveUtil.createHiveTableWithTableInfo(tableInfo, connectionInfo, getRuntimeContext().getDistributedCache());
+            HiveUtil.createHiveTableWithTableInfo(
+                    tableInfo, connectionInfo, getRuntimeContext().getDistributedCache());
             tableCacheMap.put(tablePath, tableInfo);
         }
         return tableInfo;

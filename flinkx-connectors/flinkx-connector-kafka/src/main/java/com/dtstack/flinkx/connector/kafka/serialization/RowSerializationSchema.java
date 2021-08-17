@@ -18,15 +18,14 @@
 package com.dtstack.flinkx.connector.kafka.serialization;
 
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
-
+import com.dtstack.flinkx.connector.kafka.sink.DynamicKafkaSerializationSchema;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.util.JsonUtil;
 
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkKafkaPartitioner;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.connector.kafka.sink.DynamicKafkaSerializationSchema;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +33,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 /**
- * Date: 2021/03/04
- * Company: www.dtstack.com
+ * Date: 2021/03/04 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -51,17 +49,12 @@ public class RowSerializationSchema extends DynamicKafkaSerializationSchema {
     /** kafka converter */
     private final KafkaConf kafkaConf;
 
-    public RowSerializationSchema(KafkaConf kafkaConf, @Nullable FlinkKafkaPartitioner<RowData> partitioner, AbstractRowConverter keyConverter, AbstractRowConverter valueConverter) {
-        super(
-                kafkaConf.getTopic(),
-                partitioner,
-                null,
-                null,
-                null,
-                null,
-                false,
-                null,
-                false);
+    public RowSerializationSchema(
+            KafkaConf kafkaConf,
+            @Nullable FlinkKafkaPartitioner<RowData> partitioner,
+            AbstractRowConverter keyConverter,
+            AbstractRowConverter valueConverter) {
+        super(kafkaConf.getTopic(), partitioner, null, null, null, null, false, null, false);
         this.keyConverter = keyConverter;
         this.valueConverter = valueConverter;
         this.kafkaConf = kafkaConf;
@@ -86,7 +79,7 @@ public class RowSerializationSchema extends DynamicKafkaSerializationSchema {
         try {
             beforeSerialize(1, element);
             byte[] keySerialized = null;
-            if(keyConverter != null){
+            if (keyConverter != null) {
                 keySerialized = keyConverter.toExternal(element, null);
             }
             byte[] valueSerialized = valueConverter.toExternal(element, null);
@@ -94,8 +87,7 @@ public class RowSerializationSchema extends DynamicKafkaSerializationSchema {
                     this.topic,
                     extractPartition(element, keySerialized, null),
                     null,
-                    valueSerialized
-            );
+                    valueSerialized);
         } catch (Exception e) {
             // todo kafka比较特殊，这里直接记录脏数据。
             LOG.error(e.getMessage());

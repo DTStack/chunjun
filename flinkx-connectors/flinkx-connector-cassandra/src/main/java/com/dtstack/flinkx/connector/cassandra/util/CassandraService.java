@@ -18,6 +18,13 @@
 
 package com.dtstack.flinkx.connector.cassandra.util;
 
+import com.dtstack.flinkx.connector.cassandra.conf.CassandraCommonConf;
+import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
+import com.dtstack.flinkx.connector.cassandra.source.CassandraInputSplit;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
+import org.apache.flink.core.io.InputSplit;
+
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.HostDistance;
@@ -26,15 +33,8 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
-import com.dtstack.flinkx.connector.cassandra.conf.CassandraCommonConf;
-import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
-import com.dtstack.flinkx.connector.cassandra.source.CassandraInputSplit;
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
-
-import org.apache.flink.core.io.InputSplit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

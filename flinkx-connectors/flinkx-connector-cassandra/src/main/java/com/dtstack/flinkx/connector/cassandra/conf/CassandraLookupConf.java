@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.connector.cassandra.conf;
 
-import org.apache.flink.configuration.ReadableConfig;
-
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+
+import org.apache.flink.configuration.ReadableConfig;
 
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.TABLE_NAME;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
@@ -73,18 +73,31 @@ public class CassandraLookupConf extends LookupConf {
 
     @Override
     public String toString() {
-        return "CassandraLookupConf{" +
-                "commonConf=" + commonConf +
-                ", tableName='" + tableName + '\'' +
-                ", period=" + period +
-                ", cacheSize=" + cacheSize +
-                ", cacheTtl=" + cacheTtl +
-                ", cache='" + cache + '\'' +
-                ", maxRetryTimes=" + maxRetryTimes +
-                ", errorLimit=" + errorLimit +
-                ", fetchSize=" + fetchSize +
-                ", asyncTimeout=" + asyncTimeout +
-                ", parallelism=" + parallelism +
-                '}';
+        return "CassandraLookupConf{"
+                + "commonConf="
+                + commonConf
+                + ", tableName='"
+                + tableName
+                + '\''
+                + ", period="
+                + period
+                + ", cacheSize="
+                + cacheSize
+                + ", cacheTtl="
+                + cacheTtl
+                + ", cache='"
+                + cache
+                + '\''
+                + ", maxRetryTimes="
+                + maxRetryTimes
+                + ", errorLimit="
+                + errorLimit
+                + ", fetchSize="
+                + fetchSize
+                + ", asyncTimeout="
+                + asyncTimeout
+                + ", parallelism="
+                + parallelism
+                + '}';
     }
 }

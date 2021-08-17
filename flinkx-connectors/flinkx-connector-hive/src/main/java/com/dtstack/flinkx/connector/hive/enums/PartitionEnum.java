@@ -18,25 +18,18 @@
 package com.dtstack.flinkx.connector.hive.enums;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
 public enum PartitionEnum {
-    /**
-     * 天分区
-     */
+    /** 天分区 */
     DAY("DAY"),
 
-    /**
-     * 小时分区
-     */
+    /** 小时分区 */
     HOUR("HOUR"),
 
-    /**
-     * 分钟分区
-     */
+    /** 分钟分区 */
     MINUTE("MINUTE");
 
     private final String name;

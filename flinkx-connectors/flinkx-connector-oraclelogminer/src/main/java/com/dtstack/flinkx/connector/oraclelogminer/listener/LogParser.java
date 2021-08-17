@@ -51,7 +51,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -266,7 +265,7 @@ public class LogParser {
 
         Long ts = idWorker.nextId();
 
-        if(LOG.isDebugEnabled()){
+        if (LOG.isDebugEnabled()) {
             printDelay(pair.getScn(), ts, timestamp);
         }
 
@@ -292,5 +291,4 @@ public class LogParser {
 
         LOG.debug("scn {} ,delay {} ms", scn, res - opTime);
     }
-
 }

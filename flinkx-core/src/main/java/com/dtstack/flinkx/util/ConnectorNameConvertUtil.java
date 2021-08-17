@@ -30,12 +30,12 @@ import java.util.Map;
 public class ConnectorNameConvertUtil {
 
     // tuple f0 package name,f1 class name
-    private static Map<String, Tuple2<String,String>> connectorNameMap = new HashMap<>();
+    private static Map<String, Tuple2<String, String>> connectorNameMap = new HashMap<>();
 
     static {
-        connectorNameMap.put("es", new Tuple2<>("elasticsearch6","elasticsearch6"));
-        connectorNameMap.put("hbase", new Tuple2<>("hbase14","HBase14"));
-        connectorNameMap.put("tidb", new Tuple2<>("mysql","mysql"));
+        connectorNameMap.put("es", new Tuple2<>("elasticsearch6", "elasticsearch6"));
+        connectorNameMap.put("hbase", new Tuple2<>("hbase14", "HBase14"));
+        connectorNameMap.put("tidb", new Tuple2<>("mysql", "mysql"));
     }
 
     public static String convertClassPrefix(String originName) {

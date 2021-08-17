@@ -23,9 +23,10 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.Md5Util;
 
+import org.apache.flink.api.common.cache.DistributedCache;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authentication.util.KerberosName;
@@ -60,6 +61,7 @@ public class KerberosUtil {
     private static final String JAVA_VENDOR_IBM = "IBM";
 
     private static final String LOCAL_CACHE_DIR;
+
     static {
         String systemInfo = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_OS);
         if (systemInfo.toLowerCase().startsWith(ConstantValue.OS_WINDOWS)) {
@@ -71,7 +73,8 @@ public class KerberosUtil {
         createDir(LOCAL_CACHE_DIR);
     }
 
-    public static UserGroupInformation loginAndReturnUgi(Configuration conf, String principal, String keytab) throws IOException {
+    public static UserGroupInformation loginAndReturnUgi(
+            Configuration conf, String principal, String keytab) throws IOException {
         if (conf == null) {
             throw new IllegalArgumentException("kerberos conf can not be null");
         }
@@ -110,7 +113,8 @@ public class KerberosUtil {
         System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5File);
 
         try {
-            if (!System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_JAVA_VENDOR).contains(JAVA_VENDOR_IBM)) {
+            if (!System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_JAVA_VENDOR)
+                    .contains(JAVA_VENDOR_IBM)) {
                 Config.refresh();
             }
         } catch (Exception e) {
@@ -118,7 +122,8 @@ public class KerberosUtil {
         }
     }
 
-    public static void loadKrb5Conf(Map<String, Object> kerberosConfig, DistributedCache distributedCache){
+    public static void loadKrb5Conf(
+            Map<String, Object> kerberosConfig, DistributedCache distributedCache) {
         String krb5FilePath = MapUtils.getString(kerberosConfig, KEY_JAVA_SECURITY_KRB5_CONF);
         if (StringUtils.isEmpty(krb5FilePath)) {
             LOG.info("krb5 file is empty,will use default file");
@@ -135,21 +140,14 @@ public class KerberosUtil {
     }
 
     /**
-     * kerberosConfig
-     * {
-     *     "principalFile":"keytab.keytab",
-     *     "remoteDir":"/home/admin",
-     *     "sftpConf":{
-     *          "path" : "/home/admin",
-     *          "password" : "******",
-     *          "port" : "22",
-     *          "auth" : "1",
-     *          "host" : "127.0.0.1",
-     *          "username" : "admin"
-     *     }
-     * }
+     * kerberosConfig { "principalFile":"keytab.keytab", "remoteDir":"/home/admin", "sftpConf":{
+     * "path" : "/home/admin", "password" : "******", "port" : "22", "auth" : "1", "host" :
+     * "127.0.0.1", "username" : "admin" } }
      */
-    public static String loadFile(Map<String, Object> kerberosConfig, String filePath, DistributedCache distributedCache) {
+    public static String loadFile(
+            Map<String, Object> kerberosConfig,
+            String filePath,
+            DistributedCache distributedCache) {
         boolean useLocalFile = MapUtils.getBooleanValue(kerberosConfig, KEY_USE_LOCAL_FILE);
         if (useLocalFile) {
             LOG.info("will use local file:{}", filePath);
@@ -157,19 +155,25 @@ public class KerberosUtil {
             return filePath;
         } else {
             String fileName = new File(filePath).getName();
-            if(StringUtils.startsWith(fileName, "blob_")){
-                //already downloaded from blobServer
+            if (StringUtils.startsWith(fileName, "blob_")) {
+                // already downloaded from blobServer
                 LOG.info("file [{}] already downloaded from blobServer", filePath);
                 return filePath;
             }
-            if(distributedCache != null){
+            if (distributedCache != null) {
                 try {
                     File file = distributedCache.getFile(fileName);
                     String absolutePath = file.getAbsolutePath();
-                    LOG.info("load file [{}] from Flink BlobServer, download file path = {}", fileName, absolutePath);
+                    LOG.info(
+                            "load file [{}] from Flink BlobServer, download file path = {}",
+                            fileName,
+                            absolutePath);
                     return absolutePath;
-                }catch (Exception e){
-                    LOG.warn("failed to get [{}] from Flink BlobServer, try to get from sftp. e = {}", fileName, e.getMessage());
+                } catch (Exception e) {
+                    LOG.warn(
+                            "failed to get [{}] from Flink BlobServer, try to get from sftp. e = {}",
+                            fileName,
+                            e.getMessage());
                 }
             }
 
@@ -195,8 +199,9 @@ public class KerberosUtil {
 
     private static String loadFromSftp(Map<String, Object> config, String fileName) {
         String remoteDir = MapUtils.getString(config, KEY_REMOTE_DIR);
-        if(StringUtils.isBlank(remoteDir)){
-            throw new FlinkxRuntimeException("can't find [remoteDir] in config: \n" + JsonUtil.toPrintJson(config));
+        if (StringUtils.isBlank(remoteDir)) {
+            throw new FlinkxRuntimeException(
+                    "can't find [remoteDir] in config: \n" + JsonUtil.toPrintJson(config));
         }
         String filePathOnSftp = remoteDir + "/" + fileName;
 

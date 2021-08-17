@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.emqx.source;
 
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
