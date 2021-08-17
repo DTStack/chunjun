@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.solr.converter;
 
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
@@ -27,7 +28,6 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -75,16 +75,17 @@ public class SolrColumnConverter
 
     @Override
     public RowData toInternal(SolrDocument input) throws Exception {
-        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
+        ColumnRowData columnRowData = new ColumnRowData(toInternalConverters.length);
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = input.getFieldValue(fieldNames[pos]);
             // when Solr collection is schemaless, it will return a ArrayList.
             if (field instanceof ArrayList) {
                 field = ((ArrayList) field).get(0);
             }
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
+            columnRowData.addField(
+                    (AbstractBaseColumn) toInternalConverters[pos].deserialize(field));
         }
-        return genericRowData;
+        return columnRowData;
     }
 
     @Override
