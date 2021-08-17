@@ -17,6 +17,11 @@
  */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.enums.Semantic;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
@@ -83,7 +88,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         try {
             dbConn = getConnection();
             // 默认关闭事务自动提交，手动控制事务
-            dbConn.setAutoCommit(false);
+            if (Semantic.EXACTLY_ONCE == semantic) {
+                dbConn.setAutoCommit(false);
+            }
             initColumnList();
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
                 List<String> updateKey = jdbcConf.getUpdateKey();
@@ -171,7 +178,9 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     (FieldNamedPreparedStatement)
                             rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
             fieldNamedPreparedStatement.execute();
-            JdbcUtil.commit(dbConn);
+            if (Semantic.EXACTLY_ONCE == semantic) {
+                JdbcUtil.commit(dbConn);
+            }
         } catch (Exception e) {
             JdbcUtil.rollBack(dbConn);
             processWriteException(e, index, row);
@@ -201,11 +210,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             }
             fieldNamedPreparedStatement.executeBatch();
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
-            if (checkpointEnabled && CheckpointingMode.EXACTLY_ONCE == checkpointMode) {
+            if (Semantic.EXACTLY_ONCE == semantic) {
                 rowsOfCurrentTransaction += rows.size();
-            } else {
-                // 手动提交事务
-                JdbcUtil.commit(dbConn);
             }
         } catch (Exception e) {
             LOG.warn(

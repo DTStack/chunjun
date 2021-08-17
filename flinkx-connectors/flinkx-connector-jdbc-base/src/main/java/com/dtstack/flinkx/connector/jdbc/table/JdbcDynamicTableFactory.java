@@ -30,6 +30,7 @@ import com.dtstack.flinkx.connector.jdbc.source.JdbcDynamicTableSource;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.enums.Semantic;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -50,6 +51,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -65,6 +67,7 @@ import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.VERTX_
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.getLibConfMap;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_ALL_REPLACE;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_PARALLELISM;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_SEMANTIC;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
@@ -168,6 +171,7 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
         jdbcConf.setFlushIntervalMills(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
         jdbcConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
+        jdbcConf.setSemantic(readableConfig.get(SINK_SEMANTIC));
 
         List<String> keyFields =
                 schema.getPrimaryKey().map(UniqueConstraint::getColumns).orElse(null);
@@ -284,6 +288,7 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(SINK_MAX_RETRIES);
         optionalOptions.add(SINK_ALL_REPLACE);
         optionalOptions.add(SINK_PARALLELISM);
+        optionalOptions.add(SINK_SEMANTIC);
         return optionalOptions;
     }
 
@@ -315,6 +320,17 @@ public abstract class JdbcDynamicTableFactory
                     String.format(
                             "The value of '%s' option shouldn't be negative, but is %s.",
                             SINK_MAX_RETRIES.key(), config.get(SINK_MAX_RETRIES)));
+        }
+        try {
+            Semantic.getByName(config.get(SINK_SEMANTIC));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "The value of '%s' option should only be %s or %s, but is %s.",
+                            SINK_SEMANTIC.key(),
+                            Semantic.EXACTLY_ONCE.getAlisName(),
+                            Semantic.AT_LEAST_ONCE.getAlisName(),
+                            config.get(SINK_SEMANTIC)));
         }
     }
 

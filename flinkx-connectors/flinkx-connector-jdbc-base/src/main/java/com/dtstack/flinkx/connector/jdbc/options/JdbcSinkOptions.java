@@ -39,4 +39,10 @@ public class JdbcSinkOptions {
                     .intType()
                     .defaultValue(null)
                     .withDescription("sink.parallelism.");
+
+    public static final ConfigOption<String> SINK_SEMANTIC =
+            ConfigOptions.key("sink.semantic")
+                    .stringType()
+                    .defaultValue("at-least-once")
+                    .withDescription("sink.semantic.");
 }

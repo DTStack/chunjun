@@ -118,6 +118,17 @@ mysql5.x
   - 默认值：无
 <br />
 
+- **semantic**
+  - 描述：sink端是否支持二阶段提交
+  - 注意：
+    - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
+    - 当前只支持exactly-once 和at-least-once 
+  - 必选：否
+  - 参数类型：String
+    - 示例："semantic": "exactly-once"
+  - 默认值：at-least-once
+<br />
+
 ### 2、SQL
 - **connector**
   - 描述：mysql-x
@@ -180,6 +191,17 @@ mysql5.x
   - 必选：否
   - 参数类型：String
   - 默认值：无
+<br />
+
+- **sink.semantic**
+  - 描述：sink端是否支持二阶段提交
+  - 注意：
+    - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
+    - 当前只支持exactly-once 和at-least-once 
+  - 必选：否
+  - 参数类型：String
+    - 示例："semantic": "exactly-once"
+  - 默认值：at-least-once
 <br />
 
 ## 五、数据类型

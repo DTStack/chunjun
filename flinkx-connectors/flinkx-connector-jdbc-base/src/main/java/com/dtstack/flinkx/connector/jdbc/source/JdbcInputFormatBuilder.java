@@ -23,6 +23,7 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.enums.Semantic;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.commons.lang.StringUtils;
@@ -101,6 +102,11 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
                         .append(conf.getParallelism())
                         .append("];\n");
             }
+        }
+        try {
+            Semantic.getByName(conf.getSemantic());
+        } catch (Exception e) {
+            sb.append(String.format("unsupported semantic type %s", conf.getSemantic()));
         }
 
         if (sb.length() > 0) {
