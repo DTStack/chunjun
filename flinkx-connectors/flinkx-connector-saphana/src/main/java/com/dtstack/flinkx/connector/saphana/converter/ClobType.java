@@ -36,14 +36,11 @@ import java.util.Set;
 public class ClobType extends LogicalType {
 
     private static final Set<String> INPUT_CONVERSION =
-            conversionSet(
-                    String.class.getName(), StringData.class.getName());
+            conversionSet(String.class.getName(), StringData.class.getName());
 
     private static final Class<?> DEFAULT_CONVERSION = String.class;
 
-    private static final Set<String> OUTPUT_CONVERSION =
-            conversionSet(
-                    Reader.class.getName());
+    private static final Set<String> OUTPUT_CONVERSION = conversionSet(Reader.class.getName());
 
     public ClobType(boolean isNullable, LogicalTypeRoot typeRoot) {
         super(isNullable, typeRoot);
@@ -78,7 +75,6 @@ public class ClobType extends LogicalType {
     public <R> R accept(LogicalTypeVisitor<R> visitor) {
         return visitor.visit(this);
     }
-
 
     @Override
     public LogicalType copy(boolean isNullable) {

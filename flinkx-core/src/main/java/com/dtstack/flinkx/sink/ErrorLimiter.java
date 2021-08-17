@@ -18,17 +18,13 @@
 
 package com.dtstack.flinkx.sink;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.Preconditions;
-
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 
-/**
- * 脏数据限制器，当脏数据满足以下条件任务，任务报错并停止
- * 1、脏数据记录数超过设置的最大值
- * 2、脏数据比例超过设置的最大值
- */
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.Preconditions;
+
+/** 脏数据限制器，当脏数据满足以下条件任务，任务报错并停止 1、脏数据记录数超过设置的最大值 2、脏数据比例超过设置的最大值 */
 public class ErrorLimiter {
 
     private final Integer maxErrors;
@@ -38,46 +34,57 @@ public class ErrorLimiter {
     private String errMsg = "";
     private RowData errorData;
 
-    public ErrorLimiter(AccumulatorCollector accumulatorCollector, Integer maxErrors, Double maxErrorRatio) {
+    public ErrorLimiter(
+            AccumulatorCollector accumulatorCollector, Integer maxErrors, Double maxErrorRatio) {
         this.maxErrors = maxErrors;
         this.maxErrorRatio = maxErrorRatio;
         this.accumulatorCollector = accumulatorCollector;
     }
 
-    /**
-     * 从累加器收集器中更新脏数据指标信息
-     */
-    public void updateErrorInfo(){
+    /** 从累加器收集器中更新脏数据指标信息 */
+    public void updateErrorInfo() {
         accumulatorCollector.collectAccumulator();
     }
 
-    /**
-     * 校验脏数据指标是否超过设定值
-     */
+    /** 校验脏数据指标是否超过设定值 */
     public void checkErrorLimit() {
         String errorDataStr = "";
-        if(errorData != null){
+        if (errorData != null) {
             errorDataStr = errorData + "\n";
         }
 
         long errors = accumulatorCollector.getAccumulatorValue(Metrics.NUM_ERRORS, false);
-        if(maxErrors != null){
-            Preconditions.checkArgument(errors <= maxErrors,
-                    "WritingRecordError: error writing record [" + errors + "] exceed limit [" + maxErrors + "]\n" + errorDataStr + errMsg);
+        if (maxErrors != null) {
+            Preconditions.checkArgument(
+                    errors <= maxErrors,
+                    "WritingRecordError: error writing record ["
+                            + errors
+                            + "] exceed limit ["
+                            + maxErrors
+                            + "]\n"
+                            + errorDataStr
+                            + errMsg);
         }
 
-        if(maxErrorRatio != null){
+        if (maxErrorRatio != null) {
             long numRead = accumulatorCollector.getAccumulatorValue(Metrics.NUM_READS, false);
-            if(numRead >= 1) {
+            if (numRead >= 1) {
                 errorRatio = (double) errors / numRead;
             }
 
-            Preconditions.checkArgument(errorRatio <= maxErrorRatio,
-                    "WritingRecordError: error writing record ratio [" + errorRatio + "] exceed limit [" + maxErrorRatio + "]\n" + errorDataStr + errMsg);
+            Preconditions.checkArgument(
+                    errorRatio <= maxErrorRatio,
+                    "WritingRecordError: error writing record ratio ["
+                            + errorRatio
+                            + "] exceed limit ["
+                            + maxErrorRatio
+                            + "]\n"
+                            + errorDataStr
+                            + errMsg);
         }
     }
 
-    public void setErrorData(RowData errorData){
+    public void setErrorData(RowData errorData) {
         this.errorData = errorData;
     }
 

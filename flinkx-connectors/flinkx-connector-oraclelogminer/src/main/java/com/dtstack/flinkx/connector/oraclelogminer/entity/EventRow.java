@@ -19,9 +19,16 @@
 package com.dtstack.flinkx.connector.oraclelogminer.entity;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.List;
 
+/**
+ * Date: 2021/08/13 Company: www.dtstack.com
+ *
+ * @author dujie
+ *     <p>事件数据
+ */
 public class EventRow implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -29,9 +36,9 @@ public class EventRow implements Serializable {
 
     private List<EventRowData> afterColumnList;
 
-    private Long scn;
+    private BigInteger scn;
 
-    /** INSERT UPDATE DELETE **/
+    /** INSERT UPDATE DELETE * */
     private String type;
 
     private String schema;
@@ -42,8 +49,15 @@ public class EventRow implements Serializable {
 
     private Timestamp opTime;
 
-
-    public EventRow(List<EventRowData> beforeColumn, List<EventRowData> afterColumn, Long scn, String type, String schema, String table, Long ts, Timestamp timestamp) {
+    public EventRow(
+            List<EventRowData> beforeColumn,
+            List<EventRowData> afterColumn,
+            BigInteger scn,
+            String type,
+            String schema,
+            String table,
+            Long ts,
+            Timestamp timestamp) {
         this.beforeColumnList = beforeColumn;
         this.afterColumnList = afterColumn;
         this.scn = scn;
@@ -58,60 +72,60 @@ public class EventRow implements Serializable {
         return beforeColumnList;
     }
 
-    public List<EventRowData> getAfterColumnList() {
-        return afterColumnList;
-    }
-
-    public Long getScn() {
-        return scn;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public String getTable() {
-        return table;
-    }
-
-    public Long getTs() {
-        return ts;
-    }
-
-    public Timestamp getOpTime() {
-        return opTime;
-    }
-
     public void setBeforeColumnList(List<EventRowData> beforeColumnList) {
         this.beforeColumnList = beforeColumnList;
+    }
+
+    public List<EventRowData> getAfterColumnList() {
+        return afterColumnList;
     }
 
     public void setAfterColumnList(List<EventRowData> afterColumnList) {
         this.afterColumnList = afterColumnList;
     }
 
-    public void setScn(Long scn) {
+    public BigInteger getScn() {
+        return scn;
+    }
+
+    public void setScn(BigInteger scn) {
         this.scn = scn;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public void setType(String type) {
         this.type = type;
     }
 
+    public String getSchema() {
+        return schema;
+    }
+
     public void setSchema(String schema) {
         this.schema = schema;
+    }
+
+    public String getTable() {
+        return table;
     }
 
     public void setTable(String table) {
         this.table = table;
     }
 
+    public Long getTs() {
+        return ts;
+    }
+
     public void setTs(Long ts) {
         this.ts = ts;
+    }
+
+    public Timestamp getOpTime() {
+        return opTime;
     }
 
     public void setOpTime(Timestamp opTime) {
@@ -120,17 +134,26 @@ public class EventRow implements Serializable {
 
     @Override
     public String toString() {
-        return "LogminerEventRow{" +
-                "beforeColumn=" + beforeColumnList +
-                ", afterColumn=" + afterColumnList +
-                ", scn=" + scn +
-                ", type='" + type + '\'' +
-                ", schema='" + schema + '\'' +
-                ", table='" + table + '\'' +
-                ", ts=" + ts +
-                ", timestamp=" + opTime +
-                '}';
+        return "LogminerEventRow{"
+                + "beforeColumn="
+                + beforeColumnList
+                + ", afterColumn="
+                + afterColumnList
+                + ", scn="
+                + scn
+                + ", type='"
+                + type
+                + '\''
+                + ", schema='"
+                + schema
+                + '\''
+                + ", table='"
+                + table
+                + '\''
+                + ", ts="
+                + ts
+                + ", timestamp="
+                + opTime
+                + '}';
     }
-
-
 }

@@ -20,13 +20,13 @@ package com.dtstack.flinkx.connector.hdfs.sink;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
+import com.dtstack.flinkx.sink.format.FileOutputFormatBuilder;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Date: 2021/06/18
- * Company: www.dtstack.com
+ * Date: 2021/06/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -34,7 +34,7 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
     private final BaseHdfsOutputFormat format;
 
     public HdfsOutputFormatBuilder(String fileType) {
-        switch(FileType.getByName(fileType)) {
+        switch (FileType.getByName(fileType)) {
             case ORC:
                 format = new HdfsOrcOutputFormat();
                 break;
@@ -62,10 +62,10 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
 
         if (StringUtils.isBlank(hdfsConf.getDefaultFS())) {
             errorMessage.append("No defaultFS supplied. \n");
-        }else if (!hdfsConf.getDefaultFS().startsWith(ConstantValue.PROTOCOL_HDFS)) {
+        } else if (!hdfsConf.getDefaultFS().startsWith(ConstantValue.PROTOCOL_HDFS)) {
             errorMessage.append("defaultFS should start with hdfs:// \n");
         }
-        if(StringUtils.isNotBlank(errorMessage)){
+        if (StringUtils.isNotBlank(errorMessage)) {
             throw new FlinkxRuntimeException(errorMessage.toString());
         }
     }

@@ -18,11 +18,6 @@
 
 package com.dtstack.flinkx.connector.stream.sink;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.converter.StreamColumnConverter;
@@ -33,6 +28,11 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
 /**
  * Date: 2021/04/07 Company: www.dtstack.com
@@ -47,8 +47,7 @@ public class StreamSinkFactory extends SinkFactory {
         super(config);
         streamConf =
                 GsonUtil.GSON.fromJson(
-                        GsonUtil.GSON.toJson(config.getWriter().getParameter()),
-                        StreamConf.class);
+                        GsonUtil.GSON.toJson(config.getWriter().getParameter()), StreamConf.class);
         streamConf.setColumn(config.getWriter().getFieldList());
         super.initFlinkxCommonConf(streamConf);
     }
@@ -59,7 +58,7 @@ public class StreamSinkFactory extends SinkFactory {
         builder.setStreamConf(streamConf);
         AbstractRowConverter converter;
         if (useAbstractBaseColumn) {
-            converter = new StreamColumnConverter();
+            converter = new StreamColumnConverter(streamConf);
         } else {
             final RowType rowType =
                     TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());

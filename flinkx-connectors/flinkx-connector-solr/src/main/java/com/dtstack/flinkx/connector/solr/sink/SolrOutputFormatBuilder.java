@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.connector.solr.sink;
 
 import com.dtstack.flinkx.connector.solr.SolrConf;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
 /**
  * @author Ada Wong

@@ -16,16 +16,15 @@ package com.dtstack.flinkx.connector.db2.source;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.db2.Db2Dialect;
-import com.dtstack.flinkx.connector.db2.converter.Db2RawTypeConverter;
+import com.dtstack.flinkx.connector.db2.dialect.Db2Dialect;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.flinkx.converter.RawTypeConverter;
-
-import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Company: www.dtstack.com
@@ -33,10 +32,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  * @author xuchao
  * @date 2021-06-15
  */
-public class Db2SourceFactory extends JdbcSourceFactory  {
+public class Db2SourceFactory extends JdbcSourceFactory {
     public Db2SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        super.jdbcDialect = new Db2Dialect();
+        super(syncConf, env, new Db2Dialect());
         // 避免result.next阻塞
         if (jdbcConf.isPolling()
                 && StringUtils.isEmpty(jdbcConf.getStartLocation())
@@ -48,10 +46,5 @@ public class Db2SourceFactory extends JdbcSourceFactory  {
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new Db2InputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return Db2RawTypeConverter::apply;
     }
 }

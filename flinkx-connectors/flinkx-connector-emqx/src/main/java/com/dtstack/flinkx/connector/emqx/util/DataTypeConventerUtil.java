@@ -32,7 +32,7 @@ import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.hasRo
  * @author chuixue
  * @create 2021-06-18 14:26
  * @description
- **/
+ */
 public class DataTypeConventerUtil {
     public static int[] createValueFormatProjection(DataType physicalDataType) {
         final LogicalType physicalType = physicalDataType.getLogicalType();

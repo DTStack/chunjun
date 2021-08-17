@@ -16,17 +16,14 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.connector.saphana.source;
-
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.flinkx.connector.saphana.SaphanaDialect;
-import com.dtstack.flinkx.connector.saphana.converter.SaphanaRawTypeConverter;
-import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.connector.saphana.dialect.SaphanaDialect;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * company www.dtstack.com
@@ -36,17 +33,11 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 public class SaphanaSourceFactory extends JdbcSourceFactory {
 
     public SaphanaSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        super.jdbcDialect = new SaphanaDialect();
+        super(syncConf, env, new SaphanaDialect());
     }
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new SaphanaInputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return SaphanaRawTypeConverter::apply;
     }
 }

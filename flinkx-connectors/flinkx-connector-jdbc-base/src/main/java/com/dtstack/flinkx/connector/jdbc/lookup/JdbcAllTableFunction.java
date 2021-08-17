@@ -1,14 +1,15 @@
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,21 +45,20 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
             RowType rowType) {
         super(fieldNames, keyNames, lookupConf, jdbcDialect.getRowConverter(rowType));
         this.jdbcConf = jdbcConf;
-        this.query = jdbcDialect.getSelectFromStatement(
-                jdbcConf.getSchema(),
-                jdbcConf.getTable(),
-                fieldNames,
-                new String[]{});
+        this.query =
+                jdbcDialect.getSelectFromStatement(
+                        jdbcConf.getSchema(), jdbcConf.getTable(), fieldNames, new String[] {});
         this.jdbcDialect = jdbcDialect;
     }
 
     @Override
     protected void loadData(Object cacheRef) {
-        Map<String, List<Map<String, Object>>> tmpCache = (Map<String, List<Map<String, Object>>>) cacheRef;
+        Map<String, List<Map<String, Object>>> tmpCache =
+                (Map<String, List<Map<String, Object>>>) cacheRef;
         Connection connection = null;
 
         try {
-            connection = JdbcUtil.getConnection(jdbcConf,jdbcDialect);
+            connection = JdbcUtil.getConnection(jdbcConf, jdbcDialect);
             queryAndFillData(tmpCache, connection);
         } catch (Exception e) {
             LOG.error("", e);
@@ -79,13 +79,12 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
      *
      * @param tmpCache
      * @param connection
-     *
      * @throws SQLException
      */
     private void queryAndFillData(
-            Map<String, List<Map<String, Object>>> tmpCache,
-            Connection connection) throws SQLException {
-        //load data from table
+            Map<String, List<Map<String, Object>>> tmpCache, Connection connection)
+            throws SQLException {
+        // load data from table
         Statement statement = connection.createStatement();
         statement.setFetchSize(lookupConf.getFetchSize());
         ResultSet resultSet = statement.executeQuery(query);
@@ -105,5 +104,4 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
             }
         }
     }
-
 }

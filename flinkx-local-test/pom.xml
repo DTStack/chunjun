@@ -26,21 +26,21 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-parquet</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-parquet_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-orc</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-orc_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-json</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-json</artifactId>
+			<version>${flink.version}</version>
 		</dependency>
 
 		<dependency>
@@ -70,6 +70,10 @@
 					<artifactId>commons-cli</artifactId>
 					<groupId>commons-cli</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>snappy-java</artifactId>
+					<groupId>org.xerial.snappy</groupId>
+				</exclusion>
 			</exclusions>
 			<groupId>org.apache.hadoop</groupId>
 			<version>${hadoop.version}</version>
@@ -81,6 +85,10 @@
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
 					<groupId>commons-cli</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>netty-all</artifactId>
+					<groupId>io.netty</groupId>
 				</exclusion>
 			</exclusions>
 			<groupId>org.apache.hadoop</groupId>
@@ -112,18 +120,36 @@
 <!--			<artifactId>flinkx-connector-elasticsearch7</artifactId>-->
 <!--			<version>${project.version}</version>-->
 <!--		</dependency>-->
-		
+
         <dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-elasticsearch6</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-hbase-2.2_2.12</artifactId>
+			<version>1.12.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-sqlserver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-postgresql</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<!--		<dependency>-->
+		<!--			<groupId>com.dtstack.flinkx</groupId>-->
+		<!--			<artifactId>flinkx-connector-elasticsearch5</artifactId>-->
+		<!--			<version>${project.version}</version>-->
+		<!--		</dependency>-->
 
 <!--		<dependency>-->
 <!--			<groupId>com.dtstack.flinkx</groupId>-->
@@ -175,19 +201,7 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-oracle</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-clickhouse</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-sqlserver</artifactId>
+			<artifactId>flinkx-connector-kudu</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -215,11 +229,6 @@
 <!--			<version>${project.version}</version>-->
 <!--		</dependency>-->
 
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-tidb</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
@@ -259,6 +268,111 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-oraclelogminer</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-kudu</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-metrics-prometheus</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-hbase-1.4</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-emqx</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-db2</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-greenplum</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!--		<dependency>-->
+		<!--			<groupId>com.dtstack.flinkx</groupId>-->
+		<!--			<artifactId>flinkx-connector-hdfs</artifactId>-->
+		<!--			<version>${project.version}</version>-->
+		<!--		</dependency>-->
+
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-hive</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-redis</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-mongodb</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-solr</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-file</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-ftp</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-cassandra</artifactId>
+			<version>1.12-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>netty-codec</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>netty-buffer</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>netty-transport</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-metrics-mysql</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -269,5 +383,4 @@
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
-
 </project>

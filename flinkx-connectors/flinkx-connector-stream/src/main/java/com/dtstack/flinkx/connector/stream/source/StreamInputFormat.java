@@ -18,20 +18,21 @@
 
 package com.dtstack.flinkx.connector.stream.source;
 
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
+
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
 
 import org.apache.flink.shaded.curator4.com.google.common.util.concurrent.RateLimiter;
 
-import org.apache.flink.table.data.RowData;
-
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 
 /**
  * @Company: www.dtstack.com
+ *
  * @author jiangbo
  */
 public class StreamInputFormat extends BaseRichInputFormat {
@@ -44,7 +45,7 @@ public class StreamInputFormat extends BaseRichInputFormat {
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
         InputSplit[] inputSplits = new InputSplit[minNumSplits];
         for (int i = 0; i < minNumSplits; i++) {
-            inputSplits[i] = new GenericInputSplit(i,minNumSplits);
+            inputSplits[i] = new GenericInputSplit(i, minNumSplits);
         }
 
         return inputSplits;
@@ -56,15 +57,18 @@ public class StreamInputFormat extends BaseRichInputFormat {
                 && streamConf.getSliceRecordCount().size() > inputSplit.getSplitNumber()) {
             channelRecordNum = streamConf.getSliceRecordCount().get(inputSplit.getSplitNumber());
         }
-        if(streamConf.getPermitsPerSecond() > 0){
+        if (streamConf.getPermitsPerSecond() > 0) {
             rateLimiter = RateLimiter.create(streamConf.getPermitsPerSecond());
         }
-        LOG.info("The record number of channel:[{}] is [{}]", inputSplit.getSplitNumber(), channelRecordNum);
+        LOG.info(
+                "The record number of channel:[{}] is [{}]",
+                inputSplit.getSplitNumber(),
+                channelRecordNum);
     }
 
     @Override
     @SuppressWarnings("all")
-    public RowData nextRecordInternal(RowData rowData) throws ReadRecordException{
+    public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         try {
             if (rateLimiter != null) {
                 rateLimiter.acquire();

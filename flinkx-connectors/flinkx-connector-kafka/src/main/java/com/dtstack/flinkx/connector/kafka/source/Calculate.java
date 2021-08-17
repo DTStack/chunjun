@@ -21,13 +21,15 @@ package com.dtstack.flinkx.connector.kafka.source;
 import org.apache.kafka.clients.consumer.internals.SubscriptionState;
 import org.apache.kafka.common.TopicPartition;
 
+import java.io.Serializable;
+
 /**
  * company: www.dtstack.com
- * @author: toutian
- * create: 2019/12/24
+ *
+ * @author: toutian create: 2019/12/24
  */
 @FunctionalInterface
-public interface Calculate {
+public interface Calculate extends Serializable {
 
     Long calc(SubscriptionState subscriptionState, TopicPartition topicPartition);
 }

@@ -18,12 +18,13 @@
 
 package com.dtstack.flinkx.connector.emqx.converter;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.nio.charset.StandardCharsets;

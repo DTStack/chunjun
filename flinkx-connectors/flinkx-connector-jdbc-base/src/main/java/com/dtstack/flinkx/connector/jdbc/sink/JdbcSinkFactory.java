@@ -18,29 +18,29 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
+import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.sink.SinkFactory;
+import com.dtstack.flinkx.sink.options.SinkOptions;
+import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
-import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
-import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.sink.SinkFactory;
-import com.dtstack.flinkx.util.GsonUtil;
-import com.dtstack.flinkx.util.TableUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Properties;
-
-import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
-import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 
 /**
  * Date: 2021/04/13 Company: www.dtstack.com
@@ -52,8 +52,9 @@ public abstract class JdbcSinkFactory extends SinkFactory {
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
-    public JdbcSinkFactory(SyncConf syncConf) {
+    public JdbcSinkFactory(SyncConf syncConf, JdbcDialect jdbcDialect) {
         super(syncConf);
+        this.jdbcDialect = jdbcDialect;
         Gson gson =
                 new GsonBuilder()
                         .registerTypeAdapter(
@@ -61,11 +62,16 @@ public abstract class JdbcSinkFactory extends SinkFactory {
                         .create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), JdbcConf.class);
-        int batchSize = syncConf.getWriter().getIntVal("batchSize", SINK_BUFFER_FLUSH_MAX_ROWS.defaultValue());
+        int batchSize =
+                syncConf.getWriter()
+                        .getIntVal(
+                                "batchSize", SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS.defaultValue());
         jdbcConf.setBatchSize(batchSize);
-        long flushIntervalMills = syncConf
-                .getWriter()
-                .getLongVal("flushIntervalMills", SINK_BUFFER_FLUSH_INTERVAL.defaultValue());
+        long flushIntervalMills =
+                syncConf.getWriter()
+                        .getLongVal(
+                                "flushIntervalMills",
+                                SinkOptions.SINK_BUFFER_FLUSH_INTERVAL.defaultValue());
         jdbcConf.setFlushIntervalMills(flushIntervalMills);
         jdbcConf.setColumn(syncConf.getWriter().getFieldList());
         Properties properties = syncConf.getWriter().getProperties("properties", null);
@@ -82,8 +88,9 @@ public abstract class JdbcSinkFactory extends SinkFactory {
 
         AbstractRowConverter rowConverter = null;
         // 同步任务使用transform
-        if (!useAbstractBaseColumn){
-            final RowType rowType = TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
+        if (!useAbstractBaseColumn) {
+            final RowType rowType =
+                    TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
             rowConverter = jdbcDialect.getRowConverter(rowType);
         }
         builder.setRowConverter(rowConverter);
@@ -91,17 +98,23 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         return createOutput(dataSet, builder.finish());
     }
 
+    @Override
+    public RawTypeConverter getRawTypeConverter() {
+        return jdbcDialect.getRawTypeConverter();
+    }
+
     /**
      * 获取JDBC插件的具体outputFormatBuilder
      *
      * @return JdbcOutputFormatBuilder
      */
-    protected abstract JdbcOutputFormatBuilder getBuilder();
+    protected JdbcOutputFormatBuilder getBuilder() {
+        return new JdbcOutputFormatBuilder(new JdbcOutputFormat());
+    }
 
-
-    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段**/
-    protected void resetTableInfo(){
-        if(StringUtils.isBlank(jdbcConf.getSchema())){
+    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段* */
+    protected void resetTableInfo() {
+        if (StringUtils.isBlank(jdbcConf.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
         }
     }

@@ -17,22 +17,21 @@
  */
 package com.dtstack.flinkx.options;
 
+import com.dtstack.flinkx.constants.ConfigConstant;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.enums.ClusterMode;
+import com.dtstack.flinkx.util.PropertiesUtil;
+
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 
-import com.dtstack.flinkx.constants.ConfigConstant;
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.enums.ClusterMode;
-import com.dtstack.flinkx.enums.ConnectorLoadMode;
 import org.apache.commons.lang.StringUtils;
 
-
 /**
- * Date: 2021/03/18
- * Company: www.dtstack.com
+ * Date: 2021/03/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -47,52 +46,31 @@ public class Options {
     private String job;
 
     @OptionRequired(description = "Flink Job Name")
-    private String jobName = "Flink Job";
+    private String jobName = "Flink_Job";
 
     @OptionRequired(description = "Flink configuration directory")
-    private String flinkconf;
+    private String flinkConfDir;
 
-    @OptionRequired(description = "env properties")
-    private String pluginRoot;
+    @OptionRequired(description = "FlinkX dist dir")
+    private String flinkxDistDir;
 
     @OptionRequired(description = "Yarn and Hadoop configuration directory")
-    private String yarnconf;
-
-    @OptionRequired(description = "Task parallelism")
-    private String parallelism = "1";
-
-    @OptionRequired(description = "Task priority")
-    private String priority = "1";
-
-    @OptionRequired(description = "Yarn queue")
-    private String queue = "default";
+    private String hadoopConfDir;
 
     @OptionRequired(description = "ext flinkLibJar")
-    private String flinkLibJar;
+    private String flinkLibDir;
 
     @OptionRequired(description = "env properties")
     private String confProp = "{}";
 
-    @OptionRequired(description = "savepoint path")
-    private String s;
+    @OptionRequired(description = "json modify")
+    private String p = "";
 
     @OptionRequired(description = "plugin load mode, by classpath or shipfile")
     private String pluginLoadMode = "shipfile";
 
-    @OptionRequired(description = "kerberos krb5conf")
-    private String krb5conf;
-
-    @OptionRequired(description = "kerberos keytabPath")
-    private String keytab;
-
-    @OptionRequired(description = "kerberos principal")
-    private String principal;
-
-    @OptionRequired(description = "applicationId on yarn cluster")
-    private String appId;
-
-    @OptionRequired(description = "Sync remote plugin root path")
-    private String remotePluginPath;
+    @OptionRequired(description = "remote FlinkX dist dir")
+    private String remoteFlinkxDistDir;
 
     @OptionRequired(description = "sql ext jar,eg udf jar")
     private String addjar;
@@ -100,22 +78,20 @@ public class Options {
     @OptionRequired(description = "file add to ship file")
     private String addShipfile;
 
-    @OptionRequired(description = "connectorLoadMode spi or reflect")
-    private String connectorLoadMode = ConnectorLoadMode.CLASSLOADER.name();
-
     private Configuration flinkConfiguration = null;
 
     public Configuration loadFlinkConfiguration() {
         if (flinkConfiguration == null) {
-            flinkConfiguration = StringUtils.isEmpty(flinkconf) ? new Configuration() : GlobalConfiguration.loadConfiguration(flinkconf);
-            if (StringUtils.isNotBlank(queue)) {
-                flinkConfiguration.setString(YarnConfigOptions.APPLICATION_QUEUE, queue);
-            }
+            Configuration dynamicConf = Configuration.fromMap(PropertiesUtil.confToMap(confProp));
+            flinkConfiguration =
+                    StringUtils.isEmpty(flinkConfDir)
+                            ? new Configuration(dynamicConf)
+                            : GlobalConfiguration.loadConfiguration(flinkConfDir, dynamicConf);
             if (StringUtils.isNotBlank(jobName)) {
                 flinkConfiguration.setString(YarnConfigOptions.APPLICATION_NAME, jobName);
             }
-            if (StringUtils.isNotBlank(yarnconf)) {
-                flinkConfiguration.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnconf);
+            if (StringUtils.isNotBlank(hadoopConfDir)) {
+                flinkConfiguration.setString(ConfigConstants.PATH_HADOOP_CONFIG, hadoopConfDir);
             }
             if (ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE.equalsIgnoreCase(pluginLoadMode)) {
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "child-first");
@@ -123,6 +99,8 @@ public class Options {
                 flinkConfiguration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
             }
             flinkConfiguration.setString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY, pluginLoadMode);
+
+            flinkConfiguration.set(CoreOptions.CHECK_LEAKED_CLASSLOADER, false);
         }
         return flinkConfiguration;
     }
@@ -143,60 +121,36 @@ public class Options {
         this.job = job;
     }
 
-    public String getFlinkconf() {
-        return flinkconf;
+    public String getFlinkConfDir() {
+        return flinkConfDir;
     }
 
-    public void setFlinkconf(String flinkconf) {
-        this.flinkconf = flinkconf;
+    public void setFlinkConfDir(String flinkConfDir) {
+        this.flinkConfDir = flinkConfDir;
     }
 
-    public String getPluginRoot() {
-        return pluginRoot;
+    public String getFlinkxDistDir() {
+        return flinkxDistDir;
     }
 
-    public void setPluginRoot(String pluginRoot) {
-        this.pluginRoot = pluginRoot;
+    public void setFlinkxDistDir(String flinkxDistDir) {
+        this.flinkxDistDir = flinkxDistDir;
     }
 
-    public String getYarnconf() {
-        return yarnconf;
+    public String getHadoopConfDir() {
+        return hadoopConfDir;
     }
 
-    public void setYarnconf(String yarnconf) {
-        this.yarnconf = yarnconf;
+    public void setHadoopConfDir(String hadoopConfDir) {
+        this.hadoopConfDir = hadoopConfDir;
     }
 
-    public String getParallelism() {
-        return parallelism;
+    public String getFlinkLibDir() {
+        return flinkLibDir;
     }
 
-    public void setParallelism(String parallelism) {
-        this.parallelism = parallelism;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-
-    public void setPriority(String priority) {
-        this.priority = priority;
-    }
-
-    public String getQueue() {
-        return queue;
-    }
-
-    public void setQueue(String queue) {
-        this.queue = queue;
-    }
-
-    public String getFlinkLibJar() {
-        return flinkLibJar;
-    }
-
-    public void setFlinkLibJar(String flinkLibJar) {
-        this.flinkLibJar = flinkLibJar;
+    public void setFlinkLibDir(String flinkLibDir) {
+        this.flinkLibDir = flinkLibDir;
     }
 
     public String getConfProp() {
@@ -207,12 +161,12 @@ public class Options {
         this.confProp = confProp;
     }
 
-    public String getS() {
-        return s;
+    public String getP() {
+        return p;
     }
 
-    public void setS(String s) {
-        this.s = s;
+    public void setP(String p) {
+        this.p = p;
     }
 
     public String getPluginLoadMode() {
@@ -223,44 +177,12 @@ public class Options {
         this.pluginLoadMode = pluginLoadMode;
     }
 
-    public String getKrb5conf() {
-        return krb5conf;
+    public String getRemoteFlinkxDistDir() {
+        return remoteFlinkxDistDir;
     }
 
-    public void setKrb5conf(String krb5conf) {
-        this.krb5conf = krb5conf;
-    }
-
-    public String getKeytab() {
-        return keytab;
-    }
-
-    public void setKeytab(String keytab) {
-        this.keytab = keytab;
-    }
-
-    public String getPrincipal() {
-        return principal;
-    }
-
-    public void setPrincipal(String principal) {
-        this.principal = principal;
-    }
-
-    public String getAppId() {
-        return appId;
-    }
-
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
-
-    public String getRemotePluginPath() {
-        return remotePluginPath;
-    }
-
-    public void setRemotePluginPath(String remotePluginPath) {
-        this.remotePluginPath = remotePluginPath;
+    public void setRemoteFlinkxDistDir(String remoteFlinkxDistDir) {
+        this.remoteFlinkxDistDir = remoteFlinkxDistDir;
     }
 
     public String getAddjar() {
@@ -287,14 +209,6 @@ public class Options {
         this.jobName = jobName;
     }
 
-    public String getConnectorLoadMode() {
-        return connectorLoadMode;
-    }
-
-    public void setConnectorLoadMode(String connectorLoadMode) {
-        this.connectorLoadMode = connectorLoadMode;
-    }
-
     public String getJobType() {
         return jobType;
     }
@@ -305,30 +219,51 @@ public class Options {
 
     @Override
     public String toString() {
-        return "Options{" +
-                "jobType='" + jobType + '\'' +
-                ", mode='" + mode + '\'' +
-                ", job='" + job + '\'' +
-                ", jobName='" + jobName + '\'' +
-                ", flinkconf='" + flinkconf + '\'' +
-                ", pluginRoot='" + pluginRoot + '\'' +
-                ", yarnconf='" + yarnconf + '\'' +
-                ", parallelism='" + parallelism + '\'' +
-                ", priority='" + priority + '\'' +
-                ", queue='" + queue + '\'' +
-                ", flinkLibJar='" + flinkLibJar + '\'' +
-                ", confProp='" + confProp + '\'' +
-                ", s='" + s + '\'' +
-                ", pluginLoadMode='" + pluginLoadMode + '\'' +
-                ", krb5conf='" + krb5conf + '\'' +
-                ", keytab='" + keytab + '\'' +
-                ", principal='" + principal + '\'' +
-                ", appId='" + appId + '\'' +
-                ", remotePluginPath='" + remotePluginPath + '\'' +
-                ", addjar='" + addjar + '\'' +
-                ", addShipfile='" + addShipfile + '\'' +
-                ", connectorLoadMode='" + connectorLoadMode + '\'' +
-                ", flinkConfiguration=" + flinkConfiguration +
-                '}';
+        return "Options{"
+                + "jobType='"
+                + jobType
+                + '\''
+                + ", mode='"
+                + mode
+                + '\''
+                + ", job='"
+                + job
+                + '\''
+                + ", jobName='"
+                + jobName
+                + '\''
+                + ", flinkConfDir='"
+                + flinkConfDir
+                + '\''
+                + ", flinkxDistDir='"
+                + flinkxDistDir
+                + '\''
+                + ", hadoopConfDir='"
+                + hadoopConfDir
+                + '\''
+                + ", flinkLibDir='"
+                + flinkLibDir
+                + '\''
+                + ", confProp='"
+                + confProp
+                + '\''
+                + ", p='"
+                + p
+                + '\''
+                + ", pluginLoadMode='"
+                + pluginLoadMode
+                + '\''
+                + ", remotePluginPath='"
+                + remoteFlinkxDistDir
+                + '\''
+                + ", addjar='"
+                + addjar
+                + '\''
+                + ", addShipfile='"
+                + addShipfile
+                + '\''
+                + ", flinkConfiguration="
+                + flinkConfiguration
+                + '}';
     }
 }

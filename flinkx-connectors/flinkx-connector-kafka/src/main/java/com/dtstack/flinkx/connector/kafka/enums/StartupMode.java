@@ -23,8 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Locale;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -34,21 +33,13 @@ public enum StartupMode {
      * Start from committed offsets in ZK / Kafka brokers of a specific consumer group (default).
      */
     GROUP_OFFSETS("group-offsets"),
-    /**
-     * Start from the earliest offset possible.
-     */
+    /** Start from the earliest offset possible. */
     EARLIEST("earliest-offset"),
-    /**
-     * Start from the latest offset.
-     */
+    /** Start from the latest offset. */
     LATEST("latest-offset"),
-    /**
-     * Start from user-supplied timestamp for each partition.
-     */
+    /** Start from user-supplied timestamp for each partition. */
     TIMESTAMP("timestamp"),
-    /**
-     * Start from user-supplied specific offsets for each partition
-     */
+    /** Start from user-supplied specific offsets for each partition */
     SPECIFIC_OFFSETS("specific-offsets"),
 
     UNKNOWN("unknown");
@@ -61,20 +52,27 @@ public enum StartupMode {
 
     /**
      * 根据名称获取启动模式
+     *
      * @param name
      * @return
      */
-    public static StartupMode getFromName(String name){
-        if(StringUtils.isBlank(name)){
+    public static StartupMode getFromName(String name) {
+        if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("StartupMode name is blank.");
         }
-        switch (name.toLowerCase(Locale.ENGLISH)){
-            case "earliest-offset": return EARLIEST;
-            case "latest-offset": return LATEST;
-            case "timestamp": return TIMESTAMP;
-            case "specific-offsets": return SPECIFIC_OFFSETS;
-            case "group-offsets": return GROUP_OFFSETS;
-            default: return UNKNOWN;
+        switch (name.toLowerCase(Locale.ENGLISH)) {
+            case "earliest-offset":
+                return EARLIEST;
+            case "latest-offset":
+                return LATEST;
+            case "timestamp":
+                return TIMESTAMP;
+            case "specific-offsets":
+                return SPECIFIC_OFFSETS;
+            case "group-offsets":
+                return GROUP_OFFSETS;
+            default:
+                return UNKNOWN;
         }
     }
 }

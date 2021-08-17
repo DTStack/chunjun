@@ -18,7 +18,11 @@
 
 package com.dtstack.flinkx.connector.mongodb.table;
 
+import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.flinkx.connector.mongodb.conf.MongoWriteConf;
+import com.dtstack.flinkx.connector.mongodb.table.options.MongoClientOptions;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.lookup.conf.LookupConfFactory;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
@@ -30,20 +34,15 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
-import com.dtstack.flinkx.connector.mongodb.table.options.MongoClientOptions;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.lookup.conf.LookupConfFactory;
-
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNCTIMEOUT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TTL;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_TYPE;
-import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERRORLIMIT;
+import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
@@ -123,9 +122,9 @@ public class MongodbDynamicTableFactory
         optionalOptions.add(LOOKUP_CACHE_TTL);
         optionalOptions.add(LOOKUP_CACHE_TYPE);
         optionalOptions.add(LOOKUP_MAX_RETRIES);
-        optionalOptions.add(LOOKUP_ERRORLIMIT);
+        optionalOptions.add(LOOKUP_ERROR_LIMIT);
         optionalOptions.add(LOOKUP_FETCH_SIZE);
-        optionalOptions.add(LOOKUP_ASYNCTIMEOUT);
+        optionalOptions.add(LOOKUP_ASYNC_TIMEOUT);
         optionalOptions.add(LOOKUP_PARALLELISM);
 
         optionalOptions.add(SINK_BUFFER_FLUSH_MAX_ROWS);
@@ -172,7 +171,6 @@ public class MongodbDynamicTableFactory
         config.getOptional(SINK_PARALLELISM).ifPresent(mongoWriteConf::setParallelism);
         config.getOptional(SINK_BUFFER_FLUSH_MAX_ROWS).ifPresent(mongoWriteConf::setFlushMaxRows);
         config.getOptional(SINK_BUFFER_FLUSH_INTERVAL).ifPresent(mongoWriteConf::setFlushInterval);
-        return new MongodbDynamicTableSink(
-                mongoClientConf, physicalSchema, mongoWriteConf);
+        return new MongodbDynamicTableSink(mongoClientConf, physicalSchema, mongoWriteConf);
     }
 }

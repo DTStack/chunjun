@@ -21,8 +21,8 @@ package com.dtstack.flinkx.connector.oraclelogminer.entity;
 import java.util.List;
 
 /**
- * Date: 2021/05/20
- * Company: www.dtstack.com
+ * Date: 2021/05/20 Company: www.dtstack.com
+ *
  * @author dujie
  */
 public class TableMetaData {
@@ -30,10 +30,11 @@ public class TableMetaData {
     private final String SchemaName;
     private final String tableName;
     private final List<String> fieldList;
-    /** field type **/
+    /** field type * */
     private final List<String> typeList;
 
-    public TableMetaData(String schemaName, String tableName, List<String> fieldList, List<String> typeList) {
+    public TableMetaData(
+            String schemaName, String tableName, List<String> fieldList, List<String> typeList) {
         SchemaName = schemaName;
         this.tableName = tableName;
         this.fieldList = fieldList;
@@ -58,11 +59,17 @@ public class TableMetaData {
 
     @Override
     public String toString() {
-        return "TableMetaData{" +
-                "SchemaName='" + SchemaName + '\'' +
-                ", tableName='" + tableName + '\'' +
-                ", columns=" + fieldList +
-                ", types=" + typeList +
-                '}';
+        return "TableMetaData{"
+                + "SchemaName='"
+                + SchemaName
+                + '\''
+                + ", tableName='"
+                + tableName
+                + '\''
+                + ", columns="
+                + fieldList
+                + ", types="
+                + typeList
+                + '}';
     }
 }

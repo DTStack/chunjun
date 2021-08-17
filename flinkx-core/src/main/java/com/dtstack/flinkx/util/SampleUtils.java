@@ -24,7 +24,7 @@ import org.slf4j.Logger;
  * @program: flinkStreamSQL
  * @author: wuren
  * @create: 2021/01/19
- **/
+ */
 public class SampleUtils {
 
     private static int samplingIntervalCount = 0;
@@ -42,17 +42,20 @@ public class SampleUtils {
         samplingIntervalCount = interval;
     }
 
-    public static void samplingSourcePrint(int samplingIntervalCount, Logger logger, long count, String message) {
+    public static void samplingSourcePrint(
+            int samplingIntervalCount, Logger logger, long count, String message) {
         Runnable func = () -> logger.info("sampling source input data: " + message);
         samplingPrint(samplingIntervalCount, count, func);
     }
 
-    public static void samplingSinkPrint(int samplingIntervalCount, Logger logger, long count, String message) {
+    public static void samplingSinkPrint(
+            int samplingIntervalCount, Logger logger, long count, String message) {
         Runnable func = () -> logger.info("sampling sink output data: " + message);
         samplingPrint(samplingIntervalCount, count, func);
     }
 
-    public static void samplingDirtyPrint(int samplingIntervalCount, Logger logger, long count, String message) {
+    public static void samplingDirtyPrint(
+            int samplingIntervalCount, Logger logger, long count, String message) {
         Runnable func = () -> logger.info("sampling dirty output data: " + message);
         samplingPrint(samplingIntervalCount, count, func);
     }

@@ -22,14 +22,13 @@ import com.dtstack.flinkx.connector.restapi.client.HttpRequestParam;
 import com.dtstack.flinkx.connector.restapi.client.ResponseValue;
 import com.dtstack.flinkx.connector.restapi.common.HttpRestConfig;
 import com.dtstack.flinkx.connector.restapi.common.MetaParam;
-import com.dtstack.flinkx.exception.ReadRecordException;
+import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
-
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-import com.dtstack.flinkx.restore.FormatState;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,37 +39,24 @@ import java.util.List;
  */
 public class RestapiInputFormat extends BaseRichInputFormat {
 
-
-    /**
-     * 是否读取结束
-     **/
+    /** 是否读取结束 */
     protected boolean reachEnd;
 
-    /**
-     * 执行请求客户端
-     **/
+    /** 执行请求客户端 */
     protected HttpClient myHttpClient;
 
     protected HttpRestConfig httpRestConfig;
 
-    /**
-     * 原始请求参数body
-     */
+    /** 原始请求参数body */
     protected List<MetaParam> metaBodys;
 
-    /**
-     * 原始请求参数param
-     */
+    /** 原始请求参数param */
     protected List<MetaParam> metaParams;
 
-    /**
-     * 原始请求header
-     */
+    /** 原始请求header */
     protected List<MetaParam> metaHeaders;
 
-    /**
-     * 读取的最新数据，checkpoint时保存
-     */
+    /** 读取的最新数据，checkpoint时保存 */
     protected ResponseValue state;
 
     @Override
@@ -79,7 +65,6 @@ public class RestapiInputFormat extends BaseRichInputFormat {
         reachEnd = false;
         initPosition();
     }
-
 
     @Override
     @SuppressWarnings("unchecked")
@@ -93,25 +78,30 @@ public class RestapiInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException{
+    protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         ResponseValue value = myHttpClient.takeEvent();
         if (null == value) {
             return null;
         }
         if (value.isNormal()) {
-            //如果status是0代表是触发了异常策略stop，reachEnd更新为true
+            // 如果status是0代表是触发了异常策略stop，reachEnd更新为true
             if (value.getStatus() == 0) {
                 throw new RuntimeException(
-                        "the strategy [" + value.getErrorMsg() + " ] is triggered ，and the request param is [" + value
-                                .getRequestParam()
-                                .toString() + "]" + " and the response value is " + value.getOriginResponseValue()
+                        "the strategy ["
+                                + value.getErrorMsg()
+                                + " ] is triggered ，and the request param is ["
+                                + value.getRequestParam().toString()
+                                + "]"
+                                + " and the response value is "
+                                + value.getOriginResponseValue()
                                 + " job end");
             }
-            //todo 离线任务后期需要加上一个finished策略 这样就是代表任务正常结束 而不是异常stop
-            state = new ResponseValue(
-                    "",
-                    HttpRequestParam.copy(value.getRequestParam()),
-                    value.getOriginResponseValue());
+            // todo 离线任务后期需要加上一个finished策略 这样就是代表任务正常结束 而不是异常stop
+            state =
+                    new ResponseValue(
+                            "",
+                            HttpRequestParam.copy(value.getRequestParam()),
+                            value.getOriginResponseValue());
             try {
                 return rowConverter.toInternal(value.getData());
             } catch (Exception e) {
@@ -130,7 +120,6 @@ public class RestapiInputFormat extends BaseRichInputFormat {
         }
         return inputSplits;
     }
-
 
     private void initPosition() {
         if (null != formatState && formatState.getState() != null) {
@@ -159,9 +148,7 @@ public class RestapiInputFormat extends BaseRichInputFormat {
         return reachEnd;
     }
 
-
     public void setHttpRestConfig(HttpRestConfig httpRestConfig) {
         this.httpRestConfig = httpRestConfig;
     }
-
 }

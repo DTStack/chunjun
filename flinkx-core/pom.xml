@@ -88,6 +88,18 @@
             </exclusions>
         </dependency>
 
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-runtime_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
         <!-- flink sql -->
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -196,7 +208,11 @@
                     <artifactId>commons-logging</artifactId>
                     <groupId>commons-logging</groupId>
                 </exclusion>
-            </exclusions>
+				<exclusion>
+					<artifactId>netty-all</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+			</exclusions>
         </dependency>
 
         <dependency>
@@ -291,19 +307,12 @@
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
         </dependency>
-
-		<!-- Iceberg metastore-->
-<!--		<dependency>-->
-<!--			<groupId>org.apache.flink</groupId>-->
-<!--			<artifactId>flink-sql-connector-hive-2.3.6_${scala.binary.version}</artifactId>-->
-<!--			<version>${flink.version}</version>-->
-<!--		</dependency>-->
-		<!-- DTStack package iceberg master branch end of efaad97 commit -->
-		<dependency>
-			<groupId>com.dtstack.iceberg</groupId>
-			<artifactId>iceberg-flink-runtime</artifactId>
-			<version>0.12.efaad97</version>
-		</dependency>
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>3.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -405,12 +414,12 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../flinkxplugins/"
+                                <copy todir="${basedir}/../${dist.dir}/"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-                                <move file="${basedir}/../flinkxplugins/${project.artifactId}-${project.version}.jar"
-                                      tofile="${basedir}/../flinkxplugins/${project.artifactId}-${git.branch}.jar" />
+                                <move file="${basedir}/../${dist.dir}/${project.artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../${dist.dir}/${project.artifactId}-${git.branch}.jar" />
 								<delete>
-									<fileset dir="${basedir}/../flinkxplugins/"
+									<fileset dir="${basedir}/../${dist.dir}/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>

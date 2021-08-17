@@ -17,22 +17,23 @@
  */
 package com.dtstack.flinkx.connector.binlog.listener;
 
+import com.dtstack.flinkx.element.ErrorMsgRowData;
+import com.dtstack.flinkx.util.ExceptionUtil;
+
 import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
 import com.alibaba.otter.canal.parse.ha.CanalHAController;
 import com.alibaba.otter.canal.parse.ha.HeartBeatHAController;
 import com.alibaba.otter.canal.parse.inbound.HeartBeatCallback;
-import com.dtstack.flinkx.element.ErrorMsgRowData;
-import com.dtstack.flinkx.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * HeartBeatController
  *
- * @author by dujie@dtstack.com
- * @Date 2020/9/11
+ * @author by dujie@dtstack.com @Date 2020/9/11
  */
-public class HeartBeatController extends AbstractCanalLifeCycle implements CanalHAController, HeartBeatCallback {
+public class HeartBeatController extends AbstractCanalLifeCycle
+        implements CanalHAController, HeartBeatCallback {
     private static final Logger logger = LoggerFactory.getLogger(HeartBeatHAController.class);
     // default 10 times  心跳执行是3秒一次，连续错误3次之后，关闭任务，即宕机后 9s断开连接
     private final int detectingRetryTimes = 3;
@@ -48,7 +49,10 @@ public class HeartBeatController extends AbstractCanalLifeCycle implements Canal
         failedTimes++;
         // 检查一下是否超过失败次数
         synchronized (this) {
-            String msg = String.format("HeartBeat failed %s times,please check your source is working,error info->%s", failedTimes, ExceptionUtil.getErrorMessage(e));
+            String msg =
+                    String.format(
+                            "HeartBeat failed %s times,please check your source is working,error info->%s",
+                            failedTimes, ExceptionUtil.getErrorMessage(e));
             logger.error(msg);
             if (failedTimes >= detectingRetryTimes) {
                 binlogEventSink.processErrorMsgRowData(new ErrorMsgRowData(msg));
@@ -60,4 +64,3 @@ public class HeartBeatController extends AbstractCanalLifeCycle implements Canal
         this.binlogEventSink = binlogEventSink;
     }
 }
-

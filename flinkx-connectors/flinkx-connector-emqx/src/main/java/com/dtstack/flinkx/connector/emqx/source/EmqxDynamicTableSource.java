@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.connector.emqx.source;
 
+import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
+import com.dtstack.flinkx.connector.emqx.converter.EmqxRowConverter;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
@@ -30,11 +35,6 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.util.Preconditions;
-
-import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
-import com.dtstack.flinkx.connector.emqx.converter.EmqxRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 import static com.dtstack.flinkx.connector.emqx.util.DataTypeConventerUtil.createValueFormatProjection;
 
@@ -83,9 +83,7 @@ public class EmqxDynamicTableSource implements ScanTableSource {
                                                 physicalSchema.toRowDataType())))));
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
-                false,
-                1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
 
     @Override

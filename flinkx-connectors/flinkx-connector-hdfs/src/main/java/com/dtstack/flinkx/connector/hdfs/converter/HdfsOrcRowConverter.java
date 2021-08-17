@@ -17,6 +17,12 @@
  */
 package com.dtstack.flinkx.connector.hdfs.converter;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -28,11 +34,6 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
 import org.apache.hadoop.io.BytesWritable;
@@ -43,18 +44,22 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 
 /**
- * Date: 2021/06/16
- * Company: www.dtstack.com
+ * Date: 2021/06/16 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, Object[], LogicalType> {
+public class HdfsOrcRowConverter
+        extends AbstractRowConverter<RowData, RowData, Object[], LogicalType> {
 
     public HdfsOrcRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+            toInternalConverters[i] =
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i)));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
         }
     }
 
@@ -62,13 +67,16 @@ public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, 
     @SuppressWarnings("unchecked")
     public RowData toInternal(RowData input) throws Exception {
         GenericRowData row = new GenericRowData(input.getArity());
-        if(input instanceof GenericRowData){
+        if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
                 row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
             }
-        }else{
-            throw new FlinkxRuntimeException("Error RowData type, RowData:[" + input + "] should be instance of GenericRowData.");
+        } else {
+            throw new FlinkxRuntimeException(
+                    "Error RowData type, RowData:["
+                            + input
+                            + "] should be instance of GenericRowData.");
         }
         return row;
     }
@@ -92,7 +100,9 @@ public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, 
     protected ISerializationConverter<Object[]> wrapIntoNullableExternalConverter(
             ISerializationConverter serializationConverter, LogicalType type) {
         return (rowData, index, data) -> {
-            if (rowData == null || rowData.isNullAt(index) || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
+            if (rowData == null
+                    || rowData.isNullAt(index)
+                    || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
                 data[index] = null;
             } else {
                 serializationConverter.serialize(rowData, index, data);
@@ -117,7 +127,8 @@ public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, 
             case BIGINT:
                 return (IDeserializationConverter<Long, Long>) val -> val;
             case DATE:
-                return (IDeserializationConverter<Date, Integer>) val -> (int)val.toLocalDate().toEpochDay();
+                return (IDeserializationConverter<Date, Integer>)
+                        val -> (int) val.toLocalDate().toEpochDay();
             case FLOAT:
                 return (IDeserializationConverter<Float, Float>) val -> val;
             case DOUBLE:
@@ -126,12 +137,14 @@ public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, 
             case VARCHAR:
                 return (IDeserializationConverter<String, StringData>) StringData::fromString;
             case DECIMAL:
-                return (IDeserializationConverter<BigDecimal, DecimalData>) val -> DecimalData.fromBigDecimal(val, val.precision(), val.scale());
+                return (IDeserializationConverter<BigDecimal, DecimalData>)
+                        val -> DecimalData.fromBigDecimal(val, val.precision(), val.scale());
             case BINARY:
             case VARBINARY:
                 return (IDeserializationConverter<byte[], byte[]>) val -> val;
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return (IDeserializationConverter<Timestamp, TimestampData>) TimestampData::fromTimestamp;
+                return (IDeserializationConverter<Timestamp, TimestampData>)
+                        TimestampData::fromTimestamp;
             case INTERVAL_DAY_TIME:
             case INTERVAL_YEAR_MONTH:
             case ARRAY:
@@ -176,15 +189,21 @@ public class HdfsOrcRowConverter extends AbstractRowConverter<RowData, RowData, 
                 return (rowData, index, data) -> {
                     int precision = ((DecimalType) type).getPrecision();
                     int scale = ((DecimalType) type).getScale();
-                    HiveDecimal hiveDecimal = HiveDecimal.create(rowData.getDecimal(index, precision, scale).toBigDecimal());
+                    HiveDecimal hiveDecimal =
+                            HiveDecimal.create(
+                                    rowData.getDecimal(index, precision, scale).toBigDecimal());
                     hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, precision, scale);
                     data[index] = new HiveDecimalWritable(hiveDecimal);
                 };
             case BINARY:
             case VARBINARY:
-                return (rowData, index, data) -> data[index] = new BytesWritable(rowData.getBinary(index));
+                return (rowData, index, data) ->
+                        data[index] = new BytesWritable(rowData.getBinary(index));
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return (rowData, index, data) -> data[index] = rowData.getTimestamp(index, ((TimestampType)type).getPrecision()).toTimestamp();
+                return (rowData, index, data) ->
+                        data[index] =
+                                rowData.getTimestamp(index, ((TimestampType) type).getPrecision())
+                                        .toTimestamp();
             case INTERVAL_DAY_TIME:
             case INTERVAL_YEAR_MONTH:
             case ARRAY:

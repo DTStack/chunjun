@@ -160,10 +160,29 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
 <br/>
 
 ### 2、SQL
-除以下两点外，其余参数均与Sync保持一致。<BR>
+- **url**
+  - 描述：oracle数据库的JDBC URL链接
+  - 必选：是
+  - 参数类型：string
+  - 默认值：无
 
-1.`pavingData`和`splitUpdate`默认为true，且无法修改<BR>
-2. `table`略有区别，具体如下<BR>
+<br/>
+
+- **username**
+  - 描述：用户名
+  - 必选：是
+  - 参数类型：string
+  - 默认值：无
+
+<br/>
+
+- **password**
+  - 描述：密码
+  - 必选：是
+  - 参数类型：string
+  - 默认值：无
+
+<br/>
 
 - **table**
   - 描述：需要解析的数据表。
@@ -174,6 +193,98 @@ oracle10,oracle11,oracle12,oracle19，支持RAC,主备架构
 
 <br/>
 
+- **cat**
+  - 描述：需要监听的操作数据操作类型，有UPDATE,INSERT,DELETE三种可选，大小写不敏感，多个以,分割
+  - 必选：否
+  - 字段类型：String
+  - 默认值：UPDATE,INSERT,DELETE
+
+<br/>
+
+- **read-position**
+  - 描述：Oracle实时采集的采集起点
+  - 可选值：
+    - all：      从Oracle数据库中最早的归档日志组开始采集(不建议使用)
+    - current：从任务运行时开始采集
+    - time：   从指定时间点开始采集
+    - scn：    从指定SCN号处开始采集
+  - 必选：否
+  - 字段类型：String
+  - 默认值：current
+
+<br/>
+
+- **start-time**
+  - 描述： 指定采集起点的毫秒级时间戳
+  - 必选：当`readPosition`为`time`时，该参数必填
+  - 字段类型：Long(毫秒级时间戳)
+  - 默认值：无
+
+<br/>
+
+- **start-scn**
+  - 描述： 指定采集起点的SCN号
+  - 必选：当`readPosition`为`scn`时，该参数必填
+  - 字段类型：String
+  - 默认值：无
+
+<br/>
+
+- **fetch-size**
+  - 描述： 批量从v$logmnr_contents视图中拉取的数据条数，对于大数据量的数据变更，调大该值可一定程度上增加任务的读取速度
+  - 必选：否
+  - 字段类型：Integer
+  - 默认值：1000
+
+<br/>
+
+- **query-timeout**
+  - 描述： LogMiner执行查询SQL的超时参数，单位秒
+  - 必选：否
+  - 字段类型：Long
+  - 默认值：300
+
+<br/>
+
+- **support-auto-add-log**
+  - 描述：启动LogMiner是否自动添加日志组(不建议使用)
+  - 必选：否
+  - 字段类型：Boolean
+  - 默认值：false
+
+<br/>
+
+- **io-threads**
+    - 描述：IO处理线程数,最大线程数为3
+    - 必选：否
+    - 字段类型：int
+    - 默认值：1
+
+<br/>
+
+- **max-log-file-size**
+    - 描述：logminer一次性加载的日志文件的大小，默认5g，单位byte
+    - 必选：否
+    - 字段类型：long
+    - 默认值：5*1024*1024*1024
+
+<br/>
+
+- **transaction-cache-num-size**
+    - 描述：logminer可缓存DML的数量
+    - 必选：否
+    - 字段类型：long
+    - 默认值：800
+
+<br/>
+
+- **transaction-expire-time**
+    - 描述：logminer可缓存的失效时间，单位分钟
+    - 必选：否
+    - 字段类型：int
+    - 默认值：20
+
+<br/>
 ## 七、数据结构
 在2021-06-29 23:42:19(时间戳：1624981339000)执行：
 ```sql

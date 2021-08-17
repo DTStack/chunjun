@@ -39,10 +39,10 @@ CREATE TABLE source
       ,'username' = 'root'
       ,'password' = 'root'
       ,'cat' = 'insert,delete,update'
-      ,'jdbcUrl' = 'jdbc:mysql://localhost:3306/tudou?useSSL=false'
+      ,'url' = 'jdbc:mysql://localhost:3306/tudou?useSSL=false'
       ,'host' = 'localhost'
       ,'port' = '3306'
---   ,'journalName' = 'mysql-bin.000001'
+--   ,'journal-name' = 'mysql-bin.000001'
       ,'table' = 'tudou.type'
       ,'timestamp-format.standard' = 'SQL'
       );

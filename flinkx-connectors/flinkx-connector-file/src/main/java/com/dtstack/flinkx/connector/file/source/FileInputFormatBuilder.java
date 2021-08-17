@@ -19,7 +19,8 @@
 package com.dtstack.flinkx.connector.file.source;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -27,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
  * @author: xiuzhu
  * @create: 2021/06/24
  */
-
 public class FileInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private FileInputFormat format;

@@ -17,10 +17,6 @@
  */
 package com.dtstack.flinkx.connector.hive.sink;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsRawTypeConverter;
 import com.dtstack.flinkx.connector.hive.conf.HiveConf;
@@ -28,11 +24,15 @@ import com.dtstack.flinkx.connector.hive.util.HiveUtil;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -42,12 +42,26 @@ public class HiveSinkFactory extends SinkFactory {
 
     public HiveSinkFactory(SyncConf config) {
         super(config);
-        hiveConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getWriter().getParameter()), HiveConf.class);
+        hiveConf =
+                GsonUtil.GSON.fromJson(
+                        GsonUtil.GSON.toJson(config.getWriter().getParameter()), HiveConf.class);
         hiveConf.setColumn(config.getWriter().getFieldList());
-        hiveConf.setDistributeTableMapping(HiveUtil.formatHiveDistributeInfo(hiveConf.getDistributeTable()));
-        hiveConf.setTableInfos(HiveUtil.formatHiveTableInfo(hiveConf.getTablesColumn(), hiveConf.getPartition(), hiveConf.getFieldDelimiter(), hiveConf.getFileType()));
+        hiveConf.setDistributeTableMapping(
+                HiveUtil.formatHiveDistributeInfo(hiveConf.getDistributeTable()));
+        hiveConf.setTableInfos(
+                HiveUtil.formatHiveTableInfo(
+                        hiveConf.getTablesColumn(),
+                        hiveConf.getPartition(),
+                        hiveConf.getFieldDelimiter(),
+                        hiveConf.getFileType()));
         if (StringUtils.isBlank(hiveConf.getAnalyticalRules())) {
-            hiveConf.setTableName(hiveConf.getTableInfos().entrySet().iterator().next().getValue().getTableName());
+            hiveConf.setTableName(
+                    hiveConf.getTableInfos()
+                            .entrySet()
+                            .iterator()
+                            .next()
+                            .getValue()
+                            .getTableName());
         } else {
             hiveConf.setTableName(hiveConf.getAnalyticalRules());
             hiveConf.setAutoCreateTable(true);

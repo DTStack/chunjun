@@ -19,7 +19,6 @@ package com.dtstack.flinkx.client.local;
 
 import com.dtstack.flinkx.Main;
 import com.dtstack.flinkx.client.ClusterClientHelper;
-
 import com.dtstack.flinkx.client.JobDeployer;
 
 import org.apache.flink.client.program.ClusterClient;

@@ -18,25 +18,22 @@
 
 package com.dtstack.flinkx.connector.restapi.sink;
 
-
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.restapi.common.RestapiKeys;
 import com.dtstack.flinkx.connector.restapi.common.RestapiWriterConfig;
-
 import com.dtstack.flinkx.connector.restapi.outputformat.RestapiOutputFormatBuilder;
 import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.sink.SinkFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -50,7 +47,6 @@ public class RestapiSinkFactory extends SinkFactory {
 
     protected RestapiWriterConfig restapiWriterConfig;
 
-
     @Override
     public RawTypeConverter getRawTypeConverter() {
         return null;
@@ -58,10 +54,11 @@ public class RestapiSinkFactory extends SinkFactory {
 
     public RestapiSinkFactory(SyncConf syncConf) {
         super(syncConf);
-        restapiWriterConfig = JsonUtil.toObject(
-                JsonUtil.toJson(syncConf.getWriter().getParameter()), RestapiWriterConfig.class);
+        restapiWriterConfig =
+                JsonUtil.toObject(
+                        JsonUtil.toJson(syncConf.getWriter().getParameter()),
+                        RestapiWriterConfig.class);
         Object tempObj;
-
 
         tempObj = syncConf.getWriter().getParameter().get(RestapiKeys.KEY_HEADER);
         if (tempObj != null) {
@@ -78,7 +75,7 @@ public class RestapiSinkFactory extends SinkFactory {
         }
         tempObj = syncConf.getWriter().getParameter().get(RestapiKeys.KEY_PARAMS);
         if (tempObj != null) {
-            restapiWriterConfig.getParams().putAll((Map)tempObj);
+            restapiWriterConfig.getParams().putAll((Map) tempObj);
         }
         super.initFlinkxCommonConf(restapiWriterConfig);
     }
@@ -95,7 +92,7 @@ public class RestapiSinkFactory extends SinkFactory {
      *
      * @return JdbcOutputFormatBuilder
      */
-    protected RestapiOutputFormatBuilder getBuilder(){
+    protected RestapiOutputFormatBuilder getBuilder() {
         return new RestapiOutputFormatBuilder();
     };
 }

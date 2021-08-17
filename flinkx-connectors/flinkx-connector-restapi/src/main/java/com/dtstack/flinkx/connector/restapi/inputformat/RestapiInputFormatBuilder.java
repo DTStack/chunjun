@@ -25,9 +25,10 @@ import com.dtstack.flinkx.connector.restapi.common.HttpMethod;
 import com.dtstack.flinkx.connector.restapi.common.HttpRestConfig;
 import com.dtstack.flinkx.connector.restapi.common.MetaParam;
 import com.dtstack.flinkx.connector.restapi.common.ParamType;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.text.StrBuilder;
@@ -53,7 +54,6 @@ import static java.util.stream.Collectors.toCollection;
 public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
     protected RestapiInputFormat format;
 
-
     public RestapiInputFormatBuilder() {
         super.format = format = new RestapiInputFormat();
     }
@@ -75,13 +75,11 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
         this.format.metaHeaders = metaColumns;
     }
 
-
     @Override
     protected void checkFormat() {
 
         StringBuilder errorMsg = new StringBuilder(128);
         String errorTemplate = "param 【%s】 is not allow null \n";
-
 
         if (StringUtils.isBlank(format.httpRestConfig.getUrl())) {
             errorMsg.append(String.format(errorTemplate, "url"));
@@ -90,11 +88,9 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
             errorMsg.append(String.format(errorTemplate, "requestMode"));
         } else {
 
-            if (!Sets
-                    .newHashSet(HttpMethod.GET.name(), HttpMethod.POST.name())
+            if (!Sets.newHashSet(HttpMethod.GET.name(), HttpMethod.POST.name())
                     .contains(format.httpRestConfig.getRequestMode().toUpperCase(Locale.ENGLISH))) {
-                errorMsg
-                        .append("requestMode just support GET and POST,we not support ")
+                errorMsg.append("requestMode just support GET and POST,we not support ")
                         .append(format.httpRestConfig.getRequestMode())
                         .append(" \n");
             }
@@ -108,11 +104,10 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
             errorMsg.append("param 【intervalTime" + "】must more than 0 \n");
         }
 
-
-        if (StringUtils.isEmpty(format.httpRestConfig.getFieldDelimiter()) || !ConstantValue.FIELD_DELIMITER.contains(
-                format.httpRestConfig.getFieldDelimiter())) {
-            errorMsg
-                    .append("we just support fieldDelimiter ")
+        if (StringUtils.isEmpty(format.httpRestConfig.getFieldDelimiter())
+                || !ConstantValue.FIELD_DELIMITER.contains(
+                        format.httpRestConfig.getFieldDelimiter())) {
+            errorMsg.append("we just support fieldDelimiter ")
                     .append(GsonUtil.GSON.toJson(ConstantValue.FIELD_DELIMITER))
                     .append("\n");
         }
@@ -121,83 +116,117 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
             throw new IllegalArgumentException(errorMsg.toString());
         }
 
-        //则需要判断是否存在key相同的场景 key相同但是一个是嵌套key且层级必须大于1级一个是非嵌套key是可以的
-        ArrayList<MetaParam> metaParams = new ArrayList<>(
-                format.metaParams.size() + format.metaBodys.size() + format.metaHeaders.size());
+        // 则需要判断是否存在key相同的场景 key相同但是一个是嵌套key且层级必须大于1级一个是非嵌套key是可以的
+        ArrayList<MetaParam> metaParams =
+                new ArrayList<>(
+                        format.metaParams.size()
+                                + format.metaBodys.size()
+                                + format.metaHeaders.size());
         metaParams.addAll(format.metaParams);
         metaParams.addAll(format.metaBodys);
         metaParams.addAll(format.metaHeaders);
 
-
         StringBuilder sb = new StringBuilder();
 
-        Set<String> allowedRepeatedName = new HashSet<>(
-                format.metaParams.size() + format.metaHeaders.size() + format.metaBodys.size());
+        Set<String> allowedRepeatedName =
+                new HashSet<>(
+                        format.metaParams.size()
+                                + format.metaHeaders.size()
+                                + format.metaBodys.size());
         allowedRepeatedName.addAll(getAllowedRepeatedName(format.metaParams, sb));
         allowedRepeatedName.addAll(getAllowedRepeatedName(format.metaBodys, sb));
         allowedRepeatedName.addAll(getAllowedRepeatedName(format.metaHeaders, sb));
 
-        //将原始参数 按照key 放入各自所属map中 如果是嵌套key 会切割后放入对应层次中
+        // 将原始参数 按照key 放入各自所属map中 如果是嵌套key 会切割后放入对应层次中
         HttpRequestParam originParam = new HttpRequestParam();
-        metaParams.forEach(i -> {
-            originParam.putValue(i, format.httpRestConfig.getFieldDelimiter(), i);
-        });
+        metaParams.forEach(
+                i -> {
+                    originParam.putValue(i, format.httpRestConfig.getFieldDelimiter(), i);
+                });
 
-        //如果存在相同key 且一个是嵌套key 一个是非嵌套key  那么此时需要判断 异常策略里是否有指定对应的key  因为异常策略里指定了key 但不知道是嵌套key 还是非嵌套key
+        // 如果存在相同key 且一个是嵌套key 一个是非嵌套key  那么此时需要判断 异常策略里是否有指定对应的key  因为异常策略里指定了key 但不知道是嵌套key
+        // 还是非嵌套key
         if (CollectionUtils.isNotEmpty(allowedRepeatedName)
                 && CollectionUtils.isNotEmpty(format.httpRestConfig.getStrategy())) {
             List<Strategy> errorStrategy = new ArrayList<>();
 
-            format.httpRestConfig.getStrategy().forEach(i -> {
-                MetaparamUtils.getValueOfMetaParams(i.getKey(), null, format.httpRestConfig, originParam).forEach(p -> {
-                    if (allowedRepeatedName.contains(p.getAllName())) {
-                        errorStrategy.add(i);
-                    }
-                });
+            format.httpRestConfig
+                    .getStrategy()
+                    .forEach(
+                            i -> {
+                                MetaparamUtils.getValueOfMetaParams(
+                                                i.getKey(),
+                                                null,
+                                                format.httpRestConfig,
+                                                originParam)
+                                        .forEach(
+                                                p -> {
+                                                    if (allowedRepeatedName.contains(
+                                                            p.getAllName())) {
+                                                        errorStrategy.add(i);
+                                                    }
+                                                });
 
-                MetaparamUtils
-                        .getValueOfMetaParams(i.getValue(), null, format.httpRestConfig, originParam)
-                        .forEach(p -> {
-                            if (allowedRepeatedName.contains(p.getAllName())) {
-                                errorStrategy.add(i);
-                            }
-                        });
-            });
+                                MetaparamUtils.getValueOfMetaParams(
+                                                i.getValue(),
+                                                null,
+                                                format.httpRestConfig,
+                                                originParam)
+                                        .forEach(
+                                                p -> {
+                                                    if (allowedRepeatedName.contains(
+                                                            p.getAllName())) {
+                                                        errorStrategy.add(i);
+                                                    }
+                                                });
+                            });
 
             if (CollectionUtils.isNotEmpty(errorStrategy)) {
-                sb
-                        .append(StringUtils.join(errorStrategy, ","))
-                        .append(" because we do not know specified key or value is nested or non nested")
+                sb.append(StringUtils.join(errorStrategy, ","))
+                        .append(
+                                " because we do not know specified key or value is nested or non nested")
                         .append("\n");
             }
-
         }
 
         if (sb.length() > 0) {
             throw new IllegalArgumentException(errorMsg.append(sb).toString());
         }
 
-
-        //循环依赖判断
+        // 循环依赖判断
         Set<String> anallyIng = new HashSet<>();
         Set<String> analyzed = new HashSet<>();
-        metaParams.forEach(i -> {
-            getValue(originParam, i, true, errorMsg, anallyIng, analyzed, allowedRepeatedName);
-        });
+        metaParams.forEach(
+                i -> {
+                    getValue(
+                            originParam,
+                            i,
+                            true,
+                            errorMsg,
+                            anallyIng,
+                            analyzed,
+                            allowedRepeatedName);
+                });
 
         anallyIng.clear();
         analyzed.clear();
 
-        metaParams.forEach(i -> {
-            getValue(originParam, i, false, errorMsg, anallyIng, analyzed, allowedRepeatedName);
-        });
-
+        metaParams.forEach(
+                i -> {
+                    getValue(
+                            originParam,
+                            i,
+                            false,
+                            errorMsg,
+                            anallyIng,
+                            analyzed,
+                            allowedRepeatedName);
+                });
 
         if (errorMsg.length() > 0) {
             throw new IllegalArgumentException(errorMsg.toString());
         }
     }
-
 
     public void getValue(
             HttpRequestParam requestParam,
@@ -209,32 +238,40 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
             Set<String> sameNames) {
 
         anallyIng.add(metaParam.getAllName());
-        ArrayList<MetaParam> collect = MetaparamUtils
-                .getValueOfMetaParams(
-                        metaParam.getActualValue(first),
-                        metaParam.getNest(),
-                        format.httpRestConfig,
-                        requestParam)
-                .stream()
-                .filter(i -> !analyzed.contains(i.getAllName()) || i.getParamType().equals(ParamType.BODY) || i
-                        .getParamType()
-                        .equals(ParamType.PARAM) || i.getParamType().equals(ParamType.RESPONSE) || i
-                        .getParamType()
-                        .equals(ParamType.HEADER))
-                .collect(
-                        collectingAndThen(
-                                toCollection(() -> new TreeSet<>(Comparator.comparing(MetaParam::getAllName))),
-                                ArrayList::new)
-                );
+        ArrayList<MetaParam> collect =
+                MetaparamUtils.getValueOfMetaParams(
+                                metaParam.getActualValue(first),
+                                metaParam.getNest(),
+                                format.httpRestConfig,
+                                requestParam)
+                        .stream()
+                        .filter(
+                                i ->
+                                        !analyzed.contains(i.getAllName())
+                                                || i.getParamType().equals(ParamType.BODY)
+                                                || i.getParamType().equals(ParamType.PARAM)
+                                                || i.getParamType().equals(ParamType.RESPONSE)
+                                                || i.getParamType().equals(ParamType.HEADER))
+                        .collect(
+                                collectingAndThen(
+                                        toCollection(
+                                                () ->
+                                                        new TreeSet<>(
+                                                                Comparator.comparing(
+                                                                        MetaParam::getAllName))),
+                                        ArrayList::new));
 
-        //如果存在相同key 判断是否有value|nextValue指定了该key 因为不知道是指向嵌套key还是指向非嵌套key
+        // 如果存在相同key 判断是否有value|nextValue指定了该key 因为不知道是指向嵌套key还是指向非嵌套key
         if (CollectionUtils.isNotEmpty(sameNames)) {
-            Set<String> keys = collect
-                    .stream()
-                    .filter(i -> i.getParamType().equals(ParamType.HEADER) || i.getParamType().equals(ParamType.BODY)
-                            || i.getParamType().equals(ParamType.PARAM))
-                    .map(MetaParam::getAllName)
-                    .collect(Collectors.toSet());
+            Set<String> keys =
+                    collect.stream()
+                            .filter(
+                                    i ->
+                                            i.getParamType().equals(ParamType.HEADER)
+                                                    || i.getParamType().equals(ParamType.BODY)
+                                                    || i.getParamType().equals(ParamType.PARAM))
+                            .map(MetaParam::getAllName)
+                            .collect(Collectors.toSet());
             StrBuilder sb = new StrBuilder(128);
             for (String key : keys) {
                 if (sameNames.contains(key)) {
@@ -244,43 +281,52 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
 
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(
-                        metaParam.getActualValue(first) + " on " + requestParam + "  is error because we do not know "
-                                + sb.toString() + "is nest or not");
+                        metaParam.getActualValue(first)
+                                + " on "
+                                + requestParam
+                                + "  is error because we do not know "
+                                + sb.toString()
+                                + "is nest or not");
             }
         }
 
-
-        collect.forEach(i1 -> {
-                    //value变量里不能有response变量  因为value变量是第一次请求的key，此时还没有response
+        collect.forEach(
+                i1 -> {
+                    // value变量里不能有response变量  因为value变量是第一次请求的key，此时还没有response
                     if (first && i1.getParamType().equals(ParamType.RESPONSE)) {
-                        errorMsg.append(i1.getAllName()).append(" can not has response variable in value \n");
-                        //value变量里不能指向自己，因为此时value还没有初始值，只有nextValue里的变量可以指向自己
+                        errorMsg.append(i1.getAllName())
+                                .append(" can not has response variable in value \n");
+                        // value变量里不能指向自己，因为此时value还没有初始值，只有nextValue里的变量可以指向自己
                     } else if (first && i1.getAllName().equals(metaParam.getAllName())) {
-                        errorMsg
-                                .append(" The variable in the value of ")
+                        errorMsg.append(" The variable in the value of ")
                                 .append(i1.getAllName())
                                 .append(" can not point to itself \n");
-                    } else if (i1.getParamType().equals(ParamType.PARAM) || i1.getParamType().equals(ParamType.BODY) || i1
-                            .getParamType()
-                            .equals(ParamType.HEADER)) {
+                    } else if (i1.getParamType().equals(ParamType.PARAM)
+                            || i1.getParamType().equals(ParamType.BODY)
+                            || i1.getParamType().equals(ParamType.HEADER)) {
 
-                        //如果这个变量是指向自己的 那么就直接跳过 不需要解析
+                        // 如果这个变量是指向自己的 那么就直接跳过 不需要解析
                         if (!i1.getAllName().equals(metaParam.getAllName())) {
                             if (anallyIng.contains(i1.getAllName())) {
-                                errorMsg
-                                        .append(metaParam.getAllName())
+                                errorMsg.append(metaParam.getAllName())
                                         .append(" and ")
                                         .append(i1.getAllName())
                                         .append(" are cyclically dependent \n");
-                                //发生循环依赖就直接报错
+                                // 发生循环依赖就直接报错
                                 throw new IllegalArgumentException(errorMsg.toString());
                             } else if (!analyzed.contains(i1.getAllName())) {
-                                getValue(requestParam, i1, first, errorMsg, anallyIng, analyzed, sameNames);
+                                getValue(
+                                        requestParam,
+                                        i1,
+                                        first,
+                                        errorMsg,
+                                        anallyIng,
+                                        analyzed,
+                                        sameNames);
                             }
                         }
                     }
-                }
-        );
+                });
         anallyIng.remove(metaParam.getAllName());
         analyzed.add(metaParam.getAllName());
     }
@@ -289,17 +335,18 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
      * 找出 metaParams 里相同key的metaParam
      *
      * @param metaParams
-     *
      * @return
      */
     public List<MetaParam> repeatParamByKey(List<MetaParam> metaParams) {
         ArrayList<MetaParam> data = new ArrayList<>(metaParams.size());
-        Map<String, List<MetaParam>> map = metaParams.stream().collect(Collectors.groupingBy(MetaParam::getAllName));
-        map.forEach((k, v) -> {
-            if (v.size() > 1) {
-                data.addAll(v);
-            }
-        });
+        Map<String, List<MetaParam>> map =
+                metaParams.stream().collect(Collectors.groupingBy(MetaParam::getAllName));
+        map.forEach(
+                (k, v) -> {
+                    if (v.size() > 1) {
+                        data.addAll(v);
+                    }
+                });
         return data;
     }
 
@@ -308,32 +355,32 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
      *
      * @param left
      * @param right
-     *
      * @return
      */
     public List<MetaParam> repeatParamByKey(List<MetaParam> left, List<MetaParam> right) {
         ArrayList<MetaParam> data = new ArrayList<>(left.size());
         Set<String> keys = right.stream().map(MetaParam::getKey).collect(Collectors.toSet());
-        left.forEach(i -> {
-            if (keys.contains(i.getKey())) {
-                data.add(i);
-            }
-        });
+        left.forEach(
+                i -> {
+                    if (keys.contains(i.getKey())) {
+                        data.add(i);
+                    }
+                });
 
         return data;
     }
 
     /**
-     * 获取允许相同key的参数  如果一个是嵌套key且层级大于1级 一个是非嵌套key
+     * 获取允许相同key的参数 如果一个是嵌套key且层级大于1级 一个是非嵌套key
      *
      * @param params 请求参数
      * @param sb 错误信息
-     *
      * @return 允许相同的key 前缀加上各自类型 如body.key1 header.key1
      */
     private Set<String> getAllowedRepeatedName(List<MetaParam> params, StringBuilder sb) {
-        //按照是否是嵌套key进行划分
-        Map<Boolean, List<MetaParam>> paramMap = params.stream().collect(Collectors.groupingBy(MetaParam::getNest));
+        // 按照是否是嵌套key进行划分
+        Map<Boolean, List<MetaParam>> paramMap =
+                params.stream().collect(Collectors.groupingBy(MetaParam::getNest));
         List<MetaParam> repeatParam = new ArrayList<>(32);
 
         if (CollectionUtils.isNotEmpty(paramMap.get(true))) {
@@ -344,17 +391,16 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
             repeatParam.addAll(repeatParamByKey(paramMap.get(false)));
         }
 
-
         if (CollectionUtils.isNotEmpty(repeatParam)) {
-            sb
-                    .append("key can not repeat,key is ")
-                    .append(StringUtils.join(repeatParam
-                            .stream()
-                            .map(MetaParam::getAllName)
-                            .collect(Collectors.toSet()), ","))
+            sb.append("key can not repeat,key is ")
+                    .append(
+                            StringUtils.join(
+                                    repeatParam.stream()
+                                            .map(MetaParam::getAllName)
+                                            .collect(Collectors.toSet()),
+                                    ","))
                     .append("\n");
         }
-
 
         HashSet<String> allowedSameNames = new HashSet<>();
         // 嵌套和非嵌套是否有重复的
@@ -365,17 +411,22 @@ public class RestapiInputFormatBuilder extends BaseRichInputFormatBuilder {
                 repeatParam = repeatParamByKey(paramMap.get(false), paramMap.get(true));
             }
 
-            repeatParam.forEach(i -> {
-                if (i.getKey().split(StringUtil.escapeExprSpecialWord(format.httpRestConfig.getFieldDelimiter())).length
-                        == 1) {
-                    sb
-                            .append(i.toString())
-                            .append(" is repeated and it has only one level When it is a nested key")
-                            .append("\n");
-                } else {
-                    allowedSameNames.add(i.getAllName());
-                }
-            });
+            repeatParam.forEach(
+                    i -> {
+                        if (i.getKey()
+                                        .split(
+                                                StringUtil.escapeExprSpecialWord(
+                                                        format.httpRestConfig.getFieldDelimiter()))
+                                        .length
+                                == 1) {
+                            sb.append(i.toString())
+                                    .append(
+                                            " is repeated and it has only one level When it is a nested key")
+                                    .append("\n");
+                        } else {
+                            allowedSameNames.add(i.getAllName());
+                        }
+                    });
         }
         return allowedSameNames;
     }

@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.conf;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -32,12 +31,12 @@ public class MetricParam {
 
     private RuntimeContext context;
     private boolean makeTaskFailedWhenReportFailed;
-    private Map<String,Object> metricPluginConf;
+    private Map<String, Object> metricPluginConf;
 
     public MetricParam(
             RuntimeContext context,
             boolean makeTaskFailedWhenReportFailed,
-            Map<String,Object> metricPluginConf) {
+            Map<String, Object> metricPluginConf) {
         this.context = context;
         this.makeTaskFailedWhenReportFailed = makeTaskFailedWhenReportFailed;
         this.metricPluginConf = metricPluginConf;
@@ -69,10 +68,11 @@ public class MetricParam {
 
     @Override
     public String toString() {
-        return "MetricParam{" +
-                "makeTaskFailedWhenReportFailed=" + makeTaskFailedWhenReportFailed +
-                ", metricPluginConf=" + metricPluginConf +
-                '}';
+        return "MetricParam{"
+                + "makeTaskFailedWhenReportFailed="
+                + makeTaskFailedWhenReportFailed
+                + ", metricPluginConf="
+                + metricPluginConf
+                + '}';
     }
 }
-

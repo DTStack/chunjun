@@ -21,25 +21,24 @@ package com.dtstack.flinkx.connector.socket.inputformat;
 import com.dtstack.flinkx.connector.socket.client.DtSocketClient;
 import com.dtstack.flinkx.connector.socket.entity.SocketConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import org.apache.commons.lang.StringUtils;
 
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
-import java.util.concurrent.SynchronousQueue;
+import org.apache.commons.lang.StringUtils;
 
+import java.util.concurrent.SynchronousQueue;
 
 /**
  * 读取socket传入的数据
  *
  * @author kunni@dtstack.com
  */
-
 public class SocketInputFormat extends BaseRichInputFormat {
 
     private SocketConfig socketConfig;
@@ -50,9 +49,9 @@ public class SocketInputFormat extends BaseRichInputFormat {
     public static final String KEY_EXIT0 = "exit0 ";
 
     public void setSocketConfig(SocketConfig socketConfig) {
-        String[] hostPort = org.apache.commons.lang.StringUtils.split(
-                socketConfig.getAddress(),
-                ConstantValue.COLON_SYMBOL);
+        String[] hostPort =
+                org.apache.commons.lang.StringUtils.split(
+                        socketConfig.getAddress(), ConstantValue.COLON_SYMBOL);
         socketConfig.setHost(hostPort[0]);
         socketConfig.setPort(Integer.parseInt(hostPort[1]));
         this.socketConfig = socketConfig;
@@ -89,7 +88,8 @@ public class SocketInputFormat extends BaseRichInputFormat {
             // 设置特殊字符串，作为失败标志
             if (StringUtils.startsWith((String) ((GenericRowData) row).getField(0), KEY_EXIT0)) {
                 throw new ReadRecordException(
-                        "socket client lost connection completely, job failed " + ((GenericRowData) row).getField(0),
+                        "socket client lost connection completely, job failed "
+                                + ((GenericRowData) row).getField(0),
                         new Exception("receive data error"));
             }
         } catch (InterruptedException e) {
@@ -99,7 +99,6 @@ public class SocketInputFormat extends BaseRichInputFormat {
         return row;
     }
 
-
     @Override
     protected void closeInternal() {
         if (client != null) {
@@ -107,10 +106,8 @@ public class SocketInputFormat extends BaseRichInputFormat {
         }
     }
 
-
     @Override
     public boolean reachedEnd() {
         return false;
     }
-
 }

@@ -19,18 +19,16 @@
 package com.dtstack.flinkx.connector.kafka.enums;
 
 /**
- * indicate source table input data format type
- * company: www.dtstack.com
- * author: toutian
- * create: 2019/12/24
+ * indicate source table input data format type company: www.dtstack.com author: toutian create:
+ * 2019/12/24
  */
 public enum FormatType {
-    //Indicates that the data is in nest json format(default)
+    // Indicates that the data is in nest json format(default)
     DT_NEST,
-    //Indicates that the data is in json format
+    // Indicates that the data is in json format
     JSON,
-    //Indicates that the data is in avro format
+    // Indicates that the data is in avro format
     AVRO,
-    //Indicates that the data is in csv format
+    // Indicates that the data is in csv format
     CSV
 }

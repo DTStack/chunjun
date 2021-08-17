@@ -20,77 +20,51 @@ package com.dtstack.flinkx.connector.restapi.common;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.restapi.client.Strategy;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * HttpRestConfig
  *
- * @author by shifang@dtstack.com
- * @Date 2020/9/28
+ * @author by shifang@dtstack.com @Date 2020/9/28
  */
 public class HttpRestConfig extends FlinkxCommonConf {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     *  https/http
-     **/
+    /** https/http */
     private String protocol = "https";
 
-    /**
-     * http address
-     **/
+    /** http address */
     private String url;
 
-    /**
-     * post/get
-     **/
+    /** post/get */
     private String requestMode;
 
     private String fieldDelimiter = com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
 
-    /**
-     * response text/json
-     **/
+    /** response text/json */
     private String decode = "text";
 
-    /**
-     * decode为json时，指定解析的key
-     */
+    /** decode为json时，指定解析的key */
     private String fields;
 
-    /**
-     * decode为json时，指定解析key的类型
-     */
+    /** decode为json时，指定解析key的类型 */
     private String fieldTypes;
 
-    /**
-     * 请求的间隔时间 单位毫秒
-     **/
+    /** 请求的间隔时间 单位毫秒 */
     private Long intervalTime;
 
-
-    /**
-     * 请求的header头
-     **/
+    /** 请求的header头 */
     private List<MetaParam> header = new ArrayList<>(2);
 
-    /**
-     * 请求的param
-     **/
+    /** 请求的param */
     private List<MetaParam> param = new ArrayList<>(2);
 
-
-    /**
-     * 请求的body
-     **/
+    /** 请求的body */
     private List<MetaParam> body = new ArrayList<>(2);
 
-    /**
-     * 返回结果的处理策略
-     **/
+    /** 返回结果的处理策略 */
     protected List<Strategy> strategy = new ArrayList<>(2);
 
     public String getFieldTypes() {
@@ -104,7 +78,6 @@ public class HttpRestConfig extends FlinkxCommonConf {
     public boolean isJsonDecode() {
         return getDecode().equalsIgnoreCase(ConstantValue.DEFAULT_DECODE);
     }
-
 
     public String getProtocol() {
         return protocol;
@@ -145,7 +118,6 @@ public class HttpRestConfig extends FlinkxCommonConf {
     public void setIntervalTime(Long intervalTime) {
         this.intervalTime = intervalTime;
     }
-
 
     public List<Strategy> getStrategy() {
         return strategy;
@@ -197,18 +169,34 @@ public class HttpRestConfig extends FlinkxCommonConf {
 
     @Override
     public String toString() {
-        return "HttpRestConfig{" +
-                "protocol='" + protocol + '\'' +
-                ", url='" + url + '\'' +
-                ", requestMode='" + requestMode + '\'' +
-                ", decode='" + decode + '\'' +
-                ", fields='" + fields + '\'' +
-                ", intervalTime=" + intervalTime +
-                ", fieldDelimiter=" + fieldDelimiter +
-                ", header=" + header +
-                ", param=" + param +
-                ", body=" + body +
-                ", strategy=" + strategy +
-                '}';
+        return "HttpRestConfig{"
+                + "protocol='"
+                + protocol
+                + '\''
+                + ", url='"
+                + url
+                + '\''
+                + ", requestMode='"
+                + requestMode
+                + '\''
+                + ", decode='"
+                + decode
+                + '\''
+                + ", fields='"
+                + fields
+                + '\''
+                + ", intervalTime="
+                + intervalTime
+                + ", fieldDelimiter="
+                + fieldDelimiter
+                + ", header="
+                + header
+                + ", param="
+                + param
+                + ", body="
+                + body
+                + ", strategy="
+                + strategy
+                + '}';
     }
 }

@@ -18,8 +18,12 @@
 
 package com.dtstack.flinkx.connector.kafka.source;
 
-
+import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.metrics.AccumulatorCollector;
+import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.JsonUtil;
 
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -36,11 +40,6 @@ import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.constants.Metrics;
-import com.dtstack.flinkx.metrics.AccumulatorCollector;
-import com.dtstack.flinkx.metrics.BaseMetric;
-import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.JsonUtil;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
@@ -61,10 +60,10 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger LOG = LoggerFactory.getLogger(DynamicKafkaDeserializationSchema.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(DynamicKafkaDeserializationSchema.class);
 
-    private final @Nullable
-    DeserializationSchema<RowData> keyDeserialization;
+    private final @Nullable DeserializationSchema<RowData> keyDeserialization;
 
     private final DeserializationSchema<RowData> valueDeserialization;
 
@@ -77,7 +76,6 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
     private final TypeInformation<RowData> producedTypeInfo;
 
     private final boolean upsertMode;
-
 
     private static int dataPrintFrequency = 1000;
     /** 任务名称 */
@@ -98,6 +96,7 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
     protected FormatState formatState;
     /** 统计指标 */
     protected LongCounter numReadCounter;
+
     protected LongCounter bytesReadCounter;
     protected LongCounter durationCounter;
 
@@ -138,13 +137,6 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         initStatisticsAccumulator();
         initRestoreInfo();
         openInputFormat();
-
-        LOG.info(
-                "[{}] open successfully, \ninputSplit = {}, \n[{}]: \n{} ",
-                this.getClass().getSimpleName(),
-                "see other log",
-                consumerConfig.getClass().getSimpleName(),
-                JsonUtil.toFormatJson(consumerConfig));
     }
 
     @Override
@@ -154,6 +146,12 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             keyDeserialization.open(context);
         }
         valueDeserialization.open(context);
+        LOG.info(
+                "[{}] open successfully, \ninputSplit = {}, \n[{}]: \n{} ",
+                this.getClass().getSimpleName(),
+                "see other log",
+                consumerConfig.getClass().getSimpleName(),
+                JsonUtil.toFormatJson(consumerConfig));
     }
 
     @Override
@@ -171,7 +169,7 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             LOG.info("receive source data:" + new String(record.value(), StandardCharsets.UTF_8));
         }
 
-        if(record != null){
+        if (record != null) {
             updateDuration();
             if (numReadCounter != null) {
                 numReadCounter.add(1);
@@ -218,8 +216,10 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     protected void dirtyDataCounter(ConsumerRecord<byte[], byte[]> record, Exception e) {
         // add metric of dirty data
-        LOG.error("data parse error:{} ,dirtyData:{}",
-                ExceptionUtil.getErrorMessage(e), new String(record.value(), StandardCharsets.UTF_8));
+        LOG.error(
+                "data parse error:{} ,dirtyData:{}",
+                ExceptionUtil.getErrorMessage(e),
+                new String(record.value(), StandardCharsets.UTF_8));
     }
 
     @Override
@@ -245,47 +245,51 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     /**
      * 更新checkpoint状态缓存map
+     *
      * @return
      */
     public FormatState getFormatState() {
-        if (formatState != null && numReadCounter != null && inputMetric!= null) {
+        if (formatState != null && numReadCounter != null && inputMetric != null) {
             formatState.setMetric(inputMetric.getMetricCounters());
         }
         return formatState;
     }
 
-    /**
-     * 更新任务执行时间指标
-     */
-    private void updateDuration(){
+    /** 更新任务执行时间指标 */
+    private void updateDuration() {
         if (durationCounter != null) {
             durationCounter.resetLocal();
             durationCounter.add(System.currentTimeMillis() - startTime);
         }
     }
 
-    /**
-     * 初始化累加器收集器
-     */
-    private void initAccumulatorCollector(){
-        String lastWriteLocation = String.format("%s_%s", Metrics.LAST_WRITE_LOCATION_PREFIX, runtimeContext.getIndexOfThisSubtask());
-        String lastWriteNum = String.format("%s_%s", Metrics.LAST_WRITE_NUM__PREFIX, runtimeContext.getIndexOfThisSubtask());
+    /** 初始化累加器收集器 */
+    private void initAccumulatorCollector() {
+        String lastWriteLocation =
+                String.format(
+                        "%s_%s",
+                        Metrics.LAST_WRITE_LOCATION_PREFIX, runtimeContext.getIndexOfThisSubtask());
+        String lastWriteNum =
+                String.format(
+                        "%s_%s",
+                        Metrics.LAST_WRITE_NUM__PREFIX, runtimeContext.getIndexOfThisSubtask());
 
-        accumulatorCollector = new AccumulatorCollector((StreamingRuntimeContext)runtimeContext,
-                Arrays.asList(Metrics.NUM_READS,
-                        Metrics.READ_BYTES,
-                        Metrics.READ_DURATION,
-                        Metrics.WRITE_BYTES,
-                        Metrics.NUM_WRITES,
-                        lastWriteLocation,
-                        lastWriteNum));
+        accumulatorCollector =
+                new AccumulatorCollector(
+                        (StreamingRuntimeContext) runtimeContext,
+                        Arrays.asList(
+                                Metrics.NUM_READS,
+                                Metrics.READ_BYTES,
+                                Metrics.READ_DURATION,
+                                Metrics.WRITE_BYTES,
+                                Metrics.NUM_WRITES,
+                                lastWriteLocation,
+                                lastWriteNum));
         accumulatorCollector.start();
     }
 
-    /**
-     * 初始化累加器指标
-     */
-    private void initStatisticsAccumulator(){
+    /** 初始化累加器指标 */
+    private void initStatisticsAccumulator() {
         numReadCounter = getRuntimeContext().getLongCounter(Metrics.NUM_READS);
         bytesReadCounter = getRuntimeContext().getLongCounter(Metrics.READ_BYTES);
         durationCounter = getRuntimeContext().getLongCounter(Metrics.READ_DURATION);
@@ -296,11 +300,9 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
     }
 
-    /**
-     * 从checkpoint状态缓存map中恢复上次任务的指标信息
-     */
-    private void initRestoreInfo(){
-        if(formatState == null){
+    /** 从checkpoint状态缓存map中恢复上次任务的指标信息 */
+    private void initRestoreInfo() {
+        if (formatState == null) {
             formatState = new FormatState(indexOfSubTask, null);
         } else {
             numReadCounter.add(formatState.getMetricValue(Metrics.NUM_READS));
@@ -311,7 +313,7 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     private void openInputFormat() {
         Map<String, String> vars = getRuntimeContext().getMetricGroup().getAllVariables();
-        if(vars != null){
+        if (vars != null) {
             jobName = vars.getOrDefault(Metrics.JOB_NAME, "defaultJobName");
             jobId = vars.get(Metrics.JOB_NAME);
             indexOfSubTask = Integer.parseInt(vars.get(Metrics.SUBTASK_INDEX));
@@ -321,15 +323,15 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
     }
 
     protected void close() {
-        if(durationCounter != null){
+        if (durationCounter != null) {
             updateDuration();
         }
 
-        if(accumulatorCollector != null){
+        if (accumulatorCollector != null) {
             accumulatorCollector.close();
         }
 
-        if(inputMetric != null){
+        if (inputMetric != null) {
             inputMetric.waitForReportMetrics();
         }
 

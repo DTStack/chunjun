@@ -20,14 +20,14 @@ package com.dtstack.flinkx.connector.restapi.outputformat;
 import com.dtstack.flinkx.connector.restapi.common.HttpUtil;
 import com.dtstack.flinkx.connector.restapi.common.RestapiWriterConfig;
 import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.apache.flink.table.data.RowData;
 
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -43,7 +43,6 @@ import java.util.UUID;
 
 import static com.dtstack.flinkx.connector.restapi.common.RestapiKeys.KEY_BATCH;
 
-
 /**
  * @author : shifang
  * @date : 2020/3/12
@@ -57,28 +56,22 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
     protected Gson gson;
 
     @Override
-    protected void preCommit() {
-
-    }
+    protected void preCommit() {}
 
     @Override
-    protected void closeInternal() {
-
-    }
+    protected void closeInternal() {}
 
     @Override
-    public void rollback(long checkpointId) {
-
-    }
+    public void rollback(long checkpointId) {}
 
     @Override
-    public void commit(long checkpointId) {
-
-    }
+    public void commit(long checkpointId) {}
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
-        restapiWriterConfig.getParams().put("threadId", UUID.randomUUID().toString().substring(0, 8));
+        restapiWriterConfig
+                .getParams()
+                .put("threadId", UUID.randomUUID().toString().substring(0, 8));
         gson = new GsonBuilder().serializeNulls().create();
     }
 
@@ -91,12 +84,16 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
         List<Object> dataRow = new ArrayList<>();
         try {
             dataRow.add(getDataFromRow(row, restapiWriterConfig.getColumns()));
-            restapiWriterConfig.getParams().put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
+            restapiWriterConfig
+                    .getParams()
+                    .put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
             if (!restapiWriterConfig.getParams().isEmpty()) {
                 Iterator iterator = restapiWriterConfig.getParams().entrySet().iterator();
                 while (iterator.hasNext()) {
                     Map.Entry entry = (Map.Entry) iterator.next();
-                    restapiWriterConfig.getFormatBody().put((String) entry.getKey(), entry.getValue());
+                    restapiWriterConfig
+                            .getFormatBody()
+                            .put((String) entry.getKey(), entry.getValue());
                 }
             }
             restapiWriterConfig.getFormatBody().put("data", dataRow);
@@ -127,7 +124,9 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
             for (RowData row : rows) {
                 dataRow.add(getDataFromRow(row, restapiWriterConfig.getColumns()));
             }
-            restapiWriterConfig.getParams().put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
+            restapiWriterConfig
+                    .getParams()
+                    .put(KEY_BATCH, UUID.randomUUID().toString().substring(0, 8));
             Iterator iterator = restapiWriterConfig.getParams().entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry entry = (Map.Entry) iterator.next();
@@ -169,19 +168,22 @@ public class RestapiOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-
     private void sendRequest(
             CloseableHttpClient httpClient,
             Map<String, Object> requestBody,
             String method,
             Map<String, String> header,
-            String url) throws IOException {
+            String url)
+            throws IOException {
         LOG.debug("send data:{}", gson.toJson(requestBody));
         HttpRequestBase request = HttpUtil.getRequest(method, requestBody, header, url);
-        //set request timeout
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(DEFAULT_TIME_OUT).setConnectionRequestTimeout(DEFAULT_TIME_OUT)
-                .setSocketTimeout(DEFAULT_TIME_OUT).build();
+        // set request timeout
+        RequestConfig requestConfig =
+                RequestConfig.custom()
+                        .setConnectTimeout(DEFAULT_TIME_OUT)
+                        .setConnectionRequestTimeout(DEFAULT_TIME_OUT)
+                        .setSocketTimeout(DEFAULT_TIME_OUT)
+                        .build();
         request.setConfig(requestConfig);
         CloseableHttpResponse httpResponse = httpClient.execute(request);
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {

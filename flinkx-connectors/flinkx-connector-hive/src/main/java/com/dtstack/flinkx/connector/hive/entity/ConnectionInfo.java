@@ -21,8 +21,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -77,12 +76,21 @@ public class ConnectionInfo implements Serializable {
 
     @Override
     public String toString() {
-        return "ConnectionInfo{" +
-                "jdbcUrl='" + jdbcUrl + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", timeout='" + timeout + '\'' +
-                ", hiveConf=" + hiveConf +
-                '}';
+        return "ConnectionInfo{"
+                + "jdbcUrl='"
+                + jdbcUrl
+                + '\''
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", timeout='"
+                + timeout
+                + '\''
+                + ", hiveConf="
+                + hiveConf
+                + '}';
     }
 }

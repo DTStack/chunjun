@@ -17,10 +17,6 @@
  */
 package com.dtstack.flinkx.connector.hdfs.converter;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.TimestampData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -33,11 +29,16 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.TimestampData;
+
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.parquet.example.data.Group;
@@ -51,12 +52,12 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Date: 2021/06/16
- * Company: www.dtstack.com
+ * Date: 2021/06/16 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, RowData, Group, String> {
+public class HdfsParquetColumnConverter
+        extends AbstractRowConverter<RowData, RowData, Group, String> {
 
     private List<String> columnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
@@ -67,11 +68,13 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
             String type = fieldConfList.get(i).getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
             int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
-            if (left > 0 && right > 0){
+            if (left > 0 && right > 0) {
                 type = type.substring(0, left);
             }
-            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(type));
-            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(type), type);
+            toInternalConverters[i] =
+                    wrapIntoNullableInternalConverter(createInternalConverter(type));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(createExternalConverter(type), type);
         }
     }
 
@@ -79,13 +82,16 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
     @SuppressWarnings("unchecked")
     public RowData toInternal(RowData input) throws Exception {
         GenericRowData row = new GenericRowData(input.getArity());
-        if(input instanceof GenericRowData){
+        if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
                 row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
             }
-        }else{
-            throw new FlinkxRuntimeException("Error RowData type, RowData:[" + input + "] should be instance of GenericRowData.");
+        } else {
+            throw new FlinkxRuntimeException(
+                    "Error RowData type, RowData:["
+                            + input
+                            + "] should be instance of GenericRowData.");
         }
         return row;
     }
@@ -106,10 +112,11 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
 
     @Override
     @SuppressWarnings("unchecked")
-    protected ISerializationConverter<Group> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, String type) {
+    protected ISerializationConverter<Group> wrapIntoNullableExternalConverter(
+            ISerializationConverter serializationConverter, String type) {
         return (rowData, index, group) -> {
             if (rowData == null || rowData.isNullAt(index)) {
-                //do nothing
+                // do nothing
             } else {
                 serializationConverter.serialize(rowData, index, group);
             }
@@ -125,23 +132,28 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
             case "TINYINT":
             case "SMALLINT":
             case "INT":
-                return (IDeserializationConverter<Integer, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<Integer, AbstractBaseColumn>)
+                        BigDecimalColumn::new;
             case "BIGINT":
                 return (IDeserializationConverter<Long, AbstractBaseColumn>) BigDecimalColumn::new;
             case "FLOAT":
                 return (IDeserializationConverter<Float, AbstractBaseColumn>) BigDecimalColumn::new;
             case "DOUBLE":
-                return (IDeserializationConverter<Double, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<Double, AbstractBaseColumn>)
+                        BigDecimalColumn::new;
             case "DECIMAL":
-                return (IDeserializationConverter<BigDecimal, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<BigDecimal, AbstractBaseColumn>)
+                        BigDecimalColumn::new;
             case "STRING":
             case "VARCHAR":
             case "CHAR":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "TIMESTAMP":
-                return (IDeserializationConverter<Timestamp, AbstractBaseColumn>) TimestampColumn::new;
+                return (IDeserializationConverter<Timestamp, AbstractBaseColumn>)
+                        TimestampColumn::new;
             case "DATE":
-                return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
             case "BINARY":
                 return (IDeserializationConverter<byte[], AbstractBaseColumn>) BytesColumn::new;
             case "ARRAY":
@@ -157,32 +169,60 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
     protected ISerializationConverter<Group> createExternalConverter(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BOOLEAN":
-                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getBoolean(index));
+                return (rowData, index, group) ->
+                        group.add(columnNameList.get(index), rowData.getBoolean(index));
             case "TINYINT":
             case "SMALLINT":
             case "INT":
-                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getInt(index));
+                return (rowData, index, group) ->
+                        group.add(columnNameList.get(index), rowData.getInt(index));
             case "BIGINT":
-                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getLong(index));
+                return (rowData, index, group) ->
+                        group.add(columnNameList.get(index), rowData.getLong(index));
             case "FLOAT":
-                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getFloat(index));
+                return (rowData, index, group) ->
+                        group.add(columnNameList.get(index), rowData.getFloat(index));
             case "DOUBLE":
-                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getDouble(index));
+                return (rowData, index, group) ->
+                        group.add(columnNameList.get(index), rowData.getDouble(index));
             case "DECIMAL":
                 return (rowData, index, group) -> {
-                    ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(columnNameList.get(index));
-                    HiveDecimal hiveDecimal = HiveDecimal.create(rowData.getDecimal(index, decimalInfo.getPrecision(), decimalInfo.getScale()).toBigDecimal());
-                    hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
-                    if(hiveDecimal == null){
-                        String msg = String.format("The [%s] data data [%s] precision and scale do not match the metadata:decimal(%s, %s)", index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
+                    ColumnTypeUtil.DecimalInfo decimalInfo =
+                            decimalColInfo.get(columnNameList.get(index));
+                    HiveDecimal hiveDecimal =
+                            HiveDecimal.create(
+                                    rowData.getDecimal(
+                                                    index,
+                                                    decimalInfo.getPrecision(),
+                                                    decimalInfo.getScale())
+                                            .toBigDecimal());
+                    hiveDecimal =
+                            HiveDecimal.enforcePrecisionScale(
+                                    hiveDecimal,
+                                    decimalInfo.getPrecision(),
+                                    decimalInfo.getScale());
+                    if (hiveDecimal == null) {
+                        String msg =
+                                String.format(
+                                        "The [%s] data data [%s] precision and scale do not match the metadata:decimal(%s, %s)",
+                                        index,
+                                        decimalInfo.getPrecision(),
+                                        decimalInfo.getScale(),
+                                        rowData);
                         throw new WriteRecordException(msg, new IllegalArgumentException());
                     }
-                    group.add(columnNameList.get(index), HdfsUtil.decimalToBinary(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale()));
+                    group.add(
+                            columnNameList.get(index),
+                            HdfsUtil.decimalToBinary(
+                                    hiveDecimal,
+                                    decimalInfo.getPrecision(),
+                                    decimalInfo.getScale()));
                 };
             case "STRING":
             case "VARCHAR":
             case "CHAR":
-                return (rowData, index, group) -> group.add(columnNameList.get(index), rowData.getString(index).toString());
+                return (rowData, index, group) ->
+                        group.add(columnNameList.get(index), rowData.getString(index).toString());
             case "TIMESTAMP":
                 return (rowData, index, group) -> {
                     TimestampData timestampData = rowData.getTimestamp(index, 6);
@@ -195,7 +235,10 @@ public class HdfsParquetColumnConverter extends AbstractRowConverter<RowData, Ro
                     group.add(columnNameList.get(index), DateWritable.dateToDays(date));
                 };
             case "BINARY":
-                return (rowData, index, group) -> group.add(columnNameList.get(index), Binary.fromReusedByteArray(rowData.getBinary(index)));
+                return (rowData, index, group) ->
+                        group.add(
+                                columnNameList.get(index),
+                                Binary.fromReusedByteArray(rowData.getBinary(index)));
             case "ARRAY":
             case "MAP":
             case "STRUCT":

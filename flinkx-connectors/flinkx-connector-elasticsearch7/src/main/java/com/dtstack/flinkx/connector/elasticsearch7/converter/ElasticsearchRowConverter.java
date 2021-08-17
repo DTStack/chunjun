@@ -20,6 +20,8 @@ package com.dtstack.flinkx.connector.elasticsearch7.converter;
 
 import com.dtstack.flinkx.util.DateUtil;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -88,8 +90,8 @@ public class ElasticsearchRowConverter extends AbstractRowConverter<Map<String, 
             if (val == null
                     || val.isNullAt(index)
                     || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
-                GenericRowData genericRowData = (GenericRowData) rowData;
-                genericRowData.setField(index, null);
+                Map<String,Object> result = (Map<String,Object>) rowData;
+                result.put(typeIndexList.get(index)._1(), null);
             } else {
                 serializationConverter.serialize(val, index, rowData);
             }
@@ -112,6 +114,12 @@ public class ElasticsearchRowConverter extends AbstractRowConverter<Map<String, 
             List<Tuple3<String,Integer, LogicalType>> collect = typeIndexList.stream()
                     .filter(x -> x._1().equals(key))
                     .collect(Collectors.toList());
+
+            if (CollectionUtils.isEmpty(collect)) {
+                LOG.warn("Result Map : key [{}] not in columns", key);
+                continue;
+            }
+
             Tuple3<String,Integer, LogicalType> typeTuple =  collect.get(0);
             genericRowData.setField(
                     typeTuple._2(),

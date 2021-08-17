@@ -19,13 +19,12 @@
 package com.dtstack.flinkx.connector.ftp.source;
 
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
 import org.apache.commons.lang.StringUtils;
 
-/**
- * @author jiangbo
- */
+/** @author jiangbo */
 public class FtpInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private FtpInputFormat format;
@@ -35,7 +34,7 @@ public class FtpInputFormatBuilder extends BaseRichInputFormatBuilder {
         super.format = format;
     }
 
-    public void setFtpConfig(FtpConfig ftpConfig){
+    public void setFtpConfig(FtpConfig ftpConfig) {
         super.setConfig(ftpConfig);
         format.setFtpConfig(ftpConfig);
     }

@@ -24,7 +24,7 @@ import com.dtstack.flinkx.connector.mongodb.conf.MongoWriteConf;
 import com.dtstack.flinkx.connector.mongodb.converter.MongodbRowConverter;
 import com.dtstack.flinkx.connector.mongodb.sink.MongodbOutputFormat;
 import com.dtstack.flinkx.connector.mongodb.sink.MongodbOutputFormatBuilder;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;

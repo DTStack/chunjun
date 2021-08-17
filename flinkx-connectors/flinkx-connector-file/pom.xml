@@ -49,12 +49,12 @@ under the License.
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../flinkxplugins/file/"
+								<copy todir="${basedir}/../../${dist.dir}/file/"
 									  file="${basedir}/target/${artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../flinkxplugins/file/${artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../flinkxplugins/file/${artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/file/${artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/file/${artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../flinkxplugins/file/"
+									<fileset dir="${basedir}/../../${dist.dir}/file/"
 											 includes="${artifactId}-*.jar"
 											 excludes="${artifactId}-${git.branch}.jar"/>
 								</delete>
@@ -62,6 +62,11 @@ under the License.
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

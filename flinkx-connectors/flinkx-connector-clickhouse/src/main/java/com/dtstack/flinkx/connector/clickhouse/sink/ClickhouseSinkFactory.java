@@ -19,11 +19,9 @@
 package com.dtstack.flinkx.connector.clickhouse.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.clickhouse.ClickhouseDialect;
-import com.dtstack.flinkx.connector.clickhouse.converter.ClickhouseRawTypeConverter;
+import com.dtstack.flinkx.connector.clickhouse.dialect.ClickhouseDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.converter.RawTypeConverter;
 
 /**
  * @program: flinkx
@@ -33,17 +31,11 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 public class ClickhouseSinkFactory extends JdbcSinkFactory {
 
     public ClickhouseSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        super.jdbcDialect = new ClickhouseDialect();
+        super(syncConf, new ClickhouseDialect());
     }
 
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
         return new JdbcOutputFormatBuilder(new ClickhouseOutputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return ClickhouseRawTypeConverter::apply;
     }
 }

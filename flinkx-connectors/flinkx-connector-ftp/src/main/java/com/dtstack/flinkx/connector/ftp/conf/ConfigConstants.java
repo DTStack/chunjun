@@ -21,7 +21,8 @@ package com.dtstack.flinkx.connector.ftp.conf;
 /**
  * The class containing Ftp configuration constants
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class ConfigConstants {
@@ -32,12 +33,11 @@ public class ConfigConstants {
 
     public static final int DEFAULT_TIMEOUT = 5000;
 
-    public static final String  DEFAULT_FTP_CONNECT_PATTERN = "PASV";
+    public static final String DEFAULT_FTP_CONNECT_PATTERN = "PASV";
 
     public static final String SFTP_PROTOCOL = "sftp";
 
     public static final String FTP_PROTOCOL = "ftp";
 
     public static final String DEFAULT_FIELD_DELIMITER = ",";
-
 }

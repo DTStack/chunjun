@@ -17,10 +17,6 @@
  */
 package com.dtstack.flinkx.connector.hive.sink;
 
-import org.apache.flink.streaming.api.CheckpointingMode;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.RowKind;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsRawTypeConverter;
@@ -38,10 +34,16 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.NullColumn;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.JsonUtil;
+
+import org.apache.flink.streaming.api.CheckpointingMode;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
+
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,8 +60,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -100,7 +101,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         this.numTasks = numTasks;
 
         if (null != formatState && null != formatState.getState()) {
-            HiveFormatState hiveFormatState = (HiveFormatState)formatState.getState();
+            HiveFormatState hiveFormatState = (HiveFormatState) formatState.getState();
             formatStateMap.putAll(hiveFormatState.getFormatStateMap());
         }
 
@@ -114,59 +115,67 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public synchronized void writeRecord(RowData rowData) {
-        if(RowKind.INSERT != rowData.getRowKind()){
+        if (RowKind.INSERT != rowData.getRowKind()) {
             throw new FlinkxRuntimeException("Hive connector doesn't support update/delete!");
         }
         String tableName = hiveConf.getTableName();
         boolean hasAnalyticalRules = StringUtils.isNotBlank(hiveConf.getAnalyticalRules());
         Map<String, Object> dataMap = null;
-        if(rowData instanceof ColumnRowData){
+        if (rowData instanceof ColumnRowData) {
             ColumnRowData columnRowData = (ColumnRowData) rowData;
             AbstractBaseColumn baseColumn = (columnRowData).getField(0);
-            if(baseColumn instanceof MapColumn){
-                //from kafka
-                dataMap = GsonUtil.GSON.fromJson(baseColumn.asString(), GsonUtil.gsonMapTypeToken);
-                if(hasAnalyticalRules){
-                    tableName = PathConverterUtil.regexByRules(dataMap, hiveConf.getAnalyticalRules(), hiveConf.getDistributeTableMapping());
+            if (baseColumn instanceof MapColumn) {
+                // from kafka
+                dataMap = JsonUtil.toObject(baseColumn.asString(), JsonUtil.MAP_TYPE_REFERENCE);
+                if (hasAnalyticalRules) {
+                    tableName =
+                            PathConverterUtil.regexByRules(
+                                    dataMap,
+                                    hiveConf.getAnalyticalRules(),
+                                    hiveConf.getDistributeTableMapping());
                 }
-            }else {
-                if(hasAnalyticalRules){
-                    tableName = PathConverterUtil.regexByRules(columnRowData, hiveConf.getAnalyticalRules(), hiveConf.getDistributeTableMapping());
+            } else {
+                if (hasAnalyticalRules) {
+                    tableName =
+                            PathConverterUtil.regexByRules(
+                                    columnRowData,
+                                    hiveConf.getAnalyticalRules(),
+                                    hiveConf.getDistributeTableMapping());
                 }
             }
         }
 
-        Pair<BaseHdfsOutputFormat, TableInfo> formatPair = getHdfsOutputFormat(tableName, rowData, dataMap);
+        Pair<BaseHdfsOutputFormat, TableInfo> formatPair =
+                getHdfsOutputFormat(tableName, rowData, dataMap);
 
         try {
             BaseHdfsOutputFormat hdfsOutputFormat = formatPair.getLeft();
             HdfsConf hdfsConf = hdfsOutputFormat.getHdfsConf();
             List<FieldConf> fieldConfList = hdfsConf.getColumn();
             RowData forwardRowData = null;
-            if(dataMap != null){
+            if (dataMap != null) {
                 ColumnRowData result = new ColumnRowData(fieldConfList.size());
                 for (FieldConf fieldConf : fieldConfList) {
                     Object data = dataMap.get(fieldConf.getName());
                     result.addField(HiveUtil.parseDataFromMap(data));
                 }
                 forwardRowData = result;
-            }else if (rowData instanceof ColumnRowData) {
+            } else if (rowData instanceof ColumnRowData) {
                 ColumnRowData columnRowData = (ColumnRowData) rowData;
                 if (columnRowData.getHeaders() != null) {
                     ColumnRowData result = new ColumnRowData(fieldConfList.size());
                     for (FieldConf fieldConf : fieldConfList) {
                         AbstractBaseColumn baseColumn = columnRowData.getField(fieldConf.getName());
-                        if(baseColumn != null){
+                        if (baseColumn != null) {
                             result.addField(baseColumn);
-                        }else{
+                        } else {
                             result.addField(new NullColumn());
                         }
-
                     }
                     forwardRowData = result;
                 }
             }
-            if(forwardRowData == null){
+            if (forwardRowData == null) {
                 forwardRowData = rowData;
             }
 
@@ -185,24 +194,27 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(RowData rowData) {
-        throw new FlinkxRuntimeException("method[writeSingleRecordInternal] in HiveOutputFormat should not be invoked, this is code error.");
+        throw new FlinkxRuntimeException(
+                "method[writeSingleRecordInternal] in HiveOutputFormat should not be invoked, this is code error.");
     }
 
     @Override
     protected void writeMultipleRecordsInternal() {
-        throw new FlinkxRuntimeException("method[writeMultipleRecordsInternal] in HiveOutputFormat should not be invoked, this is code error.");
+        throw new FlinkxRuntimeException(
+                "method[writeMultipleRecordsInternal] in HiveOutputFormat should not be invoked, this is code error.");
     }
 
     @Override
     public synchronized FormatState getFormatState() throws Exception {
         formatStateMap.clear();
-        for (Map.Entry<String, Pair<String, BaseHdfsOutputFormat>> next : outputFormatMap.entrySet()) {
+        for (Map.Entry<String, Pair<String, BaseHdfsOutputFormat>> next :
+                outputFormatMap.entrySet()) {
             BaseHdfsOutputFormat format = next.getValue().getRight();
             FormatState formatState = format.getFormatState();
             formatStateMap.put(format.getFormatId(), formatState);
         }
 
-        //set metric after preCommit
+        // set metric after preCommit
         snapshotWriteCounter.add(rowsOfCurrentTransaction);
         rowsOfCurrentTransaction = 0;
         formatState.setNumberWrite(numWriteCounter.getLocalValue());
@@ -214,7 +226,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void commit(long checkpointId) {
-        for (Map.Entry<String, Pair<String, BaseHdfsOutputFormat>> next : outputFormatMap.entrySet()) {
+        for (Map.Entry<String, Pair<String, BaseHdfsOutputFormat>> next :
+                outputFormatMap.entrySet()) {
             BaseHdfsOutputFormat format = next.getValue().getRight();
             format.commit(checkpointId);
         }
@@ -222,7 +235,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void rollback(long checkpointId) {
-        for (Map.Entry<String, Pair<String, BaseHdfsOutputFormat>> next : outputFormatMap.entrySet()) {
+        for (Map.Entry<String, Pair<String, BaseHdfsOutputFormat>> next :
+                outputFormatMap.entrySet()) {
             BaseHdfsOutputFormat format = next.getValue().getRight();
             format.rollback(checkpointId);
         }
@@ -230,7 +244,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void closeInternal() {
-        for (Map.Entry<String, Pair<String, BaseHdfsOutputFormat>> entry : outputFormatMap.entrySet()) {
+        for (Map.Entry<String, Pair<String, BaseHdfsOutputFormat>> entry :
+                outputFormatMap.entrySet()) {
             try {
                 BaseHdfsOutputFormat format = entry.getValue().getRight();
                 format.finalizeGlobal(numTasks);
@@ -241,23 +256,31 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    private Pair<BaseHdfsOutputFormat, TableInfo> getHdfsOutputFormat(String tableName, RowData rowData, Map<String, Object> event) {
+    private Pair<BaseHdfsOutputFormat, TableInfo> getHdfsOutputFormat(
+            String tableName, RowData rowData, Map<String, Object> event) {
         String partitionValue = partitionFormat.format(new Date());
-        String partitionPath = String.format(HiveUtil.PARTITION_TEMPLATE, hiveConf.getPartition(), partitionValue);
+        String partitionPath =
+                String.format(HiveUtil.PARTITION_TEMPLATE, hiveConf.getPartition(), partitionValue);
         String hiveTablePath = tableName + ConstantValue.SINGLE_SLASH_SYMBOL + partitionPath;
 
         Pair<String, BaseHdfsOutputFormat> formatPair = outputFormatMap.get(tableName);
         BaseHdfsOutputFormat outputFormat = null;
-        if(formatPair != null && StringUtils.equals(formatPair.getLeft(), partitionPath)){
+        if (formatPair != null && StringUtils.equals(formatPair.getLeft(), partitionPath)) {
             outputFormat = formatPair.getRight();
         }
         TableInfo tableInfo = checkCreateTable(tableName, rowData, event);
         if (outputFormat == null) {
-            HiveUtil.createPartition(tableInfo, partitionPath, connectionInfo);
+            HiveUtil.createPartition(
+                    tableInfo,
+                    partitionPath,
+                    connectionInfo,
+                    getRuntimeContext().getDistributedCache());
             String path = tableInfo.getPath() + ConstantValue.SINGLE_SLASH_SYMBOL + partitionPath;
 
-            outputFormat = createHdfsOutputFormat(tableInfo, path, hiveTablePath, rowData instanceof ColumnRowData);
-            if(formatPair != null){
+            outputFormat =
+                    createHdfsOutputFormat(
+                            tableInfo, path, hiveTablePath, rowData instanceof ColumnRowData);
+            if (formatPair != null) {
                 try {
                     BaseHdfsOutputFormat format = formatPair.getRight();
                     format.finalizeGlobal(numTasks);
@@ -271,10 +294,12 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         return Pair.of(outputFormat, tableInfo);
     }
 
-    private BaseHdfsOutputFormat createHdfsOutputFormat(TableInfo tableInfo, String path, String hiveTablePath, boolean useAbstractBaseColumn) {
+    private BaseHdfsOutputFormat createHdfsOutputFormat(
+            TableInfo tableInfo, String path, String hiveTablePath, boolean useAbstractBaseColumn) {
         try {
             HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(hiveConf.getFileType());
-            HiveConf copyHiveConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(hiveConf), HiveConf.class);
+            HiveConf copyHiveConf =
+                    GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(hiveConf), HiveConf.class);
             copyHiveConf.setPath(path);
             List<String> columnNameList = tableInfo.getColumnNameList();
             List<String> columnTypeList = tableInfo.getColumnTypeList();
@@ -293,10 +318,10 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             builder.setRowConverter(
                     HdfsUtil.createRowConverter(
-                        useAbstractBaseColumn,
-                        copyHiveConf.getFileType(),
-                        fieldConfList,
-                        HdfsRawTypeConverter::apply));
+                            useAbstractBaseColumn,
+                            copyHiveConf.getFileType(),
+                            fieldConfList,
+                            HdfsRawTypeConverter::apply));
             builder.setInitAccumulatorAndDirty(false);
 
             BaseHdfsOutputFormat outputFormat = (BaseHdfsOutputFormat) builder.finish();
@@ -316,57 +341,59 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-
-    /**
-     * 预先建表
-     * 只适用于analyticalRules参数为schema和table的情况
-     */
-    private void primaryCreateTable(){
-        for(Map.Entry<String, TableInfo> entry : hiveConf.getTableInfos().entrySet()){
+    /** 预先建表 只适用于analyticalRules参数为schema和table的情况 */
+    private void primaryCreateTable() {
+        for (Map.Entry<String, TableInfo> entry : hiveConf.getTableInfos().entrySet()) {
             Map<String, Object> event = new HashMap<>(4);
             event.put("schema", hiveConf.getSchema());
             event.put("table", entry.getKey());
             TableInfo tableInfo = entry.getValue();
-            String tablePath = PathConverterUtil.regexByRules(event, hiveConf.getTableName(), hiveConf.getDistributeTableMapping());
+            String tablePath =
+                    PathConverterUtil.regexByRules(
+                            event, hiveConf.getTableName(), hiveConf.getDistributeTableMapping());
             tableInfo.setTablePath(tablePath);
             checkCreateTable(tablePath, null, event);
         }
     }
 
-    private TableInfo checkCreateTable(String tablePath, RowData rowData, Map<String, Object> event) {
+    private TableInfo checkCreateTable(
+            String tablePath, RowData rowData, Map<String, Object> event) {
         TableInfo tableInfo = tableCacheMap.get(tablePath);
         if (tableInfo == null) {
             LOG.info("tablePath:{}, rowData:{}, even:{}", tablePath, rowData, event);
 
             String tableName = tablePath;
-            if(event != null){
+            if (event != null) {
                 tableName = MapUtils.getString(event, "table");
                 tableName = hiveConf.getDistributeTableMapping().getOrDefault(tableName, tableName);
-            }else if(rowData instanceof ColumnRowData){
+            } else if (rowData instanceof ColumnRowData) {
                 ColumnRowData columnRowData = (ColumnRowData) rowData;
                 AbstractBaseColumn baseColumn = columnRowData.getField("table");
-                if(baseColumn != null){
+                if (baseColumn != null) {
                     tableName = baseColumn.asString();
-                    tableName = hiveConf.getDistributeTableMapping().getOrDefault(tableName, tableName);
+                    tableName =
+                            hiveConf.getDistributeTableMapping().getOrDefault(tableName, tableName);
                 }
             }
             tableInfo = hiveConf.getTableInfos().get(tableName);
             if (tableInfo == null) {
-                throw new FlinkxRuntimeException("tableName:" + tableName + " of the tableInfo is null");
+                throw new FlinkxRuntimeException(
+                        "tableName:" + tableName + " of the tableInfo is null");
             }
             tableInfo.setTablePath(tablePath);
-            HiveUtil.createHiveTableWithTableInfo(tableInfo, connectionInfo);
+            HiveUtil.createHiveTableWithTableInfo(
+                    tableInfo, connectionInfo, getRuntimeContext().getDistributedCache());
             tableCacheMap.put(tablePath, tableInfo);
         }
         return tableInfo;
     }
 
     private SimpleDateFormat getPartitionFormat() {
-        if(StringUtils.isBlank(hiveConf.getPartitionType())){
+        if (StringUtils.isBlank(hiveConf.getPartitionType())) {
             throw new IllegalArgumentException("partitionEnumStr is empty!");
         }
         SimpleDateFormat format;
-        switch (hiveConf.getPartitionType().toUpperCase(Locale.ENGLISH)){
+        switch (hiveConf.getPartitionType().toUpperCase(Locale.ENGLISH)) {
             case "DAY":
                 format = new SimpleDateFormat("yyyyMMdd");
                 break;
@@ -377,7 +404,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 format = new SimpleDateFormat("yyyyMMddHHmm");
                 break;
             default:
-                throw new UnsupportedOperationException("partitionEnum = " + hiveConf.getPartitionType() + " is undefined!");
+                throw new UnsupportedOperationException(
+                        "partitionEnum = " + hiveConf.getPartitionType() + " is undefined!");
         }
         TimeZone timeZone = TimeZone.getDefault();
         LOG.info("timeZone = {}", timeZone);

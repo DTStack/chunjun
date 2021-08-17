@@ -17,26 +17,23 @@
  */
 package com.dtstack.flinkx.connector.sqlservercdc.source;
 
+import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
-
 import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcColumnConverter;
 import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcRawTypeConverter;
 import com.dtstack.flinkx.connector.sqlservercdc.convert.SqlServerCdcRowConverter;
 import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormatBuilder;
-
+import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.source.SourceFactory;
+import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.source.SourceFactory;
-import com.dtstack.flinkx.util.JsonUtil;
-import com.dtstack.flinkx.util.TableUtil;
 
 /**
  * @company: www.dtstack.com
@@ -50,7 +47,9 @@ public class SqlservercdcSourceFactory extends SourceFactory {
 
     public SqlservercdcSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
-        sqlServerCdcConf = JsonUtil.toObject(JsonUtil.toJson(config.getReader().getParameter()), SqlServerCdcConf.class);
+        sqlServerCdcConf =
+                JsonUtil.toObject(
+                        JsonUtil.toJson(config.getReader().getParameter()), SqlServerCdcConf.class);
         sqlServerCdcConf.setColumn(config.getReader().getFieldList());
         super.initFlinkxCommonConf(sqlServerCdcConf);
     }
@@ -61,10 +60,18 @@ public class SqlservercdcSourceFactory extends SourceFactory {
         builder.setSqlServerCdcConf(sqlServerCdcConf);
         AbstractCDCRowConverter rowConverter;
         if (useAbstractBaseColumn) {
-            rowConverter = new SqlServerCdcColumnConverter(sqlServerCdcConf.isPavingData(), sqlServerCdcConf.isSplitUpdate());
+            rowConverter =
+                    new SqlServerCdcColumnConverter(
+                            sqlServerCdcConf.isPavingData(), sqlServerCdcConf.isSplitUpdate());
         } else {
-            final RowType rowType = (RowType) TableUtil.createRowType(sqlServerCdcConf.getColumn(),getRawTypeConverter());
-            TimestampFormat format = "sql".equalsIgnoreCase(sqlServerCdcConf.getTimestampFormat()) ? TimestampFormat.SQL : TimestampFormat.ISO_8601;
+            final RowType rowType =
+                    (RowType)
+                            TableUtil.createRowType(
+                                    sqlServerCdcConf.getColumn(), getRawTypeConverter());
+            TimestampFormat format =
+                    "sql".equalsIgnoreCase(sqlServerCdcConf.getTimestampFormat())
+                            ? TimestampFormat.SQL
+                            : TimestampFormat.ISO_8601;
             rowConverter = new SqlServerCdcRowConverter(rowType, format);
         }
         builder.setRowConverter(rowConverter);

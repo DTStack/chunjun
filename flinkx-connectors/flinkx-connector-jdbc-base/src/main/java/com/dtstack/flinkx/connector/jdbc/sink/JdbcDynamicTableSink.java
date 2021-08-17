@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.enums.EWriteMode;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
@@ -25,12 +31,6 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.CollectionUtil;
-
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
-import com.dtstack.flinkx.enums.EWriteMode;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ import static org.apache.flink.util.Preconditions.checkState;
  * @author chuixue
  * @create 2021-04-12 14:44
  * @description
- **/
+ */
 public class JdbcDynamicTableSink implements DynamicTableSink {
 
     private final JdbcConf jdbcConf;
@@ -97,22 +97,22 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
             columnList.add(field);
         }
         jdbcConf.setColumn(columnList);
-        jdbcConf.setMode((CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey())) ? EWriteMode.INSERT.name() : EWriteMode.UPDATE.name());
+        jdbcConf.setMode(
+                (CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey()))
+                        ? EWriteMode.INSERT.name()
+                        : EWriteMode.UPDATE.name());
 
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), jdbcConf.getParallelism());
+        return SinkFunctionProvider.of(
+                new DtOutputFormatSinkFunction(builder.finish()), jdbcConf.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new JdbcDynamicTableSink(
-                jdbcConf,
-                jdbcDialect,
-                tableSchema,
-                builder);
+        return new JdbcDynamicTableSink(jdbcConf, jdbcDialect, tableSchema, builder);
     }
 
     @Override

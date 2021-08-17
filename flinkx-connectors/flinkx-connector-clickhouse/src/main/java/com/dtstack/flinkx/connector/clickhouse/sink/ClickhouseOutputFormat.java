@@ -18,15 +18,8 @@
 
 package com.dtstack.flinkx.connector.clickhouse.sink;
 
-import com.dtstack.flinkx.connector.clickhouse.converter.ClickhouseRawTypeConverter;
 import com.dtstack.flinkx.connector.clickhouse.util.ClickhouseUtil;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.util.TableUtil;
-
-import org.apache.flink.table.types.logical.RowType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -39,20 +32,8 @@ import java.sql.SQLException;
 public class ClickhouseOutputFormat extends JdbcOutputFormat {
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) {
-        super.openInternal(taskNumber, numTasks);
-        RowType rowType =
-                TableUtil.createRowType(columnNameList, columnTypeList, ClickhouseRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-    }
-
-    @Override
-    protected Connection getConnection() {
-        try {
-            return ClickhouseUtil.getConnection(
-                    jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    protected Connection getConnection() throws SQLException {
+        return ClickhouseUtil.getConnection(
+                jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
     }
 }

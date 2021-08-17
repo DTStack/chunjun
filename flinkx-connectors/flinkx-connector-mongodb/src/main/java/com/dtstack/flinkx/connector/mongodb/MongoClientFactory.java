@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.mongodb;
 
 import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.flinkx.connector.mongodb.conf.MongodbClientOptions;
+
 import com.mongodb.AuthenticationMechanism;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;

@@ -44,20 +44,27 @@ public class ZkHelperTest {
     public void createZkServer() throws Exception {
         server = new TestingServer(2181, true);
         server.start();
-        client = CuratorFrameworkFactory.builder()
-                .connectString("localhost:2181")
-                .connectionTimeoutMs(5000)
-                .retryPolicy(new ExponentialBackoffRetry(1000,3))
-                .build();
+        client =
+                CuratorFrameworkFactory.builder()
+                        .connectString("localhost:2181")
+                        .connectionTimeoutMs(5000)
+                        .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                        .build();
         client.start();
-        client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath("/hbase/table/test1", "init".getBytes());
-        client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath("/hbase/table/test2", "init".getBytes());
+        client.create()
+                .creatingParentsIfNeeded()
+                .withMode(CreateMode.EPHEMERAL)
+                .forPath("/hbase/table/test1", "init".getBytes());
+        client.create()
+                .creatingParentsIfNeeded()
+                .withMode(CreateMode.EPHEMERAL)
+                .forPath("/hbase/table/test2", "init".getBytes());
 
         zooKeeper = ZkHelper.createZkClient("localhost:2181", ZkHelper.DEFAULT_TIMEOUT);
     }
 
     @Test
-    public void testCreateSingleZkClient(){
+    public void testCreateSingleZkClient() {
         Assert.assertNotNull(zooKeeper);
     }
 
@@ -69,10 +76,9 @@ public class ZkHelperTest {
     }
 
     @Test
-    public void testGetCreateTime(){
-      Assert.assertNotEquals(ZkHelper.getCreateTime(zooKeeper, "/hbase/table/test1"), 0L);
+    public void testGetCreateTime() {
+        Assert.assertNotEquals(ZkHelper.getCreateTime(zooKeeper, "/hbase/table/test1"), 0L);
     }
-
 
     @After
     public void closeZkServer() throws IOException {
@@ -80,5 +86,4 @@ public class ZkHelperTest {
         client.close();
         server.close();
     }
-
 }

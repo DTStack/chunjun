@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.mongodb.sink;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.mongodb.converter.MongodbRawTypeConverter;
 import com.dtstack.flinkx.connector.mongodb.datasync.MongoConverterFactory;
@@ -30,6 +26,11 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 

@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.ftp.conf;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
+import com.dtstack.flinkx.constants.ConstantValue;
 
 /**
  * @author jiangbo
@@ -26,25 +27,23 @@ import com.dtstack.flinkx.conf.BaseFileConf;
  */
 public class FtpConfig extends BaseFileConf {
 
-    public String username;
-
-    public String password;
-
-    public String privateKeyPath;
-
-    public String protocol;
-
-    public String fieldDelimiter = ConfigConstants.DEFAULT_FIELD_DELIMITER;
-
-    public String connectPattern = ConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
-
-    public String host;
-
-    public Integer port;
-
-    public boolean isFirstLineHeader = false;
-
     public Integer timeout = ConfigConstants.DEFAULT_TIMEOUT;
+    private String username;
+    private String password;
+    private String privateKeyPath;
+    private String protocol;
+    private String fieldDelimiter = ConfigConstants.DEFAULT_FIELD_DELIMITER;
+    private String connectPattern = ConfigConstants.DEFAULT_FTP_CONNECT_PATTERN;
+    private String host;
+    private Integer port;
+    private boolean isFirstLineHeader = false;
+    /** ftp客户端编码格式 * */
+    private String controlEncoding =
+            System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
+    /** linux是否展示隐藏文件 * */
+    private boolean listHiddenFiles = true;
+
+    private String ftpFileName;
 
     public String getUsername() {
         return username;
@@ -110,7 +109,7 @@ public class FtpConfig extends BaseFileConf {
         this.port = port;
     }
 
-    public void setDefaultPort(){
+    public void setDefaultPort() {
         if (ConfigConstants.SFTP_PROTOCOL.equalsIgnoreCase(protocol)) {
             port = ConfigConstants.DEFAULT_SFTP_PORT;
         } else {
@@ -134,4 +133,35 @@ public class FtpConfig extends BaseFileConf {
         this.timeout = timeout;
     }
 
+    public boolean isFirstLineHeader() {
+        return isFirstLineHeader;
+    }
+
+    public void setFirstLineHeader(boolean firstLineHeader) {
+        isFirstLineHeader = firstLineHeader;
+    }
+
+    public String getControlEncoding() {
+        return controlEncoding;
+    }
+
+    public void setControlEncoding(String controlEncoding) {
+        this.controlEncoding = controlEncoding;
+    }
+
+    public boolean isListHiddenFiles() {
+        return listHiddenFiles;
+    }
+
+    public void setListHiddenFiles(boolean listHiddenFiles) {
+        this.listHiddenFiles = listHiddenFiles;
+    }
+
+    public String getFtpFileName() {
+        return ftpFileName;
+    }
+
+    public void setFtpFileName(String ftpFileName) {
+        this.ftpFileName = ftpFileName;
+    }
 }

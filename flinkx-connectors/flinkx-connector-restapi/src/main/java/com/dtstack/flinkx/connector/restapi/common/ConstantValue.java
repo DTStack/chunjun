@@ -29,9 +29,8 @@ import java.util.Set;
  */
 public class ConstantValue {
 
-
-    public static final String STRATEGY_STOP= "stop";
-    public static final String STRATEGY_RETRY= "retry";
+    public static final String STRATEGY_STOP = "stop";
+    public static final String STRATEGY_RETRY = "retry";
     public static final String SYSTEM_FUNCTION_UUID = "uuid";
     public static final String SYSTEM_FUNCTION_CURRENT_TIME = "currentTime";
     public static final String SYSTEM_FUNCTION_INTERVAL_TIME = "intervalTime";
@@ -46,6 +45,5 @@ public class ConstantValue {
 
     public static final int REQUEST_RETRY_TIME = 3;
 
-    public static final Set<String> FIELD_DELIMITER = Sets.newHashSet(",","_","/",".","-",":");
-
+    public static final Set<String> FIELD_DELIMITER = Sets.newHashSet(",", "_", "/", ".", "-", ":");
 }

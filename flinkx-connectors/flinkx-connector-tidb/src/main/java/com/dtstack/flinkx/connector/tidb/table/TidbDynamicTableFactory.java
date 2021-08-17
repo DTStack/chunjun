@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.connector.tidb.table;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.mysql.table.MysqlDynamicTableFactory;
-import com.dtstack.flinkx.connector.tidb.TidbDialect;
+import com.dtstack.flinkx.connector.tidb.dialect.TidbDialect;
 
 /**
  * Company：www.dtstack.com

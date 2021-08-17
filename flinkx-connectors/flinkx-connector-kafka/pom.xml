@@ -24,24 +24,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-avro</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-csv</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-json</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -65,6 +47,19 @@
 							</artifactSet>
 							<filters>
 								<filter>
+									<artifact>org.apache.kafka:*</artifact>
+									<excludes>
+										<exclude>kafka/kafka-version.properties</exclude>
+										<exclude>LICENSE</exclude>
+										<!-- Does not contain anything relevant.
+											Cites a binary dependency on jersey, but this is neither reflected in the
+											dependency graph, nor are any jersey files bundled. -->
+										<exclude>NOTICE</exclude>
+										<exclude>common/**</exclude>
+									</excludes>
+								</filter>
+
+								<filter>
 									<artifact>*:*</artifact>
 									<excludes>
 										<exclude>META-INF/*.SF</exclude>
@@ -73,6 +68,13 @@
 									</excludes>
 								</filter>
 							</filters>
+
+							<relocations>
+								<relocation>
+									<pattern>org.apache.kafka</pattern>
+									<shadedPattern>org.apache.flink.kafka.shaded.org.apache.kafka</shadedPattern>
+								</relocation>
+							</relocations>
 						</configuration>
 					</execution>
 				</executions>
@@ -90,22 +92,22 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../flinkxplugins/kafka"
+                                <copy todir="${basedir}/../../${dist.dir}/kafka"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-                                <move file="${basedir}/../../flinkxplugins/kafka/${project.artifactId}-${project.version}.jar"
-                                      tofile="${basedir}/../../flinkxplugins/kafka/${project.artifactId}-${git.branch}.jar"/>
+                                <move file="${basedir}/../../${dist.dir}/kafka/${project.artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../../${dist.dir}/kafka/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../flinkxplugins/kafka/"
+									<fileset dir="${basedir}/../../${dist.dir}/kafka/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>
 
-								<copy todir="${basedir}/../../flinkxplugins/upsert-kafka"
+								<copy todir="${basedir}/../../${dist.dir}/upsert-kafka"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../flinkxplugins/upsert-kafka/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../flinkxplugins/upsert-kafka/${project.artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/upsert-kafka/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/upsert-kafka/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../flinkxplugins/upsert-kafka/"
+									<fileset dir="${basedir}/../../${dist.dir}/upsert-kafka/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>

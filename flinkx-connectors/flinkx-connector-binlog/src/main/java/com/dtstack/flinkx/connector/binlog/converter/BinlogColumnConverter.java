@@ -17,10 +17,6 @@
  */
 package com.dtstack.flinkx.connector.binlog.converter;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.RowKind;
-
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
@@ -35,6 +31,11 @@ import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
+
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -46,8 +47,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Date: 2021/04/29
- * Company: www.dtstack.com
+ * Date: 2021/04/29 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -69,26 +69,27 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
         String key = schema + ConstantValue.POINT_SYMBOL + table;
         IDeserializationConverter[] converters = super.cdcConverterCacheMap.get(key);
         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-            if(converters == null){
+            if (converters == null) {
                 List<CanalEntry.Column> list = rowData.getBeforeColumnsList();
-                if(CollectionUtils.isEmpty(list)){
+                if (CollectionUtils.isEmpty(list)) {
                     list = rowData.getAfterColumnsList();
                 }
                 converters =
                         list.stream()
-                                .map(
-                                        x ->
-                                                createInternalConverter(x.getMysqlType()))
+                                .map(x -> createInternalConverter(x.getMysqlType()))
                                 .toArray(IDeserializationConverter[]::new);
                 cdcConverterCacheMap.put(key, converters);
             }
 
             int size;
-            if(pavingData){
-                //5: schema, table, ts, opTime，type
-                size = 5 + rowData.getAfterColumnsList().size() + rowData.getBeforeColumnsList().size();
-            }else{
-                //7: schema, table, ts, opTime，type, before, after
+            if (pavingData) {
+                // 5: schema, table, ts, opTime，type
+                size =
+                        5
+                                + rowData.getAfterColumnsList().size()
+                                + rowData.getBeforeColumnsList().size();
+            } else {
+                // 7: schema, table, ts, opTime，type, before, after
                 size = 7;
             }
 
@@ -110,17 +111,20 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             List<AbstractBaseColumn> afterColumnList = new ArrayList<>(afterList.size());
             List<String> afterHeaderList = new ArrayList<>(afterList.size());
 
-            if (pavingData){
-                parseColumnList(converters, beforeList, beforeColumnList, beforeHeaderList, BEFORE_);
+            if (pavingData) {
+                parseColumnList(
+                        converters, beforeList, beforeColumnList, beforeHeaderList, BEFORE_);
                 parseColumnList(converters, afterList, afterColumnList, afterHeaderList, AFTER_);
             } else {
-                beforeColumnList.add(new MapColumn(processColumnList(rowData.getBeforeColumnsList())));
+                beforeColumnList.add(
+                        new MapColumn(processColumnList(rowData.getBeforeColumnsList())));
                 beforeHeaderList.add(BEFORE);
-                afterColumnList.add(new MapColumn(processColumnList(rowData.getAfterColumnsList())));
+                afterColumnList.add(
+                        new MapColumn(processColumnList(rowData.getAfterColumnsList())));
                 afterHeaderList.add(AFTER);
             }
 
-            //update类型且要拆分
+            // update类型且要拆分
             if (splitUpdate && CanalEntry.EventType.UPDATE == rowChange.getEventType()) {
                 ColumnRowData copy = columnRowData.copy();
                 copy.setRowKind(RowKind.UPDATE_BEFORE);
@@ -133,7 +137,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
                 columnRowData.setRowKind(RowKind.UPDATE_AFTER);
                 columnRowData.addField(new StringColumn(RowKind.UPDATE_AFTER.name()));
                 columnRowData.addHeader(TYPE);
-            }else{
+            } else {
                 columnRowData.setRowKind(getRowKindByType(eventType));
                 columnRowData.addField(new StringColumn(eventType));
                 columnRowData.addHeader(TYPE);
@@ -150,6 +154,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
 
     /**
      * 解析CanalEntry.Column
+     *
      * @param converters
      * @param entryColumnList
      * @param columnList
@@ -161,13 +166,14 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             List<CanalEntry.Column> entryColumnList,
             List<AbstractBaseColumn> columnList,
             List<String> headerList,
-            String after) throws Exception {
+            String after)
+            throws Exception {
         for (int i = 0; i < entryColumnList.size(); i++) {
             CanalEntry.Column entryColumn = entryColumnList.get(i);
             if (!entryColumn.getIsNull()) {
                 AbstractBaseColumn column = converters[i].deserialize(entryColumn.getValue());
                 columnList.add(column);
-            }else{
+            } else {
                 columnList.add(new NullColumn());
             }
             headerList.add(after + entryColumn.getName());
@@ -178,12 +184,13 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
     protected IDeserializationConverter createInternalConverter(String type) {
         String substring = type;
         int index = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
-        if(index > 0 ){
+        if (index > 0) {
             substring = type.substring(0, index);
         }
         switch (substring.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
-                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> new BooleanColumn(Boolean.parseBoolean(val));
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new BooleanColumn(Boolean.parseBoolean(val));
             case "TINYINT":
             case "SMALLINT":
             case "MEDIUMINT":
@@ -197,7 +204,8 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             case "BIGINT":
             case "DECIMAL":
             case "NUMERIC":
-                return (IDeserializationConverter<String, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        BigDecimalColumn::new;
             case "CHAR":
             case "VARCHAR":
             case "TINYTEXT":
@@ -213,7 +221,8 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             case "TIMESTAMP":
             case "DATETIME":
             case "YEAR":
-                return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
             case "TINYBLOB":
             case "BLOB":
             case "MEDIUMBLOB":
@@ -221,7 +230,8 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             case "GEOMETRY":
             case "BINARY":
             case "VARBINARY":
-                return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new BytesColumn(val.getBytes(StandardCharsets.UTF_8));
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new BytesColumn(val.getBytes(StandardCharsets.UTF_8));
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
@@ -229,6 +239,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
 
     /**
      * 解析CanalEntry中的Column，获取字段名及值
+     *
      * @param columnList
      * @return 字段名和值的map集合
      */

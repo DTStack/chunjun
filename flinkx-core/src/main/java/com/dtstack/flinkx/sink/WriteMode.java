@@ -23,32 +23,25 @@ package com.dtstack.flinkx.sink;
  */
 public enum WriteMode {
 
-    /**
-     * 用于关系数据库的直接写入
-     */
+    /** 用于关系数据库的直接写入 */
     INSERT("insert"),
 
-    /**
-     * 用于关系数据库的更新操作
-     */
+    /** 用于关系数据库的更新操作 */
     UPDATE("update"),
 
-    /**
-     * 用于MySQL的替换操作
-     */
+    /** 用于MySQL的替换操作 */
     REPLACE("replace"),
 
-    /**
-     * 用于文件的覆盖
-     */
+    /** 用于文件的覆盖 */
     OVERWRITE("overwrite"),
 
-    /**
-     * 用于文件的追加
-     */
-    APPEND("append");
+    /** 用于文件的追加 */
+    APPEND("append"),
 
-    private String mode;
+    UPSERT("upsert"),
+    ;
+
+    private final String mode;
 
     WriteMode(String mode) {
         this.mode = mode;

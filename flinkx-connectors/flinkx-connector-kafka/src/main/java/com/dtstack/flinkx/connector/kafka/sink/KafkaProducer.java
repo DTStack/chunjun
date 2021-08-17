@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.kafka.sink;
 
+import com.dtstack.flinkx.restore.FormatState;
+
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
@@ -32,7 +34,6 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.restore.FormatState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +82,8 @@ public class KafkaProducer extends FlinkKafkaProducer<RowData> {
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         super.snapshotState(context);
-        FormatState formatState = ((DynamicKafkaSerializationSchema) serializationSchema).getFormatState();
+        FormatState formatState =
+                ((DynamicKafkaSerializationSchema) serializationSchema).getFormatState();
         if (formatState != null) {
             LOG.info("OutputFormat format state:{}", formatState);
             unionOffsetStates.clear();
@@ -94,10 +96,11 @@ public class KafkaProducer extends FlinkKafkaProducer<RowData> {
         super.initializeState(context);
         LOG.info("Start initialize output format state");
         OperatorStateStore stateStore = context.getOperatorStateStore();
-        unionOffsetStates = stateStore.getUnionListState(new ListStateDescriptor<>(
-                LOCATION_STATE_NAME,
-                TypeInformation.of(new TypeHint<FormatState>() {
-                })));
+        unionOffsetStates =
+                stateStore.getUnionListState(
+                        new ListStateDescriptor<>(
+                                LOCATION_STATE_NAME,
+                                TypeInformation.of(new TypeHint<FormatState>() {})));
 
         LOG.info("Is restored:{}", context.isRestored());
         if (context.isRestored()) {

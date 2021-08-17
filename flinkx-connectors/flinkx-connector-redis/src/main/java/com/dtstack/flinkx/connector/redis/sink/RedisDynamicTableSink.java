@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.redis.sink;
 
+import com.dtstack.flinkx.connector.redis.conf.RedisConf;
+import com.dtstack.flinkx.connector.redis.converter.RedisRowConverter;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
@@ -25,16 +29,13 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.connector.redis.conf.RedisConf;
-import com.dtstack.flinkx.connector.redis.converter.RedisRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import com.google.common.collect.Lists;
 
 /**
  * @author chuixue
  * @create 2021-06-16 15:11
  * @description
- **/
+ */
 public class RedisDynamicTableSink implements DynamicTableSink {
 
     private final TableSchema physicalSchema;
@@ -63,8 +64,8 @@ public class RedisDynamicTableSink implements DynamicTableSink {
         builder.setRedisConf(redisConf);
         builder.setRowConverter(new RedisRowConverter(rowType, redisConf));
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction<>(builder.finish()),
-                redisConf.getParallelism());
+        return SinkFunctionProvider.of(
+                new DtOutputFormatSinkFunction<>(builder.finish()), redisConf.getParallelism());
     }
 
     @Override

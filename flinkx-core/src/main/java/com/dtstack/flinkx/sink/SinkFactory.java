@@ -18,25 +18,22 @@
 
 package com.dtstack.flinkx.sink;
 
-import org.apache.flink.api.common.io.OutputFormat;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.Preconditions;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.converter.RawTypeConvertible;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 import com.dtstack.flinkx.util.PropertiesUtil;
-import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.flink.api.common.io.OutputFormat;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.Preconditions;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,7 +46,6 @@ import java.util.List;
 public abstract class SinkFactory implements RawTypeConvertible {
 
     protected SyncConf syncConf;
-    protected TypeInformation<RowData> typeInformation;
     protected boolean useAbstractBaseColumn = true;
 
     public SinkFactory(SyncConf syncConf) {
@@ -60,10 +56,8 @@ public abstract class SinkFactory implements RawTypeConvertible {
         }
         this.syncConf = syncConf;
 
-        if (syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
-            typeInformation = TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
-        } else {
-            typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter());
+        if (syncConf.getTransformer() != null
+                && StringUtils.isNotBlank(syncConf.getTransformer().getTransformSql())) {
             useAbstractBaseColumn = false;
         }
     }
@@ -76,31 +70,31 @@ public abstract class SinkFactory implements RawTypeConvertible {
      */
     public abstract DataStreamSink<RowData> createSink(DataStream<RowData> dataSet);
 
-    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat<RowData> outputFormat, String sinkName) {
+    protected DataStreamSink<RowData> createOutput(
+            DataStream<RowData> dataSet, OutputFormat<RowData> outputFormat, String sinkName) {
         Preconditions.checkNotNull(dataSet);
         Preconditions.checkNotNull(sinkName);
         Preconditions.checkNotNull(outputFormat);
 
-        DtOutputFormatSinkFunction<RowData> sinkFunction = new DtOutputFormatSinkFunction<>(outputFormat);
+        DtOutputFormatSinkFunction<RowData> sinkFunction =
+                new DtOutputFormatSinkFunction<>(outputFormat);
         DataStreamSink<RowData> dataStreamSink = dataSet.addSink(sinkFunction);
         dataStreamSink.name(sinkName);
 
         return dataStreamSink;
     }
 
-    protected DataStreamSink<RowData> createOutput(DataStream<RowData> dataSet, OutputFormat<RowData> outputFormat) {
+    protected DataStreamSink<RowData> createOutput(
+            DataStream<RowData> dataSet, OutputFormat<RowData> outputFormat) {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
-    /**
-     * 初始化FlinkxCommonConf
-     *
-     * @param flinkxCommonConf
-     */
+    /** 初始化FlinkxCommonConf */
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf) {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
-        flinkxCommonConf.setParallelism(speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
+        flinkxCommonConf.setParallelism(
+                speed.getWriterChannel() == -1 ? speed.getChannel() : speed.getWriterChannel());
     }
 }

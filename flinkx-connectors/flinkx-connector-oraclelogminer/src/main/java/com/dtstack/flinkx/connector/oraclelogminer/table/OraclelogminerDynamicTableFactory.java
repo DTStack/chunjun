@@ -17,6 +17,10 @@
  */
 package com.dtstack.flinkx.connector.oraclelogminer.table;
 
+import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
+import com.dtstack.flinkx.connector.oraclelogminer.options.LogminerOptions;
+import com.dtstack.flinkx.connector.oraclelogminer.source.OraclelogminerDynamicTableSource;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.formats.json.JsonOptions;
@@ -26,16 +30,11 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
-import com.dtstack.flinkx.connector.oraclelogminer.options.LogminerOptions;
-import com.dtstack.flinkx.connector.oraclelogminer.source.OraclelogminerDynamicTableSource;
-
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Date: 2021/04/27
- * Company: www.dtstack.com
+ * Date: 2021/04/27 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -67,6 +66,10 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         options.add(LogminerOptions.TABLE);
         options.add(LogminerOptions.QUERY_TIMEOUT);
         options.add(LogminerOptions.SUPPORT_AUTO_LOG);
+        options.add(LogminerOptions.IO_THREADS);
+        options.add(LogminerOptions.MAX_LOAD_FILE_SIZE);
+        options.add(LogminerOptions.TRANSACTION_CACHE_NUM_SIZE);
+        options.add(LogminerOptions.TRANSACTION_EXPIRE_TIME);
         options.add(JsonOptions.TIMESTAMP_FORMAT);
         return options;
     }
@@ -82,7 +85,8 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         LogMinerConf logMinerConf = getLogMinerConf(config);
         return new OraclelogminerDynamicTableSource(
                 physicalSchema, logMinerConf, JsonOptions.getTimestampFormat(config));
@@ -92,7 +96,6 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
      * 初始化LogMinerConf
      *
      * @param config LogMinerConf
-     *
      * @return
      */
     private LogMinerConf getLogMinerConf(ReadableConfig config) {
@@ -101,11 +104,9 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         logMinerConf.setPassword(config.get(LogminerOptions.PASSWORD));
         logMinerConf.setJdbcUrl(config.get(LogminerOptions.JDBC_URL));
 
-
         logMinerConf.setReadPosition(config.get(LogminerOptions.POSITION));
         logMinerConf.setStartTime(config.get(LogminerOptions.START_TIME));
         logMinerConf.setStartScn(config.get(LogminerOptions.START_SCN));
-
 
         logMinerConf.setListenerTables(config.get(LogminerOptions.TABLE));
         logMinerConf.setCat(config.get(LogminerOptions.CAT));
@@ -113,6 +114,13 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         logMinerConf.setFetchSize(config.get(LogminerOptions.FETCHSIZE));
         logMinerConf.setQueryTimeout(config.get(LogminerOptions.QUERY_TIMEOUT));
         logMinerConf.setSupportAutoAddLog(config.get(LogminerOptions.SUPPORT_AUTO_LOG));
+        logMinerConf.setMaxLogFileSize(config.get(LogminerOptions.MAX_LOAD_FILE_SIZE));
+
+        logMinerConf.setIoThreads(config.get(LogminerOptions.IO_THREADS));
+
+        logMinerConf.setTransactionCacheNumSize(
+                config.get(LogminerOptions.TRANSACTION_CACHE_NUM_SIZE));
+        logMinerConf.setTransactionExpireTime(config.get(LogminerOptions.TRANSACTION_EXPIRE_TIME));
 
         logMinerConf.setPavingData(true);
         logMinerConf.setSplitUpdate(true);

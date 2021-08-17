@@ -20,17 +20,17 @@ package com.dtstack.flinkx.connector.socket.inputformat;
 
 import com.dtstack.flinkx.connector.socket.entity.SocketConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.TelnetUtil;
 import com.dtstack.flinkx.util.ValueUtil;
+
 import org.apache.commons.lang3.StringUtils;
 
-
-/** 构建InputFormat
+/**
+ * 构建InputFormat
  *
  * @author by kunni@dtstack.com
  */
-
 public class SocketInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     protected SocketInputFormat format;
@@ -39,7 +39,7 @@ public class SocketInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     private static final int ADDRESS_SPLITS = 2;
 
-    public SocketInputFormatBuilder(){
+    public SocketInputFormatBuilder() {
         super.format = format = new SocketInputFormat();
     }
 
@@ -48,30 +48,34 @@ public class SocketInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.setSocketConfig(socketConfig);
     }
 
-
     @Override
     protected void checkFormat() {
         StringBuilder sb = new StringBuilder(256);
-        if(StringUtils.isBlank(socketConfig.getAddress())){
+        if (StringUtils.isBlank(socketConfig.getAddress())) {
             sb.append("config error:[address] cannot be blank \n");
         }
-        String[] hostPort = org.apache.commons.lang.StringUtils.split(socketConfig.getAddress(), ConstantValue.COLON_SYMBOL);
-        if(hostPort.length != ADDRESS_SPLITS){
+        String[] hostPort =
+                org.apache.commons.lang.StringUtils.split(
+                        socketConfig.getAddress(), ConstantValue.COLON_SYMBOL);
+        if (hostPort.length != ADDRESS_SPLITS) {
             sb.append("please check your host format \n");
         }
         String host = hostPort[0];
         int port = ValueUtil.getIntegerVal(hostPort[1]);
-        try{
+        try {
             TelnetUtil.telnet(host, port);
-        }catch (Exception e){
-            sb.append("could not establish connection to ").append(socketConfig.getAddress()).append("\n");
+        } catch (Exception e) {
+            sb.append("could not establish connection to ")
+                    .append(socketConfig.getAddress())
+                    .append("\n");
         }
-        if(socketConfig.getParallelism() > 1){
-            sb.append("Socket can not support readerChannel bigger than 1, current readerChannel is [")
+        if (socketConfig.getParallelism() > 1) {
+            sb.append(
+                            "Socket can not support readerChannel bigger than 1, current readerChannel is [")
                     .append(socketConfig.getParallelism())
                     .append("];\n");
         }
-        if(sb.length() > 0){
+        if (sb.length() > 0) {
             throw new IllegalArgumentException(sb.toString());
         }
     }

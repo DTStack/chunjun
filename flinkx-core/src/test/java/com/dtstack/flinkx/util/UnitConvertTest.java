@@ -19,22 +19,18 @@
 package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.enums.SizeUnitType;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * @company:www.dtstack.com
- * @Author:shiFang
- * @Date:2021-01-14 11:20
- * @Description:
- */
+/** @company:www.dtstack.com @Author:shiFang @Date:2021-01-14 11:20 @Description: */
 public class UnitConvertTest {
 
     @Test
-    public void testConvert(){
-        String result = SizeUnitType.covertUnit(SizeUnitType.MB,SizeUnitType.GB,10000000L);
+    public void testConvert() {
+        String result = SizeUnitType.covertUnit(SizeUnitType.MB, SizeUnitType.GB, 10000000L);
         Assert.assertEquals(result, "9765.62");
-        result = SizeUnitType.covertUnit(SizeUnitType.MB,SizeUnitType.B,1000L);
+        result = SizeUnitType.covertUnit(SizeUnitType.MB, SizeUnitType.B, 1000L);
         Assert.assertEquals(result, "1048576000");
     }
 }

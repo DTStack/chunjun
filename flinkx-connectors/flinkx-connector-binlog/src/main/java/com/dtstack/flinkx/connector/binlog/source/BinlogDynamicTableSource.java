@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.binlog.source;
 
+import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
+import com.dtstack.flinkx.connector.binlog.converter.BinlogRowConverter;
+import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormatBuilder;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableSchema;
@@ -29,24 +35,18 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
-import com.dtstack.flinkx.connector.binlog.converter.BinlogRowConverter;
-import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormatBuilder;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-
 /**
  * @author chuixue
  * @create 2021-04-09 09:20
  * @description
- **/
-
+ */
 public class BinlogDynamicTableSource implements ScanTableSource {
     private final TableSchema schema;
     private final BinlogConf binlogConf;
     private final TimestampFormat timestampFormat;
 
-    public BinlogDynamicTableSource(TableSchema schema, BinlogConf binlogConf, TimestampFormat timestampFormat) {
+    public BinlogDynamicTableSource(
+            TableSchema schema, BinlogConf binlogConf, TimestampFormat timestampFormat) {
         this.schema = schema;
         this.binlogConf = binlogConf;
         this.timestampFormat = timestampFormat;
@@ -59,17 +59,18 @@ public class BinlogDynamicTableSource implements ScanTableSource {
 
         BinlogInputFormatBuilder builder = new BinlogInputFormatBuilder();
         builder.setBinlogConf(binlogConf);
-        builder.setRowConverter(new BinlogRowConverter((RowType) this.schema.toRowDataType().getLogicalType(), this.timestampFormat));
+        builder.setRowConverter(
+                new BinlogRowConverter(
+                        (RowType) this.schema.toRowDataType().getLogicalType(),
+                        this.timestampFormat));
 
-        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+        return ParallelSourceFunctionProvider.of(
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new BinlogDynamicTableSource(
-                this.schema,
-                this.binlogConf,
-                this.timestampFormat);
+        return new BinlogDynamicTableSource(this.schema, this.binlogConf, this.timestampFormat);
     }
 
     @Override

@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.WriteRecordException;
+
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.enums.ColumnType;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
@@ -37,62 +38,66 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * String Utilities
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class StringUtil {
 
     public static final int STEP_SIZE = 2;
 
-    public final static char[] hexChars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    public static final char[] hexChars = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+    };
 
     /**
      * Handle the escaped escape charactor.
      *
-     * e.g. Turnning \\t into \t, etc.
+     * <p>e.g. Turnning \\t into \t, etc.
      *
      * @param str The String to convert
      * @return the converted String
      */
-    public static String convertRegularExpr (String str) {
-        if(str == null){
+    public static String convertRegularExpr(String str) {
+        if (str == null) {
             return "";
         }
 
         String pattern = "\\\\(\\d{3})";
 
         Pattern r = Pattern.compile(pattern);
-        while(true) {
+        while (true) {
             Matcher m = r.matcher(str);
-            if(!m.find()) {
+            if (!m.find()) {
                 break;
             }
             String num = m.group(1);
             int x = Integer.parseInt(num, 8);
-            str = m.replaceFirst(String.valueOf((char)x));
+            str = m.replaceFirst(String.valueOf((char) x));
         }
-        str = str.replaceAll("\\\\t","\t");
-        str = str.replaceAll("\\\\r","\r");
-        str = str.replaceAll("\\\\n","\n");
+        str = str.replaceAll("\\\\t", "\t");
+        str = str.replaceAll("\\\\r", "\r");
+        str = str.replaceAll("\\\\n", "\n");
 
         return str;
     }
 
     // TODO 类型可以改成使用LogicalType
     public static Object string2col(String str, String type, SimpleDateFormat customTimeFormat) {
-        if(str == null || str.length() == 0 || type == null){
+        if (str == null || str.length() == 0 || type == null) {
             return str;
         }
 
         ColumnType columnType = ColumnType.getType(type.toUpperCase());
         Object ret;
-        switch(columnType) {
+        switch (columnType) {
             case TINYINT:
                 ret = Byte.valueOf(str.trim());
                 break;
@@ -104,6 +109,7 @@ public class StringUtil {
                 break;
             case MEDIUMINT:
             case BIGINT:
+            case LONG:
                 ret = Long.valueOf(str.trim());
                 break;
             case FLOAT:
@@ -115,9 +121,9 @@ public class StringUtil {
             case STRING:
             case VARCHAR:
             case CHAR:
-                if(customTimeFormat != null){
-                    ret = DateUtil.columnToDate(str,customTimeFormat);
-                    ret = DateUtil.timestampToString((Date)ret);
+                if (customTimeFormat != null) {
+                    ret = DateUtil.columnToDate(str, customTimeFormat);
+                    ret = DateUtil.timestampToString((Date) ret);
                 } else {
                     ret = str;
                 }
@@ -126,12 +132,16 @@ public class StringUtil {
                 ret = Boolean.valueOf(str.trim().toLowerCase());
                 break;
             case DATE:
-                ret = DateUtil.columnToDate(str,customTimeFormat);
+                ret = DateUtil.columnToDate(str, customTimeFormat);
                 break;
             case TIMESTAMP:
             case DATETIME:
-                ret = DateUtil.columnToTimestamp(str,customTimeFormat);
+                ret = DateUtil.columnToTimestamp(str, customTimeFormat);
                 break;
+            case OBJECT:
+                ret = GsonUtil.GSON.fromJson(str, Map.class);
+                break;
+
             default:
                 ret = str;
         }
@@ -140,11 +150,11 @@ public class StringUtil {
     }
 
     public static String col2string(Object column, String type) {
-        if(column == null){
+        if (column == null) {
             return "";
         }
 
-        if(type == null){
+        if (type == null) {
             return column.toString();
         }
 
@@ -165,9 +175,9 @@ public class StringUtil {
                 break;
             case BIGINT:
             case LONG:
-                if (column instanceof Timestamp){
-                    result=((Timestamp) column).getTime();
-                }else {
+                if (column instanceof Timestamp) {
+                    result = ((Timestamp) column).getTime();
+                } else {
                     result = Long.valueOf(rowData.trim());
                 }
                 break;
@@ -184,9 +194,9 @@ public class StringUtil {
             case VARCHAR:
             case CHAR:
             case TEXT:
-                if (column instanceof Timestamp){
-                    result = DateUtil.timestampToString((java.util.Date)column);
-                }else {
+                if (column instanceof Timestamp) {
+                    result = DateUtil.timestampToString((java.util.Date) column);
+                } else {
                     result = rowData;
                 }
                 break;
@@ -206,8 +216,8 @@ public class StringUtil {
         return result.toString();
     }
 
-
-    public static String row2string(RowData rowData, List<String> columnTypes, String delimiter) throws WriteRecordException {
+    public static String row2string(RowData rowData, List<String> columnTypes, String delimiter)
+            throws WriteRecordException {
         // convert rowData to string
         int cnt = rowData.getArity();
         StringBuilder sb = new StringBuilder(128);
@@ -219,16 +229,21 @@ public class StringUtil {
                     sb.append(delimiter);
                 }
 
-                Object column = ((GenericRowData)rowData).getField(i);
+                Object column = ((GenericRowData) rowData).getField(i);
 
-                if(column == null) {
+                if (column == null) {
                     continue;
                 }
 
                 sb.append(col2string(column, columnTypes.get(i)));
             }
-        } catch(Exception ex) {
-            String msg = "StringUtil.row2string error: when converting field[" + i + "] in Row(" + rowData + ")";
+        } catch (Exception ex) {
+            String msg =
+                    "StringUtil.row2string error: when converting field["
+                            + i
+                            + "] in Row("
+                            + rowData
+                            + ")";
             throw new WriteRecordException(msg, ex, i, rowData);
         }
 
@@ -237,6 +252,7 @@ public class StringUtil {
 
     /**
      * 16进制数组 转为hex字符串
+     *
      * @param b
      * @return
      */
@@ -259,8 +275,10 @@ public class StringUtil {
 
         byte[] bytes = new byte[length / 2];
         for (int i = 0; i < length; i += STEP_SIZE) {
-            bytes[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
-                    + Character.digit(hexString.charAt(i+1), 16));
+            bytes[i / 2] =
+                    (byte)
+                            ((Character.digit(hexString.charAt(i), 16) << 4)
+                                    + Character.digit(hexString.charAt(i + 1), 16));
         }
 
         return bytes;
@@ -268,16 +286,15 @@ public class StringUtil {
 
     /**
      * Split the specified string delimiter --- ignored quotes delimiter
+     *
      * @param str 待解析字符串,不考虑分割结果需要带'[',']','\"','\''的情况
      * @param delimiter 分隔符
-     * @return 分割后的字符串数组
-     * Example: "[dbo_test].[table]" => "[dbo_test, table]"
-     * Example: "[dbo.test].[table.test]" => "[dbo.test, table.test]"
-     * Example: "[dbo.test].[[[tab[l]e]]" => "[dbo.test, table]"
-     * Example："[\"dbo_test\"].[table]" => "[dbo_test, table]"
-     * Example:"['dbo_test'].[table]" => "[dbo_test, table]"
+     * @return 分割后的字符串数组 Example: "[dbo_test].[table]" => "[dbo_test, table]" Example:
+     *     "[dbo.test].[table.test]" => "[dbo.test, table.test]" Example: "[dbo.test].[[[tab[l]e]]"
+     *     => "[dbo.test, table]" Example："[\"dbo_test\"].[table]" => "[dbo_test, table]"
+     *     Example:"['dbo_test'].[table]" => "[dbo_test, table]"
      */
-    public static List<String> splitIgnoreQuota(String str, char delimiter){
+    public static List<String> splitIgnoreQuota(String str, char delimiter) {
         List<String> tokensList = new ArrayList<>();
         boolean inQuotes = false;
         boolean inSingleQuotes = false;
@@ -303,16 +320,16 @@ public class StringUtil {
                 }
             } else if (c == '\"' && '\\' != flag && !inSingleQuotes) {
                 inQuotes = !inQuotes;
-                //b.append(c);
+                // b.append(c);
             } else if (c == '\'' && '\\' != flag && !inQuotes) {
                 inSingleQuotes = !inSingleQuotes;
-                //b.append(c);
+                // b.append(c);
             } else if (c == '[' && !inSingleQuotes && !inQuotes) {
                 bracketLeftNum++;
-                //b.append(c);
+                // b.append(c);
             } else if (c == ']' && !inSingleQuotes && !inQuotes) {
                 bracketLeftNum--;
-                //b.append(c);
+                // b.append(c);
             } else {
                 b.append(c);
             }
@@ -326,21 +343,27 @@ public class StringUtil {
 
     /**
      * 字符串转换成对应时间戳字符串
+     *
      * @param location
      * @return
      */
-    public static String stringToTimestampStr(String location, ColumnType type){
-        //若为空字符串或本身就是时间戳则不需要转换
-        if(StringUtils.isBlank(location) || StringUtils.isNumeric(location)){
+    public static String stringToTimestampStr(String location, ColumnType type) {
+        // 若为空字符串或本身就是时间戳则不需要转换
+        if (StringUtils.isBlank(location) || StringUtils.isNumeric(location)) {
             return location;
         }
         try {
             switch (type) {
-                case TIMESTAMP: return String.valueOf(Timestamp.valueOf(location).getTime());
-                case DATE: return String.valueOf(DateUtils.parseDate(location, DateUtil.getDateFormat(location)).getTime());
-                default: return location;
+                case TIMESTAMP:
+                    return String.valueOf(Timestamp.valueOf(location).getTime());
+                case DATE:
+                    return String.valueOf(
+                            DateUtils.parseDate(location, DateUtil.getDateFormat(location))
+                                    .getTime());
+                default:
+                    return location;
             }
-        }catch (ParseException e){
+        } catch (ParseException e) {
             String message = String.format("cannot transform 【%s】to 【%s】", location, type);
             throw new FlinkxRuntimeException(message, e);
         }
@@ -348,15 +371,17 @@ public class StringUtil {
 
     /**
      * 调用{@linkplain com.dtstack.flinkx.util.StringUtil}的splitIgnoreQuota处理 并对返回结果按照.拼接
+     *
      * @param table [dbo.schema1].[table]
      * @return dbo.schema1.table
      */
     public static String splitIgnoreQuotaAndJoinByPoint(String table) {
-        List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
+        List<String> strings =
+                StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
         StringBuffer stringBuffer = new StringBuffer(64);
-        for(int i =0; i < strings.size(); i++){
+        for (int i = 0; i < strings.size(); i++) {
             stringBuffer.append(strings.get(i));
-            if(i != strings.size()-1){
+            if (i != strings.size() - 1) {
                 stringBuffer.append(ConstantValue.POINT_SYMBOL);
             }
         }
@@ -365,6 +390,7 @@ public class StringUtil {
 
     /**
      * get String from inputStream
+     *
      * @param input inputStream
      * @return String value
      * @throws IOException convert exception
@@ -372,7 +398,7 @@ public class StringUtil {
     public static String inputStream2String(InputStream input) throws IOException {
         StringBuilder stringBuffer = new StringBuilder();
         byte[] byt = new byte[1024];
-        for (int i; (i = input.read(byt)) != -1;) {
+        for (int i; (i = input.read(byt)) != -1; ) {
             stringBuffer.append(new String(byt, 0, i));
         }
         return stringBuffer.toString();
@@ -386,7 +412,9 @@ public class StringUtil {
      */
     public static String escapeExprSpecialWord(String keyword) {
         if (StringUtils.isNotBlank(keyword)) {
-            String[] fbsArr = {"\\", "$", "(", ")", "*", "+", ".", "[", "]", "?", "^", "{", "}", "|"};
+            String[] fbsArr = {
+                "\\", "$", "(", ")", "*", "+", ".", "[", "]", "?", "^", "{", "}", "|"
+            };
             for (String key : fbsArr) {
                 if (keyword.contains(key)) {
                     keyword = keyword.replace(key, "\\" + key);

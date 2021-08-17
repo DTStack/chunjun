@@ -20,8 +20,7 @@ package com.dtstack.flinkx.conf;
 import java.io.Serializable;
 
 /**
- * Date: 2021/01/18
- * Company: www.dtstack.com
+ * Date: 2021/01/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -101,14 +100,21 @@ public class SettingConf implements Serializable {
 
     @Override
     public String toString() {
-        return "SettingConf{" +
-                "speed=" + speed +
-                ", errorLimit=" + errorLimit +
-                ", metricPluginConf=" + metricPluginConf +
-                ", restore=" + restore +
-                ", restart=" + restart +
-                ", log=" + log +
-                ", dirty=" + dirty +
-                '}';
+        return "SettingConf{"
+                + "speed="
+                + speed
+                + ", errorLimit="
+                + errorLimit
+                + ", metricPluginConf="
+                + metricPluginConf
+                + ", restore="
+                + restore
+                + ", restart="
+                + restart
+                + ", log="
+                + log
+                + ", dirty="
+                + dirty
+                + '}';
     }
 }

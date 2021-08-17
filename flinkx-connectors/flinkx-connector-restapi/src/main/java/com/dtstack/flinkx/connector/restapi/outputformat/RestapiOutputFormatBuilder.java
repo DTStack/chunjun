@@ -18,10 +18,7 @@
 package com.dtstack.flinkx.connector.restapi.outputformat;
 
 import com.dtstack.flinkx.connector.restapi.common.RestapiWriterConfig;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
-
-import java.util.ArrayList;
-import java.util.Map;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
 /**
  * @author : tiezhu
@@ -39,7 +36,6 @@ public class RestapiOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.setConfig(restapiWriterConfig);
         this.format.restapiWriterConfig = restapiWriterConfig;
     }
-
 
     @Override
     protected void checkFormat() {

@@ -71,12 +71,12 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../flinkxplugins/emqx/"
+								<copy todir="${basedir}/../../${dist.dir}/emqx/"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../flinkxplugins/emqx/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../flinkxplugins/emqx/${project.artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/emqx/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/emqx/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../flinkxplugins/emqx/"
+									<fileset dir="${basedir}/../../${dist.dir}/emqx/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>

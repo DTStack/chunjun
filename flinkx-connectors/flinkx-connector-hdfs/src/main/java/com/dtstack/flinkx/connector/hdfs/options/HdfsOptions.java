@@ -17,47 +17,47 @@
  */
 package com.dtstack.flinkx.connector.hdfs.options;
 
+import com.dtstack.flinkx.table.options.BaseFileOptions;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
-
-import com.dtstack.flinkx.table.options.BaseFileOptions;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Date: 2021/06/17
- * Company: www.dtstack.com
+ * Date: 2021/06/17 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class HdfsOptions extends BaseFileOptions {
     public static final ConfigOption<String> DEFAULT_FS =
-            ConfigOptions.key("defaultFS")
+            ConfigOptions.key("default-fs")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("Hadoop hdfs file system nameNode node address");
 
     public static final ConfigOption<String> FILE_TYPE =
-            ConfigOptions.key("fileType")
+            ConfigOptions.key("file-type")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("File type, currently only supports user configuration as text, orc, parquet");
+                    .withDescription(
+                            "File type, currently only supports user configuration as text, orc, parquet");
 
     public static final ConfigOption<String> FILTER_REGEX =
-            ConfigOptions.key("filterRegex")
+            ConfigOptions.key("filter-regex")
                     .stringType()
                     .defaultValue("")
                     .withDescription("File regular expression, read the matched file");
 
     public static final ConfigOption<String> FIELD_DELIMITER =
-            ConfigOptions.key("fieldDelimiter")
+            ConfigOptions.key("field-delimiter")
                     .stringType()
                     .defaultValue("\001")
                     .withDescription("The separator of the field when fileType is text");
 
     public static final ConfigOption<Boolean> ENABLE_DICTIONARY =
-            ConfigOptions.key("enableDictionary")
+            ConfigOptions.key("enable-dictionary")
                     .booleanType()
                     .defaultValue(true)
                     .withDescription("enable dictionary");
@@ -65,11 +65,14 @@ public class HdfsOptions extends BaseFileOptions {
     public static Map<String, Object> getHadoopConfig(Map<String, String> tableOptions) {
         Map<String, Object> hadoopConfig = new HashMap<>();
         if (hasHadoopConfig(tableOptions)) {
-            tableOptions.keySet().stream().filter((key) -> key.startsWith("properties.")).forEach((key) -> {
-                String value = tableOptions.get(key);
-                String subKey = key.substring("properties.".length());
-                hadoopConfig.put(subKey, value);
-            });
+            tableOptions.keySet().stream()
+                    .filter((key) -> key.startsWith("properties."))
+                    .forEach(
+                            (key) -> {
+                                String value = tableOptions.get(key);
+                                String subKey = key.substring("properties.".length());
+                                hadoopConfig.put(subKey, value);
+                            });
         }
 
         return hadoopConfig;

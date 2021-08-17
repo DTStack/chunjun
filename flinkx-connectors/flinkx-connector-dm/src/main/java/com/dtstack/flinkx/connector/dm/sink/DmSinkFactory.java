@@ -19,29 +19,13 @@
 package com.dtstack.flinkx.connector.dm.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.dm.DmDialect;
-import com.dtstack.flinkx.connector.dm.converter.DmRawTypeConverter;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.connector.dm.dialect.DmDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.converter.RawTypeConverter;
 
-/**
- * @author kunni
- */
+/** @author kunni */
 public class DmSinkFactory extends JdbcSinkFactory {
 
     public DmSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        super.jdbcDialect = new DmDialect();
-    }
-
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new DmOutputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return DmRawTypeConverter::apply;
+        super(syncConf, new DmDialect());
     }
 }

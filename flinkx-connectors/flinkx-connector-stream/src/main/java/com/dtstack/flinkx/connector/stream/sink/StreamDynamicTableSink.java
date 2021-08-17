@@ -18,17 +18,17 @@
 
 package com.dtstack.flinkx.connector.stream.sink;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,8 +38,7 @@ import java.util.stream.Collectors;
  * @author chuixue
  * @create 2021-04-09 09:20
  * @description SinkFunction的包装类DynamicTableSink
- **/
-
+ */
 public class StreamDynamicTableSink implements DynamicTableSink {
 
     private final StreamConf sinkConf;
@@ -62,22 +61,23 @@ public class StreamDynamicTableSink implements DynamicTableSink {
         final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
         // 一些其他参数的封装,如果有
-        List<FieldConf> fieldList = Arrays
-                .stream(tableSchema.getFieldNames())
-                .map(e -> {
-                    FieldConf fieldConf = new FieldConf();
-                    fieldConf.setName(e);
-                    return fieldConf;
-                })
-                .collect(
-                        Collectors.toList());
+        List<FieldConf> fieldList =
+                Arrays.stream(tableSchema.getFieldNames())
+                        .map(
+                                e -> {
+                                    FieldConf fieldConf = new FieldConf();
+                                    fieldConf.setName(e);
+                                    return fieldConf;
+                                })
+                        .collect(Collectors.toList());
         sinkConf.setColumn(fieldList);
 
-        StreamOutputFormatBuilder builder =new StreamOutputFormatBuilder();
+        StreamOutputFormatBuilder builder = new StreamOutputFormatBuilder();
         builder.setStreamConf(sinkConf);
         builder.setRowConverter(new StreamRowConverter(rowType));
 
-        return SinkFunctionProvider.of(new DtOutputFormatSinkFunction(builder.finish()), sinkConf.getParallelism());
+        return SinkFunctionProvider.of(
+                new DtOutputFormatSinkFunction(builder.finish()), sinkConf.getParallelism());
     }
 
     @Override

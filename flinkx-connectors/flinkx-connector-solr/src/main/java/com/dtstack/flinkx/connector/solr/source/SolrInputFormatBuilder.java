@@ -20,9 +20,8 @@ package com.dtstack.flinkx.connector.solr.source;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.solr.SolrConf;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +31,7 @@ import java.util.List;
  */
 public class SolrInputFormatBuilder extends BaseRichInputFormatBuilder {
 
-    private SolrConf solrConf;
+    private final SolrConf solrConf;
 
     public SolrInputFormatBuilder(SolrConf solrConf) {
         this.solrConf = solrConf;

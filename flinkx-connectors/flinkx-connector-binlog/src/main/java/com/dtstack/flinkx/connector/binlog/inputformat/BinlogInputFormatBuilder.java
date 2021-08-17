@@ -20,12 +20,13 @@ package com.dtstack.flinkx.connector.binlog.inputformat;
 import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
 import com.dtstack.flinkx.connector.binlog.util.BinlogUtil;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
@@ -40,8 +41,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Date: 2020/12/16
- * Company: www.dtstack.com
+ * Date: 2020/12/16 Company: www.dtstack.com
  *
  * @author dujie
  */
@@ -73,7 +73,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (StringUtils.isBlank(binlogConf.jdbcUrl)) {
             sb.append("No url supplied;\n");
         } else {
-            //检测数据源连通性
+            // 检测数据源连通性
             TelnetUtil.telnet(binlogConf.jdbcUrl);
         }
 
@@ -95,7 +95,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
                     .append("];\n");
         }
 
-        //校验binlog cat
+        // 校验binlog cat
         if (StringUtils.isNotEmpty(binlogConf.getCat())) {
             HashSet<String> set = Sets.newHashSet("INSERT", "UPDATE", "DELETE");
             List<String> cats = Lists.newArrayList(binlogConf.getCat().toUpperCase().split(","));
@@ -109,50 +109,70 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
             }
         }
 
-        //校验binlog的start参数
+        // 校验binlog的start参数
         if (MapUtils.isNotEmpty(binlogConf.getStart())) {
             try {
-                MapUtils.getLong(binlogConf.getStart(),"timestamp");
+                MapUtils.getLong(binlogConf.getStart(), "timestamp");
             } catch (Exception e) {
-                sb.append("binlog start parameter of timestamp  must be long type, but your value is -> ").append(binlogConf.getStart().get("timestamp")).append(";\n");
+                sb.append(
+                                "binlog start parameter of timestamp  must be long type, but your value is -> ")
+                        .append(binlogConf.getStart().get("timestamp"))
+                        .append(";\n");
             }
             try {
-                MapUtils.getLong(binlogConf.getStart(),"position");
+                MapUtils.getLong(binlogConf.getStart(), "position");
             } catch (Exception e) {
-                sb.append("binlog start parameter of position  must be long type, but your value is -> ").append(binlogConf.getStart().get("timestamp")).append(";\n");
+                sb.append(
+                                "binlog start parameter of position  must be long type, but your value is -> ")
+                        .append(binlogConf.getStart().get("timestamp"))
+                        .append(";\n");
             }
         }
 
         ClassUtil.forName(BinlogUtil.DRIVER_NAME, getClass().getClassLoader());
-        try (Connection conn = RetryUtil.executeWithRetry(() -> DriverManager.getConnection(binlogConf.getJdbcUrl(), binlogConf.getUsername(), binlogConf.getPassword()), BinlogUtil.RETRY_TIMES, BinlogUtil.SLEEP_TIME, false)) {
+        try (Connection conn =
+                RetryUtil.executeWithRetry(
+                        () ->
+                                DriverManager.getConnection(
+                                        binlogConf.getJdbcUrl(),
+                                        binlogConf.getUsername(),
+                                        binlogConf.getPassword()),
+                        BinlogUtil.RETRY_TIMES,
+                        BinlogUtil.SLEEP_TIME,
+                        false)) {
 
-            //校验用户权限
+            // 校验用户权限
             if (!BinlogUtil.checkUserPrivilege(conn)) {
-                sb.append("\nyou need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation; you can execute sql ->")
+                sb.append(
+                                "\nyou need (at least one of) the SUPER,REPLICATION CLIENT privilege(s) for this operation; you can execute sql ->")
                         .append("GRANT SELECT, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '")
                         .append(binlogConf.getUsername())
                         .append("'@'%' IDENTIFIED BY 'password';\n\n");
             }
 
-            //校验数据库是否开启binlog
+            // 校验数据库是否开启binlog
             if (!BinlogUtil.checkEnabledBinlog(conn)) {
-                sb.append("binlog has not enabled, please click my.cnf Add the following to the file: \n")
+                sb.append(
+                                "binlog has not enabled, please click my.cnf Add the following to the file: \n")
                         .append("server_id=109\n")
                         .append("log_bin = /var/lib/mysql/mysql-bin\n")
                         .append("binlog_format = ROW\n")
                         .append("expire_logs_days = 30\n\n");
             }
 
-            //校验数据库binlog_format是否设置为row
+            // 校验数据库binlog_format是否设置为row
             if (!BinlogUtil.checkBinlogFormat(conn)) {
                 sb.append(" binlog_format must be set ROW ;\n");
             }
 
-            //校验用户表是否有select权限
+            // 校验用户表是否有select权限
             String database = BinlogUtil.getDataBaseByUrl(binlogConf.jdbcUrl);
-            List<String> failedTable = BinlogUtil.checkTablesPrivilege(conn, database, binlogConf.filter, binlogConf.table);
+            List<String> failedTable =
+                    BinlogUtil.checkTablesPrivilege(
+                            conn, database, binlogConf.filter, binlogConf.table);
             if (CollectionUtils.isNotEmpty(failedTable)) {
-                sb.append("user has not select privilege on ").append(GsonUtil.GSON.toJson(failedTable));
+                sb.append("user has not select privilege on ")
+                        .append(GsonUtil.GSON.toJson(failedTable));
             }
 
             if (sb.length() > 0) {
@@ -161,10 +181,12 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
 
         } catch (SQLException e) {
             StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
-            if(sb.length() > 0){
+            if (sb.length() > 0) {
                 detailsInfo.append(" binlog config not right，details is  ").append(sb.toString());
             }
-            detailsInfo.append(" \n error to check binlog config, e = " ).append(ExceptionUtil.getErrorMessage(e));
+            detailsInfo
+                    .append(" \n error to check binlog config, e = ")
+                    .append(ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(detailsInfo.toString(), e);
         }
     }

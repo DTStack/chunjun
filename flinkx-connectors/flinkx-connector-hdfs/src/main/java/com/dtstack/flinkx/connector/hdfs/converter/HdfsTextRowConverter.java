@@ -17,6 +17,13 @@
  */
 package com.dtstack.flinkx.connector.hdfs.converter;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+import com.dtstack.flinkx.util.DateUtil;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -28,13 +35,6 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-import com.dtstack.flinkx.util.DateUtil;
-
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
@@ -45,18 +45,22 @@ import java.time.temporal.TemporalQueries;
 import java.util.Arrays;
 
 /**
- * Date: 2021/06/16
- * Company: www.dtstack.com
+ * Date: 2021/06/16 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class HdfsTextRowConverter extends AbstractRowConverter<RowData, RowData, String[], LogicalType> {
+public class HdfsTextRowConverter
+        extends AbstractRowConverter<RowData, RowData, String[], LogicalType> {
 
     public HdfsTextRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+            toInternalConverters[i] =
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i)));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
         }
     }
 
@@ -64,13 +68,16 @@ public class HdfsTextRowConverter extends AbstractRowConverter<RowData, RowData,
     @SuppressWarnings("unchecked")
     public RowData toInternal(RowData input) throws Exception {
         GenericRowData row = new GenericRowData(input.getArity());
-        if(input instanceof GenericRowData){
+        if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
                 row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
             }
-        }else{
-            throw new FlinkxRuntimeException("Error RowData type, RowData:[" + input + "] should be instance of GenericRowData.");
+        } else {
+            throw new FlinkxRuntimeException(
+                    "Error RowData type, RowData:["
+                            + input
+                            + "] should be instance of GenericRowData.");
         }
         return row;
     }
@@ -91,9 +98,12 @@ public class HdfsTextRowConverter extends AbstractRowConverter<RowData, RowData,
 
     @Override
     @SuppressWarnings("unchecked")
-    protected ISerializationConverter<String[]> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, LogicalType type) {
+    protected ISerializationConverter<String[]> wrapIntoNullableExternalConverter(
+            ISerializationConverter serializationConverter, LogicalType type) {
         return (rowData, index, data) -> {
-            if (rowData == null || rowData.isNullAt(index) || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
+            if (rowData == null
+                    || rowData.isNullAt(index)
+                    || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
                 data[index] = null;
             } else {
                 serializationConverter.serialize(rowData, index, data);
@@ -117,10 +127,14 @@ public class HdfsTextRowConverter extends AbstractRowConverter<RowData, RowData,
             case BIGINT:
                 return (IDeserializationConverter<String, Long>) Long::parseLong;
             case DATE:
-                return (IDeserializationConverter<String, Integer>) val -> {
-                    LocalDate date = DateTimeFormatter.ISO_LOCAL_DATE.parse(val).query(TemporalQueries.localDate());
-                    return (int)date.toEpochDay();
-                };
+                return (IDeserializationConverter<String, Integer>)
+                        val -> {
+                            LocalDate date =
+                                    DateTimeFormatter.ISO_LOCAL_DATE
+                                            .parse(val)
+                                            .query(TemporalQueries.localDate());
+                            return (int) date.toEpochDay();
+                        };
             case FLOAT:
                 return (IDeserializationConverter<String, Float>) Float::parseFloat;
             case DOUBLE:
@@ -129,16 +143,22 @@ public class HdfsTextRowConverter extends AbstractRowConverter<RowData, RowData,
             case VARCHAR:
                 return (IDeserializationConverter<String, StringData>) StringData::fromString;
             case DECIMAL:
-                return (IDeserializationConverter<String, DecimalData>) val -> {
-                    final int precision = ((DecimalType)type).getPrecision();
-                    final int scale = ((DecimalType)type).getScale();
-                    return DecimalData.fromBigDecimal(new BigDecimal(val), precision, scale);
-                };
+                return (IDeserializationConverter<String, DecimalData>)
+                        val -> {
+                            final int precision = ((DecimalType) type).getPrecision();
+                            final int scale = ((DecimalType) type).getScale();
+                            return DecimalData.fromBigDecimal(
+                                    new BigDecimal(val), precision, scale);
+                        };
             case BINARY:
             case VARBINARY:
-                return (IDeserializationConverter<String, byte[]>) val -> val.getBytes(StandardCharsets.UTF_8);
+                return (IDeserializationConverter<String, byte[]>)
+                        val -> val.getBytes(StandardCharsets.UTF_8);
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return (IDeserializationConverter<String, TimestampData>) val -> TimestampData.fromTimestamp(new Timestamp(DateUtil.stringToDate(val).getTime()));
+                return (IDeserializationConverter<String, TimestampData>)
+                        val ->
+                                TimestampData.fromTimestamp(
+                                        new Timestamp(DateUtil.stringToDate(val).getTime()));
             case INTERVAL_DAY_TIME:
             case INTERVAL_YEAR_MONTH:
             case ARRAY:
@@ -159,31 +179,55 @@ public class HdfsTextRowConverter extends AbstractRowConverter<RowData, RowData,
             case NULL:
                 return (rowData, index, data) -> data[index] = null;
             case BOOLEAN:
-                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getBoolean(index));
+                return (rowData, index, data) ->
+                        data[index] = String.valueOf(rowData.getBoolean(index));
             case TINYINT:
-            return (rowData, index, data) -> data[index] = String.valueOf(rowData.getByte(index));
+                return (rowData, index, data) ->
+                        data[index] = String.valueOf(rowData.getByte(index));
             case SMALLINT:
-                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getShort(index));
+                return (rowData, index, data) ->
+                        data[index] = String.valueOf(rowData.getShort(index));
             case INTEGER:
-                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getInt(index));
+                return (rowData, index, data) ->
+                        data[index] = String.valueOf(rowData.getInt(index));
             case BIGINT:
-                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getLong(index));
+                return (rowData, index, data) ->
+                        data[index] = String.valueOf(rowData.getLong(index));
             case DATE:
-                return (rowData, index, data) -> data[index] = String.valueOf(Date.valueOf(LocalDate.ofEpochDay(rowData.getInt(index))));
+                return (rowData, index, data) ->
+                        data[index] =
+                                String.valueOf(
+                                        Date.valueOf(LocalDate.ofEpochDay(rowData.getInt(index))));
             case FLOAT:
-                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getFloat(index));
+                return (rowData, index, data) ->
+                        data[index] = String.valueOf(rowData.getFloat(index));
             case DOUBLE:
-                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getDouble(index));
+                return (rowData, index, data) ->
+                        data[index] = String.valueOf(rowData.getDouble(index));
             case CHAR:
             case VARCHAR:
-                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getString(index));
+                return (rowData, index, data) ->
+                        data[index] = String.valueOf(rowData.getString(index));
             case DECIMAL:
-                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getDecimal(index, ((DecimalType)type).getPrecision(), ((DecimalType)type).getScale()));
+                return (rowData, index, data) ->
+                        data[index] =
+                                String.valueOf(
+                                        rowData.getDecimal(
+                                                index,
+                                                ((DecimalType) type).getPrecision(),
+                                                ((DecimalType) type).getScale()));
             case BINARY:
             case VARBINARY:
-                return (rowData, index, data) -> data[index] = Arrays.toString(rowData.getBinary(index));
+                return (rowData, index, data) ->
+                        data[index] = Arrays.toString(rowData.getBinary(index));
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return (rowData, index, data) -> data[index] = String.valueOf(rowData.getTimestamp(index, ((TimestampType)type).getPrecision()).toTimestamp());
+                return (rowData, index, data) ->
+                        data[index] =
+                                String.valueOf(
+                                        rowData.getTimestamp(
+                                                        index,
+                                                        ((TimestampType) type).getPrecision())
+                                                .toTimestamp());
             case INTERVAL_DAY_TIME:
             case INTERVAL_YEAR_MONTH:
             case ARRAY:

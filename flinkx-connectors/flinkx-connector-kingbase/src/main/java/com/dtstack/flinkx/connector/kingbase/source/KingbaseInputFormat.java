@@ -17,13 +17,9 @@
  */
 package com.dtstack.flinkx.connector.kingbase.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRawTypeConverter;
-import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -37,21 +33,11 @@ import java.util.List;
  */
 public class KingbaseInputFormat extends JdbcInputFormat {
 
-    public static final long serialVersionUID = 2L;
-
-    @Override
-    public void openInternal(InputSplit inputSplit) {
-        super.openInternal(inputSplit);
-        RowType rowType =
-                TableUtil.createRowType(
-                        columnNameList, columnTypeList, KingbaseRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-    }
-
     @Override
     protected Pair<List<String>, List<String>> getTableMetaData() {
         return JdbcUtil.getTableMetaData(
                 StringUtils.upperCase(jdbcConf.getSchema()),
-                StringUtils.upperCase(jdbcConf.getTable()), dbConn);
+                StringUtils.upperCase(jdbcConf.getTable()),
+                dbConn);
     }
 }

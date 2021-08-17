@@ -20,15 +20,15 @@ package com.dtstack.flinkx.connector.sqlservercdc.listener;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.ChangeTable;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.ChangeTablePointer;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.Lsn;
-import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEventRow;
-import com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEnum;
+import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEventRow;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.TableId;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.TxLogPosition;
 import com.dtstack.flinkx.connector.sqlservercdc.inputFormat.SqlServerCdcInputFormat;
+import com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.Clock;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.Metronome;
@@ -49,10 +49,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Date: 2019/12/04
- * Company: www.dtstack.com
+ * Date: 2019/12/04 Company: www.dtstack.com
  *
- * some code in run() are copied from (https://github.com/debezium/debezium).
+ * <p>some code in run() are copied from (https://github.com/debezium/debezium).
  *
  * @author tudou
  */
@@ -78,11 +77,11 @@ public class SqlServerCdcListener implements Runnable {
         for (String type : format.sqlserverCdcConf.getCat().split(ConstantValue.COMMA_SYMBOL)) {
             cat.addAll(SqlServerCdcEnum.transform(type));
         }
-        this.tablesSlot = SqlServerCdcUtil.getCdcTablesToQuery(
-                conn,
-                format.sqlserverCdcConf.getDatabaseName(),
-                tableList);
-        this.pollInterval = Duration.of(format.sqlserverCdcConf.getPollInterval(), ChronoUnit.MILLIS);
+        this.tablesSlot =
+                SqlServerCdcUtil.getCdcTablesToQuery(
+                        conn, format.sqlserverCdcConf.getDatabaseName(), tableList);
+        this.pollInterval =
+                Duration.of(format.sqlserverCdcConf.getPollInterval(), ChronoUnit.MILLIS);
         idWorker = new SnowflakeIdWorker(1, 1);
         this.rowConverter = format.getRowConverter();
     }
@@ -95,7 +94,8 @@ public class SqlServerCdcListener implements Runnable {
             while (true) {
                 Lsn currentMaxLsn = SqlServerCdcUtil.getMaxLsn(conn);
 
-                // Shouldn't happen if the agent is running, but it is better to guard against such situation
+                // Shouldn't happen if the agent is running, but it is better to guard against such
+                // situation
                 if (!currentMaxLsn.isAvailable()) {
                     LOG.warn(
                             "No maximum LSN recorded in the database; please ensure that the SQL Server Agent is running");
@@ -129,11 +129,11 @@ public class SqlServerCdcListener implements Runnable {
                 break;
             }
 
-            if (!(tableWithSmallestLsn.getChangePosition().isAvailable() && tableWithSmallestLsn
-                    .getChangePosition()
-                    .getInTxLsn()
-                    .isAvailable())) {
-                LOG.error("Skipping change {} as its LSN is NULL which is not expected", tableWithSmallestLsn);
+            if (!(tableWithSmallestLsn.getChangePosition().isAvailable()
+                    && tableWithSmallestLsn.getChangePosition().getInTxLsn().isAvailable())) {
+                LOG.error(
+                        "Skipping change {} as its LSN is NULL which is not expected",
+                        tableWithSmallestLsn);
                 tableWithSmallestLsn.next();
                 continue;
             }
@@ -149,8 +149,12 @@ public class SqlServerCdcListener implements Runnable {
             }
 
             ChangeTable changeTable = tableWithSmallestLsn.getChangeTable();
-            if (changeTable.getStopLsn().isAvailable() &&
-                    changeTable.getStopLsn().compareTo(tableWithSmallestLsn.getChangePosition().getCommitLsn()) <= 0) {
+            if (changeTable.getStopLsn().isAvailable()
+                    && changeTable
+                                    .getStopLsn()
+                                    .compareTo(
+                                            tableWithSmallestLsn.getChangePosition().getCommitLsn())
+                            <= 0) {
                 LOG.debug(
                         "Skipping table change {} as its stop LSN is smaller than the last recorded LSN {}",
                         tableWithSmallestLsn,
@@ -170,10 +174,14 @@ public class SqlServerCdcListener implements Runnable {
             if (operation == SqlServerCdcEnum.UPDATE_BEFORE.code) {
                 dataPrev = tableWithSmallestLsn.getData();
                 if (!tableWithSmallestLsn.next()
-                        || tableWithSmallestLsn.getOperation() != SqlServerCdcEnum.UPDATE_AFTER.code) {
+                        || tableWithSmallestLsn.getOperation()
+                                != SqlServerCdcEnum.UPDATE_AFTER.code) {
                     throw new IllegalStateException(
-                            "The update before event at " + tableWithSmallestLsn.getChangePosition() + " for table "
-                                    + tableId + " was not followed by after event");
+                            "The update before event at "
+                                    + tableWithSmallestLsn.getChangePosition()
+                                    + " for table "
+                                    + tableId
+                                    + " was not followed by after event");
                 }
             }
 
@@ -187,7 +195,14 @@ public class SqlServerCdcListener implements Runnable {
                 dataPrev = new Object[data.length];
             }
 
-            buildResult(changeTable, tableId, data, dataPrev, operation, tableWithSmallestLsn, columnTypes);
+            buildResult(
+                    changeTable,
+                    tableId,
+                    data,
+                    dataPrev,
+                    operation,
+                    tableWithSmallestLsn,
+                    columnTypes);
             format.setLogPosition(tableWithSmallestLsn.getChangePosition());
             tableWithSmallestLsn.next();
         }
@@ -200,21 +215,23 @@ public class SqlServerCdcListener implements Runnable {
             Object[] dataPrev,
             int operation,
             ChangeTablePointer tableWithSmallestLsn,
-            List<String> types) throws Exception {
+            List<String> types)
+            throws Exception {
         String type = SqlServerCdcEnum.getEnum(operation).name.split("_")[0];
         String schema = tableId.getSchemaName();
         String table = tableId.getTableName();
         String lsn = tableWithSmallestLsn.getChangePosition().getCommitLsn().toString();
-        SqlServerCdcEventRow sqlServerCdcEventRow = new SqlServerCdcEventRow(
-                type,
-                schema,
-                table,
-                lsn,
-                idWorker.nextId(),
-                changeTable,
-                data,
-                dataPrev,
-                types);
+        SqlServerCdcEventRow sqlServerCdcEventRow =
+                new SqlServerCdcEventRow(
+                        type,
+                        schema,
+                        table,
+                        lsn,
+                        idWorker.nextId(),
+                        changeTable,
+                        data,
+                        dataPrev,
+                        types);
         try {
             LinkedList<RowData> rowDatalist = rowConverter.toInternal(sqlServerCdcEventRow);
             RowData rowData;
@@ -231,11 +248,8 @@ public class SqlServerCdcListener implements Runnable {
         // run as TX might not be streamed completely
         Lsn fromLsn = getFromLsn();
 
-        SqlServerCdcUtil.StatementResult[] resultSets = SqlServerCdcUtil.getChangesForTables(
-                conn,
-                tablesSlot,
-                fromLsn,
-                currentMaxLsn);
+        SqlServerCdcUtil.StatementResult[] resultSets =
+                SqlServerCdcUtil.getChangesForTables(conn, tablesSlot, fromLsn, currentMaxLsn);
         int tableCount = resultSets.length;
         ChangeTablePointer[] changeTables = new ChangeTablePointer[tableCount];
         for (int i = 0; i < tableCount; i++) {
@@ -246,7 +260,8 @@ public class SqlServerCdcListener implements Runnable {
         return changeTables;
     }
 
-    private ChangeTablePointer getTableWithSmallestLsn(ChangeTablePointer[] changeTables) throws SQLException {
+    private ChangeTablePointer getTableWithSmallestLsn(ChangeTablePointer[] changeTables)
+            throws SQLException {
         ChangeTablePointer tableWithSmallestLsn = null;
         for (ChangeTablePointer changeTable : changeTables) {
             if (changeTable.isCompleted()) {

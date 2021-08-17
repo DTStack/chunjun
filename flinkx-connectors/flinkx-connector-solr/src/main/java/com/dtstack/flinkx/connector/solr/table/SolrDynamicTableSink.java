@@ -18,17 +18,17 @@
 
 package com.dtstack.flinkx.connector.solr.table;
 
+import com.dtstack.flinkx.connector.solr.SolrConf;
+import com.dtstack.flinkx.connector.solr.converter.SolrRowConverter;
+import com.dtstack.flinkx.connector.solr.sink.SolrOutputFormatBuilder;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
-
-import com.dtstack.flinkx.connector.solr.SolrConf;
-import com.dtstack.flinkx.connector.solr.converter.SolrRowConverter;
-import com.dtstack.flinkx.connector.solr.sink.SolrOutputFormatBuilder;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 /**
  * @author Ada Wong

@@ -16,28 +16,26 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.connector.oraclelogminer.inputformat;
-
-import org.apache.flink.core.io.GenericInputSplit;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.flinkx.connector.oraclelogminer.listener.LogMinerListener;
 import com.dtstack.flinkx.connector.oraclelogminer.listener.PositionManager;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import com.dtstack.flinkx.restore.FormatState;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+
+import org.apache.flink.core.io.GenericInputSplit;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
 
 import java.io.IOException;
+import java.math.BigInteger;
 
 /**
  * @author jiangbo
  * @date 2019/12/14
- *
- * 名词说明:
- * SCN 即系统改变号(System Change Number)
+ *     <p>名词说明: SCN 即系统改变号(System Change Number)
  */
 public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
@@ -51,7 +49,7 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
     @Override
     protected InputSplit[] createInputSplitsInternal(int i) {
-        return new InputSplit[]{new GenericInputSplit(1,1)};
+        return new InputSplit[] {new GenericInputSplit(1, 1)};
     }
 
     @Override
@@ -65,7 +63,10 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
 
     private void initPosition() {
         if (null != formatState && formatState.getState() != null) {
-            positionManager.updatePosition((Long)formatState.getState());
+            BigInteger position = new BigInteger(formatState.getState().toString());
+            // 查询数据时时左闭右开区间 所以需要将上次消费位点+1
+            position = position.add(BigInteger.ONE);
+            positionManager.updatePosition(position);
         }
     }
 
@@ -87,9 +88,8 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected RowData nextRecordInternal(RowData rowData)  {
+    protected RowData nextRecordInternal(RowData rowData) {
         return logMinerListener.getData();
-
     }
 
     @Override
@@ -107,7 +107,6 @@ public class OracleLogMinerInputFormat extends BaseRichInputFormat {
             }
         }
     }
-
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter) {
         this.rowConverter = rowConverter;

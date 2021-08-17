@@ -25,6 +25,7 @@ public interface IDeserializationConverter<T, E> extends Serializable {
 
     /**
      * Runtime converter to convert field to {@link RowData} type object
+     *
      * @param field
      * @return
      * @throws Exception

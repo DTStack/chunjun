@@ -18,49 +18,38 @@
 
 package com.dtstack.flinkx.enums;
 
-
 import java.text.DecimalFormat;
 
 /**
  * This class defines UNIT TYPE
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author shifang@Dtstack.com
  */
 public enum SizeUnitType {
 
+    /** B */
+    B(1, "B"),
 
-    /**
-     * B
-     */
-    B(1 , "B"),
-
-    /**
-     * KB
-     */
+    /** KB */
     KB(1024, "KB"),
 
-    /**
-     * MB
-     */
-    MB(1024*1024, "MB"),
+    /** MB */
+    MB(1024 * 1024, "MB"),
 
-    /**
-     * GB
-     */
-    GB(1024*1024*1024, "GB");
+    /** GB */
+    GB(1024 * 1024 * 1024, "GB");
 
     private int code;
 
     private String name;
 
-    /**
-     * 小单位转大单位保留两位小数
-     */
-    private static final DecimalFormat df = new DecimalFormat("0.00");//格式化小
+    /** 小单位转大单位保留两位小数 */
+    private static final DecimalFormat df = new DecimalFormat("0.00"); // 格式化小
 
-    SizeUnitType(int code, String name){
-        this.code =code;
+    SizeUnitType(int code, String name) {
+        this.code = code;
         this.name = name;
     }
 
@@ -82,30 +71,32 @@ public enum SizeUnitType {
 
     /**
      * 不同单位类型转换
+     *
      * @param source
      * @param target
      * @param value
      * @return
      */
     public static String covertUnit(SizeUnitType source, SizeUnitType target, Long value) {
-        //大单位转小单位
-        if(source.getCode()>target.getCode()){
+        // 大单位转小单位
+        if (source.getCode() > target.getCode()) {
             return String.valueOf(value * source.getCode() / target.getCode());
         }
-        //小单位转大单位
-        return df.format((float)value * source.getCode() / target.getCode());
-
+        // 小单位转大单位
+        return df.format((float) value * source.getCode() / target.getCode());
     }
 
     /**
      * 字节单位自动转换
+     *
      * @param size byte
      * @return
      */
     public static String readableFileSize(long size) {
         if (size <= 0) return "0";
-        final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
+        final String[] units = new String[] {"B", "KB", "MB", "GB", "TB"};
         int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
-        return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups)) + units[digitGroups];
+        return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups))
+                + units[digitGroups];
     }
 }

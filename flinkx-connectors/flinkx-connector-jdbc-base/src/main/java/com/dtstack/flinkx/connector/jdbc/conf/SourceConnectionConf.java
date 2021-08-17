@@ -20,8 +20,7 @@ package com.dtstack.flinkx.connector.jdbc.conf;
 import java.util.List;
 
 /**
- * Date: 2021/04/12
- * Company: www.dtstack.com
+ * Date: 2021/04/12 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -49,12 +48,20 @@ public class SourceConnectionConf extends ConnectionConf {
 
     @Override
     public String toString() {
-        return "SourceConnectionConf{" +
-                "table=" + table +
-                ", schema='" + schema + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", jdbcUrl=" + jdbcUrl +
-                '}';
+        return "SourceConnectionConf{"
+                + "table="
+                + table
+                + ", schema='"
+                + schema
+                + '\''
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", jdbcUrl="
+                + jdbcUrl
+                + '}';
     }
 }

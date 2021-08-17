@@ -22,16 +22,16 @@ package com.dtstack.flinkx.connector.restapi.common;
  *
  * @author by shifang@dtstack.com
  */
-public enum  ParamType {
+public enum ParamType {
 
-    /** request请求的header标识 **/
+    /** request请求的header标识 * */
     HEADER,
-    /** request请求的body标识  **/
+    /** request请求的body标识 * */
     BODY,
-    /** request请求的param标识 **/
+    /** request请求的param标识 * */
     PARAM,
-    /** request请求的返回值标识 **/
+    /** request请求的返回值标识 * */
     RESPONSE,
-    /** 内部变量标识 **/
+    /** 内部变量标识 * */
     INNER
 }

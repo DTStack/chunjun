@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.connector.kafka.deserializer;
 
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.header.Headers;
@@ -28,8 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * Date: 2021/07/01
- * Company: www.dtstack.com
+ * Date: 2021/07/01 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -41,13 +41,14 @@ public class DtKafkaDeserializer<T> implements Deserializer<byte[]> {
     @SuppressWarnings("unchecked")
     public void configure(Map<String, ?> configs, boolean isKey) {
         String deserializerClassName;
-        if(isKey){
-            deserializerClassName = (String)configs.get("dt.key.deserializer");
-        }else{
-            deserializerClassName = (String)configs.get("dt.value.deserializer");
+        if (isKey) {
+            deserializerClassName = (String) configs.get("dt.key.deserializer");
+        } else {
+            deserializerClassName = (String) configs.get("dt.value.deserializer");
         }
         try {
-            this.deserializer = (Deserializer<T>)Class.forName(deserializerClassName).newInstance();
+            this.deserializer =
+                    (Deserializer<T>) Class.forName(deserializerClassName).newInstance();
         } catch (Exception e) {
             throw new FlinkxRuntimeException("Can't create instance: " + deserializerClassName, e);
         }
@@ -66,16 +67,18 @@ public class DtKafkaDeserializer<T> implements Deserializer<byte[]> {
 
     /**
      * T value to byte[]
+     *
      * @param value
      * @return
      */
-    private byte[] toBytes(T value){
-        if(value instanceof byte[]){
-            return  (byte[])value;
-        }else{
+    private byte[] toBytes(T value) {
+        if (value instanceof byte[]) {
+            return (byte[]) value;
+        } else {
             try {
-                return this.objectMapper.readValue(this.objectMapper.writeValueAsBytes(value), String.class).getBytes(
-                        StandardCharsets.UTF_8);
+                return this.objectMapper
+                        .readValue(this.objectMapper.writeValueAsBytes(value), String.class)
+                        .getBytes(StandardCharsets.UTF_8);
             } catch (IOException e) {
                 throw new SerializationException("Can't deserialize data", e);
             }

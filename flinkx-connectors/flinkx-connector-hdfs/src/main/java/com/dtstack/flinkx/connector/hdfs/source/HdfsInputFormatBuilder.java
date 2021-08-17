@@ -19,11 +19,10 @@ package com.dtstack.flinkx.connector.hdfs.source;
 
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 
 /**
- * Date: 2021/06/08
- * Company: www.dtstack.com
+ * Date: 2021/06/08 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -32,7 +31,7 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
     private final BaseHdfsInputFormat format;
 
     public HdfsInputFormatBuilder(String type) {
-        switch(FileType.getByName(type)) {
+        switch (FileType.getByName(type)) {
             case ORC:
                 format = new HdfsOrcInputFormat();
                 break;
@@ -51,7 +50,5 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
     }
 
     @Override
-    protected void checkFormat() {
-
-    }
+    protected void checkFormat() {}
 }

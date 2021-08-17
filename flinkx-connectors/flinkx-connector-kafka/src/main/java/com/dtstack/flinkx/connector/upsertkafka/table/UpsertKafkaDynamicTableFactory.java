@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.upsertkafka.table;
 
+import com.dtstack.flinkx.connector.kafka.sink.KafkaDynamicSink;
+import com.dtstack.flinkx.connector.kafka.source.KafkaDynamicSource;
+import com.dtstack.flinkx.connector.kafka.util.KafkaUtil;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -44,10 +48,6 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.factories.SerializationFormatFactory;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.RowKind;
-
-import com.dtstack.flinkx.connector.kafka.sink.KafkaDynamicSink;
-import com.dtstack.flinkx.connector.kafka.source.KafkaDynamicSource;
-import com.dtstack.flinkx.connector.kafka.util.KafkaUtil;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -114,7 +114,8 @@ public class UpsertKafkaDynamicTableFactory
         Tuple2<int[], int[]> keyValueProjections =
                 createKeyValueProjections(context.getCatalogTable());
         String keyPrefix = tableOptions.getOptional(KEY_FIELDS_PREFIX).orElse(null);
-        Properties properties = KafkaUtil.getKafkaProperties(context.getCatalogTable().getOptions());
+        Properties properties =
+                KafkaUtil.getKafkaProperties(context.getCatalogTable().getOptions());
         // always use earliest to keep data integrity
         StartupMode earliest = StartupMode.EARLIEST;
 
@@ -154,7 +155,8 @@ public class UpsertKafkaDynamicTableFactory
         Tuple2<int[], int[]> keyValueProjections =
                 createKeyValueProjections(context.getCatalogTable());
         final String keyPrefix = tableOptions.getOptional(KEY_FIELDS_PREFIX).orElse(null);
-        final Properties properties = KafkaUtil.getKafkaProperties(context.getCatalogTable().getOptions());
+        final Properties properties =
+                KafkaUtil.getKafkaProperties(context.getCatalogTable().getOptions());
 
         Integer parallelism = tableOptions.get(FactoryUtil.SINK_PARALLELISM);
 

@@ -22,24 +22,18 @@ package com.dtstack.flinkx.enums;
  * @author chuixue
  * @create 2021-04-09 13:27
  * @description
- **/
+ */
 public enum CacheType {
-    /**
-     * none
-     */
+    /** none */
     NONE,
-    /**
-     * lru
-     */
+    /** lru */
     LRU,
-    /**
-     * all
-     */
+    /** all */
     ALL;
 
-    public static boolean isValid(String type){
-        for(CacheType tmpType : CacheType.values()){
-            if(tmpType.name().equalsIgnoreCase(type)){
+    public static boolean isValid(String type) {
+        for (CacheType tmpType : CacheType.values()) {
+            if (tmpType.name().equalsIgnoreCase(type)) {
                 return true;
             }
         }

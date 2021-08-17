@@ -11,12 +11,11 @@ import java.util.Locale;
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/14
- **/
+ */
 public class MysqlRawTypeConverter {
 
     /**
-     * 将MySQL数据库中的类型，转换成flink的DataType类型。
-     * 转换关系参考 com.mysql.jdbc.MysqlDefs 类里面的信息。
+     * 将MySQL数据库中的类型，转换成flink的DataType类型。 转换关系参考 com.mysql.jdbc.MysqlDefs 类里面的信息。
      * com.mysql.jdbc.ResultSetImpl.getObject(int)
      */
     public static DataType apply(String type) {

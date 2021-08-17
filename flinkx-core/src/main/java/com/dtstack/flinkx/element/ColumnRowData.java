@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.element;
 
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
 import org.apache.flink.table.data.ArrayData;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.MapData;
@@ -29,7 +31,6 @@ import org.apache.flink.util.InstantiationUtil;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.StringUtils;
 
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.google.common.collect.Maps;
 
 import java.io.Serializable;
@@ -39,8 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2021/04/26
- * Company: www.dtstack.com
+ * Date: 2021/04/26 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -63,21 +63,21 @@ public final class ColumnRowData implements RowData, Serializable {
         this.kind = RowKind.INSERT;
     }
 
-    public void addHeader(String name){
-        if(this.header == null){
+    public void addHeader(String name) {
+        if (this.header == null) {
             this.header = Maps.newHashMapWithExpectedSize(this.columnList.size());
         }
         this.header.put(name, this.header.size());
     }
 
-    public void addAllHeader(List<String> list){
+    public void addAllHeader(List<String> list) {
         for (String name : list) {
             this.addHeader(name);
         }
     }
 
-    public String[] getHeaders(){
-        if(this.header == null){
+    public String[] getHeaders() {
+        if (this.header == null) {
             return null;
         }
         String[] names = new String[this.header.size()];
@@ -104,17 +104,17 @@ public final class ColumnRowData implements RowData, Serializable {
     }
 
     public AbstractBaseColumn getField(String name) {
-        if(header == null){
+        if (header == null) {
             return null;
         }
         Integer pos = header.getOrDefault(name, -1);
         return pos == -1 ? null : this.columnList.get(pos);
     }
 
-    public ColumnRowData copy(){
+    public ColumnRowData copy() {
         try {
             return InstantiationUtil.clone(this, Thread.currentThread().getContextClassLoader());
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
         }
     }
@@ -228,7 +228,7 @@ public final class ColumnRowData implements RowData, Serializable {
         return buildString(sb);
     }
 
-    private String buildString(StringBuilder sb){
+    private String buildString(StringBuilder sb) {
         sb.append("(");
         for (int i = 0; i < columnList.size(); i++) {
             if (i != 0) {

@@ -13,13 +13,6 @@
 	<name>FlinkX : Formats : </name>
     <packaging>pom</packaging>
 
-    <modules>
-        <module>flinkx-json</module>
-        <module>flinkx-csv</module>
-        <module>flinkx-parquet</module>
-        <module>flinkx-orc</module>
-    </modules>
-
     <dependencies>
         <dependency>
             <groupId>com.dtstack.flinkx</groupId>

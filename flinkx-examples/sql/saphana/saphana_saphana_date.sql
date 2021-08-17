@@ -34,9 +34,9 @@ CREATE TABLE sink
       'password' = 'Abc!@#579',
       'sink.buffer-flush.max-rows' = '1024', -- 批量写数据条数，默认：1024
       'sink.buffer-flush.interval' = '10000', -- 批量写时间间隔，默认：10000毫秒
-      'sink.allReplace' = 'true', -- 解释如下(其他rdb数据库类似)：默认：false
-      -- sink.allReplace = 'true' 生成如：REPLACE INTO `result3`(`mid`, `mbb`, `sid`, `sbb`) VALUES (?, ?, ?, ?) 。会将所有的数据都替换。
-      -- sink.allReplace = 'false' 生成如：INSERT INTO `result3`(`mid`, `mbb`, `sid`, `sbb`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `mid`=IFNULL(VALUES(`mid`),`mid`), `mbb`=IFNULL(VALUES(`mbb`),`mbb`), `sid`=IFNULL(VALUES(`sid`),`sid`), `sbb`=IFNULL(VALUES(`sbb`),`sbb`) 。如果新值为null，数据库中的旧值不为null，则不会覆盖。
+      'sink.all-replace' = 'true', -- 解释如下(其他rdb数据库类似)：默认：false
+      -- sink.all-replace = 'true' 生成如：REPLACE INTO `result3`(`mid`, `mbb`, `sid`, `sbb`) VALUES (?, ?, ?, ?) 。会将所有的数据都替换。
+      -- sink.all-replace = 'false' 生成如：INSERT INTO `result3`(`mid`, `mbb`, `sid`, `sbb`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `mid`=IFNULL(VALUES(`mid`),`mid`), `mbb`=IFNULL(VALUES(`mbb`),`mbb`), `sid`=IFNULL(VALUES(`sid`),`sid`), `sbb`=IFNULL(VALUES(`sbb`),`sbb`) 。如果新值为null，数据库中的旧值不为null，则不会覆盖。
       'sink.parallelism' = '1'    -- 写入结果的并行度，默认：null
       );
 

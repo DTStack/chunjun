@@ -22,8 +22,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import java.io.Serializable;
 
 /**
- * Date: 2021/04/30
- * Company: www.dtstack.com
+ * Date: 2021/04/30 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -35,7 +34,8 @@ public class BinlogEventRow implements Serializable {
     private final String table;
     private final long executeTime;
 
-    public BinlogEventRow(CanalEntry.RowChange rowChange, String schema, String table, long executeTime) {
+    public BinlogEventRow(
+            CanalEntry.RowChange rowChange, String schema, String table, long executeTime) {
         this.rowChange = rowChange;
         this.schema = schema;
         this.table = table;
@@ -58,14 +58,19 @@ public class BinlogEventRow implements Serializable {
         return executeTime;
     }
 
-
     @Override
     public String toString() {
-        return "BinlogEventRow{" +
-                "RowChange=" + rowChange +
-                ", schema='" + schema + '\'' +
-                ", table='" + table + '\'' +
-                ", executeTime=" + executeTime +
-                '}';
+        return "BinlogEventRow{"
+                + "RowChange="
+                + rowChange
+                + ", schema='"
+                + schema
+                + '\''
+                + ", table='"
+                + table
+                + '\''
+                + ", executeTime="
+                + executeTime
+                + '}';
     }
 }

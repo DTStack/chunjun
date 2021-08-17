@@ -21,18 +21,18 @@ package com.dtstack.flinkx.util;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * @author tiezhu
- * Date 2020/6/19 星期五
- */
+/** @author tiezhu Date 2020/6/19 星期五 */
 public class PluginUtilTest {
 
     @Test
     public void testGetJarFileDirPath() {
         String pluginName = "mysqlreader";
-        String pluginRoot = "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
-        String remotePluginPath = "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
+        String pluginRoot =
+                "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
+        String remotePluginPath =
+                "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
 
-        Assert.assertEquals(4, PluginUtil.getJarFileDirPath(pluginName, pluginRoot, remotePluginPath).size());
+        Assert.assertEquals(
+                4, PluginUtil.getJarFileDirPath(pluginName, pluginRoot, remotePluginPath).size());
     }
 }

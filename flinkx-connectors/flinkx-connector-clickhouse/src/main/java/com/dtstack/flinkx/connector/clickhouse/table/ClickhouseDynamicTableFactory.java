@@ -18,10 +18,10 @@
 
 package com.dtstack.flinkx.connector.clickhouse.table;
 
-import com.dtstack.flinkx.connector.clickhouse.ClickhouseDialect;
+import com.dtstack.flinkx.connector.clickhouse.dialect.ClickhouseDialect;
 import com.dtstack.flinkx.connector.clickhouse.sink.ClickhouseOutputFormat;
 import com.dtstack.flinkx.connector.clickhouse.source.ClickhouseInputFormat;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
@@ -30,8 +30,7 @@ import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
  * @program: flinkx
  * @author: xiuzhu
  * @create: 2021/05/08
- **/
-
+ */
 public class ClickhouseDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** 通过该值查找具体插件 */

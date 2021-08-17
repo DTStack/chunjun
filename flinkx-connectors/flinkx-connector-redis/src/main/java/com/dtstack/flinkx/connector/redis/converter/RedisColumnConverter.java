@@ -25,11 +25,11 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
-import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 
+import org.apache.commons.lang3.StringUtils;
 import redis.clients.jedis.Jedis;
 
 import java.text.SimpleDateFormat;
@@ -43,16 +43,12 @@ import static com.dtstack.flinkx.connector.redis.options.RedisOptions.REDIS_KEY_
  * @author chuixue
  * @create 2021-06-17 14:32
  * @description
- **/
+ */
 public class RedisColumnConverter extends AbstractRowConverter<Object, Object, Jedis, LogicalType> {
 
-    /**
-     * redis Conf
-     */
+    /** redis Conf */
     private final RedisConf redisConf;
-    /**
-     * SimpleDateFormat
-     */
+    /** SimpleDateFormat */
     private SimpleDateFormat sdf;
 
     public RedisColumnConverter(RedisConf redisConf) {
@@ -115,7 +111,8 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
     }
 
     private List<Object> getFieldAndValue(ColumnRowData row) {
-        if (row.getArity() - redisConf.getKeyIndexes().size() != REDIS_KEY_VALUE_SIZE.defaultValue()) {
+        if (row.getArity() - redisConf.getKeyIndexes().size()
+                != REDIS_KEY_VALUE_SIZE.defaultValue()) {
             throw new IllegalArgumentException(
                     "Each row record can have only one pair of attributes and values except key");
         }

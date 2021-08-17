@@ -16,48 +16,35 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.factory;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * company: www.dtstack.com
- * author: sishu.yss
- * create: 2018/09/12
- */
+/** company: www.dtstack.com author: sishu.yss create: 2018/09/12 */
 public class DTThreadFactory implements ThreadFactory {
-    private final static AtomicInteger POOL_NUMBER = new AtomicInteger(1);
-    private final static AtomicInteger THREAD_NUMBER = new AtomicInteger(1);
+    private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);
+    private static final AtomicInteger THREAD_NUMBER = new AtomicInteger(1);
     private final ThreadGroup group;
     private final String namePrefix;
     private Boolean isDaemon = false;
 
     public DTThreadFactory(String factoryName) {
         SecurityManager s = System.getSecurityManager();
-        group = (s != null) ? s.getThreadGroup() :
-                Thread.currentThread().getThreadGroup();
-        namePrefix = factoryName + "-pool-" +
-                POOL_NUMBER.getAndIncrement() +
-                "-thread-";
+        group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+        namePrefix = factoryName + "-pool-" + POOL_NUMBER.getAndIncrement() + "-thread-";
     }
 
     public DTThreadFactory(String factoryName, Boolean isDaemon) {
         SecurityManager s = System.getSecurityManager();
-        group = (s != null) ? s.getThreadGroup() :
-                Thread.currentThread().getThreadGroup();
-        namePrefix = factoryName + "-pool-" +
-                POOL_NUMBER.getAndIncrement() +
-                "-thread-";
+        group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+        namePrefix = factoryName + "-pool-" + POOL_NUMBER.getAndIncrement() + "-thread-";
         this.isDaemon = isDaemon;
     }
 
     @Override
     public Thread newThread(Runnable r) {
-        Thread t = new Thread(group, r,
-                namePrefix + THREAD_NUMBER.getAndIncrement(),
-                0);
+        Thread t = new Thread(group, r, namePrefix + THREAD_NUMBER.getAndIncrement(), 0);
         if (this.isDaemon) {
             t.setDaemon(true);
         } else {

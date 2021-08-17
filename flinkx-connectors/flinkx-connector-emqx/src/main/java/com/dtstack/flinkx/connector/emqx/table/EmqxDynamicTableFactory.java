@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.emqx.table;
 
+import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
+import com.dtstack.flinkx.connector.emqx.sink.EmqxDynamicTableSink;
+import com.dtstack.flinkx.connector.emqx.source.EmqxDynamicTableSource;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.ConfigOption;
@@ -37,10 +41,6 @@ import org.apache.flink.table.factories.SerializationFormatFactory;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.types.RowKind;
-
-import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
-import com.dtstack.flinkx.connector.emqx.sink.EmqxDynamicTableSink;
-import com.dtstack.flinkx.connector.emqx.source.EmqxDynamicTableSource;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -80,7 +80,10 @@ public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         final EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat =
                 getValueEncodingFormat(helper);
 
-        return new EmqxDynamicTableSink(physicalSchema, getEmqxConf(config), new EncodingFormatWrapper(valueEncodingFormat));
+        return new EmqxDynamicTableSink(
+                physicalSchema,
+                getEmqxConf(config),
+                new EncodingFormatWrapper(valueEncodingFormat));
     }
 
     @Override

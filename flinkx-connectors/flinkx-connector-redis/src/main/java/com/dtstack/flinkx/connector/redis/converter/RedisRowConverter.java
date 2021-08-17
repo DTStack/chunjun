@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.connector.redis.converter;
 
+import com.dtstack.flinkx.connector.redis.conf.RedisConf;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -29,11 +34,6 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
-import com.dtstack.flinkx.connector.redis.conf.RedisConf;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.converter.ISerializationConverter;
-import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.JedisCommands;
 
 import java.io.Serializable;
@@ -109,7 +109,6 @@ public class RedisRowConverter
         return getGenericRowData(input);
     }
 
-    @NotNull
     private GenericRowData getGenericRowData(Map<String, String> input) throws Exception {
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
 

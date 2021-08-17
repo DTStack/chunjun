@@ -6,15 +6,14 @@
 package com.dtstack.flinkx.connector.sqlservercdc.entity;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
- * <p>
- * this class is copied from (https://github.com/debezium/debezium).
- * but there are some different from the origin.
+ * Date: 2019/12/03 Company: www.dtstack.com
+ *
+ * <p>this class is copied from (https://github.com/debezium/debezium). but there are some different
+ * from the origin.
  *
  * @author tudou
  */
-public class TxLogPosition implements Comparable<TxLogPosition>{
+public class TxLogPosition implements Comparable<TxLogPosition> {
     public static final TxLogPosition NULL = new TxLogPosition(null, null);
     private final Lsn commitLsn;
     private final Lsn inTxLsn;
@@ -47,7 +46,7 @@ public class TxLogPosition implements Comparable<TxLogPosition>{
     }
 
     @Override
-    public boolean equals(Object obj){
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -62,16 +61,14 @@ public class TxLogPosition implements Comparable<TxLogPosition>{
             if (other.commitLsn != null) {
                 return false;
             }
-        }
-        else if (!commitLsn.equals(other.commitLsn)) {
+        } else if (!commitLsn.equals(other.commitLsn)) {
             return false;
         }
         if (inTxLsn == null) {
             if (other.inTxLsn != null) {
                 return false;
             }
-        }
-        else if (!inTxLsn.equals(other.inTxLsn)) {
+        } else if (!inTxLsn.equals(other.inTxLsn)) {
             return false;
         }
         return true;
@@ -84,11 +81,11 @@ public class TxLogPosition implements Comparable<TxLogPosition>{
     }
 
     public static TxLogPosition valueOf(Lsn commitLsn, Lsn inTxLsn) {
-        return commitLsn == null && inTxLsn == null ? NULL
+        return commitLsn == null && inTxLsn == null
+                ? NULL
                 : new TxLogPosition(
-                commitLsn == null ? Lsn.NULL : commitLsn,
-                inTxLsn == null ? Lsn.NULL : inTxLsn
-        );
+                        commitLsn == null ? Lsn.NULL : commitLsn,
+                        inTxLsn == null ? Lsn.NULL : inTxLsn);
     }
 
     public static TxLogPosition valueOf(Lsn commitLsn) {

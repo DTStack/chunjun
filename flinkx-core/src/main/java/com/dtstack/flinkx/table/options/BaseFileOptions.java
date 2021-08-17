@@ -21,8 +21,7 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 /**
- * Date: 2021/06/17
- * Company: www.dtstack.com
+ * Date: 2021/06/17 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -34,13 +33,13 @@ public class BaseFileOptions {
                     .withDescription("The path of the data file");
 
     public static final ConfigOption<String> FILE_NAME =
-            ConfigOptions.key("fileName")
+            ConfigOptions.key("file-name")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("Data file directory name");
 
     public static final ConfigOption<String> WRITE_MODE =
-            ConfigOptions.key("writeMode")
+            ConfigOptions.key("write-mode")
                     .stringType()
                     .defaultValue("append")
                     .withDescription("Data cleaning processing mode before hdfs writer write:");
@@ -58,13 +57,13 @@ public class BaseFileOptions {
                     .withDescription("Encoding format can be configured when fileType is text");
 
     public static final ConfigOption<Long> MAX_FILE_SIZE =
-            ConfigOptions.key("maxFileSize")
+            ConfigOptions.key("max-file-size")
                     .longType()
                     .defaultValue(1073741824L)
                     .withDescription("The maximum size of a single file written to hdfs, in bytes");
 
     public static final ConfigOption<Long> NEXT_CHECK_ROWS =
-            ConfigOptions.key("nextCheckRows")
+            ConfigOptions.key("next-check-rows")
                     .longType()
                     .defaultValue(5000L)
                     .withDescription("The number of data written in the next file size check");

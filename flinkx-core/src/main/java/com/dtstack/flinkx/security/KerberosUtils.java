@@ -59,6 +59,21 @@ public class KerberosUtils {
         return UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytabPath);
     }
 
+    public static UserGroupInformation loginAndReturnUgi(KerberosConfig kerberosConfig)
+            throws IOException {
+        String principal = kerberosConfig.getPrincipal();
+        String keytabPath = kerberosConfig.getKeytab();
+        String krb5confPath = kerberosConfig.getKrb5conf();
+        LOG.info("Kerberos login with principal: {} and keytab: {}", principal, keytabPath);
+        reloadKrb5conf(krb5confPath);
+        // TODO 尚未探索出此选项的意义，以后研究明白方可打开
+        //        System.setProperty(SUBJECT_ONLY_KEY, FALSE_STR);
+        Configuration configuration = new Configuration();
+        configuration.set(HADOOP_AUTH_KEY, KRB_STR);
+        UserGroupInformation.setConfiguration(configuration);
+        return UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytabPath);
+    }
+
     public static synchronized void appendJaasConf(String name, String keytab, String principal) {
         javax.security.auth.login.Configuration priorConfig =
                 javax.security.auth.login.Configuration.getConfiguration();

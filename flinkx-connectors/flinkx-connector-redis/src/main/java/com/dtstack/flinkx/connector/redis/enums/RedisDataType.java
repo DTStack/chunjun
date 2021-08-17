@@ -21,14 +21,11 @@ package com.dtstack.flinkx.connector.redis.enums;
 /**
  * Data type of redis database
  *
- * @author jiangbo
- * @Company: www.dtstack.com
+ * @author jiangbo @Company: www.dtstack.com
  */
 public enum RedisDataType {
 
-    /**
-     * redis data struct
-     */
+    /** redis data struct */
     STRING("string"),
 
     LIST("list"),

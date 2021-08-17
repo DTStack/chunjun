@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -37,7 +36,7 @@ public class AbstractHiveMetadataParser {
     private static final String ORC_FORMAT = "OrcOutputFormat";
     private static final String PARQUET_FORMAT = "MapredParquetOutputFormat";
 
-    public void fillTableInfo(TableInfo tableInfo, List<Map<String, Object>> result){
+    public void fillTableInfo(TableInfo tableInfo, List<Map<String, Object>> result) {
         Iterator<Map<String, Object>> iter = result.iterator();
         String colName;
         String dataType;
@@ -58,19 +57,19 @@ public class AbstractHiveMetadataParser {
                     tableInfo.setStore(storedType);
                 }
 
-                if(colName.contains("field.delim")){
+                if (colName.contains("field.delim")) {
                     tableInfo.setDelimiter(dataType);
                 }
             }
         }
     }
 
-    protected String getStoredType(String inputFormatClass){
-        if (inputFormatClass.endsWith(TEXT_FORMAT)){
+    protected String getStoredType(String inputFormatClass) {
+        if (inputFormatClass.endsWith(TEXT_FORMAT)) {
             return FileType.TEXT.name();
-        } else if (inputFormatClass.endsWith(ORC_FORMAT)){
+        } else if (inputFormatClass.endsWith(ORC_FORMAT)) {
             return FileType.ORC.name();
-        } else if (inputFormatClass.endsWith(PARQUET_FORMAT)){
+        } else if (inputFormatClass.endsWith(PARQUET_FORMAT)) {
             return FileType.PARQUET.name();
         } else {
             throw new FlinkxRuntimeException("Unsupported fileType:" + inputFormatClass);

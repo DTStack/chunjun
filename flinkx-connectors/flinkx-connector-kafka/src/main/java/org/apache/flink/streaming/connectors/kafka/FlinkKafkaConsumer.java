@@ -68,8 +68,7 @@ import static org.apache.flink.util.PropertiesUtil.getLong;
  * <p>Please refer to Kafka's documentation for the available configuration properties:
  * http://kafka.apache.org/documentation.html#newconsumerconfigs
  *
- * 修改原因：放开flink对key.deserializer、value.deserializer的限制
- * 修改内容：setDeserializer(Properties props)
+ * <p>修改原因：放开flink对key.deserializer、value.deserializer的限制 修改内容：setDeserializer(Properties props)
  */
 @PublicEvolving
 public class FlinkKafkaConsumer<T> extends FlinkKafkaConsumerBase<T> {
@@ -81,6 +80,7 @@ public class FlinkKafkaConsumer<T> extends FlinkKafkaConsumerBase<T> {
      * available. If 0, returns immediately with any records that are available now.
      */
     public static final long DEFAULT_POLL_TIMEOUT = 100L;
+
     private static final long serialVersionUID = 1L;
 
     // ------------------------------------------------------------------------
@@ -241,17 +241,17 @@ public class FlinkKafkaConsumer<T> extends FlinkKafkaConsumerBase<T> {
      * @param props The Kafka properties to register the serializer in.
      */
     private static void setDeserializer(Properties props) {
-        //放开flink对key.deserializer、value.deserializer的限制
+        // 放开flink对key.deserializer、value.deserializer的限制
         final String deSerName = ByteArrayDeserializer.class.getName();
 
         Object keyDeSer = props.get(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG);
         Object valDeSer = props.get(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG);
 
-        if(keyDeSer == null){
+        if (keyDeSer == null) {
             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, deSerName);
         }
 
-        if(valDeSer == null){
+        if (valDeSer == null) {
             props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deSerName);
         }
     }
@@ -330,7 +330,7 @@ public class FlinkKafkaConsumer<T> extends FlinkKafkaConsumerBase<T> {
     protected boolean getIsAutoCommitEnabled() {
         return getBoolean(properties, ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true)
                 && PropertiesUtil.getLong(
-                properties, ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, 5000)
-                > 0;
+                                properties, ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, 5000)
+                        > 0;
     }
 }

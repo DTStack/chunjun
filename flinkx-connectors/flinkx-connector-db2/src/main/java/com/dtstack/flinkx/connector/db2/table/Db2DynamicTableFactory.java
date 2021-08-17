@@ -17,18 +17,17 @@
  */
 package com.dtstack.flinkx.connector.db2.table;
 
-
-import com.dtstack.flinkx.connector.db2.Db2Dialect;
+import com.dtstack.flinkx.connector.db2.dialect.Db2Dialect;
 import com.dtstack.flinkx.connector.db2.sink.Db2OutputFormat;
 import com.dtstack.flinkx.connector.db2.source.Db2InputFormat;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 
 /**
  * Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2021-06-15
  */

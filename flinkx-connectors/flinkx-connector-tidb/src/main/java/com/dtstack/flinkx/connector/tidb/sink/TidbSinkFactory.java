@@ -19,8 +19,8 @@
 package com.dtstack.flinkx.connector.tidb.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.connector.mysql.sink.MysqlSinkFactory;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
+import com.dtstack.flinkx.connector.tidb.dialect.TidbDialect;
 
 /**
  * Company：www.dtstack.com
@@ -28,15 +28,9 @@ import com.dtstack.flinkx.connector.mysql.sink.MysqlSinkFactory;
  * @author shitou
  * @date 2021/6/22 15:23
  */
-public class TidbSinkFactory extends MysqlSinkFactory {
+public class TidbSinkFactory extends JdbcSinkFactory {
 
     public TidbSinkFactory(SyncConf syncConf){
-        super(syncConf);
+        super(syncConf, new TidbDialect());
     }
-
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new TidbOutputFormat());
-    }
-
 }

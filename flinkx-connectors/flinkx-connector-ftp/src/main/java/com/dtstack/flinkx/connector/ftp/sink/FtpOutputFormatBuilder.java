@@ -19,15 +19,16 @@
 package com.dtstack.flinkx.connector.ftp.sink;
 
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-import com.dtstack.flinkx.outputformat.FileOutputFormatBuilder;
+import com.dtstack.flinkx.sink.format.FileOutputFormatBuilder;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-import org.apache.commons.lang.StringUtils;
 
+import org.apache.commons.lang.StringUtils;
 
 /**
  * The builder of FtpOutputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
@@ -39,7 +40,7 @@ public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
         super.setFormat(format);
     }
 
-    public void setFtpConfig(FtpConfig ftpConfig){
+    public void setFtpConfig(FtpConfig ftpConfig) {
         super.setBaseFileConf(ftpConfig);
         format.setFtpConfig(ftpConfig);
     }
@@ -57,5 +58,4 @@ public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
             throw new FlinkxRuntimeException("Please Set path");
         }
     }
-
 }

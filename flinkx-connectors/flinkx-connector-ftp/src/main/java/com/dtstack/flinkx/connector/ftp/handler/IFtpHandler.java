@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.ftp.handler;
 
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-import com.jcraft.jsch.SftpException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +28,8 @@ import java.util.List;
 /**
  * The skeleton of Ftp Utility class
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public interface IFtpHandler {
@@ -39,10 +39,11 @@ public interface IFtpHandler {
      *
      * @param ftpConfig 连接配置
      */
-    void loginFtpServer(FtpConfig ftpConfig) ;
+    void loginFtpServer(FtpConfig ftpConfig);
 
     /**
      * 登出服务器
+     *
      * @throws IOException logout error
      */
     void logoutFtpServer() throws IOException;
@@ -136,6 +137,7 @@ public interface IFtpHandler {
 
     /**
      * 关闭ftp输入流
+     *
      * @throws IOException 文件句柄操作异常
      */
     void completePendingCommand() throws IOException;

@@ -20,46 +20,31 @@ package com.dtstack.flinkx.connector.ftp.converter;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
-import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
-import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
-import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
-
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.DateUtil;
 
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.sql.Date;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 
 /**
  * @program: flinkx
  * @author: xiuzhu
  * @create: 2021/06/19
  */
-public class FtpColumnConverter extends AbstractRowConverter<
-        RowData, RowData, String, FieldConf> {
+public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, String, FieldConf> {
 
     private final FtpConfig ftpConfig;
 
@@ -69,21 +54,27 @@ public class FtpColumnConverter extends AbstractRowConverter<
 
         for (int i = 0; i < ftpConfig.getColumn().size(); i++) {
             FieldConf fieldConf = ftpConfig.getColumn().get(i);
-            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(fieldConf));
-            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(fieldConf), fieldConf);
+            toInternalConverters[i] =
+                    wrapIntoNullableInternalConverter(createInternalConverter(fieldConf));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(fieldConf), fieldConf);
         }
     }
 
     @Override
     public RowData toInternal(RowData input) throws Exception {
         GenericRowData row = new GenericRowData(input.getArity());
-        if(input instanceof GenericRowData){
+        if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
                 row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
             }
-        }else{
-            throw new FlinkxRuntimeException("Error RowData type, RowData:[" + input + "] should be instance of GenericRowData.");
+        } else {
+            throw new FlinkxRuntimeException(
+                    "Error RowData type, RowData:["
+                            + input
+                            + "] should be instance of GenericRowData.");
         }
         return row;
     }
@@ -105,7 +96,8 @@ public class FtpColumnConverter extends AbstractRowConverter<
 
     @Override
     @SuppressWarnings("unchecked")
-    protected ISerializationConverter<List<String>> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, FieldConf fieldConf) {
+    protected ISerializationConverter<List<String>> wrapIntoNullableExternalConverter(
+            ISerializationConverter serializationConverter, FieldConf fieldConf) {
         return (rowData, index, list) -> {
             if (rowData == null || rowData.isNullAt(index)) {
                 list.set(index, null);
@@ -120,7 +112,8 @@ public class FtpColumnConverter extends AbstractRowConverter<
         String type = fieldConf.getType();
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BOOLEAN":
-                return (IDeserializationConverter<String, AbstractBaseColumn>) val -> new BooleanColumn(Boolean.parseBoolean(val));
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new BooleanColumn(Boolean.parseBoolean(val));
             case "TINYINT":
             case "SMALLINT":
             case "INT":
@@ -128,14 +121,16 @@ public class FtpColumnConverter extends AbstractRowConverter<
             case "FLOAT":
             case "DOUBLE":
             case "DECIMAL":
-                return (IDeserializationConverter<String, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        BigDecimalColumn::new;
             case "STRING":
             case "VARCHAR":
             case "CHAR":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "TIMESTAMP":
             case "DATE":
-                return (IDeserializationConverter<String, AbstractBaseColumn>)val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
             case "BINARY":
             case "ARRAY":
             case "MAP":
@@ -148,6 +143,7 @@ public class FtpColumnConverter extends AbstractRowConverter<
 
     @Override
     protected ISerializationConverter<List<String>> createExternalConverter(FieldConf fieldConf) {
-        return (rowData, index, list) -> list.add(index, ((GenericRowData) rowData).getField(index).toString());
+        return (rowData, index, list) ->
+                list.add(index, ((GenericRowData) rowData).getField(index).toString());
     }
 }

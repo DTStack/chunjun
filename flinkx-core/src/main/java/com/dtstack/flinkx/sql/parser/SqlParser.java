@@ -18,14 +18,15 @@
 
 package com.dtstack.flinkx.sql.parser;
 
+import com.dtstack.flinkx.throwable.DtSqlParserException;
+import com.dtstack.flinkx.util.DtStringUtil;
+import com.dtstack.flinkx.util.Splitter;
+
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import org.apache.flink.shaded.guava18.com.google.common.base.Strings;
 
-import com.dtstack.flinkx.exception.DtSqlParserException;
-import com.dtstack.flinkx.util.DtStringUtil;
-import com.dtstack.flinkx.util.Splitter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URL;

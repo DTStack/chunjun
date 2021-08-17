@@ -25,10 +25,8 @@ import com.dtstack.flinkx.connector.restapi.common.MetaParam;
 import com.dtstack.flinkx.connector.restapi.common.ParamType;
 import com.dtstack.flinkx.connector.restapi.convert.RestapiRowConverter;
 import com.dtstack.flinkx.connector.restapi.inputformat.RestapiInputFormatBuilder;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-
-import org.apache.commons.collections.CollectionUtils;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
@@ -40,6 +38,8 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -47,8 +47,7 @@ import java.util.Collections;
  * @author shifang
  * @create 2021-04-09 09:20
  * @description
- **/
-
+ */
 public class RestapiDynamicTableSource implements ScanTableSource {
     private final TableSchema schema;
     private final HttpRestConfig httpRestConfig;
@@ -65,28 +64,31 @@ public class RestapiDynamicTableSource implements ScanTableSource {
 
         RestapiInputFormatBuilder builder = new RestapiInputFormatBuilder();
         builder.setHttpRestConfig(httpRestConfig);
-        builder.setRowConverter(new RestapiRowConverter(
-                (RowType) this.schema.toRowDataType().getLogicalType(),
-                httpRestConfig));
+        builder.setRowConverter(
+                new RestapiRowConverter(
+                        (RowType) this.schema.toRowDataType().getLogicalType(), httpRestConfig));
         builder.setMetaHeaders(httpRestConfig.getHeader());
-        builder.setMetaParams(httpRestConfig.getParam() == null ? new ArrayList<>() :
-                httpRestConfig.getParam());
+        builder.setMetaParams(
+                httpRestConfig.getParam() == null ? new ArrayList<>() : httpRestConfig.getParam());
         builder.setMetaBodys(httpRestConfig.getBody());
-        if (HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode()) && httpRestConfig
-                .getHeader()
-                .stream()
-                .noneMatch(i -> ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()))) {
+        if (HttpMethod.POST.name().equalsIgnoreCase(httpRestConfig.getRequestMode())
+                && httpRestConfig.getHeader().stream()
+                        .noneMatch(i -> ConstantValue.CONTENT_TYPE_NAME.equals(i.getKey()))) {
             if (CollectionUtils.isEmpty(httpRestConfig.getHeader())) {
-                httpRestConfig.setHeader(Collections.singletonList(new MetaParam(
-                        ConstantValue.CONTENT_TYPE_NAME,
-                        ConstantValue.CONTENT_TYPE_DEFAULT_VALUE,
-                        ParamType.HEADER)));
+                httpRestConfig.setHeader(
+                        Collections.singletonList(
+                                new MetaParam(
+                                        ConstantValue.CONTENT_TYPE_NAME,
+                                        ConstantValue.CONTENT_TYPE_DEFAULT_VALUE,
+                                        ParamType.HEADER)));
             } else {
                 httpRestConfig
                         .getHeader()
-                        .add(new MetaParam(ConstantValue.CONTENT_TYPE_NAME,
-                                ConstantValue.CONTENT_TYPE_DEFAULT_VALUE,
-                                ParamType.HEADER));
+                        .add(
+                                new MetaParam(
+                                        ConstantValue.CONTENT_TYPE_NAME,
+                                        ConstantValue.CONTENT_TYPE_DEFAULT_VALUE,
+                                        ParamType.HEADER));
             }
         }
         MetaParam.setMetaColumnsType(httpRestConfig.getBody(), ParamType.BODY);
@@ -97,16 +99,12 @@ public class RestapiDynamicTableSource implements ScanTableSource {
         MetaParam.initTimeFormat(httpRestConfig.getParam());
         MetaParam.initTimeFormat(httpRestConfig.getHeader());
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
-                false,
-                1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new RestapiDynamicTableSource(
-                this.schema,
-                this.httpRestConfig);
+        return new RestapiDynamicTableSource(this.schema, this.httpRestConfig);
     }
 
     @Override

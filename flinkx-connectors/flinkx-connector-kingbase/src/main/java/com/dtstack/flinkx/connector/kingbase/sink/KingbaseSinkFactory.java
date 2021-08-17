@@ -20,10 +20,7 @@ package com.dtstack.flinkx.connector.kingbase.sink;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.connector.kingbase.KingbaseDialect;
-import com.dtstack.flinkx.connector.kingbase.converter.KingbaseRawTypeConverter;
-import com.dtstack.flinkx.converter.RawTypeConverter;
-
+import com.dtstack.flinkx.connector.kingbase.dialect.KingbaseDialect;
 
 /**
  * @description:
@@ -34,17 +31,11 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 public class KingbaseSinkFactory extends JdbcSinkFactory {
 
     public KingbaseSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        super.jdbcDialect = new KingbaseDialect();
+        super(syncConf, new KingbaseDialect());
     }
 
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
         return new JdbcOutputFormatBuilder(new KingbaseOutputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return KingbaseRawTypeConverter::apply;
     }
 }

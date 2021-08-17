@@ -26,7 +26,6 @@ import org.apache.flink.table.types.DataType;
 import java.sql.SQLException;
 import java.util.Locale;
 
-
 /**
  * @program: flinkx
  * @author: xiuzhu
@@ -35,13 +34,11 @@ import java.util.Locale;
 public class ClickhouseRawTypeConverter {
 
     /**
-     * 将clickhouse数据库中的类型，转换成flink的DataType类型。
-     * 转换关系参考 ru.yandex.clickhouse.domain.ClickHouseDataType 类里面的信息。
+     * 将clickhouse数据库中的类型，转换成flink的DataType类型。 转换关系参考 ru.yandex.clickhouse.domain.ClickHouseDataType
+     * 类里面的信息。
      *
      * @param type
-     *
      * @return
-     *
      * @throws SQLException
      */
     public static DataType apply(String type) {

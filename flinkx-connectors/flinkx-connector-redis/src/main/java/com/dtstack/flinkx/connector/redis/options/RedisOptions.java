@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  * @author chuixue
  * @create 2021-06-16 20:23
  * @description
- **/
+ */
 public class RedisOptions {
     public static final ConfigOption<Integer> REDIS_CRITICAL_TIME =
             ConfigOptions.key("REDIS_CRITICAL_TIME")
@@ -52,69 +52,44 @@ public class RedisOptions {
                     .defaultValue("6379")
                     .withDescription("edis.default.port");
 
-
     public static final ConfigOption<String> URL =
-            ConfigOptions.key("url")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("url");
+            ConfigOptions.key("url").stringType().noDefaultValue().withDescription("url");
 
     public static final ConfigOption<String> TABLENAME =
-            ConfigOptions.key("tableName")
+            ConfigOptions.key("table-name")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("tableName");
 
     public static final ConfigOption<String> PASSWORD =
-            ConfigOptions.key("password")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("password");
+            ConfigOptions.key("password").stringType().noDefaultValue().withDescription("password");
 
     public static final ConfigOption<Integer> REDISTYPE =
-            ConfigOptions.key("redisType")
-                    .intType()
-                    .defaultValue(1)
-                    .withDescription("redisType");
+            ConfigOptions.key("redis-type").intType().defaultValue(1).withDescription("redisType");
 
     public static final ConfigOption<String> MASTERNAME =
-            ConfigOptions.key("masterName")
+            ConfigOptions.key("master-name")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("masterName");
 
     public static final ConfigOption<Integer> DATABASE =
-            ConfigOptions.key("database")
-                    .intType()
-                    .defaultValue(0)
-                    .withDescription("database");
+            ConfigOptions.key("database").intType().defaultValue(0).withDescription("database");
 
     public static final ConfigOption<Integer> TIMEOUT =
-            ConfigOptions.key("timeout")
-                    .intType()
-                    .defaultValue(10000)
-                    .withDescription("timeout");
+            ConfigOptions.key("timeout").intType().defaultValue(10000).withDescription("timeout");
 
     public static final ConfigOption<Integer> MAXTOTAL =
-            ConfigOptions.key("maxTotal")
-                    .intType()
-                    .defaultValue(8)
-                    .withDescription("maxTotal");
+            ConfigOptions.key("max.total").intType().defaultValue(8).withDescription("maxTotal");
 
     public static final ConfigOption<Integer> MAXIDLE =
-            ConfigOptions.key("maxIdle")
-                    .intType()
-                    .defaultValue(8)
-                    .withDescription("maxIdle");
+            ConfigOptions.key("max.idle").intType().defaultValue(8).withDescription("maxIdle");
 
     public static final ConfigOption<Integer> MINIDLE =
-            ConfigOptions.key("minIdle")
-                    .intType()
-                    .defaultValue(0)
-                    .withDescription("minIdle");
+            ConfigOptions.key("min.idle").intType().defaultValue(0).withDescription("minIdle");
 
     public static final ConfigOption<Integer> KEYEXPIREDTIME =
-            ConfigOptions.key("keyExpiredTime")
+            ConfigOptions.key("key.expired-time")
                     .intType()
                     .defaultValue(0)
                     .withDescription("keyExpiredTime");

@@ -18,21 +18,17 @@
 
 package com.dtstack.flinkx.connector.dm.converter;
 
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-
 import java.util.Locale;
 
-/**
- * @author kunni
- */
+/** @author kunni */
 public class DmRawTypeConverter {
 
-    /**
-     * inspired by dm doc. https://www.dameng.com/form/login/s/L3ZpZXdfNjEuaHRtbA%3D%3D.html
-     */
+    /** inspired by dm doc. https://www.dameng.com/form/login/s/L3ZpZXdfNjEuaHRtbA%3D%3D.html */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "CHAR":
@@ -93,5 +89,4 @@ public class DmRawTypeConverter {
                 throw new UnsupportedTypeException(type);
         }
     }
-
 }

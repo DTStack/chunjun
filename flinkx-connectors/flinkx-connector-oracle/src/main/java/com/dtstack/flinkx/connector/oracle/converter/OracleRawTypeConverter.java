@@ -16,15 +16,14 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.connector.oracle.converter;
+
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
-
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -38,18 +37,15 @@ import java.util.regex.Pattern;
  */
 public class OracleRawTypeConverter {
 
-    private final static String TIMESTAMP = "^TIMESTAMP\\(\\d+\\)";
-    private final static Predicate<String> TIMESTAMP_PREDICATE = Pattern
-            .compile(TIMESTAMP)
-            .asPredicate();
+    private static final String TIMESTAMP = "^TIMESTAMP\\(\\d+\\)";
+    private static final Predicate<String> TIMESTAMP_PREDICATE =
+            Pattern.compile(TIMESTAMP).asPredicate();
 
     /**
      * 将Oracle数据库中的类型，转换成flink的DataType类型。
      *
      * @param type
-     *
      * @return
-     *
      * @throws SQLException
      */
     public static DataType apply(String type) {
@@ -67,7 +63,7 @@ public class OracleRawTypeConverter {
             case "CLOB":
             case "NCLOB":
                 return new AtomicDataType(new ClobType(true, LogicalTypeRoot.VARCHAR));
-//            case "XMLTYPE":
+                //            case "XMLTYPE":
             case "INT":
             case "INTEGER":
             case "NUMBER":
@@ -84,7 +80,7 @@ public class OracleRawTypeConverter {
             case "BINARY_FLOAT":
                 return DataTypes.FLOAT();
             case "LONG":
-            // when mode is update and allReplace is false, LONG type is not support
+                // when mode is update and allReplace is false, LONG type is not support
             default:
                 if (TIMESTAMP_PREDICATE.test(type)) {
                     return DataTypes.TIMESTAMP();

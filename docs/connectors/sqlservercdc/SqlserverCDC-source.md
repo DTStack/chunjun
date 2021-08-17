@@ -121,10 +121,29 @@ SqlServer 2012、2014、2016、2017、2019单机版
 <br/>
 
 ### 2、SQL
-除以下两点外，其余参数均与Sync保持一致。<BR>
+- **url**
+  - 描述：sqlserver数据库的JDBC URL链接
+  - 必选：是
+  - 参数类型：string
+  - 默认值：无
 
-1.`pavingData`和`splitUpdate`默认为true，且无法修改<BR>
-2. `table`略有区别，具体如下<BR>
+<br/>
+
+- **username**
+  - 描述：用户名
+  - 必选：是
+  - 参数类型：string
+  - 默认值：无
+
+<br/>
+
+- **password**
+  - 描述：密码
+  - 必选：是
+  - 参数类型：string
+  - 默认值：无
+
+<br/>
 
 - **table**
   - 描述：需要解析的数据表。
@@ -132,6 +151,30 @@ SqlServer 2012、2014、2016、2017、2019单机版
   - 必选：否
   - 字段类型：string
   - 默认值：无
+
+<br/>
+
+- **cat**
+  - 描述：需要监听的操作数据操作类型，有UPDATE,INSERT,DELETE三种可选，大小写不敏感，多个以,分割
+  - 必选：否
+  - 字段类型：String
+  - 默认值：UPDATE,INSERT,DELETE
+
+<br/>
+
+- **lsn**
+  - 描述： 要读取SqlServer CDC日志序列号的开始位置
+  - 必选： 否
+  - 字段类型：String(00000032:00002038:0005)
+  - 默认值：无
+
+<br/>
+
+- **poll-interval**
+  - 描述： 监听拉取SqlServer CDC数据库间隔时间,该值越小，采集延迟时间越小，给数据库的访问压力越大
+  - 必选：否
+  - 字段类型：long(单位毫秒)
+  - 默认值：1000
 
 <br/>
 

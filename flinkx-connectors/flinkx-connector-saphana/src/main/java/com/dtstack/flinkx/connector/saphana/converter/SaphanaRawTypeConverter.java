@@ -16,17 +16,15 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.connector.saphana.converter;
+
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-
-import java.sql.SQLException;
 import java.util.Locale;
 
 /**
@@ -36,15 +34,12 @@ import java.util.Locale;
  */
 public class SaphanaRawTypeConverter {
 
-
     /**
      * 将 Spahana 数据库中的类型，转换成flink的DataType类型。
+     *
      * @link https://data-flair.training/blogs/sql-data-types-in-sap-hana/
-     *
      * @param type
-     *
      * @return
-     *
      * @throws SQLException
      */
     public static DataType apply(String type) {
@@ -57,7 +52,7 @@ public class SaphanaRawTypeConverter {
                 return DataTypes.TIMESTAMP();
             case "TIMESTAMP":
                 return DataTypes.TIMESTAMP();
-                //Numeric Data Type
+                // Numeric Data Type
             case "TINYINT":
                 return DataTypes.TINYINT();
             case "SMALLINT":
@@ -67,15 +62,15 @@ public class SaphanaRawTypeConverter {
             case "BIGINT":
                 return DataTypes.BIGINT();
             case "DECIMAL":
-                return DataTypes.DECIMAL(38,18);
+                return DataTypes.DECIMAL(38, 18);
             case "SMALLDECIMAL":
-                return DataTypes.DECIMAL(16,0);
+                return DataTypes.DECIMAL(16, 0);
             case "REAL":
                 return DataTypes.FLOAT();
             case "DOUBLE":
                 return DataTypes.DOUBLE();
 
-                //Character String Data Type
+                // Character String Data Type
             case "VARCHAR":
                 return DataTypes.STRING();
             case "NVARCHAR":
@@ -85,25 +80,25 @@ public class SaphanaRawTypeConverter {
             case "SHORTTEXT":
                 return DataTypes.STRING();
 
-                //Binary Data Type
+                // Binary Data Type
             case "VARBINARY":
-                //update mode 时不支持
+                // update mode 时不支持
                 return DataTypes.BYTES();
 
-                //Boolean Data Type
+                // Boolean Data Type
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
 
-                //Large Object (LOB) Data Type
+                // Large Object (LOB) Data Type
             case "CLOB":
             case "NCLOB":
             case "TEXT":
             case "BINTEXT":
                 return new AtomicDataType(new ClobType(true, LogicalTypeRoot.VARCHAR));
             default:
-                //Multi-Valued Data Type
+                // Multi-Valued Data Type
                 //  - ARRAY
-                //Spatial Data Type
+                // Spatial Data Type
                 //  - ST_CircularString
                 //  - ST_GeometryCollection
                 //  - ST_LineString

@@ -212,7 +212,7 @@ table1的数据将写入hive表fenzu1里，table2和table3的数据将写入fenz
   - 默认值：`5000`
 <br />
 
-- **rowGroupSIze**
+- **rowGroupSize**
   - 描述：`fileType`为`parquet`时定row group的大小，单位字节
   - 必须：否
   - 字段类型：int
@@ -234,14 +234,70 @@ table1的数据将写入hive表fenzu1里，table2和table3的数据将写入fenz
 <br />
 
 ### 2、SQL
-没有`tablesColumn`、`analyticalRules`、`schema`、`distributeTable`参数，除`hadoopConfig`外，其余参数均与Sync保持一致。
-
-- **tableName**
-  - 描述：Hive表名
+- **url**
+  - 描述：连接Hive JDBC的字符串
   - 必选：是
   - 字段类型：string
   - 默认值：无
-<br />
+    <br />
+
+- **username**
+  - 描述：Hive认证用户名
+  - 必选：否
+  - 字段类型：string
+  - 默认值：无
+    <br />
+
+- **password**
+  - 描述：Hive认证密码
+  - 必选：否
+  - 字段类型：string
+  - 默认值：无
+    <br />
+
+- **partition**
+  - 描述：分区字段名称
+  - 必选：否
+  - 字段类型：string
+  - 默认值：`pt`
+    <br />
+
+- **partition-type**
+  - 描述：分区类型，包括 DAY、HOUR、MINUTE三种。**若分区不存在则会自动创建，自动创建的分区时间以当前任务运行的服务器时间为准**
+    - DAY：天分区，分区示例：pt=20200101
+    - HOUR：小时分区，分区示例：pt=2020010110
+    - MINUTE：分钟分区，分区示例：pt=202001011027
+  - 必选：否
+  - 字段类型：string
+  - 默认值：`DAY`
+    <br />
+
+- **write-mode**
+  - 描述：HDFS Sink写入前数据清理处理模式：
+    - append：追加
+    - overwrite：覆盖
+  - 注意：overwrite模式时会删除hdfs当前目录下的所有文件
+  - 必选：否
+  - 字段类型：string
+  - 默认值：append
+    <br />
+
+- **file-type**
+  - 描述：文件的类型，目前只支持用户配置为`text`、`orc`、`parquet`
+    - text：textfile文件格式
+    - orc：orcfile文件格式
+    - parquet：parquet文件格式
+  - 必选：是
+  - 参数类型：string
+  - 默认值：无
+    <br />
+
+- **default-fs**
+  - 描述：Hadoop hdfs文件系统namenode节点地址。格式：hdfs://ip:端口；例如：hdfs://127.0.0.1:9000
+  - 必选：是
+  - 参数类型：string
+  - 默认值：无
+    <br />
 
 - **hadoopConfig**
   - 描述：集群HA模式时需要填写的core-site.xml及hdfs-site.xml中的配置，开启kerberos时包含kerberos相关配置
@@ -259,6 +315,61 @@ table1的数据将写入hive表fenzu1里，table2和table3的数据将写入fenz
 'properties.fs.hdfs.impl' = 'org.apache.hadoop.hdfs.DistributedFileSystem'
 ```
 
+- **field-delimiter**
+  - 描述：`fileType`为`text`时字段的分隔符
+  - 必选：否
+  - 参数类型：string
+  - 默认值：`\001`
+    <br />
+
+- **compress**
+  - 描述：hdfs文件压缩类型
+    - text：支持`GZIP`、`BZIP2`格式
+    - orc：支持`SNAPPY`、`GZIP`、`BZIP`、`LZ4`格式
+    - parquet：支持`SNAPPY`、`GZIP`、`LZO`格式
+  - 注意：`SNAPPY`格式需要用户安装**SnappyCodec**
+  - 必选：否
+  - 字段类型：string
+  - 默认值：
+    - text 默认不进行压缩
+    - orc 默认为ZLIB格式
+    - parquet 默认为SNAPPY格式
+      <br />
+
+- **max-file-size**
+  - 描述：写入hdfs单个文件最大大小，单位字节
+  - 必选：否
+  - 字段类型：long
+  - 默认值：`1073741824`（1G）
+    <br />
+
+- **next-check-rows**
+  - 描述：下一次检查文件大小的间隔条数，每达到该条数时会查询当前写入文件的文件大小
+  - 必选：否
+  - 字段类型：long
+  - 默认值：`5000`
+    <br />
+
+- **enable-dictionary**
+  - 描述：`fileType`为`parquet`时，是否启动字典编码
+  - 必须：否
+  - 字段类型：boolean
+  - 默认值：`true`
+    <br />
+
+- **encoding**
+  - 描述：`fileType`为`text`时字段的字符编码
+  - 必选：否
+  - 字段类型：string
+  - 默认值：`UTF-8`
+    <br />
+
+- **table-name**
+  - 描述：Hive表名
+  - 必选：是
+  - 字段类型：string
+  - 默认值：无
+<br />
 
 ## 五、数据类型
 | 支持 | BOOLEAN、TINYINT、SMALLINT、INT、BIGINT、FLOAT、DOUBLE、DECIMAL、STRING、VARCHAR、CHAR、TIMESTAMP、DATE、BINARY |

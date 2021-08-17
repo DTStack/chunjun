@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.solr.converter;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -28,8 +31,6 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -197,7 +198,8 @@ public class SolrRowConverter
                 return (val, pos, name, document) -> document.setField(name, val.getDouble(pos));
             case CHAR:
             case VARCHAR:
-                return (val, pos, name, document) -> document.setField(name, val.getString(pos).toString());
+                return (val, pos, name, document) ->
+                        document.setField(name, val.getString(pos).toString());
             case BINARY:
             case VARBINARY:
                 return (val, pos, name, document) -> document.setField(name, val.getBinary(pos));

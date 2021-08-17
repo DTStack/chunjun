@@ -24,14 +24,10 @@ package com.dtstack.flinkx.decoder;
  */
 public enum DecodeEnum {
 
-    /**
-     * json format
-     */
+    /** json format */
     JSON("json"),
 
-    /**
-     * text format
-     */
+    /** text format */
     TEXT("text");
 
     private String name;

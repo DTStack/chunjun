@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.mongodb.datasync;
 
 import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
+
 import com.mongodb.MongoClientURI;
 import com.mongodb.ServerAddress;
 

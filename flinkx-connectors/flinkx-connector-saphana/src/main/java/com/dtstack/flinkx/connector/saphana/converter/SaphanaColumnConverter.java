@@ -18,9 +18,7 @@
 
 package com.dtstack.flinkx.connector.saphana.converter;
 
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -31,6 +29,10 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import com.sap.db.jdbc.HanaClob;
 
 import java.io.BufferedReader;
@@ -42,11 +44,10 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
-public class SaphanaColumnConverter
-        extends JdbcColumnConverter {
+public class SaphanaColumnConverter extends JdbcColumnConverter {
 
-    public SaphanaColumnConverter(RowType rowType) {
-        super(rowType);
+    public SaphanaColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     @Override
@@ -91,10 +92,9 @@ public class SaphanaColumnConverter
                     }
                 };
             case DATE:
-                return val -> new BigDecimalColumn(Date
-                        .valueOf(String.valueOf(val))
-                        .toLocalDate()
-                        .toEpochDay());
+                return val ->
+                        new BigDecimalColumn(
+                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
                         new BigDecimalColumn(
@@ -120,9 +120,8 @@ public class SaphanaColumnConverter
                         statement.setBoolean(
                                 index, ((ColumnRowData) val).getField(index).asBoolean());
             case TINYINT:
-                return (val, index, statement) -> statement.setShort(
-                        index,
-                        (short) (val.getByte(index) & 0xff));
+                return (val, index, statement) ->
+                        statement.setShort(index, (short) (val.getByte(index) & 0xff));
             case SMALLINT:
                 return (val, index, statement) -> statement.setShort(index, val.getShort(index));
             case INTEGER:

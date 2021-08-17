@@ -18,8 +18,6 @@
 
 package com.dtstack.flinkx.connector.restapi.client;
 
-
-
 import com.dtstack.flinkx.connector.restapi.common.HttpRestConfig;
 import com.dtstack.flinkx.connector.restapi.common.MetaParam;
 
@@ -35,6 +33,7 @@ public interface RestHandler {
 
     /**
      * 根据请求参数以及返回的值选择一个策略
+     *
      * @param strategies 策略
      * @param responseValue 返回值
      * @param restConfig http配置
@@ -42,11 +41,16 @@ public interface RestHandler {
      * @param metaParams 原始的所有请求参数
      * @return 返回的策略
      */
-    Strategy chooseStrategy(List<Strategy> strategies, Map<String, Object> responseValue, HttpRestConfig restConfig, HttpRequestParam httpRequestParam, List<MetaParam> metaParams);
-
+    Strategy chooseStrategy(
+            List<Strategy> strategies,
+            Map<String, Object> responseValue,
+            HttpRestConfig restConfig,
+            HttpRequestParam httpRequestParam,
+            List<MetaParam> metaParams);
 
     /**
-     * 根据定义的param body  header，上次请求参数和上次请求结果构建出本次请求参数
+     * 根据定义的param body header，上次请求参数和上次请求结果构建出本次请求参数
+     *
      * @param metaParams get请求params参数
      * @param metaBodys body参数
      * @param metaHeaders header参数
@@ -56,17 +60,23 @@ public interface RestHandler {
      * @param first 是否是第一次
      * @return 当前请求值
      */
-    HttpRequestParam buildRequestParam(List<MetaParam> metaParams, List<MetaParam> metaBodys, List<MetaParam> metaHeaders, HttpRequestParam prevRequestParam, Map<String, Object> prevResponseValue, HttpRestConfig restConfig, boolean first);
-
+    HttpRequestParam buildRequestParam(
+            List<MetaParam> metaParams,
+            List<MetaParam> metaBodys,
+            List<MetaParam> metaHeaders,
+            HttpRequestParam prevRequestParam,
+            Map<String, Object> prevResponseValue,
+            HttpRestConfig restConfig,
+            boolean first);
 
     /**
-     * 根据返回的response 构建出ResponseValue
-     *      * json格式 会指定字段解析
+     * 根据返回的response 构建出ResponseValue * json格式 会指定字段解析
+     *
      * @param decode 解析格式 json还是text
      * @param responseValue 返回值
      * @param fields 解析字段
      * @return 返回值
      */
-    ResponseValue buildResponseValue(String decode, String responseValue, String fields, HttpRequestParam requestParam);
-
+    ResponseValue buildResponseValue(
+            String decode, String responseValue, String fields, HttpRequestParam requestParam);
 }

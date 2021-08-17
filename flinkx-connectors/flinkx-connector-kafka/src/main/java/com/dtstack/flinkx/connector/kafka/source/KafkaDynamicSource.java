@@ -18,10 +18,11 @@
 
 package com.dtstack.flinkx.connector.kafka.source;
 
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
 import org.apache.flink.streaming.connectors.kafka.config.StartupMode;
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
@@ -40,8 +41,9 @@ import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.internals.SubscriptionState;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.requests.IsolationLevel;
 
@@ -65,10 +67,10 @@ import java.util.stream.Stream;
 /**
  * @author chuixue
  * @create 2021-04-06 19:31
- * @description
- * A version-agnostic Kafka {@link ScanTableSource}.
- **/
-public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetadata, SupportsWatermarkPushDown {
+ * @description A version-agnostic Kafka {@link ScanTableSource}.
+ */
+public class KafkaDynamicSource
+        implements ScanTableSource, SupportsReadingMetadata, SupportsWatermarkPushDown {
     // --------------------------------------------------------------------------------------------
     // Mutable attributes
     // --------------------------------------------------------------------------------------------
@@ -80,8 +82,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
     protected List<String> metadataKeys;
 
     /** Watermark strategy that is used to generate per-partition watermark. */
-    protected @Nullable
-    WatermarkStrategy<RowData> watermarkStrategy;
+    protected @Nullable WatermarkStrategy<RowData> watermarkStrategy;
 
     // --------------------------------------------------------------------------------------------
     // Format attributes
@@ -93,8 +94,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
     protected final DataType physicalDataType;
 
     /** Optional format for decoding keys from Kafka. */
-    protected final @Nullable
-    DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat;
+    protected final @Nullable DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat;
 
     /** Format for decoding values from Kafka. */
     protected final DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat;
@@ -210,7 +210,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
         final TypeInformation<RowData> producedTypeInfo =
                 context.createTypeInformation(producedDataType);
 
-        final FlinkKafkaConsumer<RowData> kafkaConsumer =
+        final KafkaConsumer kafkaConsumer =
                 createKafkaConsumer(keyDeserialization, valueDeserialization, producedTypeInfo);
 
         return ParallelSourceFunctionProvider.of(kafkaConsumer, false, parallelism);
@@ -230,9 +230,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
                 .forEach((key, value) -> metadataMap.put(VALUE_METADATA_PREFIX + key, value));
 
         // add connector metadata
-        Stream
-                .of(KafkaDynamicSource.ReadableMetadata
-                        .values())
+        Stream.of(KafkaDynamicSource.ReadableMetadata.values())
                 .forEachOrdered(m -> metadataMap.putIfAbsent(m.key, m.dataType));
 
         return metadataMap;
@@ -346,7 +344,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
 
     // --------------------------------------------------------------------------------------------
 
-    protected FlinkKafkaConsumer<RowData> createKafkaConsumer(
+    protected KafkaConsumer createKafkaConsumer(
             DeserializationSchema<RowData> keyDeserialization,
             DeserializationSchema<RowData> valueDeserialization,
             TypeInformation<RowData> producedTypeInfo) {
@@ -355,8 +353,7 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
                 metadataKeys.stream()
                         .map(
                                 k ->
-                                        Stream.of(KafkaDynamicSource.ReadableMetadata
-                                                .values())
+                                        Stream.of(KafkaDynamicSource.ReadableMetadata.values())
                                                 .filter(rm -> rm.key.equals(k))
                                                 .findFirst()
                                                 .orElseThrow(IllegalStateException::new))
@@ -373,25 +370,27 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
         // adjust value format projection to include value format's metadata columns at the end
         final int[] adjustedValueProjection =
                 IntStream.concat(
-                        IntStream.of(valueProjection),
-                        IntStream.range(
-                                keyProjection.length + valueProjection.length,
-                                adjustedPhysicalArity))
+                                IntStream.of(valueProjection),
+                                IntStream.range(
+                                        keyProjection.length + valueProjection.length,
+                                        adjustedPhysicalArity))
                         .toArray();
 
-        final FlinkKafkaConsumer<RowData> kafkaConsumer = new KafkaConsumerFactory().createKafkaConsumer(
-                topics,
-                adjustedPhysicalArity,
-                keyDeserialization,
-                keyProjection,
-                valueDeserialization,
-                adjustedValueProjection,
-                hasMetadata,
-                metadataConverters,
-                producedTypeInfo,
-                upsertMode,
-                properties,
-                topicPattern);
+        final KafkaConsumer kafkaConsumer =
+                new KafkaConsumerFactory()
+                        .createKafkaConsumer(
+                                topics,
+                                adjustedPhysicalArity,
+                                keyDeserialization,
+                                keyProjection,
+                                valueDeserialization,
+                                adjustedValueProjection,
+                                hasMetadata,
+                                metadataConverters,
+                                producedTypeInfo,
+                                upsertMode,
+                                properties,
+                                topicPattern);
 
         switch (startupMode) {
             case EARLIEST:
@@ -536,18 +535,21 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
 
         final DynamicKafkaDeserializationSchema.MetadataConverter converter;
 
-        ReadableMetadata(String key, DataType dataType, DynamicKafkaDeserializationSchema.MetadataConverter converter) {
+        ReadableMetadata(
+                String key,
+                DataType dataType,
+                DynamicKafkaDeserializationSchema.MetadataConverter converter) {
             this.key = key;
             this.dataType = dataType;
             this.converter = converter;
         }
     }
 
-    private class KafkaConsumerFactory implements Serializable {
+    private static class KafkaConsumerFactory implements Serializable {
 
         private static final long serialVersionUID = 1L;
 
-        public FlinkKafkaConsumer<RowData> createKafkaConsumer(
+        public KafkaConsumer createKafkaConsumer(
                 List<String> topics,
                 int adjustedPhysicalArity,
                 DeserializationSchema<RowData> keyDeserialization,
@@ -573,11 +575,14 @@ public class KafkaDynamicSource implements ScanTableSource, SupportsReadingMetad
                             metadataConverters,
                             producedTypeInfo,
                             upsertMode,
-                            (Calculate & Serializable)
-                                    (subscriptionState, tp) ->
-                                            subscriptionState.partitionLag(
-                                                    tp, IsolationLevel.READ_UNCOMMITTED));
-
+                            new Calculate() {
+                                @Override
+                                public Long calc(
+                                        SubscriptionState subscriptionState, TopicPartition tp) {
+                                    return subscriptionState.partitionLag(
+                                            tp, IsolationLevel.READ_UNCOMMITTED);
+                                }
+                            });
             if (topics != null) {
                 kafkaConsumer = new KafkaConsumer(topics, kafkaDeserializer, properties);
             } else {
