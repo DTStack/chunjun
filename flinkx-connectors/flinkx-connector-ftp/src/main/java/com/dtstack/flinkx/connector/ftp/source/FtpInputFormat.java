@@ -34,6 +34,7 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -118,6 +119,11 @@ public class FtpInputFormat extends BaseRichInputFormat {
     protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
 
         try {
+            if (StringUtils.isBlank(line)) {
+                LOG.warn("read data:{}, it will not be written.", line);
+                return null;
+            }
+
             if (rowConverter instanceof FtpRowConverter) {
                 rowData = rowConverter.toInternal(line);
             } else if (rowConverter instanceof FtpColumnConverter) {
