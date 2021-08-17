@@ -106,7 +106,7 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         try {
             Semantic.getByName(conf.getSemantic());
         } catch (Exception e) {
-            sb.append("unsupported semantic type");
+            sb.append(String.format("unsupported semantic type %s", conf.getSemantic()));
         }
 
         if (sb.length() > 0) {
