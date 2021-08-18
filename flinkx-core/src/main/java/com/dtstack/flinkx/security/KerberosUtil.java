@@ -253,9 +253,9 @@ public class KerberosUtil {
         if (fileExists(filePath)) {
             File file = new File(filePath);
             if (file.delete()) {
-                LOG.info(file.getName() + " is delected！");
+                LOG.info(file.getName() + " is deleted！");
             } else {
-                LOG.error("delected " + file.getName() + " failed！");
+                LOG.error("deleted " + file.getName() + " failed！");
             }
         }
     }

@@ -10,7 +10,6 @@ import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 import com.dtstack.flinkx.security.KerberosUtil;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.AuthUtil;
 import org.apache.hadoop.hbase.Cell;
@@ -30,9 +29,9 @@ import org.hbase.async.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.PrivilegedAction;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,11 +41,11 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(HBaseAllTableFunction.class);
-    private HBaseConf hbaseConf;
+    private final HBaseConf hbaseConf;
     private Connection conn;
     private Table table;
     private ResultScanner resultScanner;
-    private transient Map<String, Object> hbaseConfig;
+    private final transient Map<String, Object> hbaseConfig;
 
     public HBaseAllTableFunction(
             HBaseConf conf,
@@ -90,10 +89,9 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                                         .get(HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM));
 
                 String principal = HBaseConfigUtils.getPrincipal(hbaseConf.getHbaseConfig());
-                String keytab = HBaseConfigUtils.getKeytab(hbaseConf.getHbaseConfig());
 
                 HBaseConfigUtils.fillSyncKerberosConfig(conf, hbaseConf.getHbaseConfig());
-                keytab = System.getProperty("user.dir") + File.separator + keytab;
+                String keytab = HBaseConfigUtils.loadKeyFromConf(hbaseConf.getHbaseConfig(), HBaseConfigUtils.KEY_KEY_TAB);
 
                 LOG.info("kerberos principal:{}，keytab:{}", principal, keytab);
 
@@ -147,7 +145,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
             table = conn.getTable(TableName.valueOf(hbaseConf.getTableName()));
             resultScanner = table.getScanner(new Scan());
             for (Result r : resultScanner) {
-                Map<String, Object> kv = new HashedMap();
+                Map<String, Object> kv = new HashMap<>();
                 for (Cell cell : r.listCells()) {
                     String family = Bytes.toString(CellUtil.cloneFamily(cell));
                     String qualifier = Bytes.toString(CellUtil.cloneQualifier(cell));

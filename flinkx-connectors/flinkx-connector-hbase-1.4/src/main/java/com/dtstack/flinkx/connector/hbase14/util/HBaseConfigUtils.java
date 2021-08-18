@@ -29,9 +29,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static com.dtstack.flinkx.security.KerberosUtil.KRB_STR;
 
 /**
  * The utility class of HBase connection
@@ -43,7 +46,6 @@ import java.util.Map;
 public class HBaseConfigUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(HBaseConfigUtils.class);
-    private static final String AUTHENTICATION_TYPE = "Kerberos";
     private static final String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private static final String KEY_HBASE_MASTER_KERBEROS_PRINCIPAL =
@@ -67,7 +69,7 @@ public class HBaseConfigUtils {
     public static final String KEY_ZOOKEEPER_SASL_CLIENT = "zookeeper.sasl.client";
     private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
 
-    private static List<String> KEYS_KERBEROS_REQUIRED =
+    private static final List<String> KEYS_KERBEROS_REQUIRED =
             Arrays.asList(
                     KEY_HBASE_SECURITY_AUTHENTICATION,
                     KEY_HBASE_KERBEROS_REGIONSERVER_PRINCIPAL,
@@ -88,10 +90,10 @@ public class HBaseConfigUtils {
 
     public static boolean isEnableKerberos(Map<String, Object> hbaseConfigMap) {
         boolean hasAuthorization =
-                AUTHENTICATION_TYPE.equalsIgnoreCase(
+                KRB_STR.equalsIgnoreCase(
                         MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION));
         boolean hasAuthentication =
-                AUTHENTICATION_TYPE.equalsIgnoreCase(
+                KRB_STR.equalsIgnoreCase(
                         MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION));
         boolean hasAuthEnable =
                 MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTH_ENABLE);
@@ -105,8 +107,8 @@ public class HBaseConfigUtils {
     }
 
     private static void setKerberosConf(Map<String, Object> hbaseConfigMap) {
-        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHORIZATION, AUTHENTICATION_TYPE);
-        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
+        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHORIZATION, KRB_STR);
+        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHENTICATION, KRB_STR);
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTH_ENABLE, true);
     }
 
@@ -126,7 +128,7 @@ public class HBaseConfigUtils {
             return principal;
         }
 
-        throw new IllegalArgumentException("");
+        throw new IllegalArgumentException(KEY_PRINCIPAL + " is not set!");
     }
 
     public static String getKeytab(Map<String, Object> hbaseConfigMap) {
@@ -152,38 +154,38 @@ public class HBaseConfigUtils {
         config.set(
                 HBaseConfigUtils.KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL, regionServerPrincipal);
         config.set(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHORIZATION, "true");
-        config.set(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
+        config.set(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHENTICATION, KRB_STR);
 
         if (!StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, KEY_ZOOKEEPER_SASL_CLIENT))) {
             System.setProperty(
                     HBaseConfigUtils.KEY_ZOOKEEPER_SASL_CLIENT,
                     MapUtils.getString(hbaseConfigMap, KEY_ZOOKEEPER_SASL_CLIENT));
         }
-
-        String securityKrb5Conf = MapUtils.getString(hbaseConfigMap, KEY_JAVA_SECURITY_KRB5_CONF);
-        if (!StringUtils.isEmpty(securityKrb5Conf)) {
-            String krb5ConfPath =
-                    System.getProperty("user.dir") + File.separator + securityKrb5Conf;
-            LOG.info("krb5ConfPath:{}", krb5ConfPath);
-            System.setProperty(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF, krb5ConfPath);
-        }
+        loadKrb5Conf(hbaseConfigMap);
     }
 
     public static void loadKrb5Conf(Map<String, Object> config) {
-        String krb5conf = MapUtils.getString(config, KEY_JAVA_SECURITY_KRB5_CONF);
-        checkOpt(krb5conf, KEY_JAVA_SECURITY_KRB5_CONF);
-        String krb5FilePath =
-                System.getProperty("user.dir")
-                        + File.separator
-                        + MapUtils.getString(config, KEY_JAVA_SECURITY_KRB5_CONF);
-        DtFileUtils.checkExists(krb5FilePath);
-        System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5FilePath);
-        LOG.info("{} is set to {}", KEY_JAVA_SECURITY_KRB5_CONF, krb5FilePath);
+        String value = loadKeyFromConf(config, HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF);
+        System.setProperty(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF, value);
     }
 
-    // TODO 日后改造可以下沉到Core模块
+    public static String loadKeyFromConf(Map<String, Object> config, String key) {
+        String value = MapUtils.getString(config, key);
+        if (!StringUtils.isEmpty(value)) {
+            String krb5ConfPath;
+            if(Paths.get(value).toFile().exists()) {
+                krb5ConfPath = value;
+            }else {
+                krb5ConfPath =
+                        System.getProperty("user.dir") + File.separator + value;
+            }
+            LOG.info("[{}]:{}", key, krb5ConfPath);
+            return krb5ConfPath;
+        }
+        return value;
+    }
+
     public static void checkOpt(String opt, String key) {
         Preconditions.checkState(!Strings.isNullOrEmpty(opt), "%s must be set!", key);
     }
-
 }
