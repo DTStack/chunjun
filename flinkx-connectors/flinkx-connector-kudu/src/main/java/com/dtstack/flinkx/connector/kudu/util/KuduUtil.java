@@ -23,7 +23,7 @@ import com.dtstack.flinkx.connector.kudu.conf.KuduCommonConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.security.KerberosConfig;
-import com.dtstack.flinkx.security.KerberosUtils;
+import com.dtstack.flinkx.security.KerberosUtil;
 import com.dtstack.flinkx.throwable.NoRestartException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -72,7 +72,7 @@ public class KuduUtil {
         try {
             KerberosConfig kerberosConfig = config.getKerberos();
             if (kerberosConfig.isEnableKrb()) {
-                UserGroupInformation ugi = KerberosUtils.loginAndReturnUgi(kerberosConfig);
+                UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(kerberosConfig);
                 return ugi.doAs(
                         (PrivilegedExceptionAction<KuduClient>)
                                 () -> getKuduClientInternal(config));
@@ -88,7 +88,7 @@ public class KuduUtil {
         try {
             KerberosConfig kerberosConfig = config.getKerberos();
             if (kerberosConfig.isEnableKrb()) {
-                UserGroupInformation ugi = KerberosUtils.loginAndReturnUgi(kerberosConfig);
+                UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(kerberosConfig);
                 return ugi.doAs(
                         (PrivilegedExceptionAction<AsyncKuduClient>)
                                 () -> getAsyncKuduClientInternal(config));

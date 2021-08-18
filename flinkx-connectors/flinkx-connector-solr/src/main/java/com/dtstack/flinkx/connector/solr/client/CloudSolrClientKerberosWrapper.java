@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.solr.client;
 
 import com.dtstack.flinkx.connector.solr.SolrConf;
 import com.dtstack.flinkx.security.KerberosConfig;
-import com.dtstack.flinkx.security.KerberosUtils;
+import com.dtstack.flinkx.security.KerberosUtil;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import org.apache.flink.runtime.security.DynamicConfiguration;
@@ -168,7 +168,7 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
         String keytab = kerberosConfig.getKeytab();
 
         System.setProperty(SOLR_KERBEROS_JAAS_APPNAME, JAAS_APP_NAME);
-        KerberosUtils.reloadKrb5conf(krb5conf);
+        KerberosUtil.reloadKrb5conf(krb5conf);
         subject = createSubject(principal, keytab);
         setKrb5HttpClient(principal, keytab);
         LOG.info("Kerberos login principal: {}, keytab: {}", principal, keytab);

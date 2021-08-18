@@ -24,13 +24,8 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.exceptions.IllegalArgumentIOException;
-import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.security.krb5.Config;
-import sun.security.krb5.KrbException;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +43,6 @@ import java.util.Map;
 public class HBaseConfigUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(HBaseConfigUtils.class);
-    // sync side kerberos
     private static final String AUTHENTICATION_TYPE = "Kerberos";
     private static final String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
@@ -61,12 +55,6 @@ public class HBaseConfigUtils {
     public static final String KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL =
             "hbase.client.kerberos.principal";
 
-    public static final String KEY_HADOOP_SECURITY_AUTHENTICATION =
-            "hadoop.security.authentication";
-    public static final String KEY_HADOOP_SECURITY_AUTH_TO_LOCAL = "hadoop.security.auth_to_local";
-    public static final String KEY_HADOOP_SECURITY_AUTHORIZATION = "hadoop.security.authorization";
-
-    // async side kerberos
     private static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
     public static final String KEY_HBASE_KERBEROS_REGIONSERVER_PRINCIPAL =
             "hbase.kerberos.regionserver.principal";
@@ -147,7 +135,7 @@ public class HBaseConfigUtils {
             return keytab;
         }
 
-        throw new IllegalArgumentException("");
+        throw new IllegalArgumentException(KEY_KEY_TAB + " is not exist");
     }
 
     public static void fillSyncKerberosConfig(
@@ -155,16 +143,16 @@ public class HBaseConfigUtils {
         if (StringUtils.isEmpty(
                 MapUtils.getString(hbaseConfigMap, KEY_HBASE_KERBEROS_REGIONSERVER_PRINCIPAL))) {
             throw new IllegalArgumentException(
-                    "Must provide regionserverPrincipal when authentication is Kerberos");
+                    "Must provide region server Principal when authentication is Kerberos");
         }
 
-        String regionserverPrincipal =
+        String regionServerPrincipal =
                 MapUtils.getString(hbaseConfigMap, KEY_HBASE_KERBEROS_REGIONSERVER_PRINCIPAL);
-        config.set(HBaseConfigUtils.KEY_HBASE_MASTER_KERBEROS_PRINCIPAL, regionserverPrincipal);
+        config.set(HBaseConfigUtils.KEY_HBASE_MASTER_KERBEROS_PRINCIPAL, regionServerPrincipal);
         config.set(
-                HBaseConfigUtils.KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL, regionserverPrincipal);
+                HBaseConfigUtils.KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL, regionServerPrincipal);
         config.set(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHORIZATION, "true");
-        config.set(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHENTICATION, "kerberos");
+        config.set(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
 
         if (!StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, KEY_ZOOKEEPER_SASL_CLIENT))) {
             System.setProperty(
@@ -198,55 +186,4 @@ public class HBaseConfigUtils {
         Preconditions.checkState(!Strings.isNullOrEmpty(opt), "%s must be set!", key);
     }
 
-    public static UserGroupInformation loginAndReturnUGI(
-            Configuration conf, String principal, String keytab) throws IOException {
-        if (conf == null) {
-            throw new IllegalArgumentException("kerberos conf can not be null");
-        }
-
-        if (org.apache.commons.lang.StringUtils.isEmpty(principal)) {
-            throw new IllegalArgumentException("principal can not be null");
-        }
-
-        if (org.apache.commons.lang.StringUtils.isEmpty(keytab)) {
-            throw new IllegalArgumentException("keytab can not be null");
-        }
-
-        conf.set("hadoop.security.authentication", "Kerberos");
-        UserGroupInformation.setConfiguration(conf);
-
-        return UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytab);
-    }
-
-    public static UserGroupInformation loginAndReturnUGI2(
-            Configuration conf, String principal, String keytab) throws IOException, KrbException {
-        LOG.info("loginAndReturnUGI principal {}", principal);
-        LOG.info("loginAndReturnUGI keytab {}", keytab);
-        if (conf == null) {
-            throw new IllegalArgumentException("kerberos conf can not be null");
-        }
-
-        if (org.apache.commons.lang.StringUtils.isEmpty(principal)) {
-            throw new IllegalArgumentException("principal can not be null");
-        }
-
-        if (org.apache.commons.lang.StringUtils.isEmpty(keytab)) {
-            throw new IllegalArgumentException("keytab can not be null");
-        }
-
-        if (!new File(keytab).exists()) {
-            throw new IllegalArgumentIOException("keytab [" + keytab + "] not exist");
-        }
-
-        conf.set(KEY_HADOOP_SECURITY_AUTHENTICATION, "Kerberos");
-        // conf.set("hadoop.security.auth_to_local", "DEFAULT");
-        conf.set(KEY_HADOOP_SECURITY_AUTH_TO_LOCAL, "RULE:[1:$1] RULE:[2:$1]");
-        conf.set(KEY_HADOOP_SECURITY_AUTHORIZATION, "true");
-
-        Config.refresh();
-        KerberosName.resetDefaultRealm();
-        UserGroupInformation.setConfiguration(conf);
-
-        return UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytab);
-    }
 }

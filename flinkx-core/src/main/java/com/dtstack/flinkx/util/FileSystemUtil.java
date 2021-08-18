@@ -111,7 +111,7 @@ public class FileSystemUtil {
         KerberosUtil.loadKrb5Conf(hadoopConfig, distributedCache);
         KerberosUtil.refreshConfig();
 
-        UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
+        UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(getConfiguration(hadoopConfig, defaultFs).get((KerberosUtil.KEY_PRINCIPAL_FILE)), principal, keytabFileName);
 
         return ugi;
     }

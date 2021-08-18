@@ -106,7 +106,7 @@ public class HBaseHelper {
 
         Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
 
-        return KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
+        return KerberosUtil.loginAndReturnUgi(conf.get(KerberosUtil.KEY_PRINCIPAL_FILE), principal, keytabFileName);
     }
 
     public static Configuration getConfig(Map<String, Object> hbaseConfigMap) {

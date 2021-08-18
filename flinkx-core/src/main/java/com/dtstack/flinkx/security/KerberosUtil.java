@@ -32,6 +32,7 @@ import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.security.krb5.Config;
+import sun.security.krb5.KrbException;
 import sun.security.krb5.internal.ktab.KeyTab;
 import sun.security.krb5.internal.ktab.KeyTabEntry;
 
@@ -56,8 +57,9 @@ public class KerberosUtil {
     private static final String KEY_USE_LOCAL_FILE = "useLocalFile";
     public static final String KEY_PRINCIPAL_FILE = "principalFile";
     private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
-
-    private static final String JAVA_VENDOR_IBM = "IBM";
+    public static final String KRB_STR = "Kerberos";
+    public static final String HADOOP_AUTH_KEY = "hadoop.security.authentication";
+    public static final String KRB5_CONF_KEY = "java.security.krb5.conf";
 
     private static final String LOCAL_CACHE_DIR;
     static {
@@ -71,11 +73,16 @@ public class KerberosUtil {
         createDir(LOCAL_CACHE_DIR);
     }
 
-    public static UserGroupInformation loginAndReturnUgi(Configuration conf, String principal, String keytab) throws IOException {
-        if (conf == null) {
-            throw new IllegalArgumentException("kerberos conf can not be null");
-        }
+    public static UserGroupInformation loginAndReturnUgi(KerberosConfig kerberosConfig)
+            throws IOException {
+        String principal = kerberosConfig.getPrincipal();
+        String keytabPath = kerberosConfig.getKeytab();
+        String krb5confPath = kerberosConfig.getKrb5conf();
+        LOG.info("Kerberos login with principal: {} and keytab: {}", principal, keytabPath);
+        return loginAndReturnUgi(principal, keytabPath, krb5confPath);
+    }
 
+    public static UserGroupInformation loginAndReturnUgi(String principal, String keytab, String krb5Conf) throws IOException {
         if (StringUtils.isEmpty(principal)) {
             throw new IllegalArgumentException("principal can not be null");
         }
@@ -84,13 +91,13 @@ public class KerberosUtil {
             throw new IllegalArgumentException("keytab can not be null");
         }
 
-        if (StringUtils.isNotEmpty(conf.get(KEY_JAVA_SECURITY_KRB5_CONF))) {
-            reloadKrb5Conf(conf);
+        if (StringUtils.isNotEmpty(krb5Conf)) {
+            reloadKrb5conf(krb5Conf);
         }
-
+        Configuration conf = new Configuration();
         conf.set("hadoop.security.authentication", "Kerberos");
+        conf.set(HADOOP_AUTH_KEY, KRB_STR);
         UserGroupInformation.setConfiguration(conf);
-
         LOG.info("login user:{} with keytab:{}", principal, keytab);
         return UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytab);
     }
@@ -104,17 +111,16 @@ public class KerberosUtil {
         return principal;
     }
 
-    private static void reloadKrb5Conf(Configuration conf) {
-        String krb5File = conf.get(KEY_JAVA_SECURITY_KRB5_CONF);
-        LOG.info("set krb5 file:{}", krb5File);
-        System.setProperty(KEY_JAVA_SECURITY_KRB5_CONF, krb5File);
-
+    public static synchronized void reloadKrb5conf(String krb5confPath) {
+        System.setProperty(KRB5_CONF_KEY, krb5confPath);
+        LOG.info("set krb5 file:{}", krb5confPath);
+        // 不刷新会读/etc/krb5.conf
         try {
-            if (!System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_JAVA_VENDOR).contains(JAVA_VENDOR_IBM)) {
-                Config.refresh();
-            }
-        } catch (Exception e) {
-            LOG.warn("reload krb5 file:{} error:", krb5File, e);
+            Config.refresh();
+            KerberosName.resetDefaultRealm();
+        } catch (KrbException e) {
+            LOG.warn(
+                    "resetting default realm failed, current default realm will still be used.", e);
         }
     }
 
@@ -206,7 +212,7 @@ public class KerberosUtil {
         String fileLocalPath = localDir + SP + fileName;
         // 更新sftp文件对应的local文件
         if (fileExists(fileLocalPath)) {
-            delectFile(fileLocalPath);
+            detectFile(fileLocalPath);
         }
         SftpHandler handler = null;
         try {
@@ -240,7 +246,7 @@ public class KerberosUtil {
         return null;
     }
 
-    private static void delectFile(String filePath) {
+    private static void detectFile(String filePath) {
         if (fileExists(filePath)) {
             File file = new File(filePath);
             if (file.delete()) {
