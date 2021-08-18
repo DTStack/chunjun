@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.solr.client;
 
-import com.dtstack.flinkx.security.KerberosUtils;
+import org.apache.flink.runtime.security.DynamicConfiguration;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -40,6 +40,8 @@ import org.apache.solr.client.solrj.impl.SolrHttpClientBuilder;
 import org.apache.solr.client.solrj.impl.SolrPortAwareCookieSpecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.security.auth.login.AppConfigurationEntry;
 
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;
@@ -102,7 +104,7 @@ public class FlinkxKrb5HttpClientBuilder extends Krb5HttpClientBuilder {
                                     + useSubjectCredsVal
                                     + " not false.  SPNego authentication may not be successful.");
                 }
-                KerberosUtils.appendJaasConf(configValue, keytab, principal);
+                appendJaasConf(configValue, keytab, principal);
 
                 // javax.security.auth.login.Configuration.setConfiguration(jaasConfig);
                 // Enable only SPNEGO authentication scheme.
@@ -163,5 +165,17 @@ public class FlinkxKrb5HttpClientBuilder extends Krb5HttpClientBuilder {
         }
 
         return builder;
+    }
+
+    public static synchronized void appendJaasConf(String name, String keytab, String principal) {
+        javax.security.auth.login.Configuration priorConfig =
+                javax.security.auth.login.Configuration.getConfiguration();
+        // construct a dynamic JAAS configuration
+        DynamicConfiguration currentConfig = new DynamicConfiguration(priorConfig);
+        // wire up the configured JAAS login contexts to use the krb5 entries
+        AppConfigurationEntry krb5Entry =
+                org.apache.flink.runtime.security.KerberosUtils.keytabEntry(keytab, principal);
+        currentConfig.addAppConfigurationEntry(name, krb5Entry);
+        javax.security.auth.login.Configuration.setConfiguration(currentConfig);
     }
 }

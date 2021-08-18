@@ -8,7 +8,8 @@ import com.dtstack.flinkx.connector.hbase14.util.HBaseUtils;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 
-import org.apache.commons.collections.map.HashedMap;
+import com.dtstack.flinkx.security.KerberosUtil;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.AuthUtil;
 import org.apache.hadoop.hbase.Cell;
@@ -27,23 +28,24 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.hbase.async.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.security.krb5.KrbException;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.PrivilegedAction;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils.KEY_PRINCIPAL;
 
 public class HBaseAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(HBaseAllTableFunction.class);
-    private HBaseConf hbaseConf;
+    private final HBaseConf hbaseConf;
     private Connection conn;
     private Table table;
     private ResultScanner resultScanner;
-    private transient Map<String, Object> hbaseConfig;
+    private final transient Map<String, Object> hbaseConfig;
 
     public HBaseAllTableFunction(
             HBaseConf conf,
@@ -87,10 +89,9 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                                         .get(HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM));
 
                 String principal = HBaseConfigUtils.getPrincipal(hbaseConf.getHbaseConfig());
-                String keytab = HBaseConfigUtils.getKeytab(hbaseConf.getHbaseConfig());
 
                 HBaseConfigUtils.fillSyncKerberosConfig(conf, hbaseConf.getHbaseConfig());
-                keytab = System.getProperty("user.dir") + File.separator + keytab;
+                String keytab = HBaseConfigUtils.loadKeyFromConf(hbaseConf.getHbaseConfig(), HBaseConfigUtils.KEY_KEY_TAB);
 
                 LOG.info("kerberos principal:{}，keytab:{}", principal, keytab);
 
@@ -98,7 +99,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                 conf.set(HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL, principal);
 
                 UserGroupInformation userGroupInformation =
-                        HBaseConfigUtils.loginAndReturnUGI2(conf, principal, keytab);
+                        KerberosUtil.loginAndReturnUgi(conf.get(KEY_PRINCIPAL), principal, keytab);
                 Configuration finalConf = conf;
                 conn =
                         userGroupInformation.doAs(
@@ -144,7 +145,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
             table = conn.getTable(TableName.valueOf(hbaseConf.getTableName()));
             resultScanner = table.getScanner(new Scan());
             for (Result r : resultScanner) {
-                Map<String, Object> kv = new HashedMap();
+                Map<String, Object> kv = new HashMap<>();
                 for (Cell cell : r.listCells()) {
                     String family = Bytes.toString(CellUtil.cloneFamily(cell));
                     String qualifier = Bytes.toString(CellUtil.cloneQualifier(cell));
@@ -159,12 +160,12 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                             HBaseUtils.convertByte(
                                     CellUtil.cloneValue(cell),
                                     typeOption.orElseThrow(IllegalArgumentException::new));
-                    kv.put(/*aliasNameInversion.get*/ (key.toString()), value);
+                    kv.put((key.toString()), value);
                 }
                 loadDataCount++;
                 fillData(kv);
             }
-        } catch (IOException | KrbException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             LOG.info("load Data count: {}", loadDataCount);

@@ -42,6 +42,8 @@ import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.Map;
 
+import static com.dtstack.flinkx.security.KerberosUtil.KRB_STR;
+
 /**
  * The utility class of HBase
  *
@@ -52,7 +54,6 @@ import java.util.Map;
 public class HBaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(HBaseHelper.class);
 
-    private static final String AUTHENTICATION_TYPE = "Kerberos";
     private static final String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
@@ -60,7 +61,7 @@ public class HBaseHelper {
     public static Connection getHbaseConnection(Map<String, Object> hbaseConfigMap) {
         Validate.isTrue(MapUtils.isNotEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
 
-        if (openKerberos(hbaseConfigMap)) {
+        if (HBaseConfigUtils.isEnableKerberos(hbaseConfigMap)) {
             return getConnectionWithKerberos(hbaseConfigMap);
         }
 
@@ -78,16 +79,13 @@ public class HBaseHelper {
             setKerberosConf(hbaseConfigMap);
             UserGroupInformation ugi = getUgi(hbaseConfigMap);
             return ugi.doAs(
-                    new PrivilegedAction<Connection>() {
-                        @Override
-                        public Connection run() {
-                            try {
-                                Configuration hConfiguration = getConfig(hbaseConfigMap);
-                                return ConnectionFactory.createConnection(hConfiguration);
-                            } catch (IOException e) {
-                                LOG.error("Get connection fail with config:{}", hbaseConfigMap);
-                                throw new RuntimeException(e);
-                            }
+                    (PrivilegedAction<Connection>) () -> {
+                        try {
+                            Configuration hConfiguration = getConfig(hbaseConfigMap);
+                            return ConnectionFactory.createConnection(hConfiguration);
+                        } catch (IOException e) {
+                            LOG.error("Get connection fail with config:{}", hbaseConfigMap);
+                            throw new RuntimeException(e);
                         }
                     });
         } catch (Exception e) {
@@ -105,8 +103,7 @@ public class HBaseHelper {
         KerberosUtil.refreshConfig();
 
         Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
-
-        return KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
+        return KerberosUtil.loginAndReturnUgi(conf.get(KerberosUtil.KEY_PRINCIPAL_FILE), principal, keytabFileName);
     }
 
     public static Configuration getConfig(Map<String, Object> hbaseConfigMap) {
@@ -124,27 +121,12 @@ public class HBaseHelper {
         return hConfiguration;
     }
 
-    public static boolean openKerberos(Map<String, Object> hbaseConfigMap) {
-        if (AUTHENTICATION_TYPE.equalsIgnoreCase(
-                        MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHORIZATION))
-                || AUTHENTICATION_TYPE.equalsIgnoreCase(
-                        MapUtils.getString(hbaseConfigMap, KEY_HBASE_SECURITY_AUTHENTICATION))
-                || MapUtils.getBooleanValue(hbaseConfigMap, KEY_HBASE_SECURITY_AUTH_ENABLE)) {
-            LOG.info("open kerberos for hbase.");
-            return true;
-        }
-
-        return false;
-    }
-
     /**
      * 设置hbase 开启kerberos 连接必要的固定参数
-     *
-     * @param hbaseConfigMap
      */
     public static void setKerberosConf(Map<String, Object> hbaseConfigMap) {
-        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHORIZATION, AUTHENTICATION_TYPE);
-        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHENTICATION, AUTHENTICATION_TYPE);
+        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHORIZATION, KRB_STR);
+        hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHENTICATION, KRB_STR);
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTH_ENABLE, true);
     }
 
@@ -165,19 +147,19 @@ public class HBaseHelper {
         return regionLocator;
     }
 
-    public static byte[] convertRowkey(String rowkey, boolean isBinaryRowkey) {
-        if (StringUtils.isBlank(rowkey)) {
+    public static byte[] convertRowKey(String rowKey, boolean isBinaryRowkey) {
+        if (StringUtils.isBlank(rowKey)) {
             return HConstants.EMPTY_BYTE_ARRAY;
         } else {
-            return HBaseHelper.stringToBytes(rowkey, isBinaryRowkey);
+            return HBaseHelper.stringToBytes(rowKey, isBinaryRowkey);
         }
     }
 
-    private static byte[] stringToBytes(String rowkey, boolean isBinaryRowkey) {
-        if (isBinaryRowkey) {
-            return Bytes.toBytesBinary(rowkey);
+    private static byte[] stringToBytes(String rowKey, boolean isBinaryRowKey) {
+        if (isBinaryRowKey) {
+            return Bytes.toBytesBinary(rowKey);
         } else {
-            return Bytes.toBytes(rowkey);
+            return Bytes.toBytes(rowKey);
         }
     }
 

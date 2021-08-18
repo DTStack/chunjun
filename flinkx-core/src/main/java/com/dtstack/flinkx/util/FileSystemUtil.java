@@ -36,6 +36,8 @@ import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.dtstack.flinkx.security.KerberosUtil.KRB_STR;
+
 /**
  * @author jiangbo
  * @date 2019/8/21
@@ -44,14 +46,13 @@ public class FileSystemUtil {
 
     public static final Logger LOG = LoggerFactory.getLogger(FileSystemUtil.class);
 
-    private static final String AUTHENTICATION_TYPE = "Kerberos";
     private static final String KEY_HADOOP_SECURITY_AUTHORIZATION = "hadoop.security.authorization";
     private static final String KEY_HADOOP_SECURITY_AUTHENTICATION =
             "hadoop.security.authentication";
     private static final String KEY_DEFAULT_FS = "fs.default.name";
     private static final String KEY_FS_HDFS_IMPL_DISABLE_CACHE = "fs.hdfs.impl.disable.cache";
     private static final String KEY_HA_DEFAULT_FS = "fs.defaultFS";
-    private static final String KEY_DFS_NAMESERVICES = "dfs.nameservices";
+    private static final String KEY_DFS_NAME_SERVICES = "dfs.nameservices";
     private static final String KEY_HADOOP_USER_NAME = "hadoop.user.name";
 
     public static FileSystem getFileSystem(
@@ -93,7 +94,7 @@ public class FileSystemUtil {
             return false;
         }
 
-        return AUTHENTICATION_TYPE.equalsIgnoreCase(
+        return KRB_STR.equalsIgnoreCase(
                 MapUtils.getString(hadoopConfig, KEY_HADOOP_SECURITY_AUTHENTICATION));
     }
 
@@ -102,17 +103,13 @@ public class FileSystemUtil {
             throws Exception {
         UserGroupInformation ugi = getUGI(hadoopConfig, defaultFs, distributedCache);
 
-        return ugi.doAs(
-                new PrivilegedAction<FileSystem>() {
-                    @Override
-                    public FileSystem run() {
-                        try {
-                            return FileSystem.get(getConfiguration(hadoopConfig, defaultFs));
-                        } catch (Exception e) {
-                            throw new RuntimeException("Get FileSystem with kerberos error:", e);
-                        }
-                    }
-                });
+        return ugi.doAs((PrivilegedAction<FileSystem>) () -> {
+            try {
+                return FileSystem.get(getConfiguration(hadoopConfig, defaultFs));
+            } catch (Exception e){
+                throw new RuntimeException("Get FileSystem with kerberos error:", e);
+            }
+        });
     }
 
     public static UserGroupInformation getUGI(
@@ -125,11 +122,7 @@ public class FileSystemUtil {
         KerberosUtil.loadKrb5Conf(hadoopConfig, distributedCache);
         KerberosUtil.refreshConfig();
 
-        UserGroupInformation ugi =
-                KerberosUtil.loginAndReturnUgi(
-                        getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
-
-        return ugi;
+        return KerberosUtil.loginAndReturnUgi(getConfiguration(hadoopConfig, defaultFs).get((KerberosUtil.KEY_PRINCIPAL_FILE)), principal, keytabFileName);
     }
 
     public static Configuration getConfiguration(Map<String, Object> confMap, String defaultFs) {
@@ -180,6 +173,6 @@ public class FileSystemUtil {
     }
 
     private static boolean isHaMode(Map<String, Object> confMap) {
-        return StringUtils.isNotEmpty(MapUtils.getString(confMap, KEY_DFS_NAMESERVICES));
+        return StringUtils.isNotEmpty(MapUtils.getString(confMap, KEY_DFS_NAME_SERVICES));
     }
 }

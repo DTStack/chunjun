@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.hbase14.source;
 
+import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseHelper;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 
@@ -99,7 +100,7 @@ public class HBaseInputFormat extends BaseRichInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         try (Connection connection = HBaseHelper.getHbaseConnection(hbaseConfig)) {
-            if (HBaseHelper.openKerberos(hbaseConfig)) {
+            if (HBaseConfigUtils.isEnableKerberos(hbaseConfig)) {
                 UserGroupInformation ugi = HBaseHelper.getUgi(hbaseConfig);
                 return ugi.doAs(
                         (PrivilegedAction<HBaseInputSplit[]>)
@@ -122,8 +123,8 @@ public class HBaseInputFormat extends BaseRichInputFormat {
             String startKey,
             String endKey,
             boolean isBinaryRowkey) {
-        byte[] startRowkeyByte = HBaseHelper.convertRowkey(startKey, isBinaryRowkey);
-        byte[] endRowkeyByte = HBaseHelper.convertRowkey(endKey, isBinaryRowkey);
+        byte[] startRowkeyByte = HBaseHelper.convertRowKey(startKey, isBinaryRowkey);
+        byte[] endRowkeyByte = HBaseHelper.convertRowKey(endKey, isBinaryRowkey);
 
         /* 如果用户配置了 startRowkey 和 endRowkey，需要确保：startRowkey <= endRowkey */
         if (startRowkeyByte.length != 0
@@ -244,7 +245,7 @@ public class HBaseInputFormat extends BaseRichInputFormat {
             connection = HBaseHelper.getHbaseConnection(hbaseConfig);
         }
 
-        openKerberos = HBaseHelper.openKerberos(hbaseConfig);
+        openKerberos = HBaseConfigUtils.isEnableKerberos(hbaseConfig);
 
         table = connection.getTable(TableName.valueOf(tableName));
         scan = new Scan();

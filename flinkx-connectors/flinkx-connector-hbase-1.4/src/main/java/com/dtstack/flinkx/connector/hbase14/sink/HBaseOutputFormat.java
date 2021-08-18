@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.hbase14.sink;
 
+import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseHelper;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.element.ColumnRowData;
@@ -191,7 +192,7 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void openInternal(int taskNumber, int numTasks) throws IOException {
-        openKerberos = HBaseHelper.openKerberos(hbaseConfig);
+        openKerberos = HBaseConfigUtils.isEnableKerberos(hbaseConfig);
         if (openKerberos) {
             sleepRandomTime();
 
