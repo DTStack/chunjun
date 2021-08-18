@@ -84,7 +84,8 @@ public class KerberosUtil {
         return loginAndReturnUgi(principal, keytabPath, krb5confPath);
     }
 
-    public static UserGroupInformation loginAndReturnUgi(String principal, String keytab, String krb5Conf) throws IOException {
+    public static UserGroupInformation loginAndReturnUgi(
+            String principal, String keytab, String krb5Conf) throws IOException {
         if (StringUtils.isEmpty(principal)) {
             throw new IllegalArgumentException("principal can not be null");
         }
