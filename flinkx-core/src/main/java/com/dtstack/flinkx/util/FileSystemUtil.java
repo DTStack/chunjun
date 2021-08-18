@@ -116,7 +116,6 @@ public class FileSystemUtil {
             Map<String, Object> hadoopConfig, String defaultFs, DistributedCache distributedCache)
             throws IOException {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hadoopConfig);
-
         keytabFileName = KerberosUtil.loadFile(hadoopConfig, keytabFileName, distributedCache);
         String principal = KerberosUtil.getPrincipal(hadoopConfig, keytabFileName);
         KerberosUtil.loadKrb5Conf(hadoopConfig, distributedCache);

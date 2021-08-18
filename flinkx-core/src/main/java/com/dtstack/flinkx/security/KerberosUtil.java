@@ -97,7 +97,6 @@ public class KerberosUtil {
             reloadKrb5conf(krb5Conf);
         }
         Configuration conf = new Configuration();
-        conf.set("hadoop.security.authentication", "Kerberos");
         conf.set(HADOOP_AUTH_KEY, KRB_STR);
         UserGroupInformation.setConfiguration(conf);
         LOG.info("login user:{} with keytab:{}", principal, keytab);
