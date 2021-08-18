@@ -54,7 +54,9 @@ public class DataSyncFactoryUtil {
             Set<URL> urlList =
                     PluginUtil.getJarFileDirPath(
                             pluginName,
-                            config.getPluginRoot() + File.separatorChar + ConstantValue.CONNECTOR_DIR_NAME,
+                            config.getPluginRoot()
+                                    + File.separatorChar
+                                    + ConstantValue.CONNECTOR_DIR_NAME,
                             null);
             urlList.addAll(
                     PluginUtil.getJarFileDirPath(
@@ -120,7 +122,9 @@ public class DataSyncFactoryUtil {
             Set<URL> urlList =
                     PluginUtil.getJarFileDirPath(
                             pluginName,
-                            config.getPluginRoot() + File.separatorChar + ConstantValue.CONNECTOR_DIR_NAME,
+                            config.getPluginRoot()
+                                    + File.separatorChar
+                                    + ConstantValue.CONNECTOR_DIR_NAME,
                             null);
             urlList.addAll(
                     PluginUtil.getJarFileDirPath(
