@@ -72,51 +72,40 @@ import java.util.Objects;
  */
 public class HBaseOutputFormat extends BaseRichOutputFormat {
 
-    protected Map<String, Object> hbaseConfig;
+    private Map<String, Object> hbaseConfig;
 
-    protected String tableName;
+    private String tableName;
+    private String encoding;
+    private String nullMode;
+    private boolean walFlag;
+    private long writeBufferSize;
 
-    protected String encoding;
+    private List<String> columnTypes;
+    private List<String> columnNames;
 
-    protected String nullMode;
+    private String rowkeyExpress;
+    private Integer versionColumnIndex;
 
-    protected boolean walFlag;
+    private String versionColumnValue;
+    private List<String> rowKeyColumns = Lists.newArrayList();
+    private List<Integer> rowKeyColumnIndex = Lists.newArrayList();
 
-    protected long writeBufferSize;
-
-    protected List<String> columnTypes;
-
-    protected List<String> columnNames;
-
-    protected String rowkeyExpress;
-
-    protected Integer versionColumnIndex;
-
-    protected String versionColumnValue;
-    protected List<String> rowKeyColumns = Lists.newArrayList();
-    protected List<Integer> rowKeyColumnIndex = Lists.newArrayList();
     private transient Connection connection;
     private transient BufferedMutator bufferedMutator;
     private transient FunctionTree functionTree;
     private transient Map<String, String[]> nameMaps;
-
     private transient Map<String, byte[][]> nameByteMaps;
-
     private transient ThreadLocal<SimpleDateFormat> timeSecondFormatThreadLocal;
-
     private transient ThreadLocal<SimpleDateFormat> timeMillisecondFormatThreadLocal;
-
-    private boolean openKerberos = false;
     private transient Table table;
 
     @Override
     public void configure(Configuration parameters) {}
 
     private Put generatePutCommand(RowData rowData) throws WriteRecordException {
-        RowData record = rowData;
         int i = 0;
         try {
-            byte[] rowkey = getRowkey(record);
+            byte[] rowkey = getRowkey(rowData);
             Put put;
             if (versionColumnIndex == null) {
                 put = new Put(rowkey);
@@ -124,11 +113,11 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
                     put.setDurability(Durability.SKIP_WAL);
                 }
             } else {
-                long timestamp = getVersion(record);
+                long timestamp = getVersion(rowData);
                 put = new Put(rowkey, timestamp);
             }
 
-            for (; i < record.getArity(); ++i) {
+            for (; i < rowData.getArity(); ++i) {
                 if (rowKeyColumnIndex.contains(i)) {
                     continue;
                 }
@@ -155,10 +144,10 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
 
                 ColumnType columnType = ColumnType.getType(type);
                 Object column = null;
-                if (record instanceof GenericRowData) {
-                    column = ((GenericRowData) record).getField(i);
-                } else if (record instanceof ColumnRowData) {
-                    column = ((ColumnRowData) record).getField(i);
+                if (rowData instanceof GenericRowData) {
+                    column = ((GenericRowData) rowData).getField(i);
+                } else if (rowData instanceof ColumnRowData) {
+                    column = ((ColumnRowData) rowData).getField(i);
                 }
                 byte[] columnBytes = getColumnByte(columnType, column);
                 // columnBytes 为null忽略这列
@@ -168,9 +157,9 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
             }
             return put;
         } catch (Exception ex) {
-            if (i < record.getArity()) {
+            if (i < rowData.getArity()) {
                 throw new WriteRecordException(
-                        recordConvertDetailErrorMessage(i, record), ex, i, record);
+                        recordConvertDetailErrorMessage(i, rowData), ex, i, rowData);
             }
             throw new WriteRecordException(ex.getMessage(), ex);
         }
@@ -192,7 +181,7 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void openInternal(int taskNumber, int numTasks) throws IOException {
-        openKerberos = HBaseConfigUtils.isEnableKerberos(hbaseConfig);
+        boolean openKerberos = HBaseConfigUtils.isEnableKerberos(hbaseConfig);
         if (openKerberos) {
             sleepRandomTime();
 
@@ -517,7 +506,7 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
     }
 
     private byte[] doubleToBytes(Object column) {
-        Double doubleValue = null;
+        Double doubleValue;
         if (column instanceof Integer) {
             doubleValue = ((Integer) column).doubleValue();
         } else if (column instanceof Long) {
@@ -619,5 +608,65 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
 
         HBaseHelper.closeBufferedMutator(bufferedMutator);
         HBaseHelper.closeConnection(connection);
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
+
+    public void setHbaseConfig(Map<String, Object> hbaseConfig) {
+        this.hbaseConfig = hbaseConfig;
+    }
+
+    public void setColumnTypes(List<String> columnTypes) {
+        this.columnTypes = columnTypes;
+    }
+
+    public void setColumnNames(List<String> columnNames) {
+        this.columnNames = columnNames;
+    }
+
+    public void setRowkeyExpress(String rowkeyExpress) {
+        this.rowkeyExpress = rowkeyExpress;
+    }
+
+    public void setVersionColumnIndex(Integer versionColumnIndex) {
+        this.versionColumnIndex = versionColumnIndex;
+    }
+
+    public void setVersionColumnValue(String versionColumnValue) {
+        this.versionColumnValue = versionColumnValue;
+    }
+
+    public void setEncoding(String defaultEncoding) {
+        this.encoding = defaultEncoding;
+    }
+
+    public void setWriteBufferSize(Long writeBufferSize) {
+        this.writeBufferSize = writeBufferSize;
+    }
+
+    public void setNullMode(String nullMode) {
+        this.nullMode = nullMode;
+    }
+
+    public void setWalFlag(Boolean walFlag) {
+        this.walFlag = walFlag;
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public List<String> getColumnNames() {
+        return columnNames;
+    }
+
+    public List<String> getColumnTypes() {
+        return columnTypes;
+    }
+
+    public Map<String, Object> getHbaseConfig() {
+        return hbaseConfig;
     }
 }

@@ -46,7 +46,7 @@ public class HBase14SinkFactory extends SinkFactory {
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         HBaseOutputFormatBuilder builder = new HBaseOutputFormatBuilder();
         builder.setConfig(hbaseConf);
-        builder.setColumMetaInfos(hbaseConf.getColumnMetaInfos());
+        builder.setColumnMetaInfos(hbaseConf.getColumnMetaInfos());
         builder.setEncoding(hbaseConf.getEncoding());
         builder.setHbaseConfig(hbaseConf.getHbaseConfig());
         builder.setNullMode(hbaseConf.getNullMode());
