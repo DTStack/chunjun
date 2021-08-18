@@ -22,6 +22,7 @@ import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.MetricParam;
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.metrics.CustomReporter;
 import com.dtstack.flinkx.sink.SinkFactory;
@@ -34,6 +35,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.Set;
@@ -50,7 +52,10 @@ public class DataSyncFactoryUtil {
             String pluginName = config.getJob().getReader().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.source);
             Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
+                    PluginUtil.getJarFileDirPath(
+                            pluginName,
+                            config.getPluginRoot() + File.separatorChar + ConstantValue.CONNECTOR_DIR_NAME,
+                            null);
             urlList.addAll(
                     PluginUtil.getJarFileDirPath(
                             PluginUtil.FORMATS_SUFFIX, config.getPluginRoot(), null));
@@ -113,7 +118,10 @@ public class DataSyncFactoryUtil {
             String pluginName = config.getJob().getContent().get(0).getWriter().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.sink);
             Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginName, config.getPluginRoot(), null);
+                    PluginUtil.getJarFileDirPath(
+                            pluginName,
+                            config.getPluginRoot() + File.separatorChar + ConstantValue.CONNECTOR_DIR_NAME,
+                            null);
             urlList.addAll(
                     PluginUtil.getJarFileDirPath(
                             PluginUtil.FORMATS_SUFFIX, config.getPluginRoot(), null));

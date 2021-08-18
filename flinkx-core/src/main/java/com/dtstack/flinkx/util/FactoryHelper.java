@@ -79,7 +79,12 @@ public class FactoryHelper {
                                 this.pluginLoadMode, ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE)
                         ? this.remotePluginPath
                         : this.localPluginPath;
-        String pluginJarPath = pluginPath + File.separatorChar + factoryIdentifier;
+        String pluginJarPath =
+                pluginPath
+                        + File.separatorChar
+                        + ConstantValue.CONNECTOR_DIR_NAME
+                        + File.separatorChar
+                        + factoryIdentifier;
         try {
             File pluginJarPathFile = new File(pluginJarPath);
             // 路径不存在或者不为文件夹

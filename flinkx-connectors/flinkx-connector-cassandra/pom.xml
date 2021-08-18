@@ -61,15 +61,15 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/cassandra">
+								<copy todir="${basedir}/../../${dist.dir}/connector/cassandra">
 									<fileset dir="target/">
 										<include name="${artifactId}-${project.version}.jar"/>
 									</fileset>
 								</copy>
 								<!--suppress UnresolvedMavenProperty -->
 								<move
-									file="${basedir}/../../${dist.dir}/cassandra/${artifactId}-${project.version}.jar"
-									tofile="${basedir}/../../${dist.dir}/cassandra/${artifactId}-${git.branch}.jar"/>
+									file="${basedir}/../../${dist.dir}/connector/cassandra/${artifactId}-${project.version}.jar"
+									tofile="${basedir}/../../${dist.dir}/connector/cassandra/${artifactId}-${git.branch}.jar"/>
 							</tasks>
 						</configuration>
 					</execution>

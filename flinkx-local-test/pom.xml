@@ -353,26 +353,6 @@
 
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-cassandra</artifactId>
-			<version>1.12-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>netty-codec</artifactId>
-					<groupId>io.netty</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>netty-buffer</artifactId>
-					<groupId>io.netty</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>netty-transport</artifactId>
-					<groupId>io.netty</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-metrics-mysql</artifactId>
 			<version>${project.version}</version>
 		</dependency>

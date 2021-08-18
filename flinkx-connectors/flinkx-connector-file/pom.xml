@@ -49,12 +49,12 @@ under the License.
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/file/"
+								<copy todir="${basedir}/../../${dist.dir}/connector/file/"
 									  file="${basedir}/target/${artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/file/${artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/file/${artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/connector/file/${artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/connector/file/${artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../${dist.dir}/file/"
+									<fileset dir="${basedir}/../../${dist.dir}/connector/file/"
 											 includes="${artifactId}-*.jar"
 											 excludes="${artifactId}-${git.branch}.jar"/>
 								</delete>
