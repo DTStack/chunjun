@@ -42,7 +42,7 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
 
     private final HBaseConf conf;
     private final TableSchema tableSchema;
-    private HBaseTableSchema hbaseSchema;
+    private final HBaseTableSchema hbaseSchema;
 
     public HBaseDynamicTableSink(
             HBaseConf conf, TableSchema tableSchema, HBaseTableSchema hbaseSchema) {
@@ -70,11 +70,11 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
         }
         HBaseOutputFormatBuilder builder = new HBaseOutputFormatBuilder();
         if (conf.getColumn() != null) {
-            builder.setColumMetaInfos(conf.getColumn());
+            builder.setColumnMetaInfos(conf.getColumn());
         } else if (conf.getColumnMetaInfos() != null) {
-            builder.setColumMetaInfos(conf.getColumnMetaInfos());
+            builder.setColumnMetaInfos(conf.getColumnMetaInfos());
         } else if (!columnList.isEmpty()) {
-            builder.setColumMetaInfos(columnList);
+            builder.setColumnMetaInfos(columnList);
         }
         builder.setEncoding(conf.getEncoding());
         builder.setHbaseConfig(conf.getHbaseConfig());

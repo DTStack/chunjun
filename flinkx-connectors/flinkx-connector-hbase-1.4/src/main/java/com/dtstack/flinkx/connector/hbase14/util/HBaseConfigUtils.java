@@ -173,11 +173,10 @@ public class HBaseConfigUtils {
         String value = MapUtils.getString(config, key);
         if (!StringUtils.isEmpty(value)) {
             String krb5ConfPath;
-            if(Paths.get(value).toFile().exists()) {
+            if (Paths.get(value).toFile().exists()) {
                 krb5ConfPath = value;
-            }else {
-                krb5ConfPath =
-                        System.getProperty("user.dir") + File.separator + value;
+            } else {
+                krb5ConfPath = System.getProperty("user.dir") + File.separator + value;
             }
             LOG.info("[{}]:{}", key, krb5ConfPath);
             return krb5ConfPath;

@@ -79,15 +79,16 @@ public class HBaseHelper {
             setKerberosConf(hbaseConfigMap);
             UserGroupInformation ugi = getUgi(hbaseConfigMap);
             return ugi.doAs(
-                    (PrivilegedAction<Connection>) () -> {
-                        try {
-                            Configuration hConfiguration = getConfig(hbaseConfigMap);
-                            return ConnectionFactory.createConnection(hConfiguration);
-                        } catch (IOException e) {
-                            LOG.error("Get connection fail with config:{}", hbaseConfigMap);
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    (PrivilegedAction<Connection>)
+                            () -> {
+                                try {
+                                    Configuration hConfiguration = getConfig(hbaseConfigMap);
+                                    return ConnectionFactory.createConnection(hConfiguration);
+                                } catch (IOException e) {
+                                    LOG.error("Get connection fail with config:{}", hbaseConfigMap);
+                                    throw new RuntimeException(e);
+                                }
+                            });
         } catch (Exception e) {
             throw new RuntimeException("Login kerberos error", e);
         }
@@ -103,7 +104,8 @@ public class HBaseHelper {
         KerberosUtil.refreshConfig();
 
         Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
-        return KerberosUtil.loginAndReturnUgi(conf.get(KerberosUtil.KEY_PRINCIPAL_FILE), principal, keytabFileName);
+        return KerberosUtil.loginAndReturnUgi(
+                conf.get(KerberosUtil.KEY_PRINCIPAL_FILE), principal, keytabFileName);
     }
 
     public static Configuration getConfig(Map<String, Object> hbaseConfigMap) {
@@ -121,9 +123,7 @@ public class HBaseHelper {
         return hConfiguration;
     }
 
-    /**
-     * 设置hbase 开启kerberos 连接必要的固定参数
-     */
+    /** 设置hbase 开启kerberos 连接必要的固定参数 */
     public static void setKerberosConf(Map<String, Object> hbaseConfigMap) {
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHORIZATION, KRB_STR);
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHENTICATION, KRB_STR);

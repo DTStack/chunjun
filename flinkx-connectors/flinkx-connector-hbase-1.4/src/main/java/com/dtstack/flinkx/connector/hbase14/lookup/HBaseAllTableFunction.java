@@ -7,7 +7,6 @@ import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseUtils;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
-
 import com.dtstack.flinkx.security.KerberosUtil;
 
 import org.apache.hadoop.conf.Configuration;
@@ -91,7 +90,9 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                 String principal = HBaseConfigUtils.getPrincipal(hbaseConf.getHbaseConfig());
 
                 HBaseConfigUtils.fillSyncKerberosConfig(conf, hbaseConf.getHbaseConfig());
-                String keytab = HBaseConfigUtils.loadKeyFromConf(hbaseConf.getHbaseConfig(), HBaseConfigUtils.KEY_KEY_TAB);
+                String keytab =
+                        HBaseConfigUtils.loadKeyFromConf(
+                                hbaseConf.getHbaseConfig(), HBaseConfigUtils.KEY_KEY_TAB);
 
                 LOG.info("kerberos principal:{}，keytab:{}", principal, keytab);
 

@@ -38,87 +38,81 @@ import java.util.stream.Collectors;
  */
 public class HBaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
-    private HBaseOutputFormat format;
+    private final HBaseOutputFormat format;
 
     public HBaseOutputFormatBuilder() {
         super.format = format = new HBaseOutputFormat();
     }
 
     public void setTableName(String tableName) {
-        format.tableName = tableName;
+        format.setTableName(tableName);
     }
 
     public void setHbaseConfig(Map<String, Object> hbaseConfig) {
-        format.hbaseConfig = hbaseConfig;
+        format.setHbaseConfig(hbaseConfig);
     }
 
     public void setColumnTypes(List<String> columnTypes) {
-        format.columnTypes = columnTypes;
+        format.setColumnTypes(columnTypes);
     }
 
     public void setColumnNames(List<String> columnNames) {
-        format.columnNames = columnNames;
+        format.setColumnNames(columnNames);
     }
 
     public void setRowkeyExpress(String rowkeyExpress) {
-        format.rowkeyExpress = rowkeyExpress;
+        format.setRowkeyExpress(rowkeyExpress);
     }
 
     public void setVersionColumnIndex(Integer versionColumnIndex) {
-        format.versionColumnIndex = versionColumnIndex;
+        format.setVersionColumnIndex(versionColumnIndex);
     }
 
     public void setVersionColumnValues(String versionColumnValue) {
-        format.versionColumnValue = versionColumnValue;
+        format.setVersionColumnValue(versionColumnValue);
     }
 
     public void setEncoding(String encoding) {
         if (StringUtils.isEmpty(encoding)) {
-            format.encoding = HBaseConfigConstants.DEFAULT_ENCODING;
+            format.setEncoding(HBaseConfigConstants.DEFAULT_ENCODING);
         } else {
-            format.encoding = encoding;
+            format.setEncoding(encoding);
         }
     }
 
     public void setWriteBufferSize(Long writeBufferSize) {
-        if (writeBufferSize == null || writeBufferSize.longValue() == 0L) {
-            format.writeBufferSize = HBaseConfigConstants.DEFAULT_WRITE_BUFFER_SIZE;
+        if (writeBufferSize == null || writeBufferSize == 0L) {
+            format.setWriteBufferSize(HBaseConfigConstants.DEFAULT_WRITE_BUFFER_SIZE);
         } else {
-            format.writeBufferSize = writeBufferSize;
+            format.setWriteBufferSize(writeBufferSize);
         }
     }
 
     public void setNullMode(String nullMode) {
         if (StringUtils.isEmpty(nullMode)) {
-            format.nullMode = HBaseConfigConstants.DEFAULT_NULL_MODE;
+            format.setNullMode(HBaseConfigConstants.DEFAULT_NULL_MODE);
         } else {
-            format.nullMode = nullMode;
+            format.setNullMode(nullMode);
         }
     }
 
     public void setWalFlag(Boolean walFlag) {
         if (walFlag == null) {
-            format.walFlag = false;
+            format.setWalFlag(false);
         } else {
-            format.walFlag = walFlag;
+            format.setWalFlag(walFlag);
         }
     }
 
     @Override
     protected void checkFormat() {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(format.tableName));
-        Preconditions.checkNotNull(format.hbaseConfig);
-        Preconditions.checkNotNull(format.columnNames);
-        Preconditions.checkNotNull(format.columnTypes);
-
-        //        if (format.getRestoreConfig() != null && format.getRestoreConfig().isRestore()){
-        //            throw new UnsupportedOperationException("This plugin not support restore from
-        // failed state");
-        //        }
-        //        notSupportBatchWrite("HbaseWriter");
+        Preconditions.checkArgument(StringUtils.isNotEmpty(format.getTableName()));
+        Preconditions.checkNotNull(format.getHbaseConfig());
+        Preconditions.checkNotNull(format.getColumnNames());
+        Preconditions.checkNotNull(format.getColumnTypes());
     }
 
-    public void setColumMetaInfos(List<FieldConf> columnMetaInfos) {
+    public void setColumnMetaInfos(List<FieldConf> columnMetaInfos) {
         if (columnMetaInfos != null && !columnMetaInfos.isEmpty()) {
             List<String> names =
                     columnMetaInfos.stream().map(FieldConf::getName).collect(Collectors.toList());

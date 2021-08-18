@@ -103,26 +103,31 @@ public class FileSystemUtil {
             throws Exception {
         UserGroupInformation ugi = getUGI(hadoopConfig, defaultFs, distributedCache);
 
-        return ugi.doAs((PrivilegedAction<FileSystem>) () -> {
-            try {
-                return FileSystem.get(getConfiguration(hadoopConfig, defaultFs));
-            } catch (Exception e){
-                throw new RuntimeException("Get FileSystem with kerberos error:", e);
-            }
-        });
+        return ugi.doAs(
+                (PrivilegedAction<FileSystem>)
+                        () -> {
+                            try {
+                                return FileSystem.get(getConfiguration(hadoopConfig, defaultFs));
+                            } catch (Exception e) {
+                                throw new RuntimeException(
+                                        "Get FileSystem with kerberos error:", e);
+                            }
+                        });
     }
 
     public static UserGroupInformation getUGI(
             Map<String, Object> hadoopConfig, String defaultFs, DistributedCache distributedCache)
             throws IOException {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hadoopConfig);
-
         keytabFileName = KerberosUtil.loadFile(hadoopConfig, keytabFileName, distributedCache);
         String principal = KerberosUtil.getPrincipal(hadoopConfig, keytabFileName);
         KerberosUtil.loadKrb5Conf(hadoopConfig, distributedCache);
         KerberosUtil.refreshConfig();
 
-        return KerberosUtil.loginAndReturnUgi(getConfiguration(hadoopConfig, defaultFs).get((KerberosUtil.KEY_PRINCIPAL_FILE)), principal, keytabFileName);
+        return KerberosUtil.loginAndReturnUgi(
+                getConfiguration(hadoopConfig, defaultFs).get((KerberosUtil.KEY_PRINCIPAL_FILE)),
+                principal,
+                keytabFileName);
     }
 
     public static Configuration getConfiguration(Map<String, Object> confMap, String defaultFs) {
