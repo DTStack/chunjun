@@ -127,7 +127,7 @@ public class JdbcRowConverter
             case INTERVAL_DAY_TIME:
             case INTEGER:
             case BIGINT:
-                return val -> val;
+                return val -> val instanceof BigInteger ? ((BigInteger)val).longValue() : val;
             case TINYINT:
                 return val -> ((Integer) val).byteValue();
             case SMALLINT:
