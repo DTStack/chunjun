@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.redis.connection;
 
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
@@ -44,8 +45,7 @@ import static com.dtstack.flinkx.connector.redis.options.RedisOptions.REDIS_HOST
 /**
  * Utilities for redis database connection
  *
- * @author jiangbo
- * @Company: www.dtstack.com
+ * @author jiangbo @Company: www.dtstack.com
  */
 public class RedisSyncClient {
 
@@ -78,13 +78,14 @@ public class RedisSyncClient {
                     firstPort = firstPort == null ? REDIS_DEFAULT_PORT.defaultValue() : firstPort;
                 }
                 if (Objects.nonNull(firstIp)) {
-                    pool = new JedisPool(
-                            poolConfig,
-                            firstIp,
-                            Integer.parseInt(firstPort),
-                            redisConf.getTimeout(),
-                            redisConf.getPassword(),
-                            redisConf.getDatabase());
+                    pool =
+                            new JedisPool(
+                                    poolConfig,
+                                    firstIp,
+                                    Integer.parseInt(firstPort),
+                                    redisConf.getTimeout(),
+                                    redisConf.getPassword(),
+                                    redisConf.getDatabase());
                 } else {
                     throw new IllegalArgumentException(
                             String.format("redis url error. current url [%s]", nodes[0]));
@@ -94,13 +95,14 @@ public class RedisSyncClient {
                 break;
             case SENTINEL:
                 Set<String> ipPorts = new HashSet<>(Arrays.asList(nodes));
-                jedisSentinelPool = new JedisSentinelPool(
-                        redisConf.getMasterName(),
-                        ipPorts,
-                        poolConfig,
-                        redisConf.getTimeout(),
-                        redisConf.getPassword(),
-                        redisConf.getDatabase());
+                jedisSentinelPool =
+                        new JedisSentinelPool(
+                                redisConf.getMasterName(),
+                                ipPorts,
+                                poolConfig,
+                                redisConf.getTimeout(),
+                                redisConf.getPassword(),
+                                redisConf.getDatabase());
 
                 jedis = jedisSentinelPool.getResource();
                 break;
@@ -119,16 +121,18 @@ public class RedisSyncClient {
                         }
                     }
                 }
-                jedis = new JedisCluster(
-                        addresses,
-                        redisConf.getTimeout(),
-                        redisConf.getTimeout(),
-                        10,
-                        redisConf.getPassword(),
-                        poolConfig);
+                jedis =
+                        new JedisCluster(
+                                addresses,
+                                redisConf.getTimeout(),
+                                redisConf.getTimeout(),
+                                10,
+                                redisConf.getPassword(),
+                                poolConfig);
                 break;
             default:
-                throw new IllegalArgumentException("unsupported redis type[ " + redisConf.getType().getType() + "]");
+                throw new IllegalArgumentException(
+                        "unsupported redis type[ " + redisConf.getType().getType() + "]");
         }
 
         return jedis;
@@ -147,7 +151,9 @@ public class RedisSyncClient {
             } catch (IllegalArgumentException e) {
                 throw e;
             } catch (Exception e) {
-                LOG.error("connect failed:{} , sleep 3 seconds reconnect", ExceptionUtil.getErrorMessage(e));
+                LOG.error(
+                        "connect failed:{} , sleep 3 seconds reconnect",
+                        ExceptionUtil.getErrorMessage(e));
                 try {
                     TimeUnit.SECONDS.sleep(3);
                 } catch (InterruptedException interruptedException) {
@@ -160,7 +166,6 @@ public class RedisSyncClient {
         }
         return jedisInner;
     }
-
 
     public void close(JedisCommands jedis) {
         try {

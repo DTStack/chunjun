@@ -77,7 +77,6 @@ public class MyHttpRequestRetryHandler implements HttpRequestRetryHandler {
         return !idempotent;
     }
 
-
     public static final class Builder {
         private int executionMaxCount;
 

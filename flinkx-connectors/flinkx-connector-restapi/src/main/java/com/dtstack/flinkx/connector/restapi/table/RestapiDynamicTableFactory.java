@@ -19,16 +19,10 @@ package com.dtstack.flinkx.connector.restapi.table;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.restapi.common.HttpRestConfig;
-
 import com.dtstack.flinkx.connector.restapi.common.MetaParam;
 import com.dtstack.flinkx.connector.restapi.options.RestapiOptions;
 import com.dtstack.flinkx.connector.restapi.source.RestapiDynamicTableSource;
-
 import com.dtstack.flinkx.util.GsonUtil;
-
-import com.google.gson.Gson;
-
-import com.google.gson.reflect.TypeToken;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
@@ -38,19 +32,20 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
- * Date: 2021/04/27
- * Company: www.dtstack.com
+ * Date: 2021/04/27 Company: www.dtstack.com
  *
  * @author shifang
  */
 public class RestapiDynamicTableFactory implements DynamicTableSourceFactory {
     public static final String IDENTIFIER = "restapi-x";
-
 
     @Override
     public String factoryIdentifier() {
@@ -89,18 +84,17 @@ public class RestapiDynamicTableFactory implements DynamicTableSourceFactory {
         helper.validate();
 
         // 3.封装参数
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         HttpRestConfig httpRestConfig = getRestapiConf(config);
 
-        return new RestapiDynamicTableSource(
-                physicalSchema, httpRestConfig);
+        return new RestapiDynamicTableSource(physicalSchema, httpRestConfig);
     }
 
     /**
      * 初始化RestapiConf
      *
      * @param config RestapiConf
-     *
      * @return
      */
     private HttpRestConfig getRestapiConf(ReadableConfig config) {
@@ -110,10 +104,22 @@ public class RestapiDynamicTableFactory implements DynamicTableSourceFactory {
         httpRestConfig.setUrl(config.get(RestapiOptions.URL));
         httpRestConfig.setDecode(config.get(RestapiOptions.DECODE));
         httpRestConfig.setRequestMode(config.get(RestapiOptions.REQUESTMODE));
-        httpRestConfig.setParam(gson.fromJson(config.get(RestapiOptions.PARAMS), new TypeToken<List<MetaParam>>() {}.getType()));
-        httpRestConfig.setHeader(gson.fromJson(config.get(RestapiOptions.HEADER), new TypeToken<List<MetaParam>>() {}.getType()));
-        httpRestConfig.setBody(gson.fromJson(config.get(RestapiOptions.BODY), new TypeToken<List<MetaParam>>() {}.getType()));
-        httpRestConfig.setColumn(gson.fromJson(config.get(RestapiOptions.COLUMN), new TypeToken<List<FieldConf>>() {}.getType()));
+        httpRestConfig.setParam(
+                gson.fromJson(
+                        config.get(RestapiOptions.PARAMS),
+                        new TypeToken<List<MetaParam>>() {}.getType()));
+        httpRestConfig.setHeader(
+                gson.fromJson(
+                        config.get(RestapiOptions.HEADER),
+                        new TypeToken<List<MetaParam>>() {}.getType()));
+        httpRestConfig.setBody(
+                gson.fromJson(
+                        config.get(RestapiOptions.BODY),
+                        new TypeToken<List<MetaParam>>() {}.getType()));
+        httpRestConfig.setColumn(
+                gson.fromJson(
+                        config.get(RestapiOptions.COLUMN),
+                        new TypeToken<List<FieldConf>>() {}.getType()));
         return httpRestConfig;
     }
 }

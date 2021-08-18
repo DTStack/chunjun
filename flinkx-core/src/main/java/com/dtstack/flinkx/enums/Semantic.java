@@ -22,10 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public enum Semantic {
 
-
-    /**
-     * Semantic.EXACTLY_ONCE the CUSTOM SINK will wait for checkpoint complete.
-     */
+    /** Semantic.EXACTLY_ONCE the CUSTOM SINK will wait for checkpoint complete. */
     EXACTLY_ONCE("exactly-once"),
 
     /**
@@ -34,8 +31,8 @@ public enum Semantic {
     AT_LEAST_ONCE("at-least-once"),
 
     /**
-     * Semantic.NONE means that nothing will be guaranteed. Messages can be lost and/or
-     * duplicated in case of failure.
+     * Semantic.NONE means that nothing will be guaranteed. Messages can be lost and/or duplicated
+     * in case of failure.
      */
     NONE("none");
 
@@ -51,8 +48,7 @@ public enum Semantic {
 
     public static Semantic getByName(String name) {
         if (StringUtils.isBlank(name)) {
-            throw new IllegalArgumentException(
-                    "semantic name cannot be null or empty ");
+            throw new IllegalArgumentException("semantic name cannot be null or empty ");
         }
         for (Semantic semantic : Semantic.values()) {
             if (semantic.getAlisName().equalsIgnoreCase(name)) {

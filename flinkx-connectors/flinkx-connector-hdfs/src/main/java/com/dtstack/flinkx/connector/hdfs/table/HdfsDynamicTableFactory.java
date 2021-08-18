@@ -17,6 +17,14 @@
  */
 package com.dtstack.flinkx.connector.hdfs.table;
 
+import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
+import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
+import com.dtstack.flinkx.connector.hdfs.sink.HdfsDynamicTableSink;
+import com.dtstack.flinkx.connector.hdfs.source.HdfsDynamicTableSource;
+import com.dtstack.flinkx.sink.options.SinkOptions;
+import com.dtstack.flinkx.source.options.SourceOptions;
+import com.dtstack.flinkx.table.options.BaseFileOptions;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -27,20 +35,11 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
-import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
-import com.dtstack.flinkx.connector.hdfs.sink.HdfsDynamicTableSink;
-import com.dtstack.flinkx.connector.hdfs.source.HdfsDynamicTableSource;
-import com.dtstack.flinkx.sink.options.SinkOptions;
-import com.dtstack.flinkx.source.options.SourceOptions;
-import com.dtstack.flinkx.table.options.BaseFileOptions;
-
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Date: 2021/06/17
- * Company: www.dtstack.com
+ * Date: 2021/06/17 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -83,7 +82,8 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
-        final FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
         // 1.所有的requiredOptions和optionalOptions参数
         final ReadableConfig config = helper.getOptions();
 
@@ -91,17 +91,20 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         helper.validateExcept("properties.");
 
         // 3.封装参数
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         HdfsConf hdfsConf = getHdfsConf(config);
         hdfsConf.setParallelism(config.get(SourceOptions.SCAN_PARALLELISM));
-        hdfsConf.setHadoopConfig(HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
+        hdfsConf.setHadoopConfig(
+                HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
 
         return new HdfsDynamicTableSource(hdfsConf, physicalSchema);
     }
 
     @Override
     public DynamicTableSink createDynamicTableSink(Context context) {
-        final FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
         // 1.所有的requiredOptions和optionalOptions参数
         final ReadableConfig config = helper.getOptions();
 
@@ -109,20 +112,23 @@ public class HdfsDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         helper.validateExcept("properties.");
 
         // 3.封装参数
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         HdfsConf hdfsConf = getHdfsConf(config);
         hdfsConf.setParallelism(config.get(SinkOptions.SINK_PARALLELISM));
-        hdfsConf.setHadoopConfig(HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
+        hdfsConf.setHadoopConfig(
+                HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
 
         return new HdfsDynamicTableSink(hdfsConf, physicalSchema);
     }
 
     /**
      * initialize HdfsConf
+     *
      * @param config
      * @return
      */
-    private HdfsConf getHdfsConf(ReadableConfig config){
+    private HdfsConf getHdfsConf(ReadableConfig config) {
         HdfsConf hdfsConf = new HdfsConf();
 
         hdfsConf.setPath(config.get(BaseFileOptions.PATH));

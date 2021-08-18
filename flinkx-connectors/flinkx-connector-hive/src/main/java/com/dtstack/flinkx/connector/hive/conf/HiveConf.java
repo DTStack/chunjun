@@ -24,8 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -152,20 +151,43 @@ public class HiveConf extends HdfsConf {
 
     @Override
     public String toString() {
-        return "HiveConf{" +
-                "jdbcUrl='" + jdbcUrl + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", partitionType='" + partitionType + '\'' +
-                ", partition='" + partition + '\'' +
-                ", tablesColumn='" + tablesColumn + '\'' +
-                ", distributeTable='" + distributeTable + '\'' +
-                ", schema='" + schema + '\'' +
-                ", analyticalRules='" + analyticalRules + '\'' +
-                ", distributeTableMapping=" + distributeTableMapping +
-                ", tableInfos=" + tableInfos +
-                ", tableName='" + tableName + '\'' +
-                ", autoCreateTable=" + autoCreateTable +
-                '}';
+        return "HiveConf{"
+                + "jdbcUrl='"
+                + jdbcUrl
+                + '\''
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", partitionType='"
+                + partitionType
+                + '\''
+                + ", partition='"
+                + partition
+                + '\''
+                + ", tablesColumn='"
+                + tablesColumn
+                + '\''
+                + ", distributeTable='"
+                + distributeTable
+                + '\''
+                + ", schema='"
+                + schema
+                + '\''
+                + ", analyticalRules='"
+                + analyticalRules
+                + '\''
+                + ", distributeTableMapping="
+                + distributeTableMapping
+                + ", tableInfos="
+                + tableInfos
+                + ", tableName='"
+                + tableName
+                + '\''
+                + ", autoCreateTable="
+                + autoCreateTable
+                + '}';
     }
 }

@@ -18,30 +18,21 @@
 package com.dtstack.flinkx.connector.hive.enums;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
 public enum HiveReleaseVersion {
-    /**
-     * apache hive 1.x
-     */
+    /** apache hive 1.x */
     APACHE_1("apache", "1"),
 
-    /**
-     * apache hive 2.x
-     */
+    /** apache hive 2.x */
     APACHE_2("apache", "2"),
 
-    /**
-     * cdh hive 1.x
-     */
+    /** cdh hive 1.x */
     CDH_1("cdh", "1"),
 
-    /**
-     * cdh hive 2.x
-     */
+    /** cdh hive 2.x */
     CDH_2("cdh", "2");
 
     private String name;

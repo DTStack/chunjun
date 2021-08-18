@@ -21,6 +21,7 @@ package com.dtstack.flinkx.connector.gbase.dialect;
 import com.dtstack.flinkx.connector.gbase.converter.GBaseRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.converter.RawTypeConverter;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;

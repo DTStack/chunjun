@@ -18,15 +18,13 @@
 
 package com.dtstack.flinkx.connector.phoenix5.sink;
 
-import com.dtstack.flinkx.enums.Semantic;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.phoenix5.converter.Phoenix5RawTypeConverter;
 import com.dtstack.flinkx.connector.phoenix5.util.Phoenix5Util;
 import com.dtstack.flinkx.enums.EWriteMode;
+import com.dtstack.flinkx.enums.Semantic;
 import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.table.types.logical.RowType;

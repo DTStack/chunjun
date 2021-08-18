@@ -18,9 +18,6 @@
 
 package com.dtstack.flinkx.connector.cassandra.converter;
 
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -38,6 +35,10 @@ import com.dtstack.flinkx.util.DateUtil;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
+
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 
 import java.math.BigDecimal;
 import java.net.InetAddress;

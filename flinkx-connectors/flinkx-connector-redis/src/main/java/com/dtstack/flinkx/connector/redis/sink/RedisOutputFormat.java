@@ -18,12 +18,13 @@
 
 package com.dtstack.flinkx.connector.redis.sink;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.connector.redis.connection.RedisSyncClient;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.WriteRecordException;
+
+import org.apache.flink.table.data.RowData;
+
 import redis.clients.jedis.JedisCommands;
 
 /**

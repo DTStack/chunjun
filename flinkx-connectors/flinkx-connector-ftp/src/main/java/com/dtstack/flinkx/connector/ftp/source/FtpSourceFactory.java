@@ -32,7 +32,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 
-
 /**
  * @program: flinkx
  * @author: xiuzhu
@@ -44,8 +43,9 @@ public class FtpSourceFactory extends SourceFactory {
 
     public FtpSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
-        ftpConfig = JsonUtil.toObject(
-                JsonUtil.toJson(syncConf.getReader().getParameter()), FtpConfig.class);
+        ftpConfig =
+                JsonUtil.toObject(
+                        JsonUtil.toJson(syncConf.getReader().getParameter()), FtpConfig.class);
 
         if (ftpConfig.getPort() == null) {
             ftpConfig.setDefaultPort();
@@ -57,7 +57,6 @@ public class FtpSourceFactory extends SourceFactory {
         }
         super.initFlinkxCommonConf(ftpConfig);
     }
-
 
     @Override
     public DataStream<RowData> createSource() {
@@ -72,6 +71,4 @@ public class FtpSourceFactory extends SourceFactory {
     public RawTypeConverter getRawTypeConverter() {
         return FtpRawTypeConverter::apply;
     }
-
-
 }

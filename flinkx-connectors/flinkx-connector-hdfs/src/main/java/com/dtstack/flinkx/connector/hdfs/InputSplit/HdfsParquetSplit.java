@@ -22,8 +22,7 @@ import org.apache.flink.core.io.InputSplit;
 import java.util.List;
 
 /**
- * Date: 2021/06/08
- * Company: www.dtstack.com
+ * Date: 2021/06/08 Company: www.dtstack.com
  *
  * @author tudou
  */

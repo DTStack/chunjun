@@ -18,16 +18,11 @@
 
 package com.dtstack.flinkx.connector.socket.client;
 
-import io.netty.handler.codec.string.StringDecoder;
-
-import io.netty.handler.codec.string.StringEncoder;
-
-import org.apache.commons.lang.StringUtils;
+import com.dtstack.flinkx.util.ExceptionUtil;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.util.ExceptionUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -36,6 +31,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +44,11 @@ import java.util.concurrent.SynchronousQueue;
 
 import static com.dtstack.flinkx.connector.socket.inputformat.SocketInputFormat.KEY_EXIT0;
 
-/** 采用netty实现Socket Client
+/**
+ * 采用netty实现Socket Client
+ *
  * @author kunni.dtstack.com
  */
-
 public class DtSocketClient implements Closeable, Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -66,7 +65,7 @@ public class DtSocketClient implements Closeable, Serializable {
 
     public Channel channel;
 
-    public DtSocketClient(String host, int port, SynchronousQueue<RowData> queue){
+    public DtSocketClient(String host, int port, SynchronousQueue<RowData> queue) {
         this.host = host;
         this.port = port;
         this.queue = queue;
@@ -74,29 +73,43 @@ public class DtSocketClient implements Closeable, Serializable {
 
     public void start() {
         Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(group)
+        bootstrap
+                .group(group)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.TCP_NODELAY, true)
-                .handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    public void initChannel(SocketChannel ch) {
-                        ch.pipeline().addLast("decoder", new StringDecoder(Charset.forName(encoding)));
-                        ch.pipeline().addLast("encoder", new StringEncoder(Charset.forName(encoding)));
-                        ch.pipeline().addLast(new DtClientHandler(queue, codeC, encoding));
-                    }
-                });
-        channel = bootstrap.connect(host, port).addListener(future -> {
-            if(future.isSuccess()) {
-                LOG.info("connect [{}:{}] success", host, port);
-            }else {
-                String error = String.format("connect [%s:%d] failed", host, port);
-                try {
-                    queue.put(GenericRowData.of(KEY_EXIT0 + error));
-                } catch (InterruptedException ex) {
-                    LOG.error(ExceptionUtil.getErrorMessage(ex));
-                }
-            }
-        }).channel();
+                .handler(
+                        new ChannelInitializer<SocketChannel>() {
+                            @Override
+                            public void initChannel(SocketChannel ch) {
+                                ch.pipeline()
+                                        .addLast(
+                                                "decoder",
+                                                new StringDecoder(Charset.forName(encoding)));
+                                ch.pipeline()
+                                        .addLast(
+                                                "encoder",
+                                                new StringEncoder(Charset.forName(encoding)));
+                                ch.pipeline().addLast(new DtClientHandler(queue, codeC, encoding));
+                            }
+                        });
+        channel =
+                bootstrap
+                        .connect(host, port)
+                        .addListener(
+                                future -> {
+                                    if (future.isSuccess()) {
+                                        LOG.info("connect [{}:{}] success", host, port);
+                                    } else {
+                                        String error =
+                                                String.format("connect [%s:%d] failed", host, port);
+                                        try {
+                                            queue.put(GenericRowData.of(KEY_EXIT0 + error));
+                                        } catch (InterruptedException ex) {
+                                            LOG.error(ExceptionUtil.getErrorMessage(ex));
+                                        }
+                                    }
+                                })
+                        .channel();
     }
 
     public void setCodeC(String codeC) {
@@ -112,12 +125,11 @@ public class DtSocketClient implements Closeable, Serializable {
     @Override
     public void close() {
         LOG.error("close channel!!! ");
-        if(channel != null){
+        if (channel != null) {
             channel.close();
         }
-        if(group != null) {
+        if (group != null) {
             group.shutdownGracefully();
         }
     }
-
 }

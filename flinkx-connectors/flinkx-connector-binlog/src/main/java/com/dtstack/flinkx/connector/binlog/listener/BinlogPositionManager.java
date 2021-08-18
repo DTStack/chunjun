@@ -17,17 +17,15 @@
  */
 package com.dtstack.flinkx.connector.binlog.listener;
 
+import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormat;
 
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
-import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormat;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class BinlogPositionManager extends AbstractLogPositionManager {
 
     private final BinlogInputFormat format;
@@ -44,7 +42,8 @@ public class BinlogPositionManager extends AbstractLogPositionManager {
     }
 
     @Override
-    public void persistLogPosition(String destination, LogPosition logPosition) throws CanalParseException {
+    public void persistLogPosition(String destination, LogPosition logPosition)
+            throws CanalParseException {
         format.setEntryPosition(logPosition.getPostion());
         logPositionCache.put(destination, logPosition);
     }

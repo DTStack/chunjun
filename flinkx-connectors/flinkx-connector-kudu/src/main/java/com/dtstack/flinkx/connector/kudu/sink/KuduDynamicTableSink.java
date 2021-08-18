@@ -18,6 +18,13 @@
 
 package com.dtstack.flinkx.connector.kudu.sink;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
+import com.dtstack.flinkx.connector.kudu.converter.KuduRawTypeConverter;
+import com.dtstack.flinkx.connector.kudu.converter.KuduRowConverter;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
@@ -25,13 +32,6 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.logical.NullType;
 import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
-import com.dtstack.flinkx.connector.kudu.converter.KuduRawTypeConverter;
-import com.dtstack.flinkx.connector.kudu.converter.KuduRowConverter;
-import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
-import com.dtstack.flinkx.util.TableUtil;
 
 import java.util.ArrayList;
 import java.util.List;

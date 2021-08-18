@@ -23,12 +23,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class Apache2MetadataParser extends AbstractHiveMetadataParser{
+public class Apache2MetadataParser extends AbstractHiveMetadataParser {
 
     @Override
     public void fillTableInfo(TableInfo tableInfo, List<Map<String, Object>> result) {

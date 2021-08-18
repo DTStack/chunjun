@@ -25,11 +25,13 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+
+import org.apache.flink.api.common.cache.DistributedCache;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
@@ -50,8 +52,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -67,44 +68,57 @@ public class HiveDbUtil {
     public static final String PORT_KEY = "port";
     public static final String DB_KEY = "db";
     public static final String PARAM_KEY = "param";
-    public static final String HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY = "hive.server2.authentication.kerberos.keytab";
+    public static final String HIVE_SERVER2_AUTHENTICATION_KERBEROS_KEYTAB_KEY =
+            "hive.server2.authentication.kerberos.keytab";
     private static final Logger LOG = LoggerFactory.getLogger(HiveDbUtil.class);
     private static final String ERROR_MSG_NO_DB = "NoSuchDatabaseException";
     private static final ReentrantLock lock = new ReentrantLock();
-    public static Pattern HIVE_JDBC_PATTERN = Pattern.compile("(?i)jdbc:hive2://(?<host>[^:]+):(?<port>\\d+)/(?<db>[^;]+)(?<param>[\\?;#].*)*");
+    public static Pattern HIVE_JDBC_PATTERN =
+            Pattern.compile(
+                    "(?i)jdbc:hive2://(?<host>[^:]+):(?<port>\\d+)/(?<db>[^;]+)(?<param>[\\?;#].*)*");
 
-    private HiveDbUtil() {
-    }
+    private HiveDbUtil() {}
 
-    public static Connection getConnection(ConnectionInfo connectionInfo, DistributedCache distributedCache) {
-        if(openKerberos(connectionInfo.getJdbcUrl())){
+    public static Connection getConnection(
+            ConnectionInfo connectionInfo, DistributedCache distributedCache) {
+        if (openKerberos(connectionInfo.getJdbcUrl())) {
             return getConnectionWithKerberos(connectionInfo, distributedCache);
         } else {
             return getConnectionWithRetry(connectionInfo);
         }
     }
 
-    private static Connection getConnectionWithRetry(ConnectionInfo connectionInfo){
+    private static Connection getConnectionWithRetry(ConnectionInfo connectionInfo) {
         try {
-            return RetryUtil.executeWithRetry(new Callable<Connection>() {
-                @Override
-                public Connection call() throws Exception {
-                    return HiveDbUtil.connect(connectionInfo);
-                }
-            }, 1, 1000L, false);
+            return RetryUtil.executeWithRetry(
+                    new Callable<Connection>() {
+                        @Override
+                        public Connection call() throws Exception {
+                            return HiveDbUtil.connect(connectionInfo);
+                        }
+                    },
+                    1,
+                    1000L,
+                    false);
         } catch (Exception e1) {
-            throw new RuntimeException(String.format("connect：%s failed ：%s.", connectionInfo.getJdbcUrl(), ExceptionUtil.getErrorMessage(e1)));
+            throw new RuntimeException(
+                    String.format(
+                            "connect：%s failed ：%s.",
+                            connectionInfo.getJdbcUrl(), ExceptionUtil.getErrorMessage(e1)));
         }
     }
 
-    private static Connection getConnectionWithKerberos(ConnectionInfo connectionInfo, DistributedCache distributedCache){
-        if(connectionInfo.getHiveConf() == null || connectionInfo.getHiveConf().isEmpty()){
+    private static Connection getConnectionWithKerberos(
+            ConnectionInfo connectionInfo, DistributedCache distributedCache) {
+        if (connectionInfo.getHiveConf() == null || connectionInfo.getHiveConf().isEmpty()) {
             throw new IllegalArgumentException("hiveConf can not be null or empty");
         }
 
         String keytabFileName = KerberosUtil.getPrincipalFileName(connectionInfo.getHiveConf());
 
-        keytabFileName = KerberosUtil.loadFile(connectionInfo.getHiveConf(), keytabFileName, distributedCache);
+        keytabFileName =
+                KerberosUtil.loadFile(
+                        connectionInfo.getHiveConf(), keytabFileName, distributedCache);
         String principal = KerberosUtil.getPrincipal(connectionInfo.getHiveConf(), keytabFileName);
         KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf(), distributedCache);
         KerberosUtil.refreshConfig();
@@ -119,12 +133,13 @@ public class HiveDbUtil {
         }
 
         LOG.info("current ugi:{}", ugi);
-        return ugi.doAs(new PrivilegedAction<Connection>() {
-            @Override
-            public Connection run(){
-                return getConnectionWithRetry(connectionInfo);
-            }
-        });
+        return ugi.doAs(
+                new PrivilegedAction<Connection>() {
+                    @Override
+                    public Connection run() {
+                        return getConnectionWithRetry(connectionInfo);
+                    }
+                });
     }
 
     private static boolean openKerberos(final String jdbcUrl) {
@@ -171,7 +186,10 @@ public class HiveDbUtil {
         }
 
         if (!check) {
-            throw new FlinkxRuntimeException("connection info ：" + connectionInfo.getJdbcUrl() + " connection failed, check your configuration or service status.");
+            throw new FlinkxRuntimeException(
+                    "connection info ："
+                            + connectionInfo.getJdbcUrl()
+                            + " connection failed, check your configuration or service status.");
         }
 
         Properties prop = new Properties();
@@ -198,10 +216,18 @@ public class HiveDbUtil {
             } else if (SQLSTATE_CANNOT_ACQUIRE_CONNECT.equals(e.getSQLState())) {
                 throw new FlinkxRuntimeException("server refused connection.");
             } else {
-                throw new FlinkxRuntimeException("connection info ：" + connectionInfo.getJdbcUrl() + " error message ：" + ExceptionUtil.getErrorMessage(e));
+                throw new FlinkxRuntimeException(
+                        "connection info ："
+                                + connectionInfo.getJdbcUrl()
+                                + " error message ："
+                                + ExceptionUtil.getErrorMessage(e));
             }
         } catch (Exception e1) {
-            throw new RuntimeException("connection info ：" + connectionInfo.getJdbcUrl() + " error message ：" + ExceptionUtil.getErrorMessage(e1));
+            throw new RuntimeException(
+                    "connection info ："
+                            + connectionInfo.getJdbcUrl()
+                            + " error message ："
+                            + ExceptionUtil.getErrorMessage(e1));
         } finally {
             lock.unlock();
         }
@@ -292,21 +318,22 @@ public class HiveDbUtil {
         return result;
     }
 
-    public static void executeSqlWithoutResultSet(ConnectionInfo connectionInfo, Connection connection, String sql) {
+    public static void executeSqlWithoutResultSet(
+            ConnectionInfo connectionInfo, Connection connection, String sql) {
         Statement statement = null;
         try {
             statement = connection.createStatement();
             statement.setQueryTimeout(connectionInfo.getTimeout());
             executeSqlWithoutResultSet(statement, sql);
         } catch (Exception e) {
-            throw new FlinkxRuntimeException(String.format("execute sql:%s, errorMessage:[%s]", sql, e.getMessage()));
+            throw new FlinkxRuntimeException(
+                    String.format("execute sql:%s, errorMessage:[%s]", sql, e.getMessage()));
         } finally {
             HiveDbUtil.closeDbResources(null, statement, null);
         }
     }
 
-    private static void executeSqlWithoutResultSet(Statement stmt, String sql)
-            throws SQLException {
+    private static void executeSqlWithoutResultSet(Statement stmt, String sql) throws SQLException {
         stmt.execute(sql);
     }
 

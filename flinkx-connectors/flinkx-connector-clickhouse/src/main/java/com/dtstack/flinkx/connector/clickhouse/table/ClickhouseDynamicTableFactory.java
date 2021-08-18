@@ -30,8 +30,7 @@ import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
  * @program: flinkx
  * @author: xiuzhu
  * @create: 2021/05/08
- **/
-
+ */
 public class ClickhouseDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** 通过该值查找具体插件 */

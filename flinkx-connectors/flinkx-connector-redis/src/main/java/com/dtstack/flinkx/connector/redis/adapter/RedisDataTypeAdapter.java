@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.redis.adapter;
 
 import com.dtstack.flinkx.connector.redis.enums.RedisDataType;
+
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -33,19 +34,20 @@ import java.lang.reflect.Type;
  * @author chuixue
  * @create 2021-06-17 17:14
  * @description
- **/
-public class RedisDataTypeAdapter implements JsonSerializer<RedisDataType>, JsonDeserializer<RedisDataType> {
+ */
+public class RedisDataTypeAdapter
+        implements JsonSerializer<RedisDataType>, JsonDeserializer<RedisDataType> {
 
     @Override
-    public JsonElement serialize(RedisDataType src, Type typeOfSrc, JsonSerializationContext context) {
+    public JsonElement serialize(
+            RedisDataType src, Type typeOfSrc, JsonSerializationContext context) {
         return new JsonPrimitive(src.type);
     }
 
     @Override
     public RedisDataType deserialize(
-            JsonElement json,
-            Type typeOfT,
-            JsonDeserializationContext context) throws JsonParseException {
+            JsonElement json, Type typeOfT, JsonDeserializationContext context)
+            throws JsonParseException {
         return RedisDataType.getDataType(json.getAsString());
     }
 }

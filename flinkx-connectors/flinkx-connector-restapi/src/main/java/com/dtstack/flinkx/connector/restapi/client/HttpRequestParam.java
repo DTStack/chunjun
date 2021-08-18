@@ -27,8 +27,7 @@ import java.util.Map;
 /**
  * HttpRequestParam 一次http请求的所有参数
  *
- * @author by dujie@dtstack.com
- * @Date 2020/9/25
+ * @author by dujie@dtstack.com @Date 2020/9/25
  */
 public class HttpRequestParam {
 
@@ -36,17 +35,17 @@ public class HttpRequestParam {
     private Map<String, Object> header = new HashMap<>(32);
     private Map<String, Object> param = new HashMap<>(32);
 
-
     /**
      * 将动态参数根据按照key是否嵌套，获取真正的key 将值放入对应的map中
+     *
      * @param metaParam 动态参数
      * @param fieldDelimiter 切割键
      * @param value 动态参数当前对应的值
      */
     public void putValue(MetaParam metaParam, String fieldDelimiter, Object value) {
-        if(null == metaParam.getNest()){
-            fieldDelimiter =null;
-        }else{
+        if (null == metaParam.getNest()) {
+            fieldDelimiter = null;
+        } else {
             fieldDelimiter = metaParam.getNest() ? fieldDelimiter : null;
         }
         switch (metaParam.getParamType()) {
@@ -60,21 +59,22 @@ public class HttpRequestParam {
                 MapUtil.buildMap(metaParam.getKey(), fieldDelimiter, value, getParam());
                 break;
             default:
-                throw new UnsupportedOperationException("HttpRequestParam not supported " + metaParam.getParamType());
+                throw new UnsupportedOperationException(
+                        "HttpRequestParam not supported " + metaParam.getParamType());
         }
     }
 
-
     /**
      * 获取动态参数的值
+     *
      * @param metaParam 动态参数
      * @param fieldDelimiter 切割键
      * @return
      */
     public Object getValue(MetaParam metaParam, String fieldDelimiter) {
-        if(null == metaParam.getNest()){
-            fieldDelimiter =null;
-        }else{
+        if (null == metaParam.getNest()) {
+            fieldDelimiter = null;
+        } else {
             fieldDelimiter = metaParam.getNest() ? fieldDelimiter : null;
         }
         switch (metaParam.getParamType()) {
@@ -85,21 +85,22 @@ public class HttpRequestParam {
             case PARAM:
                 return MapUtil.getValueByKey(getParam(), metaParam.getKey(), fieldDelimiter);
             default:
-                throw new UnsupportedOperationException("HttpRequestParam not supported " + metaParam.getParamType().name());
+                throw new UnsupportedOperationException(
+                        "HttpRequestParam not supported " + metaParam.getParamType().name());
         }
     }
 
-
     /**
      * 是否包含动态参数对应的key
+     *
      * @param metaParam 动态参数
      * @param fieldDelimiter 切割键
      * @return
      */
     public boolean containsKey(MetaParam metaParam, String fieldDelimiter) {
-        if(null == metaParam.getNest()){
-            fieldDelimiter =null;
-        }else{
+        if (null == metaParam.getNest()) {
+            fieldDelimiter = null;
+        } else {
             fieldDelimiter = metaParam.getNest() ? fieldDelimiter : null;
         }
         try {
@@ -114,20 +115,17 @@ public class HttpRequestParam {
                     MapUtil.getValueByKey(getParam(), metaParam.getKey(), fieldDelimiter);
                     return true;
                 default:
-                    throw new UnsupportedOperationException("HttpRequestParam not supported " + metaParam.getParamType().name());
+                    throw new UnsupportedOperationException(
+                            "HttpRequestParam not supported " + metaParam.getParamType().name());
             }
-        }catch (RuntimeException e){
-            if(e instanceof UnsupportedOperationException){
+        } catch (RuntimeException e) {
+            if (e instanceof UnsupportedOperationException) {
                 throw e;
-            }else{
+            } else {
                 return false;
             }
         }
-
     }
-
-
-
 
     public Map<String, Object> getBody() {
         return body;
@@ -152,10 +150,13 @@ public class HttpRequestParam {
 
     @Override
     public String toString() {
-        return "HttpRequestParam{" +
-                "body=" + GsonUtil.GSON.toJson(body) +
-                ", header=" + GsonUtil.GSON.toJson(header) +
-                ", param=" + GsonUtil.GSON.toJson(param) +
-                '}';
+        return "HttpRequestParam{"
+                + "body="
+                + GsonUtil.GSON.toJson(body)
+                + ", header="
+                + GsonUtil.GSON.toJson(header)
+                + ", param="
+                + GsonUtil.GSON.toJson(param)
+                + '}';
     }
 }

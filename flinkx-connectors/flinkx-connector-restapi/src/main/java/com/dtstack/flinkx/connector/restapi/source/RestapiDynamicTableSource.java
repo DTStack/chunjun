@@ -18,6 +18,16 @@
 
 package com.dtstack.flinkx.connector.restapi.source;
 
+import com.dtstack.flinkx.connector.restapi.common.ConstantValue;
+import com.dtstack.flinkx.connector.restapi.common.HttpMethod;
+import com.dtstack.flinkx.connector.restapi.common.HttpRestConfig;
+import com.dtstack.flinkx.connector.restapi.common.MetaParam;
+import com.dtstack.flinkx.connector.restapi.common.ParamType;
+import com.dtstack.flinkx.connector.restapi.convert.RestapiRowConverter;
+import com.dtstack.flinkx.connector.restapi.inputformat.RestapiInputFormatBuilder;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -28,15 +38,6 @@ import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.connector.restapi.common.ConstantValue;
-import com.dtstack.flinkx.connector.restapi.common.HttpMethod;
-import com.dtstack.flinkx.connector.restapi.common.HttpRestConfig;
-import com.dtstack.flinkx.connector.restapi.common.MetaParam;
-import com.dtstack.flinkx.connector.restapi.common.ParamType;
-import com.dtstack.flinkx.connector.restapi.convert.RestapiRowConverter;
-import com.dtstack.flinkx.connector.restapi.inputformat.RestapiInputFormatBuilder;
-import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;

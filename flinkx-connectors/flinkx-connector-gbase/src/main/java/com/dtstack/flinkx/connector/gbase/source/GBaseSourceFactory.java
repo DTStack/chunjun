@@ -18,11 +18,12 @@
 
 package com.dtstack.flinkx.connector.gbase.source;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.gbase.dialect.GBaseDialect;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -32,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 public class GBaseSourceFactory extends JdbcSourceFactory {
 
     public GBaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env,  new GBaseDialect());
+        super(syncConf, env, new GBaseDialect());
         // 避免result.next阻塞
         if (jdbcConf.isPolling()
                 && StringUtils.isEmpty(jdbcConf.getStartLocation())

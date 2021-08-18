@@ -19,7 +19,7 @@
 package org.apache.flink.table.factories;
 
 import com.dtstack.flinkx.util.FactoryHelper;
-import org.apache.commons.lang3.StringUtils;
+
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.table.api.AmbiguousTableFactoryException;
 import org.apache.flink.table.api.NoMatchingTableFactoryException;
@@ -28,6 +28,8 @@ import org.apache.flink.table.descriptors.Descriptor;
 import org.apache.flink.table.descriptors.FormatDescriptorValidator;
 import org.apache.flink.table.descriptors.Schema;
 import org.apache.flink.util.Preconditions;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +51,7 @@ import static org.apache.flink.table.descriptors.FormatDescriptorValidator.FORMA
 
 /**
  * Unified class to search for a {@link TableFactory} of provided type and properties.
- * 改动内容：增加方法loadFactories，增加变量pluginPath、env、classPathSet
- * 改动原因：在查找catalogFactory前需要把jar包加载进classpath
+ * 改动内容：增加方法loadFactories，增加变量pluginPath、env、classPathSet 改动原因：在查找catalogFactory前需要把jar包加载进classpath
  */
 public class TableFactoryService {
 
@@ -151,12 +152,14 @@ public class TableFactoryService {
             Map<String, String> properties,
             Optional<ClassLoader> classLoader) {
 
-        //dtstack fixed:
+        // dtstack fixed:
         String factoryIdentifier = properties.get("type");
-        if(StringUtils.isNotBlank(factoryIdentifier)){
-            factoryHelperThreadLocal.get().registerCachedFile(factoryIdentifier, classLoader.get(), true);
+        if (StringUtils.isNotBlank(factoryIdentifier)) {
+            factoryHelperThreadLocal
+                    .get()
+                    .registerCachedFile(factoryIdentifier, classLoader.get(), true);
         }
-        //dtstack fixed end
+        // dtstack fixed end
 
         List<TableFactory> tableFactories = discoverFactories(classLoader);
         List<T> filtered = filter(tableFactories, factoryClass, properties);

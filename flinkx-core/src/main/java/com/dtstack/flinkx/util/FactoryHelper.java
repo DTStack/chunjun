@@ -19,11 +19,13 @@ package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-import org.apache.commons.lang3.StringUtils;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.factories.TableFactoryService;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Date: 2021/08/05
- * Company: www.dtstack.com
+ * Date: 2021/08/05 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -47,6 +48,7 @@ public class FactoryHelper {
                     .stringType()
                     .defaultValue("class_path_%d")
                     .withDescription("");
+
     private static final Logger LOG = LoggerFactory.getLogger(TableFactoryService.class);
     /** 插件路径 */
     protected String localPluginPath = null;
@@ -61,29 +63,38 @@ public class FactoryHelper {
     /** shipfile需要的jar的classPath index */
     protected int classFileNameIndex = 0;
 
-    public FactoryHelper(){}
+    public FactoryHelper() {}
 
     /**
      * register plugin jar file
+     *
      * @param factoryIdentifier
      * @param classLoader
      * @param ignore
      */
-    public void registerCachedFile(String factoryIdentifier, ClassLoader classLoader, boolean ignore){
-        String pluginPath = StringUtils.equalsIgnoreCase(this.pluginLoadMode, ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE) ? this.remotePluginPath : this.localPluginPath;
+    public void registerCachedFile(
+            String factoryIdentifier, ClassLoader classLoader, boolean ignore) {
+        String pluginPath =
+                StringUtils.equalsIgnoreCase(
+                                this.pluginLoadMode, ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE)
+                        ? this.remotePluginPath
+                        : this.localPluginPath;
         String pluginJarPath = pluginPath + File.separatorChar + factoryIdentifier;
         try {
             File pluginJarPathFile = new File(pluginJarPath);
-            //路径不存在或者不为文件夹
-            if(!pluginJarPathFile.exists() || !pluginJarPathFile.isDirectory()){
-                if(ignore){
+            // 路径不存在或者不为文件夹
+            if (!pluginJarPathFile.exists() || !pluginJarPathFile.isDirectory()) {
+                if (ignore) {
                     return;
-                }else{
-                    throw new FlinkxRuntimeException("plugin path:" + pluginJarPath + " is not exist.");
+                } else {
+                    throw new FlinkxRuntimeException(
+                            "plugin path:" + pluginJarPath + " is not exist.");
                 }
             }
 
-            File[] files = pluginJarPathFile.listFiles(tmpFile -> tmpFile.isFile() && tmpFile.getName().endsWith(".jar"));
+            File[] files =
+                    pluginJarPathFile.listFiles(
+                            tmpFile -> tmpFile.isFile() && tmpFile.getName().endsWith(".jar"));
             if (files == null || files.length == 0) {
                 throw new FlinkxRuntimeException("plugin path:" + pluginJarPath + " is null.");
             }
@@ -96,12 +107,14 @@ public class FactoryHelper {
                 add.invoke(classLoader, jarUrl);
                 if (!this.classPathSet.contains(jarUrl)) {
                     this.classPathSet.add(jarUrl);
-                    String classFileName = String.format(CLASS_FILE_NAME_FMT.defaultValue(), this.classFileNameIndex);
+                    String classFileName =
+                            String.format(
+                                    CLASS_FILE_NAME_FMT.defaultValue(), this.classFileNameIndex);
                     this.env.registerCachedFile(jarUrl.getPath(), classFileName, true);
                     this.classFileNameIndex++;
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             LOG.warn("can't add jar in {} to cachedFile, e = {}", pluginJarPath, e.getMessage());
         }
     }

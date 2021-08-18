@@ -32,10 +32,7 @@ import java.util.Locale;
  */
 public class RestapiRawTypeConverter {
 
-    /**
-     * 将restapi返回的参数根据定义的类型，转换成flink的DataType类型。
-     *
-     */
+    /** 将restapi返回的参数根据定义的类型，转换成flink的DataType类型。 */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "INT":

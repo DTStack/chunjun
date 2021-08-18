@@ -18,6 +18,13 @@
 
 package com.dtstack.flinkx.connector.cassandra.sink;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.cassandra.conf.CassandraSinkConf;
+import com.dtstack.flinkx.connector.cassandra.converter.CassandraRawTypeConverter;
+import com.dtstack.flinkx.connector.cassandra.converter.CassandraRowConverter;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
@@ -26,13 +33,6 @@ import org.apache.flink.table.types.AtomicDataType;
 import org.apache.flink.table.types.logical.NullType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
-
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.cassandra.conf.CassandraSinkConf;
-import com.dtstack.flinkx.connector.cassandra.converter.CassandraRawTypeConverter;
-import com.dtstack.flinkx.connector.cassandra.converter.CassandraRowConverter;
-import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
-import com.dtstack.flinkx.util.TableUtil;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -25,13 +25,10 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Reason:
- * Date: 2018/09/18
- * Company: www.dtstack.com
+ * Reason: Date: 2018/09/18 Company: www.dtstack.com
  *
  * @author sishu.yss
  */
-
 public class KafkaConf extends FlinkxCommonConf {
 
     /** source 读取数据的格式 */
@@ -147,18 +144,33 @@ public class KafkaConf extends FlinkxCommonConf {
 
     @Override
     public String toString() {
-        return "KafkaConf{" +
-                ", codec='" + codec + '\'' +
-                ", topic='" + topic + '\'' +
-                ", groupId='" + groupId + '\'' +
-                ", mode=" + mode +
-                ", offset='" + offset + '\'' +
-                ", timestamp=" + timestamp +
-                ", consumerSettings=" + consumerSettings +
-                ", producerSettings=" + producerSettings +
-                ", dataCompelOrder=" + dataCompelOrder +
-                ", tableFields=" + tableFields +
-                ", partitionAssignColumns=" + partitionAssignColumns +
-                '}';
+        return "KafkaConf{"
+                + ", codec='"
+                + codec
+                + '\''
+                + ", topic='"
+                + topic
+                + '\''
+                + ", groupId='"
+                + groupId
+                + '\''
+                + ", mode="
+                + mode
+                + ", offset='"
+                + offset
+                + '\''
+                + ", timestamp="
+                + timestamp
+                + ", consumerSettings="
+                + consumerSettings
+                + ", producerSettings="
+                + producerSettings
+                + ", dataCompelOrder="
+                + dataCompelOrder
+                + ", tableFields="
+                + tableFields
+                + ", partitionAssignColumns="
+                + partitionAssignColumns
+                + '}';
     }
 }

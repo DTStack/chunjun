@@ -43,7 +43,11 @@ public class EmqxConf extends FlinkxCommonConf {
     private int qos = 2;
     /** emq codec */
     private String codec = "plain";
-    /** Field mapping configuration. The data passed from the reader plug-in to the writer plug-in only contains its value attribute. After configuring this parameter, it can be restored to a key-value pair type json string output */
+    /**
+     * Field mapping configuration. The data passed from the reader plug-in to the writer plug-in
+     * only contains its value attribute. After configuring this parameter, it can be restored to a
+     * key-value pair type json string output
+     */
     private List<String> tableFields;
 
     public String getBroker() {
@@ -112,15 +116,28 @@ public class EmqxConf extends FlinkxCommonConf {
 
     @Override
     public String toString() {
-        return "EmqxConf{" +
-                "broker='" + broker + '\'' +
-                ", topic='" + topic + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", isCleanSession=" + isCleanSession +
-                ", qos=" + qos +
-                ", codec='" + codec + '\'' +
-                ", tableFields=" + tableFields +
-                '}';
+        return "EmqxConf{"
+                + "broker='"
+                + broker
+                + '\''
+                + ", topic='"
+                + topic
+                + '\''
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", isCleanSession="
+                + isCleanSession
+                + ", qos="
+                + qos
+                + ", codec='"
+                + codec
+                + '\''
+                + ", tableFields="
+                + tableFields
+                + '}';
     }
 }

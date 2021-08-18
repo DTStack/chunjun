@@ -45,7 +45,6 @@ public class SocketSourceFactory extends SourceFactory {
         super.initFlinkxCommonConf(socketConfig);
     }
 
-
     @Override
     public DataStream<RowData> createSource() {
         SocketInputFormatBuilder builder = new SocketInputFormatBuilder();

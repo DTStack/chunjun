@@ -29,15 +29,15 @@ import java.sql.Statement;
 import java.util.Properties;
 
 /**
- * Date: 2019/11/05
- * Company: www.dtstack.com
+ * Date: 2019/11/05 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class ClickhouseUtil {
     private static final int MAX_RETRY_TIMES = 3;
 
-    public static Connection getConnection(String url, String username, String password) throws SQLException {
+    public static Connection getConnection(String url, String username, String password)
+            throws SQLException {
         Properties properties = new Properties();
         properties.put(ClickHouseQueryParam.USER.getKey(), username);
         properties.put(ClickHouseQueryParam.PASSWORD.getKey(), password);

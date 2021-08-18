@@ -11,15 +11,22 @@ public class LogInterceptor implements Interceptor {
 
     @Override
     public void init(Configuration configuration) {
-        if(LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             LOG.info("configuration: ");
-            configuration.keySet().forEach(key -> LOG.debug("key : {} -> value : {}" , key, configuration.toMap().get(key)));
+            configuration
+                    .keySet()
+                    .forEach(
+                            key ->
+                                    LOG.debug(
+                                            "key : {} -> value : {}",
+                                            key,
+                                            configuration.toMap().get(key)));
         }
     }
 
     @Override
     public void pre(Context context) {
-        if(LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             for (String key : context) {
                 LOG.debug("context key : {} -> value : {} ", key, context.get(key));
             }
@@ -28,7 +35,7 @@ public class LogInterceptor implements Interceptor {
 
     @Override
     public void post(Context context) {
-        if(LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             for (String key : context) {
                 LOG.debug("context key : {} -> value : {} ", key, context.get(key));
             }

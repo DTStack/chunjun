@@ -19,24 +19,16 @@
 package com.dtstack.flinkx.enums;
 
 /**
- * Flink状态后端类型
- * Date: 2019/11/15
- * Company: www.dtstack.com
+ * Flink状态后端类型 Date: 2019/11/15 Company: www.dtstack.com
  *
  * @author maqi
  */
 public enum EStateBackend {
-    /**
-     * memory
-     */
+    /** memory */
     MEMORY,
-    /**
-     * rockdb
-     */
+    /** rockdb */
     ROCKSDB,
-    /**
-     * filesystem
-     */
+    /** filesystem */
     FILESYSTEM;
 
     public static EStateBackend convertFromString(String type) {
@@ -46,5 +38,3 @@ public enum EStateBackend {
         return valueOf(type.toUpperCase());
     }
 }
-
-

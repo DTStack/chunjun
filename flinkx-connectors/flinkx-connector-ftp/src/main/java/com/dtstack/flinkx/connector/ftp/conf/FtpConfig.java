@@ -37,10 +37,12 @@ public class FtpConfig extends BaseFileConf {
     private String host;
     private Integer port;
     private boolean isFirstLineHeader = false;
-    /** ftp客户端编码格式 **/
-    private String controlEncoding = System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
-    /** linux是否展示隐藏文件 **/
+    /** ftp客户端编码格式 * */
+    private String controlEncoding =
+            System.getProperty(ConstantValue.SYSTEM_PROPERTIES_KEY_FILE_ENCODING);
+    /** linux是否展示隐藏文件 * */
     private boolean listHiddenFiles = true;
+
     private String ftpFileName;
 
     public String getUsername() {
@@ -130,7 +132,6 @@ public class FtpConfig extends BaseFileConf {
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
     }
-
 
     public boolean isFirstLineHeader() {
         return isFirstLineHeader;

@@ -47,8 +47,9 @@ public class FtpSinkFactory extends SinkFactory {
 
     public FtpSinkFactory(SyncConf syncConf) {
         super(syncConf);
-        ftpConfig = JsonUtil.toObject(
-                JsonUtil.toJson(syncConf.getWriter().getParameter()), FtpConfig.class);
+        ftpConfig =
+                JsonUtil.toObject(
+                        JsonUtil.toJson(syncConf.getWriter().getParameter()), FtpConfig.class);
 
         if (ftpConfig.getPort() == null) {
             ftpConfig.setDefaultPort();

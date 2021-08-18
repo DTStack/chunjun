@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.dm.dialect;
 
-import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.dm.converter.DmColumnConverter;
 import com.dtstack.flinkx.connector.dm.converter.DmRawTypeConverter;
@@ -30,6 +26,11 @@ import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
@@ -39,9 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * @author kunni
- */
+/** @author kunni */
 public class DmDialect implements JdbcDialect {
 
     @Override
@@ -74,12 +73,11 @@ public class DmDialect implements JdbcDialect {
         StringBuilder sb = new StringBuilder("SELECT ");
         String collect =
                 Arrays.stream(column)
-                        .map(col -> ":" + col +" " + col)
+                        .map(col -> ":" + col + " " + col)
                         .collect(Collectors.joining(", "));
         sb.append(collect).append(" FROM DUAL");
         return sb.toString();
     }
-
 
     @Override
     public Optional<String> getUpsertStatement(
@@ -123,7 +121,6 @@ public class DmDialect implements JdbcDialect {
         return Optional.of(mergeIntoSql.toString());
     }
 
-
     /** build T1."A"=T2."A" or T1."A"=nvl(T2."A",T1."A") */
     private String buildUpdateConnection(
             String[] fieldNames, String[] uniqueKeyFields, boolean allReplace) {
@@ -141,24 +138,24 @@ public class DmDialect implements JdbcDialect {
     private String buildConnectString(boolean allReplace, String col) {
         return allReplace
                 ? quoteIdentifier("T1")
-                + "."
-                + quoteIdentifier(col)
-                + " = "
-                + quoteIdentifier("T2")
-                + "."
-                + quoteIdentifier(col)
+                        + "."
+                        + quoteIdentifier(col)
+                        + " = "
+                        + quoteIdentifier("T2")
+                        + "."
+                        + quoteIdentifier(col)
                 : quoteIdentifier("T1")
-                + "."
-                + quoteIdentifier(col)
-                + " =NVL("
-                + quoteIdentifier("T2")
-                + "."
-                + quoteIdentifier(col)
-                + ","
-                + quoteIdentifier("T1")
-                + "."
-                + quoteIdentifier(col)
-                + ")";
+                        + "."
+                        + quoteIdentifier(col)
+                        + " =NVL("
+                        + quoteIdentifier("T2")
+                        + "."
+                        + quoteIdentifier(col)
+                        + ","
+                        + quoteIdentifier("T1")
+                        + "."
+                        + quoteIdentifier(col)
+                        + ")";
     }
 
     /** build sql part e.g: T1.`A` = T2.`A`, T1.`B` = T2.`B` */
@@ -169,17 +166,20 @@ public class DmDialect implements JdbcDialect {
     }
 
     @Override
-    public Optional<String> getReplaceStatement(String schema, String tableName, String[] fieldNames) {
+    public Optional<String> getReplaceStatement(
+            String schema, String tableName, String[] fieldNames) {
         throw new FlinkxRuntimeException("dm does not support replace sql");
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getRowConverter(RowType rowType) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getRowConverter(RowType rowType) {
         return new DmRowConverter(rowType);
     }
 
     @Override
-    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         return new DmColumnConverter(rowType, commonConf);
     }
 }

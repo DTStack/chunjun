@@ -17,16 +17,17 @@
  */
 package com.dtstack.flinkx.connector.binlog.listener;
 
-import org.apache.flink.table.data.RowData;
-
-import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
-import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.dtstack.flinkx.connector.binlog.inputformat.BinlogInputFormat;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.element.ErrorMsgRowData;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
+import org.apache.flink.table.data.RowData;
+
+import com.alibaba.otter.canal.common.AbstractCanalLifeCycle;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.sink.exception.CanalSinkException;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;

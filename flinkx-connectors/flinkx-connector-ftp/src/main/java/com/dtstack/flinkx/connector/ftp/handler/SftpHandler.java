@@ -43,8 +43,8 @@ import java.util.Vector;
 
 /**
  * The concrete Ftp Utility class used for sftp
- * <p>
- * Company: www.dtstack.com
+ *
+ * <p>Company: www.dtstack.com
  *
  * @author huyifan.zju@163.com
  */
@@ -70,9 +70,12 @@ public class SftpHandler implements IFtpHandler {
                 jsch.addIdentity(ftpConfig.getPrivateKeyPath());
             }
 
-            session = jsch.getSession(ftpConfig.getUsername(), ftpConfig.getHost(), ftpConfig.getPort());
+            session =
+                    jsch.getSession(
+                            ftpConfig.getUsername(), ftpConfig.getHost(), ftpConfig.getPort());
             if (session == null) {
-                throw new RuntimeException("login failed. Please check if username and password are correct");
+                throw new RuntimeException(
+                        "login failed. Please check if username and password are correct");
             }
 
             if (StringUtils.isEmpty(ftpConfig.getPrivateKeyPath())) {
@@ -92,15 +95,21 @@ public class SftpHandler implements IFtpHandler {
         } catch (JSchException e) {
             if (null != e.getCause()) {
                 String cause = e.getCause().toString();
-                String unknownHostException = "java.net.UnknownHostException: " + ftpConfig.getHost();
-                String illegalArgumentException = "java.lang.IllegalArgumentException: port out of range:" + ftpConfig.getPort();
+                String unknownHostException =
+                        "java.net.UnknownHostException: " + ftpConfig.getHost();
+                String illegalArgumentException =
+                        "java.lang.IllegalArgumentException: port out of range:"
+                                + ftpConfig.getPort();
                 String wrongPort = "java.net.ConnectException: Connection refused";
                 if (unknownHostException.equals(cause)) {
-                    String message = String.format("请确认ftp服务器地址是否正确，无法连接到地址为: [%s] 的ftp服务器", ftpConfig.getHost());
+                    String message =
+                            String.format(
+                                    "请确认ftp服务器地址是否正确，无法连接到地址为: [%s] 的ftp服务器", ftpConfig.getHost());
                     LOG.error(message);
                     throw new RuntimeException(message, e);
                 } else if (illegalArgumentException.equals(cause) || wrongPort.equals(cause)) {
-                    String message = String.format("请确认连接ftp服务器端口是否正确，错误的端口: [%s] ", ftpConfig.getPort());
+                    String message =
+                            String.format("请确认连接ftp服务器端口是否正确，错误的端口: [%s] ", ftpConfig.getPort());
                     LOG.error(message);
                     throw new RuntimeException(message, e);
                 } else {
@@ -109,15 +118,27 @@ public class SftpHandler implements IFtpHandler {
                 }
             } else {
                 if (MSG_AUTH_FAIL.equals(e.getMessage())) {
-                    String message = String.format(
-                            "与ftp服务器建立连接失败,请检查用户名和密码是否正确: [%s]",
-                            "message:host =" + ftpConfig.getHost() + ",username = " + ftpConfig.getUsername() + ",port =" + ftpConfig.getPort());
+                    String message =
+                            String.format(
+                                    "与ftp服务器建立连接失败,请检查用户名和密码是否正确: [%s]",
+                                    "message:host ="
+                                            + ftpConfig.getHost()
+                                            + ",username = "
+                                            + ftpConfig.getUsername()
+                                            + ",port ="
+                                            + ftpConfig.getPort());
                     LOG.error(message);
                     throw new RuntimeException(message, e);
                 } else {
-                    String message = String.format(
-                            "与ftp服务器建立连接失败 : [%s]",
-                            "message:host =" + ftpConfig.getHost() + ",username = " + ftpConfig.getUsername() + ",port =" + ftpConfig.getPort());
+                    String message =
+                            String.format(
+                                    "与ftp服务器建立连接失败 : [%s]",
+                                    "message:host ="
+                                            + ftpConfig.getHost()
+                                            + ",username = "
+                                            + ftpConfig.getUsername()
+                                            + ",port ="
+                                            + ftpConfig.getPort());
                     LOG.error(message);
                     throw new RuntimeException(message, e);
                 }
@@ -178,7 +199,8 @@ public class SftpHandler implements IFtpHandler {
 
             return channelSftp.get(filePath);
         } catch (SftpException e) {
-            String message = String.format("读取文件 : [%s] 时出错,请确认文件：[%s]存在且配置的用户有权限读取", filePath, filePath);
+            String message =
+                    String.format("读取文件 : [%s] 时出错,请确认文件：[%s]存在且配置的用户有权限读取", filePath, filePath);
             LOG.error(message);
             throw new RuntimeException(message, e);
         }
@@ -205,7 +227,9 @@ public class SftpHandler implements IFtpHandler {
                 for (int i = 0; i < vector.size(); ++i) {
                     ChannelSftp.LsEntry le = (ChannelSftp.LsEntry) vector.get(i);
                     String strName = le.getFilename();
-                    if (!strName.equals(DOT) && !strName.equals(SRC_MAIN) && !strName.equals(DOT_DOT)) {
+                    if (!strName.equals(DOT)
+                            && !strName.equals(SRC_MAIN)
+                            && !strName.equals(DOT_DOT)) {
                         String filePath = path + strName;
                         dirs.add(filePath);
                     }
@@ -236,7 +260,9 @@ public class SftpHandler implements IFtpHandler {
                 for (int i = 0; i < vector.size(); ++i) {
                     ChannelSftp.LsEntry le = (ChannelSftp.LsEntry) vector.get(i);
                     String strName = le.getFilename();
-                    if (!strName.equals(DOT) && !strName.equals(SRC_MAIN) && !strName.equals(DOT_DOT)) {
+                    if (!strName.equals(DOT)
+                            && !strName.equals(SRC_MAIN)
+                            && !strName.equals(DOT_DOT)) {
                         String filePath = path + strName;
                         sources.addAll(getFiles(filePath));
                     }
@@ -279,8 +305,9 @@ public class SftpHandler implements IFtpHandler {
                     dirPath.append(IOUtils.DIR_SEPARATOR_UNIX);
                 }
             } catch (SftpException e) {
-                String message = String
-                        .format("创建目录:%s时发生I/O异常,请确认与ftp服务器的连接正常,拥有目录创建权限, errorMessage:%s",
+                String message =
+                        String.format(
+                                "创建目录:%s时发生I/O异常,请确认与ftp服务器的连接正常,拥有目录创建权限, errorMessage:%s",
                                 directoryPath, e.getMessage());
                 LOG.error(message, e);
                 throw new RuntimeException(message, e);
@@ -293,16 +320,17 @@ public class SftpHandler implements IFtpHandler {
         try {
             OutputStream writeOutputStream = this.channelSftp.put(filePath, ChannelSftp.APPEND);
             if (null == writeOutputStream) {
-                String message = String.format(
-                        "打开FTP文件[%s]获取写出流时出错,请确认文件%s有权限创建，有权限写出等", filePath,
-                        filePath);
+                String message =
+                        String.format(
+                                "打开FTP文件[%s]获取写出流时出错,请确认文件%s有权限创建，有权限写出等", filePath, filePath);
                 throw new RuntimeException(message);
             }
             return writeOutputStream;
         } catch (SftpException e) {
-            String message = String.format(
-                    "写出文件[%s] 时出错,请确认文件%s有权限写出, errorMessage:%s", filePath,
-                    filePath, e.getMessage());
+            String message =
+                    String.format(
+                            "写出文件[%s] 时出错,请确认文件%s有权限写出, errorMessage:%s",
+                            filePath, filePath, e.getMessage());
             LOG.error(message);
             throw new RuntimeException(message, e);
         }
@@ -332,7 +360,9 @@ public class SftpHandler implements IFtpHandler {
                         continue;
                     }
 
-                    if (!strName.equals(DOT) && !strName.equals(SRC_MAIN) && !strName.equals(DOT_DOT)) {
+                    if (!strName.equals(DOT)
+                            && !strName.equals(SRC_MAIN)
+                            && !strName.equals(DOT_DOT)) {
                         String filePath = dir + strName;
                         deleteAllFilesInDir(filePath, exclude);
                     }
@@ -391,13 +421,9 @@ public class SftpHandler implements IFtpHandler {
         channelSftp.rename(oldPath, newPath);
     }
 
-    /**
-     * 仅ftp输入流需要显示关闭
-     */
+    /** 仅ftp输入流需要显示关闭 */
     @Override
-    public void completePendingCommand() {
-
-    }
+    public void completePendingCommand() {}
 
     @Override
     public long getFileSize(String path) throws IOException {

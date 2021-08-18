@@ -32,7 +32,6 @@ import org.apache.commons.lang3.StringUtils;
  * @author: xiuzhu
  * @create: 2021/05/10
  */
-
 public class ClickhouseSourceFactory extends JdbcSourceFactory {
 
     public ClickhouseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {

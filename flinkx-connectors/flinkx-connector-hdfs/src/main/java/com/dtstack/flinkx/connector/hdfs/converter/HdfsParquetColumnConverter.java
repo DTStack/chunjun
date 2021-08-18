@@ -17,10 +17,6 @@
  */
 package com.dtstack.flinkx.connector.hdfs.converter;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.data.TimestampData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -28,6 +24,7 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
@@ -38,6 +35,11 @@ import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.TimestampData;
+
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.parquet.example.data.Group;
@@ -80,11 +82,13 @@ public class HdfsParquetColumnConverter
     @Override
     @SuppressWarnings("unchecked")
     public RowData toInternal(RowData input) throws Exception {
-        GenericRowData row = new GenericRowData(input.getArity());
+        ColumnRowData row = new ColumnRowData(input.getArity());
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
-                row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
+                row.addField(
+                        (AbstractBaseColumn)
+                                toInternalConverters[i].deserialize(genericRowData.getField(i)));
             }
         } else {
             throw new FlinkxRuntimeException(

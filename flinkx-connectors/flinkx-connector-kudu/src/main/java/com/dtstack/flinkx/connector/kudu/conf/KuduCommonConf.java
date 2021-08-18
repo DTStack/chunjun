@@ -143,14 +143,23 @@ public class KuduCommonConf extends FlinkxCommonConf {
 
     @Override
     public String toString() {
-        return "KuduCommonConf{" +
-                "masters='" + masters + '\'' +
-                ", table='" + table + '\'' +
-                ", kerberos=" + kerberos +
-                ", workerCount=" + workerCount +
-                ", operationTimeout=" + operationTimeout +
-                ", adminOperationTimeout=" + adminOperationTimeout +
-                ", queryTimeout=" + queryTimeout +
-                '}';
+        return "KuduCommonConf{"
+                + "masters='"
+                + masters
+                + '\''
+                + ", table='"
+                + table
+                + '\''
+                + ", kerberos="
+                + kerberos
+                + ", workerCount="
+                + workerCount
+                + ", operationTimeout="
+                + operationTimeout
+                + ", adminOperationTimeout="
+                + adminOperationTimeout
+                + ", queryTimeout="
+                + queryTimeout
+                + '}';
     }
 }

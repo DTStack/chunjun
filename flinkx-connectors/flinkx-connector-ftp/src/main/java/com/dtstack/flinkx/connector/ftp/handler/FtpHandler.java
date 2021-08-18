@@ -42,8 +42,8 @@ import java.util.List;
 
 /**
  * The concrete Ftp Utility class used for standard ftp
- * <p>
- * Company: www.dtstack.com
+ *
+ * <p>Company: www.dtstack.com
  *
  * @author huyifan.zju@163.com
  */
@@ -72,7 +72,7 @@ public class FtpHandler implements IFtpHandler {
             // 不需要写死ftp server的OS TYPE,FTPClient getSystemType()方法会自动识别
             ftpClient.setConnectTimeout(ftpConfig.getTimeout());
             ftpClient.setDataTimeout(ftpConfig.getTimeout());
-            //设置控制连接超时
+            // 设置控制连接超时
             ftpClient.setSoTimeout(ftpConfig.getTimeout());
             if (EFtpMode.PASV.name().equals(ftpConfig.getConnectPattern())) {
                 ftpClient.enterRemotePassiveMode();
@@ -83,9 +83,15 @@ public class FtpHandler implements IFtpHandler {
             int reply = ftpClient.getReplyCode();
             if (!FTPReply.isPositiveCompletion(reply)) {
                 ftpClient.disconnect();
-                String message = String.format(
-                        "与ftp服务器建立连接失败,请检查用户名和密码是否正确: [%s]",
-                        "message:host =" + ftpConfig.getHost() + ",username = " + ftpConfig.getUsername() + ",port =" + ftpConfig.getPort());
+                String message =
+                        String.format(
+                                "与ftp服务器建立连接失败,请检查用户名和密码是否正确: [%s]",
+                                "message:host ="
+                                        + ftpConfig.getHost()
+                                        + ",username = "
+                                        + ftpConfig.getUsername()
+                                        + ",port ="
+                                        + ftpConfig.getPort());
                 LOG.error(message);
                 throw new RuntimeException(message);
             }
@@ -117,15 +123,18 @@ public class FtpHandler implements IFtpHandler {
             originDir = ftpClient.printWorkingDirectory();
             ftpClient.enterLocalPassiveMode();
             FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(directoryPath));
-            if (ftpFiles.length == 0 && !ftpClient.changeWorkingDirectory(encodePath(directoryPath))) {
+            if (ftpFiles.length == 0
+                    && !ftpClient.changeWorkingDirectory(encodePath(directoryPath))) {
                 return false;
             }
-            boolean positiveCompletion = FTPReply.isPositiveCompletion(ftpClient.cwd(encodePath(directoryPath)));
+            boolean positiveCompletion =
+                    FTPReply.isPositiveCompletion(ftpClient.cwd(encodePath(directoryPath)));
             if (positiveCompletion && ftpFiles.length == 1 && ftpFiles[0].isFile()) {
                 String[] split = directoryPath.split(String.valueOf(IOUtils.DIR_SEPARATOR_UNIX));
-                //还要再判断文件名相同 并且如果这是一个文件
+                // 还要再判断文件名相同 并且如果这是一个文件
                 if (ftpFiles[0].getName().equals(split[split.length - 1])) {
-                    String ftpFilePath = directoryPath + IOUtils.DIR_SEPARATOR_UNIX + ftpFiles[0].getName();
+                    String ftpFilePath =
+                            directoryPath + IOUtils.DIR_SEPARATOR_UNIX + ftpFiles[0].getName();
                     return ftpClient.listFiles(encodePath(ftpFilePath)).length != 0;
                 }
             }
@@ -170,7 +179,9 @@ public class FtpHandler implements IFtpHandler {
             if (ftpFiles != null) {
                 for (FTPFile ftpFile : ftpFiles) {
                     // .和..是特殊文件
-                    if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
+                    if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL)
+                            || StringUtils.endsWith(
+                                    ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                         continue;
                     }
                     sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
@@ -188,9 +199,7 @@ public class FtpHandler implements IFtpHandler {
      *
      * @param path
      * @param file
-     *
      * @return
-     *
      * @throws IOException
      */
     private List<String> getFiles(String path, FTPFile file) throws IOException {
@@ -203,7 +212,9 @@ public class FtpHandler implements IFtpHandler {
             FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(path));
             if (ftpFiles != null) {
                 for (FTPFile ftpFile : ftpFiles) {
-                    if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
+                    if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL)
+                            || StringUtils.endsWith(
+                                    ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                         continue;
                     }
                     sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
@@ -233,23 +244,25 @@ public class FtpHandler implements IFtpHandler {
                 }
             }
         } catch (IOException e) {
-            message = String.format("%s, errorMessage:%s", message,
-                    e.getMessage());
+            message = String.format("%s, errorMessage:%s", message, e.getMessage());
             LOG.error(message);
             throw new RuntimeException(message, e);
         }
     }
 
-
     private boolean mkDirSingleHierarchy(String directoryPath) throws IOException {
-        boolean isDirExist = this.ftpClient
-                .changeWorkingDirectory(encodePath(directoryPath));
+        boolean isDirExist = this.ftpClient.changeWorkingDirectory(encodePath(directoryPath));
         // 如果directoryPath目录不存在,则创建
         if (!isDirExist) {
             int replayCode = this.ftpClient.mkd(encodePath(directoryPath));
             if (replayCode != FTPReply.COMMAND_OK
-                    && replayCode != FTPReply.PATHNAME_CREATED && replayCode != FTPReply.FILE_ACTION_OK) {
-                LOG.warn("create path [{}] failed ,replayCode is {} and reply is  {} ", directoryPath, replayCode, ftpClient.getReplyString());
+                    && replayCode != FTPReply.PATHNAME_CREATED
+                    && replayCode != FTPReply.FILE_ACTION_OK) {
+                LOG.warn(
+                        "create path [{}] failed ,replayCode is {} and reply is  {} ",
+                        directoryPath,
+                        replayCode,
+                        ftpClient.getReplyString());
                 return false;
             }
         }
@@ -260,25 +273,24 @@ public class FtpHandler implements IFtpHandler {
     public OutputStream getOutputStream(String filePath) {
         try {
             this.printWorkingDirectory();
-            String parentDir = filePath.substring(
-                    0,
-                    StringUtils.lastIndexOf(filePath, IOUtils.DIR_SEPARATOR_UNIX));
+            String parentDir =
+                    filePath.substring(
+                            0, StringUtils.lastIndexOf(filePath, IOUtils.DIR_SEPARATOR_UNIX));
             this.ftpClient.changeWorkingDirectory(parentDir);
             this.printWorkingDirectory();
-            OutputStream writeOutputStream = this.ftpClient
-                    .appendFileStream(encodePath(filePath));
-            String message = String.format(
-                    "打开FTP文件[%s]获取写出流时出错,请确认文件%s有权限创建，有权限写出等", filePath,
-                    filePath);
+            OutputStream writeOutputStream = this.ftpClient.appendFileStream(encodePath(filePath));
+            String message =
+                    String.format("打开FTP文件[%s]获取写出流时出错,请确认文件%s有权限创建，有权限写出等", filePath, filePath);
             if (null == writeOutputStream) {
                 throw new RuntimeException(message);
             }
 
             return writeOutputStream;
         } catch (IOException e) {
-            String message = String.format(
-                    "写出文件 : [%s] 时出错,请确认文件:[%s]存在且配置的用户有权限写, errorMessage:%s",
-                    filePath, filePath, e.getMessage());
+            String message =
+                    String.format(
+                            "写出文件 : [%s] 时出错,请确认文件:[%s]存在且配置的用户有权限写, errorMessage:%s",
+                            filePath, filePath, e.getMessage());
             LOG.error(message);
             throw new RuntimeException(message, e);
         }
@@ -286,13 +298,12 @@ public class FtpHandler implements IFtpHandler {
 
     private void printWorkingDirectory() {
         try {
-            LOG.info(String.format(
-                    "current working directory:%s",
-                    this.ftpClient.printWorkingDirectory()));
+            LOG.info(
+                    String.format(
+                            "current working directory:%s",
+                            this.ftpClient.printWorkingDirectory()));
         } catch (Exception e) {
-            LOG.warn(String.format(
-                    "printWorkingDirectory error:%s",
-                    e.getMessage()));
+            LOG.warn(String.format("printWorkingDirectory error:%s", e.getMessage()));
         }
     }
 
@@ -307,10 +318,13 @@ public class FtpHandler implements IFtpHandler {
                 FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(dir));
                 if (ftpFiles != null) {
                     for (FTPFile ftpFile : ftpFiles) {
-                        if (CollectionUtils.isNotEmpty(exclude) && exclude.contains(ftpFile.getName())) {
+                        if (CollectionUtils.isNotEmpty(exclude)
+                                && exclude.contains(ftpFile.getName())) {
                             continue;
                         }
-                        if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
+                        if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL)
+                                || StringUtils.endsWith(
+                                        ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                             continue;
                         }
                         deleteAllFilesInDir(dir + ftpFile.getName(), exclude);
@@ -353,7 +367,8 @@ public class FtpHandler implements IFtpHandler {
             InputStream is = ftpClient.retrieveFileStream(encodePath(filePath));
             return is;
         } catch (IOException e) {
-            String message = String.format("读取文件 : [%s] 时出错,请确认文件：[%s]存在且配置的用户有权限读取", filePath, filePath);
+            String message =
+                    String.format("读取文件 : [%s] 时出错,请确认文件：[%s]存在且配置的用户有权限读取", filePath, filePath);
             LOG.error(message);
             throw new RuntimeException(message, e);
         }
@@ -371,7 +386,9 @@ public class FtpHandler implements IFtpHandler {
                 FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(path));
                 if (ftpFiles != null) {
                     for (FTPFile ftpFile : ftpFiles) {
-                        if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL) || StringUtils.endsWith(ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
+                        if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL)
+                                || StringUtils.endsWith(
+                                        ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                             continue;
                         }
                         sources.add(path + ftpFile.getName());
@@ -417,8 +434,7 @@ public class FtpHandler implements IFtpHandler {
      * 判断路径是否存在
      *
      * @param path 判断的路径
-     *
-     * @return true 存在  false 不存在
+     * @return true 存在 false 不存在
      */
     private boolean isExist(String path) {
         String originDir = null;
@@ -426,7 +442,7 @@ public class FtpHandler implements IFtpHandler {
             originDir = ftpClient.printWorkingDirectory();
             ftpClient.enterLocalPassiveMode();
             FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(path));
-            //空文件夹 或者 不存在的文件夹 length都是0 但是changeWorkingDirectory为true代表是空文件夹
+            // 空文件夹 或者 不存在的文件夹 length都是0 但是changeWorkingDirectory为true代表是空文件夹
             return ftpFiles.length != 0 || ftpClient.changeWorkingDirectory(encodePath(path));
         } catch (IOException e) {
             String message = String.format("判断：[%s]是否存在时发生I/O异常,请确认与ftp服务器的连接正常", path);

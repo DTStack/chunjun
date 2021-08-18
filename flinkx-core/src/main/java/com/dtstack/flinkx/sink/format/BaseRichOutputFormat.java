@@ -18,20 +18,10 @@
 
 package com.dtstack.flinkx.sink.format;
 
-import com.dtstack.flinkx.enums.Semantic;
-import org.apache.flink.api.common.accumulators.LongCounter;
-import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
-import org.apache.flink.api.common.io.FinalizeOnMaster;
-import org.apache.flink.api.common.io.InitializeOnMaster;
-import org.apache.flink.api.common.io.RichOutputFormat;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.CheckpointingMode;
-import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.enums.Semantic;
 import com.dtstack.flinkx.factory.DTThreadFactory;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
@@ -582,7 +572,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             } finally {
                 flushEnable.compareAndSet(true, false);
             }
-        }else{
+        } else {
             writeRecordInternal();
         }
         // set metric after preCommit

@@ -28,16 +28,10 @@ import org.apache.flink.configuration.ConfigOptions;
  */
 public class EmqxOptions {
     public static final ConfigOption<String> BROKER =
-            ConfigOptions.key("broker")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription(" broker ");
+            ConfigOptions.key("broker").stringType().noDefaultValue().withDescription(" broker ");
 
     public static final ConfigOption<String> TOPIC =
-            ConfigOptions.key("topic")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription(" topic ");
+            ConfigOptions.key("topic").stringType().noDefaultValue().withDescription(" topic ");
 
     public static final ConfigOption<Boolean> ISCLEANSESSION =
             ConfigOptions.key("isCleanSession")
@@ -46,10 +40,7 @@ public class EmqxOptions {
                     .withDescription(" isCleanSession ");
 
     public static final ConfigOption<Integer> QOS =
-            ConfigOptions.key("qos")
-                    .intType()
-                    .defaultValue(2)
-                    .withDescription(" qos ");
+            ConfigOptions.key("qos").intType().defaultValue(2).withDescription(" qos ");
 
     public static final ConfigOption<String> USERNAME =
             ConfigOptions.key("username")
@@ -88,5 +79,4 @@ public class EmqxOptions {
                     .stringType()
                     .defaultValue("writer")
                     .withDescription("dclient.id.pre");
-
 }

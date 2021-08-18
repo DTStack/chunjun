@@ -18,6 +18,20 @@
 
 package com.dtstack.flinkx.connector.kudu.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.kudu.conf.KuduLookupConf;
+import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
+import com.dtstack.flinkx.connector.kudu.converter.KuduRawTypeConverter;
+import com.dtstack.flinkx.connector.kudu.converter.KuduRowConverter;
+import com.dtstack.flinkx.connector.kudu.lookup.KuduAllTableFunction;
+import com.dtstack.flinkx.connector.kudu.lookup.KuduLruTableFunction;
+import com.dtstack.flinkx.enums.CacheType;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
+import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -32,20 +46,6 @@ import org.apache.flink.table.types.logical.NullType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
-
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.kudu.conf.KuduLookupConf;
-import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
-import com.dtstack.flinkx.connector.kudu.converter.KuduRawTypeConverter;
-import com.dtstack.flinkx.connector.kudu.converter.KuduRowConverter;
-import com.dtstack.flinkx.connector.kudu.lookup.KuduAllTableFunction;
-import com.dtstack.flinkx.connector.kudu.lookup.KuduLruTableFunction;
-import com.dtstack.flinkx.enums.CacheType;
-import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-import com.dtstack.flinkx.table.connector.source.ParallelTableFunctionProvider;
-import com.dtstack.flinkx.util.TableUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;

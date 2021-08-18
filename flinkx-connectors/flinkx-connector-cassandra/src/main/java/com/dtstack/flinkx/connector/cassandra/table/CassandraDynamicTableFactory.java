@@ -19,8 +19,9 @@
 package com.dtstack.flinkx.connector.cassandra.table;
 
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraLookupConf;
+import com.dtstack.flinkx.connector.cassandra.conf.CassandraSinkConf;
 import com.dtstack.flinkx.connector.cassandra.conf.CassandraSourceConf;
-
+import com.dtstack.flinkx.connector.cassandra.sink.CassandraDynamicTableSink;
 import com.dtstack.flinkx.connector.cassandra.source.CassandraDynamicTableSource;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -33,29 +34,26 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.cassandra.conf.CassandraSinkConf;
-import com.dtstack.flinkx.connector.cassandra.sink.CassandraDynamicTableSink;
-
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.ASYNC_WRITE;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CLUSTER_NAME;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CONNECT_TIMEOUT_MILLISECONDS;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CONSISTENCY;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CORE_CONNECTIONS_PER_HOST;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.HOST;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.HOST_DISTANCE;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.KEY_SPACES;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.PASSWORD;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.PORT;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.TABLE_NAME;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USER_NAME;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.ASYNC_WRITE;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CONNECT_TIMEOUT_MILLISECONDS;
-import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.CORE_CONNECTIONS_PER_HOST;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.MAX_CONNECTIONS__PER_HOST;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.MAX_QUEUE_SIZE;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.MAX_REQUESTS_PER_CONNECTION;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.PASSWORD;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.POOL_TIMEOUT_MILLISECONDS;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.PORT;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.READ_TIME_OUT_MILLISECONDS;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.TABLE_NAME;
+import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USER_NAME;
 import static com.dtstack.flinkx.connector.cassandra.optinos.CassandraCommonOptions.USE_SSL;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
@@ -124,7 +122,8 @@ public class CassandraDynamicTableFactory
         CassandraSourceConf cassandraSourceConf = CassandraSourceConf.from(options);
         CassandraLookupConf cassandraLookupConf = CassandraLookupConf.from(options);
 
-        return new CassandraDynamicTableSource(cassandraSourceConf, cassandraLookupConf, tableSchema);
+        return new CassandraDynamicTableSource(
+                cassandraSourceConf, cassandraLookupConf, tableSchema);
     }
 
     @Override

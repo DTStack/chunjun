@@ -18,7 +18,15 @@
 
 package com.dtstack.flinkx.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.conf.SpeedConf;
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.converter.RawTypeConvertible;
 import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.PropertiesUtil;
+import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -29,14 +37,6 @@ import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunctio
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.conf.FlinkxCommonConf;
-import com.dtstack.flinkx.conf.SpeedConf;
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.converter.RawTypeConvertible;
-import com.dtstack.flinkx.util.PropertiesUtil;
-import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
@@ -123,7 +123,8 @@ public abstract class SourceFactory implements RawTypeConvertible {
         return env.addSource(function, sourceName, getTypeInformation());
     }
 
-    protected DataStream<RowData> createInput(RichParallelSourceFunction<RowData> function, String sourceName) {
+    protected DataStream<RowData> createInput(
+            RichParallelSourceFunction<RowData> function, String sourceName) {
         Preconditions.checkNotNull(sourceName);
         return env.addSource(function, sourceName, getTypeInformation());
     }
@@ -132,19 +133,17 @@ public abstract class SourceFactory implements RawTypeConvertible {
         return createInput(inputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
-    /**
-     * 初始化FlinkxCommonConf
-     *
-     */
+    /** 初始化FlinkxCommonConf */
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf) {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
-        flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
+        flinkxCommonConf.setParallelism(
+                speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
     }
 
-    protected TypeInformation<RowData> getTypeInformation(){
-        if(typeInformation == null){
+    protected TypeInformation<RowData> getTypeInformation() {
+        if (typeInformation == null) {
             typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter());
         }
         return typeInformation;

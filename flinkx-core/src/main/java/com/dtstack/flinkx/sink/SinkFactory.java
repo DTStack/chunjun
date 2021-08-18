@@ -33,11 +33,6 @@ import org.apache.flink.util.Preconditions;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.flink.api.common.io.OutputFormat;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.Preconditions;
 
 import java.util.List;
 
@@ -94,10 +89,7 @@ public abstract class SinkFactory implements RawTypeConvertible {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
-    /**
-     * 初始化FlinkxCommonConf
-     *
-     */
+    /** 初始化FlinkxCommonConf */
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf) {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));

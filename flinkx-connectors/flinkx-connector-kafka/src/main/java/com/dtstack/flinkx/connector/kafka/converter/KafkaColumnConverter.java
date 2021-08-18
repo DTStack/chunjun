@@ -34,9 +34,11 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.MapUtil;
-import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.CollectionUtil;
+
+import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -65,7 +67,7 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
     /** kafka sink out fields */
     private List<String> outList;
 
-    public KafkaColumnConverter(KafkaConf kafkaConf,  List<String> keyTypeList) {
+    public KafkaColumnConverter(KafkaConf kafkaConf, List<String> keyTypeList) {
         this.kafkaConf = kafkaConf;
         this.outList = keyTypeList;
         this.jsonDecoder = new JsonDecoder();
@@ -88,10 +90,14 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
         // Only json need to extract the fields
         if (!CollectionUtils.isEmpty(kafkaConf.getColumn())
                 && DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
-            List<String> typeList = kafkaConf.getColumn().stream().map(FieldConf::getType).collect(Collectors.toList());
+            List<String> typeList =
+                    kafkaConf.getColumn().stream()
+                            .map(FieldConf::getType)
+                            .collect(Collectors.toList());
             this.toInternalConverters = new IDeserializationConverter[typeList.size()];
             for (int i = 0; i < typeList.size(); i++) {
-                toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
+                toInternalConverters[i] =
+                        wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
             }
         }
     }
@@ -109,7 +115,8 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
             for (int i = 0; i < fieldConfList.size(); i++) {
                 FieldConf fieldConf = fieldConfList.get(i);
                 Object value = map.get(fieldConf.getName());
-                AbstractBaseColumn baseColumn = (AbstractBaseColumn) toInternalConverters[i].deserialize(value);
+                AbstractBaseColumn baseColumn =
+                        (AbstractBaseColumn) toInternalConverters[i].deserialize(value);
                 result.addField(assembleFieldProps(fieldConf, baseColumn));
             }
         }
@@ -150,7 +157,7 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
         if (!CollectionUtil.isNullOrEmpty(outList)) {
             Map<String, Object> keyPartitionMap = new LinkedHashMap<>((arity << 2) / 3);
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                if(outList.contains(entry.getKey())){
+                if (outList.contains(entry.getKey())) {
                     keyPartitionMap.put(entry.getKey(), entry.getValue());
                 }
             }

@@ -22,6 +22,7 @@ import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.sink.format.FileOutputFormatBuilder;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**

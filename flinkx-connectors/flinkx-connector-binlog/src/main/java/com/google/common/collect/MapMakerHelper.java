@@ -17,15 +17,12 @@
  */
 package com.google.common.collect;
 
-
 import com.google.common.base.Function;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentMap;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class MapMakerHelper {
 
     public static MapMaker softValues(MapMaker mapMaker) {
@@ -38,9 +35,12 @@ public class MapMakerHelper {
         }
     }
 
-    public static <K, V> ConcurrentMap<K, V> makeComputingMap(MapMaker mapMaker, Function<? super K, ? extends V> computingFunction) {
+    public static <K, V> ConcurrentMap<K, V> makeComputingMap(
+            MapMaker mapMaker, Function<? super K, ? extends V> computingFunction) {
         try {
-            Method method = MapMaker.class.getDeclaredMethod("makeComputingMap",new Class[] {Function.class});
+            Method method =
+                    MapMaker.class.getDeclaredMethod(
+                            "makeComputingMap", new Class[] {Function.class});
             method.setAccessible(true);
             return (ConcurrentMap<K, V>) method.invoke(mapMaker, computingFunction);
         } catch (Exception e) {

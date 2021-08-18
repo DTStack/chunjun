@@ -32,7 +32,6 @@ import java.util.Locale;
  * @author: xiuzhu
  * @create: 2021/06/28
  */
-
 public class FtpRawTypeConverter {
 
     public static DataType apply(String type) throws UnsupportedTypeException {
@@ -64,7 +63,9 @@ public class FtpRawTypeConverter {
                 if (precision != null) {
                     String[] split = precision.split(ConstantValue.COMMA_SYMBOL);
                     if (split.length == 2) {
-                        return DataTypes.DECIMAL(Integer.parseInt(split[0].trim()), Integer.parseInt(split[1].trim()));
+                        return DataTypes.DECIMAL(
+                                Integer.parseInt(split[0].trim()),
+                                Integer.parseInt(split[1].trim()));
                     }
                 }
                 return DataTypes.DECIMAL(38, 18);

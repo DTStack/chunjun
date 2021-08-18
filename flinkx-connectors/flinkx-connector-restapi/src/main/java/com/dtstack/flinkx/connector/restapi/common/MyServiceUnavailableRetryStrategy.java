@@ -23,8 +23,7 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * @author : shifang
- * @date : 2020/3/12
- * 自定义httpClient重试策略,默认重试次数为5,重试时间间隔为2s
+ * @date : 2020/3/12 自定义httpClient重试策略,默认重试次数为5,重试时间间隔为2s
  */
 public class MyServiceUnavailableRetryStrategy implements ServiceUnavailableRetryStrategy {
     private int executionCount;
@@ -36,7 +35,8 @@ public class MyServiceUnavailableRetryStrategy implements ServiceUnavailableRetr
     }
 
     @Override
-    public boolean retryRequest(HttpResponse httpResponse, int executionCount, HttpContext httpContext) {
+    public boolean retryRequest(
+            HttpResponse httpResponse, int executionCount, HttpContext httpContext) {
         int successCode = 200;
         return httpResponse.getStatusLine().getStatusCode() != successCode
                 && executionCount < this.executionCount;

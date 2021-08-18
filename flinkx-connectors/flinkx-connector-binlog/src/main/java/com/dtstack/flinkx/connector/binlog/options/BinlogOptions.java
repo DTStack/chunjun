@@ -21,24 +21,17 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 /**
- * Date: 2021/05/06
- * Company: www.dtstack.com
+ * Date: 2021/05/06 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class BinlogOptions {
 
     public static final ConfigOption<String> HOST =
-            ConfigOptions.key("host")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("MySQL host.");
+            ConfigOptions.key("host").stringType().noDefaultValue().withDescription("MySQL host.");
 
     public static final ConfigOption<Integer> PORT =
-            ConfigOptions.key("port")
-                    .intType()
-                    .defaultValue(3306)
-                    .withDescription("MySQL port.");
+            ConfigOptions.key("port").intType().defaultValue(3306).withDescription("MySQL port.");
 
     public static final ConfigOption<String> USERNAME =
             ConfigOptions.key("username")

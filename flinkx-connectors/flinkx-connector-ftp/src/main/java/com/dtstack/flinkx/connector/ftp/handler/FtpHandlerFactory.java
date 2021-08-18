@@ -40,7 +40,8 @@ public class FtpHandlerFactory {
     }
 
     enum Protocol {
-        FTP, SFTP;
+        FTP,
+        SFTP;
 
         public static Protocol getByName(String name) {
             if (StringUtils.isEmpty(name)) {

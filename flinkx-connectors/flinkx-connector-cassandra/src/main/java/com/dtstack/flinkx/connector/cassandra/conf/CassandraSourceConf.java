@@ -49,25 +49,52 @@ public class CassandraSourceConf extends CassandraCommonConf {
 
     @Override
     public String toString() {
-        return "CassandraSourceConf{" +
-                "host='" + host + '\'' +
-                ", port=" + port +
-                ", userName='" + userName + '\'' +
-                ", password='" + "*********" + '\'' +
-                ", tableName='" + tableName + '\'' +
-                ", keyspaces='" + keyspaces + '\'' +
-                ", hostDistance='" + hostDistance + '\'' +
-                ", useSSL=" + useSSL +
-                ", clusterName='" + clusterName + '\'' +
-                ", consistency='" + consistency + '\'' +
-                ", coreConnectionsPerHost=" + coreConnectionsPerHost +
-                ", maxConnectionsPerHost=" + maxConnectionsPerHost +
-                ", maxRequestsPerConnection=" + maxRequestsPerConnection +
-                ", maxQueueSize=" + maxQueueSize +
-                ", readTimeoutMillis=" + readTimeoutMillis +
-                ", connectTimeoutMillis=" + connectTimeoutMillis +
-                ", poolTimeoutMillis=" + poolTimeoutMillis +
-                ", where='" + where + '\'' +
-                '}';
+        return "CassandraSourceConf{"
+                + "host='"
+                + host
+                + '\''
+                + ", port="
+                + port
+                + ", userName='"
+                + userName
+                + '\''
+                + ", password='"
+                + "*********"
+                + '\''
+                + ", tableName='"
+                + tableName
+                + '\''
+                + ", keyspaces='"
+                + keyspaces
+                + '\''
+                + ", hostDistance='"
+                + hostDistance
+                + '\''
+                + ", useSSL="
+                + useSSL
+                + ", clusterName='"
+                + clusterName
+                + '\''
+                + ", consistency='"
+                + consistency
+                + '\''
+                + ", coreConnectionsPerHost="
+                + coreConnectionsPerHost
+                + ", maxConnectionsPerHost="
+                + maxConnectionsPerHost
+                + ", maxRequestsPerConnection="
+                + maxRequestsPerConnection
+                + ", maxQueueSize="
+                + maxQueueSize
+                + ", readTimeoutMillis="
+                + readTimeoutMillis
+                + ", connectTimeoutMillis="
+                + connectTimeoutMillis
+                + ", poolTimeoutMillis="
+                + poolTimeoutMillis
+                + ", where='"
+                + where
+                + '\''
+                + '}';
     }
 }

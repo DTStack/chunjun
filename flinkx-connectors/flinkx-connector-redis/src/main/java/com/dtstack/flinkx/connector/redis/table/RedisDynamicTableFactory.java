@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.redis.table;
 
+import com.dtstack.flinkx.connector.redis.conf.RedisConf;
+import com.dtstack.flinkx.connector.redis.enums.RedisConnectType;
+import com.dtstack.flinkx.connector.redis.sink.RedisDynamicTableSink;
+import com.dtstack.flinkx.connector.redis.source.RedisDynamicTableSource;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -29,11 +35,6 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.CollectionUtil;
 
-import com.dtstack.flinkx.connector.redis.conf.RedisConf;
-import com.dtstack.flinkx.connector.redis.enums.RedisConnectType;
-import com.dtstack.flinkx.connector.redis.sink.RedisDynamicTableSink;
-import com.dtstack.flinkx.connector.redis.source.RedisDynamicTableSource;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 
@@ -67,8 +68,9 @@ import static org.apache.flink.table.factories.FactoryUtil.SINK_PARALLELISM;
  * @author chuixue
  * @create 2021-06-16 15:07
  * @description
- **/
-public class RedisDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+ */
+public class RedisDynamicTableFactory
+        implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     private static final String IDENTIFIER = "redis-x";
 
@@ -104,8 +106,7 @@ public class RedisDynamicTableFactory implements DynamicTableSourceFactory, Dyna
         return new RedisDynamicTableSource(
                 physicalSchema,
                 getRedisConf(config, physicalSchema),
-                getRedisLookupConf(config, context.getObjectIdentifier().getObjectName())
-        );
+                getRedisLookupConf(config, context.getObjectIdentifier().getObjectName()));
     }
 
     @Override
@@ -162,10 +163,7 @@ public class RedisDynamicTableFactory implements DynamicTableSourceFactory, Dyna
         redisConf.setMinIdle(config.get(MINIDLE));
         redisConf.setExpireTime(config.get(KEYEXPIREDTIME));
 
-        List<String> keyFields =
-                schema.getPrimaryKey()
-                        .map(pk -> pk.getColumns())
-                        .orElse(null);
+        List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
         redisConf.setUpdateKey(keyFields);
         return redisConf;
     }
@@ -186,9 +184,7 @@ public class RedisDynamicTableFactory implements DynamicTableSourceFactory, Dyna
 
     private void validateTableSchema(TableSchema physicalSchema) {
         List<String> keyFields =
-                physicalSchema.getPrimaryKey()
-                        .map(pk -> pk.getColumns())
-                        .orElse(null);
+                physicalSchema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
         Preconditions.checkState(
                 !CollectionUtil.isNullOrEmpty(keyFields),
                 "please declare primary key for redis sink table .");

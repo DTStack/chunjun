@@ -20,31 +20,24 @@ package com.dtstack.flinkx.connector.hdfs.enums;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Date: 2021/06/09
- * Company: www.dtstack.com
+ * Date: 2021/06/09 Company: www.dtstack.com
  *
  * @author tudou
  */
 public enum CompressType {
-    /**
-     * text file
-     */
+    /** text file */
     TEXT_GZIP("GZIP", "text", ".gz", 0.331F),
     TEXT_BZIP2("BZIP2", "text", ".bz2", 0.259F),
     TEXT_NONE("NONE", "text", "", 0.637F),
 
-    /**
-     * orc file
-     */
+    /** orc file */
     ORC_SNAPPY("SNAPPY", "orc", ".snappy", 0.233F),
     ORC_GZIP("GZIP", "orc", ".gz", 1.0F),
     ORC_BZIP("BZIP", "orc", ".bz", 1.0F),
     ORC_LZ4("LZ4", "orc", ".lz4", 1.0F),
     ORC_NONE("NONE", "orc", "", 0.233F),
 
-    /**
-     * parquet file
-     */
+    /** parquet file */
     PARQUET_SNAPPY("SNAPPY", "parquet", ".snappy", 0.274F),
     PARQUET_GZIP("GZIP", "parquet", ".gz", 1.0F),
     PARQUET_LZO("LZO", "parquet", ".lzo", 1.0F),
@@ -65,17 +58,18 @@ public enum CompressType {
         this.deviation = deviation;
     }
 
-    public static CompressType getByTypeAndFileType(String type, String fileType){
-        if(StringUtils.isEmpty(type)){
-            if("PARQUET".equalsIgnoreCase(fileType)){
+    public static CompressType getByTypeAndFileType(String type, String fileType) {
+        if (StringUtils.isEmpty(type)) {
+            if ("PARQUET".equalsIgnoreCase(fileType)) {
                 type = "SNAPPY";
-            }else{
+            } else {
                 type = "NONE";
             }
         }
 
         for (CompressType value : CompressType.values()) {
-            if (value.getType().equalsIgnoreCase(type) && value.getFileType().equalsIgnoreCase(fileType)){
+            if (value.getType().equalsIgnoreCase(type)
+                    && value.getFileType().equalsIgnoreCase(fileType)) {
                 return value;
             }
         }

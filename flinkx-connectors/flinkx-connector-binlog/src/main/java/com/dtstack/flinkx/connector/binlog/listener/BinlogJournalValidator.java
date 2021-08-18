@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.connector.binlog.listener;
 
-
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
 import org.slf4j.Logger;
@@ -28,9 +27,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class BinlogJournalValidator {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogJournalValidator.class);
@@ -56,17 +53,19 @@ public class BinlogJournalValidator {
 
     /**
      * 查找Binlog日志列表
+     *
      * @return
      */
     public List<String> listJournals() {
         List<String> journalList = new ArrayList<>();
-        MysqlConnection conn = new MysqlConnection(new InetSocketAddress(host, port), user, pass, (byte) 33, null);
+        MysqlConnection conn =
+                new MysqlConnection(new InetSocketAddress(host, port), user, pass, (byte) 33, null);
         try {
             conn.connect();
             ResultSetPacket resultSetPacket = conn.query("show binary logs");
             List<String> fieldValues = resultSetPacket.getFieldValues();
-            for(int i = 0; i < fieldValues.size(); ++i) {
-                if(i % 2 == 0) {
+            for (int i = 0; i < fieldValues.size(); ++i) {
+                if (i % 2 == 0) {
                     journalList.add(fieldValues.get(i));
                 }
             }
@@ -74,7 +73,7 @@ public class BinlogJournalValidator {
         } catch (IOException e) {
             LOG.error("Error occured: " + e.getMessage());
         } finally {
-            if(conn != null) {
+            if (conn != null) {
                 try {
                     conn.disconnect();
                 } catch (IOException e) {
@@ -84,5 +83,4 @@ public class BinlogJournalValidator {
         }
         return journalList;
     }
-
 }

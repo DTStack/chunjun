@@ -29,8 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Date: 2021/06/08
- * Company: www.dtstack.com
+ * Date: 2021/06/08 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -52,8 +51,7 @@ public class HdfsOrcInputSplit implements InputSplit {
     public OrcSplit getOrcSplit() throws IOException {
         ByteArrayInputStream bais = new ByteArrayInputStream(orcSplitData);
         DataInputStream dis = new DataInputStream(bais);
-        OrcSplit orcSplit = new OrcSplit(null, 0, 0, null, null
-                , false, false, new ArrayList<>());
+        OrcSplit orcSplit = new OrcSplit(null, 0, 0, null, null, false, false, new ArrayList<>());
         orcSplit.readFields(dis);
         bais.close();
         dis.close();

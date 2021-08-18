@@ -24,7 +24,6 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -69,6 +68,6 @@ public class Transaction implements Serializable {
     }
 
     public void removeLast() {
-        recordLogs.remove(recordLogs.size()-1);
+        recordLogs.remove(recordLogs.size() - 1);
     }
 }

@@ -19,7 +19,6 @@ package com.dtstack.flinkx.connector.hdfs.InputSplit;
 
 import org.apache.flink.core.io.InputSplit;
 
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileSplit;
 
 import java.io.ByteArrayInputStream;
@@ -29,17 +28,17 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * Date: 2021/06/08
- * Company: www.dtstack.com
+ * Date: 2021/06/08 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class HdfsTextInputSplit  implements InputSplit {
+public class HdfsTextInputSplit implements InputSplit {
     private static final long serialVersionUID = 1L;
     int splitNumber;
     byte[] textSplitData;
 
-    public HdfsTextInputSplit(org.apache.hadoop.mapred.InputSplit split, int splitNumber) throws IOException {
+    public HdfsTextInputSplit(org.apache.hadoop.mapred.InputSplit split, int splitNumber)
+            throws IOException {
         this.splitNumber = splitNumber;
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(stream);
@@ -52,7 +51,7 @@ public class HdfsTextInputSplit  implements InputSplit {
     public org.apache.hadoop.mapred.InputSplit getTextSplit() throws IOException {
         ByteArrayInputStream bais = new ByteArrayInputStream(textSplitData);
         DataInputStream dis = new DataInputStream(bais);
-        org.apache.hadoop.mapred.InputSplit split = new FileSplit(null, 0L, 0L, (String[])null);
+        org.apache.hadoop.mapred.InputSplit split = new FileSplit(null, 0L, 0L, (String[]) null);
         split.readFields(dis);
         bais.close();
         dis.close();

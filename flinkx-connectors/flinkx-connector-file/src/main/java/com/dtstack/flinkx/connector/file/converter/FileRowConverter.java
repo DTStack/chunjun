@@ -30,7 +30,6 @@ import org.apache.flink.table.types.logical.LogicalType;
  * @author: xiuzhu
  * @create: 2021/06/24
  */
-
 public class FileRowConverter extends AbstractRowConverter<String, String, String, LogicalType> {
 
     private DeserializationSchema<RowData> valueDeserialization;
@@ -48,6 +47,4 @@ public class FileRowConverter extends AbstractRowConverter<String, String, Strin
     public String toExternal(RowData rowData, String output) throws Exception {
         throw new FlinkxRuntimeException("Sink type conversion is not supported! ");
     }
-
-
 }

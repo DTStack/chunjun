@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.kudu.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.flinkx.connector.kudu.converter.KuduColumnConverter;
@@ -30,6 +26,11 @@ import com.dtstack.flinkx.connector.kudu.util.KuduUtil;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduScanToken;

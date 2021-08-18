@@ -21,6 +21,7 @@ package com.dtstack.flinkx.connector.kudu.sink;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 import com.dtstack.flinkx.throwable.NoRestartException;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**

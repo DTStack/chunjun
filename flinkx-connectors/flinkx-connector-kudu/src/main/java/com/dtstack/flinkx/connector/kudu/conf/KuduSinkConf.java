@@ -20,9 +20,9 @@ package com.dtstack.flinkx.connector.kudu.conf;
 
 import com.dtstack.flinkx.sink.WriteMode;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
 import org.apache.flink.configuration.ReadableConfig;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Locale;
 

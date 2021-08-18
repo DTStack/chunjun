@@ -22,8 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -128,16 +127,31 @@ public class TableInfo implements Serializable {
 
     @Override
     public String toString() {
-        return "TableInfo{" +
-                "columnNameList=" + columnNameList +
-                ", columnTypeList=" + columnTypeList +
-                ", createTableSql='" + createTableSql + '\'' +
-                ", tableName='" + tableName + '\'' +
-                ", tablePath='" + tablePath + '\'' +
-                ", path='" + path + '\'' +
-                ", store='" + store + '\'' +
-                ", delimiter='" + delimiter + '\'' +
-                ", partitionList=" + partitionList +
-                '}';
+        return "TableInfo{"
+                + "columnNameList="
+                + columnNameList
+                + ", columnTypeList="
+                + columnTypeList
+                + ", createTableSql='"
+                + createTableSql
+                + '\''
+                + ", tableName='"
+                + tableName
+                + '\''
+                + ", tablePath='"
+                + tablePath
+                + '\''
+                + ", path='"
+                + path
+                + '\''
+                + ", store='"
+                + store
+                + '\''
+                + ", delimiter='"
+                + delimiter
+                + '\''
+                + ", partitionList="
+                + partitionList
+                + '}';
     }
 }

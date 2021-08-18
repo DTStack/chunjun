@@ -18,17 +18,18 @@
 
 package com.dtstack.flinkx.connector.socket.inputformat;
 
-import org.apache.flink.core.io.GenericInputSplit;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.socket.client.DtSocketClient;
 import com.dtstack.flinkx.connector.socket.entity.SocketConfig;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
+import org.apache.flink.core.io.GenericInputSplit;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.concurrent.SynchronousQueue;

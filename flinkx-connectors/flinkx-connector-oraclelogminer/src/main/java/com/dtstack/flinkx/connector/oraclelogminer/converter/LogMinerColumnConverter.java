@@ -93,9 +93,9 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                 || Objects.isNull(metadata)
                 || beforeColumnList.size() != converters.length
                 || !beforeColumnList.stream()
-                .map(EventRowData::getName)
-                .collect(Collectors.toCollection(HashSet::new))
-                .containsAll(metadata.getFieldList())) {
+                        .map(EventRowData::getName)
+                        .collect(Collectors.toCollection(HashSet::new))
+                        .containsAll(metadata.getFieldList())) {
             Pair<List<String>, List<String>> latestMetaData =
                     JdbcUtil.getTableMetaData(schema, table, connection);
             converters =

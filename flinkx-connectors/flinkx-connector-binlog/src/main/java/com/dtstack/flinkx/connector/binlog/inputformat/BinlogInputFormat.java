@@ -17,14 +17,6 @@
  */
 package com.dtstack.flinkx.connector.binlog.inputformat;
 
-import org.apache.flink.core.io.GenericInputSplit;
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-
-import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
-import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
-import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
-import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogAlarmHandler;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogEventSink;
@@ -37,6 +29,15 @@ import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.util.ClassUtil;
+
+import org.apache.flink.core.io.GenericInputSplit;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+
+import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
+import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
+import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;

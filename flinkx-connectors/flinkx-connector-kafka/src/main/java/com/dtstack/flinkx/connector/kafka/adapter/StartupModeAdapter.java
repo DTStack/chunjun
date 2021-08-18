@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.connector.kafka.adapter;
 
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
+
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -29,20 +30,23 @@ import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 
 /**
- * Date: 2021/02/19
- * Company: www.dtstack.com
+ * Date: 2021/02/19 Company: www.dtstack.com
  *
  * @author tudou
  */
-public class StartupModeAdapter implements JsonSerializer<StartupMode>, JsonDeserializer<StartupMode> {
+public class StartupModeAdapter
+        implements JsonSerializer<StartupMode>, JsonDeserializer<StartupMode> {
 
     @Override
-    public JsonElement serialize(StartupMode src, Type typeOfSrc, JsonSerializationContext context){
+    public JsonElement serialize(
+            StartupMode src, Type typeOfSrc, JsonSerializationContext context) {
         return new JsonPrimitive(src.name);
     }
 
     @Override
-    public StartupMode deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public StartupMode deserialize(
+            JsonElement json, Type typeOfT, JsonDeserializationContext context)
+            throws JsonParseException {
         return StartupMode.getFromName(json.getAsString());
     }
 }

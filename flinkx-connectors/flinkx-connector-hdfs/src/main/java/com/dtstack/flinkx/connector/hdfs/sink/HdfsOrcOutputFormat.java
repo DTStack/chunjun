@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.connector.hdfs.sink;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsOrcColumnConverter;
 import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
@@ -32,6 +30,9 @@ import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
+
+import org.apache.flink.table.data.RowData;
+
 import com.google.common.collect.Maps;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;

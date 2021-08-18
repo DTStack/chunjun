@@ -21,15 +21,19 @@ package com.dtstack.flinkx.connector.redis.enums;
 /**
  * Operation type of redis database
  *
- * @author jiangbo
- * @Company: www.dtstack.com
+ * @author jiangbo @Company: www.dtstack.com
  */
 public enum RedisDataMode {
 
     /** reader mode */
 
     /** write mode */
-    SET("set"), L_PUSH("lpush"), R_PUSH("rpush"), S_ADD("sadd"), Z_ADD("zadd"), H_SET("hset");
+    SET("set"),
+    L_PUSH("lpush"),
+    R_PUSH("rpush"),
+    S_ADD("sadd"),
+    Z_ADD("zadd"),
+    H_SET("hset");
 
     public String mode;
 

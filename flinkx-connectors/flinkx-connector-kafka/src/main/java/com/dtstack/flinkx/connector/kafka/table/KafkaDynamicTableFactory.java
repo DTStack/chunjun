@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.kafka.table;
 
+import com.dtstack.flinkx.connector.kafka.sink.KafkaDynamicSink;
+import com.dtstack.flinkx.connector.kafka.source.KafkaDynamicSource;
+import com.dtstack.flinkx.connector.kafka.util.KafkaUtil;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.ConfigOption;
@@ -45,10 +49,6 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.factories.SerializationFormatFactory;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.RowKind;
-
-import com.dtstack.flinkx.connector.kafka.sink.KafkaDynamicSink;
-import com.dtstack.flinkx.connector.kafka.source.KafkaDynamicSource;
-import com.dtstack.flinkx.connector.kafka.util.KafkaUtil;
 
 import javax.annotation.Nullable;
 
@@ -91,8 +91,9 @@ import static org.apache.flink.table.factories.FactoryUtil.SINK_PARALLELISM;
  * @author chuixue
  * @create 2021-04-06 19:29
  * @description
- **/
-public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+ */
+public class KafkaDynamicTableFactory
+        implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     public static final String IDENTIFIER = "kafka-x";
 
@@ -133,7 +134,8 @@ public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, Dyna
 
     @Override
     public DynamicTableSource createDynamicTableSource(Context context) {
-        final FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
 
         final ReadableConfig tableOptions = helper.getOptions();
 
@@ -152,7 +154,8 @@ public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, Dyna
 
         final KafkaOptions.StartupOptions startupOptions = getStartupOptions(tableOptions);
 
-        final Properties properties = KafkaUtil.getKafkaProperties(context.getCatalogTable().getOptions());
+        final Properties properties =
+                KafkaUtil.getKafkaProperties(context.getCatalogTable().getOptions());
 
         // add topic-partition discovery
         properties.setProperty(
@@ -192,7 +195,8 @@ public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, Dyna
 
     @Override
     public DynamicTableSink createDynamicTableSink(Context context) {
-        final FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
 
         final ReadableConfig tableOptions = helper.getOptions();
 
@@ -276,7 +280,7 @@ public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, Dyna
     private static DecodingFormat<DeserializationSchema<RowData>> getValueDecodingFormat(
             FactoryUtil.TableFactoryHelper helper) {
         return helper.discoverOptionalDecodingFormat(
-                DeserializationFormatFactory.class, FactoryUtil.FORMAT)
+                        DeserializationFormatFactory.class, FactoryUtil.FORMAT)
                 .orElseGet(
                         () ->
                                 helper.discoverDecodingFormat(
@@ -286,7 +290,7 @@ public class KafkaDynamicTableFactory implements DynamicTableSourceFactory, Dyna
     private static EncodingFormat<SerializationSchema<RowData>> getValueEncodingFormat(
             FactoryUtil.TableFactoryHelper helper) {
         return helper.discoverOptionalEncodingFormat(
-                SerializationFormatFactory.class, FactoryUtil.FORMAT)
+                        SerializationFormatFactory.class, FactoryUtil.FORMAT)
                 .orElseGet(
                         () ->
                                 helper.discoverEncodingFormat(

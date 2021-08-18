@@ -27,6 +27,7 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.MapUtil;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
 import com.dtstack.flinkx.util.StringUtil;
+
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import org.apache.commons.collections.CollectionUtils;
@@ -54,13 +55,10 @@ public class DefaultRestHandler implements RestHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRestHandler.class);
 
-    /**
-     * match number
-     */
+    /** match number */
     public static Pattern p = Pattern.compile("(?<!\\d)-?\\d+(\\.\\d+)?|[+\\-]");
 
-    public static  final Gson gson = GsonUtil.setTypeAdapter(new Gson());
-
+    public static final Gson gson = GsonUtil.setTypeAdapter(new Gson());
 
     @Override
     public Strategy chooseStrategy(
@@ -70,54 +68,77 @@ public class DefaultRestHandler implements RestHandler {
             HttpRequestParam httpRequestParam,
             List<MetaParam> metaParams) {
 
-
-        //origin param converter to  HttpRequestParam
+        // origin param converter to  HttpRequestParam
         HttpRequestParam originParam = new HttpRequestParam();
-        metaParams.forEach(i -> {
-            originParam.putValue(i, restConfig.getFieldDelimiter(), i);
-        });
+        metaParams.forEach(
+                i -> {
+                    originParam.putValue(i, restConfig.getFieldDelimiter(), i);
+                });
 
-        return strategies.stream().filter(i -> {
-            MetaParam metaParam = new MetaParam();
-            //Strategy里指定的动态变量不知道是不是嵌套的
-            metaParam.setNest(null);
-            //key一定是一个动态变量且不是内置变量
-            if (!MetaparamUtils.isDynamic(i.getKey()) && !MetaparamUtils.isInnerParam(i.getKey())) {
-                throw new IllegalArgumentException(
-                        "strategy key " + i.getKey() + " is error,we just support ${response.},${param.},${body.}");
-            }
+        return strategies.stream()
+                .filter(
+                        i -> {
+                            MetaParam metaParam = new MetaParam();
+                            // Strategy里指定的动态变量不知道是不是嵌套的
+                            metaParam.setNest(null);
+                            // key一定是一个动态变量且不是内置变量
+                            if (!MetaparamUtils.isDynamic(i.getKey())
+                                    && !MetaparamUtils.isInnerParam(i.getKey())) {
+                                throw new IllegalArgumentException(
+                                        "strategy key "
+                                                + i.getKey()
+                                                + " is error,we just support ${response.},${param.},${body.}");
+                            }
 
-            HttpRequestParam copy = HttpRequestParam.copy(httpRequestParam);
+                            HttpRequestParam copy = HttpRequestParam.copy(httpRequestParam);
 
-            metaParam.setKey(snowflakeIdWorker.nextId() + "");
-            metaParam.setValue(i.getKey());
-            //指定一个类别
-            metaParam.setParamType(ParamType.BODY);
+                            metaParam.setKey(snowflakeIdWorker.nextId() + "");
+                            metaParam.setValue(i.getKey());
+                            // 指定一个类别
+                            metaParam.setParamType(ParamType.BODY);
 
-            Object object = getValue(metaParam, originParam, null, responseValue, restConfig, true, copy);
+                            Object object =
+                                    getValue(
+                                            metaParam,
+                                            originParam,
+                                            null,
+                                            responseValue,
+                                            restConfig,
+                                            true,
+                                            copy);
 
-            String value = i.getValue();
-            //value可以是内置变量
-            if (MetaparamUtils.isDynamic(i.getValue())) {
-                metaParam.setKey(snowflakeIdWorker.nextId() + "");
-                metaParam.setValue(i.getValue());
-                value = getValue(metaParam, originParam, null, responseValue, restConfig, true, copy).toString();
-            }
-            if (object.toString().equals(value)) {
-                LOG.info(
-                        "select a Strategy, key {}  value is {} ,key {} value is {} ,responseValue is {} ,httpRequestParam {}",
-                        i.getKey(),
-                        object.toString(),
-                        i.getValue(),
-                        value,
-                        GsonUtil.GSON.toJson(responseValue),
-                        httpRequestParam.toString());
-                return true;
-            } else {
-                return false;
-            }
-        }).findFirst().orElse(null);
-
+                            String value = i.getValue();
+                            // value可以是内置变量
+                            if (MetaparamUtils.isDynamic(i.getValue())) {
+                                metaParam.setKey(snowflakeIdWorker.nextId() + "");
+                                metaParam.setValue(i.getValue());
+                                value =
+                                        getValue(
+                                                        metaParam,
+                                                        originParam,
+                                                        null,
+                                                        responseValue,
+                                                        restConfig,
+                                                        true,
+                                                        copy)
+                                                .toString();
+                            }
+                            if (object.toString().equals(value)) {
+                                LOG.info(
+                                        "select a Strategy, key {}  value is {} ,key {} value is {} ,responseValue is {} ,httpRequestParam {}",
+                                        i.getKey(),
+                                        object.toString(),
+                                        i.getValue(),
+                                        value,
+                                        GsonUtil.GSON.toJson(responseValue),
+                                        httpRequestParam.toString());
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        })
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -144,13 +165,9 @@ public class DefaultRestHandler implements RestHandler {
 
     @Override
     public ResponseValue buildResponseValue(
-            String decode,
-            String responseValue,
-            String fields,
-            HttpRequestParam requestParam) {
+            String decode, String responseValue, String fields, HttpRequestParam requestParam) {
         return new ResponseValue(responseValue, requestParam, responseValue);
     }
-
 
     /**
      * 根据指定的key 构建一个新的response
@@ -164,15 +181,17 @@ public class DefaultRestHandler implements RestHandler {
         for (String key : fields) {
             filedValue.put(
                     key,
-                    MapUtil.getValueByKey(map, key, com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL));
+                    MapUtil.getValueByKey(
+                            map, key, com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL));
         }
         HashMap<String, Object> data = new HashMap<>();
-        filedValue.forEach((k, v) -> {
-            MapUtil.buildMap(k, com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL, v, data);
-        });
+        filedValue.forEach(
+                (k, v) -> {
+                    MapUtil.buildMap(
+                            k, com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL, v, data);
+                });
         return data;
     }
-
 
     /**
      * @param originalParamList 原始param配置
@@ -194,25 +213,31 @@ public class DefaultRestHandler implements RestHandler {
             boolean first,
             HttpRequestParam currentParam) {
 
-        ArrayList<MetaParam> metaParams = new ArrayList<>(
-                originalParamList.size() + originalHeaderList.size() + originBodyList.size());
+        ArrayList<MetaParam> metaParams =
+                new ArrayList<>(
+                        originalParamList.size()
+                                + originalHeaderList.size()
+                                + originBodyList.size());
         metaParams.addAll(originalParamList);
         metaParams.addAll(originalHeaderList);
         metaParams.addAll(originBodyList);
 
         HttpRequestParam originParam = new HttpRequestParam();
-        metaParams.forEach(i -> {
-            originParam.putValue(i, restConfig.getFieldDelimiter(), i);
-        });
-        //对header param header 参数解析，获取最终的值
-        metaParams.forEach(i -> getValue(
-                i,
-                originParam,
-                prevRequestParam,
-                prevResponseValue,
-                restConfig,
-                first,
-                currentParam));
+        metaParams.forEach(
+                i -> {
+                    originParam.putValue(i, restConfig.getFieldDelimiter(), i);
+                });
+        // 对header param header 参数解析，获取最终的值
+        metaParams.forEach(
+                i ->
+                        getValue(
+                                i,
+                                originParam,
+                                prevRequestParam,
+                                prevResponseValue,
+                                restConfig,
+                                first,
+                                currentParam));
     }
 
     /**
@@ -223,7 +248,6 @@ public class DefaultRestHandler implements RestHandler {
      * @param restConfig 请求的相关配置
      * @param first 是否是第一次 影响后续取value还是nextValue
      * @param currentParam 当前请求参数
-     *
      * @return 返回 metaParam 解析后的最终值
      */
     public Object getValue(
@@ -235,63 +259,71 @@ public class DefaultRestHandler implements RestHandler {
             boolean first,
             HttpRequestParam currentParam) {
 
-        //根据是否是第一次 获取对应的值 value 还是nextValue
+        // 根据是否是第一次 获取对应的值 value 还是nextValue
         String value = metaParam.getActualValue(first);
 
         String actualValue;
 
-        //如果已经加载过了 直接获取返回即可
+        // 如果已经加载过了 直接获取返回即可
         if (currentParam.containsKey(metaParam, restConfig.getFieldDelimiter())) {
             return currentParam.getValue(metaParam, restConfig.getFieldDelimiter());
         }
 
         List<Pair<MetaParam, String>> variableValues = new ArrayList<>();
 
-        //获取 value 里关联到的所有动态变量
-        List<MetaParam> metaParams = MetaparamUtils.getValueOfMetaParams(
-                value,
-                metaParam.getNest(),
-                restConfig,
-                originParam);
+        // 获取 value 里关联到的所有动态变量
+        List<MetaParam> metaParams =
+                MetaparamUtils.getValueOfMetaParams(
+                        value, metaParam.getNest(), restConfig, originParam);
 
-        //对变量 按照内置变量还是其他变量分类  因为内置变量 currentTime intervalTime uuid 其实都是常量
+        // 对变量 按照内置变量还是其他变量分类  因为内置变量 currentTime intervalTime uuid 其实都是常量
         if (CollectionUtils.isNotEmpty(metaParams)) {
-            metaParams.forEach(i -> {
-                String variableValue;
-                if (i.getParamType().equals(ParamType.INNER)) {
-                    variableValue = i.getValue();
-                } else if (i.getParamType().equals(ParamType.RESPONSE)) {
-                    //根据 返回值获取对应的值 response仍然是按照.进行切割的
-                    variableValue = MapUtil
-                            .getValueByKey(prevResponseValue,
-                                    i.getKey(),
-                                    com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL)
-                            .toString();
-                } else {
-                    //如果变量指向的是自己，那么就获取当前变量在上一次请求的值
-                    if (i.getKey().equals(metaParam.getKey())) {
-                        variableValue = prevRequestParam
-                                .getValue(i, metaParam.getNest() ? restConfig.getFieldDelimiter() : null)
-                                .toString();
-                    } else {
-                        //如果是其他变量 就进行递归查找
-                        variableValue = getValue(
-                                i,
-                                originParam,
-                                prevRequestParam,
-                                prevResponseValue,
-                                restConfig,
-                                first,
-                                currentParam).toString();
-                    }
-                }
-                variableValues.add(Pair.of(i, variableValue));
-            });
+            metaParams.forEach(
+                    i -> {
+                        String variableValue;
+                        if (i.getParamType().equals(ParamType.INNER)) {
+                            variableValue = i.getValue();
+                        } else if (i.getParamType().equals(ParamType.RESPONSE)) {
+                            // 根据 返回值获取对应的值 response仍然是按照.进行切割的
+                            variableValue =
+                                    MapUtil.getValueByKey(
+                                                    prevResponseValue,
+                                                    i.getKey(),
+                                                    com.dtstack.flinkx.constants.ConstantValue
+                                                            .POINT_SYMBOL)
+                                            .toString();
+                        } else {
+                            // 如果变量指向的是自己，那么就获取当前变量在上一次请求的值
+                            if (i.getKey().equals(metaParam.getKey())) {
+                                variableValue =
+                                        prevRequestParam
+                                                .getValue(
+                                                        i,
+                                                        metaParam.getNest()
+                                                                ? restConfig.getFieldDelimiter()
+                                                                : null)
+                                                .toString();
+                            } else {
+                                // 如果是其他变量 就进行递归查找
+                                variableValue =
+                                        getValue(
+                                                        i,
+                                                        originParam,
+                                                        prevRequestParam,
+                                                        prevResponseValue,
+                                                        restConfig,
+                                                        first,
+                                                        currentParam)
+                                                .toString();
+                            }
+                        }
+                        variableValues.add(Pair.of(i, variableValue));
+                    });
 
             actualValue = calculateValue(metaParam, variableValues, first);
 
         } else {
-            //如果没有变量 就是常量
+            // 如果没有变量 就是常量
             actualValue = getData(value, metaParam);
         }
 
@@ -306,44 +338,47 @@ public class DefaultRestHandler implements RestHandler {
      * @param variableValues 关联的其他动态参数和对应的值
      * @param first 是否是第一次
      */
-    private BigDecimal getNumber(MetaParam metaParam, List<Pair<MetaParam, String>> variableValues, boolean first) {
+    private BigDecimal getNumber(
+            MetaParam metaParam, List<Pair<MetaParam, String>> variableValues, boolean first) {
 
-        //只支持一次加减 所以出现2个以上的动态变量是不符合要求的
+        // 只支持一次加减 所以出现2个以上的动态变量是不符合要求的
         if (variableValues.size() > 2) {
             return null;
         }
 
         AtomicReference<String> value = new AtomicReference<>(metaParam.getActualValue(first));
 
-        //-------  简单校验表达式是否符合a+-b的格式 -------------
-        //a+-b 则表达式的长度至少是变量的长度加上运算符以及另一个计算变量的长度 所以表达式长度 > 变量长度+运算符长度
+        // -------  简单校验表达式是否符合a+-b的格式 -------------
+        // a+-b 则表达式的长度至少是变量的长度加上运算符以及另一个计算变量的长度 所以表达式长度 > 变量长度+运算符长度
         if (variableValues.size() == 1
-                && value.get().length() > variableValues.get(0).getLeft().getVariableName().length() + 1) {
+                && value.get().length()
+                        > variableValues.get(0).getLeft().getVariableName().length() + 1) {
             HashSet<Character> characters = Sets.newHashSet('+', '-');
             String key = variableValues.get(0).getLeft().getVariableName();
-            //不是a+-b的都不符合要求
-            if (value.get().startsWith(key) && !characters.contains(value.get().charAt(key.length()))) {
+            // 不是a+-b的都不符合要求
+            if (value.get().startsWith(key)
+                    && !characters.contains(value.get().charAt(key.length()))) {
                 return null;
-            } else if (value.get().endsWith(key) && !characters.contains(value
-                    .get()
-                    .charAt(value.get().length() - key.length() - 1))) {
+            } else if (value.get().endsWith(key)
+                    && !characters.contains(
+                            value.get().charAt(value.get().length() - key.length() - 1))) {
                 return null;
             }
         } else if (variableValues.size() == 2) {
-            List<String> strings = variableValues
-                    .stream()
-                    .map(i -> i.getLeft().getVariableName())
-                    .collect(Collectors.toList());
-            //是不是a+-b的格式
-            if (!Sets
-                    .newHashSet(strings.get(0) + "+" + strings.get(1), strings.get(0) + "-" + strings.get(1))
+            List<String> strings =
+                    variableValues.stream()
+                            .map(i -> i.getLeft().getVariableName())
+                            .collect(Collectors.toList());
+            // 是不是a+-b的格式
+            if (!Sets.newHashSet(
+                            strings.get(0) + "+" + strings.get(1),
+                            strings.get(0) + "-" + strings.get(1))
                     .contains(value.get())) {
                 return null;
             }
         } else {
             return null;
         }
-
 
         try {
             BigDecimal decimal;
@@ -356,47 +391,59 @@ public class DefaultRestHandler implements RestHandler {
                     return null;
                 }
 
-                //如果是数字类型就直接替换
+                // 如果是数字类型就直接替换
                 if (NumberUtils.isNumber(right)) {
-                    value.set(value
-                            .get()
-                            .replaceFirst(
-                                    StringUtil.escapeExprSpecialWord(key),
-                                    NumberUtils.createBigDecimal(right).toPlainString()));
-                } else {
-
-                    //不是数字格式，就默认为是日期格式， 先是left解析  然后是 metaParam的去解析 然后是 默认的去解析，如果format解析失败 就直接返回null，当做字符串去拼接
-                    if (Objects.nonNull(left.getTimeFormat())) {
-                        try {
-                            value.set(value
-                                    .get()
+                    value.set(
+                            value.get()
                                     .replaceFirst(
                                             StringUtil.escapeExprSpecialWord(key),
-                                            left.getTimeFormat().parse(right).getTime() + ""));
+                                            NumberUtils.createBigDecimal(right).toPlainString()));
+                } else {
+
+                    // 不是数字格式，就默认为是日期格式， 先是left解析  然后是 metaParam的去解析 然后是 默认的去解析，如果format解析失败
+                    // 就直接返回null，当做字符串去拼接
+                    if (Objects.nonNull(left.getTimeFormat())) {
+                        try {
+                            value.set(
+                                    value.get()
+                                            .replaceFirst(
+                                                    StringUtil.escapeExprSpecialWord(key),
+                                                    left.getTimeFormat().parse(right).getTime()
+                                                            + ""));
                         } catch (ParseException e) {
-                            LOG.info(left.getTimeFormat().toPattern() + " parse " + right + " failed,error info: "
-                                    + ExceptionUtil.getErrorMessage(e));
+                            LOG.info(
+                                    left.getTimeFormat().toPattern()
+                                            + " parse "
+                                            + right
+                                            + " failed,error info: "
+                                            + ExceptionUtil.getErrorMessage(e));
                         }
                     }
 
                     try {
-                        value.set(value
-                                .get()
-                                .replaceFirst(
-                                        StringUtil.escapeExprSpecialWord(key),
-                                        DateUtil.stringToDate(right, metaParam.getTimeFormat()).getTime() + ""));
+                        value.set(
+                                value.get()
+                                        .replaceFirst(
+                                                StringUtil.escapeExprSpecialWord(key),
+                                                DateUtil.stringToDate(
+                                                                        right,
+                                                                        metaParam.getTimeFormat())
+                                                                .getTime()
+                                                        + ""));
                     } catch (RuntimeException e1) {
-                        LOG.info("parse " + right + " failed,error info " + ExceptionUtil.getErrorMessage(e1));
+                        LOG.info(
+                                "parse "
+                                        + right
+                                        + " failed,error info "
+                                        + ExceptionUtil.getErrorMessage(e1));
                         return null;
                     }
                 }
-
             }
-
 
             String s = value.get();
 
-            //判断是否只有+-以及数字 且长度大于3（a+b最小是3）
+            // 判断是否只有+-以及数字 且长度大于3（a+b最小是3）
             if (!p.matcher(s).find() || s.length() < 3) {
                 return null;
             }
@@ -412,7 +459,7 @@ public class DefaultRestHandler implements RestHandler {
                 b = s.substring(i + 1);
             } else {
                 operation = "-";
-                //从第一个字符开始找到第一个操作符的位置，防止第一位就是-，代表负数
+                // 从第一个字符开始找到第一个操作符的位置，防止第一位就是-，代表负数
                 int i = StringUtils.indexOfIgnoreCase(s, "-", 1);
                 a = s.substring(0, i);
                 b = s.substring(i + 1);
@@ -443,17 +490,18 @@ public class DefaultRestHandler implements RestHandler {
      * @param metaParam 需要计算的metaParam
      * @param variableValues metaParam关联的变量以及变量对应的值
      * @param first 是否是第一次请求
-     *
      * @return metaParam对应的值
      */
-    public String calculateValue(MetaParam metaParam, List<Pair<MetaParam, String>> variableValues, boolean first) {
+    public String calculateValue(
+            MetaParam metaParam, List<Pair<MetaParam, String>> variableValues, boolean first) {
         String value;
         if (CollectionUtils.isNotEmpty(variableValues)) {
-            if (variableValues.size() == 1 && variableValues
-                    .get(0)
-                    .getLeft()
-                    .getVariableName()
-                    .equals(metaParam.getActualValue(first))) {
+            if (variableValues.size() == 1
+                    && variableValues
+                            .get(0)
+                            .getLeft()
+                            .getVariableName()
+                            .equals(metaParam.getActualValue(first))) {
                 value = variableValues.get(0).getRight();
             } else {
                 BigDecimal o = getNumber(metaParam, variableValues, first);
@@ -464,12 +512,11 @@ public class DefaultRestHandler implements RestHandler {
                 }
             }
         } else {
-            //没有变量 就只是一个简单的字符串常量 这儿是进不来的 因为此方法是在 variableValues 不为空场景下才会调用的
+            // 没有变量 就只是一个简单的字符串常量 这儿是进不来的 因为此方法是在 variableValues 不为空场景下才会调用的
             value = metaParam.getActualValue(first);
         }
         return getData(value, metaParam);
     }
-
 
     /**
      * 将metaParam转为的表达式 通过各个变量的字符串替换获取最终的值
@@ -477,28 +524,26 @@ public class DefaultRestHandler implements RestHandler {
      * @param metaParam 需要解析的参数 metaParam
      * @param variableValues metaParam管理的各个变量以及其对应的值
      * @param first 是否是第一次请求
-     *
      * @return metaParam的值
      */
-    private String getString(MetaParam metaParam, List<Pair<MetaParam, String>> variableValues, boolean first) {
+    private String getString(
+            MetaParam metaParam, List<Pair<MetaParam, String>> variableValues, boolean first) {
 
         String value = metaParam.getActualValue(first);
         for (Pair<MetaParam, String> pair : variableValues) {
-            value = value.replaceFirst(
-                    StringUtil.escapeExprSpecialWord(pair.getLeft().getVariableName()),
-                    pair.getRight());
+            value =
+                    value.replaceFirst(
+                            StringUtil.escapeExprSpecialWord(pair.getLeft().getVariableName()),
+                            pair.getRight());
         }
         return value;
     }
 
-
     /**
-     * 如果value是动态计算并且要求输出的格式是date格式 则format是必须要设置的，
-     * 否则计算出来的结果不是format格式的 而是时间戳格式
+     * 如果value是动态计算并且要求输出的格式是date格式 则format是必须要设置的， 否则计算出来的结果不是format格式的 而是时间戳格式
      *
      * @param value metaParam计算出来的尚未格式化的值
      * @param metaParam 变量metaParam
-     *
      * @return metaParam最终的值
      */
     public String getData(String value, MetaParam metaParam) {
@@ -513,7 +558,10 @@ public class DefaultRestHandler implements RestHandler {
                     data = metaParam.getTimeFormat().format(metaParam.getTimeFormat().parse(value));
                 } catch (ParseException e1) {
                     throw new RuntimeException(
-                            metaParam.getTimeFormat().toPattern() + "parse data[" + value + "] error",
+                            metaParam.getTimeFormat().toPattern()
+                                    + "parse data["
+                                    + value
+                                    + "] error",
                             e);
                 }
             }

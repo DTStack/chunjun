@@ -25,32 +25,24 @@ package com.dtstack.flinkx.connector.restapi.client;
  */
 public class ResponseValue {
 
-    /**
-     * 本次请求状态
-     * -1 不正常，代表出现了异常
-     * 0  代表结束任务 strategy 出现了stop
-     * 1  代表任务正常
-     **/
+    /** 本次请求状态 -1 不正常，代表出现了异常 0 代表结束任务 strategy 出现了stop 1 代表任务正常 */
     private int status;
-    /**
-     * 返回值
-     **/
+    /** 返回值 */
     private String data;
-    /**
-     * 如果是异常数据 这个是异常数据
-     **/
+    /** 如果是异常数据 这个是异常数据 */
     private String errorMsg;
-    /**
-     * 请求参数
-     **/
+    /** 请求参数 */
     private HttpRequestParam requestParam;
 
-    /**
-     * 原始的返回值
-     **/
+    /** 原始的返回值 */
     private String originResponseValue;
 
-    public ResponseValue(int status, String data, String errorMsg,HttpRequestParam requestParam, String originResponseValue) {
+    public ResponseValue(
+            int status,
+            String data,
+            String errorMsg,
+            HttpRequestParam requestParam,
+            String originResponseValue) {
         this.status = status;
         this.data = data;
         this.errorMsg = errorMsg;
@@ -86,7 +78,6 @@ public class ResponseValue {
         this.errorMsg = errorMsg;
     }
 
-
     public HttpRequestParam getRequestParam() {
         return requestParam;
     }
@@ -105,12 +96,20 @@ public class ResponseValue {
 
     @Override
     public String toString() {
-        return "ResponseValue{" +
-                "status=" + status +
-                ", data='" + data + '\'' +
-                ", errorMsg='" + errorMsg + '\'' +
-                ", requestParam=" + requestParam +
-                ", originResponseValue='" + originResponseValue + '\'' +
-                '}';
+        return "ResponseValue{"
+                + "status="
+                + status
+                + ", data='"
+                + data
+                + '\''
+                + ", errorMsg='"
+                + errorMsg
+                + '\''
+                + ", requestParam="
+                + requestParam
+                + ", originResponseValue='"
+                + originResponseValue
+                + '\''
+                + '}';
     }
 }

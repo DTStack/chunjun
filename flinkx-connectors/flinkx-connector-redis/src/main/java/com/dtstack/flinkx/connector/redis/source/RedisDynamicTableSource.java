@@ -39,14 +39,15 @@ import org.apache.flink.util.Preconditions;
  * @author chuixue
  * @create 2021-06-21 19:08
  * @description
- **/
+ */
 public class RedisDynamicTableSource implements LookupTableSource, SupportsProjectionPushDown {
 
     protected TableSchema physicalSchema;
     protected final RedisConf redisConf;
     protected final LookupConf lookupConf;
 
-    public RedisDynamicTableSource(TableSchema physicalSchema, RedisConf redisConf, LookupConf lookupConf) {
+    public RedisDynamicTableSource(
+            TableSchema physicalSchema, RedisConf redisConf, LookupConf lookupConf) {
         this.physicalSchema = physicalSchema;
         this.redisConf = redisConf;
         this.lookupConf = lookupConf;
@@ -66,11 +67,8 @@ public class RedisDynamicTableSource implements LookupTableSource, SupportsProje
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return ParallelAsyncTableFunctionProvider.of(
                     new RedisLruTableFunction(
-                            redisConf,
-                            lookupConf,
-                            new RedisRowConverter(rowType)),
+                            redisConf, lookupConf, new RedisRowConverter(rowType)),
                     lookupConf.getParallelism());
-
         }
         return ParallelTableFunctionProvider.of(
                 new RedisAllTableFunction(

@@ -30,7 +30,6 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 
@@ -50,8 +49,7 @@ import java.util.Map;
  * @author wuren
  * @program flinkx
  * @create 2021/04/30
- *
- **/
+ */
 public class HBaseColumnConverter extends AbstractRowConverter<RowData, RowData, Object, String> {
 
     private List<String> ColumnNameList;
@@ -63,11 +61,13 @@ public class HBaseColumnConverter extends AbstractRowConverter<RowData, RowData,
             String type = fieldConfList.get(i).getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
             int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
-            if (left > 0 && right > 0){
+            if (left > 0 && right > 0) {
                 type = type.substring(0, left);
             }
-            toInternalConverters[i] = wrapIntoNullableInternalConverter(createInternalConverter(type));
-            toExternalConverters[i] = wrapIntoNullableExternalConverter(createExternalConverter(type), type);
+            toInternalConverters[i] =
+                    wrapIntoNullableInternalConverter(createInternalConverter(type));
+            toExternalConverters[i] =
+                    wrapIntoNullableExternalConverter(createExternalConverter(type), type);
         }
     }
 
@@ -75,13 +75,16 @@ public class HBaseColumnConverter extends AbstractRowConverter<RowData, RowData,
     @SuppressWarnings("unchecked")
     public RowData toInternal(RowData input) throws Exception {
         GenericRowData row = new GenericRowData(input.getArity());
-        if(input instanceof GenericRowData){
+        if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
                 row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
             }
-        }else{
-            throw new FlinkxRuntimeException("Error RowData type, RowData:[" + input + "] should be instance of GenericRowData.");
+        } else {
+            throw new FlinkxRuntimeException(
+                    "Error RowData type, RowData:["
+                            + input
+                            + "] should be instance of GenericRowData.");
         }
         return row;
     }
@@ -106,7 +109,8 @@ public class HBaseColumnConverter extends AbstractRowConverter<RowData, RowData,
 
     @Override
     @SuppressWarnings("unchecked")
-    protected ISerializationConverter<Object[]> wrapIntoNullableExternalConverter(ISerializationConverter serializationConverter, String type) {
+    protected ISerializationConverter<Object[]> wrapIntoNullableExternalConverter(
+            ISerializationConverter serializationConverter, String type) {
         return (rowData, index, data) -> {
             if (rowData == null || rowData.isNullAt(index)) {
                 data[index] = null;
@@ -123,53 +127,64 @@ public class HBaseColumnConverter extends AbstractRowConverter<RowData, RowData,
             case "BOOLEAN":
                 return (IDeserializationConverter<Boolean, AbstractBaseColumn>) BooleanColumn::new;
             case "TINYINT":
-                return (IDeserializationConverter<Byte, AbstractBaseColumn>) val -> new BigDecimalColumn(val.toString());
+                return (IDeserializationConverter<Byte, AbstractBaseColumn>)
+                        val -> new BigDecimalColumn(val.toString());
             case "SMALLINT":
-                return (IDeserializationConverter<Short, AbstractBaseColumn>) val -> new BigDecimalColumn(val.toString());
+                return (IDeserializationConverter<Short, AbstractBaseColumn>)
+                        val -> new BigDecimalColumn(val.toString());
             case "INT":
             case "INTEGER":
-                return (IDeserializationConverter<Integer, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<Integer, AbstractBaseColumn>)
+                        BigDecimalColumn::new;
             case "BIGINT":
                 return (IDeserializationConverter<Long, AbstractBaseColumn>) BigDecimalColumn::new;
             case "FLOAT":
                 return (IDeserializationConverter<Float, AbstractBaseColumn>) BigDecimalColumn::new;
             case "DOUBLE":
-                return (IDeserializationConverter<Double, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<Double, AbstractBaseColumn>)
+                        BigDecimalColumn::new;
             case "DECIMAL":
-                return (IDeserializationConverter<BigDecimal, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<BigDecimal, AbstractBaseColumn>)
+                        BigDecimalColumn::new;
             case "STRING":
             case "VARCHAR":
             case "CHAR":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "TIMESTAMP":
-                return (IDeserializationConverter<Timestamp, AbstractBaseColumn>) TimestampColumn::new;
+                return (IDeserializationConverter<Timestamp, AbstractBaseColumn>)
+                        TimestampColumn::new;
             case "DATE":
-                return (IDeserializationConverter<Date, AbstractBaseColumn>) val -> new TimestampColumn(val.getTime());
+                return (IDeserializationConverter<Date, AbstractBaseColumn>)
+                        val -> new TimestampColumn(val.getTime());
             case "BINARY":
             case "VARBINARY":
                 return (IDeserializationConverter<byte[], AbstractBaseColumn>) BytesColumn::new;
             case "TIME_WITHOUT_TIME_ZONE":
-//                final int timePrecision = getPrecision(type);
-//                if (timePrecision < MIN_TIME_PRECISION || timePrecision > MAX_TIME_PRECISION) {
-//                    throw new UnsupportedOperationException(
-//                            String.format(
-//                                    "The precision %s of TIME type is out of the range [%s, %s] supported by "
-//                                            + "HBase connector",
-//                                    timePrecision, MIN_TIME_PRECISION, MAX_TIME_PRECISION));
-//                }
+                //                final int timePrecision = getPrecision(type);
+                //                if (timePrecision < MIN_TIME_PRECISION || timePrecision >
+                // MAX_TIME_PRECISION) {
+                //                    throw new UnsupportedOperationException(
+                //                            String.format(
+                //                                    "The precision %s of TIME type is out of the
+                // range [%s, %s] supported by "
+                //                                            + "HBase connector",
+                //                                    timePrecision, MIN_TIME_PRECISION,
+                // MAX_TIME_PRECISION));
+                //                }
             case "TIMESTAMP_WITHOUT_TIME_ZONE":
             case "TIMESTAMP_WITH_LOCAL_TIME_ZONE":
-//                final int timestampPrecision = getPrecision(type);
-//                if (timestampPrecision < MIN_TIMESTAMP_PRECISION
-//                        || timestampPrecision > MAX_TIMESTAMP_PRECISION) {
-//                    throw new UnsupportedOperationException(
-//                            String.format(
-//                                    "The precision %s of TIMESTAMP type is out of the range [%s, %s] supported by "
-//                                            + "HBase connector",
-//                                    timestampPrecision,
-//                                    MIN_TIMESTAMP_PRECISION,
-//                                    MAX_TIMESTAMP_PRECISION));
-//                }
+                //                final int timestampPrecision = getPrecision(type);
+                //                if (timestampPrecision < MIN_TIMESTAMP_PRECISION
+                //                        || timestampPrecision > MAX_TIMESTAMP_PRECISION) {
+                //                    throw new UnsupportedOperationException(
+                //                            String.format(
+                //                                    "The precision %s of TIMESTAMP type is out of
+                // the range [%s, %s] supported by "
+                //                                            + "HBase connector",
+                //                                    timestampPrecision,
+                //                                    MIN_TIMESTAMP_PRECISION,
+                //                                    MAX_TIMESTAMP_PRECISION));
+                //                }
             case "TIMESTAMP_WITH_TIME_ZONE":
             case "INTERVAL_YEAR_MONTH":
             case "INTERVAL_DAY_TIME":
@@ -207,49 +222,62 @@ public class HBaseColumnConverter extends AbstractRowConverter<RowData, RowData,
             case "DOUBLE":
                 return (rowData, index, data) -> data[index] = rowData.getDouble(index);
             case "DECIMAL":
-//                return (rowData, index, data) -> {
-//                    ColumnTypeUtil.DecimalInfo decimalInfo = decimalColInfo.get(ColumnNameList.get(index));
-//                    HiveDecimal hiveDecimal = HiveDecimal.create(new BigDecimal(rowData.getString(index).toString()));
-//                    hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal, decimalInfo.getPrecision(), decimalInfo.getScale());
-//                    if(hiveDecimal == null){
-//                        String msg = String.format("The [%s] data data [%s] precision and scale do not match the metadata:decimal(%s, %s)", index, decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
-//                        throw new WriteRecordException(msg, new IllegalArgumentException());
-//                    }
-//                    data[index] = new HiveDecimalWritable(hiveDecimal);
-//                };
+                //                return (rowData, index, data) -> {
+                //                    ColumnTypeUtil.DecimalInfo decimalInfo =
+                // decimalColInfo.get(ColumnNameList.get(index));
+                //                    HiveDecimal hiveDecimal = HiveDecimal.create(new
+                // BigDecimal(rowData.getString(index).toString()));
+                //                    hiveDecimal = HiveDecimal.enforcePrecisionScale(hiveDecimal,
+                // decimalInfo.getPrecision(), decimalInfo.getScale());
+                //                    if(hiveDecimal == null){
+                //                        String msg = String.format("The [%s] data data [%s]
+                // precision and scale do not match the metadata:decimal(%s, %s)", index,
+                // decimalInfo.getPrecision(), decimalInfo.getScale(), rowData);
+                //                        throw new WriteRecordException(msg, new
+                // IllegalArgumentException());
+                //                    }
+                //                    data[index] = new HiveDecimalWritable(hiveDecimal);
+                //                };
             case "STRING":
             case "VARCHAR":
             case "CHAR":
                 return (rowData, index, data) -> data[index] = rowData.getString(index).toString();
             case "TIMESTAMP":
-                return (rowData, index, data) -> data[index] = rowData.getTimestamp(index, 6).toTimestamp();
+                return (rowData, index, data) ->
+                        data[index] = rowData.getTimestamp(index, 6).toTimestamp();
             case "DATE":
-                return (rowData, index, data) -> data[index] = new Date(rowData.getTimestamp(index, 6).getMillisecond());
+                return (rowData, index, data) ->
+                        data[index] = new Date(rowData.getTimestamp(index, 6).getMillisecond());
             case "BINARY":
             case "VARBINARY":
-                return (rowData, index, data) -> data[index] = new BytesWritable(rowData.getBinary(index));
+                return (rowData, index, data) ->
+                        data[index] = new BytesWritable(rowData.getBinary(index));
             case "TIME_WITHOUT_TIME_ZONE":
-//                final int timePrecision = getPrecision(type);
-//                if (timePrecision < MIN_TIME_PRECISION || timePrecision > MAX_TIME_PRECISION) {
-//                    throw new UnsupportedOperationException(
-//                            String.format(
-//                                    "The precision %s of TIME type is out of the range [%s, %s] supported by "
-//                                            + "HBase connector",
-//                                    timePrecision, MIN_TIME_PRECISION, MAX_TIME_PRECISION));
-//                }
+                //                final int timePrecision = getPrecision(type);
+                //                if (timePrecision < MIN_TIME_PRECISION || timePrecision >
+                // MAX_TIME_PRECISION) {
+                //                    throw new UnsupportedOperationException(
+                //                            String.format(
+                //                                    "The precision %s of TIME type is out of the
+                // range [%s, %s] supported by "
+                //                                            + "HBase connector",
+                //                                    timePrecision, MIN_TIME_PRECISION,
+                // MAX_TIME_PRECISION));
+                //                }
             case "TIMESTAMP_WITHOUT_TIME_ZONE":
             case "TIMESTAMP_WITH_LOCAL_TIME_ZONE":
-//                final int timestampPrecision = getPrecision(type);
-//                if (timestampPrecision < MIN_TIMESTAMP_PRECISION
-//                        || timestampPrecision > MAX_TIMESTAMP_PRECISION) {
-//                    throw new UnsupportedOperationException(
-//                            String.format(
-//                                    "The precision %s of TIMESTAMP type is out of the range [%s, %s] supported by "
-//                                            + "HBase connector",
-//                                    timestampPrecision,
-//                                    MIN_TIMESTAMP_PRECISION,
-//                                    MAX_TIMESTAMP_PRECISION));
-//                }
+                //                final int timestampPrecision = getPrecision(type);
+                //                if (timestampPrecision < MIN_TIMESTAMP_PRECISION
+                //                        || timestampPrecision > MAX_TIMESTAMP_PRECISION) {
+                //                    throw new UnsupportedOperationException(
+                //                            String.format(
+                //                                    "The precision %s of TIMESTAMP type is out of
+                // the range [%s, %s] supported by "
+                //                                            + "HBase connector",
+                //                                    timestampPrecision,
+                //                                    MIN_TIMESTAMP_PRECISION,
+                //                                    MAX_TIMESTAMP_PRECISION));
+                //                }
             case "TIMESTAMP_WITH_TIME_ZONE":
             case "INTERVAL_YEAR_MONTH":
             case "INTERVAL_DAY_TIME":

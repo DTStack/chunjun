@@ -23,6 +23,7 @@ import com.dtstack.flinkx.connector.restapi.common.HttpRestConfig;
 import com.dtstack.flinkx.connector.restapi.common.MetaParam;
 import com.dtstack.flinkx.connector.restapi.common.ParamType;
 import com.dtstack.flinkx.util.DateUtil;
+
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,28 +44,32 @@ import java.util.regex.Pattern;
  */
 public class MetaparamUtils {
     public static Pattern valueExpression =
-            Pattern.compile("(?<variable>(\\$\\{((?<innerName>(uuid|currentTime|intervalTime))|((?<paramType>(param|response|body))\\.(?<name>(.*?[^${]*))))}))");
-
+            Pattern.compile(
+                    "(?<variable>(\\$\\{((?<innerName>(uuid|currentTime|intervalTime))|((?<paramType>(param|response|body))\\.(?<name>(.*?[^${]*))))}))");
 
     /**
      * 获取一个变量所关联的其他变量
      *
-     * @param expression   解析的表达式${body.xxxx}
-     * @param nest         expression是否需要进行切割
-     * @param restConfig   http的相关配置
+     * @param expression 解析的表达式${body.xxxx}
+     * @param nest expression是否需要进行切割
+     * @param restConfig http的相关配置
      * @param requestParam 所有的原始MetaParam构造结果
      */
-    public static List<MetaParam> getValueOfMetaParams(String expression, Boolean nest, HttpRestConfig restConfig, HttpRequestParam requestParam) {
+    public static List<MetaParam> getValueOfMetaParams(
+            String expression,
+            Boolean nest,
+            HttpRestConfig restConfig,
+            HttpRequestParam requestParam) {
 
         Matcher matcher = valueExpression.matcher(expression);
 
         ArrayList<MetaParam> metaParams = new ArrayList<>(12);
         while (matcher.find()) {
-            //整个变量 如${body.time}
+            // 整个变量 如${body.time}
             String variableName = matcher.group("variable");
-            //变量的名称 如${body.time}里的time
+            // 变量的名称 如${body.time}里的time
             String key = matcher.group("name");
-            //内置变量名称 如currentTime
+            // 内置变量名称 如currentTime
             String innerName = matcher.group("innerName");
 
             if (StringUtils.isNotBlank(innerName)) {
@@ -84,13 +89,15 @@ public class MetaparamUtils {
                         innerMetaParam.setValue(UUID.randomUUID().toString());
                         break;
                     default:
-                        throw new UnsupportedOperationException("inner function is not support " + innerName);
+                        throw new UnsupportedOperationException(
+                                "inner function is not support " + innerName);
                 }
 
                 metaParams.add(innerMetaParam);
 
             } else {
-                ParamType variableType = ParamType.valueOf(matcher.group("paramType").toUpperCase(Locale.ENGLISH));
+                ParamType variableType =
+                        ParamType.valueOf(matcher.group("paramType").toUpperCase(Locale.ENGLISH));
 
                 if (variableType.equals(ParamType.RESPONSE)) {
                     MetaParam param = new MetaParam();
@@ -110,27 +117,39 @@ public class MetaparamUtils {
                     MetaParam param = new MetaParam();
                     param.setParamType(variableType);
                     param.setKey(key);
-                    //nest为空 代表不知道表达式的key是否需要切割 有可能是异常策略转换的metaparam
+                    // nest为空 代表不知道表达式的key是否需要切割 有可能是异常策略转换的metaparam
                     if (null != nest) {
                         param.setNest(nest);
                     }
 
                     if (requestParam.containsKey(param, restConfig.getFieldDelimiter())) {
-                        metaParams.add((MetaParam) requestParam.getValue(param, restConfig.getFieldDelimiter()));
+                        metaParams.add(
+                                (MetaParam)
+                                        requestParam.getValue(
+                                                param, restConfig.getFieldDelimiter()));
                     } else {
                         param.setNest(true);
-                        //没找到 就代表动态参数指定的key不存在 直接报错
-                        if (null != nest || !requestParam.containsKey(param, restConfig.getFieldDelimiter())) {
-                            throw new RuntimeException("the metaParam pointed by the key [" + key + " ] of " + expression + " does not exist");
+                        // 没找到 就代表动态参数指定的key不存在 直接报错
+                        if (null != nest
+                                || !requestParam.containsKey(
+                                        param, restConfig.getFieldDelimiter())) {
+                            throw new RuntimeException(
+                                    "the metaParam pointed by the key ["
+                                            + key
+                                            + " ] of "
+                                            + expression
+                                            + " does not exist");
                         }
-                        metaParams.add((MetaParam) requestParam.getValue(param, restConfig.getFieldDelimiter()));
+                        metaParams.add(
+                                (MetaParam)
+                                        requestParam.getValue(
+                                                param, restConfig.getFieldDelimiter()));
                     }
                 }
             }
         }
         return metaParams;
     }
-
 
     /**
      * 表达式 是否是动态变量而不是常量，包含内部变量，body response header param等 都是变量
@@ -142,9 +161,16 @@ public class MetaparamUtils {
     }
 
     public static boolean isInnerParam(String text) {
-        return Sets.newHashSet(ConstantValue.PREFIX + ConstantValue.SYSTEM_FUNCTION_UUID + ConstantValue.SUFFIX,
-                ConstantValue.PREFIX + ConstantValue.SYSTEM_FUNCTION_UUID + ConstantValue.SUFFIX,
-                ConstantValue.PREFIX + ConstantValue.SYSTEM_FUNCTION_INTERVAL_TIME + ConstantValue.SUFFIX).contains(text);
+        return Sets.newHashSet(
+                        ConstantValue.PREFIX
+                                + ConstantValue.SYSTEM_FUNCTION_UUID
+                                + ConstantValue.SUFFIX,
+                        ConstantValue.PREFIX
+                                + ConstantValue.SYSTEM_FUNCTION_UUID
+                                + ConstantValue.SUFFIX,
+                        ConstantValue.PREFIX
+                                + ConstantValue.SYSTEM_FUNCTION_INTERVAL_TIME
+                                + ConstantValue.SUFFIX)
+                .contains(text);
     }
-
 }

@@ -18,11 +18,6 @@
 
 package com.dtstack.flinkx.connector.kudu.sink;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
@@ -32,6 +27,11 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,8 +68,7 @@ public class KuduSinkFactory extends SinkFactory {
         List<FieldConf> fieldConfList = sinkConf.getColumn();
         fieldConfList.forEach(field -> columnNames.add(field.getName()));
 
-        final RowType rowType =
-                TableUtil.createRowType(fieldConfList, getRawTypeConverter());
+        final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeConverter());
         builder.setRowConverter(new KuduColumnConverter(rowType, columnNames));
         return createOutput(dataSet, builder.finish());
     }

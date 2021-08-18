@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.connector.restapi.common;
 
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import com.google.gson.Gson;
 import org.apache.commons.collections.MapUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -60,14 +61,15 @@ public class HttpUtil {
         return getBaseBuilder().build();
     }
 
-
     public static CloseableHttpClient getHttpsClient() {
 
         // 设置Http连接池
         SSLContext sslContext;
         try {
-            sslContext = new SSLContextBuilder()
-                    .loadTrustMaterial(null, (certificate, authType) -> true).build();
+            sslContext =
+                    new SSLContextBuilder()
+                            .loadTrustMaterial(null, (certificate, authType) -> true)
+                            .build();
         } catch (Exception e) {
             LOG.warn(ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException(e);
@@ -80,22 +82,21 @@ public class HttpUtil {
 
     public static HttpClientBuilder getBaseBuilder() {
         // 设置自定义的重试策略
-        MyServiceUnavailableRetryStrategy strategy = new MyServiceUnavailableRetryStrategy
-                .Builder()
-                .executionCount(EXECUTION_COUNT)
-                .retryInterval(1000)
-                .build();
+        MyServiceUnavailableRetryStrategy strategy =
+                new MyServiceUnavailableRetryStrategy.Builder()
+                        .executionCount(EXECUTION_COUNT)
+                        .retryInterval(1000)
+                        .build();
         // 设置自定义的重试Handler
-        MyHttpRequestRetryHandler retryHandler = new MyHttpRequestRetryHandler
-                .Builder()
-                .executionCount(EXECUTION_COUNT)
-                .build();
+        MyHttpRequestRetryHandler retryHandler =
+                new MyHttpRequestRetryHandler.Builder().executionCount(EXECUTION_COUNT).build();
         // 设置超时时间
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(TIME_OUT)
-                .setConnectionRequestTimeout(TIME_OUT)
-                .setSocketTimeout(TIME_OUT)
-                .build();
+        RequestConfig requestConfig =
+                RequestConfig.custom()
+                        .setConnectTimeout(TIME_OUT)
+                        .setConnectionRequestTimeout(TIME_OUT)
+                        .setSocketTimeout(TIME_OUT)
+                        .build();
         // 设置Http连接池
         PoolingHttpClientConnectionManager pcm = new PoolingHttpClientConnectionManager();
         pcm.setDefaultMaxPerRoute(COUNT);
@@ -108,12 +109,13 @@ public class HttpUtil {
                 .setConnectionManager(pcm);
     }
 
-    public static HttpRequestBase getRequest(String method,
-                                             Map<String, Object> requestBody,
-                                             Map<String, String> header,
-                                             String url) {
+    public static HttpRequestBase getRequest(
+            String method,
+            Map<String, Object> requestBody,
+            Map<String, String> header,
+            String url) {
         LOG.debug("current request url: {}  current method:{} \n", url, method);
-        HttpRequestBase request ;
+        HttpRequestBase request;
 
         if (HttpMethod.GET.name().equalsIgnoreCase(method)) {
             request = new HttpGet(url);
@@ -131,24 +133,33 @@ public class HttpUtil {
         return request;
     }
 
+    public static HttpRequestBase getRequest(
+            String method,
+            Map<String, Object> requestBody,
+            Map<String, Object> requestParam,
+            Map<String, Object> header,
+            String url) {
 
-    public static HttpRequestBase getRequest(String method,
-                                             Map<String, Object> requestBody,
-                                             Map<String, Object> requestParam,
-                                             Map<String, Object> header,
-                                             String url)  {
-
-        HttpRequestBase request ;
+        HttpRequestBase request;
         if (MapUtils.isNotEmpty(requestParam)) {
             ArrayList<String> params = new ArrayList<>();
-            requestParam.forEach((k, v) -> {
-                try {
-                    //参数进行编码
-                    params.add(URLEncoder.encode(k, StandardCharsets.UTF_8.name()) + "=" + URLEncoder.encode(v instanceof Map?gson.toJson(v):v.toString(), StandardCharsets.UTF_8.name()));
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException("URLEncoder.encode k [" + k + "] or v ["+ v +"] failed ", e);
-                }
-            });
+            requestParam.forEach(
+                    (k, v) -> {
+                        try {
+                            // 参数进行编码
+                            params.add(
+                                    URLEncoder.encode(k, StandardCharsets.UTF_8.name())
+                                            + "="
+                                            + URLEncoder.encode(
+                                                    v instanceof Map
+                                                            ? gson.toJson(v)
+                                                            : v.toString(),
+                                                    StandardCharsets.UTF_8.name()));
+                        } catch (UnsupportedEncodingException e) {
+                            throw new RuntimeException(
+                                    "URLEncoder.encode k [" + k + "] or v [" + v + "] failed ", e);
+                        }
+                    });
             if (url.contains("?")) {
                 url += "&" + String.join("&", params);
             } else {
@@ -172,7 +183,6 @@ public class HttpUtil {
         }
         return request;
     }
-
 
     public static void closeClient(CloseableHttpClient httpClient) {
         try {

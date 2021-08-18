@@ -70,8 +70,7 @@ public class CassandraSourceFactory extends SourceFactory {
         List<String> columnNameList = new ArrayList<>();
         fieldConfList.forEach(fieldConf -> columnNameList.add(fieldConf.getName()));
 
-        final RowType rowType =
-                TableUtil.createRowType(fieldConfList, getRawTypeConverter());
+        final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeConverter());
         builder.setRowConverter(new CassandraRowConverter(rowType, columnNameList));
 
         return createInput(builder.finish());

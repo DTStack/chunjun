@@ -17,10 +17,6 @@
  */
 package com.dtstack.flinkx.connector.hdfs.source;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsRawTypeConverter;
@@ -30,9 +26,12 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.GsonUtil;
 
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+
 /**
- * Date: 2021/06/08
- * Company: www.dtstack.com
+ * Date: 2021/06/08 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -41,7 +40,9 @@ public class HdfsSourceFactory extends SourceFactory {
 
     public HdfsSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
-        hdfsConf = GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(config.getReader().getParameter()), HdfsConf.class);
+        hdfsConf =
+                GsonUtil.GSON.fromJson(
+                        GsonUtil.GSON.toJson(config.getReader().getParameter()), HdfsConf.class);
         hdfsConf.setColumn(config.getReader().getFieldList());
         super.initFlinkxCommonConf(hdfsConf);
     }
