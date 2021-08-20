@@ -41,6 +41,7 @@ import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
@@ -90,6 +91,11 @@ public class JdbcColumnConverter
             AbstractBaseColumn baseColumn = null;
             if (StringUtils.isBlank(fieldConf.getValue())) {
                 Object field = resultSet.getObject(converterIndex + 1);
+                // 目前仅有 BIGINT UNSIGNED 类型会被解析成 java.math.BigInteger类型, 因此默认将BigInteger转化java.lang.Long
+                // 来源请参考: https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-type-conversions.html
+                if (field instanceof java.math.BigInteger) {
+                    field = ((BigInteger) field).longValue();
+                }
                 baseColumn =
                         (AbstractBaseColumn)
                                 toInternalConverters[converterIndex].deserialize(field);

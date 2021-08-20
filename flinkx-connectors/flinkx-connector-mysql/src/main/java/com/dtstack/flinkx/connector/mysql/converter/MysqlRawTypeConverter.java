@@ -25,12 +25,17 @@ public class MysqlRawTypeConverter {
                 return DataTypes.BOOLEAN();
             case "TINYINT":
                 return DataTypes.TINYINT();
+            case "SMALLINT UNSIGNED": // 以下两种带有UNSIGNED标记的默认都使用 IntType,底层是java.lang.Integer 类型
+            case "MEDIUMINT UNSIGNED":
             case "SMALLINT":
             case "MEDIUMINT":
             case "INT":
             case "INTEGER":
             case "INT24":
                 return DataTypes.INT();
+            case "INT UNSIGNED":  // 以下三种带有UNSIGNED标记的默认都使用 BigIntType,底层是java.lang.Long类型
+            case "INTEGER UNSIGNED":
+            case "BIGINT UNSIGNED":
             case "BIGINT":
                 return DataTypes.BIGINT();
             case "REAL":
