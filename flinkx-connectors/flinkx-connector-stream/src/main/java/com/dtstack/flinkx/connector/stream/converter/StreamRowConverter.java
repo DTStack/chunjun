@@ -58,12 +58,12 @@ public class StreamRowConverter
     public StreamRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
     }
 
@@ -85,7 +85,7 @@ public class StreamRowConverter
     public RowData toInternal(RowData input) throws Exception {
         GenericRowData row = new GenericRowData(input.getArity());
         for (int i = 0; i < input.getArity(); i++) {
-            row.setField(i, toInternalConverters[i].deserialize(input));
+            row.setField(i, toInternalConverters.get(i).deserialize(input));
         }
         return row;
     }
@@ -93,7 +93,7 @@ public class StreamRowConverter
     @Override
     public RowData toExternal(RowData rowData, RowData output) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, output);
+            toExternalConverters.get(index).serialize(rowData, index, output);
         }
         return output;
     }

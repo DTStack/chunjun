@@ -42,6 +42,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +56,9 @@ public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, Logi
 
     public LogMinerRowConverter(RowType rowType) {
         super.fieldNameList = rowType.getFieldNames();
-        super.converters = new IDeserializationConverter[rowType.getFieldCount()];
+        super.converters = new ArrayList<>();
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            super.converters[i] = createInternalConverter(rowType.getTypeAt(i));
+            super.converters.add(createInternalConverter(rowType.getTypeAt(i)));
         }
     }
 

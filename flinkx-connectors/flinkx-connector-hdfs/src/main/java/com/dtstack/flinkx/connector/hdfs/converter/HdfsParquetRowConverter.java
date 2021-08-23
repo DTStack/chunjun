@@ -60,12 +60,12 @@ public class HdfsParquetRowConverter
     public HdfsParquetRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
     }
 
@@ -76,7 +76,8 @@ public class HdfsParquetRowConverter
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
-                row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
+                row.setField(
+                        i, toInternalConverters.get(i).deserialize(genericRowData.getField(i)));
             }
         } else {
             throw new FlinkxRuntimeException(
@@ -91,7 +92,7 @@ public class HdfsParquetRowConverter
     @SuppressWarnings("unchecked")
     public Group toExternal(RowData rowData, Group group) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, group);
+            toExternalConverters.get(index).serialize(rowData, index, group);
         }
         return group;
     }

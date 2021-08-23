@@ -95,9 +95,9 @@ public class HBaseRowConverter
         phoenixTypeList = new ArrayList<>(fieldNames.size());
 
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
+                            createInternalConverter(rowType.getTypeAt(i))));
             phoenixTypeList.add(getPDataType(fieldTypes[i].getTypeRoot().toString()));
             this.rowProjector = rowProjector;
         }
@@ -137,7 +137,7 @@ public class HBaseRowConverter
             ColumnProjector columnProjector = rowProjector.getColumnProjector(i);
             PDataType pDataType = phoenixTypeList.get(i);
             Object value = columnProjector.getValue(resultTuple, pDataType, pointer);
-            genericRowData.setField(i, toInternalConverters[i].deserialize(value));
+            genericRowData.setField(i, toInternalConverters.get(i).deserialize(value));
         }
         return genericRowData;
     }

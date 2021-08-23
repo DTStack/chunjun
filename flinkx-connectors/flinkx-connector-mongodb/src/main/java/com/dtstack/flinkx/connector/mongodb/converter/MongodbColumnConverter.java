@@ -39,6 +39,8 @@ import org.bson.types.ObjectId;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Ada Wong
@@ -48,22 +50,22 @@ import java.sql.Time;
 public class MongodbColumnConverter
         extends AbstractRowConverter<Document, Document, Document, LogicalType> {
 
-    private final MongoDeserializationConverter[] toInternalConverters;
-    private final MongoSerializationConverter[] toExternalConverters;
+    private final List<MongoDeserializationConverter> toInternalConverters;
+    private final List<MongoSerializationConverter> toExternalConverters;
     private final String[] fieldNames;
 
     public MongodbColumnConverter(RowType rowType, String[] fieldNames) {
         super(rowType);
         this.fieldNames = fieldNames;
-        toInternalConverters = new MongoDeserializationConverter[rowType.getFieldCount()];
-        toExternalConverters = new MongoSerializationConverter[rowType.getFieldCount()];
+        toInternalConverters = new ArrayList<>();
+        toExternalConverters = new ArrayList<>();
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createMongoInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createMongoInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableMongodbExternalConverter(
-                            createMongodbExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createMongodbExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
     }
 
@@ -93,13 +95,13 @@ public class MongodbColumnConverter
 
     @Override
     public RowData toInternal(Document document) {
-        ColumnRowData data = new ColumnRowData(toInternalConverters.length);
-        for (int pos = 0; pos < toInternalConverters.length; pos++) {
+        ColumnRowData data = new ColumnRowData(toInternalConverters.size());
+        for (int pos = 0; pos < toInternalConverters.size(); pos++) {
             Object field = document.get(fieldNames[pos]);
             if (field instanceof ObjectId) {
                 field = field.toString();
             }
-            data.addField((AbstractBaseColumn) toInternalConverters[pos].deserialize(field));
+            data.addField((AbstractBaseColumn) toInternalConverters.get(pos).deserialize(field));
         }
         return data;
     }
@@ -107,7 +109,7 @@ public class MongodbColumnConverter
     @Override
     public Document toExternal(RowData rowData, Document document) {
         for (int pos = 0; pos < rowData.getArity(); pos++) {
-            toExternalConverters[pos].serialize(rowData, pos, fieldNames[pos], document);
+            toExternalConverters.get(pos).serialize(rowData, pos, fieldNames[pos], document);
         }
         return document;
     }

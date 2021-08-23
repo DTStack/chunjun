@@ -59,13 +59,13 @@ public class KuduColumnConverter
         super(rowType);
         this.columnName = columnName;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i).getTypeRoot().name()));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i).getTypeRoot().name())));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
                             createExternalConverter(rowType.getTypeAt(i).getTypeRoot().name()),
-                            rowType.getTypeAt(i).getTypeRoot().name());
+                            rowType.getTypeAt(i).getTypeRoot().name()));
         }
     }
 
@@ -88,7 +88,7 @@ public class KuduColumnConverter
         ColumnRowData data = new ColumnRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = input.getObject(pos);
-            data.addField((AbstractBaseColumn) toInternalConverters[pos].deserialize(field));
+            data.addField((AbstractBaseColumn) toInternalConverters.get(pos).deserialize(field));
         }
         return data;
     }
@@ -97,7 +97,7 @@ public class KuduColumnConverter
     @SuppressWarnings("unchecked")
     public Operation toExternal(RowData rowData, Operation operation) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, operation);
+            toExternalConverters.get(index).serialize(rowData, index, operation);
         }
         return operation;
     }

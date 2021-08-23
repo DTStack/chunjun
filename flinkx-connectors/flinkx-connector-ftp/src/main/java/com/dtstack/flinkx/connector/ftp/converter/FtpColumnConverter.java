@@ -54,11 +54,11 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
 
         for (int i = 0; i < ftpConfig.getColumn().size(); i++) {
             FieldConf fieldConf = ftpConfig.getColumn().get(i);
-            toInternalConverters[i] =
-                    wrapIntoNullableInternalConverter(createInternalConverter(fieldConf));
-            toExternalConverters[i] =
+            toInternalConverters.add(
+                    wrapIntoNullableInternalConverter(createInternalConverter(fieldConf)));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldConf), fieldConf);
+                            createExternalConverter(fieldConf), fieldConf));
         }
     }
 
@@ -68,7 +68,8 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
-                row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
+                row.setField(
+                        i, toInternalConverters.get(i).deserialize(genericRowData.getField(i)));
             }
         } else {
             throw new FlinkxRuntimeException(
@@ -85,7 +86,7 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
 
         List<String> columnData = new ArrayList<>(ftpConfig.getColumn().size());
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, columnData);
+            toExternalConverters.get(index).serialize(rowData, index, columnData);
             if (index != 0) {
                 sb.append(ftpConfig.getFieldDelimiter());
             }

@@ -40,6 +40,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -65,10 +66,11 @@ public class RestapiColumnConverter
                     httpRestConfig.getColumn().stream()
                             .map(FieldConf::getType)
                             .collect(Collectors.toList());
-            this.toInternalConverters = new IDeserializationConverter[typeList.size()];
+            this.toInternalConverters = new ArrayList<>();
             for (int i = 0; i < typeList.size(); i++) {
-                toInternalConverters[i] =
-                        wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
+                toInternalConverters.add(
+                        wrapIntoNullableInternalConverter(
+                                createInternalConverter(typeList.get(i))));
             }
         }
     }
@@ -84,10 +86,10 @@ public class RestapiColumnConverter
         ColumnRowData row;
         if (httpRestConfig.getDecode().equals(ConstantValue.DEFAULT_DECODE)
                 && toInternalConverters != null
-                && toInternalConverters.length > 0) {
+                && toInternalConverters.size() > 0) {
             Map<String, Object> result =
                     DefaultRestHandler.gson.fromJson(input, GsonUtil.gsonMapTypeToken);
-            row = new ColumnRowData(toInternalConverters.length);
+            row = new ColumnRowData(toInternalConverters.size());
             List<FieldConf> column = httpRestConfig.getColumn();
             for (int i = 0; i < column.size(); i++) {
                 Object value =
@@ -95,7 +97,7 @@ public class RestapiColumnConverter
                                 result,
                                 column.get(i).getName(),
                                 httpRestConfig.getFieldDelimiter());
-                row.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(value));
+                row.addField((AbstractBaseColumn) toInternalConverters.get(i).deserialize(value));
             }
         } else {
             row = new ColumnRowData(1);

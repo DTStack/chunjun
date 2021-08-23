@@ -42,6 +42,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -53,7 +54,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 public class SolrRowConverter
         extends AbstractRowConverter<SolrDocument, SolrDocument, SolrInputDocument, LogicalType> {
 
-    protected SolrSerializationConverter[] toExternalConverters;
+    protected List<SolrSerializationConverter> toExternalConverters;
     protected String[] fieldNames;
 
     public SolrRowConverter(RowType rowType, String[] fieldNames) {
@@ -63,15 +64,15 @@ public class SolrRowConverter
                 rowType.getFields().stream()
                         .map(RowType.RowField::getType)
                         .toArray(LogicalType[]::new);
-        this.toInternalConverters = new IDeserializationConverter[rowType.getFieldCount()];
-        this.toExternalConverters = new SolrSerializationConverter[rowType.getFieldCount()];
+        this.toInternalConverters = new ArrayList<>();
+        this.toExternalConverters = new ArrayList<>();
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableSolrExternalConverter(
-                            createSolrExternalConverter(fieldTypes[i]));
+                            createSolrExternalConverter(fieldTypes[i])));
         }
     }
 
@@ -84,7 +85,7 @@ public class SolrRowConverter
             if (field instanceof ArrayList) {
                 field = ((ArrayList) field).get(0);
             }
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
+            genericRowData.setField(pos, toInternalConverters.get(pos).deserialize(field));
         }
         return genericRowData;
     }
@@ -92,7 +93,9 @@ public class SolrRowConverter
     @Override
     public SolrInputDocument toExternal(RowData rowData, SolrInputDocument solrInputDocument) {
         for (int pos = 0; pos < rowData.getArity(); pos++) {
-            toExternalConverters[pos].serialize(rowData, pos, fieldNames[pos], solrInputDocument);
+            toExternalConverters
+                    .get(pos)
+                    .serialize(rowData, pos, fieldNames[pos], solrInputDocument);
         }
         return solrInputDocument;
     }

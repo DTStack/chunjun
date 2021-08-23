@@ -36,6 +36,7 @@ import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
@@ -58,14 +59,13 @@ public class StreamColumnConverter
                         .map(FieldConf::getType)
                         .collect(Collectors.toList());
         super.commonConf = commonConf;
-        super.toInternalConverters = new IDeserializationConverter[typeList.size()];
-        super.toExternalConverters = new ISerializationConverter[typeList.size()];
+        toInternalConverters = new ArrayList<>(typeList.size());
+        toExternalConverters = new ArrayList<>(typeList.size());
 
-        for (int i = 0; i < typeList.size(); i++) {
-            toInternalConverters[i] = createInternalConverter(typeList.get(i));
-            toExternalConverters[i] =
-                    wrapIntoNullableExternalConverter(
-                            createExternalConverter(typeList.get(i)), typeList.get(i));
+        for (String s : typeList) {
+            toInternalConverters.add(createInternalConverter(s));
+            toExternalConverters.add(
+                    wrapIntoNullableExternalConverter(createExternalConverter(s), s));
         }
     }
 
@@ -128,7 +128,7 @@ public class StreamColumnConverter
         ColumnRowData result = new ColumnRowData(fieldConfList.size());
         for (int i = 0; i < fieldConfList.size(); i++) {
             AbstractBaseColumn baseColumn =
-                    (AbstractBaseColumn) toInternalConverters[i].deserialize(null);
+                    (AbstractBaseColumn) toInternalConverters.get(i).deserialize(null);
             result.addField(assembleFieldProps(fieldConfList.get(i), baseColumn));
         }
         return result;

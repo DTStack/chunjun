@@ -58,12 +58,12 @@ public class JdbcColumnConverter
     public JdbcColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         super(rowType, commonConf);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
     }
 
@@ -92,7 +92,7 @@ public class JdbcColumnConverter
                 Object field = resultSet.getObject(converterIndex + 1);
                 baseColumn =
                         (AbstractBaseColumn)
-                                toInternalConverters[converterIndex].deserialize(field);
+                                toInternalConverters.get(converterIndex).deserialize(field);
                 converterIndex++;
             }
             result.addField(assembleFieldProps(fieldConf, baseColumn));
@@ -104,7 +104,7 @@ public class JdbcColumnConverter
     public FieldNamedPreparedStatement toExternal(
             RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, statement);
+            toExternalConverters.get(index).serialize(rowData, index, statement);
         }
         return statement;
     }

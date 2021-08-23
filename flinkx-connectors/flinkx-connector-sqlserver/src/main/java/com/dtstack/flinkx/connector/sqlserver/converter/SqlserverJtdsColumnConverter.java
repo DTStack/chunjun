@@ -64,7 +64,7 @@ public class SqlserverJtdsColumnConverter extends JdbcColumnConverter {
                 } else {
                     baseColumn =
                             (AbstractBaseColumn)
-                                    toInternalConverters[converterIndex].deserialize(field);
+                                    toInternalConverters.get(converterIndex).deserialize(field);
                 }
                 converterIndex++;
             }

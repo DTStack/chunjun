@@ -42,6 +42,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -53,9 +54,9 @@ public class PGWalRowConverter extends AbstractCDCRowConverter<ChangeLog, Logica
     public PGWalRowConverter(RowType rowType, TimestampFormat timestampFormat) {
         super.fieldNameList = rowType.getFieldNames();
         this.timestampFormat = timestampFormat;
-        super.converters = new IDeserializationConverter[rowType.getFieldCount()];
+        super.converters = new ArrayList<>();
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            super.converters[i] = createInternalConverter(rowType.getTypeAt(i));
+            super.converters.add(createInternalConverter(rowType.getTypeAt(i)));
         }
     }
 

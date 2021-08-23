@@ -61,13 +61,13 @@ public class CassandraColumnConverter
         super(rowType);
         this.fieldConfList = fieldConfList;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(fieldConfList.get(i).getType()));
-            toExternalConverters[i] =
+                            createInternalConverter(fieldConfList.get(i).getType())));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
                             createExternalConverter(fieldConfList.get(i).getType()),
-                            fieldConfList.get(i).getType());
+                            fieldConfList.get(i).getType()));
         }
     }
 
@@ -87,14 +87,14 @@ public class CassandraColumnConverter
     @Override
     @SuppressWarnings("unchecked")
     public RowData toInternal(ResultSet resultSet) throws Exception {
-        ColumnRowData columnRowData = new ColumnRowData(toInternalConverters.length);
+        ColumnRowData columnRowData = new ColumnRowData(toInternalConverters.size());
 
         Row row = resultSet.one();
 
-        for (int i = 0; i < toInternalConverters.length; i++) {
+        for (int i = 0; i < toInternalConverters.size(); i++) {
             final Object value = row.getObject(i);
             columnRowData.setField(
-                    i, (AbstractBaseColumn) toInternalConverters[i].deserialize(value));
+                    i, (AbstractBaseColumn) toInternalConverters.get(i).deserialize(value));
         }
         return columnRowData;
     }
@@ -103,7 +103,7 @@ public class CassandraColumnConverter
     @SuppressWarnings("unchecked")
     public BoundStatement toExternal(RowData rowData, BoundStatement statement) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, statement);
+            toExternalConverters.get(index).serialize(rowData, index, statement);
         }
         return statement;
     }

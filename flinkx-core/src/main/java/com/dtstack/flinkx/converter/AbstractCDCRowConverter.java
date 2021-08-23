@@ -87,13 +87,13 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
                     .appendPattern("'Z'")
                     .toFormatter();
 
-    protected final Map<String, IDeserializationConverter[]> cdcConverterCacheMap =
+    protected final Map<String, List<IDeserializationConverter>> cdcConverterCacheMap =
             new ConcurrentHashMap<>(32);
     protected final SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
     protected boolean pavingData;
     protected boolean splitUpdate;
     protected List<String> fieldNameList;
-    protected IDeserializationConverter[] converters;
+    protected List<IDeserializationConverter> converters;
 
     /**
      * 将外部数据库类型转换为flink内部类型
@@ -152,7 +152,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
     @SuppressWarnings("unchecked")
     protected RowData createRowDataByConverters(
             List<String> fieldNameList,
-            IDeserializationConverter[] converters,
+            List<IDeserializationConverter> converters,
             Map<Object, Object> valueMap)
             throws Exception {
         GenericRowData genericRowData = new GenericRowData(fieldNameList.size());
@@ -160,7 +160,7 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
             String fieldName = fieldNameList.get(i);
             Object value = valueMap.get(fieldName);
             if (value != null) {
-                value = converters[i].deserialize(value);
+                value = converters.get(i).deserialize(value);
             }
             genericRowData.setField(i, value);
         }

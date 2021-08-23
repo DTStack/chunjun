@@ -52,12 +52,12 @@ public class Phoenix5ColumnConverter
     public Phoenix5ColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
         super(rowType, commonConf);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
     }
 
@@ -76,10 +76,10 @@ public class Phoenix5ColumnConverter
 
     @Override
     public RowData toInternal(ResultSet resultSet) throws Exception {
-        ColumnRowData data = new ColumnRowData(toInternalConverters.length);
-        for (int i = 0; i < toInternalConverters.length; i++) {
+        ColumnRowData data = new ColumnRowData(toInternalConverters.size());
+        for (int i = 0; i < toInternalConverters.size(); i++) {
             Object field = resultSet.getObject(i + 1);
-            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
+            data.addField((AbstractBaseColumn) toInternalConverters.get(i).deserialize(field));
         }
         return data;
     }
@@ -88,7 +88,7 @@ public class Phoenix5ColumnConverter
     public FieldNamedPreparedStatement toExternal(
             RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, statement);
+            toExternalConverters.get(index).serialize(rowData, index, statement);
         }
         return statement;
     }

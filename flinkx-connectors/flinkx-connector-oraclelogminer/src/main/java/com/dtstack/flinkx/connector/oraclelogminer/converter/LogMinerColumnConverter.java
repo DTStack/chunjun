@@ -48,6 +48,7 @@ import java.time.LocalTime;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -83,7 +84,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         String schema = eventRow.getSchema();
         String table = eventRow.getTable();
         String key = schema + ConstantValue.POINT_SYMBOL + table;
-        IDeserializationConverter[] converters = super.cdcConverterCacheMap.get(key);
+        List<IDeserializationConverter> converters = super.cdcConverterCacheMap.get(key);
         TableMetaData metadata = tableMetaDataCacheMap.get(key);
 
         List<EventRowData> beforeColumnList = eventRow.getBeforeColumnList();
@@ -91,7 +92,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         //  如果缓存为空 或者 长度变了 或者名字变了  重新更新缓存
         if (Objects.isNull(converters)
                 || Objects.isNull(metadata)
-                || beforeColumnList.size() != converters.length
+                || beforeColumnList.size() != converters.size()
                 || !beforeColumnList.stream()
                         .map(EventRowData::getName)
                         .collect(Collectors.toCollection(HashSet::new))
@@ -99,10 +100,13 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
             Pair<List<String>, List<String>> latestMetaData =
                     JdbcUtil.getTableMetaData(schema, table, connection);
             converters =
-                    latestMetaData.getRight().stream()
-                            .map(x -> wrapIntoNullableInternalConverter(createInternalConverter(x)))
-                            .toArray(IDeserializationConverter[]::new);
-
+                    Arrays.asList(
+                            latestMetaData.getRight().stream()
+                                    .map(
+                                            x ->
+                                                    wrapIntoNullableInternalConverter(
+                                                            createInternalConverter(x)))
+                                    .toArray(IDeserializationConverter[]::new));
             metadata =
                     new TableMetaData(
                             schema, table, latestMetaData.getLeft(), latestMetaData.getRight());
@@ -199,7 +203,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
      * @param prefix after_/before_
      */
     private void parseColumnList(
-            IDeserializationConverter<String, AbstractBaseColumn>[] converters,
+            List<IDeserializationConverter> converters,
             List<String> fieldList,
             List<EventRowData> entryColumnList,
             List<AbstractBaseColumn> columnList,
@@ -220,7 +224,8 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                                 + GsonUtil.GSON.toJson(fieldList));
             }
 
-            AbstractBaseColumn column = converters[index].deserialize(entryColumn.getData());
+            AbstractBaseColumn column =
+                    (AbstractBaseColumn) converters.get(index).deserialize(entryColumn.getData());
             columnList.add(column);
             headerList.add(prefix + entryColumn.getName());
         }

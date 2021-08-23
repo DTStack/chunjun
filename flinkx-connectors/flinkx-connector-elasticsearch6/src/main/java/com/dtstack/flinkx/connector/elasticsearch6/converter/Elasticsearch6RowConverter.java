@@ -70,12 +70,12 @@ public class Elasticsearch6RowConverter
         super(rowType);
         List<String> fieldNames = rowType.getFieldNames();
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
             typeIndexList.add(new Tuple3<>(fieldNames.get(i), i, rowType.getTypeAt(i)));
         }
     }
@@ -121,7 +121,7 @@ public class Elasticsearch6RowConverter
             Tuple3<String, Integer, LogicalType> typeTuple = collect.get(0);
             genericRowData.setField(
                     typeTuple._2(),
-                    toInternalConverters[typeTuple._2()].deserialize(input.get(key)));
+                    toInternalConverters.get(typeTuple._2()).deserialize(input.get(key)));
         }
         return genericRowData;
     }
@@ -130,7 +130,7 @@ public class Elasticsearch6RowConverter
     public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output)
             throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, output);
+            toExternalConverters.get(index).serialize(rowData, index, output);
         }
         return output;
     }

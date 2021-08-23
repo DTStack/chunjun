@@ -57,6 +57,7 @@ import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -107,20 +108,21 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
         String schema = entity.getSchema();
         String table = entity.getTable();
         String key = schema + ConstantValue.POINT_SYMBOL + table;
-        IDeserializationConverter[] converters = cdcConverterCacheMap.get(key);
+        List<IDeserializationConverter> converters = cdcConverterCacheMap.get(key);
 
         List<ColumnInfo> columnList = entity.getColumnList();
 
         if (converters == null || needChange(entity)) {
             cdcConverterCacheMap.put(
                     key,
-                    columnList.stream()
-                            .map(
-                                    column ->
-                                            createInternalConverter(
-                                                    translateDataType(column.getType())
-                                                            .getLogicalType()))
-                            .toArray(IDeserializationConverter[]::new));
+                    Arrays.asList(
+                            columnList.stream()
+                                    .map(
+                                            column ->
+                                                    createInternalConverter(
+                                                            translateDataType(column.getType())
+                                                                    .getLogicalType()))
+                                    .toArray(IDeserializationConverter[]::new)));
         }
 
         converters = cdcConverterCacheMap.get(key);
@@ -268,7 +270,7 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
      * @return
      */
     private List<String> parseColumnList(
-            IDeserializationConverter<String, AbstractBaseColumn>[] converters,
+            List<IDeserializationConverter> converters,
             List<Object> entryColumnList,
             List<AbstractBaseColumn> columnList,
             List<String> headerList,
@@ -279,7 +281,8 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
             Object entryColumn = entryColumnList.get(i);
             if (entryColumn != null) {
                 AbstractBaseColumn column =
-                        converters[i].deserialize(entryColumnList.get(i).toString());
+                        (AbstractBaseColumn)
+                                converters.get(i).deserialize(entryColumnList.get(i).toString());
                 columnList.add(column);
                 originList.add(after + headerList.get(i));
             }

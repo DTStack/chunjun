@@ -57,12 +57,12 @@ public class JdbcRowConverter
     public JdbcRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
     }
 
@@ -91,7 +91,7 @@ public class JdbcRowConverter
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = resultSet.getObject(pos + 1);
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
+            genericRowData.setField(pos, toInternalConverters.get(pos).deserialize(field));
         }
         return genericRowData;
     }
@@ -101,7 +101,7 @@ public class JdbcRowConverter
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = jsonArray.getValue(pos);
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
+            genericRowData.setField(pos, toInternalConverters.get(pos).deserialize(field));
         }
         return genericRowData;
     }
@@ -110,7 +110,7 @@ public class JdbcRowConverter
     public FieldNamedPreparedStatement toExternal(
             RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, statement);
+            toExternalConverters.get(index).serialize(rowData, index, statement);
         }
         return statement;
     }

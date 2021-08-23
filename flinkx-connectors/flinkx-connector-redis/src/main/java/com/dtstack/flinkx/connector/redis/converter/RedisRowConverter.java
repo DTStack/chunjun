@@ -68,9 +68,9 @@ public class RedisRowConverter
         super(rowType);
         List<String> fieldNames = rowType.getFieldNames();
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
+                            createInternalConverter(rowType.getTypeAt(i))));
             typeIndexList.add(new Triplet(fieldNames.get(i), i, rowType.getTypeAt(i)));
         }
     }
@@ -78,9 +78,9 @@ public class RedisRowConverter
     public RedisRowConverter(RowType rowType, RedisConf redisConf) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toExternalConverters[i] =
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
         this.redisConf = redisConf;
     }
@@ -120,7 +120,7 @@ public class RedisRowConverter
             Triplet<String, Integer, LogicalType> typeTriplet = collect.get(0);
             genericRowData.setField(
                     typeTriplet.second,
-                    toInternalConverters[typeTriplet.second].deserialize(input.get(key)));
+                    toInternalConverters.get(typeTriplet.second).deserialize(input.get(key)));
         }
 
         return genericRowData;
@@ -131,7 +131,7 @@ public class RedisRowConverter
         List<String> fieldNames = rowType.getFieldNames();
         List<Object> fieldValue = new ArrayList<>();
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, fieldValue);
+            toExternalConverters.get(index).serialize(rowData, index, fieldValue);
         }
 
         Map<String, Object> collect =

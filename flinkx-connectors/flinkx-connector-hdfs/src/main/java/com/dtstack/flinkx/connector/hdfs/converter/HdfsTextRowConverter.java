@@ -55,12 +55,12 @@ public class HdfsTextRowConverter
     public HdfsTextRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
     }
 
@@ -71,7 +71,8 @@ public class HdfsTextRowConverter
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
-                row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
+                row.setField(
+                        i, toInternalConverters.get(i).deserialize(genericRowData.getField(i)));
             }
         } else {
             throw new FlinkxRuntimeException(
@@ -86,7 +87,7 @@ public class HdfsTextRowConverter
     @SuppressWarnings("unchecked")
     public String[] toExternal(RowData rowData, String[] data) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, data);
+            toExternalConverters.get(index).serialize(rowData, index, data);
         }
         return data;
     }

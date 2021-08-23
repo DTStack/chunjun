@@ -58,12 +58,12 @@ public class KuduRowConverter
         super(rowType);
         this.columnName = columnName;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(rowType.getTypeAt(i)), rowType.getTypeAt(i));
+                            createExternalConverter(rowType.getTypeAt(i)), rowType.getTypeAt(i)));
         }
     }
 
@@ -97,7 +97,7 @@ public class KuduRowConverter
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
         for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
             Object field = input.getObject(pos);
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(field));
+            genericRowData.setField(pos, toInternalConverters.get(pos).deserialize(field));
         }
         return genericRowData;
     }
@@ -105,7 +105,7 @@ public class KuduRowConverter
     @Override
     public Operation toExternal(RowData rowData, Operation operation) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, operation);
+            toExternalConverters.get(index).serialize(rowData, index, operation);
         }
         return operation;
     }

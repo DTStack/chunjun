@@ -42,6 +42,7 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -94,10 +95,10 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
                     kafkaConf.getColumn().stream()
                             .map(FieldConf::getType)
                             .collect(Collectors.toList());
-            this.toInternalConverters = new IDeserializationConverter[typeList.size()];
-            for (int i = 0; i < typeList.size(); i++) {
-                toInternalConverters[i] =
-                        wrapIntoNullableInternalConverter(createInternalConverter(typeList.get(i)));
+            this.toInternalConverters = new ArrayList<>();
+            for (String s : typeList) {
+                toInternalConverters.add(
+                        wrapIntoNullableInternalConverter(createInternalConverter(s)));
             }
         }
     }
@@ -106,7 +107,7 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
     public RowData toInternal(String input) throws Exception {
         Map<String, Object> map = decode.decode(input);
         ColumnRowData result;
-        if (toInternalConverters == null || toInternalConverters.length == 0) {
+        if (toInternalConverters == null || toInternalConverters.size() == 0) {
             result = new ColumnRowData(1);
             result.addField(new MapColumn(map));
         } else {
@@ -116,7 +117,7 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
                 FieldConf fieldConf = fieldConfList.get(i);
                 Object value = map.get(fieldConf.getName());
                 AbstractBaseColumn baseColumn =
-                        (AbstractBaseColumn) toInternalConverters[i].deserialize(value);
+                        (AbstractBaseColumn) toInternalConverters.get(i).deserialize(value);
                 result.addField(assembleFieldProps(fieldConf, baseColumn));
             }
         }

@@ -52,9 +52,9 @@ public class RestapiRowConverter extends AbstractRowConverter<String, Object, Ob
     public RestapiRowConverter(RowType rowType, HttpRestConfig httpRestConfig) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
+                            createInternalConverter(rowType.getTypeAt(i))));
         }
         this.httpRestConfig = httpRestConfig;
     }
@@ -72,7 +72,7 @@ public class RestapiRowConverter extends AbstractRowConverter<String, Object, Ob
             if (value instanceof LinkedTreeMap) {
                 value = value.toString();
             }
-            genericRowData.setField(pos, toInternalConverters[pos].deserialize(value));
+            genericRowData.setField(pos, toInternalConverters.get(pos).deserialize(value));
         }
         return genericRowData;
     }

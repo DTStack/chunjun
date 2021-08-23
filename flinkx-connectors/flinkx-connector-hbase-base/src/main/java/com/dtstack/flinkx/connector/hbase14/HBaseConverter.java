@@ -36,12 +36,12 @@ public class HBaseConverter extends AbstractRowConverter<RowData, RowData, Objec
     public HBaseConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
     }
 
@@ -51,7 +51,8 @@ public class HBaseConverter extends AbstractRowConverter<RowData, RowData, Objec
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
-                row.setField(i, toInternalConverters[i].deserialize(genericRowData.getField(i)));
+                row.setField(
+                        i, toInternalConverters.get(i).deserialize(genericRowData.getField(i)));
             }
         } else {
             throw new FlinkxRuntimeException(
@@ -65,7 +66,7 @@ public class HBaseConverter extends AbstractRowConverter<RowData, RowData, Objec
     @Override
     public Object toExternal(RowData rowData, Object data) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, data);
+            toExternalConverters.get(index).serialize(rowData, index, data);
         }
         return data;
     }

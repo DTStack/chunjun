@@ -68,12 +68,12 @@ public class Elasticsearch6ColumnConverter
         super(rowType);
         List<String> fieldNames = rowType.getFieldNames();
         for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i)));
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]);
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
             typeIndexList.add(new Tuple3<>(fieldNames.get(i), i, rowType.getTypeAt(i)));
         }
     }
@@ -96,7 +96,7 @@ public class Elasticsearch6ColumnConverter
     @Override
     public RowData toInternal(Map<String, Object> input) throws Exception {
         ColumnRowData columnRowData = new ColumnRowData(rowType.getFieldCount());
-        for (int i = 0; i < toInternalConverters.length; i++) {
+        for (int i = 0; i < toInternalConverters.size(); i++) {
             final int index = i;
             List<Tuple3<String, Integer, LogicalType>> collect =
                     typeIndexList.stream()
@@ -110,7 +110,8 @@ public class Elasticsearch6ColumnConverter
 
             Tuple3<String, Integer, LogicalType> typeTuple = collect.get(0);
             Object field = input.get(typeTuple._1());
-            columnRowData.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
+            columnRowData.addField(
+                    (AbstractBaseColumn) toInternalConverters.get(i).deserialize(field));
         }
         return columnRowData;
     }
@@ -119,7 +120,7 @@ public class Elasticsearch6ColumnConverter
     public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output)
             throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, output);
+            toExternalConverters.get(index).serialize(rowData, index, output);
         }
         return output;
     }

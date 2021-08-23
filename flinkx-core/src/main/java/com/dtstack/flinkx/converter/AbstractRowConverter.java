@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -51,8 +52,8 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
 
     private static final long serialVersionUID = 1L;
     protected RowType rowType;
-    protected IDeserializationConverter[] toInternalConverters;
-    protected ISerializationConverter[] toExternalConverters;
+    protected ArrayList<IDeserializationConverter> toInternalConverters;
+    protected ArrayList<ISerializationConverter> toExternalConverters;
     protected LogicalType[] fieldTypes;
     protected FlinkxCommonConf commonConf;
 
@@ -78,8 +79,8 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     }
 
     public AbstractRowConverter(int converterSize) {
-        this.toInternalConverters = new IDeserializationConverter[converterSize];
-        this.toExternalConverters = new ISerializationConverter[converterSize];
+        this.toInternalConverters = new ArrayList<>(converterSize);
+        this.toExternalConverters = new ArrayList<>(converterSize);
     }
 
     protected IDeserializationConverter wrapIntoNullableInternalConverter(
