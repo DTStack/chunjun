@@ -30,7 +30,6 @@ import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.sql.parser.SqlParser;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
-import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.ExecuteProcessHelper;
 import com.dtstack.flinkx.util.FactoryHelper;
 import com.dtstack.flinkx.util.PluginUtil;
@@ -62,14 +61,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
 /**
  * The main class entry
