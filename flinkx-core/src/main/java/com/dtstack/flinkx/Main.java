@@ -62,12 +62,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 /**
  * The main class entry
@@ -135,7 +137,7 @@ public class Main {
                 }
             }
         } catch (Exception e) {
-            LOG.error(ExceptionUtil.getErrorMessage(e));
+            throw new FlinkxRuntimeException(e);
         } finally {
             FactoryUtil.getFactoryHelperThreadLocal().remove();
             TableFactoryService.getFactoryHelperThreadLocal().remove();
