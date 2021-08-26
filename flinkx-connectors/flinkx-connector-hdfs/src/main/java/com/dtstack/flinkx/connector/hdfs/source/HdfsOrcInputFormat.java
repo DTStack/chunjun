@@ -235,10 +235,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
             genericRowData = new GenericRowData(fullColNames.length);
             for (int i = 0; i < fullColNames.length; i++) {
                 Object obj = inspector.getStructFieldData(value, fields.get(i));
-                if (obj != null) {
-                    obj = HdfsUtil.getWritableValue(obj);
-                }
-                genericRowData.setField(i, obj);
+                genericRowData.setField(i, HdfsUtil.getWritableValue(obj));
             }
         } else {
             genericRowData = new GenericRowData(fieldConfList.size());

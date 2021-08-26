@@ -80,7 +80,9 @@ public class HdfsUtil {
     public static Object getWritableValue(Object writable) {
         Object ret;
 
-        if (writable instanceof IntWritable) {
+        if (writable == null) {
+            ret = null;
+        } else if (writable instanceof IntWritable) {
             ret = ((IntWritable) writable).get();
         } else if (writable instanceof Text) {
             ret = writable.toString();
