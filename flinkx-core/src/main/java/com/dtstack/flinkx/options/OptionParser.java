@@ -56,7 +56,7 @@ public class OptionParser {
                 options.addOption(name, optionRequired.hasArg(), optionRequired.description());
             }
         }
-        CommandLine cl = parser.parse(options, args, true);
+        CommandLine cl = parser.parse(options, args);
 
         for (Field field : fields) {
             String name = field.getName();
