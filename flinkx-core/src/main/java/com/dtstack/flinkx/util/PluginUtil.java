@@ -50,6 +50,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+import static com.dtstack.flinkx.constants.ConstantValue.CONNECTOR_DIR_NAME;
 import static com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
 
 /**
@@ -215,12 +216,12 @@ public class PluginUtil {
         Set<URL> sourceUrlList =
                 getJarFileDirPath(
                         config.getReader().getName(),
-                        config.getPluginRoot(),
+                        config.getPluginRoot() + SP + CONNECTOR_DIR_NAME,
                         config.getRemotePluginPath());
         Set<URL> sinkUrlList =
                 getJarFileDirPath(
                         config.getWriter().getName(),
-                        config.getPluginRoot(),
+                        config.getPluginRoot() + SP + CONNECTOR_DIR_NAME,
                         config.getRemotePluginPath());
         Set<URL> metricUrlList =
                 getJarFileDirPath(
