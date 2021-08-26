@@ -273,7 +273,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     @Override
     public FormatState getFormatState() {
         super.getFormatState();
-        formatState.setState(state);
+        if (formatState != null) formatState.setState(state);
         return formatState;
     }
 
