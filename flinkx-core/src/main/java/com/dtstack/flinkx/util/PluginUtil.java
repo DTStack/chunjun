@@ -208,26 +208,23 @@ public class PluginUtil {
     public static void registerPluginUrlToCachedFile(
             SyncConf config, StreamExecutionEnvironment env) {
         Set<URL> urlSet = new HashSet<>();
-        Set<URL> coreUrlList =
-                getJarFileDirPath("", config.getPluginRoot(), config.getRemotePluginPath());
-        Set<URL> formatsUrlList =
-                getJarFileDirPath(
-                        FORMATS_SUFFIX, config.getPluginRoot(), config.getRemotePluginPath());
+        Set<URL> coreUrlList = getJarFileDirPath("", config.getPluginRoot(), null);
+        Set<URL> formatsUrlList = getJarFileDirPath(FORMATS_SUFFIX, config.getPluginRoot(), null);
         Set<URL> sourceUrlList =
                 getJarFileDirPath(
                         config.getReader().getName(),
                         config.getPluginRoot() + SP + CONNECTOR_DIR_NAME,
-                        config.getRemotePluginPath());
+                        null);
         Set<URL> sinkUrlList =
                 getJarFileDirPath(
                         config.getWriter().getName(),
                         config.getPluginRoot() + SP + CONNECTOR_DIR_NAME,
-                        config.getRemotePluginPath());
+                        null);
         Set<URL> metricUrlList =
                 getJarFileDirPath(
                         config.getMetricPluginConf().getPluginName(),
                         config.getPluginRoot() + SP + METRIC_SUFFIX,
-                        config.getRemotePluginPath());
+                        null);
         urlSet.addAll(coreUrlList);
         urlSet.addAll(formatsUrlList);
         urlSet.addAll(sourceUrlList);
