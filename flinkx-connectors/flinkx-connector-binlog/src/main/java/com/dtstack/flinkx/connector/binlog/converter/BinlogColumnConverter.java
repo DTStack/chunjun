@@ -32,11 +32,11 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 
+import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.nio.charset.StandardCharsets;
