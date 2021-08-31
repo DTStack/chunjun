@@ -268,7 +268,10 @@ public final class FactoryUtil {
         final List<Factory> factories;
         if (factoryIdentifier.toLowerCase().endsWith("-x")) {
             String s = factoryIdentifier.substring(0, factoryIdentifier.length() - 2);
-            factoryHelperThreadLocal.get().registerCachedFile(s, classLoader, false);
+            FactoryHelper factoryHelper = factoryHelperThreadLocal.get();
+            if (factoryHelper != null) {
+                factoryHelper.registerCachedFile(s, classLoader, false);
+            }
         }
 
         factories = discoverFactories(classLoader);
