@@ -19,7 +19,8 @@
 package com.dtstack.flinkx.connector.elasticsearch7.sink;
 
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
+
 import com.google.common.base.Preconditions;
 
 /**

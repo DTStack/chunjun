@@ -18,14 +18,14 @@
 
 package org.apache.flink.table.factories;
 
+import com.dtstack.flinkx.util.FactoryHelper;
+
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.DelegatingConfiguration;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.catalog.Catalog;
@@ -38,21 +38,11 @@ import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.utils.EncodingUtils;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.enums.ConnectorLoadMode;
-import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
-import com.dtstack.flinkx.util.PluginUtil;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -64,8 +54,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Utility for working with {@link Factory}s.
- * 改动内容：增加方法loadFactories，增加变量pluginPath、env、connectorLoadMode、classPathSet
+ * Utility for working with {@link Factory}s. 改动内容：增加方法loadFactories，增加变量pluginPath、env、classPathSet
  * 改动原因：flink原生加载插件的方式是使用spi，不符合我们需求。在原来基础上增加通过classloader指定jar加载插件
  */
 @PublicEvolving
@@ -73,33 +62,7 @@ public final class FactoryUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(FactoryUtil.class);
 
-    /** 插件路径 */
-    private static String localPluginPath = null;
-
-    /** 远端插件路径 */
-    private static String remotePluginPath = null;
-
-    /** 插件加载类型 */
-    private static String pluginLoadMode = "shipfile";
-
-    /** 上下文环境 */
-    private static StreamExecutionEnvironment env = null;
-
-    /** 插件加载方式，默认走SPI方式 */
-    private static String connectorLoadMode = ConnectorLoadMode.SPI.name();
-
-    /** shipfile需要的jar */
-    private static List<URL> classPathSet = new ArrayList<>();
-
-    /** shipfile需要的jar的classPath index */
-    private static int CLASS_FILE_NAME_INDEX = 0;
-
-    /** shipfile需要的jar的classPath name */
-    public static final ConfigOption<String> CLASS_FILE_NAME_FMT =
-            ConfigOptions.key("class_file_name_fmt")
-                    .stringType()
-                    .defaultValue("class_path_%d")
-                    .withDescription("");
+    private static final ThreadLocal<FactoryHelper> factoryHelperThreadLocal = new ThreadLocal<>();
 
     /** factory包名前缀 */
     public static final ConfigOption<String> CONNECTORS_PACKAGE_PREFIX =
@@ -128,7 +91,6 @@ public final class FactoryUtil {
                     .stringType()
                     .defaultValue("FormatFactory")
                     .withDescription("");
-
 
     public static final ConfigOption<Integer> PROPERTY_VERSION =
             ConfigOptions.key("property-version")
@@ -168,7 +130,6 @@ public final class FactoryUtil {
                                     + "By default, if this option is not defined, the planner will derive the parallelism "
                                     + "for each statement individually by also considering the global configuration.");
 
-
     public static final ConfigOption<Integer> SINK_PARALLELISM =
             ConfigOptions.key("sink.parallelism")
                     .intType()
@@ -186,26 +147,6 @@ public final class FactoryUtil {
      * for more information.
      */
     public static final String FORMAT_SUFFIX = ".format";
-
-    public static void setLocalPluginPath(String localPluginPath) {
-        FactoryUtil.localPluginPath = localPluginPath;
-    }
-
-    public static void setRemotePluginPath(String remotePluginPath) {
-        FactoryUtil.remotePluginPath = remotePluginPath;
-    }
-
-    public static void setPluginLoadMode(String pluginLoadMode) {
-        FactoryUtil.pluginLoadMode = pluginLoadMode;
-    }
-
-    public static void setEnv(StreamExecutionEnvironment env) {
-        FactoryUtil.env = env;
-    }
-
-    public static void setConnectorLoadMode(String connectorLoadMode) {
-        FactoryUtil.connectorLoadMode = connectorLoadMode;
-    }
 
     /**
      * Creates a {@link DynamicTableSource} from a {@link CatalogTable}.
@@ -325,11 +266,12 @@ public final class FactoryUtil {
     public static <T extends Factory> T discoverFactory(
             ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
         final List<Factory> factories;
-        if (org.apache.commons.lang3.StringUtils.equalsIgnoreCase(ConnectorLoadMode.CLASSLOADER.name(), connectorLoadMode)) {
-            factories = loadFactories(classLoader, factoryClass, factoryIdentifier);
-        } else {
-            factories = discoverFactories(classLoader);
+        if (factoryIdentifier.toLowerCase().endsWith("-x")) {
+            String s = factoryIdentifier.substring(0, factoryIdentifier.length() - 2);
+            factoryHelperThreadLocal.get().registerCachedFile(s, classLoader, false);
         }
+
+        factories = discoverFactories(classLoader);
 
         final List<Factory> foundFactories =
                 factories.stream()
@@ -380,53 +322,6 @@ public final class FactoryUtil {
     }
 
     /**
-     * 使用classLoader方式加载插件
-     * @param classLoader
-     * @param factoryClass
-     * @param factoryIdentifier
-     * @param <T>
-     * @return
-     */
-    private static <T extends Factory> List<Factory> loadFactories(
-            ClassLoader classLoader, Class<T> factoryClass, String factoryIdentifier) {
-        final List<Factory> factories;
-        // syncplugins后面jar包的路径比如 kafka、mysql
-        String jarDirectorySuffix;
-        String fullClassName;
-        if (DynamicTableSourceFactory.class.isAssignableFrom(factoryClass)
-                || DynamicTableSinkFactory.class.isAssignableFrom(factoryClass)) {
-            String factoryIdentifierPrefix = jarDirectorySuffix = factoryIdentifier.substring(0, factoryIdentifier.length() - 2);
-
-            String[] packageName = StringUtils.splitByWholeSeparator(factoryIdentifierPrefix, "-");
-
-            fullClassName =
-                    CONNECTORS_PACKAGE_PREFIX.defaultValue()
-                            + StringUtils.join(packageName)
-                            + ".table."
-                            + Arrays.stream(packageName).map(StringUtils::capitalize).collect(Collectors.joining())
-                            + CONNECTORS_PACKAGE_SUFFIX.defaultValue();
-
-        } else if (DeserializationFormatFactory.class.isAssignableFrom(factoryClass)
-                || SerializationFormatFactory.class.isAssignableFrom(factoryClass)) {
-
-            // format都放到sqlplugins下的format目录下
-            fullClassName =
-                    FORMAT_PACKAGE_PREFIX.defaultValue()
-                            + factoryIdentifier
-                            + "."
-                            + StringUtils.capitalize(factoryIdentifier)
-                            + FORMAT_PACKAGE_SUFFIX.defaultValue();
-
-            jarDirectorySuffix = FORMATS.key();
-        } else {
-            throw new RuntimeException(factoryClass + " can not Identify");
-        }
-
-        factories = doLoadFactories(classLoader, jarDirectorySuffix, factoryIdentifier, fullClassName);
-        return factories;
-    }
-
-    /**
      * Validates the required and optional {@link ConfigOption}s of a factory.
      *
      * <p>Note: It does not check for left-over options.
@@ -466,9 +361,7 @@ public final class FactoryUtil {
         optionalOptions.forEach(option -> readOption(options, option));
     }
 
-    /**
-     * Validates unconsumed option keys.
-     */
+    /** Validates unconsumed option keys. */
     public static void validateUnconsumedKeys(
             String factoryIdentifier, Set<String> allOptionKeys, Set<String> consumedOptionKeys) {
         final Set<String> remainingOptionKeys = new HashSet<>(allOptionKeys);
@@ -575,73 +468,6 @@ public final class FactoryUtil {
         }
     }
 
-    /**
-     * 通过classloader方式加载 Factory
-     * @param classLoader
-     * @param jarDirectorySuffix
-     * @param factoryIdentifier 用来区分是否是format，插件不会使用该参数
-     * @param fullClassName
-     * @return
-     */
-    private static List<Factory> doLoadFactories(
-            ClassLoader classLoader,
-            String jarDirectorySuffix,
-            String factoryIdentifier,
-            String fullClassName) {
-        try {
-            final List<Factory> result = new LinkedList<>();
-
-            // 1.通过factoryIdentifier查找jar路径
-            String pluginPath = org.apache.commons.lang3.StringUtils.equalsIgnoreCase(pluginLoadMode, "classpath") ?
-                    remotePluginPath : localPluginPath;
-            String pluginJarPath = pluginPath + File.separatorChar + jarDirectorySuffix;
-            URL[] pluginJarUrls = PluginUtil.getPluginJarUrls(pluginJarPath, factoryIdentifier);
-            URL[] formatsJarUrls = PluginUtil.getPluginJarUrls(
-                    pluginPath + File.separatorChar + PluginUtil.FORMATS_SUFFIX,
-                    factoryIdentifier);
-            List<URL> jarUrlList = Arrays.stream(pluginJarUrls).collect(Collectors.toList());
-            if (formatsJarUrls.length > 0) {
-                jarUrlList.addAll(Arrays.asList(formatsJarUrls));
-            }
-            URL[] jarUrls = jarUrlList.toArray(new URL[0]);
-
-            // 2.反射创建对象
-            Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            add.setAccessible(true);
-            Object currentClassloader = classLoader;
-
-            // 非local模式下需要使用FlinkUserCodeClassLoader来加载jar
-            if (!(env instanceof MyLocalStreamEnvironment)) {
-                Field field = FlinkUserCodeClassLoaders.SafetyNetWrapperClassLoader.class.getDeclaredField(
-                        "inner");
-                field.setAccessible(true);
-                currentClassloader = field.get(classLoader);
-            }
-
-            for (URL jarUrl : jarUrls) {
-                add.invoke(currentClassloader, jarUrl);
-            }
-            Factory factory = (Factory) classLoader.loadClass(fullClassName).newInstance();
-            result.add(factory);
-
-            // 3.registerCachedFile 为了添加到shipfile中
-            for (URL pluginJarUrl : jarUrls) {
-                if (!classPathSet.contains(pluginJarUrl)) {
-                    classPathSet.add(pluginJarUrl);
-                    String classFileName = String.format(
-                            CLASS_FILE_NAME_FMT.defaultValue(),
-                            CLASS_FILE_NAME_INDEX);
-                    env.registerCachedFile(pluginJarUrl.getPath(), classFileName, true);
-                    CLASS_FILE_NAME_INDEX++;
-                }
-            }
-
-            return result;
-        } catch (Exception e) {
-            throw new TableException("Could not load service provider for factories.", e);
-        }
-    }
-
     private static String stringifyOption(String key, String value) {
         return String.format(
                 "'%s'='%s'",
@@ -715,8 +541,8 @@ public final class FactoryUtil {
          * as factory identifier.
          */
         public <I, F extends DecodingFormatFactory<I>>
-        Optional<DecodingFormat<I>> discoverOptionalDecodingFormat(
-                Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
+                Optional<DecodingFormat<I>> discoverOptionalDecodingFormat(
+                        Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
             return discoverOptionalFormatFactory(formatFactoryClass, formatOption)
                     .map(
                             formatFactory -> {
@@ -755,8 +581,8 @@ public final class FactoryUtil {
          * as factory identifier.
          */
         public <I, F extends EncodingFormatFactory<I>>
-        Optional<EncodingFormat<I>> discoverOptionalEncodingFormat(
-                Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
+                Optional<EncodingFormat<I>> discoverOptionalEncodingFormat(
+                        Class<F> formatFactoryClass, ConfigOption<String> formatOption) {
             return discoverOptionalFormatFactory(formatFactoryClass, formatOption)
                     .map(
                             formatFactory -> {
@@ -805,9 +631,7 @@ public final class FactoryUtil {
             validate();
         }
 
-        /**
-         * Returns all options of the table.
-         */
+        /** Returns all options of the table. */
         public ReadableConfig getOptions() {
             return allOptions;
         }
@@ -911,7 +735,15 @@ public final class FactoryUtil {
 
     // --------------------------------------------------------------------------------------------
 
-    private FactoryUtil() {
+    public FactoryUtil() {
         // no instantiation
+    }
+
+    public static void setFactoryUtilHelp(FactoryHelper factoryHelper) {
+        factoryHelperThreadLocal.set(factoryHelper);
+    }
+
+    public static ThreadLocal<FactoryHelper> getFactoryHelperThreadLocal() {
+        return factoryHelperThreadLocal;
     }
 }

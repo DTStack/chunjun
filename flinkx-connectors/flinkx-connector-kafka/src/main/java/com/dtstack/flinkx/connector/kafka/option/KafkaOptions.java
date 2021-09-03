@@ -25,7 +25,7 @@ import org.apache.flink.configuration.ConfigOptions;
  * @author chuixue
  * @create 2021-06-07 15:53
  * @description
- **/
+ */
 public class KafkaOptions {
     public static final ConfigOption<String> DEFAULT_CODEC =
             ConfigOptions.key("default.codec")

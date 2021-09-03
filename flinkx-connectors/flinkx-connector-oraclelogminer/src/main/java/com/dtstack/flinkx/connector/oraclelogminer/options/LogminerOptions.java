@@ -17,18 +17,19 @@
  */
 package com.dtstack.flinkx.connector.oraclelogminer.options;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 /**
- * Date: 2021/05/06
- * Company: www.dtstack.com
+ * Date: 2021/05/06 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class LogminerOptions {
     public static final ConfigOption<String> JDBC_URL =
-            ConfigOptions.key("jdbcUrl")
+            ConfigOptions.key("url")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("Oracle jdbcUrl.");
@@ -45,9 +46,8 @@ public class LogminerOptions {
                     .noDefaultValue()
                     .withDescription("Oracle password.");
 
-
     public static final ConfigOption<Integer> FETCHSIZE =
-            ConfigOptions.key("fetchSize")
+            ConfigOptions.key("fetch-size")
                     .intType()
                     .defaultValue(1000)
                     .withDescription("Oracle LogMiner fetchSize.");
@@ -59,21 +59,19 @@ public class LogminerOptions {
                     .withDescription("Oracle LogMiner option type.");
 
     public static final ConfigOption<String> POSITION =
-            ConfigOptions.key("readPosition")
+            ConfigOptions.key("read-position")
                     .stringType()
                     .defaultValue("current")
                     .withDescription("Oracle LogMiner start type.");
 
-
     public static final ConfigOption<Long> START_TIME =
-            ConfigOptions.key("startTime")
+            ConfigOptions.key("start-time")
                     .longType()
                     .defaultValue(0L)
                     .withDescription("Oracle LogMiner start TIMESTAMP.");
 
-
     public static final ConfigOption<String> START_SCN =
-            ConfigOptions.key("startSCN")
+            ConfigOptions.key("start-scn")
                     .stringType()
                     .defaultValue("")
                     .withDescription("Oracle LogMiner start SCN.");
@@ -85,14 +83,39 @@ public class LogminerOptions {
                     .withDescription("Oracle LogMiner table.");
 
     public static final ConfigOption<Long> QUERY_TIMEOUT =
-            ConfigOptions.key("queryTimeout")
+            ConfigOptions.key("query-timeout")
                     .longType()
                     .defaultValue(300L)
                     .withDescription("Oracle LogMiner queryTimeOut.");
 
     public static final ConfigOption<Boolean> SUPPORT_AUTO_LOG =
-            ConfigOptions.key("supportAutoAddLog")
+            ConfigOptions.key("support-auto-add-log")
                     .booleanType()
                     .defaultValue(false)
                     .withDescription("Oracle LogMiner supportAutoAddLog.");
+
+    public static final ConfigOption<Integer> IO_THREADS =
+            ConfigOptions.key("io-threads")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription("Oracle LogMiner load redoLog threads.");
+
+    public static final ConfigOption<Long> MAX_LOAD_FILE_SIZE =
+            ConfigOptions.key("max-log-file-size")
+                    .longType()
+                    .defaultValue(5 * ConstantValue.STORE_SIZE_G)
+                    .withDescription("Oracle LogMiner load redoLog size.");
+
+    public static final ConfigOption<Integer> TRANSACTION_CACHE_NUM_SIZE =
+            ConfigOptions.key("transaction-cache-num-size")
+                    .intType()
+                    .defaultValue(800)
+                    .withDescription("Oracle LogMiner cache size.");
+
+    public static final ConfigOption<Integer> TRANSACTION_EXPIRE_TIME =
+            ConfigOptions.key("transaction-expire-time")
+                    .intType()
+                    .defaultValue(20)
+                    .withDescription(
+                            "Oracle LogMiner cache expire time  and  default value is 20 minutes");
 }

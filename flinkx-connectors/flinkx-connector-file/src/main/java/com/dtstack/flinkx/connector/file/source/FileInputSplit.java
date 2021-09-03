@@ -28,7 +28,6 @@ import java.util.List;
  * @author: xiuzhu
  * @create: 2021/06/24
  */
-
 public class FileInputSplit implements InputSplit {
 
     private int splitNumber;

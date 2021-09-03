@@ -17,7 +17,6 @@
  */
 package com.dtstack.flinkx.connector.binlog.conf;
 
-
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import java.util.List;
@@ -252,29 +251,60 @@ public class BinlogConf extends FlinkxCommonConf {
 
     @Override
     public String toString() {
-        return "BinlogConf{" +
-                "host='" + host + '\'' +
-                ", port=" + port +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", jdbcUrl='" + jdbcUrl + '\'' +
-                ", start=" + start +
-                ", cat='" + cat + '\'' +
-                ", filter='" + filter + '\'' +
-                ", period=" + period +
-                ", bufferSize=" + bufferSize +
-                ", pavingData=" + pavingData +
-                ", table=" + table +
-                ", slaveId=" + slaveId +
-                ", connectionCharset='" + connectionCharset + '\'' +
-                ", detectingEnable=" + detectingEnable +
-                ", detectingSQL='" + detectingSQL + '\'' +
-                ", enableTsdb=" + enableTsdb +
-                ", parallel=" + parallel +
-                ", parallelThreadSize=" + parallelThreadSize +
-                ", isGTIDMode=" + isGTIDMode +
-                ", splitUpdate=" + splitUpdate +
-                ", timestampFormat='" + timestampFormat + '\'' +
-                '}';
+        return "BinlogConf{"
+                + "host='"
+                + host
+                + '\''
+                + ", port="
+                + port
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", jdbcUrl='"
+                + jdbcUrl
+                + '\''
+                + ", start="
+                + start
+                + ", cat='"
+                + cat
+                + '\''
+                + ", filter='"
+                + filter
+                + '\''
+                + ", period="
+                + period
+                + ", bufferSize="
+                + bufferSize
+                + ", pavingData="
+                + pavingData
+                + ", table="
+                + table
+                + ", slaveId="
+                + slaveId
+                + ", connectionCharset='"
+                + connectionCharset
+                + '\''
+                + ", detectingEnable="
+                + detectingEnable
+                + ", detectingSQL='"
+                + detectingSQL
+                + '\''
+                + ", enableTsdb="
+                + enableTsdb
+                + ", parallel="
+                + parallel
+                + ", parallelThreadSize="
+                + parallelThreadSize
+                + ", isGTIDMode="
+                + isGTIDMode
+                + ", splitUpdate="
+                + splitUpdate
+                + ", timestampFormat='"
+                + timestampFormat
+                + '\''
+                + '}';
     }
 }

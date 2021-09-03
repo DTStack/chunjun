@@ -26,10 +26,10 @@ CREATE TABLE source
       ,'properties.dfs.nameservices' = 'ns'
       ,'properties.fs.hdfs.impl.disable.cache' = 'true'
       ,'properties.fs.hdfs.impl' = 'org.apache.hadoop.hdfs.DistributedFileSystem'
-      ,'defaultFS' = 'hdfs://ns'
-      ,'fieldDelimiter' = ','
+      ,'default-fs' = 'hdfs://ns'
+      ,'field-delimiter' = ','
       ,'encoding' = 'utf-8'
-      ,'fileType' = 'text'
+      ,'file-type' = 'text'
       );
 
 CREATE TABLE sink

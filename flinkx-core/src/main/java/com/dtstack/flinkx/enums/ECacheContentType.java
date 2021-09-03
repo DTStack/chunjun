@@ -16,40 +16,29 @@
  * limitations under the License.
  */
 
- 
-
 package com.dtstack.flinkx.enums;
 
 /**
- * Reason:
- * Date: 2018/9/10
- * Company: www.dtstack.com
+ * Reason: Date: 2018/9/10 Company: www.dtstack.com
  *
  * @author xuchao
  */
-
 public enum ECacheContentType {
 
-    /**
-     * 无
-     */
+    /** 无 */
     MissVal(0),
-    /**
-     * 1行
-     */
+    /** 1行 */
     SingleLine(1),
-    /**
-     * 多行
-     */
+    /** 多行 */
     MultiLine(2);
 
     int type;
 
-    ECacheContentType(int type){
+    ECacheContentType(int type) {
         this.type = type;
     }
 
-    public int getType(){
+    public int getType() {
         return this.type;
     }
 }

@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.connector.mongodb.table.lookup;
 
+import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
+import com.dtstack.flinkx.connector.mongodb.converter.MongodbRowConverter;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.AsyncTableFunction;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
-import com.dtstack.flinkx.connector.mongodb.converter.MongodbRowConverter;
 import com.mongodb.BasicDBObject;
 import com.mongodb.Block;
 import com.mongodb.ConnectionString;

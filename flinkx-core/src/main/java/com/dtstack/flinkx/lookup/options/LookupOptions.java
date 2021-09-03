@@ -18,16 +18,16 @@
 
 package com.dtstack.flinkx.lookup.options;
 
+import com.dtstack.flinkx.enums.CacheType;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
-
-import com.dtstack.flinkx.enums.CacheType;
 
 /**
  * @author chuixue
  * @create 2021-04-10 16:10
  * @description lookup common config
- **/
+ */
 public class LookupOptions {
     // look up config options
     public static final ConfigOption<Long> LOOKUP_CACHE_PERIOD =
@@ -63,23 +63,23 @@ public class LookupOptions {
                     .defaultValue(3)
                     .withDescription("the max retry times if lookup database failed.");
 
-    public static final ConfigOption<Long> LOOKUP_ERRORLIMIT =
-            ConfigOptions.key("lookup.errorLimit")
+    public static final ConfigOption<Long> LOOKUP_ERROR_LIMIT =
+            ConfigOptions.key("lookup.error-limit")
                     .longType()
                     .defaultValue(Long.MAX_VALUE)
-                    .withDescription("errorLimit.");
+                    .withDescription("error limit.");
 
     public static final ConfigOption<Integer> LOOKUP_FETCH_SIZE =
-            ConfigOptions.key("lookup.fetchSize")
+            ConfigOptions.key("lookup.fetch-size")
                     .intType()
                     .defaultValue(1000)
-                    .withDescription("fetchSize.");
+                    .withDescription("fetch size.");
 
-    public static final ConfigOption<Integer> LOOKUP_ASYNCTIMEOUT =
-            ConfigOptions.key("lookup.asyncTimeout")
+    public static final ConfigOption<Integer> LOOKUP_ASYNC_TIMEOUT =
+            ConfigOptions.key("lookup.async-timeout")
                     .intType()
                     .defaultValue(10000)
-                    .withDescription("asyncTimeout.");
+                    .withDescription("async timeout.");
 
     public static final ConfigOption<Integer> LOOKUP_PARALLELISM =
             ConfigOptions.key("lookup.parallelism")

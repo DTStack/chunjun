@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
- 
-
 package com.dtstack.flinkx.lookup.cache;
 
 import com.google.common.cache.Cache;
@@ -26,12 +24,10 @@ import com.google.common.cache.CacheBuilder;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Reason:
- * Date: 2018/9/10
- * Company: www.dtstack.com
+ * Reason: Date: 2018/9/10 Company: www.dtstack.com
+ *
  * @author xuchao
  */
-
 public class LRUSideCache extends AbstractSideCache {
 
     protected transient Cache<String, CacheObj> cache;
@@ -45,16 +41,17 @@ public class LRUSideCache extends AbstractSideCache {
 
     @Override
     public void initCache() {
-        //当前只有LRU
-        cache = CacheBuilder.newBuilder()
-                .maximumSize(cacheSize)
-                .expireAfterWrite(timeOut, TimeUnit.MILLISECONDS)
-                .build();
+        // 当前只有LRU
+        cache =
+                CacheBuilder.newBuilder()
+                        .maximumSize(cacheSize)
+                        .expireAfterWrite(timeOut, TimeUnit.MILLISECONDS)
+                        .build();
     }
 
     @Override
     public CacheObj getFromCache(String key) {
-        if(cache == null){
+        if (cache == null) {
             return null;
         }
 
@@ -63,7 +60,7 @@ public class LRUSideCache extends AbstractSideCache {
 
     @Override
     public void putCache(String key, CacheObj value) {
-        if(cache == null){
+        if (cache == null) {
             return;
         }
 

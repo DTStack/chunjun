@@ -18,19 +18,18 @@
 package com.dtstack.flinkx.enums;
 
 /**
- * Date: 2021/04/27
- * Company: www.dtstack.com
+ * Date: 2021/04/27 Company: www.dtstack.com
  *
  * @author tudou
  */
 public enum OperationType {
-    //----------------- DML -----------------
+    // ----------------- DML -----------------
     INSERT(0, "INSERT"),
     UPDATE(1, "UPDATE"),
     UPDATE_BEFORE(3, "UPDATE"),
     UPDATE_AFTER(4, "UPDATE"),
     DELETE(5, "DELETE"),
-    //----------------- DDL -----------------
+    // ----------------- DDL -----------------
     CREATE(10, "CREATE"),
     DROP(11, "DROP"),
     ALTER(12, "ALTER");

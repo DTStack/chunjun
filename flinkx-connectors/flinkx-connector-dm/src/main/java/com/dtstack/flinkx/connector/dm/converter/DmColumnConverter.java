@@ -18,9 +18,7 @@
 
 package com.dtstack.flinkx.connector.dm.converter;
 
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
@@ -29,6 +27,10 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.StringUtil;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import dm.jdbc.driver.DmdbBlob;
 import dm.jdbc.driver.DmdbClob;
 
@@ -37,15 +39,11 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * @author kunni
- */
-public class DmColumnConverter
-        extends JdbcColumnConverter {
+/** @author kunni */
+public class DmColumnConverter extends JdbcColumnConverter {
 
-
-    public DmColumnConverter(RowType rowType) {
-        super(rowType);
+    public DmColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     @Override
@@ -55,22 +53,22 @@ public class DmColumnConverter
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
                 return val -> {
-                    if(val instanceof Integer){
+                    if (val instanceof Integer) {
                         return new BigDecimalColumn(((Integer) val).byteValue());
-                    }else if(val instanceof Short){
+                    } else if (val instanceof Short) {
                         return new BigDecimalColumn(((Short) val).byteValue());
-                    }else{
+                    } else {
                         return new BigDecimalColumn((Byte) val);
                     }
                 };
             case SMALLINT:
             case INTEGER:
                 return val -> {
-                    if(val instanceof Byte){
+                    if (val instanceof Byte) {
                         return new BigDecimalColumn(((Byte) val).intValue());
-                    }else if(val instanceof Short){
+                    } else if (val instanceof Short) {
                         return new BigDecimalColumn(((Short) val).intValue());
-                    }else{
+                    } else {
                         return new BigDecimalColumn((Integer) val);
                     }
                 };
@@ -86,27 +84,37 @@ public class DmColumnConverter
             case VARCHAR:
                 return val -> {
                     // support text type
-                    if(val instanceof DmdbClob){
-                        try{
-                            return new StringColumn(StringUtil.inputStream2String(((DmdbClob) val).getAsciiStream()));
-                        }catch (Exception e){
-                            throw new UnsupportedOperationException("failed to get length from text");
+                    if (val instanceof DmdbClob) {
+                        try {
+                            return new StringColumn(
+                                    StringUtil.inputStream2String(
+                                            ((DmdbClob) val).getAsciiStream()));
+                        } catch (Exception e) {
+                            throw new UnsupportedOperationException(
+                                    "failed to get length from text");
                         }
-                    }else if(val instanceof DmdbBlob){
-                        try{
-                            return new StringColumn(StringUtil.inputStream2String(((DmdbBlob) val).getBinaryStream()));
-                        }catch (Exception e){
-                            throw new UnsupportedOperationException("failed to get length from text");
+                    } else if (val instanceof DmdbBlob) {
+                        try {
+                            return new StringColumn(
+                                    StringUtil.inputStream2String(
+                                            ((DmdbBlob) val).getBinaryStream()));
+                        } catch (Exception e) {
+                            throw new UnsupportedOperationException(
+                                    "failed to get length from text");
                         }
-                    }else {
+                    } else {
                         return new StringColumn((String) val);
                     }
                 };
             case DATE:
-                return val -> new BigDecimalColumn(Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
+                return val ->
+                        new BigDecimalColumn(
+                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
-                        new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
+                        new BigDecimalColumn(
+                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn((Timestamp) val);
@@ -117,5 +125,4 @@ public class DmColumnConverter
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
     }
-
 }

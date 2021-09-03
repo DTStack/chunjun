@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.connector.oraclelogminer.conf;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.constants.ConstantValue;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -39,9 +39,7 @@ public class LogMinerConf extends FlinkxCommonConf {
 
     private String password;
 
-    /**
-     * LogMiner从v$logmnr_contents视图中批量拉取条数，值越大，消费存量数据越快
-     */
+    /** LogMiner从v$logmnr_contents视图中批量拉取条数，值越大，消费存量数据越快 */
     private int fetchSize = 1000;
 
     private String listenerTables;
@@ -50,14 +48,10 @@ public class LogMinerConf extends FlinkxCommonConf {
 
     private String cat = "UPDATE,INSERT,DELETE";
 
-    /**
-     * 读取位置: all, current, time, scn
-     */
+    /** 读取位置: all, current, time, scn */
     private String readPosition = "current";
 
-    /**
-     * 毫秒级时间戳
-     */
+    /** 毫秒级时间戳 */
     private long startTime = 0;
 
     @JsonProperty("startSCN")
@@ -67,24 +61,31 @@ public class LogMinerConf extends FlinkxCommonConf {
 
     private List<String> table;
 
-    /**
-     * LogMiner执行查询SQL的超时参数，单位秒
-     */
+    /** LogMiner执行查询SQL的超时参数，单位秒 */
     private Long queryTimeout = 300L;
 
-    /**
-     * Oracle 12c第二个版本之后LogMiner不支持自动添加日志
-     */
+    /** Oracle 12c第二个版本之后LogMiner不支持自动添加日志 */
     private boolean supportAutoAddLog;
 
     private boolean splitUpdate;
 
+    /** logminer一次最大加载数据量 默认5g * */
+    private long maxLogFileSize = 5 * ConstantValue.STORE_SIZE_G;
+
+    /** 加载日志文件线程个数 * */
+    private int ioThreads = 1;
+
+    /** 加载日志文件/查询数据重试次数 * */
+    private int retryTimes = 3;
+
+    /** 缓存的日志数 * */
+    private long transactionCacheNumSize = 1000;
+
+    /** 缓存的日志时间 * */
+    private long transactionExpireTime = 20;
+
     public boolean getSupportAutoAddLog() {
         return supportAutoAddLog;
-    }
-
-    public void setSupportAutoAddLog(boolean supportAutoAddLog) {
-        this.supportAutoAddLog = supportAutoAddLog;
     }
 
     public Long getQueryTimeout() {
@@ -129,10 +130,6 @@ public class LogMinerConf extends FlinkxCommonConf {
 
     public boolean getPavingData() {
         return pavingData;
-    }
-
-    public void setPavingData(boolean pavingData) {
-        this.pavingData = pavingData;
     }
 
     public String getCat() {
@@ -203,11 +200,121 @@ public class LogMinerConf extends FlinkxCommonConf {
         return pavingData;
     }
 
+    public void setPavingData(boolean pavingData) {
+        this.pavingData = pavingData;
+    }
+
     public boolean isSplitUpdate() {
         return splitUpdate;
     }
 
     public void setSplitUpdate(boolean splitUpdate) {
         this.splitUpdate = splitUpdate;
+    }
+
+    public int getIoThreads() {
+        return ioThreads;
+    }
+
+    public void setIoThreads(int ioThreads) {
+        this.ioThreads = ioThreads;
+    }
+
+    public boolean isSupportAutoAddLog() {
+        return supportAutoAddLog;
+    }
+
+    public void setSupportAutoAddLog(boolean supportAutoAddLog) {
+        this.supportAutoAddLog = supportAutoAddLog;
+    }
+
+    public long getMaxLogFileSize() {
+        return maxLogFileSize;
+    }
+
+    public void setMaxLogFileSize(long maxLogFileSize) {
+        this.maxLogFileSize = maxLogFileSize;
+    }
+
+    public int getRetryTimes() {
+        return retryTimes;
+    }
+
+    public void setRetryTimes(int retryTimes) {
+        this.retryTimes = retryTimes;
+    }
+
+    public long getTransactionCacheNumSize() {
+        return transactionCacheNumSize;
+    }
+
+    public void setTransactionCacheNumSize(long transactionCacheNumSize) {
+        this.transactionCacheNumSize = transactionCacheNumSize;
+    }
+
+    public long getTransactionExpireTime() {
+        return transactionExpireTime;
+    }
+
+    public void setTransactionExpireTime(long transactionExpireTime) {
+        this.transactionExpireTime = transactionExpireTime;
+    }
+
+    @Override
+    public String toString() {
+        return "LogMinerConf{"
+                + "driverName='"
+                + driverName
+                + '\''
+                + ", jdbcUrl='"
+                + jdbcUrl
+                + '\''
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", fetchSize="
+                + fetchSize
+                + ", listenerTables='"
+                + listenerTables
+                + '\''
+                + ", timestampFormat='"
+                + timestampFormat
+                + '\''
+                + ", cat='"
+                + cat
+                + '\''
+                + ", readPosition='"
+                + readPosition
+                + '\''
+                + ", startTime="
+                + startTime
+                + ", startScn='"
+                + startScn
+                + '\''
+                + ", pavingData="
+                + pavingData
+                + ", table="
+                + table
+                + ", queryTimeout="
+                + queryTimeout
+                + ", supportAutoAddLog="
+                + supportAutoAddLog
+                + ", splitUpdate="
+                + splitUpdate
+                + ", maxLogFileSize="
+                + maxLogFileSize
+                + ", ioThreads="
+                + ioThreads
+                + ", retryTimes="
+                + retryTimes
+                + ", transactionCacheNumSize="
+                + transactionCacheNumSize
+                + ", transactionExpireTime="
+                + transactionExpireTime
+                + "} "
+                + super.toString();
     }
 }

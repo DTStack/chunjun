@@ -3,8 +3,8 @@ package com.dtstack.flinkx.connector.elasticsearch7.sink;
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
 import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchRequestHelper;
 import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchUtil;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 

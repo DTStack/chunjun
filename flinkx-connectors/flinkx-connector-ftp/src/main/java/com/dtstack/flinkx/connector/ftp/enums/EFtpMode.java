@@ -24,13 +24,9 @@ package com.dtstack.flinkx.connector.ftp.enums;
  */
 public enum EFtpMode {
 
-    /**
-     * 被动方式
-     */
+    /** 被动方式 */
     PASV,
 
-    /**
-     * 主动方式
-     */
-    PORT;
+    /** 主动方式 */
+    PORT
 }

@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.redis.sink;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.redis.adapter.RedisDataModeAdapter;
 import com.dtstack.flinkx.connector.redis.adapter.RedisDataTypeAdapter;
@@ -32,6 +28,11 @@ import com.dtstack.flinkx.connector.redis.enums.RedisDataType;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -39,20 +40,21 @@ import com.google.gson.GsonBuilder;
  * @author chuixue
  * @create 2021-06-16 15:14
  * @description
- **/
+ */
 public class RedisSinkFactory extends SinkFactory {
 
     private final RedisConf redisConf;
 
     public RedisSinkFactory(SyncConf syncConf) {
         super(syncConf);
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(RedisDataMode.class, new RedisDataModeAdapter())
-                .registerTypeAdapter(
-                        RedisDataType.class, new RedisDataTypeAdapter())
-                .create();
+        Gson gson =
+                new GsonBuilder()
+                        .registerTypeAdapter(RedisDataMode.class, new RedisDataModeAdapter())
+                        .registerTypeAdapter(RedisDataType.class, new RedisDataTypeAdapter())
+                        .create();
         GsonUtil.setTypeAdapter(gson);
-        redisConf = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), RedisConf.class);
+        redisConf =
+                gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), RedisConf.class);
         super.initFlinkxCommonConf(redisConf);
     }
 

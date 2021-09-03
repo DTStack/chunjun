@@ -37,7 +37,8 @@ public class ColumnTypeUtilTest {
     public void testGetDecimalInfo() {
         ColumnTypeUtil.DecimalInfo defaultDecimal = new ColumnTypeUtil.DecimalInfo(10, 2);
 
-        ColumnTypeUtil.DecimalInfo result = ColumnTypeUtil.getDecimalInfo("decimal", defaultDecimal);
+        ColumnTypeUtil.DecimalInfo result =
+                ColumnTypeUtil.getDecimalInfo("decimal", defaultDecimal);
         Assert.assertEquals(result, defaultDecimal);
 
         result = ColumnTypeUtil.getDecimalInfo("decimal(10,2)", null);

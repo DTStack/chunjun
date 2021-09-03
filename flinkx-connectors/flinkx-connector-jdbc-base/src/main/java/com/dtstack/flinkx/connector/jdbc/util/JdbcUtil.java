@@ -17,12 +17,10 @@
  */
 package com.dtstack.flinkx.connector.jdbc.util;
 
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.util.CollectionUtil;
-
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.JdbcDialectWrapper;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ClassUtil;
@@ -31,6 +29,10 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TableUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.util.CollectionUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -54,61 +56,49 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * Utilities for relational database connection and sql execution company: www.dtstack.com
  *
- * Utilities for relational database connection and sql execution
- * company: www.dtstack.com
  * @author huyifan_zju@
  */
 public class JdbcUtil {
-    /**
-     * jdbc连接URL的分割正则，用于获取URL?后的连接参数
-     */
+    /** jdbc连接URL的分割正则，用于获取URL?后的连接参数 */
     public static final Pattern DB_PATTERN = Pattern.compile("\\?");
-    /**
-     * 增量任务过滤条件占位符
-     */
+    /** 增量任务过滤条件占位符 */
     public static final String INCREMENT_FILTER_PLACEHOLDER = "${incrementFilter}";
-    /**
-     * 断点续传过滤条件占位符
-     */
+    /** 断点续传过滤条件占位符 */
     public static final String RESTORE_FILTER_PLACEHOLDER = "${restoreFilter}";
+
     public static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
     public static final String NULL_STRING = "null";
     private static final Logger LOG = LoggerFactory.getLogger(JdbcUtil.class);
     public static int NANOS_PART_LENGTH = 9;
-    /**
-     * 数据库连接的最大重试次数
-     */
+    /** 数据库连接的最大重试次数 */
     private static final int MAX_RETRY_TIMES = 3;
-    /**
-     * 秒级时间戳的长度为10位
-     */
+    /** 秒级时间戳的长度为10位 */
     private static final int SECOND_LENGTH = 10;
-    /**
-     * 毫秒级时间戳的长度为13位
-     */
+    /** 毫秒级时间戳的长度为13位 */
     private static final int MILLIS_LENGTH = 13;
-    /**
-     * 微秒级时间戳的长度为16位
-     */
+    /** 微秒级时间戳的长度为16位 */
     private static final int MICRO_LENGTH = 16;
-    /**
-     * 纳秒级时间戳的长度为19位
-     */
+    /** 纳秒级时间戳的长度为19位 */
     private static final int NANOS_LENGTH = 19;
+
     private static final int FORMAT_TIME_NANOS_LENGTH = 29;
 
     /**
      * 获取JDBC连接
+     *
      * @param jdbcConf
      * @param jdbcDialect
      * @return
      */
-    public static Connection getConnection(JdbcConf jdbcConf, JdbcDialect jdbcDialect){
+    public static Connection getConnection(JdbcConf jdbcConf, JdbcDialect jdbcDialect) {
         TelnetUtil.telnet(jdbcConf.getJdbcUrl());
-        ClassUtil.forName(jdbcDialect.defaultDriverName().get(), Thread.currentThread().getContextClassLoader());
+        ClassUtil.forName(
+                jdbcDialect.defaultDriverName().get(),
+                Thread.currentThread().getContextClassLoader());
         Properties prop = jdbcConf.getProperties();
-        if(prop == null){
+        if (prop == null) {
             prop = new Properties();
         }
         if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getUsername())) {
@@ -118,41 +108,52 @@ public class JdbcUtil {
             prop.put("password", jdbcConf.getPassword());
         }
         Properties finalProp = prop;
-        synchronized (ClassUtil.LOCK_STR){
-            return RetryUtil.executeWithRetry(() -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp), 3, 2000, false);
+        synchronized (ClassUtil.LOCK_STR) {
+            return RetryUtil.executeWithRetry(
+                    () -> DriverManager.getConnection(jdbcConf.getJdbcUrl(), finalProp),
+                    3,
+                    2000,
+                    false);
         }
+    }
+
+    public static Connection getConnection(
+            JdbcConf conf, org.apache.flink.connector.jdbc.dialect.JdbcDialect dialect) {
+        return getConnection(conf, new JdbcDialectWrapper(dialect));
     }
 
     /**
      * get full column name and type from database
+     *
      * @param schema schema
      * @param tableName tableName
      * @param dbConn jdbc Connection
      * @return fullColumnList and fullColumnTypeList
      */
-    public static Pair<List<String>, List<String>> getTableMetaData(String schema, String tableName, Connection dbConn) {
+    public static Pair<List<String>, List<String>> getTableMetaData(
+            String schema, String tableName, Connection dbConn) {
         try {
-            //check table exists
+            // check table exists
             ResultSet tableRs = dbConn.getMetaData().getTables(null, schema, tableName, null);
-            if(!tableRs.next()){
+            if (!tableRs.next()) {
                 String tableInfo = schema == null ? tableName : schema + "." + tableName;
                 throw new FlinkxRuntimeException(String.format("table %s not found.", tableInfo));
             }
-
 
             ResultSet rs = dbConn.getMetaData().getColumns(null, schema, tableName, null);
             List<String> fullColumnList = new LinkedList<>();
             List<String> fullColumnTypeList = new LinkedList<>();
             while (rs.next()) {
-                //COLUMN_NAME
+                // COLUMN_NAME
                 fullColumnList.add(rs.getString(4));
-                //TYPE_NAME
+                // TYPE_NAME
                 fullColumnTypeList.add(rs.getString(6));
             }
             rs.close();
             return Pair.of(fullColumnList, fullColumnTypeList);
-        }catch (SQLException e){
-            throw new FlinkxRuntimeException(String.format("error to get meta from [%s.%s]", schema, tableName), e);
+        } catch (SQLException e) {
+            throw new FlinkxRuntimeException(
+                    String.format("error to get meta from [%s.%s]", schema, tableName), e);
         }
     }
 
@@ -162,7 +163,8 @@ public class JdbcUtil {
      * @return
      * @throws SQLException
      */
-    public static List<String> getTableIndex(String schema, String tableName, Connection dbConn) throws SQLException {
+    public static List<String> getTableIndex(String schema, String tableName, Connection dbConn)
+            throws SQLException {
         ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, tableName, true, false);
         List<String> indexList = new LinkedList<>();
         while (rs.next()) {
@@ -173,12 +175,14 @@ public class JdbcUtil {
 
     /**
      * 关闭连接资源
-     * @param rs        ResultSet
-     * @param stmt      Statement
-     * @param conn      Connection
+     *
+     * @param rs ResultSet
+     * @param stmt Statement
+     * @param conn Connection
      * @param commit
      */
-    public static void closeDbResources(ResultSet rs, Statement stmt, Connection conn, boolean commit) {
+    public static void closeDbResources(
+            ResultSet rs, Statement stmt, Connection conn, boolean commit) {
         if (null != rs) {
             try {
                 rs.close();
@@ -197,9 +201,9 @@ public class JdbcUtil {
 
         if (null != conn) {
             try {
-                if(commit){
+                if (commit) {
                     commit(conn);
-                }else {
+                } else {
                     rollBack(conn);
                 }
 
@@ -212,28 +216,30 @@ public class JdbcUtil {
 
     /**
      * 手动提交事物
+     *
      * @param conn Connection
      */
-    public static void commit(Connection conn){
+    public static void commit(Connection conn) {
         try {
-            if (null != conn && !conn.isClosed() && !conn.getAutoCommit()){
+            if (null != conn && !conn.isClosed() && !conn.getAutoCommit()) {
                 conn.commit();
             }
-        } catch (SQLException e){
+        } catch (SQLException e) {
             LOG.warn("commit error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
 
     /**
      * 手动回滚事物
+     *
      * @param conn Connection
      */
-    public static void rollBack(Connection conn){
+    public static void rollBack(Connection conn) {
         try {
-            if (null != conn && !conn.isClosed() && !conn.getAutoCommit()){
+            if (null != conn && !conn.isClosed() && !conn.getAutoCommit()) {
                 conn.rollback();
             }
-        } catch (SQLException e){
+        } catch (SQLException e) {
             LOG.warn("rollBack error:{}", ExceptionUtil.getErrorMessage(e));
         }
     }
@@ -241,31 +247,33 @@ public class JdbcUtil {
     /**
      * 获取结果集的列类型信息
      *
-     * @param resultSet  查询结果集
+     * @param resultSet 查询结果集
      * @return 字段类型list列表
      */
-    public static List<String> analyzeColumnType(ResultSet resultSet, List<FieldConf> metaColumns){
+    public static List<String> analyzeColumnType(ResultSet resultSet, List<FieldConf> metaColumns) {
         List<String> columnTypeList = new ArrayList<>();
 
         try {
             ResultSetMetaData rd = resultSet.getMetaData();
-            Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
-            for(int i = 0; i < rd.getColumnCount(); ++i) {
-                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
+            Map<String, String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
+            for (int i = 0; i < rd.getColumnCount(); ++i) {
+                nameTypeMap.put(rd.getColumnName(i + 1), rd.getColumnTypeName(i + 1));
             }
 
             for (FieldConf metaColumn : metaColumns) {
-                if(metaColumn.getValue() != null){
+                if (metaColumn.getValue() != null) {
                     columnTypeList.add("VARCHAR");
                 } else {
                     columnTypeList.add(nameTypeMap.get(metaColumn.getName()));
                 }
             }
         } catch (SQLException e) {
-            String message = String.format("error to analyzeSchema, resultSet = %s, columnTypeList = %s, e = %s",
-                    resultSet,
-                    GsonUtil.GSON.toJson(columnTypeList),
-                    ExceptionUtil.getErrorMessage(e));
+            String message =
+                    String.format(
+                            "error to analyzeSchema, resultSet = %s, columnTypeList = %s, e = %s",
+                            resultSet,
+                            GsonUtil.GSON.toJson(columnTypeList),
+                            ExceptionUtil.getErrorMessage(e));
             LOG.error(message);
             throw new RuntimeException(message);
         }
@@ -274,18 +282,19 @@ public class JdbcUtil {
 
     /**
      * clob转string
-     * @param obj   clob
+     *
+     * @param obj clob
      * @return
      * @throws Exception
      */
-    public static Object clobToString(Object obj) throws Exception{
+    public static Object clobToString(Object obj) throws Exception {
         String dataStr;
-        if(obj instanceof Clob){
-            Clob clob = (Clob)obj;
+        if (obj instanceof Clob) {
+            Clob clob = (Clob) obj;
             BufferedReader bf = new BufferedReader(clob.getCharacterStream());
             StringBuilder stringBuilder = new StringBuilder();
             String line;
-            while ((line = bf.readLine()) != null){
+            while ((line = bf.readLine()) != null) {
                 stringBuilder.append(line);
             }
             dataStr = stringBuilder.toString();
@@ -298,32 +307,34 @@ public class JdbcUtil {
 
     /**
      * 获取纳秒字符串
+     *
      * @param timeStr 2020-03-23 11:03:22.000000000
      * @return
      */
-    public static String getNanosTimeStr(String timeStr){
-        if(timeStr.length() < FORMAT_TIME_NANOS_LENGTH){
-            timeStr += StringUtils.repeat("0",FORMAT_TIME_NANOS_LENGTH - timeStr.length());
+    public static String getNanosTimeStr(String timeStr) {
+        if (timeStr.length() < FORMAT_TIME_NANOS_LENGTH) {
+            timeStr += StringUtils.repeat("0", FORMAT_TIME_NANOS_LENGTH - timeStr.length());
         }
         return timeStr;
     }
 
     /**
      * 将边界位置时间转换成对应饿的纳秒时间
+     *
      * @param startLocation 边界位置(起始/结束)
      * @return
      */
-    public static int getNanos(long startLocation){
+    public static int getNanos(long startLocation) {
         String timeStr = String.valueOf(startLocation);
         int nanos;
-        if (timeStr.length() == SECOND_LENGTH){
+        if (timeStr.length() == SECOND_LENGTH) {
             nanos = 0;
-        } else if (timeStr.length() == MILLIS_LENGTH){
-            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,MILLIS_LENGTH)) * 1000000;
-        } else if (timeStr.length() == MICRO_LENGTH){
-            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,MICRO_LENGTH)) * 1000;
-        } else if (timeStr.length() == NANOS_LENGTH){
-            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH,NANOS_LENGTH));
+        } else if (timeStr.length() == MILLIS_LENGTH) {
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH, MILLIS_LENGTH)) * 1000000;
+        } else if (timeStr.length() == MICRO_LENGTH) {
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH, MICRO_LENGTH)) * 1000;
+        } else if (timeStr.length() == NANOS_LENGTH) {
+            nanos = Integer.parseInt(timeStr.substring(SECOND_LENGTH, NANOS_LENGTH));
         } else {
             throw new IllegalArgumentException("Unknown time unit:startLocation=" + startLocation);
         }
@@ -333,19 +344,20 @@ public class JdbcUtil {
 
     /**
      * 将边界位置时间转换成对应饿的毫秒时间
-      * @param startLocation 边界位置(起始/结束)
+     *
+     * @param startLocation 边界位置(起始/结束)
      * @return
      */
-    public static long getMillis(long startLocation){
+    public static long getMillis(long startLocation) {
         String timeStr = String.valueOf(startLocation);
         long millisSecond;
-        if (timeStr.length() == SECOND_LENGTH){
+        if (timeStr.length() == SECOND_LENGTH) {
             millisSecond = startLocation * 1000;
-        } else if (timeStr.length() == MILLIS_LENGTH){
+        } else if (timeStr.length() == MILLIS_LENGTH) {
             millisSecond = startLocation;
-        } else if (timeStr.length() == MICRO_LENGTH){
+        } else if (timeStr.length() == MICRO_LENGTH) {
             millisSecond = startLocation / 1000;
-        } else if (timeStr.length() == NANOS_LENGTH){
+        } else if (timeStr.length() == NANOS_LENGTH) {
             millisSecond = startLocation / 1000000;
         } else {
             throw new IllegalArgumentException("Unknown time unit:startLocation=" + startLocation);
@@ -356,23 +368,24 @@ public class JdbcUtil {
 
     /**
      * 格式化jdbc连接
-     * @param dbUrl         原jdbc连接
-     * @param extParamMap   需要额外添加的参数
-     * @return  格式化后jdbc连接URL字符串
+     *
+     * @param dbUrl 原jdbc连接
+     * @param extParamMap 需要额外添加的参数
+     * @return 格式化后jdbc连接URL字符串
      */
-    public static String formatJdbcUrl(String dbUrl, Map<String,String> extParamMap){
+    public static String formatJdbcUrl(String dbUrl, Map<String, String> extParamMap) {
         String[] splits = DB_PATTERN.split(dbUrl);
 
-        Map<String,String> paramMap = new HashMap<>(16);
-        if(splits.length > 1) {
+        Map<String, String> paramMap = new HashMap<>(16);
+        if (splits.length > 1) {
             String[] pairs = splits[1].split("&");
-            for(String pair : pairs) {
+            for (String pair : pairs) {
                 String[] leftRight = pair.split("=");
                 paramMap.put(leftRight[0], leftRight[1]);
             }
         }
 
-        if(!CollectionUtil.isNullOrEmpty(extParamMap)){
+        if (!CollectionUtil.isNullOrEmpty(extParamMap)) {
             paramMap.putAll(extParamMap);
         }
         paramMap.put("useCursorFetch", "true");
@@ -381,8 +394,8 @@ public class JdbcUtil {
         StringBuffer sb = new StringBuffer(dbUrl.length() + 128);
         sb.append(splits[0]).append("?");
         int index = 0;
-        for(Map.Entry<String,String> entry : paramMap.entrySet()) {
-            if(index != 0) {
+        for (Map.Entry<String, String> entry : paramMap.entrySet()) {
+            if (index != 0) {
                 sb.append("&");
             }
             sb.append(entry.getKey()).append("=").append(entry.getValue());
@@ -394,16 +407,18 @@ public class JdbcUtil {
 
     /**
      * 获取数据库的LogicalType
+     *
      * @param jdbcConf 连接信息
      * @param jdbcDialect 方言
      * @param converter 数据库数据类型到flink内部类型的映射
      * @return
      */
-    public static LogicalType getLogicalTypeFromJdbcMetaData(JdbcConf jdbcConf, JdbcDialect jdbcDialect, RawTypeConverter converter){
+    public static LogicalType getLogicalTypeFromJdbcMetaData(
+            JdbcConf jdbcConf, JdbcDialect jdbcDialect, RawTypeConverter converter) {
         try (Connection conn = JdbcUtil.getConnection(jdbcConf, jdbcDialect)) {
             Pair<List<String>, List<String>> pair =
                     JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), conn);
-            List<String> rawFieldNames =  pair.getLeft();
+            List<String> rawFieldNames = pair.getLeft();
             List<String> rawFieldTypes = pair.getRight();
             return TableUtil.createRowType(rawFieldNames, rawFieldTypes, converter);
         } catch (SQLException throwables) {
@@ -411,34 +426,38 @@ public class JdbcUtil {
         }
     }
 
-    /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table **/
+    /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table * */
     public static void resetSchemaAndTable(JdbcConf jdbcConf, String leftQuote, String rightQuote) {
-            LOG.info("before reset table info, schema: {}, table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
-            String pattern = String.format(
-                    "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
-                    leftQuote,
-                    rightQuote,
-                    leftQuote,
-                    rightQuote);
-            Pattern p = Pattern.compile(pattern);
-            Matcher matcher = p.matcher(jdbcConf.getTable());
-            String schema = null;
-            String table = null;
-            if (matcher.find()) {
-                schema = matcher.group("schema");
-                table = matcher.group("table");
-            } else {
-                String[] split = jdbcConf.getTable().split("\\.");
-                if (split.length == 2) {
-                    schema = split[0];
-                    table = split[1];
-                }
+        LOG.info(
+                "before reset table info, schema: {}, table: {}",
+                jdbcConf.getSchema(),
+                jdbcConf.getTable());
+        String pattern =
+                String.format(
+                        "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
+                        leftQuote, rightQuote, leftQuote, rightQuote);
+        Pattern p = Pattern.compile(pattern);
+        Matcher matcher = p.matcher(jdbcConf.getTable());
+        String schema = null;
+        String table = null;
+        if (matcher.find()) {
+            schema = matcher.group("schema");
+            table = matcher.group("table");
+        } else {
+            String[] split = jdbcConf.getTable().split("\\.");
+            if (split.length == 2) {
+                schema = split[0];
+                table = split[1];
             }
+        }
 
-            if (StringUtils.isNotBlank(schema)) {
-                jdbcConf.setSchema(schema);
-                jdbcConf.setTable(table);
-                LOG.info("after reset table info,schema: {},table: {}", jdbcConf.getSchema(), jdbcConf.getTable());
-            }
+        if (StringUtils.isNotBlank(schema)) {
+            jdbcConf.setSchema(schema);
+            jdbcConf.setTable(table);
+            LOG.info(
+                    "after reset table info,schema: {},table: {}",
+                    jdbcConf.getSchema(),
+                    jdbcConf.getTable());
+        }
     }
 }

@@ -61,7 +61,7 @@ CREATE TABLE sink_pg (
     'username' = 'postgres',
     'password' = 'root',
     'sink.buffer-flush.max-rows' = '1',
-    'sink.allReplace' = 'true'
+    'sink.all-replace' = 'true'
 );
 
 CREATE TEMPORARY VIEW v AS

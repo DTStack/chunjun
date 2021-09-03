@@ -18,13 +18,9 @@
 
 package com.dtstack.flinkx.connector.jdbc.lookup;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.factory.DTThreadFactory;
 import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
@@ -34,6 +30,11 @@ import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.throwable.NoRestartException;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.ThreadUtil;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+import org.apache.flink.table.types.logical.RowType;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonArray;
@@ -74,13 +75,13 @@ import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.MAX_TA
  * @author chuixue
  * @create 2021-04-10 21:15
  * @description
- **/
+ */
 public class JdbcLruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(JdbcLruTableFunction.class);
     /** when network is unhealthy block query */
-    private AtomicBoolean connectionStatus = new AtomicBoolean(true);
+    private final AtomicBoolean connectionStatus = new AtomicBoolean(true);
     /** query data thread */
     private transient ThreadPoolExecutor executor;
     /** vertx */
@@ -107,20 +108,19 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         this.jdbcConf = jdbcConf;
         this.jdbcDialect = jdbcDialect;
         this.asyncPoolSize = ((JdbcLookupConf) lookupConf).getAsyncPoolSize();
-        this.query = jdbcDialect.getSelectFromStatement(
-                jdbcConf.getSchema(),
-                jdbcConf.getTable(),
-                fieldNames,
-                keyNames);
+        this.query =
+                jdbcDialect.getSelectFromStatement(
+                        jdbcConf.getSchema(), jdbcConf.getTable(), fieldNames, keyNames);
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
 
-        int defaultAsyncPoolSize = Math.min(
-                MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
-                DEFAULT_DB_CONN_POOL_SIZE.defaultValue());
+        int defaultAsyncPoolSize =
+                Math.min(
+                        MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
+                        DEFAULT_DB_CONN_POOL_SIZE.defaultValue());
         asyncPoolSize = asyncPoolSize > 0 ? asyncPoolSize : defaultAsyncPoolSize;
 
         VertxOptions vertxOptions = new VertxOptions();
@@ -134,21 +134,23 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         this.vertx = Vertx.vertx(vertxOptions);
         this.rdbSqlClient = JDBCClient.createNonShared(vertx, jdbcConfig);
 
-        executor = new ThreadPoolExecutor(
-                MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
-                MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
-                0,
-                TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE.defaultValue()),
-                new DTThreadFactory("rdbAsyncExec"),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+        executor =
+                new ThreadPoolExecutor(
+                        MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
+                        MAX_DB_CONN_POOL_SIZE_LIMIT.defaultValue(),
+                        0,
+                        TimeUnit.MILLISECONDS,
+                        new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE.defaultValue()),
+                        new DTThreadFactory("rdbAsyncExec"),
+                        new ThreadPoolExecutor.CallerRunsPolicy());
         LOG.info("async dim table JdbcOptions info: {} ", jdbcConf.toString());
     }
 
     @Override
-    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys) throws Exception {
+    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys)
+            throws Exception {
         AtomicLong networkLogCounter = new AtomicLong(0L);
-        //network is unhealthy
+        // network is unhealthy
         while (!connectionStatus.get()) {
             if (networkLogCounter.getAndIncrement() % 1000 == 0) {
                 LOG.info("network unhealthy to block task");
@@ -156,11 +158,12 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
             Thread.sleep(100);
         }
 
-        executor.execute(() -> connectWithRetry(
-                future,
-                rdbSqlClient,
-                Stream.of(keys)
-                        .map(this::convertDataType).toArray(Object[]::new)));
+        executor.execute(
+                () ->
+                        connectWithRetry(
+                                future,
+                                rdbSqlClient,
+                                Stream.of(keys).map(this::convertDataType).toArray(Object[]::new)));
     }
 
     private Object convertDataType(Object val) {
@@ -196,7 +199,6 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
             val = val.toString();
         }
         return val;
-
     }
 
     /**
@@ -205,28 +207,20 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
      * @param keys 关联字段值
      */
     private void connectWithRetry(
-            CompletableFuture<Collection<RowData>> future,
-            SQLClient rdbSqlClient,
-            Object... keys) {
+            CompletableFuture<Collection<RowData>> future, SQLClient rdbSqlClient, Object... keys) {
         AtomicLong failCounter = new AtomicLong(0);
         AtomicBoolean finishFlag = new AtomicBoolean(false);
         while (!finishFlag.get()) {
             try {
                 CountDownLatch latch = new CountDownLatch(1);
-                asyncQueryData(
-                        future,
-                        rdbSqlClient,
-                        failCounter,
-                        finishFlag,
-                        latch,
-                        keys);
+                asyncQueryData(future, rdbSqlClient, failCounter, finishFlag, latch, keys);
                 try {
                     latch.await();
                 } catch (InterruptedException e) {
                     LOG.error("", e);
                 }
             } catch (Exception e) {
-                //数据源队列溢出情况
+                // 数据源队列溢出情况
                 connectionStatus.set(false);
             }
             if (!finishFlag.get()) {
@@ -252,51 +246,50 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
             AtomicBoolean finishFlag,
             CountDownLatch latch,
             Object... keys) {
-        doAsyncQueryData(
-                future,
-                rdbSqlClient,
-                failCounter,
-                finishFlag,
-                latch,
-                keys);
+        doAsyncQueryData(future, rdbSqlClient, failCounter, finishFlag, latch, keys);
     }
 
-    final protected void doAsyncQueryData(
+    protected final void doAsyncQueryData(
             CompletableFuture<Collection<RowData>> future,
             SQLClient rdbSqlClient,
             AtomicLong failCounter,
             AtomicBoolean finishFlag,
             CountDownLatch latch,
             Object... keys) {
-        rdbSqlClient.getConnection(conn -> {
-            try {
-                Integer retryMaxNum = lookupConf.getMaxRetryTimes();
-                int logPrintTime = retryMaxNum / ERRORLOG_PRINTNUM.defaultValue() == 0 ?
-                        retryMaxNum : retryMaxNum / ERRORLOG_PRINTNUM.defaultValue();
-                if (conn.failed()) {
-                    connectionStatus.set(false);
-                    if (failCounter.getAndIncrement() % logPrintTime == 0) {
-                        LOG.error("getConnection error. ", conn.cause());
-                    }
-                    LOG.error(String.format("retry ... current time [%s]", failCounter.get()));
-                    if (failCounter.get() >= retryMaxNum) {
-                        future.completeExceptionally(new NoRestartException(conn.cause()));
-                        finishFlag.set(true);
-                    }
-                    return;
-                }
-                connectionStatus.set(true);
-                // todo
-                // registerTimerAndAddToHandler(future, keys);
+        rdbSqlClient.getConnection(
+                conn -> {
+                    try {
+                        Integer retryMaxNum = lookupConf.getMaxRetryTimes();
+                        int logPrintTime =
+                                retryMaxNum / ERRORLOG_PRINTNUM.defaultValue() == 0
+                                        ? retryMaxNum
+                                        : retryMaxNum / ERRORLOG_PRINTNUM.defaultValue();
+                        if (conn.failed()) {
+                            connectionStatus.set(false);
+                            if (failCounter.getAndIncrement() % logPrintTime == 0) {
+                                LOG.error("getConnection error. ", conn.cause());
+                            }
+                            LOG.error(
+                                    String.format(
+                                            "retry ... current time [%s]", failCounter.get()));
+                            if (failCounter.get() >= retryMaxNum) {
+                                future.completeExceptionally(new NoRestartException(conn.cause()));
+                                finishFlag.set(true);
+                            }
+                            return;
+                        }
+                        connectionStatus.set(true);
+                        // todo
+                        // registerTimerAndAddToHandler(future, keys);
 
-                handleQuery(conn.result(), future, keys);
-                finishFlag.set(true);
-            } catch (Exception e) {
-                dealFillDataError(future, e);
-            } finally {
-                latch.countDown();
-            }
-        });
+                        handleQuery(conn.result(), future, keys);
+                        finishFlag.set(true);
+                    } catch (Exception e) {
+                        dealFillDataError(future, e);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
     }
 
     /**
@@ -313,54 +306,61 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         String cacheKey = buildCacheKey(keys);
         JsonArray params = new JsonArray();
         Stream.of(keys).forEach(params::add);
-        connection.queryWithParams(query, params, rs -> {
-            try {
-                if (rs.failed()) {
-                    LOG.error(
-                            String.format(
-                                    "\nget data with sql [%s],data [%s] failed! \ncause: [%s]",
-                                    query,
-                                    Arrays.toString(keys),
-                                    rs.cause().getMessage()
-                            )
-                    );
-                    dealFillDataError(future, rs.cause());
-                    return;
-                }
-
-                List<JsonArray> cacheContent = new ArrayList<>();
-                int resultSize = rs.result().getResults().size();
-                if (resultSize > 0) {
-                    List<RowData> rowList = new ArrayList<>();
-
-                    for (JsonArray line : rs.result().getResults()) {
-                        try {
-                            RowData row = rowConverter.toInternalLookup(line);
-                            if (openCache()) {
-                                cacheContent.add(line);
-                            }
-                            rowList.add(row);
-                        } catch (Exception e) {
-                            // todo 这里需要抽样打印
-                            LOG.error("error:{} \n sql:{} \n data:{}", e.getMessage(), jdbcConf.getQuerySql(), line);
+        connection.queryWithParams(
+                query,
+                params,
+                rs -> {
+                    try {
+                        if (rs.failed()) {
+                            LOG.error(
+                                    String.format(
+                                            "\nget data with sql [%s],data [%s] failed! \ncause: [%s]",
+                                            query, Arrays.toString(keys), rs.cause().getMessage()));
+                            dealFillDataError(future, rs.cause());
+                            return;
                         }
-                    }
 
-                    dealCacheData(cacheKey, CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
-                    future.complete(rowList);
-                } else {
-                    dealMissKey(future);
-                    dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
-                }
-            } finally {
-                // and close the connection
-                connection.close(done -> {
-                    if (done.failed()) {
-                        LOG.error("sql connection close failed! ", done.cause());
+                        List<JsonArray> cacheContent = new ArrayList<>();
+                        int resultSize = rs.result().getResults().size();
+                        if (resultSize > 0) {
+                            List<RowData> rowList = new ArrayList<>();
+
+                            for (JsonArray line : rs.result().getResults()) {
+                                try {
+                                    RowData row = rowConverter.toInternalLookup(line);
+                                    if (openCache()) {
+                                        cacheContent.add(line);
+                                    }
+                                    rowList.add(row);
+                                } catch (Exception e) {
+                                    // todo 这里需要抽样打印
+                                    LOG.error(
+                                            "error:{} \n sql:{} \n data:{}",
+                                            e.getMessage(),
+                                            jdbcConf.getQuerySql(),
+                                            line);
+                                }
+                            }
+
+                            dealCacheData(
+                                    cacheKey,
+                                    CacheObj.buildCacheObj(
+                                            ECacheContentType.MultiLine, cacheContent));
+                            future.complete(rowList);
+                        } else {
+                            dealMissKey(future);
+                            dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
+                        }
+                    } finally {
+                        // and close the connection
+                        connection.close(
+                                done -> {
+                                    if (done.failed()) {
+                                        LOG.error("sql connection close failed! ", done.cause());
+                                    }
+                                });
                     }
                 });
-            }
-        });
     }
 
     @Override
@@ -375,11 +375,12 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
         }
         // 关闭异步连接vertx事件循环线程，因为vertx使用的是非守护线程
         if (Objects.nonNull(vertx)) {
-            vertx.close(done -> {
-                if (done.failed()) {
-                    LOG.error("vert.x close error. cause by {}", done.cause().getMessage());
-                }
-            });
+            vertx.close(
+                    done -> {
+                        if (done.failed()) {
+                            LOG.error("vert.x close error. cause by {}", done.cause().getMessage());
+                        }
+                    });
         }
     }
 

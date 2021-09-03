@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.emqx.sink;
 
+import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
+import com.dtstack.flinkx.connector.emqx.converter.EmqxRowConverter;
+import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
+
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -27,10 +31,6 @@ import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.util.Preconditions;
-
-import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
-import com.dtstack.flinkx.connector.emqx.converter.EmqxRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.sink.DtOutputFormatSinkFunction;
 
 import static com.dtstack.flinkx.connector.emqx.util.DataTypeConventerUtil.createValueFormatProjection;
 

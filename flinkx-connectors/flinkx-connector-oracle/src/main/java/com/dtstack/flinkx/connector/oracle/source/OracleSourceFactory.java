@@ -21,9 +21,7 @@ package com.dtstack.flinkx.connector.oracle.source;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.flinkx.connector.oracle.OracleDialect;
-import com.dtstack.flinkx.connector.oracle.converter.OracleRawTypeConverter;
-import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.connector.oracle.dialect.OracleDialect;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -35,17 +33,11 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 public class OracleSourceFactory extends JdbcSourceFactory {
 
     public OracleSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        super.jdbcDialect = new OracleDialect();
+        super(syncConf, env, new OracleDialect());
     }
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new OracleInputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return OracleRawTypeConverter::apply;
     }
 }

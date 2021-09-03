@@ -17,18 +17,17 @@
  */
 package com.dtstack.flinkx.connector.hdfs.converter;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.BinaryType;
 
-import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-
 import java.util.Locale;
 
 /**
- * Date: 2021/06/16
- * Company: www.dtstack.com
+ * Date: 2021/06/16 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -39,7 +38,7 @@ public class HdfsRawTypeConverter {
         int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
         String leftStr = type;
         String rightStr = null;
-        if (left > 0 && right > 0){
+        if (left > 0 && right > 0) {
             leftStr = type.substring(0, left);
             rightStr = type.substring(left + 1, type.length() - 1);
         }
@@ -59,10 +58,12 @@ public class HdfsRawTypeConverter {
             case "DOUBLE":
                 return DataTypes.DOUBLE();
             case "DECIMAL":
-                if(rightStr != null){
+                if (rightStr != null) {
                     String[] split = rightStr.split(ConstantValue.COMMA_SYMBOL);
-                    if(split.length == 2){
-                        return DataTypes.DECIMAL(Integer.parseInt(split[0].trim()), Integer.parseInt(split[1].trim()));
+                    if (split.length == 2) {
+                        return DataTypes.DECIMAL(
+                                Integer.parseInt(split[0].trim()),
+                                Integer.parseInt(split[1].trim()));
                     }
                 }
                 return DataTypes.DECIMAL(38, 18);
@@ -73,9 +74,9 @@ public class HdfsRawTypeConverter {
             case "BINARY":
                 return DataTypes.BINARY(BinaryType.DEFAULT_LENGTH);
             case "TIMESTAMP":
-                if(rightStr != null){
+                if (rightStr != null) {
                     String[] split = rightStr.split(ConstantValue.COMMA_SYMBOL);
-                    if(split.length == 1){
+                    if (split.length == 1) {
                         return DataTypes.TIMESTAMP(Integer.parseInt(split[0].trim()));
                     }
                 }

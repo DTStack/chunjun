@@ -18,10 +18,10 @@
 
 package com.dtstack.flinkx.connector.jdbc.options;
 
+import com.dtstack.flinkx.lookup.options.LookupOptions;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
-
-import com.dtstack.flinkx.lookup.options.LookupOptions;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

@@ -19,7 +19,6 @@ package com.dtstack.flinkx.client.standalone;
 
 import com.dtstack.flinkx.client.ClusterClientHelper;
 import com.dtstack.flinkx.client.JobDeployer;
-
 import com.dtstack.flinkx.client.util.JobGraphUtil;
 import com.dtstack.flinkx.client.yarn.YarnSessionClusterClientHelper;
 import com.dtstack.flinkx.options.Options;
@@ -52,10 +51,15 @@ public class StandaloneClusterClientHelper implements ClusterClientHelper {
         List<String> programArgs = jobDeployer.getProgramArgs();
         Configuration flinkConf = launcherOptions.loadFlinkConfiguration();
 
-        try(StandaloneClusterDescriptor standaloneClusterDescriptor = new StandaloneClusterDescriptor(flinkConf)){
-            ClusterClient clusterClient = standaloneClusterDescriptor.retrieve(StandaloneClusterId.getInstance()).getClusterClient();
-            JobGraph jobGraph = JobGraphUtil.buildJobGraph(launcherOptions, programArgs.toArray(new String[0]));
-            JobID jobID = (JobID)clusterClient.submitJob(jobGraph).get();
+        try (StandaloneClusterDescriptor standaloneClusterDescriptor =
+                new StandaloneClusterDescriptor(flinkConf)) {
+            ClusterClient clusterClient =
+                    standaloneClusterDescriptor
+                            .retrieve(StandaloneClusterId.getInstance())
+                            .getClusterClient();
+            JobGraph jobGraph =
+                    JobGraphUtil.buildJobGraph(launcherOptions, programArgs.toArray(new String[0]));
+            JobID jobID = (JobID) clusterClient.submitJob(jobGraph).get();
             LOG.info("submit job successfully, jobID = {}", jobID);
             return clusterClient;
         }

@@ -27,20 +27,13 @@ import java.io.Serializable;
  */
 public class Strategy implements Serializable {
 
-    /**
-     * param
-     */
+    /** param */
     private String key;
-    /**
-     * scene
-     */
+    /** scene */
     private String value;
 
-    /**
-     * way
-     */
+    /** way */
     private String handle;
-
 
     public String getKey() {
         return key;
@@ -68,10 +61,16 @@ public class Strategy implements Serializable {
 
     @Override
     public String toString() {
-        return "Strategy{" +
-                "key='" + key + '\'' +
-                ", value='" + value + '\'' +
-                ", handle='" + handle + '\'' +
-                '}';
+        return "Strategy{"
+                + "key='"
+                + key
+                + '\''
+                + ", value='"
+                + value
+                + '\''
+                + ", handle='"
+                + handle
+                + '\''
+                + '}';
     }
 }

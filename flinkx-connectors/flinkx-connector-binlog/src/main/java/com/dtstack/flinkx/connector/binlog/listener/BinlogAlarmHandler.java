@@ -22,18 +22,17 @@ import com.alibaba.otter.canal.common.alarm.CanalAlarmHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author toutian
- */
+/** @author toutian */
 public class BinlogAlarmHandler extends AbstractCanalLifeCycle implements CanalAlarmHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(BinlogAlarmHandler.class);
-    private static final String BINARY_LOG_LOST = "Could not find first log file name in binary log index file";
+    private static final String BINARY_LOG_LOST =
+            "Could not find first log file name in binary log index file";
 
     @Override
     public void sendAlarm(String destination, String msg) {
         logger.error("destination:{}[{}]", destination, msg);
-        if (msg.contains(BINARY_LOG_LOST)){
+        if (msg.contains(BINARY_LOG_LOST)) {
             System.exit(-1);
         }
     }

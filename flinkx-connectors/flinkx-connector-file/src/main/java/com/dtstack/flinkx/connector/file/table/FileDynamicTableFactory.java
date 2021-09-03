@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.file.table;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
 import com.dtstack.flinkx.connector.file.options.FileOptions;
-
 import com.dtstack.flinkx.connector.file.source.FileDynamicTableSource;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
@@ -75,7 +74,8 @@ public class FileDynamicTableFactory implements DynamicTableSourceFactory {
 
     private DecodingFormat<DeserializationSchema<RowData>> getDecodingFormat(
             FactoryUtil.TableFactoryHelper helper) {
-        return helper.discoverDecodingFormat(DeserializationFormatFactory.class, FileOptions.FORMAT);
+        return helper.discoverDecodingFormat(
+                DeserializationFormatFactory.class, FileOptions.FORMAT);
     }
 
     @Override

@@ -18,13 +18,11 @@
 
 package com.dtstack.flinkx.connector.dm.table;
 
-import com.dtstack.flinkx.connector.dm.DmDialect;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.dm.dialect.DmDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 
-/**
- * @author kunni
- */
+/** @author kunni */
 public class DmDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** dm database identifier */
@@ -39,5 +37,4 @@ public class DmDynamicTableFactory extends JdbcDynamicTableFactory {
     protected JdbcDialect getDialect() {
         return new DmDialect();
     }
-
 }

@@ -85,7 +85,7 @@ CREATE TABLE sink
       'username' = 'SYSDBA',
       'password' = 'SYSDBA',
       'sink.buffer-flush.max-rows' = '1',
-      'sink.allReplace' = 'true'
+      'sink.all-replace' = 'true'
       );
 
 create

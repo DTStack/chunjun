@@ -21,10 +21,15 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.outputformat.BaseFileOutputFormat;
+import com.dtstack.flinkx.sink.format.BaseFileOutputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
+import com.dtstack.flinkx.util.PluginUtil;
+
+import org.apache.flink.api.common.cache.DistributedCache;
+import org.apache.flink.api.common.functions.RuntimeContext;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -70,28 +75,33 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
-    protected void initVariableFields(){
+    protected void initVariableFields() {
         if (CollectionUtils.isNotEmpty(hdfsConf.getFullColumnName())) {
             fullColumnNameList = hdfsConf.getFullColumnName();
-        }else{
-            fullColumnNameList = hdfsConf.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList());
+        } else {
+            fullColumnNameList =
+                    hdfsConf.getColumn().stream()
+                            .map(FieldConf::getName)
+                            .collect(Collectors.toList());
         }
 
         if (CollectionUtils.isNotEmpty(hdfsConf.getFullColumnType())) {
             fullColumnTypeList = hdfsConf.getFullColumnType();
-        }else{
-            fullColumnTypeList = hdfsConf.getColumn().stream().map(FieldConf::getType).collect(Collectors.toList());
+        } else {
+            fullColumnTypeList =
+                    hdfsConf.getColumn().stream()
+                            .map(FieldConf::getType)
+                            .collect(Collectors.toList());
         }
         compressType = getCompressType();
         super.initVariableFields();
-
     }
 
     @Override
     protected void checkOutputDir() {
         try {
             Path dir = new Path(tmpPath);
-            if(fs == null){
+            if (fs == null) {
                 openSource();
             }
             if (fs.exists(dir)) {
@@ -102,7 +112,8 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 fs.mkdirs(dir);
             }
         } catch (IOException e) {
-            throw new FlinkxRuntimeException("cannot check or create temp directory: " + tmpPath, e);
+            throw new FlinkxRuntimeException(
+                    "cannot check or create temp directory: " + tmpPath, e);
         }
     }
 
@@ -117,10 +128,24 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
-    protected void openSource(){
+    protected void openSource() {
+        conf = FileSystemUtil.getConfiguration(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+        RuntimeContext runtimeContext = null;
         try {
-            conf = FileSystemUtil.getConfiguration(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
-            fs = FileSystemUtil.getFileSystem(hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS());
+            runtimeContext = getRuntimeContext();
+        } catch (IllegalStateException e) {
+            // ignore
+        }
+        DistributedCache distributedCache;
+        if (runtimeContext == null) {
+            distributedCache = PluginUtil.createDistributedCacheFromContextClassLoader();
+        } else {
+            distributedCache = runtimeContext.getDistributedCache();
+        }
+        try {
+            fs =
+                    FileSystemUtil.getFileSystem(
+                            hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), distributedCache);
         } catch (Exception e) {
             throw new FlinkxRuntimeException("can't init fileSystem", e);
         }
@@ -132,15 +157,15 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
-    protected long getCurrentFileSize(){
+    protected long getCurrentFileSize() {
         String path = tmpPath + File.separatorChar + currentFileName;
         try {
-            if(hdfsConf.getMaxFileSize() > ConstantValue.STORE_SIZE_G){
+            if (hdfsConf.getMaxFileSize() > ConstantValue.STORE_SIZE_G) {
                 return fs.getFileStatus(new Path(path)).getLen();
-            }else{
+            } else {
                 return fs.open(new Path(path)).available();
             }
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new FlinkxRuntimeException("can't get file size from hdfs, file = " + path, e);
         }
     }
@@ -161,8 +186,12 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 copyList.add(currentFilePath);
                 LOG.info("copy temp file:{} to dir:{}", currentFilePath, dir);
             }
-        }catch (Exception e){
-            throw new FlinkxRuntimeException(String.format("can't copy temp file:[%s] to dir:[%s]", currentFilePath, outputFilePath), e);
+        } catch (Exception e) {
+            throw new FlinkxRuntimeException(
+                    String.format(
+                            "can't copy temp file:[%s] to dir:[%s]",
+                            currentFilePath, outputFilePath),
+                    e);
         }
         return copyList;
     }
@@ -177,14 +206,15 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 fs.delete(commitFilePath, true);
                 LOG.info("delete file:{}", currentFilePath);
             }
-        }catch (IOException e){
-            throw new FlinkxRuntimeException(String.format("can't delete commit file:[%s]", currentFilePath), e);
+        } catch (IOException e) {
+            throw new FlinkxRuntimeException(
+                    String.format("can't delete commit file:[%s]", currentFilePath), e);
         }
     }
 
     @Override
     protected void moveAllTmpDataFileToDir() {
-        if(fs == null){
+        if (fs == null) {
             openSource();
         }
         String currentFilePath = "";
@@ -200,7 +230,10 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
             }
             fs.delete(tmpDir, true);
         } catch (IOException e) {
-            throw new FlinkxRuntimeException(String.format("can't move file:[%s] to dir:[%s]", currentFilePath, outputFilePath), e);
+            throw new FlinkxRuntimeException(
+                    String.format(
+                            "can't move file:[%s] to dir:[%s]", currentFilePath, outputFilePath),
+                    e);
         }
     }
 
@@ -211,33 +244,34 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                 fs.close();
                 fs = null;
             }
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new FlinkxRuntimeException("can't close source.", e);
         }
     }
 
     @Override
-    public float getDeviation(){
+    public float getDeviation() {
         return compressType.getDeviation();
     }
 
     /**
      * get file compress type
+     *
      * @return
      */
     protected abstract CompressType getCompressType();
 
-    protected void deleteDirectory(String path){
+    protected void deleteDirectory(String path) {
         LOG.info("start to delete directory：{}", path);
         try {
             Path dir = new Path(path);
-            if(fs == null){
+            if (fs == null) {
                 openSource();
             }
             if (fs.exists(dir)) {
                 if (fs.isFile(dir)) {
                     throw new FlinkxRuntimeException(String.format("dir:[%s] is a file", path));
-                }else{
+                } else {
                     fs.delete(dir, true);
                 }
             }

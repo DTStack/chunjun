@@ -55,13 +55,29 @@ public class ElasticsearchUtil {
                 httpAddresses.
                         toArray(new HttpHost[httpAddresses.size()]));
         if (elasticsearchConf.isAuthMesh()) {
-            // basic auth
+            // 进行用户和密码认证
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(AuthScope.ANY,
-                    new UsernamePasswordCredentials(elasticsearchConf.getUsername(),
-                    elasticsearchConf.getPassword()));
+                    new UsernamePasswordCredentials(
+                            elasticsearchConf.getUsername(),
+                            elasticsearchConf.getPassword()));
             restClientBuilder.setHttpClientConfigCallback(httpAsyncClientBuilder ->
-                    httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+                    httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
+                            .setKeepAliveStrategy((response, context) -> elasticsearchConf.getKeepAliveTime())
+                            .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute()))
+                    .setRequestConfigCallback(requestConfigBuilder
+                            -> requestConfigBuilder.setConnectTimeout(elasticsearchConf.getConnectTimeout())
+                            .setConnectionRequestTimeout( elasticsearchConf.getRequestTimeout())
+                            .setSocketTimeout(elasticsearchConf.getSocketTimeout()));
+        } else {
+            restClientBuilder.setHttpClientConfigCallback(httpAsyncClientBuilder ->
+                    httpAsyncClientBuilder
+                            .setKeepAliveStrategy((response, context) -> elasticsearchConf.getKeepAliveTime())
+                            .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute()))
+                    .setRequestConfigCallback(requestConfigBuilder
+                            -> requestConfigBuilder.setConnectTimeout(elasticsearchConf.getConnectTimeout())
+                            .setConnectionRequestTimeout( elasticsearchConf.getRequestTimeout())
+                            .setSocketTimeout(elasticsearchConf.getSocketTimeout()));
         }
 
         RestHighLevelClient rhlClient = new RestHighLevelClient(restClientBuilder);

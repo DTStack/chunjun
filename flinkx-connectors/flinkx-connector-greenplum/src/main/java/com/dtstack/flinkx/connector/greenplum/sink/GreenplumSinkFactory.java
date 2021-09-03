@@ -19,11 +19,8 @@
 package com.dtstack.flinkx.connector.greenplum.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.greenplum.GreenplumDialect;
-import com.dtstack.flinkx.connector.greenplum.converter.GreenplumRawTypeConverter;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.connector.greenplum.dialect.GreenplumDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.converter.RawTypeConverter;
 
 /**
  * company www.dtstack.com
@@ -33,17 +30,6 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 public class GreenplumSinkFactory extends JdbcSinkFactory {
 
     public GreenplumSinkFactory(SyncConf syncConf) {
-        super(syncConf);
-        super.jdbcDialect = new GreenplumDialect();
-    }
-
-    @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return new JdbcOutputFormatBuilder(new GreenplumOutputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return GreenplumRawTypeConverter::apply;
+        super(syncConf, new GreenplumDialect());
     }
 }

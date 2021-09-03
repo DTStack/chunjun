@@ -34,19 +34,15 @@ import java.util.Set;
  */
 public class BlobType extends LogicalType {
 
-
     private static final Class<?> INPUT_CONVERSION = byte[].class;
 
     private static final Class<?> DEFAULT_CONVERSION = byte[].class;
 
-    private static final Set<String> OUTPUT_CONVERSION =
-            conversionSet(
-                    InputStream.class.getName());
+    private static final Set<String> OUTPUT_CONVERSION = conversionSet(InputStream.class.getName());
 
     public BlobType(boolean isNullable, LogicalTypeRoot typeRoot) {
         super(isNullable, typeRoot);
     }
-
 
     @Override
     public String asSerializableString() {
@@ -78,9 +74,8 @@ public class BlobType extends LogicalType {
         return visitor.visit(this);
     }
 
-
     @Override
     public LogicalType copy(boolean isNullable) {
-        return new BlobType(isNullable,getTypeRoot());
+        return new BlobType(isNullable, getTypeRoot());
     }
 }

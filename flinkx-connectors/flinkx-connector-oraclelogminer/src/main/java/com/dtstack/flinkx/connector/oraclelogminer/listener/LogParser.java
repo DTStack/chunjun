@@ -16,10 +16,7 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.connector.oraclelogminer.listener;
-
-import org.apache.flink.table.data.RowData;
 
 import com.dtstack.flinkx.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRow;
@@ -28,6 +25,9 @@ import com.dtstack.flinkx.connector.oraclelogminer.entity.QueueData;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.util.SnowflakeIdWorker;
+
+import org.apache.flink.table.data.RowData;
+
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
@@ -43,6 +43,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -60,10 +61,9 @@ public class LogParser {
 
     public static Logger LOG = LoggerFactory.getLogger(LogParser.class);
 
-
     public static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
 
-    private LogMinerConf config;
+    private final LogMinerConf config;
 
     public LogParser(LogMinerConf config) {
         this.config = config;
@@ -89,7 +89,8 @@ public class LogParser {
         return str.replace("IS NULL", "= NULL").trim();
     }
 
-    private static void parseInsertStmt(Insert insert, ArrayList<EventRowData> beforeData, ArrayList<EventRowData> afterData) {
+    private static void parseInsertStmt(
+            Insert insert, ArrayList<EventRowData> beforeData, ArrayList<EventRowData> afterData) {
         ArrayList<String> columnLists = new ArrayList<>();
         for (Column column : insert.getColumns()) {
             columnLists.add(cleanString(column.getColumnName()));
@@ -106,7 +107,11 @@ public class LogParser {
         }
     }
 
-    private static void parseUpdateStmt(Update update, ArrayList<EventRowData> beforeData, ArrayList<EventRowData> afterData, String sqlRedo) {
+    private static void parseUpdateStmt(
+            Update update,
+            ArrayList<EventRowData> beforeData,
+            ArrayList<EventRowData> afterData,
+            String sqlRedo) {
         Iterator<Expression> iterator = update.getExpressions().iterator();
         HashSet<String> columns = new HashSet<>(32);
         for (Column c : update.getColumns()) {
@@ -119,38 +124,117 @@ public class LogParser {
         }
 
         if (update.getWhere() != null) {
-            update.getWhere().accept(new ExpressionVisitorAdapter() {
-                @Override
-                public void visit(final EqualsTo expr) {
-                    String col = cleanString(expr.getLeftExpression().toString());
-                    String value = cleanString(expr.getRightExpression().toString());
+            update.getWhere()
+                    .accept(
+                            new ExpressionVisitorAdapter() {
+                                @Override
+                                public void visit(final EqualsTo expr) {
+                                    String col = cleanString(expr.getLeftExpression().toString());
+                                    String value =
+                                            cleanString(expr.getRightExpression().toString());
 
-                    boolean isNull = Objects.isNull(value) || value.equalsIgnoreCase("= NULL");
-                    beforeData.add(new EventRowData(col,isNull ? null : value, isNull));
-                    if (!columns.contains(col)) {
-                        afterData.add(new EventRowData(col, isNull ? null : value, isNull));
-                    }
-                }
-            });
+                                    boolean isNull =
+                                            Objects.isNull(value)
+                                                    || value.equalsIgnoreCase("= NULL");
+                                    beforeData.add(
+                                            new EventRowData(col, isNull ? null : value, isNull));
+                                    if (!columns.contains(col)) {
+                                        afterData.add(
+                                                new EventRowData(
+                                                        col, isNull ? null : value, isNull));
+                                    }
+                                }
+                            });
         } else {
-            LOG.error("where is null when LogParser parse sqlRedo, sqlRedo = {}, update = {}", sqlRedo, update.toString());
+            LOG.error(
+                    "where is null when LogParser parse sqlRedo, sqlRedo = {}, update = {}",
+                    sqlRedo,
+                    update.toString());
         }
     }
 
-    private static void parseDeleteStmt(Delete delete, ArrayList<EventRowData> beforeData, ArrayList<EventRowData> afterData) {
-        delete.getWhere().accept(new ExpressionVisitorAdapter() {
-            @Override
-            public void visit(final EqualsTo expr) {
-                String col = cleanString(expr.getLeftExpression().toString());
-                String value = cleanString(expr.getRightExpression().toString());
-                boolean isNull = Objects.isNull(value) || value.equalsIgnoreCase("= NULL");
-                beforeData.add(new EventRowData(col, isNull ? null : value, isNull));
-                afterData.add(new EventRowData(col, null, true));
-            }
-        });
+    private static void parseDeleteStmt(
+            Delete delete, ArrayList<EventRowData> beforeData, ArrayList<EventRowData> afterData) {
+        delete.getWhere()
+                .accept(
+                        new ExpressionVisitorAdapter() {
+                            @Override
+                            public void visit(final EqualsTo expr) {
+                                String col = cleanString(expr.getLeftExpression().toString());
+                                String value = cleanString(expr.getRightExpression().toString());
+                                boolean isNull =
+                                        Objects.isNull(value) || value.equalsIgnoreCase("= NULL");
+                                beforeData.add(
+                                        new EventRowData(col, isNull ? null : value, isNull));
+                                afterData.add(new EventRowData(col, null, true));
+                            }
+                        });
     }
 
-    public LinkedList<RowData> parse(QueueData pair, boolean isOracle10, AbstractCDCRowConverter rowConverter) throws Exception {
+    /**
+     * parse time type data
+     *
+     * @param value
+     * @return
+     */
+    public static String parseTime(String value) {
+        if (!value.endsWith("')")) {
+            return value;
+        }
+
+        // DATE类型
+        if (value.startsWith("TO_DATE('")) {
+            return value.substring(9, value.length() - 27);
+        }
+
+        // TIMESTAMP类型
+        if (value.startsWith("TO_TIMESTAMP('")) {
+            return value.substring(14, value.length() - 2);
+        }
+
+        // TIMESTAMP WITH LOCAL TIME ZONE
+        if (value.startsWith("TO_TIMESTAMP_ITZ('")) {
+            return value.substring(18, value.length() - 2);
+        }
+
+        // TIMESTAMP WITH TIME ZONE 类型
+        if (value.startsWith("TO_TIMESTAMP_TZ('")) {
+            return value.substring(17, value.length() - 2);
+        }
+        return value;
+    }
+
+    public static String parseString(String value) {
+        if (!value.endsWith("')")) {
+            return value;
+        }
+
+        // BLOB/CLOB类型 HEXTORAW('1234')
+        if (value.startsWith("HEXTORAW('")) {
+            try {
+                return new String(
+                        Hex.decodeHex(value.substring(10, value.length() - 2).toCharArray()),
+                        StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                throw new RuntimeException("parse value [" + value + " ] failed ", e);
+            }
+        }
+
+        // INTERVAL YEAR(2) TO MONTH
+        if (value.startsWith("TO_YMINTERVAL('") && value.endsWith("')")) {
+            return value.substring(15, value.length() - 2);
+        }
+
+        // INTERVAL DAY(2) TO SECOND(6)
+        if (value.startsWith("TO_DSINTERVAL('") && value.endsWith("')")) {
+            return value.substring(15, value.length() - 2);
+        }
+
+        return value;
+    }
+
+    public LinkedList<RowData> parse(QueueData pair, AbstractCDCRowConverter rowConverter)
+            throws Exception {
         ColumnRowData logData = (ColumnRowData) pair.getData();
 
         String schema = logData.getField("schema").asString();
@@ -179,75 +263,32 @@ public class LogParser {
             parseDeleteStmt((Delete) stmt, EventRowDataList, afterEventRowDataList);
         }
 
+        Long ts = idWorker.nextId();
 
-        EventRow eventRow = new EventRow(EventRowDataList, afterEventRowDataList, pair.getScn(), operation, schema, tableName, idWorker.nextId(), timestamp);
+        if (LOG.isDebugEnabled()) {
+            printDelay(pair.getScn(), ts, timestamp);
+        }
+
+        EventRow eventRow =
+                new EventRow(
+                        EventRowDataList,
+                        afterEventRowDataList,
+                        pair.getScn(),
+                        operation,
+                        schema,
+                        tableName,
+                        ts,
+                        timestamp);
 
         return rowConverter.toInternal(eventRow);
     }
 
+    private void printDelay(BigInteger scn, long ts, Timestamp timestamp) {
 
-    /**
-     * parse time type data
-     *
-     * @param value
-     *
-     * @return
-     */
-    public static String parseTime(String value) {
-        if (!value.endsWith("')")) {
-            return value;
-        }
+        long res = ts >> 22;
 
-        //DATE类型
-        if (value.startsWith("TO_DATE('")) {
-            return value.substring(9, value.length() - 27);
-        }
+        long opTime = timestamp.getTime();
 
-        //TIMESTAMP类型
-        if (value.startsWith("TO_TIMESTAMP('")) {
-            return value.substring(14, value.length() - 2);
-        }
-
-        //TIMESTAMP WITH LOCAL TIME ZONE
-        if (value.startsWith("TO_TIMESTAMP_ITZ('")) {
-            return value.substring(18, value.length() - 2);
-        }
-
-        //TIMESTAMP WITH TIME ZONE 类型
-        if (value.startsWith("TO_TIMESTAMP_TZ('")) {
-            return value.substring(17, value.length() - 2);
-        }
-        return value;
+        LOG.debug("scn {} ,delay {} ms", scn, res - opTime);
     }
-
-
-    public static String parseString(String value) {
-        if (!value.endsWith("')")) {
-            return value;
-        }
-
-        //BLOB/CLOB类型 HEXTORAW('1234')
-        if (value.startsWith("HEXTORAW('")) {
-            try {
-                return new String(Hex.decodeHex(value.substring(10, value.length() - 2).toCharArray()), StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                throw new RuntimeException("parse value [" + value + " ] failed ", e);
-            }
-        }
-
-
-        //INTERVAL YEAR(2) TO MONTH
-        if (value.startsWith("TO_YMINTERVAL('") && value.endsWith("')")) {
-            return value.substring(15, value.length() - 2);
-        }
-
-        //INTERVAL DAY(2) TO SECOND(6)
-        if (value.startsWith("TO_DSINTERVAL('") && value.endsWith("')")) {
-            return value.substring(15, value.length() - 2);
-        }
-
-
-        return value;
-    }
-
 }

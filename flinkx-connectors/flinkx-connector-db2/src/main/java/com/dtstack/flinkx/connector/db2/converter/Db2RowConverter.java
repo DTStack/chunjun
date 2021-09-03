@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.db2.converter;
 
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
 
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;
@@ -24,9 +26,6 @@ import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
-
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -36,9 +35,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 /**
- * @description:
  * @program: flinkx-all
- * @author: lany
+ * @author: xuchao
  * @create: 2021/05/20 17:08
  */
 public class Db2RowConverter extends JdbcRowConverter {
@@ -51,8 +49,8 @@ public class Db2RowConverter extends JdbcRowConverter {
 
     /**
      * blob in db2 is not type byte
-     * @param type
      *
+     * @param type
      * @return
      */
     @Override
@@ -79,18 +77,21 @@ public class Db2RowConverter extends JdbcRowConverter {
                 return val ->
                         val instanceof BigInteger
                                 ? DecimalData.fromBigDecimal(
-                                new BigDecimal((BigInteger) val, 0), precision, scale)
+                                        new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
                 return val -> {
-                    if(val instanceof Date){
+                    if (val instanceof Date) {
                         return Long.valueOf(((Date) val).getTime() / 1000).intValue();
                     } else {
                         return Long.valueOf(((Timestamp) val).getTime() / 1000).intValue();
                     }
                 };
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay() / 1_000_000L);
+                return val ->
+                        (int)
+                                ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> TimestampData.fromTimestamp((Timestamp) val);
@@ -102,10 +103,10 @@ public class Db2RowConverter extends JdbcRowConverter {
                 return val -> {
                     Blob blob = (com.ibm.db2.jcc.am.c6) val;
                     int length = 0;
-                    try{
+                    try {
                         length = (int) blob.length();
                         return blob.getBytes(1, length);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 };

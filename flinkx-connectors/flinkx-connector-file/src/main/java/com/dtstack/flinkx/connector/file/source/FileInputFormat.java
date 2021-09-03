@@ -19,9 +19,8 @@
 package com.dtstack.flinkx.connector.file.source;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
-
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.GsonUtil;
 
 import org.apache.flink.core.io.InputSplit;
@@ -39,7 +38,6 @@ import java.util.stream.Collectors;
  * @author: xiuzhu
  * @create: 2021/06/24
  */
-
 public class FileInputFormat extends BaseRichInputFormat {
 
     private BaseFileConf fileConf;
@@ -54,20 +52,19 @@ public class FileInputFormat extends BaseRichInputFormat {
         List<String> inputFiles = new ArrayList<>();
         String path = fileConf.getPath();
 
-        if(path != null && path.length() > 0){
-            path = path.replace("\n","").replace("\r","");
+        if (path != null && path.length() > 0) {
+            path = path.replace("\n", "").replace("\r", "");
             String[] filePaths = path.split(",");
             for (String filePath : filePaths) {
                 File file = new File(filePath);
                 if (file.isFile()) {
                     inputFiles.add(filePath);
-                } else if(file.isDirectory()) {
+                } else if (file.isDirectory()) {
                     File[] childFiles = file.listFiles();
-                    List<String> collect = Arrays
-                            .asList(childFiles)
-                            .stream()
-                            .map((f) -> f.getAbsolutePath())
-                            .collect(Collectors.toList());
+                    List<String> collect =
+                            Arrays.asList(childFiles).stream()
+                                    .map((f) -> f.getAbsolutePath())
+                                    .collect(Collectors.toList());
                     inputFiles.addAll(collect);
                 }
             }
@@ -75,11 +72,11 @@ public class FileInputFormat extends BaseRichInputFormat {
         LOG.info("files = {}", GsonUtil.GSON.toJson(inputFiles));
         int numSplits = (Math.min(inputFiles.size(), minNumSplits));
         FileInputSplit[] fileInputSplits = new FileInputSplit[numSplits];
-        for(int index = 0; index < numSplits; ++index) {
+        for (int index = 0; index < numSplits; ++index) {
             fileInputSplits[index] = new FileInputSplit(index);
         }
 
-        for(int i = 0; i < inputFiles.size(); ++i) {
+        for (int i = 0; i < inputFiles.size(); ++i) {
             fileInputSplits[i % numSplits].getPaths().add(inputFiles.get(i));
         }
         return fileInputSplits;

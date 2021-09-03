@@ -18,13 +18,14 @@
 
 package com.dtstack.flinkx.connector.mongodb.sink;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.mongodb.MongoClientFactory;
 import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.WriteRecordException;
+
+import org.apache.flink.table.data.RowData;
+
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;

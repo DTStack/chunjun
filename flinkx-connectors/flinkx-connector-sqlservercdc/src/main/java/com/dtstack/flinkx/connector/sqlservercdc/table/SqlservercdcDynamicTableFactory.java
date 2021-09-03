@@ -35,8 +35,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Date: 2021/04/27
- * Company: www.dtstack.com
+ * Date: 2021/04/27 Company: www.dtstack.com
  *
  * @author shifang
  */
@@ -81,7 +80,8 @@ public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactor
         helper.validate();
 
         // 3.
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         SqlServerCdcConf serverCdcConf = getSqlServerCdcConf(config);
 
         return new SqlServerCdcDynamicTableSource(
@@ -90,10 +90,11 @@ public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactor
 
     /**
      * 初始化BinlogConf
+     *
      * @param config BinlogConf
      * @return
      */
-    private SqlServerCdcConf getSqlServerCdcConf(ReadableConfig config){
+    private SqlServerCdcConf getSqlServerCdcConf(ReadableConfig config) {
         SqlServerCdcConf sqlServerCdcConf = new SqlServerCdcConf();
         sqlServerCdcConf.setUsername(config.get(SqlServerCdcOptions.USERNAME));
         sqlServerCdcConf.setPassword(config.get(SqlServerCdcOptions.PASSWORD));

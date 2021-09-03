@@ -33,6 +33,9 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.GsonUtil;
+
+import org.apache.flink.api.common.cache.DistributedCache;
+
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,24 +55,29 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class HiveUtil {
-    public final static String TABLE_COLUMN_KEY = "key";
-    public final static String TABLE_COLUMN_TYPE = "type";
-    public final static String PARTITION_TEMPLATE = "%s=%s";
+    public static final String TABLE_COLUMN_KEY = "key";
+    public static final String TABLE_COLUMN_TYPE = "type";
+    public static final String PARTITION_TEMPLATE = "%s=%s";
     private static final Logger logger = LoggerFactory.getLogger(HiveUtil.class);
-    private static final String CREATE_PARTITION_TEMPLATE = "alter table %s add if not exists partition (%s)";
+    private static final String CREATE_PARTITION_TEMPLATE =
+            "alter table %s add if not exists partition (%s)";
     private static final String NO_SUCH_TABLE_EXCEPTION = "NoSuchTableException";
-    private static final List<String> tableExistException = Arrays.asList("TableExistsException", "AlreadyExistsException", "TableAlreadyExistsException");
+    private static final List<String> tableExistException =
+            Arrays.asList(
+                    "TableExistsException",
+                    "AlreadyExistsException",
+                    "TableAlreadyExistsException");
 
-    public static void createHiveTableWithTableInfo(TableInfo tableInfo, ConnectionInfo connectionInfo) {
+    public static void createHiveTableWithTableInfo(
+            TableInfo tableInfo, ConnectionInfo connectionInfo, DistributedCache distributedCache) {
         Connection connection = null;
         try {
-            connection = HiveDbUtil.getConnection(connectionInfo);
+            connection = HiveDbUtil.getConnection(connectionInfo, distributedCache);
             createTable(connection, tableInfo, connectionInfo);
             fillTableInfo(connection, tableInfo);
         } catch (Exception e) {
@@ -80,14 +88,17 @@ public class HiveUtil {
         }
     }
 
-    /**
-     * 创建hive的分区
-     */
-    public static void createPartition(TableInfo tableInfo, String partition, ConnectionInfo connectionInfo) {
+    /** 创建hive的分区 */
+    public static void createPartition(
+            TableInfo tableInfo,
+            String partition,
+            ConnectionInfo connectionInfo,
+            DistributedCache distributedCache) {
         Connection connection = null;
         try {
-            connection = HiveDbUtil.getConnection(connectionInfo);
-            String sql = String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
+            connection = HiveDbUtil.getConnection(connectionInfo, distributedCache);
+            String sql =
+                    String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
             HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
         } catch (Exception e) {
             logger.error("", e);
@@ -103,7 +114,8 @@ public class HiveUtil {
      * @param connection
      * @param tableInfo
      */
-    private static void createTable(Connection connection, TableInfo tableInfo, ConnectionInfo connectionInfo) {
+    private static void createTable(
+            Connection connection, TableInfo tableInfo, ConnectionInfo connectionInfo) {
         try {
             String sql = String.format(tableInfo.getCreateTableSql(), tableInfo.getTablePath());
             HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
@@ -113,13 +125,15 @@ public class HiveUtil {
                 throw new RuntimeException("create table happens error", e);
             } else {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Not need create table:{}, it's already exist", tableInfo.getTablePath());
+                    logger.debug(
+                            "Not need create table:{}, it's already exist",
+                            tableInfo.getTablePath());
                 }
             }
         }
     }
 
-    private static boolean isTableExistsException(String message){
+    private static boolean isTableExistsException(String message) {
         if (message == null) {
             return false;
         }
@@ -138,7 +152,9 @@ public class HiveUtil {
             HiveReleaseVersion hiveVersion = getHiveVersion(connection);
             AbstractHiveMetadataParser metadataParser = getMetadataParser(hiveVersion);
 
-            List<Map<String, Object>> result = HiveDbUtil.executeQuery(connection, "desc formatted " + tableInfo.getTablePath());
+            List<Map<String, Object>> result =
+                    HiveDbUtil.executeQuery(
+                            connection, "desc formatted " + tableInfo.getTablePath());
             metadataParser.fillTableInfo(tableInfo, result);
         } catch (Exception e) {
             if (e.getMessage().contains(NO_SUCH_TABLE_EXCEPTION)) {
@@ -149,28 +165,29 @@ public class HiveUtil {
         }
     }
 
-    private static AbstractHiveMetadataParser getMetadataParser(HiveReleaseVersion hiveVersion){
-        if (HiveReleaseVersion.APACHE_2.equals(hiveVersion) || HiveReleaseVersion.APACHE_1.equals(hiveVersion)) {
+    private static AbstractHiveMetadataParser getMetadataParser(HiveReleaseVersion hiveVersion) {
+        if (HiveReleaseVersion.APACHE_2.equals(hiveVersion)
+                || HiveReleaseVersion.APACHE_1.equals(hiveVersion)) {
             return new Apache2MetadataParser();
         } else {
             return new Cdh2HiveMetadataParser();
         }
     }
 
-    public static HiveReleaseVersion getHiveVersion(Connection connection){
+    public static HiveReleaseVersion getHiveVersion(Connection connection) {
         HiveReleaseVersion version = HiveReleaseVersion.APACHE_2;
         try (ResultSet resultSet = connection.createStatement().executeQuery("select version()")) {
             if (resultSet.next()) {
                 String versionMsg = resultSet.getString(1);
-                if (versionMsg.contains(HiveReleaseVersion.CDH_1.getName())){
+                if (versionMsg.contains(HiveReleaseVersion.CDH_1.getName())) {
                     // 结果示例：2.1.1-cdh6.3.1 re8d55f408b4f9aa2648bc9e34a8f802d53d6aab3
                     if (versionMsg.startsWith(HiveReleaseVersion.CDH_2.getVersion())) {
                         version = HiveReleaseVersion.CDH_2;
-                    } else if(versionMsg.startsWith(HiveReleaseVersion.CDH_1.getVersion())){
+                    } else if (versionMsg.startsWith(HiveReleaseVersion.CDH_1.getVersion())) {
                         version = HiveReleaseVersion.CDH_1;
                     }
                 } else {
-                    //spark thrift server不支持 version()函数，所以使用默认的版本
+                    // spark thrift server不支持 version()函数，所以使用默认的版本
                 }
             }
         } catch (Exception ignore) {
@@ -180,11 +197,15 @@ public class HiveUtil {
     }
 
     public static String getCreateTableHql(TableInfo tableInfo) {
-        //不要使用create table if not exist，可能以后会在业务逻辑中判断表是否已经存在
+        // 不要使用create table if not exist，可能以后会在业务逻辑中判断表是否已经存在
         StringBuilder sql = new StringBuilder(256);
         sql.append("CREATE TABLE %s (");
         for (int i = 0; i < tableInfo.getColumnNameList().size(); i++) {
-            sql.append(String.format("`%s` %s", tableInfo.getColumnNameList().get(i), tableInfo.getColumnTypeList().get(i)));
+            sql.append(
+                    String.format(
+                            "`%s` %s",
+                            tableInfo.getColumnNameList().get(i),
+                            tableInfo.getColumnTypeList().get(i)));
             if (i != tableInfo.getColumnNameList().size() - 1) {
                 sql.append(",");
             }
@@ -201,23 +222,25 @@ public class HiveUtil {
             sql.append(" ROW FORMAT DELIMITED FIELDS TERMINATED BY '");
             sql.append(tableInfo.getDelimiter());
             sql.append("' LINES TERMINATED BY '\\n' STORED AS TEXTFILE ");
-        } else if(FileType.ORC.name().equalsIgnoreCase(tableInfo.getStore())) {
+        } else if (FileType.ORC.name().equalsIgnoreCase(tableInfo.getStore())) {
             sql.append(" STORED AS ORC ");
-        }else{
+        } else {
             sql.append(" STORED AS PARQUET ");
         }
         return sql.toString();
     }
 
     /**
-     * 分表的映射关系
-     * distributeTableMapping 的数据结构为<tableName,groupName>
+     * 分表的映射关系 distributeTableMapping 的数据结构为<tableName,groupName>
      * tableInfos的数据结构为<groupName,TableInfo>
      */
     public static Map<String, String> formatHiveDistributeInfo(String distributeTable) {
         Map<String, String> distributeTableMapping = new HashMap<>(32);
         if (StringUtils.isNotBlank(distributeTable)) {
-            Map<String, List<String>> distributeTableMap = GsonUtil.GSON.fromJson(distributeTable, new TypeToken<TreeMap<String, List<String>>>(){}.getType());
+            Map<String, List<String>> distributeTableMap =
+                    GsonUtil.GSON.fromJson(
+                            distributeTable,
+                            new TypeToken<TreeMap<String, List<String>>>() {}.getType());
             for (Map.Entry<String, List<String>> entry : distributeTableMap.entrySet()) {
                 String groupName = entry.getKey();
                 List<String> groupTables = entry.getValue();
@@ -229,10 +252,15 @@ public class HiveUtil {
         return distributeTableMapping;
     }
 
-    public static Map<String, TableInfo> formatHiveTableInfo(String tablesColumn, String partition, String fieldDelimiter, String fileType) {
+    public static Map<String, TableInfo> formatHiveTableInfo(
+            String tablesColumn, String partition, String fieldDelimiter, String fileType) {
         Map<String, TableInfo> tableInfos = new HashMap<>(16);
         if (StringUtils.isNotEmpty(tablesColumn)) {
-            Map<String, List<Map<String, Object>>> tableColumnMap = GsonUtil.GSON.fromJson(tablesColumn, new com.google.gson.reflect.TypeToken<TreeMap<String, List<Map<String, Object>> >>(){}.getType());
+            Map<String, List<Map<String, Object>>> tableColumnMap =
+                    GsonUtil.GSON.fromJson(
+                            tablesColumn,
+                            new com.google.gson.reflect.TypeToken<
+                                    TreeMap<String, List<Map<String, Object>>>>() {}.getType());
             for (Map.Entry<String, List<Map<String, Object>>> entry : tableColumnMap.entrySet()) {
                 String tableName = entry.getKey();
                 List<Map<String, Object>> tableColumns = entry.getValue();
@@ -242,7 +270,9 @@ public class HiveUtil {
                 tableInfo.setStore(fileType);
                 tableInfo.setTableName(tableName);
                 for (Map<String, Object> column : tableColumns) {
-                    tableInfo.addColumnAndType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY), MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE));
+                    tableInfo.addColumnAndType(
+                            MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY),
+                            MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE));
                 }
                 String createTableSql = HiveUtil.getCreateTableHql(tableInfo);
                 tableInfo.setCreateTableSql(createTableSql);
@@ -253,38 +283,38 @@ public class HiveUtil {
         return tableInfos;
     }
 
-    public static AbstractBaseColumn parseDataFromMap(Object data){
-        if(data == null){
+    public static AbstractBaseColumn parseDataFromMap(Object data) {
+        if (data == null) {
             return new NullColumn();
-        }else if(data instanceof String){
+        } else if (data instanceof String) {
             return new StringColumn((String) data);
-        }else if (data instanceof Character){
+        } else if (data instanceof Character) {
             return new StringColumn(String.valueOf(data));
-        }else if (data instanceof Boolean){
+        } else if (data instanceof Boolean) {
             return new BooleanColumn((Boolean) data);
-        }else if (data instanceof Byte){
+        } else if (data instanceof Byte) {
             return new BigDecimalColumn((Byte) data);
-        }else if (data instanceof Short){
+        } else if (data instanceof Short) {
             return new BigDecimalColumn((Short) data);
-        }else if (data instanceof Integer){
+        } else if (data instanceof Integer) {
             return new BigDecimalColumn((Integer) data);
-        }else if (data instanceof Long){
+        } else if (data instanceof Long) {
             return new BigDecimalColumn((Long) data);
-        }else if (data instanceof BigInteger){
+        } else if (data instanceof BigInteger) {
             return new BigDecimalColumn((BigInteger) data);
-        }else if (data instanceof Float){
+        } else if (data instanceof Float) {
             return new BigDecimalColumn((Float) data);
-        }else if (data instanceof Double){
+        } else if (data instanceof Double) {
             return new BigDecimalColumn((Double) data);
-        }else if (data instanceof BigDecimal){
+        } else if (data instanceof BigDecimal) {
             return new BigDecimalColumn((BigDecimal) data);
-        }else if (data instanceof Timestamp){
+        } else if (data instanceof Timestamp) {
             return new TimestampColumn((Timestamp) data);
-        }else if (data instanceof Date){
+        } else if (data instanceof Date) {
             return new TimestampColumn((Date) data);
-        }else if (data instanceof byte[]){
+        } else if (data instanceof byte[]) {
             return new BytesColumn((byte[]) data);
-        }else{
+        } else {
             logger.debug("unknown type: [{}], data: [{}]", data.getClass(), data);
             return new StringColumn(GsonUtil.GSON.toJson(data));
         }

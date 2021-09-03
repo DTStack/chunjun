@@ -21,7 +21,8 @@ package com.dtstack.flinkx.connector.mongodb.source;
 import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.flinkx.connector.mongodb.datasync.MongoClientConfFactory;
 import com.dtstack.flinkx.connector.mongodb.datasync.MongodbDataSyncConf;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
 import com.mongodb.BasicDBObject;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;

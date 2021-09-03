@@ -20,8 +20,7 @@ package com.dtstack.flinkx.conf;
 import java.io.Serializable;
 
 /**
- * Date: 2021/01/18
- * Company: www.dtstack.com
+ * Date: 2021/01/18 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -81,12 +80,17 @@ public class SpeedConf implements Serializable {
 
     @Override
     public String toString() {
-        return "SpeedConf{" +
-                "channel=" + channel +
-                ", readerChannel=" + readerChannel +
-                ", writerChannel=" + writerChannel +
-                ", bytes=" + bytes +
-                ", rebalance=" + rebalance +
-                '}';
+        return "SpeedConf{"
+                + "channel="
+                + channel
+                + ", readerChannel="
+                + readerChannel
+                + ", writerChannel="
+                + writerChannel
+                + ", bytes="
+                + bytes
+                + ", rebalance="
+                + rebalance
+                + '}';
     }
 }

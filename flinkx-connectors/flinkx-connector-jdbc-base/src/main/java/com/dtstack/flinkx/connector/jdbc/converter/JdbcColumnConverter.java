@@ -18,10 +18,8 @@
 
 package com.dtstack.flinkx.connector.jdbc.converter;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -34,20 +32,31 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import io.vertx.core.json.JsonArray;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
+import java.util.List;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
 public class JdbcColumnConverter
         extends AbstractRowConverter<
-                        ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
+                ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
 
     public JdbcColumnConverter(RowType rowType) {
-        super(rowType);
+        this(rowType, null);
+    }
+
+    public JdbcColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters[i] =
                     wrapIntoNullableInternalConverter(
@@ -59,8 +68,9 @@ public class JdbcColumnConverter
     }
 
     @Override
-    protected ISerializationConverter<FieldNamedPreparedStatement> wrapIntoNullableExternalConverter(
-            ISerializationConverter serializationConverter, LogicalType type) {
+    protected ISerializationConverter<FieldNamedPreparedStatement>
+            wrapIntoNullableExternalConverter(
+                    ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, statement) -> {
             if (((ColumnRowData) val).getField(index) == null) {
                 statement.setObject(index, null);
@@ -71,13 +81,23 @@ public class JdbcColumnConverter
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public RowData toInternal(ResultSet resultSet) throws Exception {
-        ColumnRowData data = new ColumnRowData(toInternalConverters.length);
-        for (int i = 0; i < toInternalConverters.length; i++) {
-            Object field = resultSet.getObject(i + 1);
-            data.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
+        List<FieldConf> fieldConfList = commonConf.getColumn();
+        ColumnRowData result = new ColumnRowData(fieldConfList.size());
+        int converterIndex = 0;
+        for (FieldConf fieldConf : fieldConfList) {
+            AbstractBaseColumn baseColumn = null;
+            if (StringUtils.isBlank(fieldConf.getValue())) {
+                Object field = resultSet.getObject(converterIndex + 1);
+                baseColumn =
+                        (AbstractBaseColumn)
+                                toInternalConverters[converterIndex].deserialize(field);
+                converterIndex++;
+            }
+            result.addField(assembleFieldProps(fieldConf, baseColumn));
         }
-        return data;
+        return result;
     }
 
     @Override
@@ -172,20 +192,22 @@ public class JdbcColumnConverter
                 return (val, index, statement) ->
                         statement.setDate(
                                 index,
-                                Date.valueOf(((ColumnRowData) val)
-                                        .getField(index)
-                                        .asTimestamp()
-                                        .toLocalDateTime()
-                                        .toLocalDate()));
+                                Date.valueOf(
+                                        ((ColumnRowData) val)
+                                                .getField(index)
+                                                .asTimestamp()
+                                                .toLocalDateTime()
+                                                .toLocalDate()));
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTime(
                                 index,
-                                Time.valueOf(((ColumnRowData) val)
-                                        .getField(index)
-                                        .asTimestamp()
-                                        .toLocalDateTime()
-                                        .toLocalTime()));
+                                Time.valueOf(
+                                        ((ColumnRowData) val)
+                                                .getField(index)
+                                                .asTimestamp()
+                                                .toLocalDateTime()
+                                                .toLocalTime()));
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->

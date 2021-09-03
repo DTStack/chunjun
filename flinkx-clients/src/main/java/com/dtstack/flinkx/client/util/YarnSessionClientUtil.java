@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.client.util;
 
+import com.dtstack.flinkx.client.yarn.YarnConfLoader;
 import com.dtstack.flinkx.util.ValueUtil;
 
 import org.apache.flink.client.deployment.ClusterSpecification;
@@ -30,7 +31,6 @@ import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.flink.yarn.configuration.YarnLogConfigUtil;
 
-import com.dtstack.flinkx.client.yarn.YarnConfLoader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -47,23 +47,23 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
- * Date: 2021/03/03
- * Company: www.dtstack.com
+ * Date: 2021/03/03 Company: www.dtstack.com
  *
- * start flink yarn session
+ * <p>start flink yarn session
  *
  * @author tudou
  */
 public class YarnSessionClientUtil {
 
-    public final static int MIN_JM_MEMORY = 768;
-    public final static int MIN_TM_MEMORY = 1024;
-    public final static String JOBMANAGER_MEMORY_MB = "jobmanager.memory.process.size";
-    public final static String TASKMANAGER_MEMORY_MB = "taskmanager.memory.process.size";
-    public final static String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
+    public static final int MIN_JM_MEMORY = 1024;
+    public static final int MIN_TM_MEMORY = 1024;
+    public static final String JOBMANAGER_MEMORY_MB = "jobmanager.memory.process.size";
+    public static final String TASKMANAGER_MEMORY_MB = "taskmanager.memory.process.size";
+    public static final String SLOTS_PER_TASKMANAGER = "taskmanager.slots";
 
     /**
      * 启动一个flink yarn session
+     *
      * @param flinkConfDir flink配置文件路径
      * @param yarnConfDir Hadoop配置文件路径
      * @param flinkLibDir flink lib目录路径
@@ -72,7 +72,13 @@ public class YarnSessionClientUtil {
      * @return
      * @throws Exception
      */
-    public static ApplicationId startYarnSession(String flinkConfDir, String yarnConfDir, String flinkLibDir, String flinkxPluginDir, String queue) throws Exception{
+    public static ApplicationId startYarnSession(
+            String flinkConfDir,
+            String yarnConfDir,
+            String flinkLibDir,
+            String flinkxPluginDir,
+            String queue)
+            throws Exception {
         Configuration flinkConfig = GlobalConfiguration.loadConfiguration(flinkConfDir);
         flinkConfig.setString(YarnConfigOptions.APPLICATION_QUEUE, queue);
         flinkConfig.setString(ConfigConstants.PATH_HADOOP_CONFIG, yarnConfDir);
@@ -91,13 +97,22 @@ public class YarnSessionClientUtil {
                 }
             }
         }
-        File log4j = new File(flinkConfDir+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
-        if(log4j.exists()){
-            flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, flinkConfDir + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
-        } else{
-            File logback = new File(flinkConfDir+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
-            if(logback.exists()){
-                flinkConfig.setString(YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE, flinkConfDir+ File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
+        File log4j =
+                new File(flinkConfDir + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
+        if (log4j.exists()) {
+            flinkConfig.setString(
+                    YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE,
+                    flinkConfDir + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOG4J_NAME);
+        } else {
+            File logback =
+                    new File(
+                            flinkConfDir
+                                    + File.separator
+                                    + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
+            if (logback.exists()) {
+                flinkConfig.setString(
+                        YarnConfigOptionsInternal.APPLICATION_LOG_CONFIG_FILE,
+                        flinkConfDir + File.separator + YarnLogConfigUtil.CONFIG_FILE_LOGBACK_NAME);
             }
         }
 
@@ -107,16 +122,17 @@ public class YarnSessionClientUtil {
         yarnClient.init(yarnConf);
         yarnClient.start();
 
-        YarnClusterDescriptor descriptor = new YarnClusterDescriptor(
-                flinkConfig,
-                yarnConf,
-                yarnClient,
-                YarnClientYarnClusterInformationRetriever.create(yarnClient),
-                false);
+        YarnClusterDescriptor descriptor =
+                new YarnClusterDescriptor(
+                        flinkConfig,
+                        yarnConf,
+                        yarnClient,
+                        YarnClientYarnClusterInformationRetriever.create(yarnClient),
+                        false);
 
-        if(hdfsPath){
+        if (hdfsPath) {
             descriptor.setLocalJarPath(new Path(flinkLibDir + "/flink-dist_2.12-1.12.2.jar"));
-        }else{
+        } else {
             List<File> shipFiles = new ArrayList<>();
             File[] jars = new File(flinkLibDir).listFiles();
             if (jars != null) {
@@ -132,26 +148,34 @@ public class YarnSessionClientUtil {
         }
 
         File syncFile = new File(flinkxPluginDir);
-        List<File> pluginPaths = Arrays.stream(Objects.requireNonNull(syncFile.listFiles()))
-                .filter(file -> !file.getName().endsWith("zip"))
-                .collect(Collectors.toList());
+        List<File> pluginPaths =
+                Arrays.stream(Objects.requireNonNull(syncFile.listFiles()))
+                        .filter(file -> !file.getName().endsWith("zip"))
+                        .collect(Collectors.toList());
         descriptor.addShipFiles(pluginPaths);
         ClusterSpecification clusterSpecification = createClusterSpecification(null);
-        ClusterClient<ApplicationId>  clusterClient = descriptor.deploySessionCluster(clusterSpecification).getClusterClient();
+        ClusterClient<ApplicationId> clusterClient =
+                descriptor.deploySessionCluster(clusterSpecification).getClusterClient();
         return clusterClient.getClusterId();
     }
 
     public static ClusterSpecification createClusterSpecification(Properties conProp) {
-        int jobManagerMemoryMb = 768;
+        int jobManagerMemoryMb = 1024;
         int taskManagerMemoryMb = 1024;
         int slotsPerTaskManager = 1;
 
         if (conProp != null) {
             if (conProp.containsKey(JOBMANAGER_MEMORY_MB)) {
-                jobManagerMemoryMb = Math.max(MIN_JM_MEMORY, ValueUtil.getInt(conProp.getProperty(JOBMANAGER_MEMORY_MB)));
+                jobManagerMemoryMb =
+                        Math.max(
+                                MIN_JM_MEMORY,
+                                ValueUtil.getInt(conProp.getProperty(JOBMANAGER_MEMORY_MB)));
             }
             if (conProp.containsKey(TASKMANAGER_MEMORY_MB)) {
-                taskManagerMemoryMb = Math.max(MIN_TM_MEMORY, ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB)));
+                taskManagerMemoryMb =
+                        Math.max(
+                                MIN_TM_MEMORY,
+                                ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB)));
             }
             if (conProp.containsKey(SLOTS_PER_TASKMANAGER)) {
                 slotsPerTaskManager = ValueUtil.getInt(conProp.get(SLOTS_PER_TASKMANAGER));
@@ -166,18 +190,14 @@ public class YarnSessionClientUtil {
     }
 
     public static void main(String[] args) throws Exception {
-        String flinkConfDir = "/opt/dtstack/flink-1.12.2/conf";
-        String yarnConfDir = "/data/hadoop-2.7.7/etc/hadoop";
-        String flinkLibDir = "hdfs://ns/flink-1.12.2/lib";
-        String flinkxPluginDir = "/opt/dtstack/122_flinkplugin/syncplugin/";
-        String queue = "a";
+        String flinkConfDir = "/opt/module/flink-1.12.2/conf";
+        String yarnConfDir = "/opt/module/hadoop-2.7.6/etc/hadoop";
+        String flinkLibDir = "hdfs://flinkx1:9000/flink-1.12.2/lib";
+        String flinkxPluginDir = "/Users/lzq/Desktop/DTStack/flinkx_1.12/flinkx/flinkxplugins/";
+        String queue = "c";
 
-        ApplicationId applicationId = startYarnSession(
-                flinkConfDir,
-                yarnConfDir,
-                flinkLibDir,
-                flinkxPluginDir,
-                queue);
+        ApplicationId applicationId =
+                startYarnSession(flinkConfDir, yarnConfDir, flinkLibDir, flinkxPluginDir, queue);
 
         System.out.println("clusterId = " + applicationId);
     }

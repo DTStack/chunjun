@@ -18,15 +18,16 @@
 
 package com.dtstack.flinkx.connector.stream.sink;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.util.TablePrintUtil;
 import com.dtstack.flinkx.element.ColumnRowData;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.throwable.WriteRecordException;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
@@ -50,7 +51,10 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
             @SuppressWarnings("unchecked")
-            RowData row = (RowData)rowConverter.toExternal(rowData, new GenericRowData(rowData.getArity()));
+            RowData row =
+                    (RowData)
+                            rowConverter.toExternal(
+                                    rowData, new GenericRowData(rowData.getArity()));
             if (streamConf.getPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames(rowData));
             }
@@ -61,7 +65,7 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception{
+    protected void writeMultipleRecordsInternal() throws Exception {
         for (RowData row : rows) {
             writeSingleRecordInternal(row);
         }
@@ -69,10 +73,10 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
 
     public String[] getFieldNames(RowData rowData) {
         String[] fieldNames = null;
-        if(rowData instanceof ColumnRowData){
+        if (rowData instanceof ColumnRowData) {
             fieldNames = ((ColumnRowData) rowData).getHeaders();
         }
-        if(fieldNames == null){
+        if (fieldNames == null) {
             List<FieldConf> fieldConfList = streamConf.getColumn();
             if (CollectionUtils.isNotEmpty(fieldConfList)) {
                 fieldNames = fieldConfList.stream().map(FieldConf::getName).toArray(String[]::new);

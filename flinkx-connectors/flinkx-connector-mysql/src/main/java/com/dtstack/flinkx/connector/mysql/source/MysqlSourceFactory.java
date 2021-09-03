@@ -18,14 +18,12 @@
 
 package com.dtstack.flinkx.connector.mysql.source;
 
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+import com.dtstack.flinkx.connector.mysql.dialect.MysqlDialect;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.flinkx.connector.mysql.MysqlDialect;
-import com.dtstack.flinkx.connector.mysql.converter.MysqlRawTypeConverter;
-import com.dtstack.flinkx.converter.RawTypeConverter;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -39,8 +37,7 @@ public class MysqlSourceFactory extends JdbcSourceFactory {
     private static final int DEFAULT_FETCH_SIZE = Integer.MIN_VALUE;
 
     public MysqlSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        super.jdbcDialect = new MysqlDialect();
+        super(syncConf, env, new MysqlDialect());
         // 避免result.next阻塞
         if (jdbcConf.isPolling()
                 && StringUtils.isEmpty(jdbcConf.getStartLocation())
@@ -50,17 +47,7 @@ public class MysqlSourceFactory extends JdbcSourceFactory {
     }
 
     @Override
-    protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new MysqlInputFormat());
-    }
-
-    @Override
     protected int getDefaultFetchSize() {
         return DEFAULT_FETCH_SIZE;
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return MysqlRawTypeConverter::apply;
     }
 }

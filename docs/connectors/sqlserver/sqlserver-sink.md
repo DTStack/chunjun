@@ -142,6 +142,17 @@ Microsoft SQL Server 2012及以上
 
 <br />
 
+- **semantic**
+  - 描述：sink端是否支持二阶段提交
+  - 注意：
+    - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
+    - 当前只支持exactly-once 和at-least-once 
+  - 必选：否
+  - 参数类型：String
+    - 示例："semantic": "exactly-once"
+  - 默认值：at-least-once
+<br />
+
 - **batchSize**
    - 描述：一次性批量提交的记录数大小，该值可以极大减少FlinkX与数据库的网络交互次数，并提升整体吞吐量。但是该值设置过大可能会造成FlinkX运行进程OOM情况
    - 必选：否
@@ -216,13 +227,24 @@ Microsoft SQL Server 2012及以上
 
 <br/>
 
-- **sink.allReplace**
+- **sink.all-replace**
    - 描述：是否全部替换数据库中的数据(如果数据库中原值不为null,新值为null,如果为true则会替换为null)
    - 必选：否
    - 参数类型：String
    - 默认值：false
 
 <br/>
+
+- **sink.semantic**
+  - 描述：sink端是否支持二阶段提交
+  - 注意：
+    - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
+    - 当前只支持exactly-once 和at-least-once 
+  - 必选：否
+  - 参数类型：String
+    - 示例："semantic": "exactly-once"
+  - 默认值：at-least-once
+<br />
 
 - **sink.parallelism**
    - 描述：写入结果的并行度

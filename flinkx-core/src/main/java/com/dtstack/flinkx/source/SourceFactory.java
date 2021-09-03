@@ -18,6 +18,16 @@
 
 package com.dtstack.flinkx.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.conf.SpeedConf;
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.converter.RawTypeConvertible;
+import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.PropertiesUtil;
+import com.dtstack.flinkx.util.TableUtil;
+
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.core.io.InputSplit;
@@ -27,16 +37,11 @@ import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunctio
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
-import com.dtstack.flinkx.conf.FlinkxCommonConf;
-import com.dtstack.flinkx.conf.SpeedConf;
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.converter.RawTypeConvertible;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.util.PropertiesUtil;
-import com.dtstack.flinkx.util.TableUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract specification of Reader Plugin
@@ -49,6 +54,7 @@ public abstract class SourceFactory implements RawTypeConvertible {
 
     protected StreamExecutionEnvironment env;
     protected SyncConf syncConf;
+    protected List<FieldConf> fieldList;
     protected TypeInformation<RowData> typeInformation;
     protected boolean useAbstractBaseColumn = true;
 
@@ -56,12 +62,21 @@ public abstract class SourceFactory implements RawTypeConvertible {
         this.env = env;
         this.syncConf = syncConf;
 
-        if (syncConf.getTransformer() == null || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
-            typeInformation = TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
+        if (syncConf.getTransformer() == null
+                || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
+            fieldList = Collections.emptyList();
         } else {
-            typeInformation = TableUtil.getTypeInformation(syncConf.getReader().getFieldList(), getRawTypeConverter());
+            fieldList = syncConf.getReader().getFieldList();
             useAbstractBaseColumn = false;
         }
+
+        Map<String, Object> parameter = syncConf.getJob().getReader().getParameter();
+        FlinkxCommonConf commonConf = buildFinkCommonConf(parameter);
+        initFlinkxCommonConf(commonConf);
+    }
+
+    private FlinkxCommonConf buildFinkCommonConf(Map<String, Object> parameter) {
+        return JsonUtil.toObject(JsonUtil.toJson(parameter), FlinkxCommonConf.class);
     }
 
     /**
@@ -71,31 +86,66 @@ public abstract class SourceFactory implements RawTypeConvertible {
      */
     public abstract DataStream<RowData> createSource();
 
-    protected DataStream<RowData> createInput(InputFormat<RowData, InputSplit> inputFormat, String sourceName) {
-        Preconditions.checkNotNull(sourceName);
-        Preconditions.checkNotNull(inputFormat);
-        DtInputFormatSourceFunction<RowData> function = new DtInputFormatSourceFunction<>(inputFormat, typeInformation);
-        return env.addSource(function, sourceName, typeInformation);
+    /**
+     * 同步任务使用transform。不支持*、不支持常量、不支持format、必须是flinksql支持的类型 常量和format都可以在transform中做。
+     *
+     * @param commonConf
+     */
+    protected void checkConstant(FlinkxCommonConf commonConf) {
+        List<FieldConf> fieldList = commonConf.getColumn();
+        if (fieldList.size() == 1
+                && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldList.get(0).getName())) {
+            com.google.common.base.Preconditions.checkArgument(
+                    false, "in transformer mode : not support '*' in column.");
+        }
+        commonConf.getColumn().stream()
+                .forEach(
+                        x -> {
+                            if (StringUtils.isNotBlank(x.getValue())) {
+                                com.google.common.base.Preconditions.checkArgument(
+                                        false,
+                                        "in transformer mode : not support default value,you can set value in transformer");
+                            }
+                            if (StringUtils.isNotBlank(x.getFormat())) {
+                                com.google.common.base.Preconditions.checkArgument(
+                                        false,
+                                        "in transformer mode : not support default format,you can set format in transformer");
+                            }
+                        });
     }
 
-    protected DataStream<RowData> createInput(RichParallelSourceFunction<RowData> function, String sourceName) {
+    protected DataStream<RowData> createInput(
+            InputFormat<RowData, InputSplit> inputFormat, String sourceName) {
         Preconditions.checkNotNull(sourceName);
-        return env.addSource(function, sourceName, typeInformation);
+        Preconditions.checkNotNull(inputFormat);
+        DtInputFormatSourceFunction<RowData> function =
+                new DtInputFormatSourceFunction<>(inputFormat, getTypeInformation());
+        return env.addSource(function, sourceName, getTypeInformation());
+    }
+
+    protected DataStream<RowData> createInput(
+            RichParallelSourceFunction<RowData> function, String sourceName) {
+        Preconditions.checkNotNull(sourceName);
+        return env.addSource(function, sourceName, getTypeInformation());
     }
 
     protected DataStream<RowData> createInput(InputFormat<RowData, InputSplit> inputFormat) {
         return createInput(inputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
-    /**
-     * 初始化FlinkxCommonConf
-     *
-     * @param flinkxCommonConf
-     */
+    /** 初始化FlinkxCommonConf */
     public void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf) {
         PropertiesUtil.initFlinkxCommonConf(flinkxCommonConf, this.syncConf);
         flinkxCommonConf.setCheckFormat(this.syncConf.getReader().getBooleanVal("check", true));
         SpeedConf speed = this.syncConf.getSpeed();
-        flinkxCommonConf.setParallelism(speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
+        flinkxCommonConf.setParallelism(
+                speed.getReaderChannel() == -1 ? speed.getChannel() : speed.getReaderChannel());
+    }
+
+    protected TypeInformation<RowData> getTypeInformation() {
+        if (typeInformation == null) {
+            typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter());
+        }
+        return typeInformation;
     }
 }

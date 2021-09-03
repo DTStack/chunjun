@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.connector.hdfs.sink;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.converter.HdfsOrcColumnConverter;
 import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
@@ -26,12 +24,15 @@ import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.SizeUnitType;
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.ReflectionUtils;
+
+import org.apache.flink.table.data.RowData;
+
 import com.google.common.collect.Maps;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
@@ -58,14 +59,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Date: 2021/06/19
- * Company: www.dtstack.com
+ * Date: 2021/06/19 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
-    private static final ColumnTypeUtil.DecimalInfo ORC_DEFAULT_DECIMAL_INFO = new ColumnTypeUtil.DecimalInfo(HiveDecimal.SYSTEM_DEFAULT_PRECISION, HiveDecimal.SYSTEM_DEFAULT_SCALE);
+    private static final ColumnTypeUtil.DecimalInfo ORC_DEFAULT_DECIMAL_INFO =
+            new ColumnTypeUtil.DecimalInfo(
+                    HiveDecimal.SYSTEM_DEFAULT_PRECISION, HiveDecimal.SYSTEM_DEFAULT_SCALE);
     private RecordWriter recordWriter;
     private OrcSerde orcSerde;
     private StructObjectInspector inspector;
@@ -74,16 +76,15 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void openSource(){
+    protected void openSource() {
         super.openSource();
 
         orcSerde = new OrcSerde();
         outputFormat = new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat();
         jobConf = new JobConf(conf);
 
-
         Class codecClass;
-        switch (compressType){
+        switch (compressType) {
             case ORC_SNAPPY:
                 codecClass = SnappyCodec.class;
                 break;
@@ -108,77 +109,96 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
             FieldConf fieldConf = hdfsConf.getColumn().get(i);
             String columnType = fieldConf.getType();
 
-            if(ColumnTypeUtil.isDecimalType(columnType)) {
-                ColumnTypeUtil.DecimalInfo decimalInfo = ColumnTypeUtil.getDecimalInfo(columnType, ORC_DEFAULT_DECIMAL_INFO);
+            if (ColumnTypeUtil.isDecimalType(columnType)) {
+                ColumnTypeUtil.DecimalInfo decimalInfo =
+                        ColumnTypeUtil.getDecimalInfo(columnType, ORC_DEFAULT_DECIMAL_INFO);
                 decimalColInfo.put(fieldConf.getName(), decimalInfo);
             }
             ColumnType type = ColumnType.getType(columnType);
             structFieldObjectInspectors.add(HdfsUtil.columnTypeToObjectInspetor(type));
         }
 
-        if(rowConverter instanceof HdfsOrcColumnConverter){
-            ((HdfsOrcColumnConverter)rowConverter).setDecimalColInfo(decimalColInfo);
-            ((HdfsOrcColumnConverter)rowConverter).setColumnNameList(hdfsConf.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList()));
+        if (rowConverter instanceof HdfsOrcColumnConverter) {
+            ((HdfsOrcColumnConverter) rowConverter).setDecimalColInfo(decimalColInfo);
+            ((HdfsOrcColumnConverter) rowConverter)
+                    .setColumnNameList(
+                            hdfsConf.getColumn().stream()
+                                    .map(FieldConf::getName)
+                                    .collect(Collectors.toList()));
         }
-        this.inspector = ObjectInspectorFactory.getStandardStructObjectInspector(fullColumnNameList, structFieldObjectInspectors);
+        this.inspector =
+                ObjectInspectorFactory.getStandardStructObjectInspector(
+                        fullColumnNameList, structFieldObjectInspectors);
     }
 
     @Override
-    protected void nextBlock(){
+    protected void nextBlock() {
         super.nextBlock();
 
-        if (recordWriter != null){
+        if (recordWriter != null) {
             return;
         }
 
         try {
             String currentBlockTmpPath = tmpPath + File.separatorChar + currentFileName;
-            recordWriter = outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
+            recordWriter =
+                    outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
             currentFileIndex++;
 
             setFs();
             LOG.info("nextBlock:Current block writer record:" + rowsOfCurrentBlock);
             LOG.info("Current block file name:" + currentBlockTmpPath);
-        } catch (IOException | IllegalAccessException e){
-            throw new FlinkxRuntimeException(HdfsUtil.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
+        } catch (IOException | IllegalAccessException e) {
+            throw new FlinkxRuntimeException(
+                    HdfsUtil.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
         }
     }
 
     @Override
     public void flushDataInternal() {
-        LOG.info("Close current orc record writer, write data size:[{}]", SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
+        LOG.info(
+                "Close current orc record writer, write data size:[{}]",
+                SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
 
         try {
-            if (recordWriter != null){
+            if (recordWriter != null) {
                 recordWriter.close(Reporter.NULL);
                 recordWriter = null;
             }
         } catch (IOException e) {
-            throw new FlinkxRuntimeException(HdfsUtil.parseErrorMsg("error to flush stream.", ExceptionUtil.getErrorMessage(e)), e);
+            throw new FlinkxRuntimeException(
+                    HdfsUtil.parseErrorMsg(
+                            "error to flush stream.", ExceptionUtil.getErrorMessage(e)),
+                    e);
         }
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void writeSingleRecordToFile(RowData rowData) throws WriteRecordException {
-        if (recordWriter == null){
+        if (recordWriter == null) {
             nextBlock();
         }
 
         Object[] data = new Object[hdfsConf.getColumn().size()];
         try {
-            data = (Object[])rowConverter.toExternal(rowData, data);
+            data = (Object[]) rowConverter.toExternal(rowData, data);
         } catch (Exception e) {
-            String errorMessage = HdfsUtil.parseErrorMsg(String.format("writer hdfs error，rowData:{%s}", rowData), ExceptionUtil.getErrorMessage(e));
+            String errorMessage =
+                    HdfsUtil.parseErrorMsg(
+                            String.format("writer hdfs error，rowData:{%s}", rowData),
+                            ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException(errorMessage, e, -1, rowData);
         }
 
         try {
-            this.recordWriter.write(NullWritable.get(), this.orcSerde.serialize(data, this.inspector));
+            this.recordWriter.write(
+                    NullWritable.get(), this.orcSerde.serialize(data, this.inspector));
             rowsOfCurrentBlock++;
             lastRow = rowData;
-        } catch(IOException e) {
-            throw new WriteRecordException(String.format("Data writing to hdfs is abnormal，rowData:{%s}", rowData), e);
+        } catch (IOException e) {
+            throw new WriteRecordException(
+                    String.format("Data writing to hdfs is abnormal，rowData:{%s}", rowData), e);
         }
     }
 
@@ -187,13 +207,13 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
         try {
             LOG.info("close:Current block writer record:" + rowsOfCurrentBlock);
             RecordWriter rw = this.recordWriter;
-            if(rw != null) {
+            if (rw != null) {
                 rw.close(Reporter.NULL);
                 this.recordWriter = null;
             }
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new FlinkxRuntimeException("close stream error.", e);
-        }finally{
+        } finally {
             super.closeSource();
         }
     }
@@ -204,17 +224,18 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     }
 
     /**
-     * 数据源开启kerberos时
-     * 如果这里不通过反射对 writerOptions 赋值fs，则在recordWriter.writer时 会初始化一个fs 此fs不在ugi里获取的
+     * 数据源开启kerberos时 如果这里不通过反射对 writerOptions 赋值fs，则在recordWriter.writer时 会初始化一个fs 此fs不在ugi里获取的
      * 导致开启了kerberos的数据源在checkpoint时进行 recordWriter.close() 操作，会出现kerberos认证错误
+     *
      * @throws IllegalAccessException
      */
     private void setFs() throws IllegalAccessException {
-        if(FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig())){
+        if (FileSystemUtil.isOpenKerberos(hdfsConf.getHadoopConfig())) {
             Field declaredField = ReflectionUtils.getDeclaredField(recordWriter, "options");
             assert declaredField != null;
             declaredField.setAccessible(true);
-            OrcFile.WriterOptions writerOptions = (OrcFile.WriterOptions) declaredField.get(recordWriter);
+            OrcFile.WriterOptions writerOptions =
+                    (OrcFile.WriterOptions) declaredField.get(recordWriter);
             writerOptions.fileSystem(fs);
             declaredField.setAccessible(false);
         }

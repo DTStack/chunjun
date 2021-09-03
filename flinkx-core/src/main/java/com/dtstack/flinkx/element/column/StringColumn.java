@@ -20,6 +20,7 @@ package com.dtstack.flinkx.element.column;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.throwable.CastException;
 import com.dtstack.flinkx.util.DateUtil;
+
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.math.BigDecimal;
@@ -30,8 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Date: 2021/04/26
- * Company: www.dtstack.com
+ * Date: 2021/04/26 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -48,12 +48,16 @@ public class StringColumn extends AbstractBaseColumn {
         this.format = format;
     }
 
+    public StringColumn(Byte aByte) {
+        super(aByte);
+    }
+
     @Override
     public String asString() {
         if (null == data) {
             return null;
         }
-        return (String) data;
+        return String.valueOf(data);
     }
 
     @Override
@@ -65,10 +69,10 @@ public class StringColumn extends AbstractBaseColumn {
         Date result = null;
         String data = this.asString();
         try {
-            //如果string是时间戳
+            // 如果string是时间戳
             time = NumberUtils.createLong(data);
-        } catch (UnsupportedOperationException ignored) {
-            //doNothing
+        } catch (Exception ignored) {
+            // doNothing
         }
         SimpleDateFormat formatter = DateUtil.buildDateFormatter(format);
         if (time != null) {
@@ -76,21 +80,21 @@ public class StringColumn extends AbstractBaseColumn {
             try {
                 result = formatter.parse(formatter.format(date));
             } catch (ParseException ignored) {
-                //doNothing
+                // doNothing
             }
         } else {
             try {
-                //如果是日期格式字符串
+                // 如果是日期格式字符串
                 result = formatter.parse(data);
             } catch (ParseException ignored) {
-                //doNothing
+                // doNothing
             }
         }
 
-        if(result == null){
+        if (result == null) {
             result = DateUtil.columnToDate(data, formatter);
 
-            if(result == null){
+            if (result == null) {
                 throw new CastException("String", "Date", data);
             }
         }
@@ -113,11 +117,11 @@ public class StringColumn extends AbstractBaseColumn {
         }
 
         String data = this.asString();
-        //如果是数值类型
+        // 如果是数值类型
         try {
             return NumberUtils.toInt(data) != 0;
         } catch (Exception ignored) {
-            //doNothing
+            // doNothing
         }
 
         if ("true".equalsIgnoreCase(data)) {
@@ -175,14 +179,17 @@ public class StringColumn extends AbstractBaseColumn {
         }
         try {
             return new Timestamp(super.asLong());
-        }catch (CastException e){
+        } catch (CastException e) {
             throw new CastException("String", "Timestamp", (String) data);
         }
     }
 
     private void validateDoubleSpecific(final String data) {
         if ("NaN".equals(data) || "Infinity".equals(data) || "-Infinity".equals(data)) {
-            throw new CastException(String.format("String[%s]belongs to the special type of Double and cannot be converted to other types.", data));
+            throw new CastException(
+                    String.format(
+                            "String[%s]belongs to the special type of Double and cannot be converted to other types.",
+                            data));
         }
     }
 }

@@ -29,12 +29,15 @@ import java.util.Optional;
  * @program: flinkx
  * @author: wuren
  * @create: 2021/04/02
- **/
+ */
 public interface ParallelAsyncTableFunctionProvider
         extends AsyncTableFunctionProvider, ParallelismProvider {
 
-    /** Helper method for creating a AsyncTableFunction provider with a provided lookup parallelism. */
-    static AsyncTableFunctionProvider of(AsyncTableFunction<RowData> asyncTableFunction, Integer parallelism) {
+    /**
+     * Helper method for creating a AsyncTableFunction provider with a provided lookup parallelism.
+     */
+    static AsyncTableFunctionProvider of(
+            AsyncTableFunction<RowData> asyncTableFunction, Integer parallelism) {
         return new ParallelAsyncTableFunctionProvider() {
 
             @Override

@@ -17,9 +17,7 @@
  */
 package com.dtstack.flinkx.connector.db2.converter;
 
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
@@ -29,28 +27,28 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import java.math.BigDecimal;
 import java.sql.Blob;
-import java.sql.Date;
-import java.sql.Timestamp;
 
 /**
- * convert db2 type to flink type
- * Company: www.dtstack.com
+ * convert db2 type to flink type Company: www.dtstack.com
+ *
  * @author xuchao
  * @date 2021-06-15
  */
 public class Db2ColumnConverter extends JdbcColumnConverter {
 
-    public Db2ColumnConverter(RowType rowType) {
-        super(rowType);
+    public Db2ColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     /**
      * override reason: blob in db2 need use getBytes.
      *
      * @param type
-     *
      * @return
      */
     @Override
@@ -81,14 +79,13 @@ public class Db2ColumnConverter extends JdbcColumnConverter {
                 return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
             case BINARY:
             case VARBINARY:
-
                 return val -> {
                     Blob blob = (com.ibm.db2.jcc.am.c6) val;
                     int length = 0;
-                    try{
+                    try {
                         length = (int) blob.length();
                         return new BytesColumn(blob.getBytes(1, length));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 };

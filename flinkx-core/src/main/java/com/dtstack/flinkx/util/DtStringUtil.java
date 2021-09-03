@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
@@ -33,19 +33,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Reason:
- * Date: 2018/6/22
- * Company: www.dtstack.com
+ * Reason: Date: 2018/6/22 Company: www.dtstack.com
  *
  * @author xuchao
  */
-
 public class DtStringUtil {
 
     private static final Pattern NO_VERSION_PATTERN = Pattern.compile("([a-zA-Z]+).*");
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
 
     /**
      * Split the specified string delimiter --- ignored quotes delimiter
@@ -103,6 +99,7 @@ public class DtStringUtil {
 
     /**
      * add line Number after new line
+     *
      * @param str
      * @return
      */
@@ -111,7 +108,7 @@ public class DtStringUtil {
         StringBuilder sb = new StringBuilder();
         for (int i = 1; i <= lines.length; i++) {
             int length = String.valueOf(i).length();
-            switch (length){
+            switch (length) {
                 case 1:
                     sb.append(i).append(">    ");
                     break;
@@ -125,7 +122,7 @@ public class DtStringUtil {
                     sb.append(i).append("> ");
                     break;
             }
-            sb.append(lines[i-1]).append("\n");
+            sb.append(lines[i - 1]).append("\n");
         }
         return sb.toString();
     }
@@ -184,9 +181,9 @@ public class DtStringUtil {
         return tokensList;
     }
 
-
     public static String replaceIgnoreQuota(String str, String oriStr, String replaceStr) {
-        String splitPatternStr = oriStr + "(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)(?=(?:[^']*'[^']*')*[^']*$)";
+        String splitPatternStr =
+                oriStr + "(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)(?=(?:[^']*'[^']*')*[^']*$)";
         return str.replaceAll(splitPatternStr, replaceStr);
     }
 
@@ -253,10 +250,11 @@ public class DtStringUtil {
      *
      * @param dbUrl
      * @param addParams
-     * @param isForce   true:replace exists param
+     * @param isForce true:replace exists param
      * @return
      */
-    public static String addJdbcParam(String dbUrl, Map<String, String> addParams, boolean isForce) {
+    public static String addJdbcParam(
+            String dbUrl, Map<String, String> addParams, boolean isForce) {
 
         if (Strings.isNullOrEmpty(dbUrl)) {
             throw new RuntimeException("dburl can't be empty string, please check it.");
@@ -290,7 +288,7 @@ public class DtStringUtil {
             params.put(addParam.getKey(), addParam.getValue());
         }
 
-        //rebuild dbURL
+        // rebuild dbURL
         StringBuilder sb = new StringBuilder();
         boolean isFirst = true;
         for (Map.Entry<String, String> param : params.entrySet()) {
@@ -302,7 +300,7 @@ public class DtStringUtil {
             isFirst = false;
         }
 
-        return preStr + "?" + sb.toString();
+        return preStr + "?" + sb;
     }
 
     public static boolean isJson(String str) {
@@ -336,11 +334,11 @@ public class DtStringUtil {
         } else if (fieldType.equals(Timestamp.class.getName())) {
             object = Timestamp.valueOf(str);
         } else {
-            throw new RuntimeException("no support field type for sql. the input type:" + fieldType);
+            throw new RuntimeException(
+                    "no support field type for sql. the input type:" + fieldType);
         }
         return object;
     }
-
 
     public static String firstUpperCase(String str) {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
@@ -348,13 +346,13 @@ public class DtStringUtil {
 
     public static String getTableFullPath(String schema, String tableName) {
         String[] tableInfoSplit = StringUtils.split(tableName, ".");
-        //表明表信息带了schema
+        // 表明表信息带了schema
         if (tableInfoSplit.length == 2) {
             schema = tableInfoSplit[0];
             tableName = tableInfoSplit[1];
         }
 
-        //清理首个字符" 和最后字符 "
+        // 清理首个字符" 和最后字符 "
         schema = rmStrQuote(schema);
         tableName = rmStrQuote(tableName);
 
@@ -365,9 +363,7 @@ public class DtStringUtil {
         return addQuoteForStr(schema) + "." + addQuoteForStr(tableName);
     }
 
-    /**
-     * 清理首个字符" 和最后字符 "
-     */
+    /** 清理首个字符" 和最后字符 " */
     public static String rmStrQuote(String str) {
         if (StringUtils.isEmpty(str)) {
             return str;

@@ -23,12 +23,13 @@ import com.dtstack.flinkx.decoder.IDecode;
 import com.dtstack.flinkx.decoder.JsonDecoder;
 import com.dtstack.flinkx.decoder.TextDecoder;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import org.apache.commons.lang.StringUtils;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,9 +40,9 @@ import static com.dtstack.flinkx.connector.socket.inputformat.SocketInputFormat.
 
 /**
  * 自定义handler
+ *
  * @author kunni@dtstack.com
  */
-
 public class DtClientHandler extends ChannelInboundHandlerAdapter {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
@@ -52,32 +53,29 @@ public class DtClientHandler extends ChannelInboundHandlerAdapter {
 
     protected String encoding;
 
-    public DtClientHandler(SynchronousQueue<RowData> queue, String decoder, String encoding){
+    public DtClientHandler(SynchronousQueue<RowData> queue, String decoder, String encoding) {
         this.queue = queue;
         this.decoder = getDecoder(decoder);
         this.encoding = encoding;
     }
 
-
-
-
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        Map<String, Object> event = decoder.decode((String)msg);
+        Map<String, Object> event = decoder.decode((String) msg);
         GenericRowData row = new GenericRowData(event.size());
         int count = 0;
-        for(Map.Entry<String, Object> entry : event.entrySet()){
+        for (Map.Entry<String, Object> entry : event.entrySet()) {
             row.setField(count++, entry.getValue());
         }
-        try{
+        try {
             queue.put(row);
-        }catch (InterruptedException e){
-            LOG.error(ExceptionUtil.getErrorMessage(e),e);
+        } catch (InterruptedException e) {
+            LOG.error(ExceptionUtil.getErrorMessage(e), e);
         }
     }
 
-    public IDecode getDecoder(String codeC){
-        switch (DecodeEnum.valueOf(StringUtils.upperCase(codeC))){
+    public IDecode getDecoder(String codeC) {
+        switch (DecodeEnum.valueOf(StringUtils.upperCase(codeC))) {
             case JSON:
                 return new JsonDecoder();
             case TEXT:

@@ -22,30 +22,33 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
+ * Date: 2019/4/22 Company: www.dtstack.com
  *
- * Date: 2019/4/22
- * Company: www.dtstack.com
  * @author xuchao
  */
-
 public class ReflectionUtils {
 
     /**
      * get declaredMethod util find
+     *
      * @param object
      * @param methodName
      * @param parameterTypes
      * @return
      */
-    public static Method getDeclaredMethod(Object object, String methodName, Class<?> ... parameterTypes){
-        Method method = null ;
+    public static Method getDeclaredMethod(
+            Object object, String methodName, Class<?>... parameterTypes) {
+        Method method = null;
 
-        for(Class<?> clazz = object.getClass() ; clazz != Object.class ; clazz = clazz.getSuperclass()) {
+        for (Class<?> clazz = object.getClass();
+                clazz != Object.class;
+                clazz = clazz.getSuperclass()) {
             try {
-                method = clazz.getDeclaredMethod(methodName, parameterTypes) ;
-                return method ;
+                method = clazz.getDeclaredMethod(methodName, parameterTypes);
+                method.setAccessible(true);
+                return method;
             } catch (Exception e) {
-                //do nothing then can get method from super Class
+                // do nothing then can get method from super Class
             }
         }
 
@@ -54,26 +57,25 @@ public class ReflectionUtils {
 
     /**
      * 循环向上转型, 获取对象的 DeclaredField
+     *
      * @param object : 子类对象
      * @param fieldName : 父类中的属性名
      * @return 父类中的属性对象
      */
+    public static Field getDeclaredField(Object object, String fieldName) {
+        Field field = null;
 
-    public static Field getDeclaredField(Object object, String fieldName){
-        Field field = null ;
+        Class<?> clazz = object.getClass();
 
-        Class<?> clazz = object.getClass() ;
-
-        for(; clazz != Object.class ; clazz = clazz.getSuperclass()) {
+        for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
             try {
-                field = clazz.getDeclaredField(fieldName) ;
-                return field ;
+                field = clazz.getDeclaredField(fieldName);
+                return field;
             } catch (Exception e) {
-                //do nothing then can get field from super Class
+                // do nothing then can get field from super Class
             }
         }
 
         return null;
     }
-
 }

@@ -17,7 +17,8 @@
  */
 package com.dtstack.flinkx.decoder;
 
-import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.JsonUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +27,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -35,14 +35,14 @@ public class JsonDecoder implements IDecode, Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private static Logger LOG = LoggerFactory.getLogger(JsonDecoder.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JsonDecoder.class);
 
     private static final String KEY_MESSAGE = "message";
 
     @Override
     public Map<String, Object> decode(final String message) {
         try {
-            Map<String, Object> event = GsonUtil.GSON.fromJson(message, GsonUtil.gsonMapTypeToken);
+            Map<String, Object> event = JsonUtil.toObject(message, JsonUtil.MAP_TYPE_REFERENCE);
             if (!event.containsKey(KEY_MESSAGE)) {
                 event.put(KEY_MESSAGE, message);
             }

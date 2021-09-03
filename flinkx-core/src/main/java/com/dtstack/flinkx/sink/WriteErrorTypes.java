@@ -20,17 +20,17 @@ package com.dtstack.flinkx.sink;
 /**
  * This Class defined several types of errors when writing record
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class WriteErrorTypes {
 
-    public static final String ERR_NULL_POINTER= "npe";
+    public static final String ERR_NULL_POINTER = "npe";
 
     public static final String ERR_PRIMARY_CONFLICT = "duplicate";
 
     public static final String ERR_FORMAT_TRANSFORM = "conversion";
 
     public static final String ERR_OTHERS = "other";
-
 }

@@ -21,24 +21,17 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 /**
- * Date: 2021/05/06
- * Company: www.dtstack.com
+ * Date: 2021/05/06 Company: www.dtstack.com
  *
  * @author tudou
  */
 public class BinlogOptions {
 
     public static final ConfigOption<String> HOST =
-            ConfigOptions.key("host")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("MySQL host.");
+            ConfigOptions.key("host").stringType().noDefaultValue().withDescription("MySQL host.");
 
     public static final ConfigOption<Integer> PORT =
-            ConfigOptions.key("port")
-                    .intType()
-                    .defaultValue(3306)
-                    .withDescription("MySQL port.");
+            ConfigOptions.key("port").intType().defaultValue(3306).withDescription("MySQL port.");
 
     public static final ConfigOption<String> USERNAME =
             ConfigOptions.key("username")
@@ -53,13 +46,13 @@ public class BinlogOptions {
                     .withDescription("MySQL password.");
 
     public static final ConfigOption<String> JDBC_URL =
-            ConfigOptions.key("jdbcUrl")
+            ConfigOptions.key("url")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("MySQL jdbcUrl.");
 
     public static final ConfigOption<String> JOURNAL_NAME =
-            ConfigOptions.key("journalName")
+            ConfigOptions.key("journal-name")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("MySQL Binlog file journal Name.");
@@ -95,7 +88,7 @@ public class BinlogOptions {
                     .withDescription("MySQL Binlog period.");
 
     public static final ConfigOption<Integer> BUFFER_SIZE =
-            ConfigOptions.key("bufferSize")
+            ConfigOptions.key("buffer-size")
                     .intType()
                     .defaultValue(256)
                     .withDescription("MySQL Binlog bufferSize.");
@@ -107,25 +100,25 @@ public class BinlogOptions {
                     .withDescription("MySQL Binlog table.");
 
     public static final ConfigOption<String> CONNECTION_CHARSET =
-            ConfigOptions.key("connectionCharset")
+            ConfigOptions.key("connection-charset")
                     .stringType()
                     .defaultValue("UTF-8")
                     .withDescription("MySQL Binlog connectionCharset.");
 
     public static final ConfigOption<Boolean> DETECTING_ENABLE =
-            ConfigOptions.key("detectingEnable")
+            ConfigOptions.key("detecting-enable")
                     .booleanType()
                     .defaultValue(true)
                     .withDescription("MySQL Binlog detectingEnable.");
 
     public static final ConfigOption<String> DETECTING_SQL =
-            ConfigOptions.key("detectingSQL")
+            ConfigOptions.key("detecting-sql")
                     .stringType()
                     .defaultValue("SELECT CURRENT_DATE")
                     .withDescription("MySQL Binlog detectingSQL.");
 
     public static final ConfigOption<Boolean> ENABLE_TSDB =
-            ConfigOptions.key("enableTsdb")
+            ConfigOptions.key("enable-tsdb")
                     .booleanType()
                     .defaultValue(true)
                     .withDescription("MySQL Binlog enableTsdb.");
@@ -137,13 +130,13 @@ public class BinlogOptions {
                     .withDescription("MySQL Binlog parallel.");
 
     public static final ConfigOption<Integer> PARALLEL_THREAD_SIZE =
-            ConfigOptions.key("parallelThreadSize")
+            ConfigOptions.key("parallel-thread-size")
                     .intType()
                     .defaultValue(2)
                     .withDescription("MySQL Binlog parallelThreadSize.");
 
     public static final ConfigOption<Boolean> IS_GTID_MODE =
-            ConfigOptions.key("isGTIDMode")
+            ConfigOptions.key("is-gtid-mode")
                     .booleanType()
                     .defaultValue(false)
                     .withDescription("MySQL Binlog isGTIDMode.");

@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.emqx.util;
 
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -80,7 +81,7 @@ public class MqttConnectUtil {
         return client;
     }
 
-    public static void close(MqttClient client){
+    public static void close(MqttClient client) {
         try {
             if (client != null && client.isConnected()) {
                 client.disconnect();

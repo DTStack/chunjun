@@ -26,8 +26,7 @@ import org.apache.hadoop.mapred.JobConfigurable;
 import java.util.regex.Pattern;
 
 /**
- * Date: 2021/06/08
- * Company: www.dtstack.com
+ * Date: 2021/06/08 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -35,10 +34,11 @@ public class HdfsPathFilter implements PathFilter, JobConfigurable {
 
     public static final String KEY_REGEX = "file.path.regexFilter";
     private static final String DEFAULT_REGEX = ".*";
-    private static final PathFilter HIDDEN_FILE_FILTER = p -> {
-        String name = p.getName();
-        return !name.startsWith("_") && !name.startsWith(".");
-    };
+    private static final PathFilter HIDDEN_FILE_FILTER =
+            p -> {
+                String name = p.getName();
+                return !name.startsWith("_") && !name.startsWith(".");
+            };
     private static Pattern PATTERN;
     private String regex;
 
@@ -51,7 +51,7 @@ public class HdfsPathFilter implements PathFilter, JobConfigurable {
 
     @Override
     public boolean accept(Path path) {
-        if(!HIDDEN_FILE_FILTER.accept(path)){
+        if (!HIDDEN_FILE_FILTER.accept(path)) {
             return false;
         }
 
@@ -64,10 +64,8 @@ public class HdfsPathFilter implements PathFilter, JobConfigurable {
         compileRegex();
     }
 
-    /**
-     * compile regex
-     */
-    private void compileRegex(){
+    /** compile regex */
+    private void compileRegex() {
         String compileRegex = StringUtils.isEmpty(regex) ? DEFAULT_REGEX : regex;
         PATTERN = Pattern.compile(compileRegex);
     }

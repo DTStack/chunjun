@@ -27,14 +27,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * @program: flinkx
  * @author: xiuzhu
  * @create: 2021/06/24
  */
-
 public class FileInputBufferedReader {
 
     private List<String> paths;
@@ -79,7 +77,8 @@ public class FileInputBufferedReader {
         if (pathIterator.hasNext()) {
             String filePath = pathIterator.next();
             String encoding = fileConf.getEncoding();
-            InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(filePath)), encoding);
+            InputStreamReader isr =
+                    new InputStreamReader(new FileInputStream(new File(filePath)), encoding);
             br = new BufferedReader(isr);
         } else {
             br = null;

@@ -24,15 +24,11 @@ import org.apache.commons.lang3.StringUtils;
  * @author chuixue
  * @create 2021-04-20 15:36
  * @description
- **/
+ */
 public enum EJobType {
-    /**
-     * sql job
-     */
+    /** sql job */
     SQL(0, "sql"),
-    /**
-     * sync job
-     */
+    /** sync job */
     SYNC(1, "sync");
 
     private int type;
@@ -46,7 +42,8 @@ public enum EJobType {
 
     public static EJobType getByName(String name) {
         if (StringUtils.isBlank(name)) {
-            throw new IllegalArgumentException("EJobType name cannot be null or empty , just support sql or sync jobType !!! ");
+            throw new IllegalArgumentException(
+                    "EJobType name cannot be null or empty , just support sql or sync jobType !!! ");
         }
         switch (name) {
             case "sql":

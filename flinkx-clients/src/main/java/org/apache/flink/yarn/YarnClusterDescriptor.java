@@ -109,8 +109,10 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -552,18 +554,32 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 
         Resource maxRes = appResponse.getMaximumResourceCapability();
 
-        if(clusterSpecification.isCreateProgramDelay()){
+        if (clusterSpecification.isCreateProgramDelay()) {
+            List<URL> tmpfile = new ArrayList<>();
+            for (File file : shipFiles) {
+                tmpfile.add(file.toURI().toURL());
+            }
+            clusterSpecification.setClasspaths(tmpfile);
+
             PackagedProgram program = JobGraphUtil.buildProgram(clusterSpecification);
             clusterSpecification.setProgram(program);
-            jobGraph = PackagedProgramUtils.createJobGraph(program, clusterSpecification.getConfiguration(), clusterSpecification.getParallelism(), false);
-            String pluginLoadMode = clusterSpecification.getConfiguration().getString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY);
-            if(org.apache.commons.lang3.StringUtils.equalsIgnoreCase(pluginLoadMode, ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE)){
-                List<File> fileList = jobGraph.getUserArtifacts()
-                        .entrySet()
-                        .stream()
-                        .filter(tmp -> tmp.getKey().startsWith("class_path"))
-                        .map(tmp -> new File(tmp.getValue().filePath))
-                        .collect(Collectors.toList());
+            jobGraph =
+                    PackagedProgramUtils.createJobGraph(
+                            program,
+                            clusterSpecification.getConfiguration(),
+                            clusterSpecification.getParallelism(),
+                            false);
+            String pluginLoadMode =
+                    clusterSpecification
+                            .getConfiguration()
+                            .getString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY);
+            if (org.apache.commons.lang3.StringUtils.equalsIgnoreCase(
+                    pluginLoadMode, ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE)) {
+                List<File> fileList =
+                        jobGraph.getUserArtifacts().entrySet().stream()
+                                .filter(tmp -> tmp.getKey().startsWith("class_path"))
+                                .map(tmp -> new File(tmp.getValue().filePath))
+                                .collect(Collectors.toList());
                 shipFiles.addAll(fileList);
                 jobGraph.getUserArtifacts().clear();
             }
@@ -742,7 +758,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
             List<QueueInfo> queues = yarnClient.getAllQueues();
             if (queues.size() > 0
                     && this.yarnQueue
-                    != null) { // check only if there are queues configured in yarn and for
+                            != null) { // check only if there are queues configured in yarn and for
                 // this session.
                 boolean queueFound = false;
                 for (QueueInfo queue : queues) {
@@ -961,7 +977,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
             try {
                 tmpJobGraphFile = File.createTempFile(appId.toString(), null);
                 try (FileOutputStream output = new FileOutputStream(tmpJobGraphFile);
-                     ObjectOutputStream obOutput = new ObjectOutputStream(output)) {
+                        ObjectOutputStream obOutput = new ObjectOutputStream(output)) {
                     obOutput.writeObject(jobGraph);
                 }
 

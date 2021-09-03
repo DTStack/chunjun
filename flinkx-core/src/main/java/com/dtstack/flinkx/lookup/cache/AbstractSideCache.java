@@ -16,17 +16,13 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.lookup.cache;
 
 /**
- * Reason:
- * Date: 2018/9/10
- * Company: www.dtstack.com
+ * Reason: Date: 2018/9/10 Company: www.dtstack.com
  *
  * @author xuchao
  */
-
 public abstract class AbstractSideCache {
 
     public abstract void initCache();

@@ -18,11 +18,7 @@
 
 package com.dtstack.flinkx.connector.saphana.sink;
 
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.saphana.converter.SaphanaRawTypeConverter;
-import com.dtstack.flinkx.util.TableUtil;
 
 import java.util.Properties;
 
@@ -38,10 +34,5 @@ public class SaphanaOutputFormat extends JdbcOutputFormat {
         Properties properties = jdbcConf.getProperties();
         properties.setProperty("zeroDateTimeBehavior", "convertToNull");
         super.openInternal(taskNumber, numTasks);
-        RowType rowType =
-                TableUtil.createRowType(
-                        columnNameList, columnTypeList, SaphanaRawTypeConverter::apply);
-        setRowConverter(
-                rowConverter == null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
     }
 }

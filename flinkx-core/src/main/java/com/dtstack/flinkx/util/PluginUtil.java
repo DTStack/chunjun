@@ -16,19 +16,20 @@
  * limitations under the License.
  */
 
-
 package com.dtstack.flinkx.util;
-
-import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
+import org.apache.flink.api.common.cache.DistributedCache;
+import org.apache.flink.core.fs.Path;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,22 +40,23 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import static com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
 
 /**
- * Reason:
- * Date: 2018/6/27
- * Company: www.dtstack.com
+ * Reason: Date: 2018/6/27 Company: www.dtstack.com
  *
  * @author xuchao
  */
-
 public class PluginUtil {
     public static final String FORMATS_SUFFIX = "formats";
 
@@ -79,53 +81,24 @@ public class PluginUtil {
     private static final String CLASS_FILE_NAME_FMT = "class_path_%d";
 
     /**
-     * 获取插件jar包
-     * @param pluginDir 插件包路径
-     * @param factoryIdentifier SQL任务插件包名称，如：kafka-x
-     * @return
-     * @throws MalformedURLException
-     */
-    public static URL[] getPluginJarUrls(String pluginDir, String factoryIdentifier) throws MalformedURLException {
-        List<URL> urlList = new ArrayList<>();
-
-        File dirFile = new File(pluginDir);
-
-        if (!dirFile.exists() || !dirFile.isDirectory()) {
-            throw new RuntimeException("plugin path:" + pluginDir + " is not exist.");
-        }
-
-        File[] files = dirFile.listFiles(tmpFile -> tmpFile.isFile() && tmpFile.getName().endsWith(JAR_SUFFIX));
-        if (files == null || files.length == 0) {
-            throw new RuntimeException("plugin path:" + pluginDir + " is null.");
-        }
-
-        for (File file : files) {
-            URL pluginJarUrl = file.toURI().toURL();
-            urlList.add(pluginJarUrl);
-        }
-
-        if (urlList.size() == 0) {
-            throw new RuntimeException("no match jar in :" + pluginDir + " directory ，factoryIdentifier is :" + factoryIdentifier);
-        }
-
-        return urlList.toArray(new URL[0]);
-    }
-
-    /**
      * 根据插件名称查找插件路径
+     *
      * @param pluginName 插件名称，如: kafkareader、kafkasource等
      * @param pluginRoot
      * @param remotePluginPath
      * @return
      */
-    public static Set<URL> getJarFileDirPath(String pluginName, String pluginRoot, String remotePluginPath) {
+    public static Set<URL> getJarFileDirPath(
+            String pluginName, String pluginRoot, String remotePluginPath) {
         Set<URL> urlList = new HashSet<>();
 
         String pluginPath = Objects.isNull(remotePluginPath) ? pluginRoot : remotePluginPath;
-        String name = pluginName.replace(READER_SUFFIX, "")
-                .replace(SOURCE_SUFFIX, "")
-                .replace(WRITER_SUFFIX, "")
-                .replace(SINK_SUFFIX, "");
+        String name =
+                pluginName
+                        .replace(READER_SUFFIX, "")
+                        .replace(SOURCE_SUFFIX, "")
+                        .replace(WRITER_SUFFIX, "")
+                        .replace(SINK_SUFFIX, "");
 
         try {
             String pluginJarPath = pluginRoot + SP + name;
@@ -141,14 +114,18 @@ public class PluginUtil {
 
     /**
      * 获取路径当前层级下所有jar包名称
+     *
      * @param pluginPath
      * @return
      */
     private static List<String> getJarNames(File pluginPath) {
         List<String> jarNames = new ArrayList<>();
         if (pluginPath.exists() && pluginPath.isDirectory()) {
-            File[] jarFiles = pluginPath.listFiles((dir, name) ->
-                    name.toLowerCase().startsWith(JAR_PREFIX) && name.toLowerCase().endsWith(".jar"));
+            File[] jarFiles =
+                    pluginPath.listFiles(
+                            (dir, name) ->
+                                    name.toLowerCase().startsWith(JAR_PREFIX)
+                                            && name.toLowerCase().endsWith(".jar"));
 
             if (Objects.nonNull(jarFiles) && jarFiles.length > 0) {
                 Arrays.stream(jarFiles).forEach(item -> jarNames.add(item.getName()));
@@ -159,13 +136,14 @@ public class PluginUtil {
 
     /**
      * 根据插件名称查找插件入口类
+     *
      * @param pluginName 如：kafkareader
      * @param operatorType 算子类型
      * @return
      */
     public static String getPluginClassName(String pluginName, OperatorType operatorType) {
         String pluginClassName;
-        switch (operatorType){
+        switch (operatorType) {
             case metric:
                 pluginClassName = appendMetricClass(pluginName);
                 break;
@@ -186,6 +164,7 @@ public class PluginUtil {
 
     /**
      * 拼接插件包类全限定名
+     *
      * @param pluginName 插件包名称，如：binlogsource
      * @param suffix 插件类型前缀，如：source、sink
      * @return 插件包类全限定名，如：com.dtstack.flinkx.connector.binlog.source.BinlogSourceFactory
@@ -197,7 +176,11 @@ public class PluginUtil {
         suffix = suffix.toLowerCase();
         StringBuilder sb = new StringBuilder(32);
         sb.append(PACKAGE_PREFIX);
-        sb.append(left).append(ConstantValue.POINT_SYMBOL).append(suffix).append(ConstantValue.POINT_SYMBOL);
+        sb.append(ConnectorNameConvertUtil.convertPackageName(left))
+                .append(ConstantValue.POINT_SYMBOL)
+                .append(suffix)
+                .append(ConstantValue.POINT_SYMBOL);
+        left = ConnectorNameConvertUtil.convertClassPrefix(left);
         sb.append(left.substring(0, 1).toUpperCase()).append(left.substring(1));
         sb.append(suffix.substring(0, 1).toUpperCase()).append(suffix.substring(1));
         sb.append(GENERIC_SUFFIX);
@@ -206,27 +189,44 @@ public class PluginUtil {
 
     private static String appendMetricClass(String pluginName) {
         StringBuilder sb = new StringBuilder(32);
-        sb.append(METRIC_PACKAGE_PREFIX).append(pluginName.toLowerCase(Locale.ENGLISH)).append(POINT_SYMBOL);
-        sb.append(pluginName.substring(0, 1).toUpperCase()).append(pluginName.substring(1).toLowerCase());
+        sb.append(METRIC_PACKAGE_PREFIX)
+                .append(pluginName.toLowerCase(Locale.ENGLISH))
+                .append(POINT_SYMBOL);
+        sb.append(pluginName.substring(0, 1).toUpperCase())
+                .append(pluginName.substring(1).toLowerCase());
         sb.append(METRIC_REPORT_PREFIX);
         return sb.toString();
     }
 
     /**
      * 将任务所用到的插件包注册到env中
+     *
      * @param config
      * @param env
      */
-    public static void registerPluginUrlToCachedFile(SyncConf config, StreamExecutionEnvironment env) {
+    public static void registerPluginUrlToCachedFile(
+            SyncConf config, StreamExecutionEnvironment env) {
         Set<URL> urlSet = new HashSet<>();
-        Set<URL> coreUrlList = getJarFileDirPath("", config.getPluginRoot(), config.getRemotePluginPath());
-        Set<URL> formatsUrlList = getJarFileDirPath(FORMATS_SUFFIX, config.getPluginRoot(), config.getRemotePluginPath());
-        Set<URL> sourceUrlList = getJarFileDirPath(config.getReader().getName(), config.getPluginRoot(), config.getRemotePluginPath());
-        Set<URL> sinkUrlList = getJarFileDirPath(config.getWriter().getName(), config.getPluginRoot(), config.getRemotePluginPath());
-        Set<URL> metricUrlList = getJarFileDirPath(
-                config.getMetricPluginConf().getPluginName(),
-                config.getPluginRoot() + SP + METRIC_SUFFIX,
-                config.getRemotePluginPath());
+        Set<URL> coreUrlList =
+                getJarFileDirPath("", config.getPluginRoot(), config.getRemotePluginPath());
+        Set<URL> formatsUrlList =
+                getJarFileDirPath(
+                        FORMATS_SUFFIX, config.getPluginRoot(), config.getRemotePluginPath());
+        Set<URL> sourceUrlList =
+                getJarFileDirPath(
+                        config.getReader().getName(),
+                        config.getPluginRoot(),
+                        config.getRemotePluginPath());
+        Set<URL> sinkUrlList =
+                getJarFileDirPath(
+                        config.getWriter().getName(),
+                        config.getPluginRoot(),
+                        config.getRemotePluginPath());
+        Set<URL> metricUrlList =
+                getJarFileDirPath(
+                        config.getMetricPluginConf().getPluginName(),
+                        config.getPluginRoot() + SP + METRIC_SUFFIX,
+                        config.getRemotePluginPath());
         urlSet.addAll(coreUrlList);
         urlSet.addAll(formatsUrlList);
         urlSet.addAll(sourceUrlList);
@@ -242,16 +242,77 @@ public class PluginUtil {
 
         if (env instanceof MyLocalStreamEnvironment) {
             ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(urlSet));
-            if(CollectionUtils.isNotEmpty(coreUrlList)){
+            if (CollectionUtils.isNotEmpty(coreUrlList)) {
                 try {
                     ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
                     Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
                     add.setAccessible(true);
                     add.invoke(contextClassLoader, new ArrayList<>(coreUrlList).get(0));
-                }catch (Exception e){
-                    LOG.warn("cannot add core jar into contextClassLoader, coreUrlList = {}", GsonUtil.GSON.toJson(coreUrlList), e);
+                } catch (Exception e) {
+                    LOG.warn(
+                            "cannot add core jar into contextClassLoader, coreUrlList = {}",
+                            GsonUtil.GSON.toJson(coreUrlList),
+                            e);
                 }
             }
+        }
+    }
+
+    /**
+     * register shipfile to StreamExecutionEnvironment cachedFile
+     *
+     * @param shipfile the shipfile which needed to add into cacheFile
+     * @param env StreamExecutionEnvironment
+     */
+    public static void registerShipfileToCachedFile(
+            String shipfile, StreamExecutionEnvironment env) {
+        if (StringUtils.isNotBlank(shipfile)) {
+            String[] files = shipfile.split(ConstantValue.COMMA_SYMBOL);
+            Set<String> fileNameSet = new HashSet<>(8);
+            for (String filePath : files) {
+                String fileName = new File(filePath).getName();
+                if (fileNameSet.contains(fileName)) {
+                    throw new IllegalArgumentException(
+                            String.format(
+                                    "can not add duplicate fileName to cachedFiles, duplicate fileName = %s, shipfile = %s",
+                                    fileName, shipfile));
+                } else if (!new File(filePath).exists()) {
+                    throw new IllegalArgumentException(
+                            String.format("file: [%s] is not exists", filePath));
+                } else {
+                    env.registerCachedFile(filePath, fileName, false);
+                    fileNameSet.add(fileName);
+                }
+            }
+            fileNameSet.clear();
+        }
+    }
+
+    /**
+     * Create DistributedCache from the URL of the ContextClassLoader
+     *
+     * @return
+     */
+    public static DistributedCache createDistributedCacheFromContextClassLoader() {
+        Map<String, Future<Path>> distributeCachedFiles = new HashMap<>();
+
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        if (contextClassLoader instanceof URLClassLoader) {
+            URLClassLoader classLoader = (URLClassLoader) contextClassLoader;
+            URL[] urLs = classLoader.getURLs();
+
+            for (URL url : urLs) {
+                String path = url.getPath();
+                String name =
+                        path.substring(path.lastIndexOf(ConstantValue.SINGLE_SLASH_SYMBOL) + 1);
+                distributeCachedFiles.put(
+                        name,
+                        CompletableFuture.completedFuture(new org.apache.flink.core.fs.Path(path)));
+            }
+            return new DistributedCache(distributeCachedFiles);
+        } else {
+            LOG.warn("ClassLoader: {} is not instanceof URLClassLoader", contextClassLoader);
+            return null;
         }
     }
 }

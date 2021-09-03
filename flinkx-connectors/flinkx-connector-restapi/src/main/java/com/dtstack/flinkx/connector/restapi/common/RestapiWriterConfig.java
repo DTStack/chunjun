@@ -19,29 +19,29 @@
 package com.dtstack.flinkx.connector.restapi.common;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("all")
 public class RestapiWriterConfig extends FlinkxCommonConf {
 
-
     protected String url;
 
     protected String method;
 
+    protected List<Map<String, String>> header;
 
-    protected List<Map<String, String>> header ;
+    protected List<Map<String, Object>> body;
 
-    protected List<Map<String, Object>> body ;
-
-    protected Map<String, Object> params =Maps.newHashMap();
+    protected Map<String, Object> params = Maps.newHashMap();
 
     protected Map<String, String> formatHeader = Maps.newHashMap();
 
-    protected Map<String, Object> formatBody =Maps.newHashMap();
+    protected Map<String, Object> formatBody = Maps.newHashMap();
 
     protected List<String> columns = Lists.newArrayList();
 

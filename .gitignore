@@ -12,4 +12,5 @@ hadoopconf/
 /default_task_id_output
 /syncplugins
 flinkxplugins
+flinkx-dist/
 flinkx-test/

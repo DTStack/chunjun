@@ -6,11 +6,10 @@
 package com.dtstack.flinkx.connector.sqlservercdc.entity;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
- * <p>
- * this class is copied from (https://github.com/debezium/debezium).
- * but there are some different from the origin.
+ * Date: 2019/12/03 Company: www.dtstack.com
+ *
+ * <p>this class is copied from (https://github.com/debezium/debezium). but there are some different
+ * from the origin.
  *
  * @author tudou
  */
@@ -23,11 +22,11 @@ public class TableId implements Comparable<TableId> {
     /**
      * Parse the supplied string, extracting up to the first 3 parts into a TableID.
      *
-     * @param parts                  the parts of the identifier; may not be null
-     * @param numParts               the number of parts to use for the table identifier
-     * @param useCatalogBeforeSchema {@code true} if the parsed string contains only 2 items and the first should be used as
-     *                               the catalog and the second as the table name, or {@code false} if the first should be used as the schema and the
-     *                               second as the table name
+     * @param parts the parts of the identifier; may not be null
+     * @param numParts the number of parts to use for the table identifier
+     * @param useCatalogBeforeSchema {@code true} if the parsed string contains only 2 items and the
+     *     first should be used as the catalog and the second as the table name, or {@code false} if
+     *     the first should be used as the schema and the second as the table name
      * @return the table ID, or null if it could not be parsed
      */
     protected static TableId parse(String[] parts, int numParts, boolean useCatalogBeforeSchema) {
@@ -61,11 +60,11 @@ public class TableId implements Comparable<TableId> {
     /**
      * Create a new table identifier.
      *
-     * @param catalogName the name of the database catalog that contains the table; may be null if the JDBC driver does not
-     *                    show a schema for this table
-     * @param schemaName  the name of the database schema that contains the table; may be null if the JDBC driver does not
-     *                    show a schema for this table
-     * @param tableName   the name of the table; may not be null
+     * @param catalogName the name of the database catalog that contains the table; may be null if
+     *     the JDBC driver does not show a schema for this table
+     * @param schemaName the name of the database schema that contains the table; may be null if the
+     *     JDBC driver does not show a schema for this table
+     * @param tableName the name of the table; may not be null
      */
     public TableId(String catalogName, String schemaName, String tableName) {
         this.catalogName = catalogName;
@@ -121,16 +120,16 @@ public class TableId implements Comparable<TableId> {
     }
 
     /**
-     * Returns a dot-separated String representation of this identifier, quoting all
-     * name parts with the {@code "} char.
+     * Returns a dot-separated String representation of this identifier, quoting all name parts with
+     * the {@code "} char.
      */
     public String toDoubleQuotedString() {
         return toQuotedString('"');
     }
 
     /**
-     * Returns a dot-separated String representation of this identifier, quoting all
-     * name parts with the given quoting char.
+     * Returns a dot-separated String representation of this identifier, quoting all name parts with
+     * the given quoting char.
      */
     public String toQuotedString(char quotingChar) {
         StringBuilder quoted = new StringBuilder();
@@ -161,9 +160,7 @@ public class TableId implements Comparable<TableId> {
         return catalog + "." + schema + "." + table;
     }
 
-    /**
-     * Quotes the given identifier part, e.g. schema or table name.
-     */
+    /** Quotes the given identifier part, e.g. schema or table name. */
     private static String quote(String identifierPart, char quotingChar) {
         if (identifierPart == null) {
             return null;
@@ -173,7 +170,8 @@ public class TableId implements Comparable<TableId> {
             return String.valueOf(quotingChar) + quotingChar;
         }
 
-        if (identifierPart.charAt(0) != quotingChar && identifierPart.charAt(identifierPart.length() - 1) != quotingChar) {
+        if (identifierPart.charAt(0) != quotingChar
+                && identifierPart.charAt(identifierPart.length() - 1) != quotingChar) {
             identifierPart = identifierPart.replace(quotingChar + "", repeat(quotingChar));
             identifierPart = quotingChar + identifierPart + quotingChar;
         }

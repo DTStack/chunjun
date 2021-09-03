@@ -18,10 +18,6 @@
 
 package com.dtstack.flinkx.connector.kafka.source;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.kafka.adapter.StartupModeAdapter;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
@@ -32,6 +28,11 @@ import com.dtstack.flinkx.connector.kafka.util.KafkaUtil;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.GsonUtil;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -41,8 +42,7 @@ import java.io.Serializable;
 import java.util.Properties;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -53,7 +53,10 @@ public class KafkaSourceFactory extends SourceFactory {
 
     public KafkaSourceFactory(SyncConf config, StreamExecutionEnvironment env) {
         super(config, env);
-        Gson gson = new GsonBuilder().registerTypeAdapter(StartupMode.class, new StartupModeAdapter()).create();
+        Gson gson =
+                new GsonBuilder()
+                        .registerTypeAdapter(StartupMode.class, new StartupModeAdapter())
+                        .create();
         GsonUtil.setTypeAdapter(gson);
         kafkaConf = gson.fromJson(gson.toJson(config.getReader().getParameter()), KafkaConf.class);
         super.initFlinkxCommonConf(kafkaConf);
@@ -67,14 +70,17 @@ public class KafkaSourceFactory extends SourceFactory {
         Properties props = new Properties();
         props.put("group.id", kafkaConf.getGroupId());
         props.putAll(kafkaConf.getConsumerSettings());
-        KafkaConsumer consumer = new KafkaConsumer(
-                Lists.newArrayList(kafkaConf.getTopic()),
-                new RowDeserializationSchema(
-                        new KafkaColumnConverter(kafkaConf),
-                        (Calculate & Serializable) (subscriptionState, tp) ->
-                                subscriptionState.partitionLag(
-                                        tp, IsolationLevel.READ_UNCOMMITTED)),
-                props);
+        KafkaConsumer consumer =
+                new KafkaConsumer(
+                        Lists.newArrayList(kafkaConf.getTopic()),
+                        new RowDeserializationSchema(
+                                kafkaConf,
+                                new KafkaColumnConverter(kafkaConf),
+                                (Calculate & Serializable)
+                                        (subscriptionState, tp) ->
+                                                subscriptionState.partitionLag(
+                                                        tp, IsolationLevel.READ_UNCOMMITTED)),
+                        props);
         switch (kafkaConf.getMode()) {
             case EARLIEST:
                 consumer.setStartFromEarliest();
@@ -86,9 +92,9 @@ public class KafkaSourceFactory extends SourceFactory {
                 consumer.setStartFromTimestamp(kafkaConf.getTimestamp());
                 break;
             case SPECIFIC_OFFSETS:
-                consumer.setStartFromSpecificOffsets(KafkaUtil.parseSpecificOffsetsString(
-                        kafkaConf.getTopic(),
-                        kafkaConf.getOffset()));
+                consumer.setStartFromSpecificOffsets(
+                        KafkaUtil.parseSpecificOffsetsString(
+                                kafkaConf.getTopic(), kafkaConf.getOffset()));
                 break;
             default:
                 consumer.setStartFromGroupOffsets();

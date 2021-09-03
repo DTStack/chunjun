@@ -30,7 +30,6 @@ import org.apache.flink.table.types.logical.LogicalType;
  * @author: xiuzhu
  * @create: 2021/06/19
  */
-
 public class FtpRowConverter extends AbstractRowConverter<String, String, String, LogicalType> {
 
     private DeserializationSchema<RowData> valueDeserialization;

@@ -20,8 +20,7 @@ package com.dtstack.flinkx.decoder;
 import java.util.Map;
 
 /**
- * Date: 2019/11/21
- * Company: www.dtstack.com
+ * Date: 2019/11/21 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -34,5 +33,4 @@ public interface IDecode {
      * @return 解码后的数据
      */
     Map<String, Object> decode(String message);
-
 }

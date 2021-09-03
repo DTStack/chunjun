@@ -18,6 +18,12 @@
 
 package com.dtstack.flinkx.connector.stream.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
+import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
+import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -27,13 +33,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.connector.stream.converter.StreamRowConverter;
-import com.dtstack.flinkx.streaming.api.functions.source.DtInputFormatSourceFunction;
-import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,16 +40,13 @@ import java.util.stream.Collectors;
  * @author chuixue
  * @create 2021-04-09 09:20
  * @description
- **/
-
+ */
 public class StreamDynamicTableSource implements ScanTableSource {
 
     private final TableSchema schema;
     private final StreamConf streamConf;
 
-    public StreamDynamicTableSource(
-            TableSchema schema,
-            StreamConf streamConf) {
+    public StreamDynamicTableSource(TableSchema schema, StreamConf streamConf) {
         this.schema = schema;
         this.streamConf = streamConf;
     }
@@ -60,18 +56,19 @@ public class StreamDynamicTableSource implements ScanTableSource {
         final RowType rowType = (RowType) schema.toRowDataType().getLogicalType();
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
-        List<FieldConf> fieldConfList = schema.getTableColumns().stream()
-                .map(
-                        e -> {
-                            FieldConf fieldConf = new FieldConf();
-                            fieldConf.setName(e.getName());
-                            String name = e.getType().getConversionClass().getName();
-                            String[] fieldType = name.split("\\.");
-                            String type = fieldType[fieldType.length-1];
-                            fieldConf.setType(type);
-                            return fieldConf;
-                        })
-                .collect(Collectors.toList());
+        List<FieldConf> fieldConfList =
+                schema.getTableColumns().stream()
+                        .map(
+                                e -> {
+                                    FieldConf fieldConf = new FieldConf();
+                                    fieldConf.setName(e.getName());
+                                    String name = e.getType().getConversionClass().getName();
+                                    String[] fieldType = name.split("\\.");
+                                    String type = fieldType[fieldType.length - 1];
+                                    fieldConf.setType(type);
+                                    return fieldConf;
+                                })
+                        .collect(Collectors.toList());
 
         streamConf.setColumn(fieldConfList);
 
@@ -79,14 +76,13 @@ public class StreamDynamicTableSource implements ScanTableSource {
         builder.setRowConverter(new StreamRowConverter(rowType));
         builder.setStreamConf(streamConf);
 
-        return ParallelSourceFunctionProvider.of(new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, null);
+        return ParallelSourceFunctionProvider.of(
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, null);
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new StreamDynamicTableSource(
-                this.schema,
-                this.streamConf);
+        return new StreamDynamicTableSource(this.schema, this.streamConf);
     }
 
     @Override

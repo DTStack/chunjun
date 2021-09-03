@@ -17,7 +17,7 @@ CREATE TABLE source
       'username' = 'dev',
       'password' = 'dev123',
       'sink.buffer-flush.max-rows' = '1',
-      'sink.allReplace' = 'false'
+      'sink.all-replace' = 'false'
       );
 
 CREATE TABLE sink

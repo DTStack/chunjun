@@ -18,15 +18,16 @@
 
 package com.dtstack.flinkx.lookup;
 
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.factory.DTThreadFactory;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
+
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 import org.apache.flink.table.functions.TableFunction;
 import org.apache.flink.types.RowKind;
 
-import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.factory.DTThreadFactory;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
@@ -48,13 +49,14 @@ import java.util.stream.Collectors;
  * @author chuixue
  * @create 2021-04-09 14:30
  * @description
- **/
-abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
+ */
+public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractAllTableFunction.class);
     /** 和维表join字段的名称 */
     protected final String[] keyNames;
     /** 缓存 */
-    protected AtomicReference<Map<String, List<Map<String, Object>>>> cacheRef = new AtomicReference<>();
+    protected AtomicReference<Map<String, List<Map<String, Object>>>> cacheRef =
+            new AtomicReference<>();
     /** 定时加载 */
     private ScheduledExecutorService es;
     /** 维表配置 */
@@ -64,33 +66,27 @@ abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
     /** 数据类型转换器 */
     protected final AbstractRowConverter rowConverter;
 
-
     public AbstractAllTableFunction(
             String[] fieldNames,
             String[] keyNames,
             LookupConf lookupConf,
-            AbstractRowConverter rowConverter
-    ) {
+            AbstractRowConverter rowConverter) {
         this.keyNames = keyNames;
         this.lookupConf = lookupConf;
         this.fieldsName = fieldNames;
         this.rowConverter = rowConverter;
     }
 
-    /**
-     * 初始化加载数据库中数据
-     */
+    /** 初始化加载数据库中数据 */
     protected void initCache() {
         Map<String, List<Map<String, Object>>> newCache = Maps.newConcurrentMap();
         cacheRef.set(newCache);
         loadData(newCache);
     }
 
-    /**
-     * 定时加载数据库中数据
-     */
+    /** 定时加载数据库中数据 */
     protected void reloadCache() {
-        //reload cacheRef and replace to old cacheRef
+        // reload cacheRef and replace to old cacheRef
         Map<String, List<Map<String, Object>>> newCache = Maps.newConcurrentMap();
         try {
             loadData(newCache);
@@ -101,8 +97,7 @@ abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
         cacheRef.set(newCache);
         LOG.info(
                 "----- " + lookupConf.getTableName() + ": all cacheRef reload end:{}",
-                LocalDateTime
-                        .now());
+                LocalDateTime.now());
     }
 
     /**
@@ -118,7 +113,7 @@ abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
         initCache();
         LOG.info("----- all cacheRef init end-----");
 
-        //start reload cache thread
+        // start reload cache thread
         es = new ScheduledThreadPoolExecutor(1, new DTThreadFactory("cache-all-reload"));
         es.scheduleAtFixedRate(
                 this::reloadCache,
@@ -134,17 +129,16 @@ abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
      * @param tmpCache 缓存的数据<key ,list<value>>
      */
     protected void buildCache(
-            Map<String, Object> oneRow,
-            Map<String, List<Map<String, Object>>> tmpCache) {
+            Map<String, Object> oneRow, Map<String, List<Map<String, Object>>> tmpCache) {
 
-        String cacheKey = new ArrayList<>(Arrays.asList(keyNames))
-                .stream()
-                .map(oneRow::get)
-                .map(String::valueOf)
-                .collect(Collectors.joining("_"));
+        String cacheKey =
+                new ArrayList<>(Arrays.asList(keyNames))
+                        .stream()
+                                .map(oneRow::get)
+                                .map(String::valueOf)
+                                .collect(Collectors.joining("_"));
 
-        tmpCache.computeIfAbsent(cacheKey, key -> Lists.newArrayList())
-                .add(oneRow);
+        tmpCache.computeIfAbsent(cacheKey, key -> Lists.newArrayList()).add(oneRow);
     }
 
     /**
@@ -153,9 +147,7 @@ abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
      * @param keys 维表join key的值
      */
     public void eval(Object... keys) {
-        String cacheKey = Arrays.stream(keys)
-                .map(String::valueOf)
-                .collect(Collectors.joining("_"));
+        String cacheKey = Arrays.stream(keys).map(String::valueOf).collect(Collectors.joining("_"));
         List<Map<String, Object>> cacheList = cacheRef.get().get(cacheKey);
         // 有数据才往下发，(左/内)连接flink会做相应的处理
         if (!CollectionUtils.isEmpty(cacheList)) {
@@ -173,9 +165,7 @@ abstract public class AbstractAllTableFunction extends TableFunction<RowData> {
         return row;
     }
 
-    /**
-     * 资源释放
-     */
+    /** 资源释放 */
     @Override
     public void close() throws Exception {
         if (null != es && !es.isShutdown()) {

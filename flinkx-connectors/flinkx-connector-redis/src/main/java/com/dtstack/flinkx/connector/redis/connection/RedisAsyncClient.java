@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.redis.connection;
 
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -43,7 +44,7 @@ import static com.dtstack.flinkx.connector.redis.options.RedisOptions.REDIS_HOST
  * @author chuixue
  * @create 2021-06-22 15:08
  * @description
- **/
+ */
 public class RedisAsyncClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedisAsyncClient.class);
@@ -75,7 +76,9 @@ public class RedisAsyncClient {
             } catch (IllegalArgumentException e) {
                 throw e;
             } catch (Exception e) {
-                LOG.error("connect failed:{} , sleep 3 seconds reconnect", ExceptionUtil.getErrorMessage(e));
+                LOG.error(
+                        "connect failed:{} , sleep 3 seconds reconnect",
+                        ExceptionUtil.getErrorMessage(e));
                 try {
                     TimeUnit.SECONDS.sleep(3);
                 } catch (InterruptedException interruptedException) {
@@ -110,21 +113,17 @@ public class RedisAsyncClient {
                 for (String item : urlSplit) {
                     Matcher mather = REDIS_HOST_PATTERN.defaultValue().matcher(item);
                     if (mather.find()) {
-                        builder = buildSentinelUri(
-                                mather.group("host"),
-                                mather.group("port"),
-                                builder
-                        );
+                        builder =
+                                buildSentinelUri(
+                                        mather.group("host"), mather.group("port"), builder);
                     } else {
                         throw new IllegalArgumentException(
-                                String.format("Illegal format with redis url [%s]", item)
-                        );
+                                String.format("Illegal format with redis url [%s]", item));
                     }
                 }
 
                 if (Objects.nonNull(builder)) {
-                    builder
-                            .withPassword(redisConf.getPassword())
+                    builder.withPassword(redisConf.getPassword())
                             .withDatabase(redisConf.getDatabase())
                             .withSentinelMasterId(redisConf.getMasterName());
                 } else {
@@ -141,7 +140,8 @@ public class RedisAsyncClient {
                 clusterConnection = clusterClient.connect();
                 return clusterConnection.async();
             default:
-                throw new IllegalArgumentException("unsupported redis type[ " + redisConf.getType().getType() + "]");
+                throw new IllegalArgumentException(
+                        "unsupported redis type[ " + redisConf.getType().getType() + "]");
         }
     }
 
@@ -177,10 +177,7 @@ public class RedisAsyncClient {
         return redisURIs;
     }
 
-    private RedisURI.Builder buildSentinelUri(
-            String host,
-            String port,
-            RedisURI.Builder builder) {
+    private RedisURI.Builder buildSentinelUri(String host, String port, RedisURI.Builder builder) {
         if (Objects.nonNull(builder)) {
             builder.withSentinel(host, Integer.parseInt(port));
         } else {

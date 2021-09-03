@@ -18,13 +18,13 @@
 
 package com.dtstack.flinkx.connector.emqx.sink;
 
-import com.dtstack.flinkx.exception.WriteRecordException;
+import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
+import com.dtstack.flinkx.connector.emqx.util.MqttConnectUtil;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
-import com.dtstack.flinkx.connector.emqx.util.MqttConnectUtil;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;

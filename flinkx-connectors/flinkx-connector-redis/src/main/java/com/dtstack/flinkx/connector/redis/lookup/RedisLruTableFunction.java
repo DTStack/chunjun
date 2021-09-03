@@ -18,11 +18,6 @@
 
 package com.dtstack.flinkx.connector.redis.lookup;
 
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.functions.FunctionContext;
-
-import org.apache.flink.shaded.curator4.com.google.common.collect.Lists;
-
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.connector.redis.connection.RedisAsyncClient;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -31,6 +26,12 @@ import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 import com.dtstack.flinkx.lookup.cache.CacheMissVal;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+
+import org.apache.flink.shaded.curator4.com.google.common.collect.Lists;
+
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisHashAsyncCommands;
 import io.lettuce.core.api.async.RedisKeyAsyncCommands;

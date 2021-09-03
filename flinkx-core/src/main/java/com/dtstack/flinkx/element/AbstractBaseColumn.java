@@ -23,8 +23,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 /**
- * Date: 2021/04/26
- * Company: www.dtstack.com
+ * Date: 2021/04/26 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -38,40 +37,46 @@ public abstract class AbstractBaseColumn implements Serializable {
 
     /**
      * Convert data to Boolean type
+     *
      * @return
      */
     public abstract Boolean asBoolean();
 
     /**
      * Convert data to byte[] type
+     *
      * @return
      */
     public abstract byte[] asBytes();
 
     /**
      * Convert data to String type
+     *
      * @return
      */
     public abstract String asString();
 
     /**
      * Convert data to BigDecimal type
+     *
      * @return
      */
     public abstract BigDecimal asBigDecimal();
 
     /**
      * Convert data to Timestamp type
+     *
      * @return
      */
     public abstract Timestamp asTimestamp();
 
     /**
      * Convert data to short type
+     *
      * @return
      */
-    public Short asShort(){
-        if(null == data){
+    public Short asShort() {
+        if (null == data) {
             return null;
         }
         return this.asBigDecimal().shortValue();
@@ -79,10 +84,11 @@ public abstract class AbstractBaseColumn implements Serializable {
 
     /**
      * Convert data to int type
+     *
      * @return
      */
     public Integer asInt() {
-        if(null == data){
+        if (null == data) {
             return null;
         }
         return this.asBigDecimal().intValue();
@@ -90,10 +96,11 @@ public abstract class AbstractBaseColumn implements Serializable {
 
     /**
      * Convert data to long type
+     *
      * @return
      */
     public Long asLong() {
-        if(null == data){
+        if (null == data) {
             return null;
         }
         return this.asBigDecimal().longValue();
@@ -101,10 +108,11 @@ public abstract class AbstractBaseColumn implements Serializable {
 
     /**
      * Convert data to float type
+     *
      * @return
      */
     public Float asFloat() {
-        if(null == data){
+        if (null == data) {
             return null;
         }
         return this.asBigDecimal().floatValue();
@@ -112,10 +120,11 @@ public abstract class AbstractBaseColumn implements Serializable {
 
     /**
      * Convert data to double type
+     *
      * @return
      */
-    public Double asDouble(){
-        if(null == data){
+    public Double asDouble() {
+        if (null == data) {
             return null;
         }
         return this.asBigDecimal().doubleValue();
@@ -123,10 +132,11 @@ public abstract class AbstractBaseColumn implements Serializable {
 
     /**
      * Convert data to Date type
+     *
      * @return
      */
     public Date asDate() {
-        if(null == data){
+        if (null == data) {
             return null;
         }
         return new Date(this.asTimestamp().getTime());
@@ -134,6 +144,7 @@ public abstract class AbstractBaseColumn implements Serializable {
 
     /**
      * Convert data to Binary byte[] type
+     *
      * @return
      */
     public byte[] asBinary() {

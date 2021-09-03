@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.kafka.source;
 
+import com.dtstack.flinkx.util.ReflectionUtils;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.metrics.Gauge;
@@ -28,7 +30,6 @@ import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartitionState;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.util.ReflectionUtils;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.internals.SubscriptionState;
 import org.apache.kafka.common.TopicPartition;
@@ -49,9 +50,10 @@ import static com.dtstack.flinkx.metrics.MetricConstant.DT_TOPIC_PARTITION_LAG_G
  * @create 2021-05-07 15:17
  * @description
  */
-public class DynamicKafkaDeserializationSchemaWrapper extends DynamicKafkaDeserializationSchema{
+public class DynamicKafkaDeserializationSchemaWrapper extends DynamicKafkaDeserializationSchema {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(DynamicKafkaDeserializationSchemaWrapper.class);
+    protected static final Logger LOG =
+            LoggerFactory.getLogger(DynamicKafkaDeserializationSchemaWrapper.class);
 
     private static final long serialVersionUID = 2L;
 
@@ -86,69 +88,90 @@ public class DynamicKafkaDeserializationSchemaWrapper extends DynamicKafkaDeseri
         consumerThreadField.setAccessible(true);
         KafkaConsumerThread consumerThread = (KafkaConsumerThread) consumerThreadField.get(fetcher);
 
-        Field hasAssignedPartitionsField = consumerThread.getClass().getDeclaredField("hasAssignedPartitions");
+        Field hasAssignedPartitionsField =
+                consumerThread.getClass().getDeclaredField("hasAssignedPartitions");
         hasAssignedPartitionsField.setAccessible(true);
 
         // get subtask unassigned kafka topic partition
-        Field subscribedPartitionStatesField = ReflectionUtils.getDeclaredField(fetcher, "subscribedPartitionStates");
+        Field subscribedPartitionStatesField =
+                ReflectionUtils.getDeclaredField(fetcher, "subscribedPartitionStates");
         subscribedPartitionStatesField.setAccessible(true);
-        List<KafkaTopicPartitionState<?, KafkaTopicPartition>> subscribedPartitionStates = (List<KafkaTopicPartitionState<?, KafkaTopicPartition>>) subscribedPartitionStatesField.get(fetcher);
+        List<KafkaTopicPartitionState<?, KafkaTopicPartition>> subscribedPartitionStates =
+                (List<KafkaTopicPartitionState<?, KafkaTopicPartition>>)
+                        subscribedPartitionStatesField.get(fetcher);
 
         // init partition lag metric
-        for (KafkaTopicPartitionState<?, KafkaTopicPartition> kafkaTopicPartitionState : subscribedPartitionStates) {
-            KafkaTopicPartition kafkaTopicPartition = kafkaTopicPartitionState.getKafkaTopicPartition();
-            MetricGroup topicMetricGroup = getRuntimeContext().getMetricGroup().addGroup(DT_TOPIC_GROUP, kafkaTopicPartition.getTopic());
+        for (KafkaTopicPartitionState<?, KafkaTopicPartition> kafkaTopicPartitionState :
+                subscribedPartitionStates) {
+            KafkaTopicPartition kafkaTopicPartition =
+                    kafkaTopicPartitionState.getKafkaTopicPartition();
+            MetricGroup topicMetricGroup =
+                    getRuntimeContext()
+                            .getMetricGroup()
+                            .addGroup(DT_TOPIC_GROUP, kafkaTopicPartition.getTopic());
 
-            MetricGroup metricGroup = topicMetricGroup.addGroup(DT_PARTITION_GROUP, kafkaTopicPartition.getPartition() + "");
-            metricGroup.gauge(DT_TOPIC_PARTITION_LAG_GAUGE, new Gauge<Long>() {
-                // tmp variable
-                boolean initLag = true;
-                int partitionIndex;
-                SubscriptionState subscriptionState;
-                TopicPartition topicPartition;
+            MetricGroup metricGroup =
+                    topicMetricGroup.addGroup(
+                            DT_PARTITION_GROUP, kafkaTopicPartition.getPartition() + "");
+            metricGroup.gauge(
+                    DT_TOPIC_PARTITION_LAG_GAUGE,
+                    new Gauge<Long>() {
+                        // tmp variable
+                        boolean initLag = true;
+                        int partitionIndex;
+                        SubscriptionState subscriptionState;
+                        TopicPartition topicPartition;
 
-                @Override
-                public Long getValue() {
-                    // first time register metrics
-                    if (initLag) {
-                        partitionIndex = kafkaTopicPartition.getPartition();
-                        initLag = false;
-                        return -1L;
-                    }
-                    // when kafka topic partition assigned calc metrics
-                    if (subscriptionState == null) {
-                        try {
-                            Field consumerField = consumerThread.getClass().getDeclaredField("consumer");
-                            consumerField.setAccessible(true);
-
-                            KafkaConsumer kafkaConsumer = (KafkaConsumer) consumerField.get(consumerThread);
-                            Field subscriptionStateField = kafkaConsumer.getClass().getDeclaredField("subscriptions");
-                            subscriptionStateField.setAccessible(true);
-
-                            boolean hasAssignedPartitions = (boolean) hasAssignedPartitionsField.get(consumerThread);
-
-                            if (!hasAssignedPartitions) {
-                                LOG.error("wait 50 secs, but not assignedPartitions");
+                        @Override
+                        public Long getValue() {
+                            // first time register metrics
+                            if (initLag) {
+                                partitionIndex = kafkaTopicPartition.getPartition();
+                                initLag = false;
+                                return -1L;
                             }
+                            // when kafka topic partition assigned calc metrics
+                            if (subscriptionState == null) {
+                                try {
+                                    Field consumerField =
+                                            consumerThread.getClass().getDeclaredField("consumer");
+                                    consumerField.setAccessible(true);
 
-                            subscriptionState = (SubscriptionState) subscriptionStateField.get(kafkaConsumer);
+                                    KafkaConsumer kafkaConsumer =
+                                            (KafkaConsumer) consumerField.get(consumerThread);
+                                    Field subscriptionStateField =
+                                            kafkaConsumer
+                                                    .getClass()
+                                                    .getDeclaredField("subscriptions");
+                                    subscriptionStateField.setAccessible(true);
 
-                            topicPartition = subscriptionState
-                                    .assignedPartitions()
-                                    .stream()
-                                    .filter(x -> x.partition() == partitionIndex)
-                                    .findFirst()
-                                    .get();
+                                    boolean hasAssignedPartitions =
+                                            (boolean)
+                                                    hasAssignedPartitionsField.get(consumerThread);
 
-                        } catch (Exception e) {
-                            LOG.error(e.getMessage());
+                                    if (!hasAssignedPartitions) {
+                                        LOG.error("wait 50 secs, but not assignedPartitions");
+                                    }
+
+                                    subscriptionState =
+                                            (SubscriptionState)
+                                                    subscriptionStateField.get(kafkaConsumer);
+
+                                    topicPartition =
+                                            subscriptionState.assignedPartitions().stream()
+                                                    .filter(x -> x.partition() == partitionIndex)
+                                                    .findFirst()
+                                                    .get();
+
+                                } catch (Exception e) {
+                                    LOG.error(e.getMessage());
+                                }
+                                return -1L;
+                            } else {
+                                return calculate.calc(subscriptionState, topicPartition);
+                            }
                         }
-                        return -1L;
-                    } else {
-                        return calculate.calc(subscriptionState, topicPartition);
-                    }
-                }
-            });
+                    });
         }
     }
 

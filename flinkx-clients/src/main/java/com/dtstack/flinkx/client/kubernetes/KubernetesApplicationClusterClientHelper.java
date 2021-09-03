@@ -19,12 +19,9 @@ package com.dtstack.flinkx.client.kubernetes;
 
 import com.dtstack.flinkx.client.ClusterClientHelper;
 import com.dtstack.flinkx.client.JobDeployer;
-
 import com.dtstack.flinkx.client.constants.ConfigConstant;
 import com.dtstack.flinkx.client.util.PluginInfoUtil;
 import com.dtstack.flinkx.options.Options;
-
-import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.client.deployment.ClusterSpecification;
 import org.apache.flink.client.deployment.application.ApplicationConfiguration;
@@ -45,6 +42,7 @@ import org.apache.flink.kubernetes.configuration.KubernetesDeploymentTarget;
 import org.apache.flink.runtime.clusterframework.TaskExecutorProcessUtils;
 import org.apache.flink.runtime.jobmanager.JobManagerProcessUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +61,8 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  */
 public class KubernetesApplicationClusterClientHelper implements ClusterClientHelper {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KubernetesApplicationClusterClientHelper.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(KubernetesApplicationClusterClientHelper.class);
 
     @Override
     public ClusterClient submit(JobDeployer jobDeployer) throws Exception {
@@ -78,23 +77,23 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
 
         replaceRemoteParams(programArgs, effectiveConfiguration);
 
-        ApplicationConfiguration applicationConfiguration = new ApplicationConfiguration(
-                programArgs.toArray(new String[0]),
-                PluginInfoUtil.getMainClass());
+        ApplicationConfiguration applicationConfiguration =
+                new ApplicationConfiguration(
+                        programArgs.toArray(new String[0]), PluginInfoUtil.getMainClass());
 
-        KubernetesClusterClientFactory kubernetesClusterClientFactory = new KubernetesClusterClientFactory();
-        try (
-                KubernetesClusterDescriptor descriptor = kubernetesClusterClientFactory.createClusterDescriptor(effectiveConfiguration);
-        ) {
-            ClusterSpecification clusterSpecification = getClusterSpecification(effectiveConfiguration);
-            ClusterClientProvider<String> clientProvider = descriptor.deployApplicationCluster(
-                    clusterSpecification,
-                    applicationConfiguration);
+        KubernetesClusterClientFactory kubernetesClusterClientFactory =
+                new KubernetesClusterClientFactory();
+        try (KubernetesClusterDescriptor descriptor =
+                kubernetesClusterClientFactory.createClusterDescriptor(effectiveConfiguration); ) {
+            ClusterSpecification clusterSpecification =
+                    getClusterSpecification(effectiveConfiguration);
+            ClusterClientProvider<String> clientProvider =
+                    descriptor.deployApplicationCluster(
+                            clusterSpecification, applicationConfiguration);
             ClusterClient<String> clusterClient = clientProvider.getClusterClient();
             LOG.info("Deploy Application with Cluster Id: {}", clusterClient.getClusterId());
             return clusterClient;
         }
-
     }
 
     private ClusterSpecification getClusterSpecification(Configuration configuration) {
@@ -102,16 +101,16 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
 
         final int jobManagerMemoryMB =
                 JobManagerProcessUtils.processSpecFromConfigWithNewOptionToInterpretLegacyHeap(
-                        configuration, JobManagerOptions.TOTAL_PROCESS_MEMORY)
+                                configuration, JobManagerOptions.TOTAL_PROCESS_MEMORY)
                         .getTotalProcessMemorySize()
                         .getMebiBytes();
 
         final int taskManagerMemoryMB =
                 TaskExecutorProcessUtils.processSpecFromConfig(
-                        TaskExecutorProcessUtils
-                                .getConfigurationMapLegacyTaskManagerHeapSizeToConfigOption(
-                                        configuration,
-                                        TaskManagerOptions.TOTAL_PROCESS_MEMORY))
+                                TaskExecutorProcessUtils
+                                        .getConfigurationMapLegacyTaskManagerHeapSizeToConfigOption(
+                                                configuration,
+                                                TaskManagerOptions.TOTAL_PROCESS_MEMORY))
                         .getTotalProcessMemorySize()
                         .getMebiBytes();
 
@@ -128,11 +127,14 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
 
         HashMap<String, String> temp = new HashMap<>(16);
         for (int i = 0; i < programArgs.size(); i += 2) {
-            if (StringUtils.equalsIgnoreCase(programArgs.get(i), "-flinkconf")) {
-                temp.put(programArgs.get(i), flinkConfig.getString(KubernetesConfigOptions.FLINK_CONF_DIR));
+            if (StringUtils.equalsIgnoreCase(programArgs.get(i), "-flinkConfDir")) {
+                temp.put(
+                        programArgs.get(i),
+                        flinkConfig.getString(KubernetesConfigOptions.FLINK_CONF_DIR));
             } else if (StringUtils.equalsIgnoreCase(programArgs.get(i), "-job")) {
                 String jobContent = programArgs.get(i + 1);
-                String newJobContent = StringUtils.replace(jobContent, System.getProperty("line.separator"), " ");
+                String newJobContent =
+                        StringUtils.replace(jobContent, System.getProperty("line.separator"), " ");
                 temp.put(programArgs.get(i), newJobContent);
             } else {
                 temp.put(programArgs.get(i), programArgs.get(i + 1));
@@ -149,14 +151,20 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
         return programArgs;
     }
 
-    private void setDeployerConfig(Configuration configuration, Options launcherOptions) throws FileNotFoundException {
-        configuration.set(DeploymentOptionsInternal.CONF_DIR, launcherOptions.getFlinkconf());
+    private void setDeployerConfig(Configuration configuration, Options launcherOptions)
+            throws FileNotFoundException {
+        configuration.set(DeploymentOptionsInternal.CONF_DIR, launcherOptions.getFlinkConfDir());
 
-        String coreJarFileName = PluginInfoUtil.getCoreJarName(launcherOptions.getPluginRoot());
-        String remoteCoreJarPath = "local://" + launcherOptions.getRemotePluginPath() + File.separator + coreJarFileName;
+        String coreJarFileName = PluginInfoUtil.getCoreJarName(launcherOptions.getFlinkxDistDir());
+        String remoteCoreJarPath =
+                "local://"
+                        + launcherOptions.getRemoteFlinkxDistDir()
+                        + File.separator
+                        + coreJarFileName;
         configuration.set(PipelineOptions.JARS, Collections.singletonList(remoteCoreJarPath));
 
-        configuration.set(DeploymentOptions.TARGET, KubernetesDeploymentTarget.APPLICATION.getName());
+        configuration.set(
+                DeploymentOptions.TARGET, KubernetesDeploymentTarget.APPLICATION.getName());
 
         configuration.setString(CoreOptions.CLASSLOADER_RESOLVE_ORDER, "parent-first");
     }
@@ -164,16 +172,19 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
     private void setHostAliases(Configuration flinkConfig) {
         String hostAliases = flinkConfig.getString(ConfigConstant.KUBERNETES_HOST_ALIASES_KEY, "");
         if (StringUtils.isNotBlank(hostAliases)) {
-            flinkConfig.setString(buildMasterEnvKey(ConfigConstant.KUBERNETES_HOST_ALIASES_ENV), hostAliases);
-            flinkConfig.setString(buildTaskManagerEnvKey(ConfigConstant.KUBERNETES_HOST_ALIASES_ENV), hostAliases);
+            flinkConfig.setString(
+                    buildMasterEnvKey(ConfigConstant.KUBERNETES_HOST_ALIASES_ENV), hostAliases);
+            flinkConfig.setString(
+                    buildTaskManagerEnvKey(ConfigConstant.KUBERNETES_HOST_ALIASES_ENV),
+                    hostAliases);
         }
     }
 
-    private String buildMasterEnvKey(String env){
+    private String buildMasterEnvKey(String env) {
         return ResourceManagerOptions.CONTAINERIZED_MASTER_ENV_PREFIX + env;
     }
-    private String buildTaskManagerEnvKey(String env){
+
+    private String buildTaskManagerEnvKey(String env) {
         return ResourceManagerOptions.CONTAINERIZED_TASK_MANAGER_ENV_PREFIX + env;
     }
-
 }

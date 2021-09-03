@@ -10,11 +10,10 @@ import com.dtstack.flinkx.util.StringUtil;
 import java.util.Arrays;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
- * <p>
- * this class is copied from (https://github.com/debezium/debezium).
- * but there are some different from the origin.
+ * Date: 2019/12/03 Company: www.dtstack.com
+ *
+ * <p>this class is copied from (https://github.com/debezium/debezium). but there are some different
+ * from the origin.
  *
  * @author tudou
  */
@@ -83,7 +82,9 @@ public class Lsn implements Comparable<Lsn> {
     }
 
     public static Lsn valueOf(String lsnString) {
-        return (lsnString == null || NULL_STRING.equals(lsnString)) ? NULL : new Lsn(StringUtil.hexStringToByteArray(lsnString.replace(":", "")));
+        return (lsnString == null || NULL_STRING.equals(lsnString))
+                ? NULL
+                : new Lsn(StringUtil.hexStringToByteArray(lsnString.replace(":", "")));
     }
 
     public static Lsn valueOf(byte[] lsnBinary) {
@@ -128,7 +129,7 @@ public class Lsn implements Comparable<Lsn> {
 
         final int[] thisU = getUnsignedBinary();
         final int[] thatU = o.getUnsignedBinary();
-        if(null != thisU && null != thatU){
+        if (null != thisU && null != thatU) {
             for (int i = 0; i < thisU.length; i++) {
                 final int diff = thisU[i] - thatU[i];
                 if (diff != 0) {
@@ -139,5 +140,4 @@ public class Lsn implements Comparable<Lsn> {
 
         return 0;
     }
-
 }

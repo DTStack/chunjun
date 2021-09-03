@@ -19,20 +19,20 @@
 package com.dtstack.flinkx.connector.solr.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.solr.converter.SolrRawTypeConverter;
 import com.dtstack.flinkx.connector.solr.SolrConf;
 import com.dtstack.flinkx.connector.solr.SolrConverterFactory;
+import com.dtstack.flinkx.connector.solr.converter.SolrRawTypeConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
-
 import com.dtstack.flinkx.util.GsonUtil;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * @author Ada Wong
@@ -41,16 +41,13 @@ import org.apache.flink.table.data.RowData;
  */
 public class SolrSourceFactory extends SourceFactory {
 
-    private SolrConf solrConf;
+    private final SolrConf solrConf;
 
     public SolrSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         Gson gson = new GsonBuilder().create();
         GsonUtil.setTypeAdapter(gson);
-        solrConf =
-                gson.fromJson(
-                        gson.toJson(syncConf.getReader().getParameter()),
-                        SolrConf.class);
+        solrConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), SolrConf.class);
     }
 
     @Override
@@ -61,8 +58,7 @@ public class SolrSourceFactory extends SourceFactory {
     @Override
     public DataStream<RowData> createSource() {
         SolrInputFormatBuilder builder = new SolrInputFormatBuilder(solrConf);
-        SolrConverterFactory converterFactory =
-                new SolrConverterFactory(solrConf);
+        SolrConverterFactory converterFactory = new SolrConverterFactory(solrConf);
         AbstractRowConverter converter;
         if (useAbstractBaseColumn) {
             converter = converterFactory.createColumnConverter();
@@ -71,6 +67,5 @@ public class SolrSourceFactory extends SourceFactory {
         }
         builder.setRowConverter(converter);
         return createInput(builder.finish());
-
     }
 }

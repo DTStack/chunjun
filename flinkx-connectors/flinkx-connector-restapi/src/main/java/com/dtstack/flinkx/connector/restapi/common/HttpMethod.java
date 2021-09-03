@@ -22,7 +22,7 @@ package com.dtstack.flinkx.connector.restapi.common;
  * @author : shifang
  * @date : 2020/3/13
  */
-public enum  HttpMethod {
+public enum HttpMethod {
     // http request method
     GET,
     POST,
@@ -38,7 +38,5 @@ public enum  HttpMethod {
     LOCK,
     UNLOCK,
     PROPFIND,
-    VIEW
-    ;
-
+    VIEW;
 }

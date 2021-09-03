@@ -5,7 +5,7 @@ CREATE TABLE source
     TTIMESTAMP     TIMESTAMP
 ) WITH (
       'connector' = 'oraclelogminer-x'
-      ,'jdbcUrl' = 'jdbc:oracle:thin:@127.0.0.1:1521:xe'
+      ,'url' = 'jdbc:oracle:thin:@127.0.0.1:1521:xe'
       ,'username' = 'username'
       ,'password' = 'password'
       ,'cat' = 'insert,delete,update'

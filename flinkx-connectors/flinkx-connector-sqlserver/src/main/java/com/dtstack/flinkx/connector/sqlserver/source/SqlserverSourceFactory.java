@@ -21,9 +21,8 @@ package com.dtstack.flinkx.connector.sqlserver.source;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.flinkx.connector.sqlserver.SqlserverDialect;
-import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
-import com.dtstack.flinkx.converter.RawTypeConverter;
+import com.dtstack.flinkx.connector.sqlserver.dialect.SqlserverDialect;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -34,18 +33,16 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  */
 public class SqlserverSourceFactory extends JdbcSourceFactory {
 
-    public SqlserverSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env){
-        super(syncConf, env);
-        jdbcDialect = new SqlserverDialect(jdbcConf.isWithNoLock());
+    public SqlserverSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+        super(syncConf, env, null);
+        super.jdbcDialect =
+                new SqlserverDialect(
+                        jdbcConf.isWithNoLock(),
+                        jdbcConf.getJdbcUrl().startsWith("jdbc:jtds:sqlserver"));
     }
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
-       return new JdbcInputFormatBuilder(new SqlserverInputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return SqlserverRawTypeConverter::apply;
+        return new JdbcInputFormatBuilder(new SqlserverInputFormat());
     }
 }

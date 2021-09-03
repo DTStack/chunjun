@@ -18,29 +18,26 @@
 
 package com.dtstack.flinkx.connector.redis.sink;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.connector.redis.connection.RedisSyncClient;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.throwable.WriteRecordException;
+
+import org.apache.flink.table.data.RowData;
+
 import redis.clients.jedis.JedisCommands;
 
 /**
  * @author chuixue
  * @create 2021-06-16 15:12
  * @description
- **/
+ */
 public class RedisOutputFormat extends BaseRichOutputFormat {
 
     private transient RedisSyncClient redisSyncClient;
-    /**
-     * redis Conf
-     */
+    /** redis Conf */
     private RedisConf redisConf;
-    /**
-     * jedis
-     */
+    /** jedis */
     private JedisCommands jedis;
 
     @Override

@@ -17,10 +17,11 @@
  */
 package com.dtstack.flinkx.connector.kafka.util;
 
+import com.dtstack.flinkx.constants.ConstantValue;
+
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
 import org.apache.flink.streaming.connectors.kafka.table.KafkaOptions;
 
-import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -29,8 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Date: 2020/12/31
- * Company: www.dtstack.com
+ * Date: 2020/12/31 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -38,14 +38,19 @@ public class KafkaUtil {
 
     /**
      * 解析kafka offset字符串
+     *
      * @param topic
      * @param offsetString
      * @return
      * @throws IllegalArgumentException
      */
-    public static Map<KafkaTopicPartition, Long> parseSpecificOffsetsString(String topic, String offsetString) throws IllegalArgumentException{
+    public static Map<KafkaTopicPartition, Long> parseSpecificOffsetsString(
+            String topic, String offsetString) throws IllegalArgumentException {
         final String[] pairs = offsetString.split(ConstantValue.SEMICOLON_SYMBOL);
-        final String validationExceptionMessage = "Invalid properties [offset] should follow the format 'partition:0,offset:42;partition:1,offset:300', but is '" + offsetString + "';";
+        final String validationExceptionMessage =
+                "Invalid properties [offset] should follow the format 'partition:0,offset:42;partition:1,offset:300', but is '"
+                        + offsetString
+                        + "';";
 
         if (pairs.length == 0) {
             throw new IllegalArgumentException(validationExceptionMessage);
@@ -58,9 +63,7 @@ public class KafkaUtil {
             }
 
             final String[] kv = pair.split(ConstantValue.COMMA_SYMBOL);
-            if (kv.length != 2 ||
-                    !kv[0].startsWith("partition:") ||
-                    !kv[1].startsWith("offset:")) {
+            if (kv.length != 2 || !kv[0].startsWith("partition:") || !kv[1].startsWith("offset:")) {
                 throw new IllegalArgumentException(validationExceptionMessage);
             }
 
@@ -79,39 +82,45 @@ public class KafkaUtil {
 
     /**
      * 获取partition key
+     *
      * @param partitionKeys
      * @return
      */
     public static String[] getPartitionKeys(String partitionKeys) {
         if (StringUtils.isNotBlank(partitionKeys)) {
             String[] keys = StringUtils.split(partitionKeys, ",");
-            return Arrays.stream(keys)
-                    .map(String::trim)
-                    .toArray(String[]::new);
+            return Arrays.stream(keys).map(String::trim).toArray(String[]::new);
         }
         return null;
     }
 
     public static Properties getKafkaProperties(Map<String, String> tableOptions) {
         final Properties kafkaProperties = new Properties();
-        boolean hasKafkaClientProperties = tableOptions.keySet().stream().anyMatch(k -> k.startsWith(KafkaOptions.PROPERTIES_PREFIX));
+        boolean hasKafkaClientProperties =
+                tableOptions.keySet().stream()
+                        .anyMatch(k -> k.startsWith(KafkaOptions.PROPERTIES_PREFIX));
         if (hasKafkaClientProperties) {
             tableOptions.keySet().stream()
                     .filter(key -> key.startsWith(KafkaOptions.PROPERTIES_PREFIX))
                     .forEach(
                             key -> {
                                 final String value = tableOptions.get(key);
-                                final String subKey = key.substring((KafkaOptions.PROPERTIES_PREFIX).length());
+                                final String subKey =
+                                        key.substring((KafkaOptions.PROPERTIES_PREFIX).length());
                                 kafkaProperties.put(subKey, value);
                             });
             String keyDeserializer = tableOptions.get("key.deserializer");
-            if(StringUtils.isNotBlank(keyDeserializer)){
-                kafkaProperties.put("key.deserializer", "com.dtstack.flinkx.connector.kafka.deserializer.DtKafkaDeserializer");
+            if (StringUtils.isNotBlank(keyDeserializer)) {
+                kafkaProperties.put(
+                        "key.deserializer",
+                        "com.dtstack.flinkx.connector.kafka.deserializer.DtKafkaDeserializer");
                 kafkaProperties.put("dt.key.deserializer", keyDeserializer);
             }
             String valueDeserializer = tableOptions.get("value.deserializer");
-            if(StringUtils.isNotBlank(valueDeserializer)){
-                kafkaProperties.put("value.deserializer", "com.dtstack.flinkx.connector.kafka.deserializer.DtKafkaDeserializer");
+            if (StringUtils.isNotBlank(valueDeserializer)) {
+                kafkaProperties.put(
+                        "value.deserializer",
+                        "com.dtstack.flinkx.connector.kafka.deserializer.DtKafkaDeserializer");
                 kafkaProperties.put("dt.value.deserializer", valueDeserializer);
             }
         }

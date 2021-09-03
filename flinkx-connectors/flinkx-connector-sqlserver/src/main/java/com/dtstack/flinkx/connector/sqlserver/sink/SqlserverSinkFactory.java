@@ -21,8 +21,9 @@ package com.dtstack.flinkx.connector.sqlserver.sink;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
-import com.dtstack.flinkx.connector.sqlserver.SqlserverDialect;
-import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
+import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverJtdsRawTypeConverter;
+import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverMicroSoftRawTypeConverter;
+import com.dtstack.flinkx.connector.sqlserver.dialect.SqlserverDialect;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 
 /**
@@ -33,9 +34,12 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
  */
 public class SqlserverSinkFactory extends JdbcSinkFactory {
 
-    public SqlserverSinkFactory(SyncConf syncConf){
-        super(syncConf);
-        jdbcDialect = new SqlserverDialect(jdbcConf.isWithNoLock());
+    private boolean useJtdsDriver;
+
+    public SqlserverSinkFactory(SyncConf syncConf) {
+        super(syncConf, null);
+        useJtdsDriver = jdbcConf.getJdbcUrl().startsWith("jdbc:jtds:sqlserver");
+        jdbcDialect = new SqlserverDialect(jdbcConf.isWithNoLock(), useJtdsDriver);
     }
 
     @Override
@@ -45,6 +49,9 @@ public class SqlserverSinkFactory extends JdbcSinkFactory {
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return SqlserverRawTypeConverter::apply;
+        if (useJtdsDriver) {
+            return SqlserverJtdsRawTypeConverter::apply;
+        }
+        return SqlserverMicroSoftRawTypeConverter::apply;
     }
 }

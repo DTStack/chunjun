@@ -19,11 +19,13 @@
 package com.dtstack.flinkx.connector.jdbc.source;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.enums.Semantic;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
@@ -31,7 +33,8 @@ import java.util.Arrays;
 /**
  * The builder of JdbcInputFormat
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -64,32 +67,33 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (StringUtils.isBlank(conf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
-        if(conf.isIncrement()){
-            if (StringUtils.isBlank(conf.getIncreColumn())){
+        if (conf.isIncrement()) {
+            if (StringUtils.isBlank(conf.getIncreColumn())) {
                 sb.append("increColumn can't be empty when increment is true;\n");
             }
             conf.setSplitPk(conf.getIncreColumn());
-            if (conf.getParallelism() > 1){
+            if (conf.getParallelism() > 1) {
                 conf.setSplitStrategy("mod");
             }
         }
 
-        if(conf.getParallelism() > 1){
-            if(StringUtils.isBlank(conf.getSplitPk())){
+        if (conf.getParallelism() > 1) {
+            if (StringUtils.isBlank(conf.getSplitPk())) {
                 sb.append("Must specify the split column when the channel is greater than 1;\n");
-            }else{
-                FieldConf field = FieldConf.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
-                if(field == null){
+            } else {
+                FieldConf field =
+                        FieldConf.getSameNameMetaColumn(conf.getColumn(), conf.getSplitPk());
+                if (field == null) {
                     sb.append("split column must in columns;\n");
-                }else if(!ColumnType.isNumberType(field.getType())){
+                } else if (!ColumnType.isNumberType(field.getType())) {
                     sb.append("split column's type must be number type;\n");
                 }
             }
         }
 
-        if(StringUtils.isNotBlank(conf.getStartLocation())){
+        if (StringUtils.isNotBlank(conf.getStartLocation())) {
             String[] startLocations = conf.getStartLocation().split(ConstantValue.COMMA_SYMBOL);
-            if(startLocations.length != 1 && startLocations.length != conf.getParallelism()){
+            if (startLocations.length != 1 && startLocations.length != conf.getParallelism()) {
                 sb.append("startLocations is ")
                         .append(Arrays.toString(startLocations))
                         .append(", length = [")
@@ -99,8 +103,13 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
                         .append("];\n");
             }
         }
+        try {
+            Semantic.getByName(conf.getSemantic());
+        } catch (Exception e) {
+            sb.append(String.format("unsupported semantic type %s", conf.getSemantic()));
+        }
 
-        if(sb.length() > 0){
+        if (sb.length() > 0) {
             throw new IllegalArgumentException(sb.toString());
         }
     }

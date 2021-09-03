@@ -78,11 +78,10 @@ CREATE TABLE source
     t_character_varying                 string ,
     t_date                              timestamp ,
     t_decimal                           string,
-    t_double_precision                  double ,
-    t_float                             double ,
+    t_double_precision                  decimal ,
+    t_float                             decimal ,
     t_int                               string ,
     t_integer                           string ,
-    t_long                              string ,
     t_national_char                     string ,
     t_national_char_varying             string ,
     t_national_character                string ,
@@ -95,7 +94,7 @@ CREATE TABLE source
     t_numeric                           string ,
     t_nvarchar2                         string,
     t_raw                               bytes ,
-    t_real                              double ,
+    t_real                              decimal ,
     t_timestamp                         timestamp ,
     t_varchar                           string ,
     t_varchar2                          string
@@ -107,9 +106,9 @@ CREATE TABLE source
       'password' = 'oracle',
       'scan.fetch-size' = '2',
       'scan.query-timeout' = '10',
-      'scan.start-location' = '1000',
-      'scan.increment.column' = 'id',
-      'scan.increment.column-type' = 'decimal'
+      'scan.start-location' = '1530439980000',
+      'scan.increment.column' = 't_timestamp',
+      'scan.increment.column-type' = 'timestamp'
       );
 
 CREATE TABLE sink
@@ -123,11 +122,10 @@ CREATE TABLE sink
     t_character_varying                 string ,
     t_date                              timestamp ,
     t_decimal                           string,
-    t_double_precision                  double ,
-    t_float                             double ,
+    t_double_precision                  decimal ,
+    t_float                             decimal ,
     t_int                               string ,
     t_integer                           string ,
-    t_long                              string ,
     t_national_char                     string ,
     t_national_char_varying             string ,
     t_national_character                string ,
@@ -140,7 +138,7 @@ CREATE TABLE sink
     t_numeric                           string ,
     t_nvarchar2                         string,
     t_raw                               bytes ,
-    t_real                              double ,
+    t_real                              decimal ,
     t_timestamp                         timestamp ,
     t_varchar                           string ,
     t_varchar2                          string
@@ -151,7 +149,7 @@ CREATE TABLE sink
       'username' = 'oracle',
       'password' = 'oracle',
       'sink.buffer-flush.max-rows' = '2000',
-      'sink.allReplace' = 'true',
+      'sink.all-replace' = 'true',
     'sink.buffer-flush.interval' = '0'
       );
 

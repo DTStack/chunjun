@@ -165,7 +165,7 @@ bin/flinkx \
 	-mode local \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins
+	-flinkxDistDir flinkx-dist
 ```
 
 可以在flink-conf.yaml配置文件里配置端口：
@@ -182,7 +182,7 @@ bin/flinkx \
 	-mode local \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins
+	-flinkxDistDir flinkx-dist
 ```
 
 任务运行后可以通过8888端口访问flink界面查看任务运行情况：
@@ -192,7 +192,7 @@ bin/flinkx \
 </div>
 
 ### Standalone模式运行
-NOTE:将flinkxplugins目录拷贝到$FLINK_HOME/lib下，并修改$FLINK_HOME/conf/flink-conf.yml中的classloader为classloader.resolve-order: parent-first
+NOTE:将flinkx-dist目录拷贝到$FLINK_HOME/lib下，并修改$FLINK_HOME/conf/flink-conf.yml中的classloader为classloader.resolve-order: parent-first
 
 命令模板：
 
@@ -201,8 +201,8 @@ bin/flinkx \
 	-mode standalone \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins \
-	-flinkconf $FLINK_HOME/conf \
+	-flinkxDistDir flinkx-dist \
+	-flinkConfDir $FLINK_HOME/conf \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
 ```
 
@@ -225,9 +225,9 @@ $FLINK_HOME/bin/start-cluster.sh
 ./bin/flinkx \
 	-mode standalone \
 	-jobType sync \
-	-pluginRoot flinkxplugins \
+	-flinkxDistDir flinkx-dist \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-flinkconf $FLINK_HOME/conf
+	-flinkConfDir $FLINK_HOME/conf
 ```
 
 在集群上查看任务运行情况
@@ -246,9 +246,9 @@ bin/flinkx \
 	-mode yarn-session \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins \
-	-flinkconf $FLINK_HOME/conf \
-	-yarnconf $HADOOP_HOME/etc/hadoop \
+	-flinkxDistDir flinkx-dist \
+	-flinkConfDir $FLINK_HOME/conf \
+	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
 ```
 
@@ -273,9 +273,9 @@ bin/flinkx \
 	-mode yarn-session \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-flinkconf $FLINK_HOME/conf \
-	-pluginRoot flinkxplugins \
-	-yarnconf $HADOOP_HOME/etc/hadoop
+	-flinkConfDir $FLINK_HOME/conf \
+	-flinkxDistDir flinkx-dist \
+	-hadoopConfDir $HADOOP_HOME/etc/hadoop
 ```
 
 然后在flink界面查看任务运行情况：
@@ -293,10 +293,10 @@ bin/flinkx \
 	-mode yarn-per-job \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins \
-	-flinkconf $FLINK_HOME/conf \
-	-yarnconf $HADOOP_HOME/etc/hadoop \
-	-flinkLibJar $FLINK_HOME/lib \
+	-flinkxDistDir flinkx-dist \
+	-flinkConfDir $FLINK_HOME/conf \
+	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
+	-flinkLibDir $FLINK_HOME/lib \
 	-confProp "{\"flink.checkpoint.interval\":60000}" \ 
 	-queue default \
 ```
@@ -308,9 +308,9 @@ bin/flinkx \
 	-mode yarn-per-job \
 	-jobType sync \
 	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
-	-pluginRoot flinkxplugins \
-	-yarnconf $HADOOP_HOME/etc/hadoop \
-	-flinkLibJar $FLINK_HOME/lib \
+	-flinkxDistDir flinkx-dist \
+	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
+	-flinkLibDir $FLINK_HOME/lib \
 ```
 
 然后在集群上查看任务运行情况
@@ -335,10 +335,9 @@ bin/flinkx \
     -job flinkx-local-test/src/main/demo/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
-    -connectorLoadMode classloader \
-    -pluginRoot flinkxplugins \
-    -flinkLibJar $FLINK_HOME/lib \
-    -flinkconf $FLINK_HOME/conf \
+    -flinkxDistDir flinkx-dist \
+    -flinkLibDir $FLINK_HOME/lib \
+    -flinkConfDir $FLINK_HOME/conf \
     -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.cluster-id\":\"${cluster_id}\",\"kubernetes.namespace\":\"${namespace}\"}"
 ```
 
@@ -359,12 +358,11 @@ bin/flinkx \
     -job flinkx-local-test/src/main/demo/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
-    -connectorLoadMode classloader \
-    -pluginRoot flinkxplugins \
-    -remotePluginPath /opt/flinkxplugins \
+    -flinkxDistDir flinkx-dist \
+    -remotePluginPath /opt/flinkx-dist \
     -pluginLoadMode classpath \
-    -flinkLibJar $FLINK_HOME/lib \
-    -flinkconf $FLINK_HOME/conf \
+    -flinkLibDir $FLINK_HOME/lib \
+    -flinkConfDir $FLINK_HOME/conf \
     -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.container.image\":\"${image_name}\",\"kubernetes.namespace\":\"${namespace}\"}"
 ```
 注意：需要提前构建flinkx镜像
@@ -376,20 +374,12 @@ bin/flinkx \
 | ------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------- |
 | **mode**          | 执行模式，也就是flink集群的工作模式      | 1.**local**: 本地模式<br />2.**standalone**: 独立部署模式的flink集群<br />3.**yarn-session**: yarn-session模式的flink集群，需要提前在yarn上启动一个flink session，使用默认名称"Flink session cluster"<br />4.**yarn-per-job**: yarn模式的flink集群，单独为当前任务启动一个flink session，使用默认名称"Flink per-job cluster"<br />5.**kubernetes-session**: kubernetes session模式提交任务，需要提前在kubernetes上启动flink session <br />6.**kubernetes-application**: kubernetes run application模式提交任务 | 否    | local                   |
 | **jobType**        | 任务类型                 | 1.**sync**:数据同步任务<br />    2.**sql**:flinksql任务                                                                                                                                                                                                                                      | 是    | 无                       |
-| **connectorLoadMode**  | 插件加载方式         | 1.**classloader**:类加载器的方式加载插件,在flinkx-clients模块中Launcher类中可本地、on yarn、on k8s运行<br />    2.**spi**:spi的方式,目前只是在flinkx-local-test模块下的LocalTest类中本地开发调试用                                                                                                                                                                                                                                      | 否    | classloader                       |
 | **job**            | 同步、flinksql任务描述文件的存放路径；该描述文件中使用json、sql存放任务信息                  | 无                                                                                                                                                                                                                                           | 是    | 无                       |
 | **jobName**          | 任务名称                                                   | 无                                                                                                                                                                                                                                           | 否    | Flink Job               |
-| **pluginRoot**     | 插件根目录地址，也就是打包后产生的pluginRoot目录。                         | 无                                                                                                                                                                                                                                           | 否    | $FLINKX_HOME/flinkxplugins    |
-| **flinkconf**      | flink配置文件所在的目录（单机模式下不需要）                               | $FLINK_HOME/conf                                                                                                                                                                                                                            | 否    | $FLINK_HOME/conf        |
-| **flinkLibJar**    | flink lib所在的目录（单机模式下不需要），如/opt/dtstack/flink-1.10.1/lib | $FLINK_HOME/lib                                                                                                                                                                                                                             | 否    | $FLINK_HOME/lib         |
-| **yarnconf**       | Hadoop配置文件（包括hdfs和yarn）所在的目录                           | $HADOOP_HOME/etc/hadoop                                                                                                                                                                                                                     | 否    | $HADOOP_HOME/etc/hadoop |
-| **queue**          | yarn队列，如default                                        | 无                                                                                                                                                                                                                                           | 否    | default                 |
-| **pluginLoadMode** | yarn session模式插件加载方式                                   | 1.**classpath**：提交任务时不上传插件包，需要在yarn-node节点pluginRoot目录下部署插件包，但任务启动速度较快，session模式建议使用<br />2.**shipfile**：提交任务时上传pluginRoot目录下部署插件包的插件包，yarn-node节点不需要部署插件包，任务启动速度取决于插件包的大小及网络环境，yarnPer模式建议使用                                                                           | 否    | shipfile                |
-| **confProp**       | flink支持的配置                                           | [confProp 相关参数](./confProp.md)                                                                                                                                                          | 否    | 无                       |
-| **s**              | checkpoint快照路径                                         |                                                                                                                                                                                                                                             | 否    | 无                       |
+| **flinkxDistDir**     | 插件根目录地址，也就是打包后产生的flinkx-dist目录。                         | 无                                                                                                                                                                                                                                           | 否    | $FLINKX_HOME/flinkx-dist    |
+| **flinkConfDir**      | flink配置文件所在的目录（单机模式下不需要）                               | $FLINK_HOME/conf                                                                                                                                                                                                                            | 否    | $FLINK_HOME/conf        |
+| **flinkLibDir**    | flink lib所在的目录（单机模式下不需要），如/opt/dtstack/flink-1.10.1/lib | $FLINK_HOME/lib                                                                                                                                                                                                                             | 否    | $FLINK_HOME/lib         |
+| **hadoopConfDir**       | Hadoop配置文件（包括hdfs和yarn）所在的目录                           | $HADOOP_HOME/etc/hadoop                                                                                                                                                                                                                     | 否    | $HADOOP_HOME/etc/hadoop |
+| **pluginLoadMode** | yarn session模式插件加载方式                                   | 1.**classpath**：提交任务时不上传插件包，需要在yarn-node节点flinkx-dist目录下部署插件包，但任务启动速度较快，session模式建议使用<br />2.**shipfile**：提交任务时上传flinkx-dist目录下部署插件包的插件包，yarn-node节点不需要部署插件包，任务启动速度取决于插件包的大小及网络环境，yarnPer模式建议使用                                                                           | 否    | shipfile                |
+| **confProp**       | flink官方所有配置参数                                           |                                                                                                                                                           | 否    | 无                       |
 | **p**              | 自定义入参，用于替换脚本中的占位符，如脚本中存在占位符${pt1},${pt2}，则该参数可配置为pt1=20200101,pt2=20200102|                                                                                                                                                                                                                                             | 否    | 无                       |
-| **appId**              | yarn模式下，提交到指定的的flink session的application Id                                        |                                                                                                                                                                                                                                             | 否    | 无                       |
-| **krb5conf**              | 提交到开启kerberos的Hadoop集群的krb5文件路径                                        |                                                                                                                                                                                                                                             | 否    | 无                       |
-| **keytab**              | 提交到开启kerberos的Hadoop集群的keytab文件路径                                        |                                                                                                                                                                                                                                             | 否    | 无                       |
-| **principal**              | kerberos认证的principal                                        |                                                                                                                                                                                                                                             | 否    | 无                       |
-

@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.solr.table;
 
+import com.dtstack.flinkx.connector.solr.SolrConf;
+import com.dtstack.flinkx.security.KerberosConfig;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -26,8 +29,6 @@ import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.solr.SolrConf;
-import com.dtstack.flinkx.security.KerberosConfig;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;

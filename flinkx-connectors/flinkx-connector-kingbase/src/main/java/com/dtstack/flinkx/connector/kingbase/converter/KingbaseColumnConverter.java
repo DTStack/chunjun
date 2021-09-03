@@ -17,9 +17,7 @@
  */
 package com.dtstack.flinkx.connector.kingbase.converter;
 
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
@@ -28,6 +26,9 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
+
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
 
 import java.math.BigDecimal;
 
@@ -39,15 +40,14 @@ import java.math.BigDecimal;
  */
 public class KingbaseColumnConverter extends JdbcColumnConverter {
 
-    public KingbaseColumnConverter(RowType rowType) {
-        super(rowType);
+    public KingbaseColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
     }
 
     /**
      * override reason: tinying type in KingBase is byte type, couldn't case int.
      *
      * @param type
-     *
      * @return
      */
     @Override

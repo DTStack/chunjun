@@ -19,27 +19,23 @@
 package com.dtstack.flinkx.connector.clickhouse.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.clickhouse.ClickhouseDialect;
-import com.dtstack.flinkx.connector.clickhouse.converter.ClickhouseRawTypeConverter;
+import com.dtstack.flinkx.connector.clickhouse.dialect.ClickhouseDialect;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 
-import com.dtstack.flinkx.converter.RawTypeConverter;
-import org.apache.commons.lang3.StringUtils;
-
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @program: flinkx
  * @author: xiuzhu
  * @create: 2021/05/10
  */
-
 public class ClickhouseSourceFactory extends JdbcSourceFactory {
 
     public ClickhouseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        super.jdbcDialect = new ClickhouseDialect();
+        super(syncConf, env, new ClickhouseDialect());
         // 避免result.next阻塞
         if (jdbcConf.isPolling()
                 && StringUtils.isEmpty(jdbcConf.getStartLocation())
@@ -51,10 +47,5 @@ public class ClickhouseSourceFactory extends JdbcSourceFactory {
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new ClickhouseInputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return ClickhouseRawTypeConverter::apply;
     }
 }

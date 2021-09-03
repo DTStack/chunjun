@@ -19,23 +19,17 @@
 package com.dtstack.flinkx.enums;
 
 /**
- * CLASSPATH： plugin jar depends on each machine node.
- * SHIPFILE:  plugin jar only depends on the client submitted by the task.
+ * CLASSPATH： plugin jar depends on each machine node. SHIPFILE: plugin jar only depends on the
+ * client submitted by the task.
  */
 public enum EPluginLoadMode {
 
-    /**
-     * 0:classpath
-     */
+    /** 0:classpath */
     CLASSPATH(0),
-    /**
-     * 1:shipfile
-     */
+    /** 1:shipfile */
     SHIPFILE(1),
 
-    /**
-     * 2:localTest
-     */
+    /** 2:localTest */
     LOCALTEST(3);
 
     private final int type;

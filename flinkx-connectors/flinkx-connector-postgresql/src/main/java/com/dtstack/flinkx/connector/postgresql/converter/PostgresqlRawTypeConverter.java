@@ -18,10 +18,10 @@
 
 package com.dtstack.flinkx.connector.postgresql.converter;
 
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
-
-import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import java.util.Locale;
 

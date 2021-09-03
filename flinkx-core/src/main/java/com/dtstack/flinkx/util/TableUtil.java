@@ -17,6 +17,9 @@
  */
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.converter.RawTypeConverter;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.table.api.TableColumn;
@@ -27,16 +30,12 @@ import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.converter.RawTypeConverter;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Date: 2021/04/07
- * Company: www.dtstack.com
+ * Date: 2021/04/07 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -44,11 +43,14 @@ public class TableUtil {
 
     /**
      * 获取TypeInformation
+     *
      * @param fieldList 任务参数实体类
      * @return TypeInformation
      */
-    public static TypeInformation<RowData> getTypeInformation(List<FieldConf> fieldList, RawTypeConverter converter) {
-        List<String> fieldName = fieldList.stream().map(FieldConf::getName).collect(Collectors.toList());
+    public static TypeInformation<RowData> getTypeInformation(
+            List<FieldConf> fieldList, RawTypeConverter converter) {
+        List<String> fieldName =
+                fieldList.stream().map(FieldConf::getName).collect(Collectors.toList());
         if (fieldName.size() == 0) {
             return new GenericTypeInfo<>(RowData.class);
         }
@@ -60,32 +62,34 @@ public class TableUtil {
             DataType dataType = converter.apply(fieldTypes[i]);
             builder.add(TableColumn.physical(fieldNames[i], dataType));
         }
-        DataType[] dataTypes = builder.build().toRowDataType().getChildren().toArray(new DataType[]{});
+        DataType[] dataTypes =
+                builder.build().toRowDataType().getChildren().toArray(new DataType[] {});
 
         return getTypeInformation(dataTypes, fieldNames);
     }
 
     /**
      * 获取TypeInformation
+     *
      * @param dataTypes
      * @param fieldNames
      * @return
      */
-    public static TypeInformation<RowData> getTypeInformation(DataType[] dataTypes, String[] fieldNames){
+    public static TypeInformation<RowData> getTypeInformation(
+            DataType[] dataTypes, String[] fieldNames) {
         return InternalTypeInfo.of(getRowType(dataTypes, fieldNames));
     }
 
     /**
      * 获取RowType
+     *
      * @param dataTypes
      * @param fieldNames
      * @return
      */
-    public static RowType getRowType(DataType[] dataTypes, String[] fieldNames){
+    public static RowType getRowType(DataType[] dataTypes, String[] fieldNames) {
         return RowType.of(
-                Arrays.stream(dataTypes)
-                        .map(DataType::getLogicalType)
-                        .toArray(LogicalType[]::new),
+                Arrays.stream(dataTypes).map(DataType::getLogicalType).toArray(LogicalType[]::new),
                 fieldNames);
     }
 

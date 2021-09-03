@@ -19,16 +19,17 @@ package com.dtstack.flinkx.connector.sqlservercdc.inputFormat;
 
 import com.dtstack.flinkx.connector.sqlservercdc.conf.SqlServerCdcConf;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.Lsn;
-import com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEnum;
+import com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.StringUtil;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
@@ -45,8 +46,7 @@ import java.util.Set;
 import static com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil.DRIVER;
 
 /**
- * Date: 2019/12/03
- * Company: www.dtstack.com
+ * Date: 2019/12/03 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -57,7 +57,6 @@ public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
     public SqlServerCdcInputFormatBuilder() {
         super.format = this.format = new SqlServerCdcInputFormat();
     }
-
 
     public void setSqlServerCdcConf(SqlServerCdcConf sqlServerCdcConf) {
         super.setConfig(sqlServerCdcConf);
@@ -91,12 +90,15 @@ public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
             throw new IllegalArgumentException(sb.toString());
         }
 
-        //校验cat
-        HashSet<String> set = Sets.newHashSet(
-                SqlServerCdcEnum.DELETE.name,
-                SqlServerCdcEnum.UPDATE.name,
-                SqlServerCdcEnum.INSERT.name);
-        ArrayList<String> cats = Lists.newArrayList(format.sqlserverCdcConf.getCat().split(ConstantValue.COMMA_SYMBOL));
+        // 校验cat
+        HashSet<String> set =
+                Sets.newHashSet(
+                        SqlServerCdcEnum.DELETE.name,
+                        SqlServerCdcEnum.UPDATE.name,
+                        SqlServerCdcEnum.INSERT.name);
+        ArrayList<String> cats =
+                Lists.newArrayList(
+                        format.sqlserverCdcConf.getCat().split(ConstantValue.COMMA_SYMBOL));
         cats.removeIf(s -> set.contains(s.toLowerCase(Locale.ENGLISH)));
         if (CollectionUtils.isNotEmpty(cats)) {
             sb.append("sqlServer cat not support-> ")
@@ -107,45 +109,67 @@ public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
         }
 
         ClassUtil.forName(DRIVER, getClass().getClassLoader());
-        try (Connection conn = RetryUtil.executeWithRetry(
-                () -> SqlServerCdcUtil.getConnection(format.sqlserverCdcConf.getUrl(), format.sqlserverCdcConf.getUsername(), format.sqlserverCdcConf.getPassword()), SqlServerCdcUtil.RETRY_TIMES,
-                SqlServerCdcUtil.SLEEP_TIME,
-                false)) {
+        try (Connection conn =
+                RetryUtil.executeWithRetry(
+                        () ->
+                                SqlServerCdcUtil.getConnection(
+                                        format.sqlserverCdcConf.getUrl(),
+                                        format.sqlserverCdcConf.getUsername(),
+                                        format.sqlserverCdcConf.getPassword()),
+                        SqlServerCdcUtil.RETRY_TIMES,
+                        SqlServerCdcUtil.SLEEP_TIME,
+                        false)) {
 
-            //check database cdc is enable
+            // check database cdc is enable
             SqlServerCdcUtil.changeDatabase(conn, format.sqlserverCdcConf.getDatabaseName());
-            if (!SqlServerCdcUtil.checkEnabledCdcDatabase(conn, format.sqlserverCdcConf.getDatabaseName())) {
-                sb.append(format.sqlserverCdcConf.getDatabaseName()).append(" is not enable sqlServer CDC;\n")
-                        .append("please execute sql for enable databaseCDC：\nUSE ").append(format.sqlserverCdcConf.getDatabaseName()).append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
+            if (!SqlServerCdcUtil.checkEnabledCdcDatabase(
+                    conn, format.sqlserverCdcConf.getDatabaseName())) {
+                sb.append(format.sqlserverCdcConf.getDatabaseName())
+                        .append(" is not enable sqlServer CDC;\n")
+                        .append("please execute sql for enable databaseCDC：\nUSE ")
+                        .append(format.sqlserverCdcConf.getDatabaseName())
+                        .append("\nGO\nEXEC sys.sp_cdc_enable_db\nGO\n\n ");
             }
 
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
 
-            //check table cdc is enable
-            Set<String> unEnabledCdcTables = SqlServerCdcUtil.checkUnEnabledCdcTables(conn, format.sqlserverCdcConf.getTableList());
+            // check table cdc is enable
+            Set<String> unEnabledCdcTables =
+                    SqlServerCdcUtil.checkUnEnabledCdcTables(
+                            conn, format.sqlserverCdcConf.getTableList());
             if (CollectionUtils.isNotEmpty(unEnabledCdcTables)) {
                 String tables = unEnabledCdcTables.toString();
-                sb.append(GsonUtil.GSON.toJson(tables)).append("  is not enable sqlServer CDC;\n")
+                sb.append(GsonUtil.GSON.toJson(tables))
+                        .append("  is not enable sqlServer CDC;\n")
                         .append("please execute sql for enable tableCDC: ");
-                String tableEnableCdcTemplate = "\n\n EXEC sys.sp_cdc_enable_table \n@source_schema = '%s',\n@source_name = '%s',\n@role_name = NULL,\n@supports_net_changes = 0;";
+                String tableEnableCdcTemplate =
+                        "\n\n EXEC sys.sp_cdc_enable_table \n@source_schema = '%s',\n@source_name = '%s',\n@role_name = NULL,\n@supports_net_changes = 0;";
 
                 for (String table : unEnabledCdcTables) {
-                    List<String> strings = StringUtil.splitIgnoreQuota(table, ConstantValue.POINT_SYMBOL.charAt(0));
+                    List<String> strings =
+                            StringUtil.splitIgnoreQuota(
+                                    table, ConstantValue.POINT_SYMBOL.charAt(0));
                     if (strings.size() == 2) {
-                        sb.append(String.format(tableEnableCdcTemplate, strings.get(0), strings.get(1)));
+                        sb.append(
+                                String.format(
+                                        tableEnableCdcTemplate, strings.get(0), strings.get(1)));
                     } else if (strings.size() == 1) {
-                        sb.append(String.format(tableEnableCdcTemplate, "yourSchema", strings.get(0)));
+                        sb.append(
+                                String.format(
+                                        tableEnableCdcTemplate, "yourSchema", strings.get(0)));
                     }
                 }
             }
 
-            //check lsn if over max lsn
+            // check lsn if over max lsn
             Lsn currentMaxLsn = SqlServerCdcUtil.getMaxLsn(conn);
             if (StringUtils.isNotBlank(format.sqlserverCdcConf.getLsn())) {
                 if (currentMaxLsn.compareTo(Lsn.valueOf(format.sqlserverCdcConf.getLsn())) < 0) {
-                    sb.append("lsn: '").append(format.sqlserverCdcConf.getLsn()).append("' does not exist;\n");
+                    sb.append("lsn: '")
+                            .append(format.sqlserverCdcConf.getLsn())
+                            .append("' does not exist;\n");
                 }
             }
 
@@ -157,13 +181,16 @@ public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
             StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
 
             if (sb.length() > 0) {
-                detailsInfo.append("sqlserverCDC config not right，details is ").append(sb.toString());
+                detailsInfo
+                        .append("sqlserverCDC config not right，details is ")
+                        .append(sb.toString());
             }
 
-            detailsInfo.append(" \n error to check sqlServerCDC config, e = ").append(ExceptionUtil.getErrorMessage(e));
+            detailsInfo
+                    .append(" \n error to check sqlServerCDC config, e = ")
+                    .append(ExceptionUtil.getErrorMessage(e));
 
             throw new RuntimeException(detailsInfo.toString(), e);
         }
-
     }
 }

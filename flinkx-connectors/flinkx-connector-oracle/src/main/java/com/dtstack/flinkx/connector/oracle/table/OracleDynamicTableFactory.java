@@ -18,9 +18,11 @@
 
 package com.dtstack.flinkx.connector.oracle.table;
 
-import com.dtstack.flinkx.connector.jdbc.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
-import com.dtstack.flinkx.connector.oracle.OracleDialect;
+import com.dtstack.flinkx.connector.oracle.dialect.OracleDialect;
+import com.dtstack.flinkx.connector.oracle.source.OracleInputFormat;
 
 /**
  * company www.dtstack.com
@@ -35,6 +37,11 @@ public class OracleDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     public String factoryIdentifier() {
         return IDENTIFIER;
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getInputFormatBuilder() {
+        return new JdbcInputFormatBuilder(new OracleInputFormat());
     }
 
     @Override

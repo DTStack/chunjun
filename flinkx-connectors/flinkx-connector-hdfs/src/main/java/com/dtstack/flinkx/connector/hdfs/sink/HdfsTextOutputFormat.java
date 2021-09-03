@@ -17,16 +17,17 @@
  */
 package com.dtstack.flinkx.connector.hdfs.sink;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.enums.CompressType;
 import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.enums.SizeUnitType;
-import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
+
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.hadoop.fs.Path;
@@ -36,8 +37,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Date: 2021/06/09
- * Company: www.dtstack.com
+ * Date: 2021/06/09 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -47,59 +47,65 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
     private transient OutputStream stream;
 
     @Override
-    protected void nextBlock(){
+    protected void nextBlock() {
         super.nextBlock();
 
-        if (stream != null){
+        if (stream != null) {
             return;
         }
 
         try {
             String currentBlockTmpPath = tmpPath + File.separatorChar + currentFileName;
-            Path p  = new Path(currentBlockTmpPath);
+            Path p = new Path(currentBlockTmpPath);
 
-            if(CompressType.TEXT_NONE.equals(compressType)){
+            if (CompressType.TEXT_NONE.equals(compressType)) {
                 stream = fs.create(p);
             } else {
                 p = new Path(currentBlockTmpPath);
-                if (compressType == CompressType.TEXT_GZIP){
+                if (compressType == CompressType.TEXT_GZIP) {
                     stream = new GzipCompressorOutputStream(fs.create(p));
-                } else if(compressType == CompressType.TEXT_BZIP2){
+                } else if (compressType == CompressType.TEXT_BZIP2) {
                     stream = new BZip2CompressorOutputStream(fs.create(p));
                 }
             }
             currentFileIndex++;
             LOG.info("subtask:[{}] create block file:{}", taskNumber, currentBlockTmpPath);
-        } catch (IOException e){
-            throw new FlinkxRuntimeException(HdfsUtil.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
+        } catch (IOException e) {
+            throw new FlinkxRuntimeException(
+                    HdfsUtil.parseErrorMsg(null, ExceptionUtil.getErrorMessage(e)), e);
         }
     }
 
     @Override
     public void flushDataInternal() {
-        LOG.info("Close current text stream, write data size:[{}]", SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
+        LOG.info(
+                "Close current text stream, write data size:[{}]",
+                SizeUnitType.readableFileSize(bytesWriteCounter.getLocalValue()));
 
         try {
-            if (stream != null){
+            if (stream != null) {
                 stream.flush();
                 stream.close();
                 stream = null;
             }
         } catch (IOException e) {
-            throw new FlinkxRuntimeException(HdfsUtil.parseErrorMsg("error to flush stream.", ExceptionUtil.getErrorMessage(e)), e);
+            throw new FlinkxRuntimeException(
+                    HdfsUtil.parseErrorMsg(
+                            "error to flush stream.", ExceptionUtil.getErrorMessage(e)),
+                    e);
         }
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void writeSingleRecordToFile(RowData rowData) throws WriteRecordException {
-        if(stream == null){
+        if (stream == null) {
             nextBlock();
         }
         String[] data = new String[hdfsConf.getColumn().size()];
         try {
-            data = (String[])rowConverter.toExternal(rowData, data);
-        } catch(Exception e) {
+            data = (String[]) rowConverter.toExternal(rowData, data);
+        } catch (Exception e) {
             throw new WriteRecordException("can't parse rowData", e, -1, rowData);
         }
 
@@ -117,7 +123,10 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
             rowsOfCurrentBlock++;
             lastRow = rowData;
         } catch (IOException e) {
-            String errorMessage = HdfsUtil.parseErrorMsg(String.format("writer hdfs error，rowData:{%s}", rowData), ExceptionUtil.getErrorMessage(e));
+            String errorMessage =
+                    HdfsUtil.parseErrorMsg(
+                            String.format("writer hdfs error，rowData:{%s}", rowData),
+                            ExceptionUtil.getErrorMessage(e));
             throw new WriteRecordException(errorMessage, e, -1, rowData);
         }
     }
@@ -126,14 +135,14 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
     public void closeSource() {
         try {
             OutputStream outputStream = this.stream;
-            if(outputStream != null) {
+            if (outputStream != null) {
                 outputStream.flush();
                 this.stream = null;
                 outputStream.close();
             }
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new FlinkxRuntimeException("close stream error.", e);
-        }finally{
+        } finally {
             super.closeSource();
         }
     }

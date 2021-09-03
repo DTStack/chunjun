@@ -19,39 +19,23 @@
 package com.dtstack.flinkx.connector.dm.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.dm.DmDialect;
-import com.dtstack.flinkx.connector.dm.converter.DmRawTypeConverter;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
+import com.dtstack.flinkx.connector.dm.dialect.DmDialect;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
-import com.dtstack.flinkx.converter.RawTypeConverter;
-
-import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-/**
- * @author kunni
- */
+import org.apache.commons.lang3.StringUtils;
+
+/** @author kunni */
 public class DmSourceFactory extends JdbcSourceFactory {
 
     public DmSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env);
-        super.jdbcDialect = new DmDialect();
+        super(syncConf, env, new DmDialect());
         // 避免result.next阻塞
         if (jdbcConf.isPolling()
                 && StringUtils.isEmpty(jdbcConf.getStartLocation())
                 && jdbcConf.getFetchSize() == 0) {
             jdbcConf.setFetchSize(1000);
         }
-    }
-
-    @Override
-    protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new DmInputFormat());
-    }
-
-    @Override
-    public RawTypeConverter getRawTypeConverter() {
-        return DmRawTypeConverter::apply;
     }
 }

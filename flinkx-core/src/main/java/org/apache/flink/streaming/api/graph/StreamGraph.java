@@ -79,7 +79,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * Class representing the streaming topology. It contains all the information necessary to build the
  * jobgraph for the execution.
  *
- * 改动内容：addSink方法中尝试设置outputFormat
+ * <p>改动内容：addSink方法中尝试设置outputFormat
  * 改动原因：SQL任务中addSink方法不会设置outputFormat导致initializeGlobal、finalizeGlobal方法没有被调用
  */
 @Internal
@@ -101,6 +101,7 @@ public class StreamGraph implements Pipeline {
     private GlobalDataExchangeMode globalDataExchangeMode;
     /** Flag to indicate whether to put all vertices into the same slot sharing group by default. */
     private boolean allVerticesInSameSlotSharingGroupByDefault = true;
+
     private Map<Integer, StreamNode> streamNodes;
     private Set<Integer> sources;
     private Set<Integer> sinks;
@@ -300,10 +301,10 @@ public class StreamGraph implements Pipeline {
         if (operatorFactory instanceof OutputFormatOperatorFactory) {
             setOutputFormat(
                     vertexID, ((OutputFormatOperatorFactory) operatorFactory).getOutputFormat());
-        }else if(operatorFactory instanceof UdfStreamOperatorFactory){
+        } else if (operatorFactory instanceof UdfStreamOperatorFactory) {
             Function userFunction = ((UdfStreamOperatorFactory) operatorFactory).getUserFunction();
-            if(userFunction instanceof OutputFormatSinkFunction){
-                setOutputFormat(vertexID, ((OutputFormatSinkFunction)userFunction).getFormat());
+            if (userFunction instanceof OutputFormatSinkFunction) {
+                setOutputFormat(vertexID, ((OutputFormatSinkFunction) userFunction).getFormat());
             }
         }
         sinks.add(vertexID);

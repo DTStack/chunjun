@@ -54,32 +54,33 @@ FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集
 
 FlinkX目前支持下面这些数据库：
 
-|                        | Database Type  | Source                          | Sink                          | Lookup
-|:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|:-------------------------------:|
-| Batch Synchronization  | MySQL          | [doc](docs/connectors/mysql/mysql-source.md)        | [doc](docs/connectors/mysql/mysql-sink.md)      |[doc](docs/connectors/mysql/mysql-lookup.md)      |
-|                        | TiDB           |                                                     |  [doc](docs/connectors/tidb/tidb-sink.md)  |          [doc](docs/connectors/tidb/tidb-lookup.md)  |   
-|                        | Oracle         | [doc](docs/connectors/oracle/oracle-source.md)       | [doc](docs/connectors/oracle/oracle-sink.md)     |[doc](docs/connectors/oracle/oracle-lookup.md)      |
-|                        | SqlServer      | [doc](docs/connectors/sqlserver/sqlserver-source.md)    | [doc](docs/connectors/sqlserver/sqlserver-sink.md)  |[doc](docs/connectors/sqlserver/sqlserver-lookup.md)
-|                        | PostgreSQL     | [doc](docs/connectors/postgres/postgres-source.md) | [doc](docs/connectors/postgres/postgres-sink.md) | [doc](docs/connectors/postgres/postgres-lookup.md) |
-|                        | DB2            | [doc](docs/connectors/db2/db2-source.md)          | [doc](docs/connectors/db2/db2-sink.md)        | [doc](docs/connectors/db2/db2-lookup.md)
-|                        | ClickHouse     | [doc](docs/connectors/clickhouse/clickhouse-source.md)   | [doc](docs/connectors/clickhouse/clickhouse-sink.md) | [doc](docs/connectors/clickhouse/clickhouse-lookup.md)      |
-|                        | Greenplum      | [doc](docs/connectors/greenplum/greenplum-source.md)    | [doc](docs/connectors/greenplum/greenplum-sink.md)  |
-|                        | KingBase       | [doc](docs/connectors/kingbase/kingbase-source.md)     | [doc](docs/connectors/kingbase/kingbase-sink.md)   |
-|                        | MongoDB        | [doc](docs/connectors/mongodb/mongodb-source.md) | [doc](docs/connectors/mongodb/mongodb-sink.md) |[doc](docs/connectors/mongodb/mongodb-lookup.md) |
-|                        | SAP HANA       | [doc](docs/connectors/saphana/saphana-source.md)           | [doc](docs/connectors/saphana/saphana-sink.md)         |
-|                        | ElasticSearch  | [doc](docs/connectors/elasticsearch6/es6reader.md)           | [doc](docs/connectors/elasticsearch6/es6writer.md)         |
-|                        | FTP            | [doc](docs/connectors/ftp/ftp-source.md)          | [doc](docs/connectors/ftp/ftp-sink.md)        |
-|                        | HDFS           | [doc](docs/connectors/hdfs/hdfs-source.md)         | [doc](docs/connectors/hdfs/hdfs-sink.md)       |
-|                        | Stream         | [doc](docs/connectors/stream/stream-source.md)       | [doc](docs/connectors/stream/stream-sink.md) |
-|                        | Redis          |                                                  | [doc](docs/connectors/redis/redis-sink.md)      |[doc](docs/connectors/redis/redis-lookup.md)      |
-|                        | Hive           |                                                  | [doc](docs/connectors/hive/hive-sink.md)       |
-|                        | Solr          | [doc](docs/connectors/solr/solr-source.md)        | [doc](docs/connectors/solr/solr-sink.md)       |
-|                        | File           |  [doc](docs/connectors/file/file-source.md)
-| Stream Synchronization | Kafka          | [doc](docs/connectors/kafka/kafka-source.md)       | [doc](docs/connectors/kafka/kafka-sink.md)     |
-|                        | EMQX           | [doc](docs/connectors/emqx/emqx-source.md)        | [doc](docs/connectors/emqx/emqx-sink.md)      |
-|                        | MySQL Binlog   | [doc](docs/connectors/binlog/binlog-source.md)      |                                                |
-|                        | Oracle LogMiner | [doc](docs/connectors/logminer/LogMiner-source.md)   |                                            |
-|                        | Sqlserver CDC | [doc](docs/connectors/sqlservercdc/SqlserverCDC-source.md) |                                                |
+|                        | Database Type  | Source                                                    | Sink                                                      | Lookup
+|:----------------------:|:--------------:|:---------------------------------------------------------:|:---------------------------------------------------------:|:---------------------------------------------------------:|
+| Batch Synchronization  | MySQL          | [doc](docs/connectors/mysql/mysql-source.md)              | [doc](docs/connectors/mysql/mysql-sink.md)                |[doc](docs/connectors/mysql/mysql-lookup.md)               |
+|                        | TiDB           |                                                           | 参考mysql                                                  |参考mysql                                                  |   
+|                        | Oracle         | [doc](docs/connectors/oracle/oracle-source.md)            | [doc](docs/connectors/oracle/oracle-sink.md)              |[doc](docs/connectors/oracle/oracle-lookup.md)             |
+|                        | SqlServer      | [doc](docs/connectors/sqlserver/sqlserver-source.md)      | [doc](docs/connectors/sqlserver/sqlserver-sink.md)        |[doc](docs/connectors/sqlserver/sqlserver-lookup.md)       |
+|                        | PostgreSQL     | [doc](docs/connectors/postgres/postgres-source.md)        | [doc](docs/connectors/postgres/postgres-sink.md)          |[doc](docs/connectors/postgres/postgres-lookup.md)         |
+|                        | DB2            | [doc](docs/connectors/db2/db2-source.md)                  | [doc](docs/connectors/db2/db2-sink.md)                    |[doc](docs/connectors/db2/db2-lookup.md)                   |
+|                        | ClickHouse     | [doc](docs/connectors/clickhouse/clickhouse-source.md)    | [doc](docs/connectors/clickhouse/clickhouse-sink.md)      |[doc](docs/connectors/clickhouse/clickhouse-lookup.md)     |
+|                        | Greenplum      | [doc](docs/connectors/greenplum/greenplum-source.md)      | [doc](docs/connectors/greenplum/greenplum-sink.md)        |                                                           |
+|                        | KingBase       | [doc](docs/connectors/kingbase/kingbase-source.md)        | [doc](docs/connectors/kingbase/kingbase-sink.md)          |                                                           |
+|                        | MongoDB        | [doc](docs/connectors/mongodb/mongodb-source.md)          | [doc](docs/connectors/mongodb/mongodb-sink.md)            |[doc](docs/connectors/mongodb/mongodb-lookup.md)           |
+|                        | SAP HANA       | [doc](docs/connectors/saphana/saphana-source.md)          | [doc](docs/connectors/saphana/saphana-sink.md)            |                                                           |  
+|                        | ElasticSearch  | [doc](docs/connectors/elasticsearch6/es6reader.md)        | [doc](docs/connectors/elasticsearch6/es6writer.md)        |                                                           |
+|                        | FTP            | [doc](docs/connectors/ftp/ftp-source.md)                  | [doc](docs/connectors/ftp/ftp-sink.md)                    |                                                           |
+|                        | HDFS           | [doc](docs/connectors/hdfs/hdfs-source.md)                | [doc](docs/connectors/hdfs/hdfs-sink.md)                  |                                                           |
+|                        | Stream         | [doc](docs/connectors/stream/stream-source.md)            | [doc](docs/connectors/stream/stream-sink.md)              |                                                           |
+|                        | Redis          |                                                           | [doc](docs/connectors/redis/redis-sink.md)                |[doc](docs/connectors/redis/redis-lookup.md)               |
+|                        | Hive           |                                                           | [doc](docs/connectors/hive/hive-sink.md)                  |                                                           |
+|                        | Hbase          | [doc](docs/connectors/hbase/hbase-source.md)              | [doc](docs/connectors/hbase/hbase-sink.md)                |[doc](docs/connectors/hbase/hbase-lookup.md)               |
+|                        | Solr           | [doc](docs/connectors/solr/solr-source.md)                | [doc](docs/connectors/solr/solr-sink.md)                  |                                                           |
+|                        | File           |  [doc](docs/connectors/file/file-source.md)               |                                                           |                                                           |
+| Stream Synchronization | Kafka          | [doc](docs/connectors/kafka/kafka-source.md)              | [doc](docs/connectors/kafka/kafka-sink.md)                |                                                           |
+|                        | EMQX           | [doc](docs/connectors/emqx/emqx-source.md)                | [doc](docs/connectors/emqx/emqx-sink.md)                  |                                                           |
+|                        | MySQL Binlog   | [doc](docs/connectors/binlog/binlog-source.md)            |                                                           |                                                           |
+|                        | Oracle LogMiner | [doc](docs/connectors/logminer/LogMiner-source.md)       |                                                           |                                                           |
+|                        | Sqlserver CDC | [doc](docs/connectors/sqlservercdc/SqlserverCDC-source.md) |                                                           |                                                           |      
 
 # 快速开始
 

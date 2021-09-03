@@ -20,11 +20,8 @@ package com.dtstack.flinkx.connector.sqlserver.sink;
 
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
-import com.dtstack.flinkx.connector.sqlserver.SqlserverDialect;
-import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverRawTypeConverter;
+import com.dtstack.flinkx.connector.sqlserver.dialect.SqlserverDialect;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-import com.dtstack.flinkx.util.TableUtil;
-import org.apache.flink.table.types.logical.RowType;
 
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -37,24 +34,20 @@ import java.sql.Statement;
  */
 public class SqlserverOutputFormat extends JdbcOutputFormat {
 
-    private static final long serialVersionUID = 1L;
-
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         super.openInternal(taskNumber, numTasks);
 
-        RowType rowType =
-            TableUtil.createRowType(columnNameList, columnTypeList, SqlserverRawTypeConverter::apply);
-        setRowConverter(rowConverter ==null ? jdbcDialect.getColumnConverter(rowType) : rowConverter);
-
         Statement statement = null;
-        String sql = ((SqlserverDialect)jdbcDialect).getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());
+        String sql =
+                ((SqlserverDialect) jdbcDialect)
+                        .getIdentityInsertOnSql(jdbcConf.getSchema(), jdbcConf.getTable());
         try {
             statement = dbConn.createStatement();
             statement.execute(sql);
         } catch (SQLException e) {
             throw new FlinkxRuntimeException(e);
-        }finally {
+        } finally {
             JdbcUtil.closeDbResources(null, statement, null, false);
         }
     }

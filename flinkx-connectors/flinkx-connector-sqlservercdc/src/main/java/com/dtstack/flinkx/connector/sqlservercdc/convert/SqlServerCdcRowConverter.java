@@ -21,7 +21,6 @@ import com.dtstack.flinkx.connector.sqlservercdc.entity.ChangeTable;
 import com.dtstack.flinkx.connector.sqlservercdc.entity.SqlServerCdcEventRow;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.google.common.collect.Maps;
 
 import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.table.api.TableException;
@@ -33,6 +32,8 @@ import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
+
+import com.google.common.collect.Maps;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -51,12 +52,12 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Date: 2021/05/12
- * Company: www.dtstack.com
+ * Date: 2021/05/12 Company: www.dtstack.com
  *
  * @author shifang
  */
-public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerCdcEventRow, LogicalType> {
+public class SqlServerCdcRowConverter
+        extends AbstractCDCRowConverter<SqlServerCdcEventRow, LogicalType> {
     private final TimestampFormat timestampFormat;
 
     public SqlServerCdcRowConverter(RowType rowType, TimestampFormat timestampFormat) {
@@ -69,7 +70,8 @@ public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerC
     }
 
     @Override
-    public LinkedList<RowData> toInternal(SqlServerCdcEventRow sqlServerCdcEventRow) throws Exception{
+    public LinkedList<RowData> toInternal(SqlServerCdcEventRow sqlServerCdcEventRow)
+            throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
         ChangeTable changeTable = sqlServerCdcEventRow.getChangeTable();
         String eventType = sqlServerCdcEventRow.getType();
@@ -97,11 +99,13 @@ public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerC
                 result.add(delete);
                 break;
             case "UPDATE":
-                RowData updateBefore = createRowDataByConverters(fieldNameList, converters, beforeMap);
+                RowData updateBefore =
+                        createRowDataByConverters(fieldNameList, converters, beforeMap);
                 updateBefore.setRowKind(RowKind.UPDATE_BEFORE);
                 result.add(updateBefore);
 
-                RowData updateAfter = createRowDataByConverters(fieldNameList, converters, afterMap);
+                RowData updateAfter =
+                        createRowDataByConverters(fieldNameList, converters, afterMap);
                 updateAfter.setRowKind(RowKind.UPDATE_AFTER);
                 result.add(updateAfter);
                 break;
@@ -130,35 +134,42 @@ public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerC
             case INTERVAL_DAY_TIME:
                 return (IDeserializationConverter<String, Long>) Long::parseLong;
             case DATE:
-                return (IDeserializationConverter<Date, Integer>) val -> (int) val.toLocalDate().toEpochDay();
+                return (IDeserializationConverter<Date, Integer>)
+                        val -> (int) val.toLocalDate().toEpochDay();
             case TIME_WITHOUT_TIME_ZONE:
-                return (IDeserializationConverter<Time, Integer>) val -> val.toLocalTime().toSecondOfDay() * 1000;
+                return (IDeserializationConverter<Time, Integer>)
+                        val -> val.toLocalTime().toSecondOfDay() * 1000;
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return (IDeserializationConverter<Timestamp, TimestampData>) TimestampData::fromTimestamp;
+                return (IDeserializationConverter<Timestamp, TimestampData>)
+                        TimestampData::fromTimestamp;
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
-                return (IDeserializationConverter<String, TimestampData>) val -> {
-                    TemporalAccessor parsedTimestampWithLocalZone;
-                    switch (timestampFormat) {
-                        case SQL:
-                            parsedTimestampWithLocalZone =
-                                    SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse(val);
-                            break;
-                        case ISO_8601:
-                            parsedTimestampWithLocalZone =
-                                    ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse(val);
-                            break;
-                        default:
-                            throw new TableException(
-                                    String.format(
-                                            "Unsupported timestamp format '%s'. Validator should have checked that.",
-                                            timestampFormat));
-                    }
-                    LocalTime localTime = parsedTimestampWithLocalZone.query(TemporalQueries.localTime());
-                    LocalDate localDate = parsedTimestampWithLocalZone.query(TemporalQueries.localDate());
+                return (IDeserializationConverter<String, TimestampData>)
+                        val -> {
+                            TemporalAccessor parsedTimestampWithLocalZone;
+                            switch (timestampFormat) {
+                                case SQL:
+                                    parsedTimestampWithLocalZone =
+                                            SQL_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse(val);
+                                    break;
+                                case ISO_8601:
+                                    parsedTimestampWithLocalZone =
+                                            ISO8601_TIMESTAMP_WITH_LOCAL_TIMEZONE_FORMAT.parse(val);
+                                    break;
+                                default:
+                                    throw new TableException(
+                                            String.format(
+                                                    "Unsupported timestamp format '%s'. Validator should have checked that.",
+                                                    timestampFormat));
+                            }
+                            LocalTime localTime =
+                                    parsedTimestampWithLocalZone.query(TemporalQueries.localTime());
+                            LocalDate localDate =
+                                    parsedTimestampWithLocalZone.query(TemporalQueries.localDate());
 
-                    return TimestampData.fromInstant(
-                            LocalDateTime.of(localDate, localTime).toInstant(ZoneOffset.UTC));
-                };
+                            return TimestampData.fromInstant(
+                                    LocalDateTime.of(localDate, localTime)
+                                            .toInstant(ZoneOffset.UTC));
+                        };
             case DOUBLE:
                 return (IDeserializationConverter<Double, Double>) val -> Double.valueOf(val);
             case FLOAT:
@@ -167,19 +178,21 @@ public class SqlServerCdcRowConverter extends AbstractCDCRowConverter<SqlServerC
             case VARCHAR:
                 return (IDeserializationConverter<String, StringData>) StringData::fromString;
             case DECIMAL:
-                return (IDeserializationConverter<BigDecimal, DecimalData>) val -> {
-                    final int precision = ((DecimalType) type).getPrecision();
-                    final int scale = ((DecimalType) type).getScale();
-                    return DecimalData.fromBigDecimal(val, precision, scale);
-                };
+                return (IDeserializationConverter<BigDecimal, DecimalData>)
+                        val -> {
+                            final int precision = ((DecimalType) type).getPrecision();
+                            final int scale = ((DecimalType) type).getScale();
+                            return DecimalData.fromBigDecimal(val, precision, scale);
+                        };
             case BINARY:
             case VARBINARY:
-                return (IDeserializationConverter<String, byte[]>) val -> val.getBytes(StandardCharsets.UTF_8);
-//            case ARRAY:
-//            case MAP:
-//            case MULTISET:
-//            case ROW:
-//            case RAW:
+                return (IDeserializationConverter<String, byte[]>)
+                        val -> val.getBytes(StandardCharsets.UTF_8);
+                //            case ARRAY:
+                //            case MAP:
+                //            case MULTISET:
+                //            case ROW:
+                //            case RAW:
             default:
                 throw new UnsupportedOperationException("Unsupported type: " + type);
         }

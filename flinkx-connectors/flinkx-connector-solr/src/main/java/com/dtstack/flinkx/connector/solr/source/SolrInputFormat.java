@@ -18,14 +18,15 @@
 
 package com.dtstack.flinkx.connector.solr.source;
 
+import com.dtstack.flinkx.connector.solr.SolrConf;
+import com.dtstack.flinkx.connector.solr.client.CloudSolrClientKerberosWrapper;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
+import com.dtstack.flinkx.throwable.ReadRecordException;
+
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
-import com.dtstack.flinkx.connector.solr.SolrConf;
-import com.dtstack.flinkx.connector.solr.client.CloudSolrClientKerberosWrapper;
-import com.dtstack.flinkx.exception.ReadRecordException;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormat;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -44,8 +45,8 @@ import java.util.List;
 public class SolrInputFormat extends BaseRichInputFormat {
 
     public static final String QUERY_ALL = "*:*";
-    protected String[] fieldNames;
     private final SolrConf solrConf;
+    protected String[] fieldNames;
     private CloudSolrClientKerberosWrapper solrClientWrapper;
     private SolrQuery solrQuery;
     private Long startRows;

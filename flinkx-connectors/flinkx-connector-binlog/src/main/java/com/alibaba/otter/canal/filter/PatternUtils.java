@@ -38,22 +38,25 @@ import java.util.Map;
 public class PatternUtils {
 
     @SuppressWarnings("deprecation")
-    private static Map<String, Pattern> patterns = MigrateMap.makeComputingMap(MapMakerHelper.softValues(new MapMaker()),
-            new Function<String, Pattern>() {
+    private static Map<String, Pattern> patterns =
+            MigrateMap.makeComputingMap(
+                    MapMakerHelper.softValues(new MapMaker()),
+                    new Function<String, Pattern>() {
 
-                @Override
-                public Pattern apply(String pattern) {
-                    try {
-                        PatternCompiler pc = new Perl5Compiler();
-                        return pc.compile(pattern,
-                                Perl5Compiler.CASE_INSENSITIVE_MASK
-                                        | Perl5Compiler.READ_ONLY_MASK
-                                        | Perl5Compiler.SINGLELINE_MASK);
-                    } catch (MalformedPatternException e) {
-                        throw new CanalFilterException(e);
-                    }
-                }
-            });
+                        @Override
+                        public Pattern apply(String pattern) {
+                            try {
+                                PatternCompiler pc = new Perl5Compiler();
+                                return pc.compile(
+                                        pattern,
+                                        Perl5Compiler.CASE_INSENSITIVE_MASK
+                                                | Perl5Compiler.READ_ONLY_MASK
+                                                | Perl5Compiler.SINGLELINE_MASK);
+                            } catch (MalformedPatternException e) {
+                                throw new CanalFilterException(e);
+                            }
+                        }
+                    });
 
     public static Pattern getPattern(String pattern) {
         return patterns.get(pattern);

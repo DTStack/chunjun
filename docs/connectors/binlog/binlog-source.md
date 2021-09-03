@@ -242,11 +242,40 @@ Binlog为什么需要这些权限：
       <br />
 
 ###  2、SQL
-除以下两点外，其余参数均与Sync保持一致。
-- 1.`pavingData`和`splitUpdate`默认为true，且无法修改
+- **url**
+    - 描述：MySQL数据库的jdbc连接字符串，参考文档：[Mysql官方文档](http://dev.mysql.com/doc/connector-j/en/connector-j-reference-configuration-properties.html)
+    - 必选：是
+    - 字段类型：string
+    - 默认值：无
+      <br />
 
-- 2.`table`、`filter`、`start`、`timestampFormat`略有区别，具体如下
+- **username**
+    - 描述：数据源的用户名
+    - 必选：是
+    - 字段类型：string
+    - 默认值：无
+      <br />
 
+- **password**
+    - 描述：数据源指定用户名的密码
+    - 必选：是
+    - 字段类型：string
+    - 默认值：无
+      <br />
+
+- **host**
+    - 描述：启动MySQL slave的机器ip
+    - 必选：是
+    - 字段类型：string
+    - 默认值：无
+      <br />
+
+- **port**
+    - 描述：启动MySQL slave的端口
+    - 必选：否
+    - 字段类型：int
+    - 默认值：3306
+      <br />
 
 - **table**
     - 描述：需要解析的数据表。
@@ -265,6 +294,14 @@ Binlog为什么需要这些权限：
     - 例子：canal schema下的一张表：`canal.test1`
       <br />
 
+- **cat**
+    - 描述：需要解析的数据更新类型，包括insert、update、delete三种
+    - 注意：以英文逗号分割的格式填写。如果为空，解析所有数据更新类型
+    - 必选：否
+    - 字段类型：string
+    - 默认值：无
+      <br />
+
 - **timestamp**
     - 描述：要读取的binlog文件的开始位置，时间戳，采集起点从指定的时间戳处消费；
     - 必选：否
@@ -272,7 +309,7 @@ Binlog为什么需要这些权限：
     - 默认值：无
       <br />
 
-- **journalName**
+- **journal-name**
     - 描述：要读取的binlog文件的开始位置，文件名，采集起点从指定文件的起始处消费；
     - 必选：否
     - 字段类型：string
@@ -284,6 +321,63 @@ Binlog为什么需要这些权限：
     - 必选：否
     - 字段类型：string
     - 默认值：无
+      <br />
+
+- **connection-charset**
+    - 描述：编码信息
+    - 必选：否
+    - 字段类型：string
+    - 默认值：UTF-8
+      <br />
+
+- **detecting-enable**
+    - 描述：是否开启心跳
+    - 必选：否
+    - 字段类型：boolean
+    - 默认值：true
+      <br />
+
+- **detecting-sql**
+    - 描述：心跳SQL
+    - 必选：否
+    - 字段类型：string
+    - 默认值：SELECT CURRENT_DATE
+      <br />
+
+- **enable-tsdb**
+    - 描述：是否开启时序表结构能力
+    - 必选：否
+    - 字段类型：boolean
+    - 默认值：true
+      <br />
+
+- **buffer-size**
+    - 描述：并发缓存大小
+    - 注意：必须为2的幂
+    - 必选：否
+    - 默认值：1024
+      <br />
+
+- **parallel**
+    - 描述：是否开启并行解析binlog日志
+    - 必选：否
+    - 字段类型：boolean
+    - 默认值：true
+      <br />
+
+- **parallel-thread-size**
+    - 描述：并行解析binlog日志线程数
+    - 注意：只有 paraller 设置为true才生效
+    - 必选：否
+    - 字段类型：int
+    - 默认值：2
+      <br />
+
+- **is-gtid-mode**
+    - 描述：是否开启gtid模式
+    - 必选：否
+    - 字段类型：boolean
+    - 默认值：false
       <br />
 
 - **timestamp-format.standard**

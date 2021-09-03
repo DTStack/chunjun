@@ -17,6 +17,14 @@
  */
 package com.dtstack.flinkx.connector.hive.table;
 
+import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
+import com.dtstack.flinkx.connector.hive.conf.HiveConf;
+import com.dtstack.flinkx.connector.hive.options.HiveOptions;
+import com.dtstack.flinkx.connector.hive.sink.HiveDynamicTableSink;
+import com.dtstack.flinkx.sink.options.SinkOptions;
+import com.dtstack.flinkx.table.options.BaseFileOptions;
+import com.dtstack.flinkx.util.JsonUtil;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -29,14 +37,6 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
-import com.dtstack.flinkx.connector.hive.conf.HiveConf;
-import com.dtstack.flinkx.connector.hive.options.HiveOptions;
-import com.dtstack.flinkx.connector.hive.sink.HiveDynamicTableSink;
-import com.dtstack.flinkx.sink.options.SinkOptions;
-import com.dtstack.flinkx.table.options.BaseFileOptions;
-import com.dtstack.flinkx.util.JsonUtil;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -46,8 +46,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Date: 2021/06/22
- * Company: www.dtstack.com
+ * Date: 2021/06/22 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -97,7 +96,8 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
 
     @Override
     public DynamicTableSink createDynamicTableSink(Context context) {
-        final FactoryUtil.TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
         // 1.所有的requiredOptions和optionalOptions参数
         final ReadableConfig config = helper.getOptions();
 
@@ -105,14 +105,16 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
         helper.validateExcept("properties.");
 
         // 3.封装参数
-        TableSchema physicalSchema = TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         HiveConf hiveConf = getHiveConf(config);
-        hiveConf.setHadoopConfig(HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
+        hiveConf.setHadoopConfig(
+                HdfsOptions.getHadoopConfig(context.getCatalogTable().getOptions()));
         buildTablesColumn(hiveConf, config.get(HiveOptions.TABLE_NAME), physicalSchema);
         return new HiveDynamicTableSink(hiveConf, physicalSchema);
     }
 
-    private HiveConf getHiveConf(ReadableConfig config){
+    private HiveConf getHiveConf(ReadableConfig config) {
         HiveConf hiveConf = new HiveConf();
         hiveConf.setParallelism(config.get(SinkOptions.SINK_PARALLELISM));
 
@@ -139,7 +141,7 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
         return hiveConf;
     }
 
-    private void  buildTablesColumn(HiveConf hiveConf, String tableName, TableSchema tableSchema){
+    private void buildTablesColumn(HiveConf hiveConf, String tableName, TableSchema tableSchema) {
         RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
         String[] fieldNames = tableSchema.getFieldNames();
         List<Map<String, String>> list = new ArrayList<>(fieldNames.length);
@@ -148,11 +150,11 @@ public class HiveDynamicTableFactory implements DynamicTableSinkFactory {
             map.put("key", fieldNames[i]);
             LogicalType logicalType = rowType.getTypeAt(i);
 
-            if(logicalType instanceof BinaryType){
+            if (logicalType instanceof BinaryType) {
                 map.put("type", "binary");
-            }else if (logicalType instanceof TimestampType){
+            } else if (logicalType instanceof TimestampType) {
                 map.put("type", "timestamp");
-            }else{
+            } else {
                 map.put("type", logicalType.asSummaryString());
             }
             list.add(map);

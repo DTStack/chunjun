@@ -18,16 +18,16 @@
 
 package com.dtstack.flinkx.connector.emqx.source;
 
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.emqx.conf.EmqxConf;
 import com.dtstack.flinkx.connector.emqx.converter.EmqxColumnConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
 
 /**
  * @author chuixue

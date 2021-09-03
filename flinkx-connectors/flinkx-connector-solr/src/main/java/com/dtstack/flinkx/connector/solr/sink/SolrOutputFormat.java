@@ -18,12 +18,13 @@
 
 package com.dtstack.flinkx.connector.solr.sink;
 
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.connector.solr.SolrConf;
 import com.dtstack.flinkx.connector.solr.client.CloudSolrClientKerberosWrapper;
-import com.dtstack.flinkx.exception.WriteRecordException;
-import com.dtstack.flinkx.outputformat.BaseRichOutputFormat;
+import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
+import com.dtstack.flinkx.throwable.WriteRecordException;
+
+import org.apache.flink.table.data.RowData;
+
 import org.apache.solr.common.SolrInputDocument;
 
 import java.io.IOException;

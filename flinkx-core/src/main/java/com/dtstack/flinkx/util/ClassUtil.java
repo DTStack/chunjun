@@ -33,17 +33,18 @@ import java.util.Map;
 /**
  * Class Utility
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class ClassUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClassUtil.class);
 
-    public final static Object LOCK_STR = new Object();
+    public static final Object LOCK_STR = new Object();
 
-    public static void forName(String clazz, ClassLoader classLoader)  {
-        synchronized (LOCK_STR){
+    public static void forName(String clazz, ClassLoader classLoader) {
+        synchronized (LOCK_STR) {
             try {
                 Class.forName(clazz, true, classLoader);
                 DriverManager.setLoginTimeout(10);
@@ -53,8 +54,7 @@ public class ClassUtil {
         }
     }
 
-
-    public synchronized static void forName(String clazz) {
+    public static synchronized void forName(String clazz) {
         try {
             Class<?> driverClass = Class.forName(clazz);
             driverClass.newInstance();
@@ -65,6 +65,7 @@ public class ClassUtil {
 
     /**
      * 根据字段类型查找对应的基本类型
+     *
      * @param type
      * @return
      */

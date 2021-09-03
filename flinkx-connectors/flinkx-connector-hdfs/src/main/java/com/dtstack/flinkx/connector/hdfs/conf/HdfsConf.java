@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.connector.hdfs.conf;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
+
 import parquet.hadoop.ParquetWriter;
 
 import java.util.HashMap;
@@ -25,8 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Date: 2021/06/08
- * Company: www.dtstack.com
+ * Date: 2021/06/08 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -34,8 +34,9 @@ public class HdfsConf extends BaseFileConf {
 
     private String defaultFS;
     private String fileType;
-    /** hadoop高可用相关配置 **/
+    /** hadoop高可用相关配置 * */
     private Map<String, Object> hadoopConfig = new HashMap<>(16);
+
     private String filterRegex = "";
     private String fieldDelimiter = "\001";
     private int rowGroupSize = ParquetWriter.DEFAULT_BLOCK_SIZE;
@@ -117,16 +118,29 @@ public class HdfsConf extends BaseFileConf {
 
     @Override
     public String toString() {
-        return "HdfsConf{" +
-                "defaultFS='" + defaultFS + '\'' +
-                ", fileType='" + fileType + '\'' +
-                ", hadoopConfig=" + hadoopConfig +
-                ", filterRegex='" + filterRegex + '\'' +
-                ", fieldDelimiter='" + fieldDelimiter + '\'' +
-                ", rowGroupSize=" + rowGroupSize +
-                ", enableDictionary=" + enableDictionary +
-                ", fullColumnName=" + fullColumnName +
-                ", fullColumnType=" + fullColumnType +
-                '}';
+        return "HdfsConf{"
+                + "defaultFS='"
+                + defaultFS
+                + '\''
+                + ", fileType='"
+                + fileType
+                + '\''
+                + ", hadoopConfig="
+                + hadoopConfig
+                + ", filterRegex='"
+                + filterRegex
+                + '\''
+                + ", fieldDelimiter='"
+                + fieldDelimiter
+                + '\''
+                + ", rowGroupSize="
+                + rowGroupSize
+                + ", enableDictionary="
+                + enableDictionary
+                + ", fullColumnName="
+                + fullColumnName
+                + ", fullColumnType="
+                + fullColumnType
+                + '}';
     }
 }

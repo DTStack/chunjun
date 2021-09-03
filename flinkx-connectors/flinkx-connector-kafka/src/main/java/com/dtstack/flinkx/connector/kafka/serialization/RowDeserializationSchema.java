@@ -17,21 +17,23 @@
  */
 package com.dtstack.flinkx.connector.kafka.serialization;
 
+import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
+import com.dtstack.flinkx.connector.kafka.source.Calculate;
+import com.dtstack.flinkx.connector.kafka.source.DynamicKafkaDeserializationSchemaWrapper;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.util.JsonUtil;
+
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
-import com.dtstack.flinkx.connector.kafka.source.Calculate;
-import com.dtstack.flinkx.connector.kafka.source.DynamicKafkaDeserializationSchemaWrapper;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Date: 2021/03/04
- * Company: www.dtstack.com
+ * Date: 2021/03/04 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -40,34 +42,34 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaW
     private static final long serialVersionUID = 1L;
     /** kafka converter */
     private final AbstractRowConverter converter;
+    /** kafka conf */
+    private final KafkaConf kafkaConf;
 
     public RowDeserializationSchema(
-            AbstractRowConverter converter,
-            Calculate calculate) {
-        super(
-                1,
-                null,
-                null,
-                null,
-                null,
-                false,
-                null,
-                null,
-                false,
-                calculate);
+            KafkaConf kafkaConf, AbstractRowConverter converter, Calculate calculate) {
+        super(1, null, null, null, null, false, null, null, false, calculate);
+        this.kafkaConf = kafkaConf;
         this.converter = converter;
     }
 
     @Override
     public void open(DeserializationSchema.InitializationContext context) {
         beforeOpen();
+        LOG.info(
+                "[{}] open successfully, \ninputSplit = {}, \n[{}]: \n{} ",
+                this.getClass().getSimpleName(),
+                "see other log",
+                kafkaConf.getClass().getSimpleName(),
+                JsonUtil.toPrintJson(kafkaConf));
     }
 
     @Override
-    public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector) throws UnsupportedEncodingException {
+    public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector)
+            throws UnsupportedEncodingException {
         try {
             beforeDeserialize(record);
-            collector.collect(converter.toInternal(new String(record.value(), StandardCharsets.UTF_8)));
+            collector.collect(
+                    converter.toInternal(new String(record.value(), StandardCharsets.UTF_8)));
         } catch (Exception e) {
             // todo kafka 比较特殊这里直接对接脏数据即可
             dirtyDataCounter(record, e);

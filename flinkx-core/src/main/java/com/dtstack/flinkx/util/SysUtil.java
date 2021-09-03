@@ -28,7 +28,8 @@ import java.util.List;
 /**
  * System Utilities
  *
- * Company: www.dtstack.com
+ * <p>Company: www.dtstack.com
+ *
  * @author huyifan.zju@163.com
  */
 public class SysUtil {
@@ -40,21 +41,22 @@ public class SysUtil {
         }
     }
 
-    public static List<URL> findJarsInDir(File dir)  throws MalformedURLException {
+    public static List<URL> findJarsInDir(File dir) throws MalformedURLException {
         List<URL> urlList = new ArrayList<>();
 
-        if(dir.exists() && dir.isDirectory()) {
-            File[] jarFiles = dir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.toLowerCase().endsWith(".jar");
-                }
-            });
+        if (dir.exists() && dir.isDirectory()) {
+            File[] jarFiles =
+                    dir.listFiles(
+                            new FilenameFilter() {
+                                @Override
+                                public boolean accept(File dir, String name) {
+                                    return name.toLowerCase().endsWith(".jar");
+                                }
+                            });
 
-            for(File jarFile : jarFiles) {
+            for (File jarFile : jarFiles) {
                 urlList.add(jarFile.toURI().toURL());
             }
-
         }
 
         return urlList;

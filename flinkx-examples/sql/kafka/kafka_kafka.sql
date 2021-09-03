@@ -1,6 +1,6 @@
 -- {"id":100,"name":"lb james阿道夫","money":293.899778,"dateone":"2020-07-30 10:08:22","age":"33","datethree":"2020-07-30 10:08:22.123","datesix":"2020-07-30 10:08:22.123456","datenigth":"2020-07-30 10:08:22.123456789","dtdate":"2020-07-30","dttime":"10:08:22"}
 CREATE TABLE source_ods_fact_user_ippv (
-                                           id INT
+    id INT
     , name STRING
     , money decimal
     , dateone timestamp
@@ -22,13 +22,13 @@ CREATE TABLE source_ods_fact_user_ippv (
     , WATERMARK FOR datethree AS datethree - INTERVAL '5' SECOND
 ) WITH (
       'connector' = 'kafka-x'
-      ,'topic' = 'da'
+      ,'topic' = 'user_behavior'
       ,'properties.bootstrap.servers' = 'localhost:9092'
       ,'properties.group.id' = 'luna_g'
       ,'scan.startup.mode' = 'earliest-offset'
       ,'format' = 'json'
       ,'json.timestamp-format.standard' = 'SQL'
-      ,'scan.parallelism' = '3'
+      ,'scan.parallelism' = '1'
       );
 
 

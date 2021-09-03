@@ -25,11 +25,11 @@ import org.apache.flink.configuration.ConfigOptions;
  * @author chuixue
  * @create 2021-04-10 16:19
  * @description
- **/
+ */
 public class JdbcSinkOptions {
 
-    public static final ConfigOption<Boolean> SINK_ALLREPLACE =
-            ConfigOptions.key("sink.allReplace")
+    public static final ConfigOption<Boolean> SINK_ALL_REPLACE =
+            ConfigOptions.key("sink.all-replace")
                     .booleanType()
                     .defaultValue(false)
                     .withDescription("the max retry times if writing records to database failed.");
@@ -39,4 +39,10 @@ public class JdbcSinkOptions {
                     .intType()
                     .defaultValue(null)
                     .withDescription("sink.parallelism.");
+
+    public static final ConfigOption<String> SINK_SEMANTIC =
+            ConfigOptions.key("sink.semantic")
+                    .stringType()
+                    .defaultValue("at-least-once")
+                    .withDescription("sink.semantic.");
 }

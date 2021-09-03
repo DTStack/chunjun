@@ -19,11 +19,13 @@
 package com.dtstack.flinkx.connector.stream.source;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
-import com.dtstack.flinkx.inputformat.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
 import org.apache.commons.collections.CollectionUtils;
 
 /**
  * @Company: www.dtstack.com
+ *
  * @author jiangbo
  */
 public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
@@ -41,7 +43,7 @@ public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        if (CollectionUtils.isEmpty(format.getStreamConf().getColumn())){
+        if (CollectionUtils.isEmpty(format.getStreamConf().getColumn())) {
             throw new IllegalArgumentException("columns can not be empty");
         }
     }

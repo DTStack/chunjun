@@ -160,21 +160,21 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-parquet</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-parquet_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-orc</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-orc_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-json</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-json</artifactId>
+			<version>${flink.version}</version>
 			<scope>provided</scope>
 		</dependency>
     </dependencies>
@@ -198,14 +198,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <copy todir="${basedir}/../../flinkxplugins/hdfs"
+                                <copy todir="${basedir}/../../${dist.dir}/hdfs"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
                                 <!--suppress UnresolvedMavenProperty -->
-								<move file="${basedir}/../../flinkxplugins/hdfs/${project.artifactId}-${project.version}.jar"
-                                      tofile="${basedir}/../../flinkxplugins/hdfs/${project.artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/hdfs/${project.artifactId}-${project.version}.jar"
+                                      tofile="${basedir}/../../${dist.dir}/hdfs/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
 									<!--suppress UnresolvedMavenProperty -->
-									<fileset dir="${basedir}/../../flinkxplugins/hdfs/"
+									<fileset dir="${basedir}/../../${dist.dir}/hdfs/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>

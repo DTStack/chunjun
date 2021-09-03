@@ -18,6 +18,10 @@
 
 package com.dtstack.flinkx.connector.dm.converter;
 
+import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.util.StringUtil;
+
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
@@ -25,9 +29,6 @@ import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
-import com.dtstack.flinkx.connector.jdbc.converter.JdbcRowConverter;
-import com.dtstack.flinkx.converter.IDeserializationConverter;
-import com.dtstack.flinkx.util.StringUtil;
 import dm.jdbc.driver.DmdbBlob;
 import dm.jdbc.driver.DmdbClob;
 
@@ -37,18 +38,14 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/**
- * @author kunni
- */
-public class DmRowConverter
-        extends JdbcRowConverter {
+/** @author kunni */
+public class DmRowConverter extends JdbcRowConverter {
 
     private static final long serialVersionUID = 1L;
 
     public DmRowConverter(RowType rowType) {
         super(rowType);
     }
-
 
     @Override
     protected IDeserializationConverter createInternalConverter(LogicalType type) {
@@ -65,11 +62,11 @@ public class DmRowConverter
                 return val -> val;
             case TINYINT:
                 return val -> {
-                    if(val instanceof Byte){
+                    if (val instanceof Byte) {
                         return (Byte) val;
-                    }else if(val instanceof Short){
+                    } else if (val instanceof Short) {
                         return ((Short) val).byteValue();
-                    }else{
+                    } else {
                         return ((Integer) val).byteValue();
                     }
                 };
@@ -87,12 +84,16 @@ public class DmRowConverter
                 return val ->
                         val instanceof BigInteger
                                 ? DecimalData.fromBigDecimal(
-                                new BigDecimal((BigInteger) val, 0), precision, scale)
+                                        new BigDecimal((BigInteger) val, 0), precision, scale)
                                 : DecimalData.fromBigDecimal((BigDecimal) val, precision, scale);
             case DATE:
-                return val -> (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
+                return val ->
+                        (int) ((Date.valueOf(String.valueOf(val))).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> (int) ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay() / 1_000_000L);
+                return val ->
+                        (int)
+                                ((Time.valueOf(String.valueOf(val))).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> TimestampData.fromTimestamp((Timestamp) val);
@@ -100,19 +101,25 @@ public class DmRowConverter
             case VARCHAR:
                 return val -> {
                     // support text type
-                    if(val instanceof DmdbClob){
-                        try{
-                            return StringData.fromString(StringUtil.inputStream2String(((DmdbClob) val).getAsciiStream()));
-                        }catch (Exception e){
-                            throw new UnsupportedOperationException("failed to get length from text");
+                    if (val instanceof DmdbClob) {
+                        try {
+                            return StringData.fromString(
+                                    StringUtil.inputStream2String(
+                                            ((DmdbClob) val).getAsciiStream()));
+                        } catch (Exception e) {
+                            throw new UnsupportedOperationException(
+                                    "failed to get length from text");
                         }
-                    }else if(val instanceof DmdbBlob){
-                        try{
-                            return StringData.fromString(StringUtil.inputStream2String(((DmdbBlob) val).getBinaryStream()));
-                        }catch (Exception e){
-                            throw new UnsupportedOperationException("failed to get length from text");
+                    } else if (val instanceof DmdbBlob) {
+                        try {
+                            return StringData.fromString(
+                                    StringUtil.inputStream2String(
+                                            ((DmdbBlob) val).getBinaryStream()));
+                        } catch (Exception e) {
+                            throw new UnsupportedOperationException(
+                                    "failed to get length from text");
                         }
-                    }else {
+                    } else {
                         return StringData.fromString((String) val);
                     }
                 };
@@ -128,5 +135,4 @@ public class DmRowConverter
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
     }
-
 }

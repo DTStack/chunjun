@@ -18,11 +18,6 @@
 
 package com.dtstack.flinkx.connector.solr.converter;
 
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
@@ -31,6 +26,12 @@ import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -38,8 +39,6 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
@@ -130,8 +129,7 @@ public class SolrColumnConverter
             case VARCHAR:
                 return val -> new StringColumn((String) val);
             case DATE:
-                return val ->
-                        new TimestampColumn(((java.util.Date) val));
+                return val -> new TimestampColumn(((java.util.Date) val));
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
                         new TimestampColumn(
@@ -171,8 +169,7 @@ public class SolrColumnConverter
                         document.setField(name, ((ColumnRowData) val).getField(pos).asLong());
             case DECIMAL:
                 return (val, pos, name, document) ->
-                        document.setField(
-                                name, ((ColumnRowData) val).getField(pos).asBigDecimal());
+                        document.setField(name, ((ColumnRowData) val).getField(pos).asBigDecimal());
             case CHAR:
             case VARCHAR:
                 return (val, pos, name, document) ->
@@ -181,20 +178,22 @@ public class SolrColumnConverter
                 return (val, pos, name, document) ->
                         document.setField(
                                 name,
-                                Date.valueOf(((ColumnRowData) val)
-                                        .getField(pos)
-                                        .asTimestamp()
-                                        .toLocalDateTime()
-                                        .toLocalDate()));
+                                Date.valueOf(
+                                        ((ColumnRowData) val)
+                                                .getField(pos)
+                                                .asTimestamp()
+                                                .toLocalDateTime()
+                                                .toLocalDate()));
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, pos, name, document) ->
                         document.setField(
                                 name,
-                                Time.valueOf(((ColumnRowData) val)
-                                        .getField(pos)
-                                        .asTimestamp()
-                                        .toLocalDateTime()
-                                        .toLocalTime()));
+                                Time.valueOf(
+                                        ((ColumnRowData) val)
+                                                .getField(pos)
+                                                .asTimestamp()
+                                                .toLocalDateTime()
+                                                .toLocalTime()));
 
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:

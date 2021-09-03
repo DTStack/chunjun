@@ -18,12 +18,13 @@
 
 package com.dtstack.flinkx.connector.solr.client;
 
-import org.apache.flink.runtime.security.DynamicConfiguration;
-
 import com.dtstack.flinkx.connector.solr.SolrConf;
 import com.dtstack.flinkx.security.KerberosConfig;
 import com.dtstack.flinkx.security.KerberosUtils;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
+import org.apache.flink.runtime.security.DynamicConfiguration;
+
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -50,7 +51,6 @@ import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import static com.dtstack.flinkx.connector.solr.client.FlinkxKrb5HttpClientBuilder.SOLR_KERBEROS_JAAS_APPNAME;
 
@@ -66,9 +66,8 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private static final String JAAS_APP_NAME = "SolrJClient";
-
-    private CloudSolrClient cloudSolrClient;
     private final SolrConf solrConf;
+    private CloudSolrClient cloudSolrClient;
     private Subject subject;
 
     public CloudSolrClientKerberosWrapper(SolrConf solrConf) {
@@ -92,7 +91,8 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
         return Subject.doAs(subject, func);
     }
 
-    private void doWithKerberosException(PrivilegedExceptionAction<Object> func) throws PrivilegedActionException {
+    private void doWithKerberosException(PrivilegedExceptionAction<Object> func)
+            throws PrivilegedActionException {
         Subject.doAs(subject, func);
     }
 
@@ -133,9 +133,8 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
     }
 
     @Override
-    public NamedList<Object> request(
-            SolrRequest request,
-            String collection) throws SolrServerException, IOException {
+    public NamedList<Object> request(SolrRequest request, String collection)
+            throws SolrServerException, IOException {
         throw new FlinkxRuntimeException("do not support");
     }
 

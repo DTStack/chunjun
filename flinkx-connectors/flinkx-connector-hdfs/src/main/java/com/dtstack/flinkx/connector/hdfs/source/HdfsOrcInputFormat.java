@@ -17,16 +17,17 @@
  */
 package com.dtstack.flinkx.connector.hdfs.source;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.hdfs.InputSplit.HdfsOrcInputSplit;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.exception.ReadRecordException;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.ReadRecordException;
+
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.io.orc.OrcFile;
@@ -48,8 +49,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Date: 2021/06/08
- * Company: www.dtstack.com
+ * Date: 2021/06/08 Company: www.dtstack.com
  *
  * @author tudou
  */
@@ -65,8 +65,10 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     public HdfsOrcInputSplit[] createHdfsSplit(int minNumSplits) throws IOException {
         super.initHadoopJobConf();
         org.apache.hadoop.mapred.FileInputFormat.setInputPaths(hadoopJobConf, hdfsConf.getPath());
-        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(hadoopJobConf, HdfsPathFilter.class);
-        org.apache.hadoop.mapred.InputSplit[] splits = new OrcInputFormat().getSplits(hadoopJobConf, minNumSplits);
+        org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(
+                hadoopJobConf, HdfsPathFilter.class);
+        org.apache.hadoop.mapred.InputSplit[] splits =
+                new OrcInputFormat().getSplits(hadoopJobConf, minNumSplits);
 
         if (splits != null) {
             List<HdfsOrcInputSplit> list = new ArrayList<>(splits.length);
@@ -95,28 +97,34 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         HdfsOrcInputSplit hdfsOrcInputSplit = (HdfsOrcInputSplit) inputSplit;
         OrcSplit orcSplit = hdfsOrcInputSplit.getOrcSplit();
 
+        if (openKerberos) {
+            ugi.doAs(
+                    new PrivilegedAction<Object>() {
+                        @Override
+                        public Object run() {
+                            try {
+                                init(orcSplit);
+                                openOrcReader(inputSplit);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                            return null;
+                        }
+                    });
+        } else {
+            init(orcSplit);
+            openOrcReader(inputSplit);
+        }
+    }
+
+    public void init(OrcSplit orcSplit) throws IOException {
         try {
             if (!isInit.get()) {
                 init(orcSplit.getPath());
                 isInit.set(true);
             }
         } catch (Exception e) {
-            throw new IOException("Error initializing inspector", e);
-        }
-
-        if (openKerberos) {
-            ugi.doAs(
-                    (PrivilegedAction<Object>)
-                            () -> {
-                                try {
-                                    openOrcReader(inputSplit);
-                                } catch (Exception e) {
-                                    throw new FlinkxRuntimeException("error to open Internal, split = " + inputSplit, e);
-                                }
-                                return null;
-                            });
-        } else {
-            openOrcReader(inputSplit);
+            throw new IOException("init inspector error", e);
         }
     }
 
@@ -153,7 +161,8 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         typeStruct = typeStruct.substring(startIndex, endIndex);
 
         if (typeStruct.matches(COMPLEX_FIELD_TYPE_SYMBOL_REGEX)) {
-            throw new FlinkxRuntimeException("Field types such as array, map, and struct are not supported.");
+            throw new FlinkxRuntimeException(
+                    "Field types such as array, map, and struct are not supported.");
         }
 
         List<String> columnList = parseColumnAndType(typeStruct);
@@ -221,7 +230,8 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
         List<FieldConf> fieldConfList = hdfsConf.getColumn();
         GenericRowData genericRowData;
-        if (fieldConfList.size() == 1 && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())){
+        if (fieldConfList.size() == 1
+                && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {
             genericRowData = new GenericRowData(fullColNames.length);
             for (int i = 0; i < fullColNames.length; i++) {
                 Object obj = inspector.getStructFieldData(value, fields.get(i));
@@ -235,9 +245,10 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
             for (int i = 0; i < fieldConfList.size(); i++) {
                 FieldConf fieldConf = fieldConfList.get(i);
                 Object obj = null;
-                if(fieldConf.getValue() != null){
+                if (fieldConf.getValue() != null) {
                     obj = fieldConf.getValue();
-                }else if(fieldConf.getIndex() != null && fieldConf.getIndex() < fullColNames.length){
+                } else if (fieldConf.getIndex() != null
+                        && fieldConf.getIndex() < fullColNames.length) {
                     obj = inspector.getStructFieldData(value, fields.get(fieldConf.getIndex()));
                 }
 
@@ -246,7 +257,7 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
         }
         try {
             return rowConverter.toInternal(genericRowData);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new ReadRecordException("", e, 0, rowData);
         }
     }
