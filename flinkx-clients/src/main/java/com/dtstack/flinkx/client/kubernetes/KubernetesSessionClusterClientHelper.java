@@ -28,8 +28,8 @@ import org.apache.flink.client.program.ClusterClientProvider;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.kubernetes.KubernetesClusterDescriptor;
 import org.apache.flink.kubernetes.configuration.KubernetesConfigOptions;
-import org.apache.flink.kubernetes.kubeclient.DefaultKubeClientFactory;
 import org.apache.flink.kubernetes.kubeclient.FlinkKubeClient;
+import org.apache.flink.kubernetes.kubeclient.FlinkKubeClientFactory;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +61,7 @@ public class KubernetesSessionClusterClientHelper implements ClusterClientHelper
         }
 
         FlinkKubeClient flinkKubeClient =
-                DefaultKubeClientFactory.getInstance().fromConfiguration(configuration);
+                FlinkKubeClientFactory.getInstance().fromConfiguration(configuration, "flinkx");
         try (KubernetesClusterDescriptor descriptor =
                 new KubernetesClusterDescriptor(configuration, flinkKubeClient); ) {
             ClusterClientProvider<String> retrieve = descriptor.retrieve(clusterId);
