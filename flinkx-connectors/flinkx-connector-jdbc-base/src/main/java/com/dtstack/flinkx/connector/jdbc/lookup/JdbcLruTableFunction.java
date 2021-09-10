@@ -316,8 +316,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                                     String.format(
                                             "\nget data with sql [%s],data [%s] failed! \ncause: [%s]",
                                             query, Arrays.toString(keys), rs.cause().getMessage()));
-                            dealFillDataError(future, rs.cause());
-                            return;
+                            throw new RuntimeException(rs.cause().getMessage(), rs.cause());
                         }
 
                         List<JsonArray> cacheContent = new ArrayList<>();
