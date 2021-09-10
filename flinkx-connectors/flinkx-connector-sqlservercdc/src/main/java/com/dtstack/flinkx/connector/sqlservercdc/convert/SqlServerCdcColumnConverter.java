@@ -33,10 +33,9 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.StringUtil;
 
+import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
-
-import com.google.common.collect.Maps;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
