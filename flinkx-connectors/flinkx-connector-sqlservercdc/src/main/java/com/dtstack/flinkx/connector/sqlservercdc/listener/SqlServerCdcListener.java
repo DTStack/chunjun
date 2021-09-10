@@ -89,9 +89,9 @@ public class SqlServerCdcListener implements Runnable {
     @Override
     public void run() {
         LOG.info("SqlServerCdcListener start running.....");
-        try {
-            Metronome metronome = Metronome.sleeper(pollInterval, Clock.system());
-            while (true) {
+        Metronome metronome = Metronome.sleeper(pollInterval, Clock.system());
+        while (true) {
+            try {
                 Lsn currentMaxLsn = SqlServerCdcUtil.getMaxLsn(conn);
 
                 // Shouldn't happen if the agent is running, but it is better to guard against such
@@ -115,10 +115,10 @@ public class SqlServerCdcListener implements Runnable {
                 LOG.debug("currentMaxLsn = {}", logPosition);
                 logPosition = TxLogPosition.valueOf(currentMaxLsn);
                 conn.rollback();
+            } catch (Exception e) {
+                String errorMessage = ExceptionUtil.getErrorMessage(e);
+                LOG.error(errorMessage, e);
             }
-        } catch (Exception e) {
-            String errorMessage = ExceptionUtil.getErrorMessage(e);
-            LOG.error(errorMessage);
         }
     }
 

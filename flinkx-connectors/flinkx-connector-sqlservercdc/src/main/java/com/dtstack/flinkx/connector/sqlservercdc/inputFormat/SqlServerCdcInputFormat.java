@@ -124,7 +124,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
     protected RowData nextRecordInternal(RowData row) throws ReadRecordException {
         RowData rowData = null;
         try {
-            rowData = queue.take();
+            rowData = queue.poll(100, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             LOG.error("takeEvent interrupted error:{}", ExceptionUtil.getErrorMessage(e));
             throw new ReadRecordException("takeEvent interrupted error", e);
