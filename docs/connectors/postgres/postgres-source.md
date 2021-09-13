@@ -21,7 +21,7 @@ PostgreSql 9.4及以上
     - 默认值：无
       ```text
       "connection": [{
-       "jdbcUrl": ["jdbc:postgreql://0.0.0.1:5432/database?useSSL=false"],
+       "jdbcUrl": ["jdbc:postgresql://0.0.0.1:5432/database?useSSL=false"],
        "table": ["table"],
        "schema":"public"
       }]
