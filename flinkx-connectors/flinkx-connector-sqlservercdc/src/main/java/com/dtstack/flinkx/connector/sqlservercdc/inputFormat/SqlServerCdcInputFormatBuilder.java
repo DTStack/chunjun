@@ -137,16 +137,21 @@ public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
                 throw new IllegalArgumentException(sb.toString());
             }
             List<String> formatTables = new ArrayList<>();
-            format.sqlserverCdcConf.getTableList().forEach(e -> {
-                List<String> strings =
-                        StringUtil.splitIgnoreQuota(
-                                e, ConstantValue.POINT_SYMBOL.charAt(0));
-                if (strings.size() == 2) {
-                    formatTables.add(String.format(tableFormat, strings.get(0), strings.get(1)));
-                } else {
-                    formatTables.add(strings.get(0));
-                }
-            });
+            format.sqlserverCdcConf
+                    .getTableList()
+                    .forEach(
+                            e -> {
+                                List<String> strings =
+                                        StringUtil.splitIgnoreQuota(
+                                                e, ConstantValue.POINT_SYMBOL.charAt(0));
+                                if (strings.size() == 2) {
+                                    formatTables.add(
+                                            String.format(
+                                                    tableFormat, strings.get(0), strings.get(1)));
+                                } else {
+                                    formatTables.add(strings.get(0));
+                                }
+                            });
             format.sqlserverCdcConf.setTableList(formatTables);
             // check table cdc is enable
             Set<String> unEnabledCdcTables =
