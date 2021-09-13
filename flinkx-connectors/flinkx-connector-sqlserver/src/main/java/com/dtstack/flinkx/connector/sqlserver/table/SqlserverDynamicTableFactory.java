@@ -25,6 +25,7 @@ import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.sqlserver.dialect.SqlserverDialect;
 import com.dtstack.flinkx.connector.sqlserver.sink.SqlserverOutputFormat;
 import com.dtstack.flinkx.connector.sqlserver.source.SqlserverInputFormat;
+
 import org.apache.flink.table.connector.source.DynamicTableSource;
 
 import java.util.Map;
