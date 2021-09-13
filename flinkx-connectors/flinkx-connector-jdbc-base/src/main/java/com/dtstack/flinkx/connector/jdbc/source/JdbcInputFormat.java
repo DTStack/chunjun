@@ -204,7 +204,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                                     String.format(
                                             "cannot connect to %s, username = %s, please check %s is available.",
                                             jdbcConf.getJdbcUrl(),
-                                            jdbcConf.getJdbcUrl(),
+                                            jdbcConf.getUsername(),
                                             jdbcDialect.dialectName());
                             throw new FlinkxRuntimeException(message);
                         }

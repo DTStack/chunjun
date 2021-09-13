@@ -21,6 +21,7 @@ package com.dtstack.flinkx.connector.sqlserver.source;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 
 import java.sql.Connection;
@@ -103,9 +104,9 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                                     String.format(
                                             "cannot connect to %s, username = %s, please check %s is available.",
                                             jdbcConf.getJdbcUrl(),
-                                            jdbcConf.getJdbcUrl(),
+                                            jdbcConf.getUsername(),
                                             jdbcDialect.dialectName());
-                            throw new RuntimeException(message);
+                            throw new FlinkxRuntimeException(message);
                         }
                     }
                     if (!dbConn.getAutoCommit()) {
@@ -113,7 +114,7 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                     }
                     JdbcUtil.closeDbResources(resultSet, null, null, false);
                     // 此处endLocation理应不会为空
-                    queryForPolling(endLocationAccumulator.getLocalValue().toString());
+                    queryForPolling(String.valueOf(state));
                     return false;
                 } catch (InterruptedException e) {
                     LOG.warn("interrupted while waiting for polling, e = {}", e);
@@ -123,9 +124,9 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                             String.format(
                                     "error to execute sql = %s, startLocation = %s, e = %s",
                                     jdbcConf.getQuerySql(),
-                                    endLocationAccumulator.getLocalValue(),
+                                    state,
                                     ExceptionUtil.getErrorMessage(e));
-                    throw new RuntimeException(message, e);
+                    throw new FlinkxRuntimeException(message, e);
                 }
             }
             return true;
