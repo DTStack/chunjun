@@ -25,6 +25,9 @@ import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.sqlserver.dialect.SqlserverDialect;
 import com.dtstack.flinkx.connector.sqlserver.sink.SqlserverOutputFormat;
 import com.dtstack.flinkx.connector.sqlserver.source.SqlserverInputFormat;
+import org.apache.flink.table.connector.source.DynamicTableSource;
+
+import java.util.Map;
 
 /**
  * Company：www.dtstack.com
@@ -56,5 +59,12 @@ public class SqlserverDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     protected JdbcOutputFormatBuilder getOutputFormatBuilder() {
         return new JdbcOutputFormatBuilder(new SqlserverOutputFormat());
+    }
+
+    @Override
+    public DynamicTableSource createDynamicTableSource(Context context) {
+        Map<String, String> prop = context.getCatalogTable().getOptions();
+        prop.put("druid.validation-query", "SELECT 1");
+        return super.createDynamicTableSource(context);
     }
 }
