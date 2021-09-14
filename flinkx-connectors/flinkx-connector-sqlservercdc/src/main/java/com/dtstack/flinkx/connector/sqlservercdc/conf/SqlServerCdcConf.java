@@ -37,7 +37,7 @@ public class SqlServerCdcConf extends FlinkxCommonConf {
     private String cat;
     private boolean pavingData;
     private List<String> tableList;
-    private Long pollInterval;
+    private Long pollInterval = 1000L;
     private String lsn;
     private boolean splitUpdate;
     private String timestampFormat = "sql";
