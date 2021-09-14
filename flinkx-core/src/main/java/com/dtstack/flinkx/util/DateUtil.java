@@ -87,6 +87,8 @@ public class DateUtil {
                     "^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3,9})?Z$");
     private static final Pattern DATE = Pattern.compile("^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}$");
     private static final Pattern TIME = Pattern.compile("^\\d{2}:\\d{2}:\\d{2}(\\.\\d{3,9})?Z$");
+    private static final Pattern TIMESTAMP_FORMAT_PATTERN =
+            Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}?.*");
     private static final int MILLIS_PER_SECOND = 1000;
 
     /** parse yyyy-MM-dd HH:mm:ss.SSSSSS format string, like '2021-06-12 12:01:21.011101' * */
@@ -197,6 +199,14 @@ public class DateUtil {
 
         throw new IllegalArgumentException(
                 "Can't convert " + column.getClass().getName() + " to Date");
+    }
+
+    /** 将 2020-09-07 14:49:10.0 Timestamp */
+    public static Timestamp convertToTimestamp(String timestamp) {
+        if (TIMESTAMP_FORMAT_PATTERN.matcher(timestamp).find()) {
+            return Timestamp.valueOf(timestamp);
+        }
+        return null;
     }
 
     public static long getMillSecond(String data) {

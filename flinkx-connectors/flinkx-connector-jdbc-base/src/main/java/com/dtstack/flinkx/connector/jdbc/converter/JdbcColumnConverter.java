@@ -44,6 +44,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.List;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
@@ -135,7 +136,15 @@ public class JdbcColumnConverter
             case TIME_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
+                return (IDeserializationConverter<Object, AbstractBaseColumn>)
+                        val -> {
+                            Timestamp timestamp = DateUtil.convertToTimestamp(val.toString());
+                            if (timestamp != null) {
+                                return new TimestampColumn(timestamp);
+                            }
+                            return new TimestampColumn(
+                                    DateUtil.getTimestampFromStr(val.toString()));
+                        };
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
