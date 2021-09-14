@@ -21,6 +21,7 @@ import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -87,11 +88,17 @@ public class KafkaConf extends FlinkxCommonConf {
     }
 
     public String getOffset() {
-        return offset;
+        if (offset == null) {
+            return offset;
+        }
+        return offset.toLowerCase(Locale.ENGLISH);
     }
 
     public void setOffset(String offset) {
         this.offset = offset;
+        if (this.offset != null) {
+            this.offset = this.offset.toLowerCase(Locale.ENGLISH);
+        }
     }
 
     public long getTimestamp() {
