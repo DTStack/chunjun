@@ -24,9 +24,7 @@ import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchColumn
 import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRawTypeConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
-
 import com.dtstack.flinkx.util.JsonUtil;
-
 import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -48,7 +46,8 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
         super(syncConf);
         elasticsearchConf =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getWriter().getParameter()), ElasticsearchConf.class);
+                        JsonUtil.toJson(syncConf.getWriter().getParameter()),
+                        ElasticsearchConf.class);
         elasticsearchConf.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(elasticsearchConf);
         elasticsearchConf.setParallelism(1);
@@ -58,9 +57,8 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         ElasticsearchOutputFormatBuilder builder = new ElasticsearchOutputFormatBuilder();
         builder.setEsConf(elasticsearchConf);
-        final RowType rowType = TableUtil.createRowType(
-                elasticsearchConf.getColumn(),
-                getRawTypeConverter());
+        final RowType rowType =
+                TableUtil.createRowType(elasticsearchConf.getColumn(), getRawTypeConverter());
         builder.setRowConverter(new ElasticsearchColumnConverter(rowType));
         return createOutput(dataSet, builder.finish());
     }

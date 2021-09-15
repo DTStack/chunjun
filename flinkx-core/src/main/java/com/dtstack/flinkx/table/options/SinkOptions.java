@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.sink.options;
+package com.dtstack.flinkx.table.options;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;

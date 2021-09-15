@@ -21,9 +21,9 @@ import com.dtstack.flinkx.connector.hdfs.conf.HdfsConf;
 import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
 import com.dtstack.flinkx.connector.hdfs.sink.HdfsDynamicTableSink;
 import com.dtstack.flinkx.connector.hdfs.source.HdfsDynamicTableSource;
-import com.dtstack.flinkx.sink.options.SinkOptions;
 import com.dtstack.flinkx.source.options.SourceOptions;
 import com.dtstack.flinkx.table.options.BaseFileOptions;
+import com.dtstack.flinkx.table.options.SinkOptions;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;

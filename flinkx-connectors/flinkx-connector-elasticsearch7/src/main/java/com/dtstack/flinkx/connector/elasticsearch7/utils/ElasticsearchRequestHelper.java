@@ -44,33 +44,30 @@ public class ElasticsearchRequestHelper {
 
     /**
      * create Elasticsearch UpdateRequest.
+     *
      * @param index
      * @param key
      * @return
      */
     public static UpdateRequest createUpdateRequest(
-            String index,
-            String key,
-            Map<String, Object> dataMap) {
-        return new UpdateRequest(index, key)
-                .doc(dataMap)
-                .upsert(dataMap);
+            String index, String key, Map<String, Object> dataMap) {
+        return new UpdateRequest(index, key).doc(dataMap).upsert(dataMap);
     }
 
     /**
      * create Elasticsearch IndexRequest.
+     *
      * @param index
      * @param dataMap
      * @return
      */
-    public static IndexRequest createIndexRequest(
-            String index,
-            Map<String, Object> dataMap) {
+    public static IndexRequest createIndexRequest(String index, Map<String, Object> dataMap) {
         return new IndexRequest(index).source(dataMap);
     }
 
     /**
      * create Elasticsearch DeleteRequest.
+     *
      * @param index
      * @param key
      * @return
@@ -81,12 +78,14 @@ public class ElasticsearchRequestHelper {
 
     /**
      * build search request
+     *
      * @param index
      * @param scroll
      * @param searchSourceBuilder
      * @return
      */
-    public static SearchRequest createSearchRequest(String index, Scroll scroll, SearchSourceBuilder searchSourceBuilder) {
+    public static SearchRequest createSearchRequest(
+            String index, Scroll scroll, SearchSourceBuilder searchSourceBuilder) {
         SearchRequest searchRequest = new SearchRequest(index);
         if (scroll != null) {
             searchRequest.scroll(scroll);
@@ -95,22 +94,18 @@ public class ElasticsearchRequestHelper {
         return searchRequest;
     }
 
-    public static SearchSourceBuilder createSourceBuilder(String[] fieldsName, String[] keyNames, Object... keys) {
+    public static SearchSourceBuilder createSourceBuilder(
+            String[] fieldsName, String[] keyNames, Object... keys) {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
 
-        if (keyNames != null && keys != null
-                && keyNames.length > 0) {
-            List<String> keyValues = Arrays.stream(keys)
-                    .map(e -> String.valueOf(e))
-                    .collect(Collectors.toList());
+        if (keyNames != null && keys != null && keyNames.length > 0) {
+            List<String> keyValues =
+                    Arrays.stream(keys).map(e -> String.valueOf(e)).collect(Collectors.toList());
             List<String> tempKeyNames = Arrays.asList(keyNames);
-            for (int i = 0; i< tempKeyNames.size(); i++){
-                queryBuilder.must(QueryBuilders.termQuery(
-                        tempKeyNames.get(i),
-                        keyValues.get(i)
-                ));
+            for (int i = 0; i < tempKeyNames.size(); i++) {
+                queryBuilder.must(QueryBuilders.termQuery(tempKeyNames.get(i), keyValues.get(i)));
             }
         }
         sourceBuilder.query(queryBuilder);

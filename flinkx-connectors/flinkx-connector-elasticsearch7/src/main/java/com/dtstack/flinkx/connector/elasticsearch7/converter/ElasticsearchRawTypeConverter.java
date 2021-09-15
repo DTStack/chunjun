@@ -35,7 +35,7 @@ public class ElasticsearchRawTypeConverter {
 
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
-            // Numeric Types
+                // Numeric Types
             case "BYTE":
             case "INT2":
                 return DataTypes.SMALLINT();
@@ -69,7 +69,7 @@ public class ElasticsearchRawTypeConverter {
             case "TIME":
             case "TIMETZ":
                 return DataTypes.TIME();
-            // interval 类型还不知道如何支持
+                // interval 类型还不知道如何支持
             case "BOOLEAN":
             case "BOOL":
                 return DataTypes.BOOLEAN();

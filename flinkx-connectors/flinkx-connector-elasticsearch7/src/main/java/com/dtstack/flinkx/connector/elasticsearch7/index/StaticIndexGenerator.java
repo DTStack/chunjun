@@ -22,9 +22,7 @@ import org.apache.flink.streaming.connectors.elasticsearch.index.IndexGenerator;
 import org.apache.flink.streaming.connectors.elasticsearch.index.IndexGeneratorBase;
 import org.apache.flink.types.Row;
 
-/**
- * A static {@link IndexGenerator} which generate fixed index name.
- */
+/** A static {@link IndexGenerator} which generate fixed index name. */
 public class StaticIndexGenerator extends IndexGeneratorBase {
 
     public StaticIndexGenerator(String index) {

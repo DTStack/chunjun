@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.elasticsearch7.source;
+package com.dtstack.flinkx.connector.elasticsearch7.table;
 
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
 import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRowConverter;
-import com.dtstack.flinkx.connector.elasticsearch7.lookup.ElasticsearchAllTableFunction;
-import com.dtstack.flinkx.connector.elasticsearch7.lookup.ElasticsearchLruTableFunction;
+import com.dtstack.flinkx.connector.elasticsearch7.source.ElasticsearchInputFormatBuilder;
+import com.dtstack.flinkx.connector.elasticsearch7.table.lookup.ElasticsearchAllTableFunction;
+import com.dtstack.flinkx.connector.elasticsearch7.table.lookup.ElasticsearchLruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
@@ -48,13 +49,17 @@ import org.apache.flink.util.Preconditions;
  * @author: lany
  * @create: 2021/06/27 17:24
  */
-public class ElasticsearchDynamicTableSource implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
+public class ElasticsearchDynamicTableSource
+        implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
-    private TableSchema physicalSchema;
     protected final ElasticsearchConf elasticsearchConf;
     protected final LookupConf lookupConf;
+    private TableSchema physicalSchema;
 
-    public ElasticsearchDynamicTableSource(TableSchema physicalSchema, ElasticsearchConf elasticsearchConf, LookupConf lookupConf) {
+    public ElasticsearchDynamicTableSource(
+            TableSchema physicalSchema,
+            ElasticsearchConf elasticsearchConf,
+            LookupConf lookupConf) {
         this.physicalSchema = physicalSchema;
         this.elasticsearchConf = elasticsearchConf;
         this.lookupConf = lookupConf;
@@ -87,9 +92,7 @@ public class ElasticsearchDynamicTableSource implements ScanTableSource, LookupT
         builder.setEsConf(elasticsearchConf);
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
-                false,
-                1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
     }
 
     @Override
@@ -110,10 +113,8 @@ public class ElasticsearchDynamicTableSource implements ScanTableSource, LookupT
                             lookupConf,
                             physicalSchema.getFieldNames(),
                             keyNames,
-                            new ElasticsearchRowConverter(rowType)
-                    ),
-                    lookupConf.getParallelism()
-            );
+                            new ElasticsearchRowConverter(rowType)),
+                    lookupConf.getParallelism());
         }
 
         return ParallelTableFunctionProvider.of(
@@ -122,10 +123,8 @@ public class ElasticsearchDynamicTableSource implements ScanTableSource, LookupT
                         lookupConf,
                         physicalSchema.getFieldNames(),
                         keyNames,
-                        new ElasticsearchRowConverter(rowType)
-                ),
-                lookupConf.getParallelism()
-        );
+                        new ElasticsearchRowConverter(rowType)),
+                lookupConf.getParallelism());
     }
 
     @Override

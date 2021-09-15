@@ -16,9 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.elasticsearch7.lookup;
-
-import org.apache.flink.table.data.GenericRowData;
+package com.dtstack.flinkx.connector.elasticsearch7.table.lookup;
 
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
 import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchRequestHelper;
@@ -26,6 +24,9 @@ import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+
+import org.apache.flink.table.data.GenericRowData;
+
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -47,10 +48,9 @@ import java.util.Map;
  */
 public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
 
-    Logger LOG = LoggerFactory.getLogger(ElasticsearchAllTableFunction.class);
     private static final long serialVersionUID = 2L;
-
     private final ElasticsearchConf elasticsearchConf;
+    Logger LOG = LoggerFactory.getLogger(ElasticsearchAllTableFunction.class);
     private transient RestHighLevelClient rhlClient;
 
     public ElasticsearchAllTableFunction(
@@ -76,9 +76,9 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
         try {
             searchResponse = rhlClient.search(requestBuilder, RequestOptions.DEFAULT);
             searchHits = searchResponse.getHits().getHits();
-            for(SearchHit searchHit : searchHits) {
-                Map<String,Object> oneRow = new HashMap<>();
-                Map<String, Object> source = searchHit.getSourceAsMap();;
+            for (SearchHit searchHit : searchHits) {
+                Map<String, Object> oneRow = new HashMap<>();
+                Map<String, Object> source = searchHit.getSourceAsMap();
                 try {
                     GenericRowData rowData = (GenericRowData) rowConverter.toInternal(source);
                     for (int i = 0; i < fieldsName.length; i++) {
@@ -97,19 +97,14 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
 
     /**
      * build search request
+     *
      * @return
      */
     private SearchRequest buildSearchRequest() {
-        SearchSourceBuilder sourceBuilder = ElasticsearchRequestHelper.createSourceBuilder(
-                fieldsName,
-                null,
-                null
-        );
+        SearchSourceBuilder sourceBuilder =
+                ElasticsearchRequestHelper.createSourceBuilder(fieldsName, null, null);
         sourceBuilder.size(lookupConf.getFetchSize());
         return ElasticsearchRequestHelper.createSearchRequest(
-                elasticsearchConf.getIndex(),
-                null,
-                sourceBuilder
-        );
+                elasticsearchConf.getIndex(), null, sourceBuilder);
     }
 }

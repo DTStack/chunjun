@@ -87,8 +87,8 @@ Elasticsearch 7.x
    - 必须：否
    - 参数类型：String
    - 默认值：无
-- bulk-flush.max-actions
-   - 描述：一次性读取es数据的条数
+- sink.bulk-flush.max-actions
+   - 描述：批量写入es数据的条数
    - 必须：否
    - 参数类型：Integer
    - 默认值：1

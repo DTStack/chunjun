@@ -27,7 +27,7 @@ import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
-import com.dtstack.flinkx.sink.options.SinkOptions;
+import com.dtstack.flinkx.table.options.SinkOptions;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 

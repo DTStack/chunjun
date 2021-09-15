@@ -13,6 +13,10 @@
 	<name>FlinkX : Connectors : </name>
     <packaging>pom</packaging>
 
+	<properties>
+		<connector.base.dir>connector</connector.base.dir>
+	</properties>
+
     <modules>
         <!--mock & print-->
         <module>flinkx-connector-stream</module>
@@ -46,8 +50,8 @@
         <module>flinkx-connector-hbase-1.4</module>
         <module>flinkx-connector-phoenix5</module>
 <!--		<module>flinkx-connector-elasticsearch5</module>-->
-		<module>flinkx-connector-elasticsearch6</module>
-<!--		<module>flinkx-connector-elasticsearch7</module>-->
+<!--		<module>flinkx-connector-elasticsearch6</module>-->
+		<module>flinkx-connector-elasticsearch7</module>
 		<module>flinkx-connector-redis</module>
 		<module>flinkx-connector-mongodb</module>
 		<module>flinkx-connector-solr</module>
@@ -65,23 +69,54 @@
 	</modules>
 
 
-    <dependencies>
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-core</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-    </dependencies>
-
+	<dependencies>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-core</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-classic</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>copy-resources</id>
+							<!-- here the phase you need -->
+							<phase>package</phase>
+							<goals>
+								<goal>run</goal>
+							</goals>
+							<configuration>
+								<tasks>
+									<copy todir="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/"
+										  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+									<move file="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/${project.artifactId}-${project.version}.jar"
+										  tofile="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/${project.artifactId}-${git.branch}.jar"/>
+									<delete>
+										<fileset dir="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/"
+												 includes="${project.artifactId}-*.jar"
+												 excludes="${project.artifactId}-${git.branch}.jar"/>
+									</delete>
+								</tasks>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 </project>

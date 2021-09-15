@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.elasticsearch7.sink;
+package com.dtstack.flinkx.connector.elasticsearch7.table;
 
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
 import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRowConverter;
+import com.dtstack.flinkx.connector.elasticsearch7.sink.ElasticsearchOutputFormatBuilder;
 import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.api.TableSchema;
@@ -40,7 +41,8 @@ public class ElasticsearchDynamicTableSink implements DynamicTableSink {
     private final TableSchema physicalSchema;
     private final ElasticsearchConf elasticsearchConf;
 
-    public ElasticsearchDynamicTableSink(TableSchema physicalSchema, ElasticsearchConf elasticsearchConf) {
+    public ElasticsearchDynamicTableSink(
+            TableSchema physicalSchema, ElasticsearchConf elasticsearchConf) {
         this.physicalSchema = physicalSchema;
         this.elasticsearchConf = elasticsearchConf;
     }
@@ -71,14 +73,11 @@ public class ElasticsearchDynamicTableSink implements DynamicTableSink {
 
     @Override
     public DynamicTableSink copy() {
-        return new ElasticsearchDynamicTableSink(physicalSchema,
-                elasticsearchConf);
+        return new ElasticsearchDynamicTableSink(physicalSchema, elasticsearchConf);
     }
 
     @Override
     public String asSummaryString() {
         return "Elasticsearch7 sink";
     }
-
-
 }

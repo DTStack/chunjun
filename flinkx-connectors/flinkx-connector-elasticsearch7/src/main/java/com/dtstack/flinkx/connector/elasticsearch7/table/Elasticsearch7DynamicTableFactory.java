@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.table;
 
+import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
+import com.dtstack.flinkx.lookup.conf.LookupConf;
+
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -28,10 +31,6 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-import com.dtstack.flinkx.connector.elasticsearch7.sink.ElasticsearchDynamicTableSink;
-import com.dtstack.flinkx.connector.elasticsearch7.source.ElasticsearchDynamicTableSource;
-import com.dtstack.flinkx.lookup.conf.LookupConf;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -39,15 +38,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_BULK_FLUSH_MAX_ACTIONS_OPTION;
-import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_CLIENT_CONNECT_TIMEOUT_OPTION;
-import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_CLIENT_KEEPALIVE_TIME_OPTION;
-import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_CLIENT_MAX_CONNECTION_PER_ROUTE_OPTION;
-import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_CLIENT_REQUEST_TIMEOUT_OPTION;
-import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_CLIENT_SOCKET_TIMEOUT_OPTION;
-import static com.dtstack.flinkx.connector.elasticsearch7.options.DtElasticsearchOptions.DT_PARALLELISM_OPTION;
-import static com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchConstants.IDENTIFIER;
-
+import static com.dtstack.flinkx.connector.elasticsearch7.table.Elasticsearch7Options.CLIENT_CONNECT_TIMEOUT_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch7.table.Elasticsearch7Options.CLIENT_KEEPALIVE_TIME_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch7.table.Elasticsearch7Options.CLIENT_MAX_CONNECTION_PER_ROUTE_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch7.table.Elasticsearch7Options.CLIENT_REQUEST_TIMEOUT_OPTION;
+import static com.dtstack.flinkx.connector.elasticsearch7.table.Elasticsearch7Options.CLIENT_SOCKET_TIMEOUT_OPTION;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ASYNC_TIMEOUT;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_MAX_ROWS;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_CACHE_PERIOD;
@@ -57,6 +52,7 @@ import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_PARALLELISM;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLASH_MAX_SIZE_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_BACKOFF_DELAY_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION;
@@ -81,36 +77,36 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
  * @author: lany
  * @create: 2021/06/27 17:29
  */
-public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFactory, DynamicTableSinkFactory {
+public class Elasticsearch7DynamicTableFactory
+        implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
     private static final Set<ConfigOption<?>> requiredOptions =
             Stream.of(HOSTS_OPTION, INDEX_OPTION).collect(Collectors.toSet());
     private static final Set<ConfigOption<?>> optionalOptions =
             Stream.of(
-                    KEY_DELIMITER_OPTION,
-                    FAILURE_HANDLER_OPTION,
-                    FLUSH_ON_CHECKPOINT_OPTION,
-                    BULK_FLASH_MAX_SIZE_OPTION,
-                    BULK_FLUSH_MAX_ACTIONS_OPTION,
-                    DT_BULK_FLUSH_MAX_ACTIONS_OPTION,
-                    BULK_FLUSH_INTERVAL_OPTION,
-                    BULK_FLUSH_BACKOFF_TYPE_OPTION,
-                    BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
-                    BULK_FLUSH_BACKOFF_DELAY_OPTION,
-                    CONNECTION_MAX_RETRY_TIMEOUT_OPTION,
-                    CONNECTION_PATH_PREFIX,
-                    FORMAT_OPTION,
-                    PASSWORD_OPTION,
-                    USERNAME_OPTION,
-                    LOOKUP_CACHE_PERIOD,
-                    LOOKUP_CACHE_MAX_ROWS,
-                    LOOKUP_CACHE_TTL,
-                    LOOKUP_CACHE_TYPE,
-                    LOOKUP_MAX_RETRIES,
-                    LOOKUP_ERROR_LIMIT,
-                    LOOKUP_FETCH_SIZE,
-                    LOOKUP_ASYNC_TIMEOUT,
-                    LOOKUP_PARALLELISM)
+                            KEY_DELIMITER_OPTION,
+                            FAILURE_HANDLER_OPTION,
+                            FLUSH_ON_CHECKPOINT_OPTION,
+                            BULK_FLASH_MAX_SIZE_OPTION,
+                            BULK_FLUSH_MAX_ACTIONS_OPTION,
+                            BULK_FLUSH_INTERVAL_OPTION,
+                            BULK_FLUSH_BACKOFF_TYPE_OPTION,
+                            BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
+                            BULK_FLUSH_BACKOFF_DELAY_OPTION,
+                            CONNECTION_MAX_RETRY_TIMEOUT_OPTION,
+                            CONNECTION_PATH_PREFIX,
+                            FORMAT_OPTION,
+                            PASSWORD_OPTION,
+                            USERNAME_OPTION,
+                            LOOKUP_CACHE_PERIOD,
+                            LOOKUP_CACHE_MAX_ROWS,
+                            LOOKUP_CACHE_TTL,
+                            LOOKUP_CACHE_TYPE,
+                            LOOKUP_MAX_RETRIES,
+                            LOOKUP_ERROR_LIMIT,
+                            LOOKUP_FETCH_SIZE,
+                            LOOKUP_ASYNC_TIMEOUT,
+                            LOOKUP_PARALLELISM)
                     .collect(Collectors.toSet());
 
     @Override
@@ -127,7 +123,8 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        return new ElasticsearchDynamicTableSink(physicalSchema, getElasticsearchConf(config, physicalSchema));
+        return new ElasticsearchDynamicTableSink(
+                physicalSchema, getElasticsearchConf(config, physicalSchema));
     }
 
     @Override
@@ -144,14 +141,15 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        return new ElasticsearchDynamicTableSource(physicalSchema,
+        return new ElasticsearchDynamicTableSource(
+                physicalSchema,
                 getElasticsearchConf(config, physicalSchema),
                 getElasticsearchLookupConf(config, context.getObjectIdentifier().getObjectName()));
     }
 
     @Override
     public String factoryIdentifier() {
-        return IDENTIFIER;
+        return "elasticsearch7-x";
     }
 
     @Override
@@ -164,7 +162,8 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
         return optionalOptions;
     }
 
-    private ElasticsearchConf getElasticsearchConf(ReadableConfig readableConfig, TableSchema schema) {
+    private ElasticsearchConf getElasticsearchConf(
+            ReadableConfig readableConfig, TableSchema schema) {
         ElasticsearchConf elasticsearchConf = new ElasticsearchConf();
         boolean isAuthMesh = false;
 
@@ -173,12 +172,8 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
         elasticsearchConf.setType(readableConfig.get(DOCUMENT_TYPE_OPTION));
         elasticsearchConf.setKeyDelimiter(readableConfig.get(KEY_DELIMITER_OPTION));
         elasticsearchConf.setBatchSize(readableConfig.get(BULK_FLUSH_MAX_ACTIONS_OPTION));
-        elasticsearchConf.setParallelism(readableConfig.get(DT_PARALLELISM_OPTION));
-        elasticsearchConf.setConnectTimeout(readableConfig.get(DT_CLIENT_CONNECT_TIMEOUT_OPTION));
-        elasticsearchConf.setSocketTimeout(readableConfig.get(DT_CLIENT_SOCKET_TIMEOUT_OPTION));
-        elasticsearchConf.setKeepAliveTime(readableConfig.get(DT_CLIENT_KEEPALIVE_TIME_OPTION));
-        elasticsearchConf.setMaxConnPerRoute(readableConfig.get(DT_CLIENT_MAX_CONNECTION_PER_ROUTE_OPTION));
-        elasticsearchConf.setRequestTimeout(readableConfig.get(DT_CLIENT_REQUEST_TIMEOUT_OPTION));
+        elasticsearchConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
+
         String username = readableConfig.get(USERNAME_OPTION);
         String password = readableConfig.get(PASSWORD_OPTION);
         if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
@@ -188,10 +183,14 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
         }
         elasticsearchConf.setAuthMesh(isAuthMesh);
 
-        List<String> keyFields =
-                schema.getPrimaryKey()
-                        .map(pk -> pk.getColumns())
-                        .orElse(null);
+        elasticsearchConf.setConnectTimeout(readableConfig.get(CLIENT_CONNECT_TIMEOUT_OPTION));
+        elasticsearchConf.setSocketTimeout(readableConfig.get(CLIENT_SOCKET_TIMEOUT_OPTION));
+        elasticsearchConf.setKeepAliveTime(readableConfig.get(CLIENT_KEEPALIVE_TIME_OPTION));
+        elasticsearchConf.setMaxConnPerRoute(
+                readableConfig.get(CLIENT_MAX_CONNECTION_PER_ROUTE_OPTION));
+        elasticsearchConf.setRequestTimeout(readableConfig.get(CLIENT_REQUEST_TIMEOUT_OPTION));
+
+        List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
         elasticsearchConf.setIds(keyFields);
         return elasticsearchConf;
     }
@@ -209,5 +208,4 @@ public class ElasticsearchDynamicTableFactory implements DynamicTableSourceFacto
                 .setAsyncTimeout(readableConfig.get(LOOKUP_ASYNC_TIMEOUT))
                 .setParallelism(readableConfig.get(LOOKUP_PARALLELISM));
     }
-
 }
