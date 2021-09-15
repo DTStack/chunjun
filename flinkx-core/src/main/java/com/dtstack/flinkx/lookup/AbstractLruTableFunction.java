@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.lookup;
 
+import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.enums.ECacheContentType;
@@ -25,7 +26,6 @@ import com.dtstack.flinkx.lookup.cache.AbstractSideCache;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
 import com.dtstack.flinkx.lookup.cache.LRUSideCache;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
-import com.dtstack.flinkx.metrics.MetricConstant;
 import com.dtstack.flinkx.util.ReflectionUtils;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -71,7 +71,7 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     /** 数据类型转换器 */
     protected final AbstractRowConverter rowConverter;
 
-    private static int TIMEOUT_LOG_FLUSH_NUM = 10;
+    private static final int TIMEOUT_LOG_FLUSH_NUM = 10;
     private int timeOutNum = 0;
 
     public AbstractLruTableFunction(LookupConf lookupConf, AbstractRowConverter rowConverter) {
@@ -114,8 +114,7 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
      * @param context 上下文
      */
     private void initMetric(FunctionContext context) {
-        parseErrorRecords =
-                context.getMetricGroup().counter(MetricConstant.DT_NUM_SIDE_PARSE_ERROR_RECORDS);
+        parseErrorRecords = context.getMetricGroup().counter(Metrics.NUM_SIDE_PARSE_ERROR_RECORDS);
     }
 
     /**

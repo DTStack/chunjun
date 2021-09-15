@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.kafka.source;
 
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ReflectionUtils;
 
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -35,17 +34,14 @@ import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumerBase;
-import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
-import org.apache.flink.streaming.connectors.kafka.internals.AbstractFetcher;
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
 import org.apache.flink.table.data.RowData;
 
+import com.esotericsoftware.kryo.Kryo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,35 +53,39 @@ import java.util.regex.Pattern;
  * @create 2021-05-07 14:46
  * @description
  */
-public class KafkaConsumer extends RichParallelSourceFunction<RowData>
+public class KafkaConsumerWrapper extends RichParallelSourceFunction<RowData>
         implements CheckpointListener, ResultTypeQueryable<RowData>, CheckpointedFunction {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(KafkaConsumer.class);
-    private static final long serialVersionUID = -8815725381567887426L;
+    protected static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerWrapper.class);
+    private static final long serialVersionUID = 1L;
 
-    private FlinkKafkaConsumerBase<RowData> flinkKafkaConsumer;
-    private final KafkaDeserializationSchema<RowData> deserializationSchema;
-    private Properties props;
+    private final FlinkKafkaConsumerBase<RowData> flinkKafkaConsumer;
+    private final DynamicKafkaDeserializationSchema deserializationSchema;
+    private final Properties props;
     private transient ListState<FormatState> unionOffsetStates;
     private static final String LOCATION_STATE_NAME = "data-sync-location-states";
     private Map<Integer, FormatState> formatStateMap;
 
-    public KafkaConsumer(
-            List<String> topics,
-            KafkaDeserializationSchema<RowData> deserializer,
-            Properties props) {
-        flinkKafkaConsumer = new FlinkKafkaConsumer<>(topics, deserializer, props);
+    public KafkaConsumerWrapper(
+            List<String> topics, DynamicKafkaDeserializationSchema deserializer, Properties props) {
+        Properties originalProps = new Kryo().copy(props);
+        flinkKafkaConsumer =
+                new FlinkKafkaConsumer<>(
+                        topics, deserializer, props, originalProps, deserializer);
         this.deserializationSchema = deserializer;
-        this.props = props;
+        this.props = originalProps;
     }
 
-    public KafkaConsumer(
+    public KafkaConsumerWrapper(
             Pattern subscriptionPattern,
-            KafkaDeserializationSchema<RowData> deserializer,
+            DynamicKafkaDeserializationSchema deserializer,
             Properties props) {
-        flinkKafkaConsumer = new FlinkKafkaConsumer<>(subscriptionPattern, deserializer, props);
+        Properties originalProps = new Kryo().copy(props);
+        flinkKafkaConsumer =
+                new FlinkKafkaConsumer<>(
+                        subscriptionPattern, deserializer, props, originalProps, deserializer);
         this.deserializationSchema = deserializer;
-        this.props = props;
+        this.props = originalProps;
     }
 
     @Override
@@ -96,13 +96,11 @@ public class KafkaConsumer extends RichParallelSourceFunction<RowData>
 
     @Override
     public void open(Configuration configuration) throws Exception {
-        ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema)
-                .setRuntimeContext(getRuntimeContext());
-        ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).setConsumerConfig(props);
+        deserializationSchema.setRuntimeContext(getRuntimeContext());
+        deserializationSchema.setConsumerConfig(props);
         if (formatStateMap != null) {
-            ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema)
-                    .setFormatState(
-                            formatStateMap.get(getRuntimeContext().getIndexOfThisSubtask()));
+            deserializationSchema.setFormatState(
+                    formatStateMap.get(getRuntimeContext().getIndexOfThisSubtask()));
         }
         flinkKafkaConsumer.open(configuration);
     }
@@ -110,8 +108,7 @@ public class KafkaConsumer extends RichParallelSourceFunction<RowData>
     @Override
     public void snapshotState(FunctionSnapshotContext context) throws Exception {
         flinkKafkaConsumer.snapshotState(context);
-        FormatState formatState =
-                ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).getFormatState();
+        FormatState formatState = deserializationSchema.getFormatState();
         if (formatState != null) {
             LOG.info("InputFormat format state:{}", formatState);
             unionOffsetStates.clear();
@@ -142,7 +139,7 @@ public class KafkaConsumer extends RichParallelSourceFunction<RowData>
     @Override
     public void close() throws Exception {
         flinkKafkaConsumer.close();
-        ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).close();
+        deserializationSchema.close();
     }
 
     @Override
@@ -158,11 +155,6 @@ public class KafkaConsumer extends RichParallelSourceFunction<RowData>
     @Override
     public void run(SourceContext<RowData> ctx) throws Exception {
         flinkKafkaConsumer.run(ctx);
-        // get kafkaFetcher from consumer
-        Field field = ReflectionUtils.getDeclaredField(flinkKafkaConsumer, "kafkaFetcher");
-        field.setAccessible(true);
-        AbstractFetcher kafkaFetcher = (AbstractFetcher) field.get(flinkKafkaConsumer);
-        ((DynamicKafkaDeserializationSchemaWrapper) deserializationSchema).setFetcher(kafkaFetcher);
     }
 
     @Override
@@ -170,34 +162,31 @@ public class KafkaConsumer extends RichParallelSourceFunction<RowData>
         flinkKafkaConsumer.cancel();
     }
 
-    public FlinkKafkaConsumerBase<RowData> setStartFromEarliest() {
-        return flinkKafkaConsumer.setStartFromEarliest();
+    public void setStartFromEarliest() {
+        flinkKafkaConsumer.setStartFromEarliest();
     }
 
-    public FlinkKafkaConsumerBase<RowData> setStartFromLatest() {
-        return flinkKafkaConsumer.setStartFromLatest();
+    public void setStartFromLatest() {
+        flinkKafkaConsumer.setStartFromLatest();
     }
 
-    public FlinkKafkaConsumerBase<RowData> setStartFromGroupOffsets() {
-        return flinkKafkaConsumer.setStartFromGroupOffsets();
+    public void setStartFromGroupOffsets() {
+        flinkKafkaConsumer.setStartFromGroupOffsets();
     }
 
-    public FlinkKafkaConsumerBase<RowData> setStartFromSpecificOffsets(
-            Map<KafkaTopicPartition, Long> specificStartupOffsets) {
-        return flinkKafkaConsumer.setStartFromSpecificOffsets(specificStartupOffsets);
+    public void setStartFromSpecificOffsets(Map<KafkaTopicPartition, Long> specificStartupOffsets) {
+        flinkKafkaConsumer.setStartFromSpecificOffsets(specificStartupOffsets);
     }
 
-    public FlinkKafkaConsumerBase<RowData> setStartFromTimestamp(long startupOffsetsTimestamp) {
-        return flinkKafkaConsumer.setStartFromTimestamp(startupOffsetsTimestamp);
+    public void setStartFromTimestamp(long startupOffsetsTimestamp) {
+        flinkKafkaConsumer.setStartFromTimestamp(startupOffsetsTimestamp);
     }
 
-    public FlinkKafkaConsumerBase<RowData> setCommitOffsetsOnCheckpoints(
-            boolean commitOnCheckpoints) {
-        return flinkKafkaConsumer.setCommitOffsetsOnCheckpoints(commitOnCheckpoints);
+    public void setCommitOffsetsOnCheckpoints(boolean commitOnCheckpoints) {
+        flinkKafkaConsumer.setCommitOffsetsOnCheckpoints(commitOnCheckpoints);
     }
 
-    public FlinkKafkaConsumerBase<RowData> assignTimestampsAndWatermarks(
-            WatermarkStrategy<RowData> watermarkStrategy) {
-        return flinkKafkaConsumer.assignTimestampsAndWatermarks(watermarkStrategy);
+    public void assignTimestampsAndWatermarks(WatermarkStrategy<RowData> watermarkStrategy) {
+        flinkKafkaConsumer.assignTimestampsAndWatermarks(watermarkStrategy);
     }
 }

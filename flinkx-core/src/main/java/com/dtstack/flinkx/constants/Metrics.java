@@ -64,8 +64,6 @@ public class Metrics {
 
     public static final String START_LOCATION = "startLocation";
 
-    public static final String TABLE_COL = "tableCol";
-
     public static final String MAX_VALUE = "maxValue";
 
     public static final String METRIC_GROUP_KEY_FLINKX = "flinkx";
@@ -77,6 +75,10 @@ public class Metrics {
     public static final String LAST_WRITE_NUM__PREFIX = "last_write_num";
 
     public static final String SUFFIX_RATE = "PerSecond";
+
+    public static final String LAG_GAUGE = "lag";
+
+    public static final String NUM_SIDE_PARSE_ERROR_RECORDS = "dtNumSideParseErrorRecords";
 
     public static final List<String> METRIC_SINK_LIST =
             Arrays.asList(

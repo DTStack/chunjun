@@ -56,11 +56,11 @@ import java.util.Map;
 import java.util.Properties;
 
 /** A specific {@link KafkaSerializationSchema} for {@link KafkaDynamicSource}. */
-class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<RowData> {
+public class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<RowData> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger LOG =
+    protected static final Logger LOG =
             LoggerFactory.getLogger(DynamicKafkaDeserializationSchema.class);
 
     private final @Nullable DeserializationSchema<RowData> keyDeserialization;
@@ -77,7 +77,7 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     private final boolean upsertMode;
 
-    private static int dataPrintFrequency = 1000;
+    private static final int dataPrintFrequency = 1000;
     /** 任务名称 */
     protected String jobName = "defaultJobName";
     /** 任务id */
@@ -102,7 +102,7 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     private transient RuntimeContext runtimeContext;
 
-    DynamicKafkaDeserializationSchema(
+    public DynamicKafkaDeserializationSchema(
             int physicalArity,
             @Nullable DeserializationSchema<RowData> keyDeserialization,
             int[] keyProjection,

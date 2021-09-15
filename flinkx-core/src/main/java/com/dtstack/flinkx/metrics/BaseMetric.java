@@ -41,12 +41,12 @@ public class BaseMetric {
 
     private final Long delayPeriodMill = 10000L;
 
-    private final MetricGroup flinkxOutput;
+    private final MetricGroup flinkxMetricGroup;
 
     private final Map<String, LongCounter> metricCounters = new HashMap<>();
 
     public BaseMetric(RuntimeContext runtimeContext) {
-        flinkxOutput =
+        flinkxMetricGroup =
                 runtimeContext
                         .getMetricGroup()
                         .addGroup(
@@ -59,9 +59,9 @@ public class BaseMetric {
 
     public void addMetric(String metricName, LongCounter counter, boolean meterView) {
         metricCounters.put(metricName, counter);
-        flinkxOutput.gauge(metricName, new SimpleAccumulatorGauge<>(counter));
+        flinkxMetricGroup.gauge(metricName, new SimpleAccumulatorGauge<>(counter));
         if (meterView) {
-            flinkxOutput.meter(
+            flinkxMetricGroup.meter(
                     metricName + Metrics.SUFFIX_RATE, new SimpleLongCounterMeterView(counter, 20));
         }
     }
@@ -77,5 +77,9 @@ public class BaseMetric {
             SysUtil.sleep(delayPeriodMill);
             LOG.warn("Task thread is interrupted");
         }
+    }
+
+    public MetricGroup getFlinkxMetricGroup() {
+        return flinkxMetricGroup;
     }
 }
