@@ -58,20 +58,18 @@ public class KafkaConsumerWrapper extends RichParallelSourceFunction<RowData>
 
     protected static final Logger LOG = LoggerFactory.getLogger(KafkaConsumerWrapper.class);
     private static final long serialVersionUID = 1L;
-
+    private static final String LOCATION_STATE_NAME = "data-sync-location-states";
     private final FlinkKafkaConsumerBase<RowData> flinkKafkaConsumer;
     private final DynamicKafkaDeserializationSchema deserializationSchema;
     private final Properties props;
     private transient ListState<FormatState> unionOffsetStates;
-    private static final String LOCATION_STATE_NAME = "data-sync-location-states";
     private Map<Integer, FormatState> formatStateMap;
 
     public KafkaConsumerWrapper(
             List<String> topics, DynamicKafkaDeserializationSchema deserializer, Properties props) {
         Properties originalProps = new Kryo().copy(props);
         flinkKafkaConsumer =
-                new FlinkKafkaConsumer<>(
-                        topics, deserializer, props, originalProps, deserializer);
+                new FlinkKafkaConsumer<>(topics, deserializer, props, originalProps, deserializer);
         this.deserializationSchema = deserializer;
         this.props = originalProps;
     }

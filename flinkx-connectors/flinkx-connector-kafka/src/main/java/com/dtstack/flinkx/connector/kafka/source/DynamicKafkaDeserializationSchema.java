@@ -58,26 +58,17 @@ import java.util.Properties;
 /** A specific {@link KafkaSerializationSchema} for {@link KafkaDynamicSource}. */
 public class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<RowData> {
 
-    private static final long serialVersionUID = 1L;
-
     protected static final Logger LOG =
             LoggerFactory.getLogger(DynamicKafkaDeserializationSchema.class);
-
-    private final @Nullable DeserializationSchema<RowData> keyDeserialization;
-
-    private final DeserializationSchema<RowData> valueDeserialization;
-
-    private final boolean hasMetadata;
-
-    private final DynamicKafkaDeserializationSchema.BufferingCollector keyCollector;
-
-    private final DynamicKafkaDeserializationSchema.OutputProjectionCollector outputCollector;
-
-    private final TypeInformation<RowData> producedTypeInfo;
-
-    private final boolean upsertMode;
-
+    private static final long serialVersionUID = 1L;
     private static final int dataPrintFrequency = 1000;
+    private final @Nullable DeserializationSchema<RowData> keyDeserialization;
+    private final DeserializationSchema<RowData> valueDeserialization;
+    private final boolean hasMetadata;
+    private final DynamicKafkaDeserializationSchema.BufferingCollector keyCollector;
+    private final DynamicKafkaDeserializationSchema.OutputProjectionCollector outputCollector;
+    private final TypeInformation<RowData> producedTypeInfo;
+    private final boolean upsertMode;
     /** 任务名称 */
     protected String jobName = "defaultJobName";
     /** 任务id */
@@ -239,10 +230,6 @@ public class DynamicKafkaDeserializationSchema implements KafkaDeserializationSc
         this.consumerConfig = consumerConfig;
     }
 
-    public void setFormatState(FormatState formatState) {
-        this.formatState = formatState;
-    }
-
     /**
      * 更新checkpoint状态缓存map
      *
@@ -253,6 +240,10 @@ public class DynamicKafkaDeserializationSchema implements KafkaDeserializationSc
             formatState.setMetric(inputMetric.getMetricCounters());
         }
         return formatState;
+    }
+
+    public void setFormatState(FormatState formatState) {
+        this.formatState = formatState;
     }
 
     /** 更新任务执行时间指标 */

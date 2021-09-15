@@ -71,74 +71,57 @@ public class KafkaDynamicSource
     // Mutable attributes
     // --------------------------------------------------------------------------------------------
 
-    /** Data type that describes the final output of the source. */
-    protected DataType producedDataType;
-
-    /** Metadata that is appended at the end of a physical source row. */
-    protected List<String> metadataKeys;
-
-    /** Watermark strategy that is used to generate per-partition watermark. */
-    protected @Nullable WatermarkStrategy<RowData> watermarkStrategy;
+    private static final String VALUE_METADATA_PREFIX = "value.";
+    /** Data type to configure the formats. */
+    protected final DataType physicalDataType;
+    /** Optional format for decoding keys from Kafka. */
+    protected final @Nullable DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat;
 
     // --------------------------------------------------------------------------------------------
     // Format attributes
     // --------------------------------------------------------------------------------------------
-
-    private static final String VALUE_METADATA_PREFIX = "value.";
-
-    /** Data type to configure the formats. */
-    protected final DataType physicalDataType;
-
-    /** Optional format for decoding keys from Kafka. */
-    protected final @Nullable DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat;
-
     /** Format for decoding values from Kafka. */
     protected final DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat;
-
     /** Indices that determine the key fields and the target position in the produced row. */
     protected final int[] keyProjection;
-
     /** Indices that determine the value fields and the target position in the produced row. */
     protected final int[] valueProjection;
-
     /** Prefix that needs to be removed from fields when constructing the physical data type. */
     protected final @Nullable String keyPrefix;
+    /** The Kafka topics to consume. */
+    protected final List<String> topics;
+    /** The Kafka topic pattern to consume. */
+    protected final Pattern topicPattern;
+    /** Properties for the Kafka consumer. */
+    protected final Properties properties;
 
     // --------------------------------------------------------------------------------------------
     // Kafka-specific attributes
     // --------------------------------------------------------------------------------------------
-
-    /** The Kafka topics to consume. */
-    protected final List<String> topics;
-
-    /** The Kafka topic pattern to consume. */
-    protected final Pattern topicPattern;
-
-    /** Properties for the Kafka consumer. */
-    protected final Properties properties;
-
     /**
      * The startup mode for the contained consumer (default is {@link StartupMode#GROUP_OFFSETS}).
      */
     protected final StartupMode startupMode;
-
     /**
      * Specific startup offsets; only relevant when startup mode is {@link
      * StartupMode#SPECIFIC_OFFSETS}.
      */
     protected final Map<KafkaTopicPartition, Long> specificStartupOffsets;
-
     /**
      * The start timestamp to locate partition offsets; only relevant when startup mode is {@link
      * StartupMode#TIMESTAMP}.
      */
     protected final long startupTimestampMillis;
-
     /** Flag to determine source mode. In upsert mode, it will keep the tombstone message. * */
     protected final boolean upsertMode;
-
     /** Parallelism of the physical Kafka producer. * */
     protected final @Nullable Integer parallelism;
+    /** Data type that describes the final output of the source. */
+    protected DataType producedDataType;
+    /** Metadata that is appended at the end of a physical source row. */
+    protected List<String> metadataKeys;
+    /** Watermark strategy that is used to generate per-partition watermark. */
+    protected @Nullable WatermarkStrategy<RowData> watermarkStrategy;
 
     public KafkaDynamicSource(
             DataType physicalDataType,

@@ -48,13 +48,12 @@ import java.util.Properties;
  */
 public class KafkaProducer extends FlinkKafkaProducer<RowData> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaProducer.class);
-
-    private KafkaSerializationSchema<RowData> serializationSchema;
-    private Properties producerConfig;
     protected static final String LOCATION_STATE_NAME = "data-sync-location-states";
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaProducer.class);
     protected transient ListState<FormatState> unionOffsetStates;
     protected Map<Integer, FormatState> formatStateMap;
+    private final KafkaSerializationSchema<RowData> serializationSchema;
+    private final Properties producerConfig;
 
     public KafkaProducer(
             String defaultTopic,
@@ -107,7 +106,7 @@ public class KafkaProducer extends FlinkKafkaProducer<RowData> {
             formatStateMap = new HashMap<>(16);
             for (FormatState formatState : unionOffsetStates.get()) {
                 formatStateMap.put(formatState.getNumOfSubTask(), formatState);
-                LOG.info("Output format state into:{}", formatState.toString());
+                LOG.info("Output format state into:{}", formatState);
             }
         }
         LOG.info("End initialize output format state");
