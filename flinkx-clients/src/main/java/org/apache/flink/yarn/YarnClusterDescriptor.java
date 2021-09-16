@@ -163,6 +163,8 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 
     private YarnConfigOptions.UserJarInclusion userJarInclusion;
 
+    public static final String PREFIX_LOG4J = "log4j";
+
     public YarnClusterDescriptor(
             Configuration flinkConfiguration,
             YarnConfiguration yarnConfiguration,
@@ -949,7 +951,16 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
         }
 
         // normalize classpath by sorting
-        Collections.sort(systemClassPaths);
+        systemClassPaths.sort(
+                (path1, path2) -> {
+                    if (path1.contains(PREFIX_LOG4J) && !path2.contains(PREFIX_LOG4J)) {
+                        return -1;
+                    } else if (path2.contains(PREFIX_LOG4J) && !path1.contains(PREFIX_LOG4J)) {
+                        return 1;
+                    } else {
+                        return path1.compareTo(path2);
+                    }
+                });
         Collections.sort(userClassPaths);
 
         // classpath assembler
