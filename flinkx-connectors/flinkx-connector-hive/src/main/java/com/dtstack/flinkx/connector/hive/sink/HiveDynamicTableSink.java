@@ -43,7 +43,7 @@ public class HiveDynamicTableSink implements DynamicTableSink {
 
     @Override
     public ChangelogMode getChangelogMode(ChangelogMode requestedMode) {
-        return requestedMode;
+        return ChangelogMode.insertOnly();
     }
 
     @Override

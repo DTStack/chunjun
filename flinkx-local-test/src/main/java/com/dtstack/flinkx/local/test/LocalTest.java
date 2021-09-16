@@ -41,10 +41,10 @@ public class LocalTest {
     public static void main(String[] args) throws Exception {
         LOG.warn("-----");
         Properties confProperties = new Properties();
-        //        confProperties.setProperty("flink.checkpoint.interval", "30000");
-        //        confProperties.setProperty("state.backend","ROCKSDB");
-        //        confProperties.setProperty("state.checkpoints.num-retained", "10");
-        //        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
+//        confProperties.setProperty("flink.checkpoint.interval", "30000");
+//        confProperties.setProperty("state.backend","ROCKSDB");
+//        confProperties.setProperty("state.checkpoints.num-retained", "10");
+//        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
         String userDir = System.getProperty("user.dir");
 
         String jobPath =
@@ -62,21 +62,17 @@ public class LocalTest {
             argsList.add("sync");
             argsList.add("-job");
             argsList.add(content);
-            //            argsList.add("-flinkConfDir");
-            //            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
-            //            argsList.add("-flinkConfDir");
-            //            argsList.add(flinkxPluginPath);
+//            argsList.add("-flinkConfDir");
+//            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
             argsList.add("-confProp");
             argsList.add(GsonUtil.GSON.toJson(confProperties));
-            if (StringUtils.isNotBlank(s)) {
-                argsList.add("-s");
-                argsList.add(s);
-            }
         } else if (StringUtils.endsWith(jobPath, "sql")) {
             argsList.add("-jobType");
             argsList.add("sql");
             argsList.add("-job");
             argsList.add(URLEncoder.encode(content, StandardCharsets.UTF_8.name()));
+//            argsList.add("-flinkConfDir");
+//            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
             argsList.add("-jobName");
             argsList.add("flinkStreamSQLLocalTest");
             argsList.add("-flinkxDistDir");
@@ -85,16 +81,12 @@ public class LocalTest {
             argsList.add(flinkxDistDir);
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
-            //            argsList.add("-confProp");
-            //            argsList.add("{\"flink.checkpoint.interval\":\"300000\"}");
-            //
-            // argsList.add("{\"sql.checkpoint.mode\":\"AT_LEAST_ONCE\",\"flink.checkpoint.interval\":\"300000\"}");
-            //
-            // argsList.add("{\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"flink.checkpoint.interval\":\"300000\"}");
-            //
-            // argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"state.backend\":\"FILESYSTEM\",\"state.checkpoints.dir\":\"hdfs://ns1/dtInsight/flink110/savepoints/POC_MEIDI_STREAM_JOIN\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
-            //
-            // argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
+//            argsList.add("-confProp");
+//            argsList.add("{\"execution.checkpointing.interval\":\"60000\"}");
+//            argsList.add("{\"sql.checkpoint.mode\":\"AT_LEAST_ONCE\",\"flink.checkpoint.interval\":\"300000\"}");
+//            argsList.add("{\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"flink.checkpoint.interval\":\"300000\"}");
+//            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"state.backend\":\"FILESYSTEM\",\"state.checkpoints.dir\":\"hdfs://ns1/dtInsight/flink110/savepoints/POC_MEIDI_STREAM_JOIN\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
+//            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
         }
 
         Main.main(argsList.toArray(new String[0]));

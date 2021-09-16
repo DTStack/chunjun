@@ -14,14 +14,14 @@
     <packaging>pom</packaging>
 
     <modules>
-        <!--print log-->
+        <!--mock & print-->
         <module>flinkx-connector-stream</module>
 
-        <!--mq-->
+        <!--MQ-->
         <module>flinkx-connector-kafka</module>
 		<module>flinkx-connector-emqx</module>
 
-        <!--rdb-->
+        <!--RDB-->
 		<module>flinkx-connector-jdbc-base</module>
 		<module>flinkx-connector-mysql</module>
 		<module>flinkx-connector-oracle</module>
@@ -35,13 +35,13 @@
 		<module>flinkx-connector-clickhouse</module>
         <module>flinkx-connector-saphana</module>
 
-        <!--file-->
+        <!--File-->
         <module>flinkx-connector-file</module>
         <module>flinkx-connector-ftp</module>
         <module>flinkx-connector-hdfs</module>
         <module>flinkx-connector-hive</module>
 
-        <!--nosql-->
+        <!--NoSql-->
         <module>flinkx-connector-hbase-base</module>
         <module>flinkx-connector-hbase-1.4</module>
         <module>flinkx-connector-phoenix5</module>
@@ -59,7 +59,7 @@
         <module>flinkx-connector-sqlservercdc</module>
 		<module>flinkx-connector-pgwal</module>
 
-        <!--network-->
+        <!--Network-->
         <module>flinkx-connector-restapi</module>
         <module>flinkx-connector-socket</module>
 	</modules>

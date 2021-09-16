@@ -40,6 +40,7 @@ import com.dtstack.flinkx.util.TableUtil;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.core.execution.JobClient;
+import org.apache.flink.runtime.jobgraph.SavepointConfigOptions;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -244,6 +245,13 @@ public class Main {
 
             if (StringUtils.isNotBlank(options.getFlinkxDistDir())) {
                 config.setPluginRoot(options.getFlinkxDistDir());
+            }
+
+            Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
+            String savePointPath =
+                    confProperties.getProperty(SavepointConfigOptions.SAVEPOINT_PATH.key());
+            if (StringUtils.isNotBlank(savePointPath)) {
+                config.setSavePointPath(savePointPath);
             }
 
             if (StringUtils.isNotBlank(options.getRemoteFlinkxDistDir())) {

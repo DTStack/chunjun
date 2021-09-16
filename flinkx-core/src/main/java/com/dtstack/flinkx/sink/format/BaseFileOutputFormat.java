@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.sink.format;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
+import com.dtstack.flinkx.enums.Semantic;
 import com.dtstack.flinkx.enums.SizeUnitType;
 import com.dtstack.flinkx.sink.WriteMode;
 import com.dtstack.flinkx.throwable.WriteRecordException;
@@ -63,9 +64,8 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     public void initializeGlobal(int parallelism) {
         initVariableFields();
         if (WriteMode.OVERWRITE.name().equalsIgnoreCase(baseFileConf.getWriteMode())
-                && StringUtils.isBlank(baseFileConf.getRestorePath())) {
-            // Overwrite mode and not delete the data directory first when restoring from a
-            // checkpoint
+                && StringUtils.isBlank(baseFileConf.getSavePointPath())) {
+            // not delete the data directory when restoring from checkpoint
             deleteDataDir();
         } else {
             deleteTmpDataDir();
@@ -82,7 +82,8 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
         super.open(taskNumber, numTasks);
-        checkpointMode = CheckpointingMode.EXACTLY_ONCE;
+        super.checkpointMode = CheckpointingMode.EXACTLY_ONCE;
+        super.semantic = Semantic.EXACTLY_ONCE;
     }
 
     @Override
@@ -117,7 +118,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() {
-        throw new UnsupportedOperationException("Does not support batch write");
+        throw new UnsupportedOperationException("Do not support batch write");
     }
 
     @Override

@@ -18,11 +18,7 @@
 package com.dtstack.flinkx.conf;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,8 +52,8 @@ public class FlinkxCommonConf implements Serializable {
     private int batchSize = 1;
     /** Time when the timer is regularly written to the database */
     private long flushIntervalMills = 10000L;
-    /** cp path */
-    private String restorePath;
+    /** sp path */
+    private String savePointPath;
 
     /** metrics plugin root */
     private String metricPluginRoot;
@@ -191,12 +187,12 @@ public class FlinkxCommonConf implements Serializable {
         this.flushIntervalMills = flushIntervalMills;
     }
 
-    public String getRestorePath() {
-        return restorePath;
+    public String getSavePointPath() {
+        return savePointPath;
     }
 
-    public void setRestorePath(String restorePath) {
-        this.restorePath = restorePath;
+    public void setSavePointPath(String savePointPath) {
+        this.savePointPath = savePointPath;
     }
 
     @Override
@@ -233,23 +229,8 @@ public class FlinkxCommonConf implements Serializable {
                 + '\''
                 + ", metricProps="
                 + metricProps
-                + ", restorePath="
-                + restorePath
+                + ", savePointPath="
+                + savePointPath
                 + '}';
-    }
-
-    public Map<String, Object> asMap() throws IllegalAccessException {
-        Map<String, Object> params = new HashMap<>();
-        List<Field> fieldList = new ArrayList<>();
-        Class<?> tempClass = this.getClass();
-        while (tempClass != null) {
-            fieldList.addAll(Arrays.asList(tempClass.getDeclaredFields()));
-            tempClass = tempClass.getSuperclass();
-        }
-        for (Field f : fieldList) {
-            f.setAccessible(true);
-            params.put(f.getName(), f.get(this));
-        }
-        return params;
     }
 }
