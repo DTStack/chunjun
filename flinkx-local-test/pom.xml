@@ -25,9 +25,10 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<!--flink formats-->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-parquet_${scala.binary.version}</artifactId>
+			<artifactId>flink-json</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 		<dependency>
@@ -37,10 +38,18 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-json</artifactId>
+			<artifactId>flink-parquet_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 
+		<!--prometheus-->
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-metrics-prometheus</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+		<!--Hadoop-->
 		<dependency>
 			<artifactId>hadoop-mapreduce-client-core</artifactId>
 			<exclusions>
@@ -56,7 +65,6 @@
 			<groupId>org.apache.hadoop</groupId>
 			<version>${hadoop.version}</version>
 		</dependency>
-
 		<dependency>
 			<artifactId>hadoop-common</artifactId>
 			<exclusions>
@@ -76,7 +84,6 @@
 			<groupId>org.apache.hadoop</groupId>
 			<version>${hadoop.version}</version>
 		</dependency>
-
 		<dependency>
 			<artifactId>hadoop-hdfs</artifactId>
 			<exclusions>
@@ -92,81 +99,22 @@
 			<groupId>org.apache.hadoop</groupId>
 			<version>${hadoop.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-metrics-core</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 
-		<!--		本地测试模块 start -->
+		<!--本地测试模块 start, 添加新的dependency请按照分组添加在对应位置，不要无脑地加在最前或最后方 -->
 
+		<!--mock & print-->
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-mysql</artifactId>
+			<artifactId>flinkx-connector-stream</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-gbase</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.flinkx</groupId>-->
-<!--			<artifactId>flinkx-connector-elasticsearch7</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-
-        <dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-elasticsearch6</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-hbase-2.2_2.12</artifactId>
-			<version>1.12.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-sqlserver</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-postgresql</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<!--		<dependency>-->
-		<!--			<groupId>com.dtstack.flinkx</groupId>-->
-		<!--			<artifactId>flinkx-connector-elasticsearch5</artifactId>-->
-		<!--			<version>${project.version}</version>-->
-		<!--		</dependency>-->
-
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.flinkx</groupId>-->
-<!--			<artifactId>flinkx-connector-elasticsearch5</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-kingbase</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-dm</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
+		<!--MQ-->
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-kafka</artifactId>
@@ -178,187 +126,147 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-stream</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-binlog</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-oraclelogminer</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-kudu</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-emqx</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
+        <!--RDB-->
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-mysql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-oracle</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-sqlserver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-db2</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-postgresql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-gbase</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-kingbase</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-greenplum</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-dm</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-clickhouse</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-saphana</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
+		<!--File-->
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-file</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-ftp</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 <!--		<dependency>-->
 <!--			<groupId>com.dtstack.flinkx</groupId>-->
 <!--			<artifactId>flinkx-connector-hdfs</artifactId>-->
 <!--			<version>${project.version}</version>-->
 <!--		</dependency>-->
-
-
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-hive</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
+		<!--NoSql-->
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-hbase-1.4</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.dtstack.flinkx</groupId>-->
+<!--			<artifactId>flinkx-connector-elasticsearch5</artifactId>-->
+<!--			<version>${project.version}</version>-->
+<!--		</dependency>-->
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-elasticsearch6</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.dtstack.flinkx</groupId>-->
+<!--			<artifactId>flinkx-connector-elasticsearch7</artifactId>-->
+<!--			<version>${project.version}</version>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-redis</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-mongodb</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-solr</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-file</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-ftp</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-oraclelogminer</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-kudu</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
+		<!--CDC-->
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-metrics-prometheus</artifactId>
+			<artifactId>flinkx-connector-binlog</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-oraclelogminer</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-hbase-1.4</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+		<!--Network-->
 
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-emqx</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-db2</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-greenplum</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<!--		<dependency>-->
-		<!--			<groupId>com.dtstack.flinkx</groupId>-->
-		<!--			<artifactId>flinkx-connector-hdfs</artifactId>-->
-		<!--			<version>${project.version}</version>-->
-		<!--		</dependency>-->
-
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-hive</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-redis</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-mongodb</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-solr</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-file</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-ftp</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-metrics-mysql</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-metrics-prometheus</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+		<!--本地测试模块 end, 添加新的dependency请按照分组添加在对应位置，不要无脑地加在最前或最后方 -->
 	</dependencies>
 </project>
