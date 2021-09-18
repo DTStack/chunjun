@@ -186,10 +186,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 LOG.warn("write hdfs exception:", e);
             }
         }
-        updateDuration();
-        numWriteCounter.add(1);
         rowsOfCurrentTransaction++;
-        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
     }
 
     @Override
