@@ -44,7 +44,6 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -188,10 +187,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 LOG.warn("write hdfs exception:", e);
             }
         }
-        updateDuration();
-        numWriteCounter.add(1);
         rowsOfCurrentTransaction++;
-        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
     }
 
     @Override
