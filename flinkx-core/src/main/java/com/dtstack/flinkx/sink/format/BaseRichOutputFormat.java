@@ -21,8 +21,11 @@ package com.dtstack.flinkx.sink.format;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.dirty.DirtyConf;
+import com.dtstack.flinkx.dirty.manager.DirtyManager;
+import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.enums.Semantic;
-import com.dtstack.flinkx.factory.DTThreadFactory;
+import com.dtstack.flinkx.factory.FlinkxThreadFactory;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
@@ -33,6 +36,7 @@ import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 
+import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.CleanupWhenUnsuccessful;
 import org.apache.flink.api.common.io.FinalizeOnMaster;
@@ -159,6 +163,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     protected Semantic semantic;
 
+    /** the manager of dirty data. */
+    protected DirtyManager dirtyManager;
+
     @Override
     public void initializeGlobal(int parallelism) {
         // 任务开始前操作，在configure前调用。
@@ -192,6 +199,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.flushIntervalMills = config.getFlushIntervalMills();
         this.flushEnable = new AtomicBoolean(true);
         this.semantic = Semantic.getByName(config.getSemantic());
+
+        ExecutionConfig.GlobalJobParameters params =
+                context.getExecutionConfig().getGlobalJobParameters();
+        DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
+        this.dirtyManager = new DirtyManager(dc);
 
         checkpointMode =
                 context.getCheckpointMode() == null
@@ -328,6 +340,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             accumulatorCollector.close();
         }
 
+        if (dirtyManager != null) {
+            dirtyManager.close();
+        }
+
         if (closeException != null) {
             throw new RuntimeException(closeException);
         }
@@ -361,6 +377,11 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         outputMetric.addMetric(Metrics.SNAPSHOT_WRITES, snapshotWriteCounter);
         outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter, true);
         outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
+        outputMetric.addDirtyMetric(
+                Metrics.DIRTY_DATA_COUNT, this.dirtyManager.getConsumedMetric());
+        outputMetric.addDirtyMetric(
+                Metrics.DIRTY_DATA_COLLECT_FAILED_COUNT,
+                this.dirtyManager.getFailedConsumedMetric());
     }
 
     /** 初始化累加器收集器 */
@@ -424,7 +445,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                     flushIntervalMills);
             this.scheduler =
                     new ScheduledThreadPoolExecutor(
-                            1, new DTThreadFactory("timer-data-write-thread"));
+                            1, new FlinkxThreadFactory("timer-data-write-thread"));
             this.scheduledFuture =
                     this.scheduler.scheduleWithFixedDelay(
                             () -> {
@@ -465,6 +486,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             writeSingleRecordInternal(rowData);
         } catch (WriteRecordException e) {
             // todo 脏数据记录
+            dirtyManager.collect(String.valueOf(rowData), e, null, getRuntimeContext());
             updateDirtyDataMsg(rowData, e);
             if (LOG.isTraceEnabled()) {
                 LOG.trace(
@@ -703,5 +725,9 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     public void setRowConverter(AbstractRowConverter rowConverter) {
         this.rowConverter = rowConverter;
+    }
+
+    public void setDirtyManager(DirtyManager dirtyManager) {
+        this.dirtyManager = dirtyManager;
     }
 }

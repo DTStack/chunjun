@@ -43,6 +43,8 @@ public class BaseMetric {
 
     private final MetricGroup flinkxMetricGroup;
 
+    private final MetricGroup flinkxDirtyMetricGroup;
+
     private final Map<String, LongCounter> metricCounters = new HashMap<>();
 
     public BaseMetric(RuntimeContext runtimeContext) {
@@ -51,6 +53,10 @@ public class BaseMetric {
                         .getMetricGroup()
                         .addGroup(
                                 Metrics.METRIC_GROUP_KEY_FLINKX, Metrics.METRIC_GROUP_VALUE_OUTPUT);
+
+        flinkxDirtyMetricGroup =
+                flinkxMetricGroup.addGroup(
+                        Metrics.METRIC_GROUP_KEY_DIRTY, Metrics.METRIC_GROUP_VALUE_OUTPUT);
     }
 
     public void addMetric(String metricName, LongCounter counter) {
@@ -64,6 +70,11 @@ public class BaseMetric {
             flinkxMetricGroup.meter(
                     metricName + Metrics.SUFFIX_RATE, new SimpleLongCounterMeterView(counter, 20));
         }
+    }
+
+    public void addDirtyMetric(String metricName, LongCounter counter) {
+        metricCounters.put(metricName, counter);
+        flinkxDirtyMetricGroup.gauge(metricName, new SimpleAccumulatorGauge<>(counter));
     }
 
     public Map<String, LongCounter> getMetricCounters() {

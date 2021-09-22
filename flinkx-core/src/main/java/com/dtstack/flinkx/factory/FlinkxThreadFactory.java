@@ -22,24 +22,34 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /** company: www.dtstack.com author: sishu.yss create: 2018/09/12 */
-public class DTThreadFactory implements ThreadFactory {
+public class FlinkxThreadFactory implements ThreadFactory {
     private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);
     private static final AtomicInteger THREAD_NUMBER = new AtomicInteger(1);
     private final ThreadGroup group;
     private final String namePrefix;
     private Boolean isDaemon = false;
+    private Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
 
-    public DTThreadFactory(String factoryName) {
+    public FlinkxThreadFactory(String factoryName) {
         SecurityManager s = System.getSecurityManager();
         group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
         namePrefix = factoryName + "-pool-" + POOL_NUMBER.getAndIncrement() + "-thread-";
     }
 
-    public DTThreadFactory(String factoryName, Boolean isDaemon) {
+    public FlinkxThreadFactory(String factoryName, Boolean isDaemon) {
         SecurityManager s = System.getSecurityManager();
         group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
         namePrefix = factoryName + "-pool-" + POOL_NUMBER.getAndIncrement() + "-thread-";
         this.isDaemon = isDaemon;
+    }
+
+    public FlinkxThreadFactory(
+            String factoryName, Boolean isDaemon, Thread.UncaughtExceptionHandler callback) {
+        SecurityManager s = System.getSecurityManager();
+        group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+        namePrefix = factoryName + "-pool-" + POOL_NUMBER.getAndIncrement() + "-thread-";
+        this.isDaemon = isDaemon;
+        this.uncaughtExceptionHandler = callback;
     }
 
     @Override
@@ -55,6 +65,10 @@ public class DTThreadFactory implements ThreadFactory {
 
         if (t.getPriority() != Thread.NORM_PRIORITY) {
             t.setPriority(Thread.NORM_PRIORITY);
+        }
+
+        if (uncaughtExceptionHandler != null) {
+            t.setUncaughtExceptionHandler(uncaughtExceptionHandler);
         }
         return t;
     }

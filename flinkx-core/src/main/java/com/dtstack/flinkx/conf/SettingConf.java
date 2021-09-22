@@ -39,8 +39,6 @@ public class SettingConf implements Serializable {
     private RestartConf restart = new RestartConf();
     /** FlinkX日志记录配置 */
     private LogConf log = new LogConf();
-    /** 脏数据保存配置 */
-    private DirtyConf dirty = new DirtyConf();
 
     public void setMetricPluginConf(MetricPluginConf metricPluginConf) {
         this.metricPluginConf = metricPluginConf;
@@ -90,14 +88,6 @@ public class SettingConf implements Serializable {
         this.log = log;
     }
 
-    public DirtyConf getDirty() {
-        return dirty;
-    }
-
-    public void setDirty(DirtyConf dirty) {
-        this.dirty = dirty;
-    }
-
     @Override
     public String toString() {
         return "SettingConf{"
@@ -113,8 +103,6 @@ public class SettingConf implements Serializable {
                 + restart
                 + ", log="
                 + log
-                + ", dirty="
-                + dirty
                 + '}';
     }
 }

@@ -48,7 +48,7 @@ public class LocalTest {
         String userDir = System.getProperty("user.dir");
 
         String jobPath =
-                userDir + "/flinkx-local-test/src/main/demo/json/socket/socket_stream.json";
+                userDir + "/flinkx-examples/json/stream/stream.json";
         String flinkxDistDir = userDir + "/flinkx-dist";
         String s = "";
 
@@ -64,7 +64,32 @@ public class LocalTest {
             argsList.add(content);
 //            argsList.add("-flinkConfDir");
 //            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
-            argsList.add("-confProp");
+//            argsList.add("-confProp");
+//            // 脏数据相关配置信息
+//            StringBuilder stringBuilder = new StringBuilder();
+//            stringBuilder
+//                    .append("{")
+//                    .append("\"flinkx.dirty-data.output-type\":\"print\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.max-rows\":\"1000\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.max-collect-failed-rows\":\"100\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.jdbc.url\":\"jdbc:mysql://localhost:3306/tiezhu\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.jdbc.username\":\"root\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.jdbc.password\":\"abc123\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.jdbc.database\":\"tiezhu\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.jdbc.table\":\"flinkx_dirty_data\"")
+//                    .append(",")
+//                    .append("\"flinkx.dirty-data.jdbc.batch-size\":\"10\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.log.print-interval\":\"10\"")
+//                    .append("}");
+//            argsList.add(stringBuilder.toString());
             argsList.add(GsonUtil.GSON.toJson(confProperties));
         } else if (StringUtils.endsWith(jobPath, "sql")) {
             argsList.add("-jobType");
@@ -81,6 +106,32 @@ public class LocalTest {
             argsList.add(flinkxDistDir);
             argsList.add("-pluginLoadMode");
             argsList.add("LocalTest");
+//            argsList.add("-confProp");
+//            // 脏数据相关配置信息
+//            StringBuilder stringBuilder = new StringBuilder();
+//            stringBuilder
+//                    .append("{")
+//                    .append("\"flinkx.dirty-data.output-type\":\"mysql\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.max-rows\":\"1000\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.max-collect-failed-rows\":\"100\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.jdbc.url\":\"jdbc:mysql://localhost:3306/tiezhu\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.jdbc.username\":\"root\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.jdbc.password\":\"abc123\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.jdbc.database\":\"tiezhu\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.jdbc.table\":\"flinkx_dirty_data\"")
+//                    .append(",")
+//                    .append("\"flinkx.dirty-data.jdbc.batch-size\":\"10\"")
+//                    .append(", ")
+//                    .append("\"flinkx.dirty-data.log.print-interval\":\"10\"")
+//                    .append("}");
+//            argsList.add(stringBuilder.toString());
 //            argsList.add("-confProp");
 //            argsList.add("{\"execution.checkpointing.interval\":\"60000\"}");
 //            argsList.add("{\"sql.checkpoint.mode\":\"AT_LEAST_ONCE\",\"flink.checkpoint.interval\":\"300000\"}");

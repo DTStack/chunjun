@@ -60,6 +60,7 @@ public class EnvFactory {
             env = StreamExecutionEnvironment.getExecutionEnvironment(cfg);
         }
         env.getConfig().disableClosureCleaner();
+        env.getConfig().setGlobalJobParameters(cfg);
         return env;
     }
 

@@ -22,7 +22,7 @@ import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcLookupConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.enums.ECacheContentType;
-import com.dtstack.flinkx.factory.DTThreadFactory;
+import com.dtstack.flinkx.factory.FlinkxThreadFactory;
 import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 import com.dtstack.flinkx.lookup.cache.CacheMissVal;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
@@ -141,7 +141,7 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                         0,
                         TimeUnit.MILLISECONDS,
                         new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE.defaultValue()),
-                        new DTThreadFactory("rdbAsyncExec"),
+                        new FlinkxThreadFactory("rdbAsyncExec"),
                         new ThreadPoolExecutor.CallerRunsPolicy());
         LOG.info("async dim table JdbcOptions info: {} ", jdbcConf.toString());
     }

@@ -91,9 +91,6 @@ public class PropertiesUtil {
         flinkxCommonConf.setSpeedBytes(syncConf.getSpeed().getBytes());
         flinkxCommonConf.setErrorRecord(syncConf.getErrorLimit().getRecord());
         flinkxCommonConf.setErrorPercentage(syncConf.getErrorLimit().getPercentage());
-        flinkxCommonConf.setDirtyDataPath(syncConf.getDirty().getPath());
-        flinkxCommonConf.setDirtyDataHadoopConf(syncConf.getDirty().getHadoopConfig());
-        flinkxCommonConf.setFieldNameList(syncConf.getDirty().getReaderColumnNameList());
         flinkxCommonConf.setSavePointPath(syncConf.getSavePointPath());
         if (syncConf.getMetricPluginConf() != null) {
             flinkxCommonConf.setMetricPluginRoot(

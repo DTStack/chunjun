@@ -20,6 +20,8 @@ package com.dtstack.flinkx;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.dirty.DirtyConf;
+import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.enums.EJobType;
 import com.dtstack.flinkx.environment.EnvFactory;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
@@ -57,13 +59,13 @@ import org.apache.flink.table.factories.TableFactoryService;
 import org.apache.flink.table.types.DataType;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -86,7 +88,7 @@ public class Main {
         LOG.info("-------------------------------------------");
 
         Options options = new OptionParser(args).getOptions();
-        String job = URLDecoder.decode(options.getJob(), Charsets.UTF_8.name());
+        String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
@@ -248,6 +250,7 @@ public class Main {
             }
 
             Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
+
             String savePointPath =
                     confProperties.getProperty(SavepointConfigOptions.SAVEPOINT_PATH.key());
             if (StringUtils.isNotBlank(savePointPath)) {
@@ -272,8 +275,9 @@ public class Main {
      */
     private static void configStreamExecutionEnvironment(
             StreamExecutionEnvironment env, Options options, SyncConf config) {
+
         if (config != null) {
-            PluginUtil.registerPluginUrlToCachedFile(config, env);
+            PluginUtil.registerPluginUrlToCachedFile(options, config, env);
             env.setParallelism(config.getSpeed().getChannel());
         } else {
             Preconditions.checkArgument(
@@ -287,6 +291,10 @@ public class Main {
             factoryHelper.setRemotePluginPath(options.getRemoteFlinkxDistDir());
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
+
+            DirtyConf dirtyConf = DirtyConfUtil.parse(options);
+            factoryHelper.registerDirtyFile(
+                    dirtyConf.getType(), Thread.currentThread().getContextClassLoader(), true);
 
             FactoryUtil.setFactoryUtilHelp(factoryHelper);
             TableFactoryService.setFactoryUtilHelp(factoryHelper);

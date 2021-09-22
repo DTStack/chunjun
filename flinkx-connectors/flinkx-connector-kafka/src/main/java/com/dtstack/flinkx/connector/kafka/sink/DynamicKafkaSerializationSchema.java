@@ -19,11 +19,15 @@
 package com.dtstack.flinkx.connector.kafka.sink;
 
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.dirty.DirtyConf;
+import com.dtstack.flinkx.dirty.manager.DirtyManager;
+import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.JsonUtil;
 
+import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -106,6 +110,8 @@ public class DynamicKafkaSerializationSchema
     private int[] partitions;
     private transient RuntimeContext runtimeContext;
 
+    protected DirtyManager dirtyManager;
+
     public DynamicKafkaSerializationSchema(
             String topic,
             @Nullable FlinkKafkaPartitioner<RowData> partitioner,
@@ -143,22 +149,28 @@ public class DynamicKafkaSerializationSchema
     }
 
     protected void beforeOpen() {
-        this.checkpointEnabled =
-                ((StreamingRuntimeContext) runtimeContext).isCheckpointingEnabled();
+        StreamingRuntimeContext context = (StreamingRuntimeContext) this.runtimeContext;
+        this.checkpointEnabled = context.isCheckpointingEnabled();
         this.startTime = System.currentTimeMillis();
+
+        ExecutionConfig.GlobalJobParameters params =
+                context.getExecutionConfig().getGlobalJobParameters();
+        DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
+        this.dirtyManager = new DirtyManager(dc);
+
         initStatisticsAccumulator();
         initRestoreInfo();
         initAccumulatorCollector();
 
         checkpointMode =
-                ((StreamingRuntimeContext) runtimeContext).getCheckpointMode() == null
+                context.getCheckpointMode() == null
                         ? CheckpointingMode.AT_LEAST_ONCE
-                        : ((StreamingRuntimeContext) runtimeContext).getCheckpointMode();
+                        : context.getCheckpointMode();
 
         if (partitioner != null) {
             partitioner.open(
-                    runtimeContext.getIndexOfThisSubtask(),
-                    runtimeContext.getNumberOfParallelSubtasks());
+                    this.runtimeContext.getIndexOfThisSubtask(),
+                    this.runtimeContext.getNumberOfParallelSubtasks());
         }
     }
 
@@ -242,8 +254,7 @@ public class DynamicKafkaSerializationSchema
                     valueSerialized,
                     readMetadata(consumedRow, KafkaDynamicSink.WritableMetadata.HEADERS));
         } catch (Exception e) {
-            // todo 需要脏数据记录 参考 BaseRichOutputFormat.updateDirtyDataMsg(rowData, e);
-            LOG.error(e.getMessage());
+            dirtyManager.collect(consumedRow.toString(), e, null, runtimeContext);
         }
         return null;
     }
@@ -354,6 +365,11 @@ public class DynamicKafkaSerializationSchema
         outputMetric.addMetric(Metrics.SNAPSHOT_WRITES, snapshotWriteCounter);
         outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter, true);
         outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
+        outputMetric.addDirtyMetric(
+                Metrics.DIRTY_DATA_COUNT, this.dirtyManager.getConsumedMetric());
+        outputMetric.addDirtyMetric(
+                Metrics.DIRTY_DATA_COLLECT_FAILED_COUNT,
+                this.dirtyManager.getFailedConsumedMetric());
     }
 
     /** 初始化累加器收集器 */

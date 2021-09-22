@@ -166,10 +166,6 @@ public class SyncConf implements Serializable {
         return job.getSetting().getSpeed();
     }
 
-    public DirtyConf getDirty() {
-        return job.getSetting().getDirty();
-    }
-
     public ErrorLimitConf getErrorLimit() {
         return job.getSetting().getErrorLimit();
     }

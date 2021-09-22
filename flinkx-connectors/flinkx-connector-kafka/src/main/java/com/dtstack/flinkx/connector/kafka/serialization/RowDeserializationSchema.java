@@ -68,8 +68,11 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchema 
             collector.collect(
                     converter.toInternal(new String(record.value(), StandardCharsets.UTF_8)));
         } catch (Exception e) {
-            // todo kafka 比较特殊这里直接对接脏数据即可
-            dirtyDataCounter(record, e);
+            dirtyManager.collect(
+                    new String(record.value(), StandardCharsets.UTF_8),
+                    e,
+                    null,
+                    getRuntimeContext());
         }
     }
 }

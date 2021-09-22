@@ -18,7 +18,8 @@
 		<module>flinkx-formats</module>
 		<module>flinkx-docker</module>
 		<module>flinkx-metrics</module>
-	</modules>
+        <module>flinkx-dirtydata-collectors</module>
+    </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -267,6 +267,25 @@
 
 		<!--Network-->
 
+		<!--Dirty-plugins-->
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-dirty</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-dirty-mysql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-dirty-log</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!--本地测试模块 end, 添加新的dependency请按照分组添加在对应位置，不要无脑地加在最前或最后方 -->
 	</dependencies>
 </project>
