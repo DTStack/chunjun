@@ -356,6 +356,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
     }
+
     /**
      * 从数据库中查询增量字段的最大值
      *
@@ -818,9 +819,16 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         // 查询到数据，更新querySql
         StringBuilder builder = new StringBuilder(128);
-        builder.append(jdbcConf.getQuerySql())
-                .append(" AND ")
-                .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+        builder.append(jdbcConf.getQuerySql());
+
+        // 如果没有配置where条件，需要连接where关键字
+        if (jdbcConf.getWhere() == null) {
+            builder.append(" WHERE ");
+        } else {
+            builder.append(" AND ");
+        }
+
+        builder.append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
                 .append(" > ? ORDER BY ")
                 .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
                 .append(" ASC");
