@@ -30,7 +30,9 @@ import org.apache.flink.client.program.ClusterClientProvider;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.JobManagerOptions;
 import org.apache.flink.configuration.TaskManagerOptions;
+import org.apache.flink.runtime.clusterframework.TaskExecutorProcessUtils;
 import org.apache.flink.runtime.jobgraph.JobGraph;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.util.CollectionUtil;
@@ -40,6 +42,10 @@ import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.flink.yarn.configuration.YarnLogConfigUtil;
 
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.google.common.base.Strings;
+import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -50,10 +56,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.apache.flink.configuration.TaskManagerOptions.NUM_TASK_SLOTS;
@@ -102,7 +109,7 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
     }
 
     private YarnClusterDescriptor createPerJobClusterDescriptor(
-            Options launcherOptions, Configuration flinkConfig) throws MalformedURLException {
+            Options launcherOptions, Configuration flinkConfig) throws IOException {
         String flinkLibDir = launcherOptions.getFlinkLibDir();
         String flinkConfDir = launcherOptions.getFlinkConfDir();
 
@@ -160,6 +167,20 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
                 }
             }
         }
+
+        // 上传自定义函数jar包
+        if (!Strings.isNullOrEmpty(launcherOptions.getAddjar())) {
+            List<String> addJarFileList =
+                    new ObjectMapper()
+                            .readValue(
+                                    URLDecoder.decode(
+                                            launcherOptions.getAddjar(), Charsets.UTF_8.name()),
+                                    List.class);
+            for (String addJarPath : addJarFileList) {
+                shipFiles.add(new File(addJarPath));
+            }
+        }
+
         descriptor.addShipFiles(shipFiles);
 
         return descriptor;
@@ -185,13 +206,23 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
                                         conProp.getProperty(
                                                 JobManagerOptions.TOTAL_PROCESS_MEMORY.key())));
             }
+            // 设置flink的TaskManager的进程总内存
             if (conProp.containsKey(TaskManagerOptions.TOTAL_PROCESS_MEMORY.key())) {
                 taskManagerMemoryMb =
                         Math.max(
                                 MIN_TM_MEMORY,
-                                ValueUtil.getInt(
-                                        conProp.getProperty(
-                                                TaskManagerOptions.TOTAL_PROCESS_MEMORY.key())));
+                                TaskExecutorProcessUtils.processSpecFromConfig(
+                                                TaskExecutorProcessUtils
+                                                        .getConfigurationMapLegacyTaskManagerHeapSizeToConfigOption(
+                                                                Configuration.fromMap(
+                                                                        MapUtil.jsonStrToObject(
+                                                                                launcherOptions
+                                                                                        .getConfProp(),
+                                                                                Map.class)),
+                                                                TaskManagerOptions
+                                                                        .TOTAL_PROCESS_MEMORY))
+                                        .getTotalProcessMemorySize()
+                                        .getMebiBytes());
             }
             if (conProp.containsKey(NUM_TASK_SLOTS.key())) {
                 slotsPerTaskManager = ValueUtil.getInt(conProp.get(NUM_TASK_SLOTS.key()));
@@ -204,6 +235,13 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
                         .setTaskManagerMemoryMB(taskManagerMemoryMb)
                         .setSlotsPerTaskManager(slotsPerTaskManager)
                         .createClusterSpecification();
+
+        // 设置从savepoint启动
+        if (conProp != null && conProp.containsKey("execution.savepoint.path")) {
+            clusterSpecification.setSpSetting(
+                    SavepointRestoreSettings.forPath(
+                            ValueUtil.getStringVal(conProp.get("execution.savepoint.path"))));
+        }
 
         clusterSpecification.setCreateProgramDelay(true);
 
