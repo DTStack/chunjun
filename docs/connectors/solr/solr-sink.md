@@ -98,15 +98,15 @@ Solr 7.4
 
 
 
-- **principal**
+- **security.kerberos.principal**
     - 描述：kerberos认证的principal
     - 必选：是
     - 默认值：无
-- **keytab**
+- **security.kerberos.keytab**
     - 描述：kerberos认证的keytab文件路径
     - 必选：是
     - 默认值：无
-- **krb5conf**
+- **security.kerberos.krb5conf**
     - 描述：kerberos认证的krb5conf文件路径
     - 必选：是
     - 默认值：无

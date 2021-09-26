@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.kudu.lookup;
+package com.dtstack.flinkx.connector.kudu.table.lookup;
 
 import com.dtstack.flinkx.connector.kudu.conf.KuduCommonConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduLookupConf;

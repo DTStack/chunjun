@@ -16,15 +16,16 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.kudu.source;
+package com.dtstack.flinkx.connector.kudu.table;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduLookupConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.flinkx.connector.kudu.converter.KuduRawTypeConverter;
 import com.dtstack.flinkx.connector.kudu.converter.KuduRowConverter;
-import com.dtstack.flinkx.connector.kudu.lookup.KuduAllTableFunction;
-import com.dtstack.flinkx.connector.kudu.lookup.KuduLruTableFunction;
+import com.dtstack.flinkx.connector.kudu.source.KuduInputFormatBuilder;
+import com.dtstack.flinkx.connector.kudu.table.lookup.KuduAllTableFunction;
+import com.dtstack.flinkx.connector.kudu.table.lookup.KuduLruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelAsyncTableFunctionProvider;

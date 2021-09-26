@@ -22,8 +22,6 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
 /**
- * TODO move to table package
- *
  * @author chuixue
  * @create 2021-06-21 19:41
  * @description

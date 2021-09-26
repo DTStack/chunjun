@@ -108,14 +108,14 @@ kudu sink
     - 默认值：无
       <br />
 
-- **flushMode**
+- **session.flush-mode**
     - 描述：写入 kudu 时，Kudu session的 flushMode
     - 必选：否
     - 参数类型：string
     - 默认值：AUTO_FLUSH_SYNC
       <br />
 
-- **maxBufferSize**
+- **session.mutation-buffer-space**
     - 描述：kudu client 中缓存数据的最大条数。
     - 注意：当kudu session 中buffer里缓存的数据条数大于maxBufferSize，kudu session 会抛出"Buffer too big " 的异常，此异常并不会影响buffer中数据的实际写入，
     - 必选：否
@@ -123,7 +123,7 @@ kudu sink
     - 默认值：1024
       <br />
 
-- **flushInterval**
+- **sink.buffer-flush.interval**
     - 描述：批量写入 kudu 的刷新时间。
     - 单位：毫秒
     - 必选：否
@@ -131,28 +131,28 @@ kudu sink
     - 默认值：10000
       <br />
 
-- **workerCount**
+- **client.worker-count**
     - 描述：kudu worker的数量
     - 必选：否
     - 参数类型：int
     - 默认值：2
       <br />
 
-- **operationTimeout**
+- **client.default-operation-timeout-ms**
     - 描述：kudu operation超时时间
     - 必选：否
     - 参数类型：int
     - 默认值：30 * 1000（30秒）
       <br />
 
-- **adminOperationTimeout**
+- **client.default-admin-operation-timeout-ms**
     - 描述：admin operation 的超时时间
     - 必选：否
     - 参数类型：int
     - 默认值：30 * 1000（30秒）
       <br />
 
-- **queryTimeout**
+- **scan-token.query-timeout**
     - 描述：query operation 的超时时间
     - 必选：否
     - 参数类型：int

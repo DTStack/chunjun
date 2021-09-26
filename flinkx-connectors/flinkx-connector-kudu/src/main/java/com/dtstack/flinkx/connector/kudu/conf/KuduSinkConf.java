@@ -26,12 +26,11 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Locale;
 
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.FLUSH_INTERVAL;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.FLUSH_MODE;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.IGNORE_DUPLICATE;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.IGNORE_NOT_FOUND;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.MAX_BUFFER_SIZE;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.WRITE_MODE;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.FLUSH_MODE;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.MUTATION_BUFFER_SPACE;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.WRITE_MODE;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 
 /**
  * @author tiezhu
@@ -46,22 +45,17 @@ public class KuduSinkConf extends KuduCommonConf {
 
     private int maxBufferSize = 1024;
 
-    private int flushInterval = 10 * 1000;
-
-    private boolean ignoreNotFound = false;
-
-    private boolean ignoreDuplicate = false;
+    private long flushInterval = 10 * 1000;
 
     public static KuduSinkConf from(ReadableConfig readableConfig) {
         KuduSinkConf conf = (KuduSinkConf) KuduCommonConf.from(readableConfig, new KuduSinkConf());
 
         // sink
+        conf.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
         conf.setWriteMode(readableConfig.get(WRITE_MODE));
-        conf.setMaxBufferSize(readableConfig.get(MAX_BUFFER_SIZE));
-        conf.setIgnoreDuplicate(readableConfig.get(IGNORE_DUPLICATE));
-        conf.setIgnoreNotFound(readableConfig.get(IGNORE_NOT_FOUND));
+        conf.setMaxBufferSize(readableConfig.get(MUTATION_BUFFER_SPACE));
         conf.setFlushMode(readableConfig.get(FLUSH_MODE));
-        conf.setFlushInterval(readableConfig.get(FLUSH_INTERVAL));
+        conf.setFlushInterval(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
 
         return conf;
     }
@@ -102,28 +96,12 @@ public class KuduSinkConf extends KuduCommonConf {
         this.maxBufferSize = maxBufferSize;
     }
 
-    public int getFlushInterval() {
+    public long getFlushInterval() {
         return flushInterval;
     }
 
-    public void setFlushInterval(int flushInterval) {
+    public void setFlushInterval(long flushInterval) {
         this.flushInterval = flushInterval;
-    }
-
-    public boolean isIgnoreNotFound() {
-        return ignoreNotFound;
-    }
-
-    public void setIgnoreNotFound(boolean ignoreNotFound) {
-        this.ignoreNotFound = ignoreNotFound;
-    }
-
-    public boolean isIgnoreDuplicate() {
-        return ignoreDuplicate;
-    }
-
-    public void setIgnoreDuplicate(boolean ignoreDuplicate) {
-        this.ignoreDuplicate = ignoreDuplicate;
     }
 
     @Override

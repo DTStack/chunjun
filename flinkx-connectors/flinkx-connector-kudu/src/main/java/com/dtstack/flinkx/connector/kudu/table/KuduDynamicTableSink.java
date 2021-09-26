@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.kudu.sink;
+package com.dtstack.flinkx.connector.kudu.table;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kudu.conf.KuduSinkConf;
 import com.dtstack.flinkx.connector.kudu.converter.KuduRawTypeConverter;
 import com.dtstack.flinkx.connector.kudu.converter.KuduRowConverter;
+import com.dtstack.flinkx.connector.kudu.sink.KuduOutputFormatBuilder;
 import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 import com.dtstack.flinkx.util.TableUtil;
 
