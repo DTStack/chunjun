@@ -148,11 +148,9 @@ public class KuduAllTableFunction extends AbstractAllTableFunction {
     private KuduScanner buildScanner(
             KuduScanner.KuduScannerBuilder scannerBuilder, KuduLookupConf kuduLookupConf) {
         Integer batchSizeBytes = kuduLookupConf.getBatchSizeBytes();
-        Long limitNum = kuduLookupConf.getLimitNum();
         Boolean isFaultTolerant = kuduLookupConf.getFaultTolerant();
 
         return scannerBuilder
-                .limit(limitNum)
                 .batchSizeBytes(batchSizeBytes)
                 .setFaultTolerant(isFaultTolerant)
                 .setProjectedColumnNames(Arrays.asList(fieldsName))
