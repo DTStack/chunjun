@@ -29,6 +29,8 @@ import java.nio.charset.StandardCharsets;
  */
 public class BaseFileConf extends FlinkxCommonConf {
 
+    private int fromLine = 1;
+
     private String path;
     private String fileName;
     /** 写入模式 * */
@@ -39,6 +41,14 @@ public class BaseFileConf extends FlinkxCommonConf {
     private String encoding = StandardCharsets.UTF_8.name();
     private long maxFileSize = ConstantValue.STORE_SIZE_G;
     private long nextCheckRows = 5000;
+
+    public int getFromLine() {
+        return fromLine;
+    }
+
+    public void setFromLine(int fromLine) {
+        this.fromLine = fromLine;
+    }
 
     public String getPath() {
         return path;

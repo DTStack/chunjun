@@ -64,7 +64,7 @@
 		<module>flinkx-connector-pgwal</module>
 
         <!--Network-->
-        <module>flinkx-connector-restapi</module>
+        <module>flinkx-connector-http</module>
         <module>flinkx-connector-socket</module>
 	</modules>
 

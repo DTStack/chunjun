@@ -19,8 +19,6 @@
 package com.dtstack.flinkx.connector.file.table;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
-import com.dtstack.flinkx.connector.file.options.FileOptions;
-import com.dtstack.flinkx.connector.file.source.FileDynamicTableSource;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.configuration.ConfigOption;
@@ -53,7 +51,6 @@ public class FileDynamicTableFactory implements DynamicTableSourceFactory {
         final FactoryUtil.TableFactoryHelper helper =
                 FactoryUtil.createTableFactoryHelper(this, context);
         final ReadableConfig config = helper.getOptions();
-        helper.validate();
 
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
@@ -69,6 +66,7 @@ public class FileDynamicTableFactory implements DynamicTableSourceFactory {
         BaseFileConf fileConf = new BaseFileConf();
         fileConf.setPath(config.get(FileOptions.PATH));
         fileConf.setEncoding(config.get(FileOptions.ENCODING));
+        fileConf.setFromLine(config.get(FileOptions.SCAN_LINE));
         return fileConf;
     }
 

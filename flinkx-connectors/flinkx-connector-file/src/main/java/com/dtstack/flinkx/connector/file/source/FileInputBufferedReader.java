@@ -20,11 +20,11 @@ package com.dtstack.flinkx.connector.file.source;
 
 import com.dtstack.flinkx.conf.BaseFileConf;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.util.Iterator;
 import java.util.List;
 
@@ -35,11 +35,9 @@ import java.util.List;
  */
 public class FileInputBufferedReader {
 
-    private List<String> paths;
-
     private Iterator<String> pathIterator;
 
-    private BufferedReader br;
+    private LineNumberReader lr;
 
     private BaseFileConf fileConf;
 
@@ -47,14 +45,13 @@ public class FileInputBufferedReader {
 
     public FileInputBufferedReader(List<String> paths, BaseFileConf fileConf) {
         this.fileConf = fileConf;
-        this.paths = paths;
         pathIterator = paths.iterator();
     }
 
     public String readLine() throws IOException {
 
         String line = null;
-        if (br == null) {
+        if (lr == null) {
             nextFileStream();
         }
 
@@ -62,8 +59,14 @@ public class FileInputBufferedReader {
             return line;
         }
 
-        if (br != null) {
-            line = br.readLine();
+        if (lr != null) {
+            if (lr.getLineNumber() < fileConf.getFromLine()) {
+                while (lr.getLineNumber() < fileConf.getFromLine()) {
+                    line = lr.readLine();
+                }
+            } else {
+                line = lr.readLine();
+            }
         }
 
         if (line == null) {
@@ -79,17 +82,17 @@ public class FileInputBufferedReader {
             String encoding = fileConf.getEncoding();
             InputStreamReader isr =
                     new InputStreamReader(new FileInputStream(new File(filePath)), encoding);
-            br = new BufferedReader(isr);
+            lr = new LineNumberReader(isr);
         } else {
-            br = null;
+            lr = null;
             hasNext = false;
         }
     }
 
     public void close() throws IOException {
-        if (br != null) {
-            br.close();
-            br = null;
+        if (lr != null) {
+            lr.close();
+            lr = null;
         }
     }
 }
