@@ -69,12 +69,12 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/restapi"
+								<copy todir="${basedir}/../../${dist.dir}/connector/http"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/restapi/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/restapi/${project.artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/connector/http/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/connector/http/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../${dist.dir}/connector/restapi/"
+									<fileset dir="${basedir}/../../${dist.dir}/connector/http/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>
