@@ -59,6 +59,9 @@ public class DirtyConfUtil {
         Properties pluginProperties = new Properties();
 
         String type = String.valueOf(confMap.getOrDefault(TYPE_KEY, DEFAULT_TYPE));
+        if (type.equals("jdbc")) {
+            type = "mysql";
+        }
         long maxConsumed = Long.parseLong(String.valueOf(confMap.getOrDefault(MAX_ROWS_KEY, "1")));
         long maxFailed =
                 Long.parseLong(String.valueOf(confMap.getOrDefault(MAX_FAILED_ROWS_KEY, "1")));
