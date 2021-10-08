@@ -21,7 +21,6 @@ package com.dtstack.flinkx.dirty.manager;
 import com.dtstack.flinkx.dirty.DirtyConf;
 import com.dtstack.flinkx.dirty.consumer.DirtyDataCollector;
 import com.dtstack.flinkx.dirty.impl.DirtyDataEntry;
-import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.factory.FlinkxThreadFactory;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
@@ -69,15 +68,6 @@ public class DirtyManager implements Serializable {
 
     public DirtyManager(DirtyConf dirtyConf) {
         this.consumer = DataSyncFactoryUtil.discoverDirty(dirtyConf);
-    }
-
-    public static DirtyManager fromConfMap(Map confMap) {
-        DirtyConf dirtyConf = DirtyConfUtil.parseFromMap(confMap);
-        return fromDirtyConf(dirtyConf);
-    }
-
-    public static DirtyManager fromDirtyConf(DirtyConf dirtyConf) {
-        return new DirtyManager(dirtyConf);
     }
 
     public void execute() {
