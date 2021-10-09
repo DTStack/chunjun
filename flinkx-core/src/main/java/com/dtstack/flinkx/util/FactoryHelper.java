@@ -23,7 +23,6 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.factories.TableFactoryService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -49,7 +48,7 @@ public class FactoryHelper {
                     .defaultValue("class_path_%d")
                     .withDescription("");
 
-    private static final Logger LOG = LoggerFactory.getLogger(TableFactoryService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FactoryHelper.class);
     /** 插件路径 */
     protected String localPluginPath = null;
     /** 远端插件路径 */
