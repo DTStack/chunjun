@@ -278,7 +278,7 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
     protected void consume(DirtyDataEntry dirty) throws Exception {
         entities.add(dirty);
 
-        if (consumed.get().getLocalValue() % batchSize == 0) {
+        if (CONSUMED_COUNTER.getLocalValue() % batchSize == 0) {
             flush();
         }
     }

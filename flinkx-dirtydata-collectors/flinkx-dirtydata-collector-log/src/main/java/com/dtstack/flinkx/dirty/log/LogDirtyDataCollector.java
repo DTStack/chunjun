@@ -43,7 +43,7 @@ public class LogDirtyDataCollector extends DirtyDataCollector {
 
     @Override
     protected void consume(DirtyDataEntry dirty) throws Exception {
-        if (consumed.get().getLocalValue() % printRate == 0) {
+        if (CONSUMED_COUNTER.getLocalValue() % printRate == 0) {
             StringJoiner dirtyMessage =
                     new StringJoiner("\n")
                             .add("\n====================Dirty Data=====================")

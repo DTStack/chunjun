@@ -53,7 +53,7 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
     /**
      * This is the limit on the max consumed-data. The consumer would to be killed with throwing a
      * {@link NoRestartException} when the consumed-count exceed the limit. The default is 1, which
-     * means task fails once dirty data occurs..
+     * means task fails once dirty data occurs.
      */
     protected long maxConsumed = 1L;
 
@@ -131,9 +131,9 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
                     "dirty-plugins consume failed.",
                     cause,
                     printRate,
-                    failedConsumed.get().getLocalValue());
+                    FAILED_CONSUMED_COUNTER.getLocalValue());
 
-            if (failedConsumed.get().getLocalValue() >= maxFailedConsumed) {
+            if (FAILED_CONSUMED_COUNTER.getLocalValue() >= maxFailedConsumed) {
                 throw new NoRestartException(
                         String.format(
                                 "The dirty consumer shutdown, due to the failed-consumed count exceed the max-failed-consumed [%s]",
