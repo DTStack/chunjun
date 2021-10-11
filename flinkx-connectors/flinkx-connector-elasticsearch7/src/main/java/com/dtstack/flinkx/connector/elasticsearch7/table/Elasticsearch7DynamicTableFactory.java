@@ -93,6 +93,7 @@ public class Elasticsearch7DynamicTableFactory
                             BULK_FLUSH_BACKOFF_TYPE_OPTION,
                             BULK_FLUSH_BACKOFF_MAX_RETRIES_OPTION,
                             BULK_FLUSH_BACKOFF_DELAY_OPTION,
+                            SINK_PARALLELISM,
                             CONNECTION_MAX_RETRY_TIMEOUT_OPTION,
                             CONNECTION_PATH_PREFIX,
                             FORMAT_OPTION,

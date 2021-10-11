@@ -65,6 +65,7 @@ import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_START_LOCATIO
 import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
 import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static com.dtstack.flinkx.table.options.SinkOptions.SINK_MAX_RETRIES;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_PARALLELISM;
 
 /**
  * @author tiezhu
@@ -156,6 +157,7 @@ public class KuduDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         optionalOptions.add(SINK_BUFFER_FLUSH_MAX_ROWS);
         optionalOptions.add(SINK_BUFFER_FLUSH_INTERVAL);
         optionalOptions.add(SINK_MAX_RETRIES);
+        optionalOptions.add(SINK_PARALLELISM);
 
         // kerberos
         optionalOptions.add(PRINCIPAL);
