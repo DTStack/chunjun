@@ -20,33 +20,12 @@
 		<dependency>
 			<groupId>org.elasticsearch.client</groupId>
 			<artifactId>elasticsearch-rest-high-level-client</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpclient</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpcore</artifactId>
-				</exclusion>
-			</exclusions>
 			<version>7.9.2</version>
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.5.10</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore</artifactId>
-			<version>4.4.12</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-elasticsearch7_2.11</artifactId>
+			<artifactId>flink-connector-elasticsearch7_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 			<exclusions>
 				<exclusion>
@@ -58,7 +37,7 @@
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-elasticsearch-base_2.11</artifactId>
+			<artifactId>flink-connector-elasticsearch-base_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 
@@ -69,7 +48,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.2.0</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -78,6 +57,12 @@
 						</goals>
 						<configuration>
 							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<relocations>
+								<relocation>
+									<pattern>org.apache.http</pattern>
+									<shadedPattern>com.dtstack.flinkx.connector.elasticsearch7.org.apache.http</shadedPattern>
+								</relocation>
+							</relocations>
 							<artifactSet>
 								<excludes>
 									<exclude>com.data-artisans:*</exclude>
