@@ -33,7 +33,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -185,11 +184,7 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
         initScheduledTask(batchIntervalMill);
 
         try {
-            beforeConsume(
-                    String.valueOf(url),
-                    String.valueOf(username),
-                    String.valueOf(password),
-                    schemaInfo);
+            beforeConsume(url, username, password, schemaInfo);
         } catch (SQLException | ClassNotFoundException e) {
             throw new NoRestartException("Open mysql-dirty-consumer failed!", e);
         }
@@ -226,18 +221,13 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
                         + quoteIdentifier(String.valueOf(table));
     }
 
-    /**
-     * execute statement with single execution.
-     *
-     * @throws SQLException thrown exception when single statement execution fails.
-     */
+    /** execute statement with single execution. */
     private void singleFlush() {
         for (DirtyDataEntry item : entities) {
             try {
                 final String[] dirtyArrays = item.toArray();
                 for (int i = 0; i < TABLE_FIELDS.length; i++) {
-                    statement.setObject(
-                            i + 1, Objects.isNull(dirtyArrays[i]) ? null : dirtyArrays[i]);
+                    statement.setObject(i + 1, dirtyArrays[i]);
                 }
                 statement.execute();
             } catch (Exception e) {
@@ -255,8 +245,7 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
             for (DirtyDataEntry item : entities) {
                 final String[] dirtyArrays = item.toArray();
                 for (int i = 0; i < TABLE_FIELDS.length; i++) {
-                    statement.setObject(
-                            i + 1, Objects.isNull(dirtyArrays[i]) ? null : dirtyArrays[i]);
+                    statement.setObject(i + 1, dirtyArrays[i]);
                 }
                 statement.addBatch();
             }
@@ -278,7 +267,7 @@ public class MysqlDirtyDataCollector extends DirtyDataCollector {
     protected void consume(DirtyDataEntry dirty) throws Exception {
         entities.add(dirty);
 
-        if (CONSUMED_COUNTER.getLocalValue() % batchSize == 0) {
+        if (consumedCounter.getLocalValue() % batchSize == 0) {
             flush();
         }
     }
