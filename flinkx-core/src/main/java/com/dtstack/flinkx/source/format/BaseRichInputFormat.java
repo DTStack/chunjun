@@ -191,7 +191,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         try {
             internalRow = nextRecordInternal(rowData);
         } catch (ReadRecordException e) {
-            dirtyManager.collect(rowData.toString(), e, null, getRuntimeContext());
+            dirtyManager.collect(e.getRowData().toString(), e, null, getRuntimeContext());
         }
         if (internalRow != null) {
             updateDuration();

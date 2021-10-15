@@ -39,9 +39,9 @@ import static com.dtstack.flinkx.dirty.utils.LogUtil.warn;
  */
 public abstract class DirtyDataCollector implements Runnable, Serializable {
 
-    protected static final LongCounter FAILED_CONSUMED_COUNTER = new LongCounter(0L);
+    protected final LongCounter failedConsumedCounter = new LongCounter(0L);
 
-    protected static final LongCounter CONSUMED_COUNTER = new LongCounter(0L);
+    protected final LongCounter consumedCounter = new LongCounter(0L);
 
     private static final long serialVersionUID = 1L;
 
@@ -65,12 +65,6 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
 
     /** The flag of consumer thread. */
     protected AtomicBoolean isRunning = new AtomicBoolean(true);
-
-    /** The counter which count the number of consumed-dirty-data. */
-    protected transient ThreadLocal<LongCounter> consumed;
-
-    /** The counter which count the number of failed-consumed-dirty-data. */
-    protected transient ThreadLocal<LongCounter> failedConsumed;
 
     /** The queue stored the data not yet consumed. */
     protected LinkedBlockingQueue<DirtyDataEntry> consumeQueue = new LinkedBlockingQueue<>();
@@ -100,64 +94,43 @@ public abstract class DirtyDataCollector implements Runnable, Serializable {
                 consume(dirty);
             } catch (Exception e) {
                 addFailedConsumed(e, 1L);
-            } finally {
-                consumed.remove();
-                failedConsumed.remove();
             }
         }
     }
 
     protected void addConsumed(long count) {
-        try {
-            CONSUMED_COUNTER.add(count);
-            consumed.set(CONSUMED_COUNTER);
-            if (consumed.get().getLocalValue() >= maxConsumed) {
-                throw new NoRestartException(
-                        String.format(
-                                "The dirty consumer shutdown, due to the consumed count exceed the max-consumed [%s]",
-                                maxConsumed));
-            }
-        } finally {
-            consumed.remove();
+        consumedCounter.add(count);
+        if (consumedCounter.getLocalValue() >= maxConsumed) {
+            throw new NoRestartException(
+                    String.format(
+                            "The dirty consumer shutdown, due to the consumed count exceed the max-consumed [%s]",
+                            maxConsumed));
         }
     }
 
     protected void addFailedConsumed(Throwable cause, long failedCount) {
-        try {
-            FAILED_CONSUMED_COUNTER.add(failedCount);
-            failedConsumed.set(CONSUMED_COUNTER);
-            warn(
-                    LOG,
-                    "dirty-plugins consume failed.",
-                    cause,
-                    printRate,
-                    FAILED_CONSUMED_COUNTER.getLocalValue());
+        failedConsumedCounter.add(failedCount);
+        warn(
+                LOG,
+                "dirty-plugins consume failed.",
+                cause,
+                printRate,
+                failedConsumedCounter.getLocalValue());
 
-            if (FAILED_CONSUMED_COUNTER.getLocalValue() >= maxFailedConsumed) {
-                throw new NoRestartException(
-                        String.format(
-                                "The dirty consumer shutdown, due to the failed-consumed count exceed the max-failed-consumed [%s]",
-                                maxFailedConsumed));
-            }
-        } finally {
-            failedConsumed.remove();
+        if (failedConsumedCounter.getLocalValue() >= maxFailedConsumed) {
+            throw new NoRestartException(
+                    String.format(
+                            "The dirty consumer shutdown, due to the failed-consumed count exceed the max-failed-consumed [%s]",
+                            maxFailedConsumed));
         }
     }
 
     public LongCounter getConsumed() {
-        if (consumed == null) {
-            consumed = new ThreadLocal<>();
-            consumed.set(CONSUMED_COUNTER);
-        }
-        return CONSUMED_COUNTER;
+        return consumedCounter;
     }
 
     public LongCounter getFailedConsumed() {
-        if (failedConsumed == null) {
-            failedConsumed = new ThreadLocal<>();
-            failedConsumed.set(FAILED_CONSUMED_COUNTER);
-        }
-        return FAILED_CONSUMED_COUNTER;
+        return failedConsumedCounter;
     }
 
     public void open() {}

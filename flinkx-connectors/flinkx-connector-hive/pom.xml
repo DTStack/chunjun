@@ -60,6 +60,15 @@
 					<artifactId>slf4j-api</artifactId>
 					<groupId>org.slf4j</groupId>
 				</exclusion>
+				<!-- TODO: janino and commons-compiler could be included when submit job using multiprocess. -->
+				<exclusion>
+					<artifactId>janino</artifactId>
+					<groupId>org.codehaus.janino</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-compiler</artifactId>
+					<groupId>org.codehaus.janino</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
