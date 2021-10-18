@@ -56,42 +56,42 @@ import scala.Tuple3;
  * @author: lany
  * @create: 2021/06/27 13:23
  */
-public class ElasticsearchColumnConverter extends AbstractRowConverter<Map<String, Object>, Object, Map<String, Object>, LogicalType> {
+public class ElasticsearchColumnConverter
+        extends AbstractRowConverter<
+                Map<String, Object>, Object, Map<String, Object>, LogicalType> {
 
     private static final long serialVersionUID = 2L;
 
-    private List<Tuple3<String,Integer, LogicalType>> typeIndexList = new ArrayList<>();
+    private final List<Tuple3<String, Integer, LogicalType>> typeIndexList = new ArrayList<>();
 
     public ElasticsearchColumnConverter(RowType rowType) {
         super(rowType);
         List<String> fieldNames = rowType.getFieldNames();
-        for (int i = 0; i< rowType.getFieldCount(); i++) {
-            toInternalConverters[i] =
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
+            toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i))
-                    );
-            toExternalConverters[i] =
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]
-                    );
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
             typeIndexList.add(new Tuple3<>(fieldNames.get(i), i, rowType.getTypeAt(i)));
         }
     }
 
     @Override
-    protected IDeserializationConverter wrapIntoNullableInternalConverter(IDeserializationConverter IDeserializationConverter) {
+    protected IDeserializationConverter wrapIntoNullableInternalConverter(
+            IDeserializationConverter IDeserializationConverter) {
         return super.wrapIntoNullableInternalConverter(IDeserializationConverter);
     }
 
     @Override
     protected ISerializationConverter wrapIntoNullableExternalConverter(
-            ISerializationConverter ISerializationConverter,
-            LogicalType type) {
+            ISerializationConverter ISerializationConverter, LogicalType type) {
         return (val, index, rowData) -> {
             if (val == null
                     || val.isNullAt(index)
                     || LogicalTypeRoot.NULL.equals(type.getTypeRoot())) {
-                Map<String,Object> result = (Map<String,Object>) rowData;
+                Map<String, Object> result = (Map<String, Object>) rowData;
                 result.put(typeIndexList.get(index)._1(), null);
             } else {
                 ISerializationConverter.serialize(val, index, rowData);
@@ -102,33 +102,34 @@ public class ElasticsearchColumnConverter extends AbstractRowConverter<Map<Strin
     @Override
     public RowData toInternal(Map<String, Object> input) throws Exception {
         ColumnRowData columnRowData = new ColumnRowData(rowType.getFieldCount());
-        for (int i = 0; i < toInternalConverters.length; i++) {
-            final int index  = i;
-            List<Tuple3<String,Integer, LogicalType>> collect = typeIndexList.stream()
-                    .filter(x -> x._2() == index)
-                    .collect(Collectors.toList());
+        for (int i = 0; i < toInternalConverters.size(); i++) {
+            final int index = i;
+            List<Tuple3<String, Integer, LogicalType>> collect =
+                    typeIndexList.stream()
+                            .filter(x -> x._2() == index)
+                            .collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(collect)) {
-                LOG.warn("Result Map : key [{}] not in columns",
-                        typeIndexList.get(index)._2());
+                LOG.warn("Result Map : key [{}] not in columns", typeIndexList.get(index)._2());
                 continue;
             }
 
-            Tuple3<String,Integer, LogicalType> typeTuple =  collect.get(0);
+            Tuple3<String, Integer, LogicalType> typeTuple = collect.get(0);
             Object field = input.get(typeTuple._1());
-            columnRowData.addField((AbstractBaseColumn) toInternalConverters[i].deserialize(field));
+            columnRowData.addField(
+                    (AbstractBaseColumn) toInternalConverters.get(i).deserialize(field));
         }
         return columnRowData;
     }
 
     @Override
-    public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output) throws Exception {
+    public Map<String, Object> toExternal(RowData rowData, Map<String, Object> output)
+            throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters[index].serialize(rowData, index, output);
+            toExternalConverters.get(index).serialize(rowData, index, output);
         }
         return output;
     }
-
 
     @Override
     protected IDeserializationConverter createInternalConverter(LogicalType type) {
@@ -148,15 +149,19 @@ public class ElasticsearchColumnConverter extends AbstractRowConverter<Map<Strin
             case BIGINT:
                 return val -> new BigDecimalColumn((Long) val);
             case DECIMAL:
-                return val -> new BigDecimalColumn(BigDecimal.valueOf((Double) val) );
+                return val -> new BigDecimalColumn(BigDecimal.valueOf((Double) val));
             case CHAR:
             case VARCHAR:
                 return val -> new StringColumn((String) val);
             case DATE:
-                return val -> new BigDecimalColumn(Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
+                return val ->
+                        new BigDecimalColumn(
+                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
                 return val ->
-                        new BigDecimalColumn(Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay() / 1_000_000L);
+                        new BigDecimalColumn(
+                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
+                                        / 1_000_000L);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
@@ -169,83 +174,94 @@ public class ElasticsearchColumnConverter extends AbstractRowConverter<Map<Strin
     }
 
     @Override
-    protected ISerializationConverter<Map<String, Object>> createExternalConverter(LogicalType type) {
+    protected ISerializationConverter<Map<String, Object>> createExternalConverter(
+            LogicalType type) {
         switch (type.getTypeRoot()) {
             case BOOLEAN:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             ((ColumnRowData) val).getField(index).asBoolean());
                 };
             case TINYINT:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
-                            val.getByte(index));
+                    output.put(typeIndexList.get(index)._1(), val.getByte(index));
                 };
             case SMALLINT:
             case INTEGER:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             ((ColumnRowData) val).getField(index).asInt());
                 };
             case FLOAT:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             ((ColumnRowData) val).getField(index).asFloat());
                 };
             case DOUBLE:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             ((ColumnRowData) val).getField(index).asDouble());
                 };
 
             case BIGINT:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             ((ColumnRowData) val).getField(index).asLong());
                 };
             case DECIMAL:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             ((ColumnRowData) val).getField(index).asBigDecimal());
                 };
             case CHAR:
             case VARCHAR:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             ((ColumnRowData) val).getField(index).asString());
                 };
             case DATE:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             Date.valueOf(
-                                    LocalDate.ofEpochDay(
-                                            ((ColumnRowData) val).getField(index).asInt())).toString()
-                            );
+                                            LocalDate.ofEpochDay(
+                                                    ((ColumnRowData) val).getField(index).asInt()))
+                                    .toString());
                 };
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             Time.valueOf(
-                                    LocalTime.ofNanoOfDay(
-                                            ((ColumnRowData) val).getField(index).asInt()
-                                                    * 1_000_000L)).toString());
+                                            LocalTime.ofNanoOfDay(
+                                                    ((ColumnRowData) val).getField(index).asInt()
+                                                            * 1_000_000L))
+                                    .toString());
                 };
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, output) -> {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             sdf.format(((ColumnRowData) val).getField(index).asDate()));
                 };
             case BINARY:
             case VARBINARY:
                 return (val, index, output) -> {
-                    output.put(typeIndexList.get(index)._1(),
+                    output.put(
+                            typeIndexList.get(index)._1(),
                             ((ColumnRowData) val).getField(index).asBytes());
                 };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
     }
-
 }

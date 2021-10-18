@@ -64,19 +64,27 @@ public class Metrics {
 
     public static final String START_LOCATION = "startLocation";
 
-    public static final String TABLE_COL = "tableCol";
-
     public static final String MAX_VALUE = "maxValue";
 
     public static final String METRIC_GROUP_KEY_FLINKX = "flinkx";
 
     public static final String METRIC_GROUP_VALUE_OUTPUT = "output";
 
+    public static final String METRIC_GROUP_KEY_DIRTY = "DirtyData";
+
     public static final String LAST_WRITE_LOCATION_PREFIX = "last_write_location";
 
     public static final String LAST_WRITE_NUM__PREFIX = "last_write_num";
 
     public static final String SUFFIX_RATE = "PerSecond";
+
+    public static final String LAG_GAUGE = "lag";
+
+    public static final String NUM_SIDE_PARSE_ERROR_RECORDS = "dtNumSideParseErrorRecords";
+
+    public static final String DIRTY_DATA_COUNT = "count";
+
+    public static final String DIRTY_DATA_COLLECT_FAILED_COUNT = "collectFailedCount";
 
     public static final List<String> METRIC_SINK_LIST =
             Arrays.asList(

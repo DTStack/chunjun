@@ -20,8 +20,11 @@ package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.dirty.DirtyConf;
+import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import org.apache.flink.api.common.cache.DistributedCache;
@@ -51,6 +54,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 import static com.dtstack.flinkx.constants.ConstantValue.CONNECTOR_DIR_NAME;
+import static com.dtstack.flinkx.constants.ConstantValue.DIRTY_DATA_DIR_NAME;
 import static com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
 
 /**
@@ -60,7 +64,7 @@ import static com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
  */
 public class PluginUtil {
     public static final String FORMATS_SUFFIX = "formats";
-
+    public static final String DIRTY_SUFFIX = "dirty-data-collector";
     public static final String READER_SUFFIX = "reader";
     private static final String JAR_SUFFIX = ".jar";
     public static final String SOURCE_SUFFIX = "source";
@@ -74,6 +78,8 @@ public class PluginUtil {
     private static final String PACKAGE_PREFIX = "com.dtstack.flinkx.connector.";
     private static final String METRIC_PACKAGE_PREFIX = "com.dtstack.flinkx.metrics.";
     private static final String METRIC_REPORT_PREFIX = "Report";
+    private static final String DIRTY_PACKAGE_STR = "com.dtstack.flinkx.dirty.";
+    private static final String DIRTY_CLASS_SUFFIX = "DirtyDataCollector";
 
     private static final String JAR_PREFIX = "flinkx";
 
@@ -156,6 +162,14 @@ public class PluginUtil {
                 String sinkName = pluginName.replace(WRITER_SUFFIX, SINK_SUFFIX);
                 pluginClassName = camelize(sinkName, SINK_SUFFIX);
                 break;
+            case dirty:
+                pluginClassName =
+                        DIRTY_PACKAGE_STR
+                                + pluginName
+                                + "."
+                                + DtStringUtil.captureFirstLetter(pluginName)
+                                + DIRTY_CLASS_SUFFIX;
+                break;
             default:
                 throw new FlinkxRuntimeException("unknown operatorType: " + operatorType);
         }
@@ -206,7 +220,8 @@ public class PluginUtil {
      * @param env
      */
     public static void registerPluginUrlToCachedFile(
-            SyncConf config, StreamExecutionEnvironment env) {
+            Options options, SyncConf config, StreamExecutionEnvironment env) {
+        DirtyConf dirtyConf = DirtyConfUtil.parse(options);
         Set<URL> urlSet = new HashSet<>();
         Set<URL> coreUrlList = getJarFileDirPath("", config.getPluginRoot(), null);
         Set<URL> formatsUrlList = getJarFileDirPath(FORMATS_SUFFIX, config.getPluginRoot(), null);
@@ -225,11 +240,19 @@ public class PluginUtil {
                         config.getMetricPluginConf().getPluginName(),
                         config.getPluginRoot() + SP + METRIC_SUFFIX,
                         null);
+
+        Set<URL> dirtyUrlList =
+                getJarFileDirPath(
+                        dirtyConf.getType(),
+                        config.getPluginRoot() + SP + DIRTY_DATA_DIR_NAME,
+                        null);
+
         urlSet.addAll(coreUrlList);
         urlSet.addAll(formatsUrlList);
         urlSet.addAll(sourceUrlList);
         urlSet.addAll(sinkUrlList);
         urlSet.addAll(metricUrlList);
+        urlSet.addAll(dirtyUrlList);
 
         int i = 0;
         for (URL url : urlSet) {

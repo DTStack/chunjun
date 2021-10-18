@@ -297,8 +297,7 @@ bin/flinkx \
 	-flinkConfDir $FLINK_HOME/conf \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
 	-flinkLibDir $FLINK_HOME/lib \
-	-confProp "{\"flink.checkpoint.interval\":60000}" \ 
-	-queue default \
+	-confProp "{\"flink.checkpoint.interval\":60000,\"yarn.application.queue\":\"default\"}" \ 
 ```
 
 首先确保yarn集群是可用的，启动一个Yarn Application运行任务:

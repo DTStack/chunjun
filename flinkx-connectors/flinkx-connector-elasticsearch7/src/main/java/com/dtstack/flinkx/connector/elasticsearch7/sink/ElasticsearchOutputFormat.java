@@ -30,14 +30,10 @@ import java.util.Map;
  */
 public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
 
-    /**
-     * Elasticsearch Configuration
-     */
+    /** Elasticsearch Configuration */
     private ElasticsearchConf elasticsearchConf;
 
-    /**
-     * Elasticsearch High Level Client
-     */
+    /** Elasticsearch High Level Client */
     private transient RestHighLevelClient rhlClient;
 
     private transient BulkRequest bulkRequest;
@@ -89,7 +85,6 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
                 default:
                     throw new RuntimeException("Unsupported row kind.");
             }
-
         }
         BulkResponse response = rhlClient.bulk(bulkRequest, RequestOptions.DEFAULT);
         if (response.hasFailures()) {
@@ -101,10 +96,12 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
         BulkItemResponse[] itemResponses = response.getItems();
         WriteRecordException exception;
         for (int i = 0; i < itemResponses.length; i++) {
-            if(itemResponses[i].isFailed()){
-                if (dirtyDataManager != null){
-                    exception = new WriteRecordException(itemResponses[i].getFailureMessage()
-                            ,itemResponses[i].getFailure().getCause());
+            if (itemResponses[i].isFailed()) {
+                if (dirtyDataManager != null) {
+                    exception =
+                            new WriteRecordException(
+                                    itemResponses[i].getFailureMessage(),
+                                    itemResponses[i].getFailure().getCause());
                     dirtyDataManager.writeData(rows.get(i), exception);
                 }
 
@@ -135,38 +132,39 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
         this.elasticsearchConf = elasticsearchConf;
     }
 
-    private DocWriteRequest processUpsert(RowData rowData) throws Exception{
-        Map<String, Object> message = (Map<String, Object>) rowConverter.toExternal(rowData, new HashMap<String, Object>());
+    private DocWriteRequest processUpsert(RowData rowData) throws Exception {
+        Map<String, Object> message =
+                (Map<String, Object>)
+                        rowConverter.toExternal(rowData, new HashMap<String, Object>());
 
         if (elasticsearchConf.getIds() == null || elasticsearchConf.getIds().size() == 0) {
-            IndexRequest indexRequest = ElasticsearchRequestHelper.createIndexRequest(
-                    elasticsearchConf.getIndex(),
-                    message
-            );
+            IndexRequest indexRequest =
+                    ElasticsearchRequestHelper.createIndexRequest(
+                            elasticsearchConf.getIndex(), message);
             return indexRequest;
         } else {
-            final String key = ElasticsearchUtil.generateDocId(elasticsearchConf.getIds(),
-                    message,
-                    elasticsearchConf.getKeyDelimiter());
-            UpdateRequest updateRequest = ElasticsearchRequestHelper.createUpdateRequest(
-                    elasticsearchConf.getIndex(),
-                    key,
-                    message
-            );
+            final String key =
+                    ElasticsearchUtil.generateDocId(
+                            elasticsearchConf.getIds(),
+                            message,
+                            elasticsearchConf.getKeyDelimiter());
+            UpdateRequest updateRequest =
+                    ElasticsearchRequestHelper.createUpdateRequest(
+                            elasticsearchConf.getIndex(), key, message);
             return updateRequest;
         }
     }
 
     private DeleteRequest processDelete(RowData rowData) throws Exception {
-        Map<String, Object> message = (Map<String, Object>) rowConverter.toExternal(rowData, new HashMap<String, Object>());
+        Map<String, Object> message =
+                (Map<String, Object>)
+                        rowConverter.toExternal(rowData, new HashMap<String, Object>());
 
-        final String key = ElasticsearchUtil.generateDocId(elasticsearchConf.getIds(),
-                message,
-                elasticsearchConf.getKeyDelimiter());
-        DeleteRequest deleteRequest = ElasticsearchRequestHelper.createDeleteRequest(
-                elasticsearchConf.getIndex(),
-                key
-        );
+        final String key =
+                ElasticsearchUtil.generateDocId(
+                        elasticsearchConf.getIds(), message, elasticsearchConf.getKeyDelimiter());
+        DeleteRequest deleteRequest =
+                ElasticsearchRequestHelper.createDeleteRequest(elasticsearchConf.getIndex(), key);
         return deleteRequest;
     }
 }

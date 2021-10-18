@@ -36,9 +36,7 @@ import org.apache.flink.table.data.RowData;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.kafka.common.requests.IsolationLevel;
 
-import java.io.Serializable;
 import java.util.Properties;
 
 /**
@@ -70,16 +68,11 @@ public class KafkaSourceFactory extends SourceFactory {
         Properties props = new Properties();
         props.put("group.id", kafkaConf.getGroupId());
         props.putAll(kafkaConf.getConsumerSettings());
-        KafkaConsumer consumer =
-                new KafkaConsumer(
+        KafkaConsumerWrapper consumer =
+                new KafkaConsumerWrapper(
                         Lists.newArrayList(kafkaConf.getTopic()),
                         new RowDeserializationSchema(
-                                kafkaConf,
-                                new KafkaColumnConverter(kafkaConf),
-                                (Calculate & Serializable)
-                                        (subscriptionState, tp) ->
-                                                subscriptionState.partitionLag(
-                                                        tp, IsolationLevel.READ_UNCOMMITTED)),
+                                kafkaConf, new KafkaColumnConverter(kafkaConf)),
                         props);
         switch (kafkaConf.getMode()) {
             case EARLIEST:

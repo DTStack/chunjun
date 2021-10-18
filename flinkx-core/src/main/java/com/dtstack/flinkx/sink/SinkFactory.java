@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.sink;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
@@ -31,10 +30,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Preconditions;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
 
 /**
  * Abstract specification of Writer Plugin
@@ -49,11 +45,6 @@ public abstract class SinkFactory implements RawTypeConvertible {
     protected boolean useAbstractBaseColumn = true;
 
     public SinkFactory(SyncConf syncConf) {
-        // 脏数据记录reader中的字段信息
-        List<FieldConf> fieldList = syncConf.getWriter().getFieldList();
-        if (CollectionUtils.isNotEmpty(fieldList)) {
-            syncConf.getDirty().setReaderColumnNameList(syncConf.getWriter().getFieldNameList());
-        }
         this.syncConf = syncConf;
 
         if (syncConf.getTransformer() != null

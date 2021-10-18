@@ -23,21 +23,19 @@ import org.apache.flink.streaming.connectors.elasticsearch.index.IndexGeneratorB
 
 import java.time.format.DateTimeFormatter;
 
-/**
- * Abstract class for time related {@link IndexGenerator}.
- */
+/** Abstract class for time related {@link IndexGenerator}. */
 public abstract class AbstractTimeIndexGenerator extends IndexGeneratorBase {
 
-	private final String dateTimeFormat;
-	protected transient DateTimeFormatter dateTimeFormatter;
+    private final String dateTimeFormat;
+    protected transient DateTimeFormatter dateTimeFormatter;
 
-	public AbstractTimeIndexGenerator(String index, String dateTimeFormat) {
-		super(index);
-		this.dateTimeFormat = dateTimeFormat;
-	}
+    public AbstractTimeIndexGenerator(String index, String dateTimeFormat) {
+        super(index);
+        this.dateTimeFormat = dateTimeFormat;
+    }
 
-	@Override
-	public void open() {
-		this.dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimeFormat);
-	}
+    @Override
+    public void open() {
+        this.dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimeFormat);
+    }
 }

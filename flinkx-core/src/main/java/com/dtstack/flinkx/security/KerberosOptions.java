@@ -28,19 +28,19 @@ import org.apache.flink.configuration.ConfigOptions;
 public class KerberosOptions {
 
     public static final ConfigOption<String> PRINCIPAL =
-            ConfigOptions.key("principal")
+            ConfigOptions.key("security.kerberos.principal")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("Kerberos principal");
 
     public static final ConfigOption<String> KEYTAB =
-            ConfigOptions.key("keytab")
+            ConfigOptions.key("security.kerberos.keytab")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("Kerberos keytab");
 
     public static final ConfigOption<String> KRB5_CONF =
-            ConfigOptions.key("krb5conf")
+            ConfigOptions.key("security.kerberos.krb5conf")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("Kerberos krb5 conf");

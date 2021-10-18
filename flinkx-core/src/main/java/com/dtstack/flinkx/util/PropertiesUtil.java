@@ -21,6 +21,7 @@ import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,7 +57,7 @@ public class PropertiesUtil {
 
     public static Map<String, String> confToMap(String confStr) {
         if (StringUtils.isEmpty(confStr)) {
-            return new HashMap();
+            return new HashMap<>();
         }
 
         try {
@@ -64,7 +65,8 @@ public class PropertiesUtil {
         } catch (UnsupportedEncodingException e) {
             throw new FlinkxRuntimeException(e);
         }
-        return GsonUtil.GSON.fromJson(confStr, Map.class);
+        return GsonUtil.GSON.fromJson(
+                confStr, new TypeToken<HashMap<String, String>>() {}.getType());
     }
 
     /**
@@ -89,10 +91,7 @@ public class PropertiesUtil {
         flinkxCommonConf.setSpeedBytes(syncConf.getSpeed().getBytes());
         flinkxCommonConf.setErrorRecord(syncConf.getErrorLimit().getRecord());
         flinkxCommonConf.setErrorPercentage(syncConf.getErrorLimit().getPercentage());
-        flinkxCommonConf.setDirtyDataPath(syncConf.getDirty().getPath());
-        flinkxCommonConf.setDirtyDataHadoopConf(syncConf.getDirty().getHadoopConfig());
-        flinkxCommonConf.setFieldNameList(syncConf.getDirty().getReaderColumnNameList());
-        flinkxCommonConf.setRestorePath(syncConf.getRestorePath());
+        flinkxCommonConf.setSavePointPath(syncConf.getSavePointPath());
         if (syncConf.getMetricPluginConf() != null) {
             flinkxCommonConf.setMetricPluginRoot(
                     syncConf.getRemotePluginPath() == null

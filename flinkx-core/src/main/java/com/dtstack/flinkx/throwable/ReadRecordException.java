@@ -36,6 +36,12 @@ public class ReadRecordException extends Exception {
         this.rowData = rowData;
     }
 
+    public ReadRecordException(String message, Throwable cause, int colIndex, String rowData) {
+        super(message, cause);
+        this.colIndex = colIndex;
+        this.rowData = rowData;
+    }
+
     public int getColIndex() {
         return colIndex;
     }

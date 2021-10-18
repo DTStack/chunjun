@@ -42,8 +42,8 @@ import static com.dtstack.flinkx.connector.solr.table.SolrClientOptions.ZK_HOSTS
 import static com.dtstack.flinkx.security.KerberosOptions.KEYTAB;
 import static com.dtstack.flinkx.security.KerberosOptions.KRB5_CONF;
 import static com.dtstack.flinkx.security.KerberosOptions.PRINCIPAL;
-import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
-import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static org.apache.flink.table.factories.FactoryUtil.SINK_PARALLELISM;
 
 /**

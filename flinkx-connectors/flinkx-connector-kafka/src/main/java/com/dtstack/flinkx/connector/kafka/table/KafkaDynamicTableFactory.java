@@ -97,6 +97,80 @@ public class KafkaDynamicTableFactory
 
     public static final String IDENTIFIER = "kafka-x";
 
+    private static Optional<DecodingFormat<DeserializationSchema<RowData>>> getKeyDecodingFormat(
+            FactoryUtil.TableFactoryHelper helper) {
+        final Optional<DecodingFormat<DeserializationSchema<RowData>>> keyDecodingFormat =
+                helper.discoverOptionalDecodingFormat(
+                        DeserializationFormatFactory.class, KEY_FORMAT);
+        keyDecodingFormat.ifPresent(
+                format -> {
+                    if (!format.getChangelogMode().containsOnly(RowKind.INSERT)) {
+                        throw new ValidationException(
+                                String.format(
+                                        "A key format should only deal with INSERT-only records. "
+                                                + "But %s has a changelog mode of %s.",
+                                        helper.getOptions().get(KEY_FORMAT),
+                                        format.getChangelogMode()));
+                    }
+                });
+        return keyDecodingFormat;
+    }
+
+    private static Optional<EncodingFormat<SerializationSchema<RowData>>> getKeyEncodingFormat(
+            FactoryUtil.TableFactoryHelper helper) {
+        final Optional<EncodingFormat<SerializationSchema<RowData>>> keyEncodingFormat =
+                helper.discoverOptionalEncodingFormat(SerializationFormatFactory.class, KEY_FORMAT);
+        keyEncodingFormat.ifPresent(
+                format -> {
+                    if (!format.getChangelogMode().containsOnly(RowKind.INSERT)) {
+                        throw new ValidationException(
+                                String.format(
+                                        "A key format should only deal with INSERT-only records. "
+                                                + "But %s has a changelog mode of %s.",
+                                        helper.getOptions().get(KEY_FORMAT),
+                                        format.getChangelogMode()));
+                    }
+                });
+        return keyEncodingFormat;
+    }
+
+    private static DecodingFormat<DeserializationSchema<RowData>> getValueDecodingFormat(
+            FactoryUtil.TableFactoryHelper helper) {
+        return helper.discoverOptionalDecodingFormat(
+                        DeserializationFormatFactory.class, FactoryUtil.FORMAT)
+                .orElseGet(
+                        () ->
+                                helper.discoverDecodingFormat(
+                                        DeserializationFormatFactory.class, VALUE_FORMAT));
+    }
+
+    private static EncodingFormat<SerializationSchema<RowData>> getValueEncodingFormat(
+            FactoryUtil.TableFactoryHelper helper) {
+        return helper.discoverOptionalEncodingFormat(
+                        SerializationFormatFactory.class, FactoryUtil.FORMAT)
+                .orElseGet(
+                        () ->
+                                helper.discoverEncodingFormat(
+                                        SerializationFormatFactory.class, VALUE_FORMAT));
+    }
+
+    private static void validatePKConstraints(
+            ObjectIdentifier tableName, CatalogTable catalogTable, Format format) {
+        if (catalogTable.getSchema().getPrimaryKey().isPresent()
+                && format.getChangelogMode().containsOnly(RowKind.INSERT)) {
+            Configuration options = Configuration.fromMap(catalogTable.getOptions());
+            String formatName =
+                    options.getOptional(FactoryUtil.FORMAT).orElse(options.get(VALUE_FORMAT));
+            throw new ValidationException(
+                    String.format(
+                            "The Kafka table '%s' with '%s' format doesn't support defining PRIMARY KEY constraint"
+                                    + " on the table, because it can't guarantee the semantic of primary key.",
+                            tableName.asSummaryString(), formatName));
+        }
+    }
+
+    // --------------------------------------------------------------------------------------------
+
     @Override
     public String factoryIdentifier() {
         return IDENTIFIER;
@@ -236,80 +310,6 @@ public class KafkaDynamicTableFactory
                 getFlinkKafkaPartitioner(tableOptions, context.getClassLoader()).orElse(null),
                 getSinkSemantic(tableOptions),
                 parallelism);
-    }
-
-    // --------------------------------------------------------------------------------------------
-
-    private static Optional<DecodingFormat<DeserializationSchema<RowData>>> getKeyDecodingFormat(
-            FactoryUtil.TableFactoryHelper helper) {
-        final Optional<DecodingFormat<DeserializationSchema<RowData>>> keyDecodingFormat =
-                helper.discoverOptionalDecodingFormat(
-                        DeserializationFormatFactory.class, KEY_FORMAT);
-        keyDecodingFormat.ifPresent(
-                format -> {
-                    if (!format.getChangelogMode().containsOnly(RowKind.INSERT)) {
-                        throw new ValidationException(
-                                String.format(
-                                        "A key format should only deal with INSERT-only records. "
-                                                + "But %s has a changelog mode of %s.",
-                                        helper.getOptions().get(KEY_FORMAT),
-                                        format.getChangelogMode()));
-                    }
-                });
-        return keyDecodingFormat;
-    }
-
-    private static Optional<EncodingFormat<SerializationSchema<RowData>>> getKeyEncodingFormat(
-            FactoryUtil.TableFactoryHelper helper) {
-        final Optional<EncodingFormat<SerializationSchema<RowData>>> keyEncodingFormat =
-                helper.discoverOptionalEncodingFormat(SerializationFormatFactory.class, KEY_FORMAT);
-        keyEncodingFormat.ifPresent(
-                format -> {
-                    if (!format.getChangelogMode().containsOnly(RowKind.INSERT)) {
-                        throw new ValidationException(
-                                String.format(
-                                        "A key format should only deal with INSERT-only records. "
-                                                + "But %s has a changelog mode of %s.",
-                                        helper.getOptions().get(KEY_FORMAT),
-                                        format.getChangelogMode()));
-                    }
-                });
-        return keyEncodingFormat;
-    }
-
-    private static DecodingFormat<DeserializationSchema<RowData>> getValueDecodingFormat(
-            FactoryUtil.TableFactoryHelper helper) {
-        return helper.discoverOptionalDecodingFormat(
-                        DeserializationFormatFactory.class, FactoryUtil.FORMAT)
-                .orElseGet(
-                        () ->
-                                helper.discoverDecodingFormat(
-                                        DeserializationFormatFactory.class, VALUE_FORMAT));
-    }
-
-    private static EncodingFormat<SerializationSchema<RowData>> getValueEncodingFormat(
-            FactoryUtil.TableFactoryHelper helper) {
-        return helper.discoverOptionalEncodingFormat(
-                        SerializationFormatFactory.class, FactoryUtil.FORMAT)
-                .orElseGet(
-                        () ->
-                                helper.discoverEncodingFormat(
-                                        SerializationFormatFactory.class, VALUE_FORMAT));
-    }
-
-    private static void validatePKConstraints(
-            ObjectIdentifier tableName, CatalogTable catalogTable, Format format) {
-        if (catalogTable.getSchema().getPrimaryKey().isPresent()
-                && format.getChangelogMode().containsOnly(RowKind.INSERT)) {
-            Configuration options = Configuration.fromMap(catalogTable.getOptions());
-            String formatName =
-                    options.getOptional(FactoryUtil.FORMAT).orElse(options.get(VALUE_FORMAT));
-            throw new ValidationException(
-                    String.format(
-                            "The Kafka table '%s' with '%s' format doesn't support defining PRIMARY KEY constraint"
-                                    + " on the table, because it can't guarantee the semantic of primary key.",
-                            tableName.asSummaryString(), formatName));
-        }
     }
 
     // --------------------------------------------------------------------------------------------

@@ -39,9 +39,8 @@ import javax.annotation.Nullable;
  */
 public class RowSerializationSchema extends DynamicKafkaSerializationSchema {
 
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
-
     private static final long serialVersionUID = 1L;
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
     /** kafka key converter */
     private final AbstractRowConverter<String, Object, byte[], String> keyConverter;
     /** kafka value converter */

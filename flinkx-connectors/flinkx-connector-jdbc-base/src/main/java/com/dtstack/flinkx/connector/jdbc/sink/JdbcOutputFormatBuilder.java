@@ -42,6 +42,7 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.setJdbcDialect(JdbcDialect);
     }
 
+    @Override
     public void setRowConverter(AbstractRowConverter rowConverter) {
         format.setRowConverter(rowConverter);
     }

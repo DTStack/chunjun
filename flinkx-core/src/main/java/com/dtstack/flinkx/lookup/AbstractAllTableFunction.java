@@ -19,7 +19,7 @@
 package com.dtstack.flinkx.lookup;
 
 import com.dtstack.flinkx.converter.AbstractRowConverter;
-import com.dtstack.flinkx.factory.DTThreadFactory;
+import com.dtstack.flinkx.factory.FlinkxThreadFactory;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 import org.apache.flink.table.data.GenericRowData;
@@ -114,7 +114,7 @@ public abstract class AbstractAllTableFunction extends TableFunction<RowData> {
         LOG.info("----- all cacheRef init end-----");
 
         // start reload cache thread
-        es = new ScheduledThreadPoolExecutor(1, new DTThreadFactory("cache-all-reload"));
+        es = new ScheduledThreadPoolExecutor(1, new FlinkxThreadFactory("cache-all-reload"));
         es.scheduleAtFixedRate(
                 this::reloadCache,
                 lookupConf.getPeriod(),

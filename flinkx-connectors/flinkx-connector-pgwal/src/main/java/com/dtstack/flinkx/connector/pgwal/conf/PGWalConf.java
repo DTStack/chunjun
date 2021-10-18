@@ -168,10 +168,12 @@ public class PGWalConf extends FlinkxCommonConf {
         this.lsn = lsn;
     }
 
+    @Override
     public List<FieldConf> getColumn() {
         return column;
     }
 
+    @Override
     public void setColumn(List<FieldConf> column) {
         this.column = column;
     }

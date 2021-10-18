@@ -96,7 +96,7 @@ public class FileInputFormat extends BaseRichInputFormat {
         try {
             rowData = rowConverter.toInternal(line);
         } catch (Exception e) {
-            throw new ReadRecordException("", e, 0, rowData);
+            throw new ReadRecordException("", e, 0, line);
         }
         return rowData;
     }

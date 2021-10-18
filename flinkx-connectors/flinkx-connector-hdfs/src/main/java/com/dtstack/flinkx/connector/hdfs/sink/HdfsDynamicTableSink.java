@@ -52,7 +52,7 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
 
     @Override
     public ChangelogMode getChangelogMode(ChangelogMode requestedMode) {
-        return requestedMode;
+        return ChangelogMode.insertOnly();
     }
 
     @Override

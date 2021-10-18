@@ -56,7 +56,7 @@ The following databases are currently supported:
 |                        | KingBase       | [doc](docs/connectors/kingbase/kingbase-source.md)     | [doc](docs/connectors/kingbase/kingbase-sink.md)   |
 |                        | MongoDB        | [doc](docs/connectors/mongodb/mongodb-source.md) | [doc](docs/connectors/mongodb/mongodb-sink.md) |[doc](docs/connectors/mongodb/mongodb-lookup.md) |
 |                        | SAP HANA  | [doc](docs/connectors/saphana/saphana-source.md)           | [doc](docs/connectors/saphana/saphana-sink.md)         |
-|                        | ElasticSearch  | [doc](docs/connectors/elasticsearch6/es6reader.md)           | [doc](docs/connectors/elasticsearch6/es6writer.md)         |
+|                        | ElasticSearch7 | [doc](docs/connectors/elasticsearch7/es7-source.md) | [doc](docs/connectors/elasticsearch7/es7-sink.md) | [doc](docs/connectors/elasticsearch7/es7-sink.md) |
 |                        | FTP            | [doc](docs/connectors/ftp/ftp-source.md)          | [doc](docs/connectors/ftp/ftp-sink.md)        |
 |                        | HDFS           | [doc](docs/connectors/hdfs/hdfs-source.md)         | [doc](docs/connectors/hdfs/hdfs-sink.md)       |
 |                        | Stream         | [doc](docs/connectors/stream/stream-source.md)       | [doc](docs/connectors/stream/stream-sink.md) |
