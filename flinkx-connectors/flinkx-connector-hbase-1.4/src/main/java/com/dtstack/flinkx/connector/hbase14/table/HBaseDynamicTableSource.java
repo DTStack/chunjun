@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,13 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.connector.hbase14.source;
+package com.dtstack.flinkx.connector.hbase14.table;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.hbase14.HBaseConverter;
+import com.dtstack.flinkx.connector.hbase.HBaseConverter;
+import com.dtstack.flinkx.connector.hbase.HBaseTableSchema;
 import com.dtstack.flinkx.connector.hbase14.conf.HBaseConf;
-import com.dtstack.flinkx.connector.hbase14.lookup.HBaseAllTableFunction;
-import com.dtstack.flinkx.connector.hbase14.lookup.HBaseLruTableFunction;
+import com.dtstack.flinkx.connector.hbase14.source.HBaseInputFormatBuilder;
+import com.dtstack.flinkx.connector.hbase14.table.lookup.HBaseAllTableFunction;
+import com.dtstack.flinkx.connector.hbase14.table.lookup.HBaseLruTableFunction;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
@@ -57,11 +59,17 @@ public class HBaseDynamicTableSource
     private final HBaseConf conf;
     private TableSchema tableSchema;
     private final LookupConf lookupConf;
+    private final HBaseTableSchema hbaseSchema;
 
-    public HBaseDynamicTableSource(HBaseConf conf, TableSchema tableSchema, LookupConf lookupConf) {
+    public HBaseDynamicTableSource(
+            HBaseConf conf,
+            TableSchema tableSchema,
+            LookupConf lookupConf,
+            HBaseTableSchema hbaseSchema) {
         this.conf = conf;
         this.tableSchema = tableSchema;
         this.lookupConf = lookupConf;
+        this.hbaseSchema = hbaseSchema;
     }
 
     @Override
@@ -94,7 +102,7 @@ public class HBaseDynamicTableSource
 
     @Override
     public DynamicTableSource copy() {
-        return new HBaseDynamicTableSource(this.conf, tableSchema, lookupConf);
+        return new HBaseDynamicTableSource(this.conf, tableSchema, lookupConf, hbaseSchema);
     }
 
     @Override
@@ -120,16 +128,12 @@ public class HBaseDynamicTableSource
 
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return ParallelAsyncTableFunctionProvider.of(
-                    new HBaseLruTableFunction(conf, lookupConf, new HBaseConverter(rowType)),
+                    new HBaseLruTableFunction(conf, lookupConf, hbaseSchema),
                     lookupConf.getParallelism());
         }
         return ParallelTableFunctionProvider.of(
                 new HBaseAllTableFunction(
-                        conf,
-                        lookupConf,
-                        tableSchema.getFieldNames(),
-                        keyNames,
-                        new HBaseConverter(rowType)),
+                        conf, lookupConf, tableSchema.getFieldNames(), keyNames, hbaseSchema),
                 lookupConf.getParallelism());
     }
 

@@ -16,7 +16,7 @@
 package com.dtstack.flinkx.connector.hbase14.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.hbase14.HBaseColumnConverter;
+import com.dtstack.flinkx.connector.hbase.HBaseColumnConverter;
 import com.dtstack.flinkx.connector.hbase14.conf.HBaseConf;
 import com.dtstack.flinkx.connector.hbase14.converter.HBaseRawTypeConverter;
 import com.dtstack.flinkx.converter.AbstractRowConverter;

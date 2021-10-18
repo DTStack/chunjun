@@ -18,8 +18,8 @@
 
 package com.dtstack.flinkx.connector.hbase14.util;
 
-import com.dtstack.flinkx.connector.hbase14.HBaseTableSchema;
-import com.dtstack.flinkx.connector.hbase14.HBaseTypeUtils;
+import com.dtstack.flinkx.connector.hbase.HBaseTableSchema;
+import com.dtstack.flinkx.connector.hbase.HBaseTypeUtils;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
