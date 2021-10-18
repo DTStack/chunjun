@@ -73,8 +73,8 @@
         "writer": {
           "name": "hdfswriter",
           "parameter": {
-            "path": "hdfs://ns/user/hive/warehouse/tudou.db/type_orc",
-            "defaultFS": "hdfs://ns",
+            "path": "hdfs://tmp/type_orc",
+            "defaultFS": "hdfs://idc-bigdata-185-56.jdy.kd.internal:8020",
             "column": [
               {
                 "name": "id",
@@ -146,13 +146,19 @@
             "writeMode": "overwrite",
             "hadoopConfig": {
               "dfs.ha.namenodes.ns": "nn1,nn2",
-              "fs.defaultFS": "hdfs://ns",
-              "dfs.namenode.rpc-address.ns.nn2": "ip:9000",
+              "fs.defaultFS": "hdfs://idc-bigdata-185-56.jdy.kd.internal:8020",
+              "dfs.namenode.rpc-address.ns.nn2": "idc-bigdata-185-60.jdy.kd.internal:8020",
               "dfs.client.failover.proxy.provider.ns": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
-              "dfs.namenode.rpc-address.ns.nn1": "ip:9000",
+              "dfs.namenode.rpc-address.ns.nn1": "idc-bigdata-185-60.jdy.kd.internal:8020",
               "dfs.nameservices": "ns",
               "fs.hdfs.impl.disable.cache": "true",
-              "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem"
+              "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem",
+              "hadoop.security.authorization": "true",
+              "hadoop.security.authentication": "Kerberos",
+              "dfs.namenode.kerberos.principal": "flink@JDY.KD.INTERNAL",
+              "principalFile": "E:\\datax\\service-users.keytab",
+              "useLocalFile":true,
+              "java.security.krb5.conf": "E:\\datax\\krb5.conf"
             }
           }
         }

@@ -3,36 +3,35 @@
     "content": [
       {
         "reader": {
-          "name": "mysqlreader",
+          "name": "oraclereader",
           "parameter": {
             "column" : [
               {
-                "name" : "test1",
-                "type" : "varchar"
+                "name" : "ID",
+                "type" : "int"
               },{
-                  "name" : "test2",
-                  "type" : "varchar"
+                "name" : "TEST1",
+                "type" : "string"
               },{
-                  "name" : "test3",
-                  "type" : "varchar"
+                "name" : "TEST2",
+                "type" : "string"
+              },{
+                "name" : "TEST3",
+                "type" : "string"
               }
             ],
-            "startLocation": "1",
-            "username": "root",
-            "password": "Middle@2020",
-            "queryTimeOut": 2000,
-            "connection": [
-              {
-                "jdbcUrl": [
-                  "jdbc:mysql://172.20.185.64:3306/test?useSSL=false"
-                ],
-                "table": [
-                  "test"
-                ]
-              }
-            ],
-            "polling": false,
-            "pollingInterval": 3000
+            "customSql":"select id,test1,test2,test3 from test where id < 100",
+            "username": "dbzuser",
+            "password": "dbz",
+            "connection": [{
+              "schema": "dbuser",
+              "jdbcUrl": ["jdbc:oracle:thin:@172.20.187.25:1521:BIGDATA"],
+              "table": ["test"]
+            }],
+            "where": "ID = ${pt}",
+            "increColumn": "ID",
+            "startLocation": "1530439980000",
+            "splitPk": "id"
           }
         },
         "writer": {
@@ -59,7 +58,7 @@
             "nextCheckRows": 20000,
             "fieldDelimiter": ",",
             "encoding": "utf-8",
-            "fileName": "pt=1",
+            "fileName": "oracletest/${pt}",
             "writeMode": "overwrite",
             "hadoopConfig": {
               "fs.defaultFS": "hdfs://idc-bigdata-185-56.jdy.kd.internal:8020",

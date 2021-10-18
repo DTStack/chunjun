@@ -3,36 +3,32 @@
     "content": [
       {
         "reader": {
-          "name": "mysqlreader",
+          "name": "postgresqlreader",
           "parameter": {
-            "column" : [
+            "column": [
               {
                 "name" : "test1",
                 "type" : "varchar"
               },{
-                  "name" : "test2",
-                  "type" : "varchar"
+                "name" : "test2",
+                "type" : "varchar"
               },{
-                  "name" : "test3",
-                  "type" : "varchar"
+                "name" : "test3",
+                "type" : "varchar"
               }
             ],
-            "startLocation": "1",
-            "username": "root",
-            "password": "Middle@2020",
-            "queryTimeOut": 2000,
+            "username": "warehouse",
+            "password": "123456",
             "connection": [
               {
                 "jdbcUrl": [
-                  "jdbc:mysql://172.20.185.64:3306/test?useSSL=false"
+                  "jdbc:postgresql://172.20.185.57:5432/jdyapp?useSSL=false"
                 ],
                 "table": [
-                  "test"
+                  "kd_1.test"
                 ]
               }
-            ],
-            "polling": false,
-            "pollingInterval": 3000
+            ]
           }
         },
         "writer": {
@@ -59,7 +55,7 @@
             "nextCheckRows": 20000,
             "fieldDelimiter": ",",
             "encoding": "utf-8",
-            "fileName": "pt=1",
+            "fileName": "test1/dt=2018-08-03",
             "writeMode": "overwrite",
             "hadoopConfig": {
               "fs.defaultFS": "hdfs://idc-bigdata-185-56.jdy.kd.internal:8020",
@@ -67,6 +63,7 @@
               "hadoop.security.authentication": "Kerberos",
               "java.security.krb5.conf": "/etc/krb5.conf",
               "dfs.namenode.kerberos.principal": "flink@JDY.KD.INTERNAL",
+              "principal":"flink@JDY.KD.INTERNAL",
               "principalFile": "/data/service/keytabs/flink.keytab",
               "useLocalFile":true
             }

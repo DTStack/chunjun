@@ -13,7 +13,7 @@
             "increColumn": "t_timestamp",
             "startLocation": "1530439980000",
             "column": [{
-              "name": "id",
+              "name": "ID",
               "type": "decimal"
             },{
               "name": "t_binary_double",

@@ -125,9 +125,9 @@ public class FileSystemUtil {
         KerberosUtil.refreshConfig();
 
         return KerberosUtil.loginAndReturnUgi(
-                getConfiguration(hadoopConfig, defaultFs).get((KerberosUtil.KEY_PRINCIPAL_FILE)),
                 principal,
-                keytabFileName);
+                keytabFileName,
+                MapUtils.getString(hadoopConfig, KerberosUtil.KRB5_CONF_KEY));
     }
 
     public static Configuration getConfiguration(Map<String, Object> confMap, String defaultFs) {
