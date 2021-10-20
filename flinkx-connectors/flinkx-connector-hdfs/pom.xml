@@ -18,6 +18,13 @@
 
     <dependencies>
 		<dependency>
+			<groupId>org.apache.parquet</groupId>
+			<artifactId>parquet-hadoop</artifactId>
+			<version>1.11.1</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>org.apache.hive</groupId>
 			<artifactId>hive-exec</artifactId>
 			<version>${hive.version}</version>
@@ -151,12 +158,6 @@
 					<groupId>com.google.code.findbugs</groupId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>org.xerial.snappy</groupId>
-			<artifactId>snappy-java</artifactId>
-			<version>1.1.4</version>
 		</dependency>
 
 		<dependency>

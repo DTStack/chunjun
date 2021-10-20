@@ -23,16 +23,16 @@ import com.dtstack.flinkx.security.KerberosConfig;
 
 import org.apache.flink.configuration.ReadableConfig;
 
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.ADMIN_OPERATION_TIMEOUT;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.MASTER_ADDRESS;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.OPERATION_TIMEOUT;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.QUERY_TIMEOUT;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.SCAN_PARALLELISM;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.TABLE_NAME;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.WORKER_COUNT;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.ADMIN_OPERATION_TIMEOUT;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.MASTER_ADDRESS;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.OPERATION_TIMEOUT;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.QUERY_TIMEOUT;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.TABLE_NAME;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.WORKER_COUNT;
 import static com.dtstack.flinkx.security.KerberosOptions.KEYTAB;
 import static com.dtstack.flinkx.security.KerberosOptions.KRB5_CONF;
 import static com.dtstack.flinkx.security.KerberosOptions.PRINCIPAL;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARALLELISM;
 
 /**
  * @author tiezhu

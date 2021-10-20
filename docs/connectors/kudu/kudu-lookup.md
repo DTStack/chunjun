@@ -24,35 +24,35 @@ kudu 常用版本
     - 默认值：无
       <br />
 
-- **table**
+- **table-name**
     - 描述：要写入kudu表名
     - 必选：是
     - 参数类型：string
     - 默认值：无
       <br />
 
-- **workerCount**
+- **client.worker-count**
     - 描述：kudu worker的数量
     - 必选：否
     - 参数类型：int
     - 默认值：2
       <br />
 
-- **operationTimeout**
+- **client.default-operation-timeout-ms**
     - 描述：kudu operation超时时间
     - 必选：否
     - 参数类型：int
     - 默认值：30 * 1000（30秒）
       <br />
 
-- **adminOperationTimeout**
+- **client.default-admin-operation-timeout-ms**
     - 描述：admin operation 的超时时间
     - 必选：否
     - 参数类型：int
     - 默认值：30 * 1000（30秒）
       <br />
 
-- **queryTimeout**
+- **scan-token.query-timeout**
     - 描述：query operation 的超时时间
     - 必选：否
     - 参数类型：int

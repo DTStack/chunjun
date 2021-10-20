@@ -19,11 +19,15 @@
 package com.dtstack.flinkx.connector.kafka.sink;
 
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.dirty.DirtyConf;
+import com.dtstack.flinkx.dirty.manager.DirtyManager;
+import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.util.JsonUtil;
 
+import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -78,12 +82,8 @@ public class DynamicKafkaSerializationSchema
     /** consumed row or -1 if this metadata key is not used. */
     private final int[] metadataPositions;
 
-    private int[] partitions;
-
     protected int parallelInstanceId;
-
     protected int numParallelInstances;
-
     protected Properties producerConfig;
     /** 虽然开启cp，是否采用定时器和一定条数让下游数据可见。 EXACTLY_ONCE：否，遵循两阶段提交协议。 AT_LEAST_ONCE：是，只要数据条数或者到达定时时间即可见 */
     protected CheckpointingMode checkpointMode;
@@ -107,8 +107,10 @@ public class DynamicKafkaSerializationSchema
     protected LongCounter duplicateErrCounter;
     protected LongCounter conversionErrCounter;
     protected LongCounter otherErrCounter;
-
+    private int[] partitions;
     private transient RuntimeContext runtimeContext;
+
+    protected DirtyManager dirtyManager;
 
     public DynamicKafkaSerializationSchema(
             String topic,
@@ -136,23 +138,39 @@ public class DynamicKafkaSerializationSchema
         this.upsertMode = upsertMode;
     }
 
+    private static RowData createProjectedRow(
+            RowData consumedRow, RowKind kind, RowData.FieldGetter[] fieldGetters) {
+        final int arity = fieldGetters.length;
+        final GenericRowData genericRowData = new GenericRowData(kind, arity);
+        for (int fieldPos = 0; fieldPos < arity; fieldPos++) {
+            genericRowData.setField(fieldPos, fieldGetters[fieldPos].getFieldOrNull(consumedRow));
+        }
+        return genericRowData;
+    }
+
     protected void beforeOpen() {
-        this.checkpointEnabled =
-                ((StreamingRuntimeContext) runtimeContext).isCheckpointingEnabled();
+        StreamingRuntimeContext context = (StreamingRuntimeContext) this.runtimeContext;
+        this.checkpointEnabled = context.isCheckpointingEnabled();
         this.startTime = System.currentTimeMillis();
+
+        ExecutionConfig.GlobalJobParameters params =
+                context.getExecutionConfig().getGlobalJobParameters();
+        DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
+        this.dirtyManager = new DirtyManager(dc);
+
         initStatisticsAccumulator();
         initRestoreInfo();
         initAccumulatorCollector();
 
         checkpointMode =
-                ((StreamingRuntimeContext) runtimeContext).getCheckpointMode() == null
+                context.getCheckpointMode() == null
                         ? CheckpointingMode.AT_LEAST_ONCE
-                        : ((StreamingRuntimeContext) runtimeContext).getCheckpointMode();
+                        : context.getCheckpointMode();
 
         if (partitioner != null) {
             partitioner.open(
-                    runtimeContext.getIndexOfThisSubtask(),
-                    runtimeContext.getNumberOfParallelSubtasks());
+                    this.runtimeContext.getIndexOfThisSubtask(),
+                    this.runtimeContext.getNumberOfParallelSubtasks());
         }
     }
 
@@ -236,8 +254,7 @@ public class DynamicKafkaSerializationSchema
                     valueSerialized,
                     readMetadata(consumedRow, KafkaDynamicSink.WritableMetadata.HEADERS));
         } catch (Exception e) {
-            // todo 需要脏数据记录 参考 BaseRichOutputFormat.updateDirtyDataMsg(rowData, e);
-            LOG.error(e.getMessage());
+            dirtyManager.collect(consumedRow.toString(), e, null, runtimeContext);
         }
         return null;
     }
@@ -280,16 +297,6 @@ public class DynamicKafkaSerializationSchema
         return null;
     }
 
-    private static RowData createProjectedRow(
-            RowData consumedRow, RowKind kind, RowData.FieldGetter[] fieldGetters) {
-        final int arity = fieldGetters.length;
-        final GenericRowData genericRowData = new GenericRowData(kind, arity);
-        for (int fieldPos = 0; fieldPos < arity; fieldPos++) {
-            genericRowData.setField(fieldPos, fieldGetters[fieldPos].getFieldOrNull(consumedRow));
-        }
-        return genericRowData;
-    }
-
     public RuntimeContext getRuntimeContext() {
         return runtimeContext;
     }
@@ -300,16 +307,6 @@ public class DynamicKafkaSerializationSchema
 
     public void setProducerConfig(Properties producerConfig) {
         this.producerConfig = producerConfig;
-    }
-
-    public void setFormatState(FormatState formatState) {
-        this.formatState = formatState;
-    }
-
-    // --------------------------------------------------------------------------------------------
-
-    interface MetadataConverter extends Serializable {
-        Object read(RowData consumedRow, int pos);
     }
 
     public void close() {
@@ -328,6 +325,8 @@ public class DynamicKafkaSerializationSchema
         LOG.info("subtask output close finished");
     }
 
+    // --------------------------------------------------------------------------------------------
+
     /**
      * 更新checkpoint状态缓存map
      *
@@ -338,6 +337,10 @@ public class DynamicKafkaSerializationSchema
         formatState.setMetric(outputMetric.getMetricCounters());
         LOG.info("format state:{}", formatState.getState());
         return formatState;
+    }
+
+    public void setFormatState(FormatState formatState) {
+        this.formatState = formatState;
     }
 
     /** 初始化累加器指标 */
@@ -362,6 +365,11 @@ public class DynamicKafkaSerializationSchema
         outputMetric.addMetric(Metrics.SNAPSHOT_WRITES, snapshotWriteCounter);
         outputMetric.addMetric(Metrics.WRITE_BYTES, bytesWriteCounter, true);
         outputMetric.addMetric(Metrics.WRITE_DURATION, durationCounter);
+        outputMetric.addDirtyMetric(
+                Metrics.DIRTY_DATA_COUNT, this.dirtyManager.getConsumedMetric());
+        outputMetric.addDirtyMetric(
+                Metrics.DIRTY_DATA_COLLECT_FAILED_COUNT,
+                this.dirtyManager.getFailedConsumedMetric());
     }
 
     /** 初始化累加器收集器 */
@@ -397,5 +405,9 @@ public class DynamicKafkaSerializationSchema
             durationCounter.resetLocal();
             durationCounter.add(System.currentTimeMillis() - startTime);
         }
+    }
+
+    interface MetadataConverter extends Serializable {
+        Object read(RowData consumedRow, int pos);
     }
 }

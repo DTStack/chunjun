@@ -19,12 +19,6 @@
 package com.dtstack.flinkx.connector.elasticsearch7.source;
 
 import com.dtstack.flinkx.conf.FieldConf;
-
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
 import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchColumnConverter;
@@ -34,9 +28,10 @@ import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
-import org.apache.flink.util.TimeUtils;
-
-import org.elasticsearch.client.common.TimeUtil;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
 import java.util.List;
 
@@ -54,10 +49,11 @@ public class Elasticsearch7SourceFactory extends SourceFactory {
         super(syncConf, env);
         elasticsearchConf =
                 JsonUtil.toObject(
-                        JsonUtil.toJson(syncConf.getReader().getParameter()), ElasticsearchConf.class);
+                        JsonUtil.toJson(syncConf.getReader().getParameter()),
+                        ElasticsearchConf.class);
         List<FieldConf> fieldList = syncConf.getReader().getFieldList();
         String[] fieldNames = new String[fieldList.size()];
-        for (int i = 0; i < fieldList.size() ; i++) {
+        for (int i = 0; i < fieldList.size(); i++) {
             fieldNames[i] = fieldList.get(i).getName();
         }
 
@@ -70,9 +66,8 @@ public class Elasticsearch7SourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         ElasticsearchInputFormatBuilder builder = new ElasticsearchInputFormatBuilder();
         builder.setEsConf(elasticsearchConf);
-        final RowType rowType = TableUtil.createRowType(
-                elasticsearchConf.getColumn(),
-                getRawTypeConverter());
+        final RowType rowType =
+                TableUtil.createRowType(elasticsearchConf.getColumn(), getRawTypeConverter());
         builder.setRowConverter(new ElasticsearchColumnConverter(rowType));
         return createInput(builder.finish());
     }
@@ -81,5 +76,4 @@ public class Elasticsearch7SourceFactory extends SourceFactory {
     public RawTypeConverter getRawTypeConverter() {
         return ElasticsearchRawTypeConverter::apply;
     }
-
 }

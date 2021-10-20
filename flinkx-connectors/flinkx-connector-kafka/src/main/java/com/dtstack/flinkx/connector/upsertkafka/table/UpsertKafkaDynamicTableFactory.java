@@ -72,6 +72,51 @@ public class UpsertKafkaDynamicTableFactory
 
     public static final String IDENTIFIER = "upsert-kafka-x";
 
+    private static void validateTableOptions(
+            ReadableConfig tableOptions, Format keyFormat, Format valueFormat, TableSchema schema) {
+        validateTopic(tableOptions);
+        validateFormat(keyFormat, valueFormat, tableOptions);
+        validatePKConstraints(schema);
+    }
+
+    private static void validateTopic(ReadableConfig tableOptions) {
+        List<String> topic = tableOptions.get(TOPIC);
+        if (topic.size() > 1) {
+            throw new ValidationException(
+                    "The 'upsert-kafka' connector doesn't support topic list now. "
+                            + "Please use single topic as the value of the parameter 'topic'.");
+        }
+    }
+
+    private static void validateFormat(
+            Format keyFormat, Format valueFormat, ReadableConfig tableOptions) {
+        if (!keyFormat.getChangelogMode().containsOnly(RowKind.INSERT)) {
+            String identifier = tableOptions.get(KEY_FORMAT);
+            throw new ValidationException(
+                    String.format(
+                            "'upsert-kafka' connector doesn't support '%s' as key format, "
+                                    + "because '%s' is not in insert-only mode.",
+                            identifier, identifier));
+        }
+        if (!valueFormat.getChangelogMode().containsOnly(RowKind.INSERT)) {
+            String identifier = tableOptions.get(VALUE_FORMAT);
+            throw new ValidationException(
+                    String.format(
+                            "'upsert-kafka' connector doesn't support '%s' as value format, "
+                                    + "because '%s' is not in insert-only mode.",
+                            identifier, identifier));
+        }
+    }
+
+    private static void validatePKConstraints(TableSchema schema) {
+        if (!schema.getPrimaryKey().isPresent()) {
+            throw new ValidationException(
+                    "'upsert-kafka' tables require to define a PRIMARY KEY constraint. "
+                            + "The PRIMARY KEY specifies which columns should be read from or write to the Kafka message key. "
+                            + "The PRIMARY KEY also defines records in the 'upsert-kafka' table should update or delete on which keys.");
+        }
+    }
+
     @Override
     public String factoryIdentifier() {
         return IDENTIFIER;
@@ -86,6 +131,10 @@ public class UpsertKafkaDynamicTableFactory
         options.add(VALUE_FORMAT);
         return options;
     }
+
+    // --------------------------------------------------------------------------------------------
+    // Validation
+    // --------------------------------------------------------------------------------------------
 
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
@@ -194,55 +243,6 @@ public class UpsertKafkaDynamicTableFactory
     }
 
     // --------------------------------------------------------------------------------------------
-    // Validation
-    // --------------------------------------------------------------------------------------------
-
-    private static void validateTableOptions(
-            ReadableConfig tableOptions, Format keyFormat, Format valueFormat, TableSchema schema) {
-        validateTopic(tableOptions);
-        validateFormat(keyFormat, valueFormat, tableOptions);
-        validatePKConstraints(schema);
-    }
-
-    private static void validateTopic(ReadableConfig tableOptions) {
-        List<String> topic = tableOptions.get(TOPIC);
-        if (topic.size() > 1) {
-            throw new ValidationException(
-                    "The 'upsert-kafka' connector doesn't support topic list now. "
-                            + "Please use single topic as the value of the parameter 'topic'.");
-        }
-    }
-
-    private static void validateFormat(
-            Format keyFormat, Format valueFormat, ReadableConfig tableOptions) {
-        if (!keyFormat.getChangelogMode().containsOnly(RowKind.INSERT)) {
-            String identifier = tableOptions.get(KEY_FORMAT);
-            throw new ValidationException(
-                    String.format(
-                            "'upsert-kafka' connector doesn't support '%s' as key format, "
-                                    + "because '%s' is not in insert-only mode.",
-                            identifier, identifier));
-        }
-        if (!valueFormat.getChangelogMode().containsOnly(RowKind.INSERT)) {
-            String identifier = tableOptions.get(VALUE_FORMAT);
-            throw new ValidationException(
-                    String.format(
-                            "'upsert-kafka' connector doesn't support '%s' as value format, "
-                                    + "because '%s' is not in insert-only mode.",
-                            identifier, identifier));
-        }
-    }
-
-    private static void validatePKConstraints(TableSchema schema) {
-        if (!schema.getPrimaryKey().isPresent()) {
-            throw new ValidationException(
-                    "'upsert-kafka' tables require to define a PRIMARY KEY constraint. "
-                            + "The PRIMARY KEY specifies which columns should be read from or write to the Kafka message key. "
-                            + "The PRIMARY KEY also defines records in the 'upsert-kafka' table should update or delete on which keys.");
-        }
-    }
-
-    // --------------------------------------------------------------------------------------------
     // Format wrapper
     // --------------------------------------------------------------------------------------------
 
@@ -252,13 +252,12 @@ public class UpsertKafkaDynamicTableFactory
      */
     protected static class DecodingFormatWrapper
             implements DecodingFormat<DeserializationSchema<RowData>> {
-        private final DecodingFormat<DeserializationSchema<RowData>> innerDecodingFormat;
-
         private static final ChangelogMode SOURCE_CHANGELOG_MODE =
                 ChangelogMode.newBuilder()
                         .addContainedKind(RowKind.UPDATE_AFTER)
                         .addContainedKind(RowKind.DELETE)
                         .build();
+        private final DecodingFormat<DeserializationSchema<RowData>> innerDecodingFormat;
 
         public DecodingFormatWrapper(
                 DecodingFormat<DeserializationSchema<RowData>> innerDecodingFormat) {
@@ -302,14 +301,13 @@ public class UpsertKafkaDynamicTableFactory
      */
     protected static class EncodingFormatWrapper
             implements EncodingFormat<SerializationSchema<RowData>> {
-        private final EncodingFormat<SerializationSchema<RowData>> innerEncodingFormat;
-
         public static final ChangelogMode SINK_CHANGELOG_MODE =
                 ChangelogMode.newBuilder()
                         .addContainedKind(RowKind.INSERT)
                         .addContainedKind(RowKind.UPDATE_AFTER)
                         .addContainedKind(RowKind.DELETE)
                         .build();
+        private final EncodingFormat<SerializationSchema<RowData>> innerEncodingFormat;
 
         public EncodingFormatWrapper(
                 EncodingFormat<SerializationSchema<RowData>> innerEncodingFormat) {

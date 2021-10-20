@@ -18,9 +18,10 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.utils;
 
+import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
+
 import org.apache.flink.table.api.ValidationException;
 
-import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -45,39 +46,43 @@ import static org.apache.flink.streaming.connectors.elasticsearch.table.Elastics
 public class ElasticsearchUtil {
 
     /**
-     *
      * @param elasticsearchConf
      * @return
      */
     public static RestHighLevelClient createClient(ElasticsearchConf elasticsearchConf) {
         List<HttpHost> httpAddresses = getHosts(elasticsearchConf.getHosts());
-        RestClientBuilder restClientBuilder = RestClient.builder(
-                httpAddresses.
-                        toArray(new HttpHost[httpAddresses.size()]));
+        RestClientBuilder restClientBuilder =
+                RestClient.builder(httpAddresses.toArray(new HttpHost[httpAddresses.size()]));
+        restClientBuilder.setRequestConfigCallback(
+                requestConfigBuilder ->
+                        requestConfigBuilder
+                                .setConnectTimeout(elasticsearchConf.getConnectTimeout())
+                                .setConnectionRequestTimeout(elasticsearchConf.getRequestTimeout())
+                                .setSocketTimeout(elasticsearchConf.getSocketTimeout()));
         if (elasticsearchConf.isAuthMesh()) {
             // 进行用户和密码认证
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(AuthScope.ANY,
+            credentialsProvider.setCredentials(
+                    AuthScope.ANY,
                     new UsernamePasswordCredentials(
-                            elasticsearchConf.getUsername(),
-                            elasticsearchConf.getPassword()));
-            restClientBuilder.setHttpClientConfigCallback(httpAsyncClientBuilder ->
-                    httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
-                            .setKeepAliveStrategy((response, context) -> elasticsearchConf.getKeepAliveTime())
-                            .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute()))
-                    .setRequestConfigCallback(requestConfigBuilder
-                            -> requestConfigBuilder.setConnectTimeout(elasticsearchConf.getConnectTimeout())
-                            .setConnectionRequestTimeout( elasticsearchConf.getRequestTimeout())
-                            .setSocketTimeout(elasticsearchConf.getSocketTimeout()));
+                            elasticsearchConf.getUsername(), elasticsearchConf.getPassword()));
+            restClientBuilder.setHttpClientConfigCallback(
+                    httpAsyncClientBuilder ->
+                            httpAsyncClientBuilder
+                                    .setDefaultCredentialsProvider(credentialsProvider)
+                                    .setKeepAliveStrategy(
+                                            (response, context) ->
+                                                    elasticsearchConf.getKeepAliveTime())
+                                    .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute()));
+
         } else {
-            restClientBuilder.setHttpClientConfigCallback(httpAsyncClientBuilder ->
-                    httpAsyncClientBuilder
-                            .setKeepAliveStrategy((response, context) -> elasticsearchConf.getKeepAliveTime())
-                            .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute()))
-                    .setRequestConfigCallback(requestConfigBuilder
-                            -> requestConfigBuilder.setConnectTimeout(elasticsearchConf.getConnectTimeout())
-                            .setConnectionRequestTimeout( elasticsearchConf.getRequestTimeout())
-                            .setSocketTimeout(elasticsearchConf.getSocketTimeout()));
+            restClientBuilder.setHttpClientConfigCallback(
+                    httpAsyncClientBuilder ->
+                            httpAsyncClientBuilder
+                                    .setKeepAliveStrategy(
+                                            (response, context) ->
+                                                    elasticsearchConf.getKeepAliveTime())
+                                    .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute()));
         }
 
         RestHighLevelClient rhlClient = new RestHighLevelClient(restClientBuilder);
@@ -86,17 +91,20 @@ public class ElasticsearchUtil {
 
     /**
      * generate doc id by id fields.
+     *
      * @param
      * @return
      */
-    public static String generateDocId(List<String> idFieldNames, Map<String, Object> dataMap, String keyDelimiter) {
-        String doc_id = "";
+    public static String generateDocId(
+            List<String> idFieldNames, Map<String, Object> dataMap, String keyDelimiter) {
+        String docId = "";
         if (null != idFieldNames) {
-            doc_id = idFieldNames.stream()
-                    .map(idFiledName -> dataMap.get(idFiledName).toString())
-                    .collect(Collectors.joining(keyDelimiter));
+            docId =
+                    idFieldNames.stream()
+                            .map(idFiledName -> dataMap.get(idFiledName).toString())
+                            .collect(Collectors.joining(keyDelimiter));
         }
-        return doc_id;
+        return docId;
     }
 
     public static List<HttpHost> getHosts(List<String> hosts) {

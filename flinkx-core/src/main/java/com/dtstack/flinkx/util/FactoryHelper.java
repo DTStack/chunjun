@@ -65,6 +65,63 @@ public class FactoryHelper {
 
     public FactoryHelper() {}
 
+    public void registerDirtyFile(String dirtyType, ClassLoader classLoader, boolean ignore) {
+        String pluginPath =
+                StringUtils.equalsIgnoreCase(
+                                this.pluginLoadMode, ConstantValue.CLASS_PATH_PLUGIN_LOAD_MODE)
+                        ? this.remotePluginPath
+                        : this.localPluginPath;
+        String pluginJarPath =
+                pluginPath
+                        + File.separatorChar
+                        + ConstantValue.DIRTY_DATA_DIR_NAME
+                        + File.separatorChar
+                        + dirtyType;
+
+        Method add = null;
+        try {
+            File pluginJarPathFile = new File(pluginJarPath);
+            // 路径不存在或者不为文件夹
+            if (!pluginJarPathFile.exists() || !pluginJarPathFile.isDirectory()) {
+                if (ignore) {
+                    return;
+                } else {
+                    throw new FlinkxRuntimeException(
+                            "plugin path:" + pluginJarPath + " is not exist.");
+                }
+            }
+
+            File[] files =
+                    pluginJarPathFile.listFiles(
+                            tmpFile -> tmpFile.isFile() && tmpFile.getName().endsWith(".jar"));
+            if (files == null || files.length == 0) {
+                throw new FlinkxRuntimeException("plugin path:" + pluginJarPath + " is null.");
+            }
+
+            add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+            add.setAccessible(true);
+
+            for (File file : files) {
+                URL jarUrl = file.toURI().toURL();
+                add.invoke(classLoader, jarUrl);
+                if (!this.classPathSet.contains(jarUrl)) {
+                    this.classPathSet.add(jarUrl);
+                    String classFileName =
+                            String.format(
+                                    CLASS_FILE_NAME_FMT.defaultValue(), this.classFileNameIndex);
+                    this.env.registerCachedFile(jarUrl.getPath(), classFileName, true);
+                    this.classFileNameIndex++;
+                }
+            }
+        } catch (Exception e) {
+            LOG.warn("can't add jar in {} to cachedFile, e = {}", pluginJarPath, e.getMessage());
+        } finally {
+            if (add != null) {
+                add.setAccessible(false);
+            }
+        }
+    }
+
     /**
      * register plugin jar file
      *

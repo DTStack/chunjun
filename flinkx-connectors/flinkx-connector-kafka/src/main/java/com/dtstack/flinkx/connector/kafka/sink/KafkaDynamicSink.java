@@ -61,55 +61,43 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
     // Mutable attributes
     // --------------------------------------------------------------------------------------------
 
-    /** Metadata that is appended at the end of a physical sink row. */
-    protected List<String> metadataKeys;
+    /** Data type to configure the formats. */
+    protected final DataType physicalDataType;
 
     // --------------------------------------------------------------------------------------------
     // Format attributes
     // --------------------------------------------------------------------------------------------
-
-    /** Data type to configure the formats. */
-    protected final DataType physicalDataType;
-
     /** Optional format for encoding keys to Kafka. */
     protected final @Nullable EncodingFormat<SerializationSchema<RowData>> keyEncodingFormat;
-
     /** Format for encoding values to Kafka. */
     protected final EncodingFormat<SerializationSchema<RowData>> valueEncodingFormat;
-
     /** Indices that determine the key fields and the source position in the consumed row. */
     protected final int[] keyProjection;
-
     /** Indices that determine the value fields and the source position in the consumed row. */
     protected final int[] valueProjection;
-
     /** Prefix that needs to be removed from fields when constructing the physical data type. */
     protected final @Nullable String keyPrefix;
+    /** The Kafka topic to write to. */
+    protected final String topic;
 
     // --------------------------------------------------------------------------------------------
     // Kafka-specific attributes
     // --------------------------------------------------------------------------------------------
-
-    /** The Kafka topic to write to. */
-    protected final String topic;
-
     /** Properties for the Kafka producer. */
     protected final Properties properties;
-
     /** Partitioner to select Kafka partition for each item. */
     protected final @Nullable FlinkKafkaPartitioner<RowData> partitioner;
-
     /** Sink commit semantic. */
     protected final KafkaSinkSemantic semantic;
-
     /**
      * Flag to determine sink mode. In upsert mode sink transforms the delete/update-before message
      * to tombstone message.
      */
     protected final boolean upsertMode;
-
     /** Parallelism of the physical Kafka producer. * */
     protected final @Nullable Integer parallelism;
+    /** Metadata that is appended at the end of a physical sink row. */
+    protected List<String> metadataKeys;
 
     public KafkaDynamicSink(
             DataType physicalDataType,

@@ -131,10 +131,12 @@ public class SqlServerCdcConf extends FlinkxCommonConf {
         this.splitUpdate = splitUpdate;
     }
 
+    @Override
     public List<FieldConf> getColumn() {
         return column;
     }
 
+    @Override
     public void setColumn(List<FieldConf> column) {
         this.column = column;
     }

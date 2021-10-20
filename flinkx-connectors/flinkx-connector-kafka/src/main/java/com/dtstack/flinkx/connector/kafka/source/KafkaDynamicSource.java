@@ -23,7 +23,6 @@ import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
 import org.apache.flink.streaming.connectors.kafka.config.StartupMode;
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
 import org.apache.flink.table.api.DataTypes;
@@ -42,10 +41,7 @@ import org.apache.flink.table.types.utils.DataTypeUtils;
 import org.apache.flink.util.Preconditions;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.internals.SubscriptionState;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Header;
-import org.apache.kafka.common.requests.IsolationLevel;
 
 import javax.annotation.Nullable;
 
@@ -75,74 +71,57 @@ public class KafkaDynamicSource
     // Mutable attributes
     // --------------------------------------------------------------------------------------------
 
-    /** Data type that describes the final output of the source. */
-    protected DataType producedDataType;
-
-    /** Metadata that is appended at the end of a physical source row. */
-    protected List<String> metadataKeys;
-
-    /** Watermark strategy that is used to generate per-partition watermark. */
-    protected @Nullable WatermarkStrategy<RowData> watermarkStrategy;
+    private static final String VALUE_METADATA_PREFIX = "value.";
+    /** Data type to configure the formats. */
+    protected final DataType physicalDataType;
+    /** Optional format for decoding keys from Kafka. */
+    protected final @Nullable DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat;
 
     // --------------------------------------------------------------------------------------------
     // Format attributes
     // --------------------------------------------------------------------------------------------
-
-    private static final String VALUE_METADATA_PREFIX = "value.";
-
-    /** Data type to configure the formats. */
-    protected final DataType physicalDataType;
-
-    /** Optional format for decoding keys from Kafka. */
-    protected final @Nullable DecodingFormat<DeserializationSchema<RowData>> keyDecodingFormat;
-
     /** Format for decoding values from Kafka. */
     protected final DecodingFormat<DeserializationSchema<RowData>> valueDecodingFormat;
-
     /** Indices that determine the key fields and the target position in the produced row. */
     protected final int[] keyProjection;
-
     /** Indices that determine the value fields and the target position in the produced row. */
     protected final int[] valueProjection;
-
     /** Prefix that needs to be removed from fields when constructing the physical data type. */
     protected final @Nullable String keyPrefix;
+    /** The Kafka topics to consume. */
+    protected final List<String> topics;
+    /** The Kafka topic pattern to consume. */
+    protected final Pattern topicPattern;
+    /** Properties for the Kafka consumer. */
+    protected final Properties properties;
 
     // --------------------------------------------------------------------------------------------
     // Kafka-specific attributes
     // --------------------------------------------------------------------------------------------
-
-    /** The Kafka topics to consume. */
-    protected final List<String> topics;
-
-    /** The Kafka topic pattern to consume. */
-    protected final Pattern topicPattern;
-
-    /** Properties for the Kafka consumer. */
-    protected final Properties properties;
-
     /**
      * The startup mode for the contained consumer (default is {@link StartupMode#GROUP_OFFSETS}).
      */
     protected final StartupMode startupMode;
-
     /**
      * Specific startup offsets; only relevant when startup mode is {@link
      * StartupMode#SPECIFIC_OFFSETS}.
      */
     protected final Map<KafkaTopicPartition, Long> specificStartupOffsets;
-
     /**
      * The start timestamp to locate partition offsets; only relevant when startup mode is {@link
      * StartupMode#TIMESTAMP}.
      */
     protected final long startupTimestampMillis;
-
     /** Flag to determine source mode. In upsert mode, it will keep the tombstone message. * */
     protected final boolean upsertMode;
-
     /** Parallelism of the physical Kafka producer. * */
     protected final @Nullable Integer parallelism;
+    /** Data type that describes the final output of the source. */
+    protected DataType producedDataType;
+    /** Metadata that is appended at the end of a physical source row. */
+    protected List<String> metadataKeys;
+    /** Watermark strategy that is used to generate per-partition watermark. */
+    protected @Nullable WatermarkStrategy<RowData> watermarkStrategy;
 
     public KafkaDynamicSource(
             DataType physicalDataType,
@@ -210,10 +189,10 @@ public class KafkaDynamicSource
         final TypeInformation<RowData> producedTypeInfo =
                 context.createTypeInformation(producedDataType);
 
-        final KafkaConsumer kafkaConsumer =
+        final KafkaConsumerWrapper kafkaConsumerWrapper =
                 createKafkaConsumer(keyDeserialization, valueDeserialization, producedTypeInfo);
 
-        return ParallelSourceFunctionProvider.of(kafkaConsumer, false, parallelism);
+        return ParallelSourceFunctionProvider.of(kafkaConsumerWrapper, false, parallelism);
     }
 
     @Override
@@ -344,7 +323,7 @@ public class KafkaDynamicSource
 
     // --------------------------------------------------------------------------------------------
 
-    protected KafkaConsumer createKafkaConsumer(
+    protected KafkaConsumerWrapper createKafkaConsumer(
             DeserializationSchema<RowData> keyDeserialization,
             DeserializationSchema<RowData> valueDeserialization,
             TypeInformation<RowData> producedTypeInfo) {
@@ -376,7 +355,7 @@ public class KafkaDynamicSource
                                         adjustedPhysicalArity))
                         .toArray();
 
-        final KafkaConsumer kafkaConsumer =
+        final KafkaConsumerWrapper kafkaConsumerWrapper =
                 new KafkaConsumerFactory()
                         .createKafkaConsumer(
                                 topics,
@@ -394,28 +373,29 @@ public class KafkaDynamicSource
 
         switch (startupMode) {
             case EARLIEST:
-                kafkaConsumer.setStartFromEarliest();
+                kafkaConsumerWrapper.setStartFromEarliest();
                 break;
             case LATEST:
-                kafkaConsumer.setStartFromLatest();
+                kafkaConsumerWrapper.setStartFromLatest();
                 break;
             case GROUP_OFFSETS:
-                kafkaConsumer.setStartFromGroupOffsets();
+                kafkaConsumerWrapper.setStartFromGroupOffsets();
                 break;
             case SPECIFIC_OFFSETS:
-                kafkaConsumer.setStartFromSpecificOffsets(specificStartupOffsets);
+                kafkaConsumerWrapper.setStartFromSpecificOffsets(specificStartupOffsets);
                 break;
             case TIMESTAMP:
-                kafkaConsumer.setStartFromTimestamp(startupTimestampMillis);
+                kafkaConsumerWrapper.setStartFromTimestamp(startupTimestampMillis);
                 break;
         }
 
-        kafkaConsumer.setCommitOffsetsOnCheckpoints(properties.getProperty("group.id") != null);
+        kafkaConsumerWrapper.setCommitOffsetsOnCheckpoints(
+                properties.getProperty("group.id") != null);
 
         if (watermarkStrategy != null) {
-            kafkaConsumer.assignTimestampsAndWatermarks(watermarkStrategy);
+            kafkaConsumerWrapper.assignTimestampsAndWatermarks(watermarkStrategy);
         }
-        return kafkaConsumer;
+        return kafkaConsumerWrapper;
     }
 
     private @Nullable DeserializationSchema<RowData> createDeserialization(
@@ -549,7 +529,7 @@ public class KafkaDynamicSource
 
         private static final long serialVersionUID = 1L;
 
-        public KafkaConsumer createKafkaConsumer(
+        public KafkaConsumerWrapper createKafkaConsumer(
                 List<String> topics,
                 int adjustedPhysicalArity,
                 DeserializationSchema<RowData> keyDeserialization,
@@ -562,10 +542,10 @@ public class KafkaDynamicSource
                 boolean upsertMode,
                 Properties properties,
                 Pattern topicPattern) {
-            KafkaConsumer kafkaConsumer;
+            KafkaConsumerWrapper kafkaConsumerWrapper;
 
-            final KafkaDeserializationSchema<RowData> kafkaDeserializer =
-                    new DynamicKafkaDeserializationSchemaWrapper(
+            final DynamicKafkaDeserializationSchema kafkaDeserializer =
+                    new DynamicKafkaDeserializationSchema(
                             adjustedPhysicalArity,
                             keyDeserialization,
                             keyProjection,
@@ -574,21 +554,15 @@ public class KafkaDynamicSource
                             hasMetadata,
                             metadataConverters,
                             producedTypeInfo,
-                            upsertMode,
-                            new Calculate() {
-                                @Override
-                                public Long calc(
-                                        SubscriptionState subscriptionState, TopicPartition tp) {
-                                    return subscriptionState.partitionLag(
-                                            tp, IsolationLevel.READ_UNCOMMITTED);
-                                }
-                            });
+                            upsertMode);
             if (topics != null) {
-                kafkaConsumer = new KafkaConsumer(topics, kafkaDeserializer, properties);
+                kafkaConsumerWrapper =
+                        new KafkaConsumerWrapper(topics, kafkaDeserializer, properties);
             } else {
-                kafkaConsumer = new KafkaConsumer(topicPattern, kafkaDeserializer, properties);
+                kafkaConsumerWrapper =
+                        new KafkaConsumerWrapper(topicPattern, kafkaDeserializer, properties);
             }
-            return kafkaConsumer;
+            return kafkaConsumerWrapper;
         }
     }
 }

@@ -18,8 +18,7 @@
 package com.dtstack.flinkx.connector.kafka.serialization;
 
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
-import com.dtstack.flinkx.connector.kafka.source.Calculate;
-import com.dtstack.flinkx.connector.kafka.source.DynamicKafkaDeserializationSchemaWrapper;
+import com.dtstack.flinkx.connector.kafka.source.DynamicKafkaDeserializationSchema;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.util.JsonUtil;
 
@@ -29,7 +28,6 @@ import org.apache.flink.util.Collector;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -37,17 +35,17 @@ import java.nio.charset.StandardCharsets;
  *
  * @author tudou
  */
-public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaWrapper {
+public class RowDeserializationSchema extends DynamicKafkaDeserializationSchema {
 
     private static final long serialVersionUID = 1L;
     /** kafka converter */
-    private final AbstractRowConverter converter;
+    private final AbstractRowConverter<String, Object, byte[], String> converter;
     /** kafka conf */
     private final KafkaConf kafkaConf;
 
     public RowDeserializationSchema(
-            KafkaConf kafkaConf, AbstractRowConverter converter, Calculate calculate) {
-        super(1, null, null, null, null, false, null, null, false, calculate);
+            KafkaConf kafkaConf, AbstractRowConverter<String, Object, byte[], String> converter) {
+        super(1, null, null, null, null, false, null, null, false);
         this.kafkaConf = kafkaConf;
         this.converter = converter;
     }
@@ -64,15 +62,17 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchemaW
     }
 
     @Override
-    public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector)
-            throws UnsupportedEncodingException {
+    public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector) {
         try {
             beforeDeserialize(record);
             collector.collect(
                     converter.toInternal(new String(record.value(), StandardCharsets.UTF_8)));
         } catch (Exception e) {
-            // todo kafka 比较特殊这里直接对接脏数据即可
-            dirtyDataCounter(record, e);
+            dirtyManager.collect(
+                    new String(record.value(), StandardCharsets.UTF_8),
+                    e,
+                    null,
+                    getRuntimeContext());
         }
     }
 }

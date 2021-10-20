@@ -23,11 +23,14 @@ import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.MetricParam;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.dirty.DirtyConf;
+import com.dtstack.flinkx.dirty.consumer.DirtyDataCollector;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.metrics.CustomReporter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.NoRestartException;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.configuration.ConfigUtils;
@@ -46,6 +49,8 @@ import java.util.Set;
  * @create: 2021/04/27
  */
 public class DataSyncFactoryUtil {
+
+    private static final String DIRTY_PACKAGE_STR = "com.dtstack.flinkx.dirty";
 
     public static SourceFactory discoverSource(SyncConf config, StreamExecutionEnvironment env) {
         try {
@@ -139,6 +144,28 @@ public class DataSyncFactoryUtil {
                     });
         } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
+        }
+    }
+
+    public static DirtyDataCollector discoverDirty(DirtyConf conf) {
+        try {
+            String pluginName = conf.getType();
+            String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.dirty);
+            Set<URL> urlList =
+                    PluginUtil.getJarFileDirPath(pluginName, conf.getLocalPluginPath(), null);
+
+            final DirtyDataCollector consumer =
+                    ClassLoaderManager.newInstance(
+                            urlList,
+                            cl -> {
+                                Class<?> clazz = cl.loadClass(pluginClassName);
+                                Constructor<?> constructor = clazz.getConstructor();
+                                return (DirtyDataCollector) constructor.newInstance();
+                            });
+            consumer.initializeConsumer(conf);
+            return consumer;
+        } catch (Exception e) {
+            throw new NoRestartException("Load dirty plugins failed!", e);
         }
     }
 }

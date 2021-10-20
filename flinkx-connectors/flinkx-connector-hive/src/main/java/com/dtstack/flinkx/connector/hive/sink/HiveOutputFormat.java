@@ -29,11 +29,11 @@ import com.dtstack.flinkx.connector.hive.entity.HiveFormatState;
 import com.dtstack.flinkx.connector.hive.entity.TableInfo;
 import com.dtstack.flinkx.connector.hive.util.HiveUtil;
 import com.dtstack.flinkx.connector.hive.util.PathConverterUtil;
-import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.NullColumn;
+import com.dtstack.flinkx.enums.Semantic;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
@@ -44,11 +44,11 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -92,7 +92,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
         super.open(taskNumber, numTasks);
-        checkpointMode = CheckpointingMode.EXACTLY_ONCE;
+        super.checkpointMode = CheckpointingMode.EXACTLY_ONCE;
+        super.semantic = Semantic.EXACTLY_ONCE;
     }
 
     @Override
@@ -186,10 +187,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 LOG.warn("write hdfs exception:", e);
             }
         }
-        updateDuration();
-        numWriteCounter.add(1);
         rowsOfCurrentTransaction++;
-        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
     }
 
     @Override
@@ -261,7 +259,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
         String partitionValue = partitionFormat.format(new Date());
         String partitionPath =
                 String.format(HiveUtil.PARTITION_TEMPLATE, hiveConf.getPartition(), partitionValue);
-        String hiveTablePath = tableName + ConstantValue.SINGLE_SLASH_SYMBOL + partitionPath;
+        String hiveTablePath = tableName + File.separatorChar + partitionPath;
 
         Pair<String, BaseHdfsOutputFormat> formatPair = outputFormatMap.get(tableName);
         BaseHdfsOutputFormat outputFormat = null;
@@ -275,7 +273,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                     partitionPath,
                     connectionInfo,
                     getRuntimeContext().getDistributedCache());
-            String path = tableInfo.getPath() + ConstantValue.SINGLE_SLASH_SYMBOL + partitionPath;
+            String path = tableInfo.getPath() + File.separatorChar + partitionPath;
 
             outputFormat =
                     createHdfsOutputFormat(
@@ -415,5 +413,9 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
     public void setHiveConf(HiveConf hiveConf) {
         this.hiveConf = hiveConf;
+    }
+
+    public HiveConf getHiveConf() {
+        return hiveConf;
     }
 }

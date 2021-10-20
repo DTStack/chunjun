@@ -19,12 +19,15 @@
 package com.dtstack.flinkx.connector.kafka.source;
 
 import com.dtstack.flinkx.constants.Metrics;
+import com.dtstack.flinkx.dirty.DirtyConf;
+import com.dtstack.flinkx.dirty.manager.DirtyManager;
+import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
-import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 
+import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
@@ -56,28 +59,19 @@ import java.util.Map;
 import java.util.Properties;
 
 /** A specific {@link KafkaSerializationSchema} for {@link KafkaDynamicSource}. */
-class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<RowData> {
+public class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<RowData> {
 
-    private static final long serialVersionUID = 1L;
-
-    private static final Logger LOG =
+    protected static final Logger LOG =
             LoggerFactory.getLogger(DynamicKafkaDeserializationSchema.class);
-
+    private static final long serialVersionUID = 1L;
+    private static final int dataPrintFrequency = 1000;
     private final @Nullable DeserializationSchema<RowData> keyDeserialization;
-
     private final DeserializationSchema<RowData> valueDeserialization;
-
     private final boolean hasMetadata;
-
     private final DynamicKafkaDeserializationSchema.BufferingCollector keyCollector;
-
     private final DynamicKafkaDeserializationSchema.OutputProjectionCollector outputCollector;
-
     private final TypeInformation<RowData> producedTypeInfo;
-
     private final boolean upsertMode;
-
-    private static int dataPrintFrequency = 1000;
     /** 任务名称 */
     protected String jobName = "defaultJobName";
     /** 任务id */
@@ -102,7 +96,9 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
 
     private transient RuntimeContext runtimeContext;
 
-    DynamicKafkaDeserializationSchema(
+    protected DirtyManager dirtyManager;
+
+    public DynamicKafkaDeserializationSchema(
             int physicalArity,
             @Nullable DeserializationSchema<RowData> keyDeserialization,
             int[] keyProjection,
@@ -133,10 +129,20 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
     }
 
     protected void beforeOpen() {
+        initDirtyManager();
         initAccumulatorCollector();
         initStatisticsAccumulator();
         initRestoreInfo();
         openInputFormat();
+    }
+
+    private void initDirtyManager() {
+        StreamingRuntimeContext context = (StreamingRuntimeContext) getRuntimeContext();
+
+        ExecutionConfig.GlobalJobParameters params =
+                context.getExecutionConfig().getGlobalJobParameters();
+        DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
+        this.dirtyManager = new DirtyManager(dc);
     }
 
     @Override
@@ -209,17 +215,9 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             }
             keyCollector.buffer.clear();
         } catch (Exception e) {
-            // todo 需要脏数据记录
-            dirtyDataCounter(record, e);
+            dirtyManager.collect(
+                    new String(record.value(), StandardCharsets.UTF_8), e, null, runtimeContext);
         }
-    }
-
-    protected void dirtyDataCounter(ConsumerRecord<byte[], byte[]> record, Exception e) {
-        // add metric of dirty data
-        LOG.error(
-                "data parse error:{} ,dirtyData:{}",
-                ExceptionUtil.getErrorMessage(e),
-                new String(record.value(), StandardCharsets.UTF_8));
     }
 
     @Override
@@ -239,10 +237,6 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         this.consumerConfig = consumerConfig;
     }
 
-    public void setFormatState(FormatState formatState) {
-        this.formatState = formatState;
-    }
-
     /**
      * 更新checkpoint状态缓存map
      *
@@ -253,6 +247,10 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
             formatState.setMetric(inputMetric.getMetricCounters());
         }
         return formatState;
+    }
+
+    public void setFormatState(FormatState formatState) {
+        this.formatState = formatState;
     }
 
     /** 更新任务执行时间指标 */
@@ -298,6 +296,10 @@ class DynamicKafkaDeserializationSchema implements KafkaDeserializationSchema<Ro
         inputMetric.addMetric(Metrics.NUM_READS, numReadCounter, true);
         inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter, true);
         inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
+        inputMetric.addDirtyMetric(Metrics.DIRTY_DATA_COUNT, this.dirtyManager.getConsumedMetric());
+        inputMetric.addDirtyMetric(
+                Metrics.DIRTY_DATA_COLLECT_FAILED_COUNT,
+                this.dirtyManager.getFailedConsumedMetric());
     }
 
     /** 从checkpoint状态缓存map中恢复上次任务的指标信息 */

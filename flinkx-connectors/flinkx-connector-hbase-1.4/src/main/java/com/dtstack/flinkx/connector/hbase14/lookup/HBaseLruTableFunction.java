@@ -7,7 +7,7 @@ import com.dtstack.flinkx.connector.hbase14.util.DtFileUtils;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseUtils;
 import com.dtstack.flinkx.enums.ECacheContentType;
-import com.dtstack.flinkx.factory.DTThreadFactory;
+import com.dtstack.flinkx.factory.FlinkxThreadFactory;
 import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
 import com.dtstack.flinkx.lookup.cache.CacheMissVal;
 import com.dtstack.flinkx.lookup.cache.CacheObj;
@@ -78,7 +78,7 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
                         0L,
                         TimeUnit.MILLISECONDS,
                         new LinkedBlockingQueue<>(),
-                        new DTThreadFactory("hbase-async"));
+                        new FlinkxThreadFactory("hbase-async"));
 
         Config config = new Config();
         config.overrideConfig(

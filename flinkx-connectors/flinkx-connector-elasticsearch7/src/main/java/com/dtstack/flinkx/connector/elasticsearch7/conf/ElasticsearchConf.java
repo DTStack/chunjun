@@ -33,72 +33,45 @@ public class ElasticsearchConf extends FlinkxCommonConf implements Serializable 
 
     private static final long serialVersionUID = 2L;
 
-    /**
-     * elasticsearch address -> ip:port
-     * localhost:9200
-     */
+    /** elasticsearch address -> ip:port localhost:9200 */
     private List<String> hosts;
 
-    /**
-     * es index name
-     */
+    /** es index name */
     private String index;
 
-    /**
-     * es type name
-     */
+    /** es type name */
     private String type;
 
-    /**
-     * es doc id
-     */
+    /** es doc id */
     private List<String> ids;
 
-    /**
-     * is open basic auth.
-     */
+    /** is open basic auth. */
     private boolean authMesh = false;
 
-    /**
-     * basic auth : username
-     */
+    /** basic auth : username */
     private String username;
 
-    /**
-     * basic auth : password
-     */
+    /** basic auth : password */
     private String password;
 
     private String keyDelimiter = "_";
 
-    /**
-     * client socket timeout
-     */
+    /** client socket timeout */
     private int socketTimeout;
 
-    /**
-     * client keepAlive time
-     */
+    /** client keepAlive time */
     private int keepAliveTime;
 
-    /**
-     * client connect timeout
-     */
+    /** client connect timeout */
     private int connectTimeout;
 
-    /**
-     * client request timeout
-     */
+    /** client request timeout */
     private int requestTimeout;
 
-    /**
-     * Assigns maximum connection per route value.
-     */
+    /** Assigns maximum connection per route value. */
     private int maxConnPerRoute;
 
-    /**
-     * table field names
-     */
+    /** table field names */
     private String[] fieldNames;
 
     public String[] getFieldNames() {

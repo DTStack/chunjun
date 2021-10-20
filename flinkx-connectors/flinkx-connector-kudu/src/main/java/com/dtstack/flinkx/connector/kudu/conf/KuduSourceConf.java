@@ -20,9 +20,9 @@ package com.dtstack.flinkx.connector.kudu.conf;
 
 import org.apache.flink.configuration.ReadableConfig;
 
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.BATCH_SIZE_BYTES;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.FILTER_STRING;
-import static com.dtstack.flinkx.connector.kudu.options.KuduOptions.READ_MODE;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.FILTER_EXPRESSION;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.READ_MODE;
+import static com.dtstack.flinkx.connector.kudu.table.KuduOptions.SCAN_BATCH_SIZE_BYTES;
 
 /**
  * @author tiezhu
@@ -78,8 +78,8 @@ public class KuduSourceConf extends KuduCommonConf {
 
         // source
         conf.setReadMode(readableConfig.get(READ_MODE));
-        conf.setBatchSizeBytes(readableConfig.get(BATCH_SIZE_BYTES));
-        conf.setFilter(readableConfig.get(FILTER_STRING));
+        conf.setBatchSizeBytes(readableConfig.get(SCAN_BATCH_SIZE_BYTES));
+        conf.setFilter(readableConfig.get(FILTER_EXPRESSION));
 
         return conf;
     }

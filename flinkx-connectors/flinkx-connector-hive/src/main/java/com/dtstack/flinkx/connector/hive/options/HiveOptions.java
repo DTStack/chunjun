@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.connector.hive.options;
 
 import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
+import com.dtstack.flinkx.connector.hive.enums.PartitionEnum;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -52,7 +53,7 @@ public class HiveOptions extends HdfsOptions {
     public static final ConfigOption<String> PARTITION_TYPE =
             ConfigOptions.key("partition-type")
                     .stringType()
-                    .noDefaultValue()
+                    .defaultValue(PartitionEnum.DAY.name())
                     .withDescription(
                             "Partition types, including DAY, HOUR, and MINUTE. If the partition does not exist, it will be created automatically. The time of the automatically created partition is based on the server time of the current task.");
 

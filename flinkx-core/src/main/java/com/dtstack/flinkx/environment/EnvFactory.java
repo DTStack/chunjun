@@ -48,18 +48,19 @@ public class EnvFactory {
      */
     public static StreamExecutionEnvironment createStreamExecutionEnvironment(Options options) {
         Configuration flinkConf = new Configuration();
+        Configuration cfg = Configuration.fromMap(PropertiesUtil.confToMap(options.getConfProp()));
         if (StringUtils.isNotEmpty(options.getFlinkConfDir())) {
             flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkConfDir());
         }
         StreamExecutionEnvironment env;
         if (StringUtils.equalsIgnoreCase(ClusterMode.local.name(), options.getMode())) {
+            flinkConf.addAll(cfg);
             env = new MyLocalStreamEnvironment(flinkConf);
         } else {
-            Configuration cfg =
-                    Configuration.fromMap(PropertiesUtil.confToMap(options.getConfProp()));
             env = StreamExecutionEnvironment.getExecutionEnvironment(cfg);
         }
         env.getConfig().disableClosureCleaner();
+        env.getConfig().setGlobalJobParameters(cfg);
         return env;
     }
 

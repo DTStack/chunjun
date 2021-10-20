@@ -21,8 +21,8 @@ import com.dtstack.flinkx.connector.hdfs.options.HdfsOptions;
 import com.dtstack.flinkx.connector.hive.conf.HiveConf;
 import com.dtstack.flinkx.connector.hive.options.HiveOptions;
 import com.dtstack.flinkx.connector.hive.sink.HiveDynamicTableSink;
-import com.dtstack.flinkx.sink.options.SinkOptions;
 import com.dtstack.flinkx.table.options.BaseFileOptions;
+import com.dtstack.flinkx.table.options.SinkOptions;
 import com.dtstack.flinkx.util.JsonUtil;
 
 import org.apache.flink.configuration.ConfigOption;

@@ -18,7 +18,11 @@
 package com.dtstack.flinkx.connector.hive.sink;
 
 import com.dtstack.flinkx.connector.hive.conf.HiveConf;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Date: 2021/06/22 Company: www.dtstack.com
@@ -40,14 +44,24 @@ public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     @Override
     protected void checkFormat() {
-        StringBuilder msg = new StringBuilder(64);
-        Integer parallelism = format.getConfig().getParallelism();
-        if (parallelism > 1) {
-            // 并行度大于1时，移动文件可能存在问题，目前先限制掉，后续优化
-            msg.append("Hive sink does not support parallelism setting greater than 1!\n");
+        StringBuilder errorMessage = new StringBuilder(256);
+        HiveConf hiveConf = format.getHiveConf();
+        if (StringUtils.isBlank(hiveConf.getJdbcUrl())) {
+            errorMessage.append("No url supplied. \n");
         }
-        if (msg.length() > 0) {
-            throw new IllegalArgumentException(msg.toString());
+        if (StringUtils.isBlank(hiveConf.getDefaultFS())) {
+            errorMessage.append("No defaultFS supplied. \n");
+        } else if (!hiveConf.getDefaultFS().startsWith(ConstantValue.PROTOCOL_HDFS)) {
+            errorMessage.append("defaultFS should start with hdfs:// \n");
+        }
+        if (StringUtils.isBlank(hiveConf.getFileType())) {
+            errorMessage.append("No fileType supplied. \n");
+        }
+        if (StringUtils.isBlank(hiveConf.getTableName())) {
+            errorMessage.append("No tableName supplied. \n");
+        }
+        if (StringUtils.isNotBlank(errorMessage)) {
+            throw new FlinkxRuntimeException(errorMessage.toString());
         }
     }
 }

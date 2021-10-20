@@ -21,6 +21,9 @@ package com.dtstack.flinkx.source.format;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.dirty.DirtyConf;
+import com.dtstack.flinkx.dirty.manager.DirtyManager;
+import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.metrics.CustomReporter;
@@ -31,6 +34,7 @@ import com.dtstack.flinkx.util.DataSyncFactoryUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 
+import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.io.DefaultInputSplitAssigner;
 import org.apache.flink.api.common.io.RichInputFormat;
@@ -94,13 +98,14 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     protected LongCounter bytesReadCounter;
     protected LongCounter durationCounter;
     protected ByteRateLimiter byteRateLimiter;
-    /** BaseRichInputFormat是否已经初始化 */
-    private boolean initialized = false;
-
     /** A collection of field names filled in user scripts with constants removed */
     protected List<String> columnNameList = new ArrayList<>();
     /** A collection of field types filled in user scripts with constants removed */
     protected List<String> columnTypeList = new ArrayList<>();
+    /** dirty manager which collects the dirty data. */
+    protected DirtyManager dirtyManager;
+    /** BaseRichInputFormat是否已经初始化 */
+    private boolean initialized = false;
 
     @Override
     public final void configure(Configuration parameters) {
@@ -130,6 +135,11 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     @Override
     public void open(InputSplit inputSplit) throws IOException {
         this.context = (StreamingRuntimeContext) getRuntimeContext();
+
+        ExecutionConfig.GlobalJobParameters params =
+                context.getExecutionConfig().getGlobalJobParameters();
+        DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
+        this.dirtyManager = new DirtyManager(dc);
 
         if (inputSplit instanceof ErrorInputSplit) {
             throw new RuntimeException(((ErrorInputSplit) inputSplit).getErrorMessage());
@@ -181,8 +191,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         try {
             internalRow = nextRecordInternal(rowData);
         } catch (ReadRecordException e) {
-            // todo 脏数据记录
-            LOG.error(e.toString());
+            dirtyManager.collect(e.getRowData().toString(), e, null, getRuntimeContext());
         }
         if (internalRow != null) {
             updateDuration();
@@ -200,6 +209,10 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     @Override
     public void close() throws IOException {
         closeInternal();
+
+        if (dirtyManager != null) {
+            dirtyManager.close();
+        }
     }
 
     @Override
@@ -282,6 +295,11 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         inputMetric.addMetric(Metrics.NUM_READS, numReadCounter, true);
         inputMetric.addMetric(Metrics.READ_BYTES, bytesReadCounter, true);
         inputMetric.addMetric(Metrics.READ_DURATION, durationCounter);
+
+        inputMetric.addDirtyMetric(Metrics.DIRTY_DATA_COUNT, this.dirtyManager.getConsumedMetric());
+        inputMetric.addDirtyMetric(
+                Metrics.DIRTY_DATA_COLLECT_FAILED_COUNT,
+                this.dirtyManager.getFailedConsumedMetric());
     }
 
     /** 从checkpoint状态缓存map中恢复上次任务的指标信息 */
@@ -364,5 +382,9 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
     public void setRowConverter(AbstractRowConverter rowConverter) {
         this.rowConverter = rowConverter;
+    }
+
+    public void setDirtyManager(DirtyManager dirtyManager) {
+        this.dirtyManager = dirtyManager;
     }
 }

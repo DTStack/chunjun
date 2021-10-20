@@ -34,7 +34,7 @@ public class ElasticsearchOutputFormatBuilder extends BaseRichOutputFormatBuilde
     protected ElasticsearchOutputFormat format;
 
     public ElasticsearchOutputFormatBuilder() {
-        super.format = format =  new ElasticsearchOutputFormat();
+        super.format = format = new ElasticsearchOutputFormat();
     }
 
     public void setEsConf(ElasticsearchConf esConf) {
@@ -48,12 +48,12 @@ public class ElasticsearchOutputFormatBuilder extends BaseRichOutputFormatBuilde
         Preconditions.checkNotNull(esConf.getHosts(), "elasticsearch7 type of address is required");
         Preconditions.checkNotNull(esConf.getIndex(), "elasticsearch7 type of index is required");
 
-        /**
-         * is open basic auth
-         */
+        /** is open basic auth */
         if (esConf.isAuthMesh()) {
-            Preconditions.checkNotNull(esConf.getUsername(), "elasticsearch7 type of userName is required");
-            Preconditions.checkNotNull(esConf.getPassword(), "elasticsearch7 type of password is required");
+            Preconditions.checkNotNull(
+                    esConf.getUsername(), "elasticsearch7 type of userName is required");
+            Preconditions.checkNotNull(
+                    esConf.getPassword(), "elasticsearch7 type of password is required");
         }
     }
 }

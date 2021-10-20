@@ -340,10 +340,6 @@ public class DtStringUtil {
         return object;
     }
 
-    public static String firstUpperCase(String str) {
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
-    }
-
     public static String getTableFullPath(String schema, String tableName) {
         String[] tableInfoSplit = StringUtils.split(tableName, ".");
         // 表明表信息带了schema
@@ -405,5 +401,20 @@ public class DtStringUtil {
      */
     public static boolean isEmptyOrNull(Object obj) {
         return Objects.isNull(obj) || obj.toString().isEmpty();
+    }
+
+    /**
+     * Capitalize the first letter. The ascii encoding of the letters is moved forward, and the
+     * efficiency is higher than the operation of intercepting the string for conversion
+     *
+     * @param str the string which the first letter should be capitalized.
+     * @return the string which the first letter has been capitalized.
+     */
+    public static String captureFirstLetter(String str) {
+        char[] cs = str.toCharArray();
+        if (cs[0] > 32) {
+            cs[0] -= 32;
+        }
+        return String.valueOf(cs);
     }
 }

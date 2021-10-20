@@ -18,12 +18,13 @@
 		<module>flinkx-formats</module>
 		<module>flinkx-docker</module>
 		<module>flinkx-metrics</module>
-	</modules>
+        <module>flinkx-dirtydata-collectors</module>
+    </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<target.java.version>1.8</target.java.version>
-		<flink.version>1.12.2</flink.version>
+		<flink.version>1.12.5</flink.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<prometheus.version>0.8.1</prometheus.version>
 		<hadoop.version>2.7.5</hadoop.version>
