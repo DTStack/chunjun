@@ -122,14 +122,10 @@ public class HiveDbUtil {
         String principal = KerberosUtil.getPrincipal(connectionInfo.getHiveConf(), keytabFileName);
         KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf(), distributedCache);
         KerberosUtil.refreshConfig();
-
-        Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConf(), null);
-
+        String krb5conf = KerberosUtil.getKrb5Conf(connectionInfo.getHiveConf());
         UserGroupInformation ugi;
         try {
-            ugi =
-                    KerberosUtil.loginAndReturnUgi(
-                            conf.get(KerberosUtil.KEY_PRINCIPAL_FILE), principal, keytabFileName);
+            ugi = KerberosUtil.loginAndReturnUgi(principal, keytabFileName, krb5conf);
         } catch (Exception e) {
             throw new RuntimeException("Login kerberos error:", e);
         }

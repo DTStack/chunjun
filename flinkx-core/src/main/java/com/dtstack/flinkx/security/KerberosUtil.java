@@ -104,6 +104,15 @@ public class KerberosUtil {
         return UserGroupInformation.loginUserFromKeytabAndReturnUGI(principal, keytab);
     }
 
+    public static String getKrb5Conf(Map<String, Object> configMap) {
+        String krb5Conf = MapUtils.getString(configMap, KRB5_CONF_KEY);
+        if (StringUtils.isEmpty(krb5Conf)) {
+            throw new RuntimeException("[java.security.krb5.conf]必须指定");
+        }
+
+        return krb5Conf;
+    }
+
     public static String getPrincipal(Map<String, Object> configMap, String keytabPath) {
         String principal = MapUtils.getString(configMap, KEY_PRINCIPAL);
         if (StringUtils.isEmpty(principal)) {
@@ -111,6 +120,15 @@ public class KerberosUtil {
         }
 
         return principal;
+    }
+
+    public static String getPrincipalFileName(Map<String, Object> config) {
+        String fileName = MapUtils.getString(config, KEY_PRINCIPAL_FILE);
+        if (StringUtils.isEmpty(fileName)) {
+            throw new RuntimeException("[principalFile]必须指定");
+        }
+
+        return fileName;
     }
 
     public static synchronized void reloadKrb5conf(String krb5confPath) {
@@ -280,14 +298,6 @@ public class KerberosUtil {
         return dir;
     }
 
-    public static String getPrincipalFileName(Map<String, Object> config) {
-        String fileName = MapUtils.getString(config, "principalFile");
-        if (StringUtils.isEmpty(fileName)) {
-            throw new RuntimeException("[principalFile]必须指定");
-        }
-
-        return fileName;
-    }
 
     /** 刷新krb内容信息 */
     public static void refreshConfig() {

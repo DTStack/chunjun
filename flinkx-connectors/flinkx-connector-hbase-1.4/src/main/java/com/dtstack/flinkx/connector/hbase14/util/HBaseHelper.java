@@ -102,10 +102,8 @@ public class HBaseHelper {
         String principal = KerberosUtil.getPrincipal(hbaseConfigMap, keytabFileName);
         KerberosUtil.loadKrb5Conf(hbaseConfigMap);
         KerberosUtil.refreshConfig();
-
-        Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
-        return KerberosUtil.loginAndReturnUgi(
-                conf.get(KerberosUtil.KEY_PRINCIPAL_FILE), principal, keytabFileName);
+        String krb5conf = KerberosUtil.getKrb5Conf(hbaseConfigMap);
+        return KerberosUtil.loginAndReturnUgi(principal, keytabFileName, krb5conf);
     }
 
     public static Configuration getConfig(Map<String, Object> hbaseConfigMap) {

@@ -134,12 +134,7 @@ public abstract class BaseFileOutputFormat extends BaseRichOutputFormat {
         if (numWriteCounter.getLocalValue() < nextNumForCheckDataSize) {
             return;
         }
-        long currentFileSize = 0;
-        try {
-            currentFileSize = getCurrentFileSize();
-        } catch (Exception e) {
-            flushData();
-        }
+        long currentFileSize = getCurrentFileSize();
         if (currentFileSize > baseFileConf.getMaxFileSize()) {
             flushData();
         }

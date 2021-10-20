@@ -123,11 +123,8 @@ public class FileSystemUtil {
         String principal = KerberosUtil.getPrincipal(hadoopConfig, keytabFileName);
         KerberosUtil.loadKrb5Conf(hadoopConfig, distributedCache);
         KerberosUtil.refreshConfig();
-
-        return KerberosUtil.loginAndReturnUgi(
-                principal,
-                keytabFileName,
-                MapUtils.getString(hadoopConfig, KerberosUtil.KRB5_CONF_KEY));
+        String krb5conf = KerberosUtil.getKrb5Conf(hadoopConfig);
+        return KerberosUtil.loginAndReturnUgi(principal, keytabFileName, krb5conf);
     }
 
     public static Configuration getConfiguration(Map<String, Object> confMap, String defaultFs) {
