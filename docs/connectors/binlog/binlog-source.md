@@ -1,6 +1,6 @@
 # MySQL Binlog Source
 
-bin/flinkx  -mode local  -job $FLINKX_HOME/docs/example/mysql_stream.json -pluginRoot $FLINKX_HOME/plugins  -confProp "{\"flink.checkpoint.interval\":60000}"
+
 <!-- TOC -->
 
 - [一、介绍](#一介绍)
