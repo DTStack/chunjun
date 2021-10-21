@@ -211,6 +211,9 @@ public class Hbase14DynamicTableFactory
         config.getOptional(SINK_BUFFER_FLUSH_MAX_ROWS).ifPresent(conf::setBatchSize);
         long millis = config.get(SINK_BUFFER_FLUSH_INTERVAL).toMillis();
         conf.setFlushIntervalMills(millis);
+        long bufferFlushMaxSizeInBytes = config.get(SINK_BUFFER_FLUSH_MAX_SIZE).getBytes();
+        conf.setWriteBufferSize(bufferFlushMaxSizeInBytes);
+
         conf.setRowkeyExpress(generateRowKey(hbaseSchema));
         return new HBaseDynamicTableSink(conf, physicalSchema, hbaseSchema);
     }
