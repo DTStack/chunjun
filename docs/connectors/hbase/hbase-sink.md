@@ -10,7 +10,7 @@ HBase 1.4 +
 ## 三、插件名称
 | Sync | hbasesink、hbasewriter |
 | --- | --- |
-| SQL | hbase1.4-x |
+| SQL | hbase14-x |
 
 
 ## 四、参数说明
