@@ -304,7 +304,7 @@ public class LogMinerConnection {
 
             logMinerSelectStmt.setFetchSize(logMinerConfig.getFetchSize());
             logMinerSelectStmt.setBigDecimal(1, startScn);
-            logMinerSelectStmt.setBigDecimal(2, maxScn);
+            logMinerSelectStmt.setBigDecimal(2, maxScn != null ? maxScn : BigDecimal.valueOf(281474976710655L));//当SupportAutoAddLog时，maxScn值为null，这里用scn最大值替代
             logMinerData = logMinerSelectStmt.executeQuery();
 
             LOG.debug("query Log miner data, offset:{}", startScn);
