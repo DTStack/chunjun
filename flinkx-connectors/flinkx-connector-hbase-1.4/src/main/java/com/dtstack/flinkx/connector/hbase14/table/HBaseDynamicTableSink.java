@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,12 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.connector.hbase14.sink;
+package com.dtstack.flinkx.connector.hbase14.table;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.hbase14.HBaseConverter;
-import com.dtstack.flinkx.connector.hbase14.HBaseTableSchema;
+import com.dtstack.flinkx.connector.hbase.HBaseConverter;
+import com.dtstack.flinkx.connector.hbase.HBaseMutationConverter;
+import com.dtstack.flinkx.connector.hbase.HBaseTableSchema;
+import com.dtstack.flinkx.connector.hbase.RowDataToMutationConverter;
 import com.dtstack.flinkx.connector.hbase14.conf.HBaseConf;
+import com.dtstack.flinkx.connector.hbase14.sink.HBaseOutputFormatBuilder;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
@@ -68,6 +71,7 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
             field.setIndex(i);
             columnList.add(field);
         }
+
         HBaseOutputFormatBuilder builder = new HBaseOutputFormatBuilder();
         if (conf.getColumn() != null) {
             builder.setColumnMetaInfos(conf.getColumn());
@@ -88,6 +92,11 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
         AbstractRowConverter rowConverter = new HBaseConverter(rowType);
         builder.setRowConverter(rowConverter);
         builder.setConfig(conf);
+
+        HBaseMutationConverter converter =
+                new RowDataToMutationConverter(hbaseSchema, conf.getNullMode());
+        builder.setHBaseMutationConverter(converter);
+
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction(builder.finish()), conf.getParallelism());
     }

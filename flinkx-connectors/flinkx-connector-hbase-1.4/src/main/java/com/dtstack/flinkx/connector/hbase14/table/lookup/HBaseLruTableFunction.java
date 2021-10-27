@@ -1,11 +1,29 @@
-package com.dtstack.flinkx.connector.hbase14.lookup;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.dtstack.flinkx.connector.hbase14.table.lookup;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.hbase14.HBaseConverter;
+import com.dtstack.flinkx.connector.hbase.HBaseTableSchema;
 import com.dtstack.flinkx.connector.hbase14.conf.HBaseConf;
+import com.dtstack.flinkx.connector.hbase14.converter.AsyncHBaseSerde;
 import com.dtstack.flinkx.connector.hbase14.util.DtFileUtils;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
-import com.dtstack.flinkx.connector.hbase14.util.HBaseUtils;
 import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.factory.FlinkxThreadFactory;
 import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
@@ -18,7 +36,6 @@ import org.apache.flink.runtime.security.KerberosUtils;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.stumbleupon.async.Deferred;
 import org.apache.commons.collections.MapUtils;
@@ -34,12 +51,9 @@ import sun.security.krb5.KrbException;
 import javax.security.auth.login.AppConfigurationEntry;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -57,16 +71,21 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
     private String tableName;
     private String[] colNames;
 
+    private final HBaseTableSchema hbaseTableSchema;
+    private transient AsyncHBaseSerde serde;
+
     public HBaseLruTableFunction(
-            HBaseConf conf, LookupConf lookupConf, HBaseConverter hBaseConverter) {
-        super(lookupConf, hBaseConverter);
+            HBaseConf conf, LookupConf lookupConf, HBaseTableSchema hbaseTableSchema) {
+        super(lookupConf, null);
         this.conf = conf;
         this.lookupConf = lookupConf;
+        this.hbaseTableSchema = hbaseTableSchema;
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
+        this.serde = new AsyncHBaseSerde(hbaseTableSchema, conf.getNullMode());
         tableName = conf.getTableName();
         colNames =
                 conf.getColumnMetaInfos().stream().map(FieldConf::getName).toArray(String[]::new);
@@ -98,10 +117,10 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
             String regionserverPrincipal =
                     MapUtils.getString(
                             hbaseConfig,
-                            HBaseConfigUtils.KEY_HBASE_KERBEROS_REGIONSERVER_PRINCIPAL);
+                            HBaseConfigUtils.KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL);
             HBaseConfigUtils.checkOpt(
                     regionserverPrincipal,
-                    HBaseConfigUtils.KEY_HBASE_KERBEROS_REGIONSERVER_PRINCIPAL);
+                    HBaseConfigUtils.KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL);
             String keytab = MapUtils.getString(hbaseConfig, HBaseConfigUtils.KEY_KEY_TAB);
             HBaseConfigUtils.checkOpt(keytab, HBaseConfigUtils.KEY_KEY_TAB);
             String keytabPath = System.getProperty("user.dir") + File.separator + keytab;
@@ -130,78 +149,54 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
     }
 
     @Override
-    public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys) {
-        String rowKeyStr = buildCacheKey(keys);
-        GetRequest getRequest = new GetRequest(tableName, rowKeyStr);
+    public void handleAsyncInvoke(
+            CompletableFuture<Collection<RowData>> future, Object... rowKeys) {
+        Object rowKey = rowKeys[0];
+        byte[] key = serde.getRowKey(rowKey);
+        String keyStr = new String(key);
+        GetRequest getRequest = new GetRequest(tableName, key);
         hBaseClient
                 .get(getRequest)
                 .addCallbacks(
-                        arg -> {
+                        keyValues -> {
                             try {
-                                Map<String, Object> sideMap = Maps.newHashMap();
-                                for (KeyValue keyValue : arg) {
+                                Map<String, byte[]> sideMap = Maps.newHashMap();
+                                for (KeyValue keyValue : keyValues) {
                                     String cf = new String(keyValue.family());
                                     String col = new String(keyValue.qualifier());
                                     String mapKey = cf + ":" + col;
-                                    // The table format defined using different data type conversion
-                                    // byte
-                                    Optional<String> typeOption =
-                                            conf.getColumnMetaInfos().stream()
-                                                    .filter(field -> field.getName().equals(mapKey))
-                                                    .map(FieldConf::getType)
-                                                    .findAny();
-                                    String colType =
-                                            typeOption.orElseThrow(IllegalArgumentException::new);
-                                    Object val = HBaseUtils.convertByte(keyValue.value(), colType);
-                                    sideMap.put(mapKey, val);
+                                    sideMap.put(mapKey, keyValue.value());
                                 }
-                                Collection<RowData> result = new ArrayList<>();
-                                if (arg.size() > 0) {
+                                RowData rowData = serde.convertToNewRow(sideMap, key);
+                                if (keyValues.size() > 0) {
                                     try {
-                                        // The order of the fields defined in the data conversion
-                                        // table
-                                        List<Object> sideVal = Lists.newArrayList();
-
-                                        for (int i = 0; i < colNames.length - 1; i++) {
-                                            Object val = sideMap.get(colNames[i]);
-                                            if (val == null) {
-                                                LOG.error(
-                                                        "can't get data with column {}",
-                                                        colNames[i]);
-                                            }
-                                            sideVal.add(val);
-                                        }
-                                        // add rowkey in a row end.
-                                        sideVal.add(rowKeyStr);
-
-                                        RowData row = fillData(sideVal);
                                         if (openCache()) {
                                             sideCache.putCache(
-                                                    rowKeyStr,
+                                                    keyStr,
                                                     CacheObj.buildCacheObj(
-                                                            ECacheContentType.SingleLine, sideVal));
+                                                            ECacheContentType.MultiLine,
+                                                            Collections.singletonList(rowData)));
                                         }
-                                        result.add(row);
-                                        future.complete(result);
+                                        future.complete(Collections.singletonList(rowData));
                                     } catch (Exception e) {
                                         future.completeExceptionally(e);
                                     }
                                 } else {
                                     dealMissKey(future);
                                     if (openCache()) {
-                                        sideCache.putCache(rowKeyStr, CacheMissVal.getMissKeyObj());
+                                        sideCache.putCache(keyStr, CacheMissVal.getMissKeyObj());
                                     }
                                 }
                             } catch (Exception e) {
                                 future.completeExceptionally(e);
-                                LOG.error("record:" + keys);
+                                LOG.error("record:" + keyStr);
                                 LOG.error("get side record exception:", e);
                             }
                             return "";
                         },
-                        arg2 -> {
-                            LOG.error("record:" + keys);
-                            LOG.error("get side record exception:" + arg2);
+                        o -> {
+                            LOG.error("record:" + keyStr);
+                            LOG.error("get side record exception:" + o);
                             future.complete(Collections.EMPTY_LIST);
                             return "";
                         });

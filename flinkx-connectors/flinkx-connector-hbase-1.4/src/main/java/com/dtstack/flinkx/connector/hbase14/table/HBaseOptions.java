@@ -24,8 +24,6 @@ import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.MemorySize;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 public class HBaseOptions extends BaseFileOptions {
     public static final ConfigOption<String> TABLE_NAME =
@@ -49,6 +47,7 @@ public class HBaseOptions extends BaseFileOptions {
                     .defaultValue("null")
                     .withDescription(
                             "Representation for null values for string fields. HBase source and sink encodes/decodes empty bytes as null values for all types except string type.");
+
     public static final ConfigOption<MemorySize> SINK_BUFFER_FLUSH_MAX_SIZE =
             ConfigOptions.key("sink.buffer-flush.max-size")
                     .memoryType()
@@ -67,24 +66,4 @@ public class HBaseOptions extends BaseFileOptions {
                     .defaultValue(Duration.ofSeconds(1L))
                     .withDescription(
                             "Writing option, the interval to flush any buffered rows. This can improve performance for writing data to HBase database, but may increase the latency. Can be set to '0' to disable it. Note, both 'sink.buffer-flush.max-size' and 'sink.buffer-flush.max-rows' can be set to '0' with the flush interval set allowing for complete async processing of buffered actions.");
-
-    public static Map<String, Object> getHadoopConfig(Map<String, String> tableOptions) {
-        Map<String, Object> hadoopConfig = new HashMap<>();
-        if (hasHadoopConfig(tableOptions)) {
-            tableOptions.keySet().stream()
-                    .filter((key) -> key.startsWith("properties."))
-                    .forEach(
-                            (key) -> {
-                                String value = tableOptions.get(key);
-                                String subKey = key.substring("properties.".length());
-                                hadoopConfig.put(subKey, value);
-                            });
-        }
-
-        return hadoopConfig;
-    }
-
-    private static boolean hasHadoopConfig(Map<String, String> tableOptions) {
-        return tableOptions.keySet().stream().anyMatch((k) -> k.startsWith("properties."));
-    }
 }

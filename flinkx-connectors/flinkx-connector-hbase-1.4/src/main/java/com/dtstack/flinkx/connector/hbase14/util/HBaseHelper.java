@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.Map;
 
+import static com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF;
 import static com.dtstack.flinkx.security.KerberosUtil.KRB_STR;
 
 /**
@@ -105,7 +106,7 @@ public class HBaseHelper {
 
         Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
         return KerberosUtil.loginAndReturnUgi(
-                conf.get(KerberosUtil.KEY_PRINCIPAL_FILE), principal, keytabFileName);
+                principal, keytabFileName, System.getProperty(KEY_JAVA_SECURITY_KRB5_CONF));
     }
 
     public static Configuration getConfig(Map<String, Object> hbaseConfigMap) {

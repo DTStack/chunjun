@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.hbase14;
+package com.dtstack.flinkx.connector.hbase;
 
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
@@ -49,33 +49,33 @@ import static org.apache.flink.util.Preconditions.checkArgument;
 /** Utilities for HBase serialization and deserialization. */
 public class HBaseSerde {
 
-    private static final byte[] EMPTY_BYTES = new byte[] {};
+    protected static final byte[] EMPTY_BYTES = new byte[] {};
 
-    private static final int MIN_TIMESTAMP_PRECISION = 0;
-    private static final int MAX_TIMESTAMP_PRECISION = 3;
-    private static final int MIN_TIME_PRECISION = 0;
-    private static final int MAX_TIME_PRECISION = 3;
+    protected static final int MIN_TIMESTAMP_PRECISION = 0;
+    protected static final int MAX_TIMESTAMP_PRECISION = 3;
+    protected static final int MIN_TIME_PRECISION = 0;
+    protected static final int MAX_TIME_PRECISION = 3;
 
-    private final byte[] nullStringBytes;
+    protected final byte[] nullStringBytes;
 
     // row key index in output row
-    private final int rowkeyIndex;
+    protected final int rowkeyIndex;
 
     // family keys
-    private final byte[][] families;
+    protected final byte[][] families;
     // qualifier keys
-    private final byte[][][] qualifiers;
+    protected final byte[][][] qualifiers;
 
-    private final int fieldLength;
+    protected final int fieldLength;
 
-    private GenericRowData reusedRow;
-    private GenericRowData[] reusedFamilyRows;
+    protected GenericRowData reusedRow;
+    protected GenericRowData[] reusedFamilyRows;
 
-    private final @Nullable FieldEncoder keyEncoder;
-    private final @Nullable FieldDecoder keyDecoder;
-    private final FieldEncoder[][] qualifierEncoders;
-    private final FieldDecoder[][] qualifierDecoders;
-    private final GenericRowData rowWithRowKey;
+    protected final @Nullable FieldEncoder keyEncoder;
+    protected final @Nullable FieldDecoder keyDecoder;
+    protected final FieldEncoder[][] qualifierEncoders;
+    protected final FieldDecoder[][] qualifierDecoders;
+    protected final GenericRowData rowWithRowKey;
 
     public HBaseSerde(HBaseTableSchema hbaseSchema, final String nullStringLiteral) {
         this.families = hbaseSchema.getFamilyKeys();
@@ -248,7 +248,7 @@ public class HBaseSerde {
         return convertToRow(result, reusedRow, reusedFamilyRows);
     }
 
-    private RowData convertToRow(
+    protected RowData convertToRow(
             Result result, GenericRowData resultRow, GenericRowData[] familyRows) {
         for (int i = 0; i < fieldLength; i++) {
             if (rowkeyIndex == i) {
@@ -309,11 +309,11 @@ public class HBaseSerde {
 
     /** Runtime encoder that encodes a specified field in {@link RowData} into byte[]. */
     @FunctionalInterface
-    private interface FieldEncoder extends Serializable {
+    protected interface FieldEncoder extends Serializable {
         byte[] encode(RowData row, int pos);
     }
 
-    private static FieldEncoder createNullableFieldEncoder(
+    protected static FieldEncoder createNullableFieldEncoder(
             LogicalType fieldType, final byte[] nullStringBytes) {
         final FieldEncoder encoder = createFieldEncoder(fieldType);
         if (fieldType.isNullable()) {
@@ -342,7 +342,7 @@ public class HBaseSerde {
         }
     }
 
-    private static FieldEncoder createFieldEncoder(LogicalType fieldType) {
+    protected static FieldEncoder createFieldEncoder(LogicalType fieldType) {
         // ordered by type root definition
         switch (fieldType.getTypeRoot()) {
             case CHAR:
@@ -400,7 +400,7 @@ public class HBaseSerde {
         }
     }
 
-    private static FieldEncoder createDecimalEncoder(DecimalType decimalType) {
+    protected static FieldEncoder createDecimalEncoder(DecimalType decimalType) {
         final int precision = decimalType.getPrecision();
         final int scale = decimalType.getScale();
         return (row, pos) -> {
@@ -409,7 +409,7 @@ public class HBaseSerde {
         };
     }
 
-    private static FieldEncoder createTimestampEncoder(final int precision) {
+    protected static FieldEncoder createTimestampEncoder(final int precision) {
         return (row, pos) -> {
             long millisecond = row.getTimestamp(pos, precision).getMillisecond();
             return Bytes.toBytes(millisecond);
@@ -422,12 +422,12 @@ public class HBaseSerde {
 
     /** Runtime decoder that decodes a byte[] into objects of internal data structure. */
     @FunctionalInterface
-    private interface FieldDecoder extends Serializable {
+    protected interface FieldDecoder extends Serializable {
         @Nullable
         Object decode(byte[] value);
     }
 
-    private static FieldDecoder createNullableFieldDecoder(
+    protected static FieldDecoder createNullableFieldDecoder(
             LogicalType fieldType, final byte[] nullStringBytes) {
         final FieldDecoder decoder = createFieldDecoder(fieldType);
         if (fieldType.isNullable()) {
@@ -453,7 +453,7 @@ public class HBaseSerde {
         }
     }
 
-    private static FieldDecoder createFieldDecoder(LogicalType fieldType) {
+    protected static FieldDecoder createFieldDecoder(LogicalType fieldType) {
         // ordered by type root definition
         switch (fieldType.getTypeRoot()) {
             case CHAR:
@@ -511,7 +511,7 @@ public class HBaseSerde {
         }
     }
 
-    private static FieldDecoder createDecimalDecoder(DecimalType decimalType) {
+    protected static FieldDecoder createDecimalDecoder(DecimalType decimalType) {
         final int precision = decimalType.getPrecision();
         final int scale = decimalType.getScale();
         return value -> {
@@ -520,7 +520,7 @@ public class HBaseSerde {
         };
     }
 
-    private static FieldDecoder createTimestampDecoder() {
+    protected static FieldDecoder createTimestampDecoder() {
         return value -> {
             // TODO: support higher precision
             long milliseconds = Bytes.toLong(value);

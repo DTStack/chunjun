@@ -50,7 +50,7 @@ public class HBaseConfigUtils {
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private static final String KEY_HBASE_MASTER_KERBEROS_PRINCIPAL =
             "hbase.master.kerberos.principal";
-    private static final String KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL =
+    public static final String KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL =
             "hbase.regionserver.kerberos.principal";
 
     public static final String KEY_HBASE_CLIENT_KEYTAB_FILE = "hbase.client.keytab.file";
@@ -58,24 +58,18 @@ public class HBaseConfigUtils {
             "hbase.client.kerberos.principal";
 
     private static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
-    public static final String KEY_HBASE_KERBEROS_REGIONSERVER_PRINCIPAL =
-            "hbase.kerberos.regionserver.principal";
-    public static final String KEY_KEY_TAB = "hbase.keytab";
-    public static final String KEY_PRINCIPAL = "hbase.principal";
 
     public static final String KEY_HBASE_ZOOKEEPER_QUORUM = "hbase.zookeeper.quorum";
     public static final String KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM = "hbase.zookeeper.znode.parent";
 
     public static final String KEY_ZOOKEEPER_SASL_CLIENT = "zookeeper.sasl.client";
-    private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
+    public static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
+    public static final String KEY_KEY_TAB = "hbase.keytab";
+    public static final String KEY_PRINCIPAL = "hbase.principal";
 
     private static final List<String> KEYS_KERBEROS_REQUIRED =
             Arrays.asList(
-                    KEY_HBASE_SECURITY_AUTHENTICATION,
-                    KEY_HBASE_KERBEROS_REGIONSERVER_PRINCIPAL,
-                    KEY_PRINCIPAL,
-                    KEY_KEY_TAB,
-                    KEY_JAVA_SECURITY_KRB5_CONF);
+                    KEY_HBASE_SECURITY_AUTHENTICATION, KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL);
 
     public static Configuration getConfig(Map<String, Object> hbaseConfigMap) {
         Configuration hConfiguration = HBaseConfiguration.create();
@@ -143,13 +137,13 @@ public class HBaseConfigUtils {
     public static void fillSyncKerberosConfig(
             Configuration config, Map<String, Object> hbaseConfigMap) throws IOException {
         if (StringUtils.isEmpty(
-                MapUtils.getString(hbaseConfigMap, KEY_HBASE_KERBEROS_REGIONSERVER_PRINCIPAL))) {
+                MapUtils.getString(hbaseConfigMap, KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL))) {
             throw new IllegalArgumentException(
                     "Must provide region server Principal when authentication is Kerberos");
         }
 
         String regionServerPrincipal =
-                MapUtils.getString(hbaseConfigMap, KEY_HBASE_KERBEROS_REGIONSERVER_PRINCIPAL);
+                MapUtils.getString(hbaseConfigMap, KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL);
         config.set(HBaseConfigUtils.KEY_HBASE_MASTER_KERBEROS_PRINCIPAL, regionServerPrincipal);
         config.set(
                 HBaseConfigUtils.KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL, regionServerPrincipal);

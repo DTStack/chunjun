@@ -15,10 +15,8 @@
  */
 package com.dtstack.flinkx.connector.hbase14.table;
 
-import com.dtstack.flinkx.connector.hbase14.HBaseTableSchema;
+import com.dtstack.flinkx.connector.hbase.HBaseTableSchema;
 import com.dtstack.flinkx.connector.hbase14.conf.HBaseConf;
-import com.dtstack.flinkx.connector.hbase14.sink.HBaseDynamicTableSink;
-import com.dtstack.flinkx.connector.hbase14.source.HBaseDynamicTableSource;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -30,6 +28,8 @@ import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
+
+import org.apache.hadoop.hbase.HConstants;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -54,6 +54,10 @@ import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
+import static com.dtstack.flinkx.security.KerberosOptions.KEYTAB;
+import static com.dtstack.flinkx.security.KerberosOptions.KRB5_CONF;
+import static com.dtstack.flinkx.security.KerberosOptions.PRINCIPAL;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_PARALLELISM;
 
 public class Hbase14DynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
@@ -70,6 +74,7 @@ public class Hbase14DynamicTableFactory
     public Set<ConfigOption<?>> requiredOptions() {
         Set<ConfigOption<?>> set = new HashSet<>();
         set.add(TABLE_NAME);
+        set.add(ZOOKEEPER_QUORUM);
         return set;
     }
 
@@ -77,12 +82,26 @@ public class Hbase14DynamicTableFactory
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> set = new HashSet<>();
         set.add(ZOOKEEPER_ZNODE_PARENT);
-        set.add(ZOOKEEPER_QUORUM);
         set.add(NULL_STRING_LITERAL);
+
         set.add(SINK_BUFFER_FLUSH_MAX_SIZE);
         set.add(SINK_BUFFER_FLUSH_INTERVAL);
         set.add(SINK_BUFFER_FLUSH_MAX_ROWS);
-        set.add(FactoryUtil.SINK_PARALLELISM);
+        set.add(SINK_PARALLELISM);
+
+        set.add(LOOKUP_CACHE_PERIOD);
+        set.add(LOOKUP_CACHE_MAX_ROWS);
+        set.add(LOOKUP_CACHE_TTL);
+        set.add(LOOKUP_CACHE_TYPE);
+        set.add(LOOKUP_MAX_RETRIES);
+        set.add(LOOKUP_ERROR_LIMIT);
+        set.add(LOOKUP_FETCH_SIZE);
+        set.add(LOOKUP_ASYNC_TIMEOUT);
+        set.add(LOOKUP_PARALLELISM);
+
+        set.add(PRINCIPAL);
+        set.add(KEYTAB);
+        set.add(KRB5_CONF);
         return set;
     }
 
@@ -99,7 +118,8 @@ public class Hbase14DynamicTableFactory
         HBaseConf conf = getHbaseConf(config, options);
         LookupConf lookupConf =
                 getLookupConf(config, context.getObjectIdentifier().getObjectName());
-        return new HBaseDynamicTableSource(conf, physicalSchema, lookupConf);
+        HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(physicalSchema);
+        return new HBaseDynamicTableSource(conf, physicalSchema, lookupConf, hbaseSchema);
     }
 
     private static void validatePrimaryKey(TableSchema schema) {
@@ -143,14 +163,21 @@ public class Hbase14DynamicTableFactory
         HBaseConf conf = new HBaseConf();
         conf.setHbaseConfig(getHBaseClientProperties(options));
         String hTableName = config.get(TABLE_NAME);
-        String nullStringLiteral = config.get(NULL_STRING_LITERAL);
         conf.setTableName(hTableName);
+        String nullStringLiteral = config.get(NULL_STRING_LITERAL);
         conf.setNullMode(nullStringLiteral);
         return conf;
     }
 
     private static Map<String, Object> getHBaseClientProperties(Map<String, String> tableOptions) {
         final Map<String, Object> hbaseProperties = new HashMap<>();
+
+        org.apache.flink.configuration.Configuration options =
+                org.apache.flink.configuration.Configuration.fromMap(tableOptions);
+        hbaseProperties.put(HConstants.ZOOKEEPER_QUORUM, options.getString(ZOOKEEPER_QUORUM));
+        hbaseProperties.put(
+                HConstants.ZOOKEEPER_ZNODE_PARENT, options.getString(ZOOKEEPER_ZNODE_PARENT));
+
         if (containsHBaseClientProperties(tableOptions)) {
             tableOptions.keySet().stream()
                     .filter(key -> key.startsWith(PROPERTIES_PREFIX))
@@ -178,7 +205,15 @@ public class Hbase14DynamicTableFactory
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(physicalSchema);
         Map<String, String> options = context.getCatalogTable().getOptions();
+
         HBaseConf conf = getHbaseConf(config, options);
+        config.getOptional(SINK_PARALLELISM).ifPresent(conf::setParallelism);
+        config.getOptional(SINK_BUFFER_FLUSH_MAX_ROWS).ifPresent(conf::setBatchSize);
+        long millis = config.get(SINK_BUFFER_FLUSH_INTERVAL).toMillis();
+        conf.setFlushIntervalMills(millis);
+        long bufferFlushMaxSizeInBytes = config.get(SINK_BUFFER_FLUSH_MAX_SIZE).getBytes();
+        conf.setWriteBufferSize(bufferFlushMaxSizeInBytes);
+
         conf.setRowkeyExpress(generateRowKey(hbaseSchema));
         return new HBaseDynamicTableSink(conf, physicalSchema, hbaseSchema);
     }

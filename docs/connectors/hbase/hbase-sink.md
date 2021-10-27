@@ -10,7 +10,7 @@ HBase 1.4 +
 ## 三、插件名称
 | Sync | hbasesink、hbasewriter |
 | --- | --- |
-| SQL | hbase1.4-x |
+| SQL | hbase14-x |
 
 
 ## 四、参数说明
@@ -131,87 +131,80 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
 <br />
 
 <a name="ks2VQ"></a>
-## 三、配置示例
-```json
-{
-  "job" : {
-    "content" : [ {
-      "reader": {
-        "name": "streamreader",
-        "parameter": {
-          "column": [
-            {
-              "name": "id",
-              "type": "id"
-            },
-            {
-              "name": "user_id",
-              "type": "int"
-            },
-            {
-              "name": "name",
-              "type": "string"
-            }
-          ],
-          "sliceRecordCount" : ["100"]
-        }
-      },
-      "writer": {
-        "name": "hbasewriter",
-        "parameter": {
-          "hbaseConfig": {
-            "hbase.zookeeper.property.clientPort": "2181",
-            "hbase.rootdir": "hdfs://ns1/hbase",
-            "hbase.cluster.distributed": "true",
-            "hbase.zookeeper.quorum": "node01,node02,node03",
-            "zookeeper.znode.parent": "/hbase"
-          },
-          "table": "tb1",
-          "rowkeyColumn": "col1#col2",
-          "column": [
-            {
-              "name": "cf1:id",
-              "type": "int"
-            },
-            {
-              "name": "cf1:user_id",
-              "type": "int"
-            },
-            {
-              "name": "cf1:name",
-              "type": "string"
-            }
-          ]
-        }
-      }
-    } ],
-    "setting": {
-      "speed": {
-        "channel": 1,
-        "bytes": 0
-      },
-      "errorLimit": {
-        "record": 100
-      },
-      "restore": {
-        "maxRowNumForCheckpoint": 0,
-        "isRestore": false,
-        "isStream" : false,
-        "restoreColumnName": "",
-        "restoreColumnIndex": 0
-      },
-      "log" : {
-        "isLogger": false,
-        "level" : "debug",
-        "path" : "",
-        "pattern":""
-      }
-    }
-  }
-}
-```
 
-<br />
+### 2、SQL
+- **connector**
+    - 描述：hbase14-x
+    - 必选：是
+    - 参数类型：String
+    - 默认值：无
+      <br />
+- **table-name**
+    - 描述：表名
+    - 必选：是
+    - 参数类型：String
+    - 默认值：无：
+      <br />
+- **zookeeper.quorum**
+    - 描述：HBase的Zookeeper地址
+    - 必选：是
+    - 参数类型：String
+    - 默认值：无
+      <br />
+- **zookeeper.znode.parent**
+    - 描述：root dir
+    - 必选：是
+    - 参数类型：String
+    - 默认值：/hbase
+      <br />
+
+- **null-string-literal**
+    - 描述：当字符串值为 null 时的存储形式
+    - 必选：是
+    - 参数类型：String
+    - 默认值：null
+      <br />
+
+- **properties.***
+    - 描述：HBase原生选项 如'properties.hbase.security.authentication' = 'kerberos'.
+    - 必选：是
+    - 参数类型：String
+    - 默认值：无
+      <br />
+- **sink.buffer-flush.max-rows**
+    - 描述：批量写数据条数，单位：条
+    - 必选：否
+    - 参数类型：String
+    - 默认值：1024
+      <br />
+
+- **sink.buffer-flush.interval**
+    - 描述：批量写时间间隔，单位：时间
+    - 必选：否
+    - 参数类型：Duration
+    - 默认值：10000
+      <br />
+
+- **sink.parallelism**
+    - 描述：写入结果的并行度
+    - 必选：否
+    - 参数类型：String
+    - 默认值：无
+      <br />
+
+- **security.kerberos.principal**
+    - 描述：kerberos认证的principal
+    - 必选：是
+    - 默认值：无
+- **security.kerberos.keytab**
+    - 描述：kerberos认证的keytab文件路径
+    - 必选：是
+    - 默认值：无
+- **security.kerberos.krb5conf**
+    - 描述：kerberos认证的krb5conf文件路径
+    - 必选：是
+    - 默认值：无
+
 ## 五、数据类型
 | 支持 | BOOLEAN、TINYINT、SMALLINT、INT、BIGINT、FLOAT、DOUBLE、DECIMAL、STRING、VARCHAR、CHAR、TIMESTAMP、DATE、BINARY |
 | --- | --- |
