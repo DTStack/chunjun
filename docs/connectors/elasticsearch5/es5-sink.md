@@ -119,15 +119,11 @@ Elasticsearch 5.x
    - 默认值："_"
 
 # 五、数据类型
-| ​支持 | BOOLEAN |
+
+|是否支持 | 类型名称 |
 | --- | --- |
-|  | INTEGER |
-|  | DECIMAL |
-|  | TIMESTAMP |
-|  | DOUBLE |
-|  | FLOAT |
-|  | DATE |
-|  | VARCHAR |
+| 支持 |INTEGER,SMALLINT,DECIMAL,TIMESTAM DOUBLE,FLOAT,DATE,VARCHAR,VARCHAR,TIMESTAMP,TIME,BYTE|
+| 不支持 | IP，binary, nested, object|
 
 # 六、脚本示例
 见项目内`FlinkX：Local：Test`模块中的`demo文件夹。
