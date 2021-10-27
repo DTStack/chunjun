@@ -18,6 +18,7 @@
 
 package org.apache.flink.table.factories;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.FactoryHelper;
 
 import org.apache.flink.annotation.PublicEvolving;
@@ -270,7 +271,7 @@ public final class FactoryUtil {
             String s = factoryIdentifier.substring(0, factoryIdentifier.length() - 2);
             FactoryHelper factoryHelper = factoryHelperThreadLocal.get();
             if (factoryHelper != null) {
-                factoryHelper.registerCachedFile(s, classLoader, false);
+                factoryHelper.registerCachedFile(s, classLoader, ConstantValue.CONNECTOR_DIR_NAME);
             }
         }
 
