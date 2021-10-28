@@ -28,11 +28,11 @@ import org.apache.flink.configuration.ConfigOptions;
  */
 public class MongoClientOptions {
 
-    public static final ConfigOption<String> URL =
-            ConfigOptions.key("url")
+    public static final ConfigOption<String> URI =
+            ConfigOptions.key("uri")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("the MongoDB url.");
+                    .withDescription("the MongoDB uri.");
 
     public static final ConfigOption<String> COLLECTION =
             ConfigOptions.key("collection")
