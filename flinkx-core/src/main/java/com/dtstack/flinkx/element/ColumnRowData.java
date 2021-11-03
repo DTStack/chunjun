@@ -235,8 +235,10 @@ public final class ColumnRowData implements RowData, Serializable {
             if (i != 0) {
                 sb.append(",");
             }
-            sb.append(StringUtils.arrayAwareToString((columnList.get(i) == null
-                    ? new NullColumn() : columnList.get(i)).asString()));
+            sb.append(
+                    StringUtils.arrayAwareToString(
+                            (columnList.get(i) == null ? new NullColumn() : columnList.get(i))
+                                    .asString()));
         }
         sb.append(")");
         return sb.toString();
