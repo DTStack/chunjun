@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.element;
 
+import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import org.apache.flink.table.data.ArrayData;
@@ -234,7 +235,8 @@ public final class ColumnRowData implements RowData, Serializable {
             if (i != 0) {
                 sb.append(",");
             }
-            sb.append(StringUtils.arrayAwareToString(columnList.get(i).asString()));
+            sb.append(StringUtils.arrayAwareToString((columnList.get(i) == null
+                    ? new NullColumn() : columnList.get(i)).asString()));
         }
         sb.append(")");
         return sb.toString();
