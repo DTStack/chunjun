@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.hbase14;
+package com.dtstack.flinkx.connector.hbase;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.constants.ConstantValue;

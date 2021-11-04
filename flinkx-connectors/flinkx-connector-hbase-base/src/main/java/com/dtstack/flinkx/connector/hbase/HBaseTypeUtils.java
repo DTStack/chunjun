@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.hbase14;
+package com.dtstack.flinkx.connector.hbase;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.types.logical.LogicalType;

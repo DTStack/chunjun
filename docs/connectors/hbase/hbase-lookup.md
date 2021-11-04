@@ -10,10 +10,48 @@ HBase 1.4 +
 
 
 ## 三、插件名称
-| SQL | hbase1.4-x |
+| SQL | hbase14-x |
 | --- | --- |
 
 ## 四、参数说明
+- **connector**
+    - 描述：hbase14-x
+    - 必选：是
+    - 参数类型：String
+    - 默认值：无
+      <br />
+- **table-name**
+    - 描述：表名
+    - 必选：是
+    - 参数类型：String
+    - 默认值：无：
+      <br />
+- **zookeeper.quorum**
+    - 描述：HBase的Zookeeper地址
+    - 必选：是
+    - 参数类型：String
+    - 默认值：无
+      <br />
+- **zookeeper.znode.parent**
+    - 描述：root dir
+    - 必选：是
+    - 参数类型：String
+    - 默认值：/hbase
+      <br />
+
+- **null-string-literal**
+    - 描述：当字符串值为 null 时的存储形式
+    - 必选：是
+    - 参数类型：String
+    - 默认值：null
+      <br />
+- **properties.***
+    - 描述：HBase原生选项 如'properties.hbase.security.authentication' = 'kerberos'.
+    - 必选：是
+    - 参数类型：String
+    - 默认值：无
+      <br />
+      
 - **lookup.max-retries**
   - 描述：the max retry times if lookup database failed.
   - 必选：否
@@ -63,7 +101,7 @@ HBase 1.4 +
   - 默认值：60000
 <br />
 
-- **lookup.fetchSize**
+- **lookup.fetch-size**
   - 描述：ALL维表每次从数据库加载的条数，默认1000条
   - 必选：否
   - 参数类型：string
@@ -76,7 +114,20 @@ HBase 1.4 +
   - 参数类型：string
   - 默认值：无
 <br />
-
+    
+- **security.kerberos.principal**
+    - 描述：kerberos认证的principal
+    - 必选：是
+    - 默认值：无
+- **security.kerberos.keytab**
+    - 描述：kerberos认证的keytab文件路径
+    - 必选：是
+    - 默认值：无
+- **security.kerberos.krb5conf**
+    - 描述：kerberos认证的krb5conf文件路径
+    - 必选：是
+    - 默认值：无
+    
 ## 五、数据类型
 | 支持 | BOOLEAN、TINYINT、SMALLINT、INT、BIGINT、FLOAT、DOUBLE、DECIMAL、STRING、VARCHAR、CHAR、TIMESTAMP、DATE、BINARY |
 | --- | --- |

@@ -355,6 +355,7 @@ public class StringUtil {
         try {
             switch (type) {
                 case TIMESTAMP:
+                case DATETIME:
                     return String.valueOf(Timestamp.valueOf(location).getTime());
                 case DATE:
                     return String.valueOf(

@@ -1,7 +1,26 @@
-package com.dtstack.flinkx.connector.hbase14.lookup;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.dtstack.flinkx.connector.hbase14.table.lookup;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.hbase14.HBaseConverter;
+import com.dtstack.flinkx.connector.hbase.HBaseSerde;
+import com.dtstack.flinkx.connector.hbase.HBaseTableSchema;
 import com.dtstack.flinkx.connector.hbase14.conf.HBaseConf;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseUtils;
@@ -24,7 +43,6 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.hbase.async.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,25 +64,19 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
     private ResultScanner resultScanner;
     private final transient Map<String, Object> hbaseConfig;
 
+    private final HBaseTableSchema hbaseTableSchema;
+    private transient HBaseSerde serde;
+
     public HBaseAllTableFunction(
             HBaseConf conf,
             LookupConf lookupConf,
             String[] fieldNames,
             String[] keyNames,
-            HBaseConverter hBaseConverter) {
-        super(fieldNames, keyNames, lookupConf, hBaseConverter);
+            HBaseTableSchema hbaseTableSchema) {
+        super(fieldNames, keyNames, lookupConf, null);
         this.hbaseConf = conf;
+        this.hbaseTableSchema = hbaseTableSchema;
         hbaseConfig = conf.getHbaseConfig();
-        Config config = new Config();
-        config.overrideConfig(
-                HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_QUORUM,
-                (String) conf.getHbaseConfig().get(HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_QUORUM));
-        config.overrideConfig(
-                HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM,
-                (String)
-                        conf.getHbaseConfig()
-                                .get(HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM));
-        hbaseConfig.forEach((key, value) -> config.overrideConfig(key, (String) value));
     }
 
     @Override
