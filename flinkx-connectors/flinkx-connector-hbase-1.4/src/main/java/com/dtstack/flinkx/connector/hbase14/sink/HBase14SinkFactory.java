@@ -39,7 +39,6 @@ public class HBase14SinkFactory extends SinkFactory {
                         GsonUtil.GSON.toJson(config.getWriter().getParameter()), HBaseConf.class);
         super.initFlinkxCommonConf(hbaseConf);
         hbaseConf.setColumnMetaInfos(syncConf.getWriter().getFieldList());
-        hbaseConf.setTableName(syncConf.getWriter().getTable().getTableName());
     }
 
     @Override
@@ -51,7 +50,7 @@ public class HBase14SinkFactory extends SinkFactory {
         builder.setHbaseConfig(hbaseConf.getHbaseConfig());
         builder.setNullMode(hbaseConf.getNullMode());
         builder.setRowkeyExpress(hbaseConf.getRowkeyExpress());
-        builder.setTableName(hbaseConf.getTableName());
+        builder.setTableName(hbaseConf.getTable());
         builder.setVersionColumnIndex(hbaseConf.getVersionColumnIndex());
         builder.setVersionColumnValues(hbaseConf.getVersionColumnValue());
         builder.setWalFlag(hbaseConf.getWalFlag());

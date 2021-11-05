@@ -110,7 +110,9 @@ public class KuduCommonConf extends FlinkxCommonConf {
     }
 
     public KerberosConfig getKerberos() {
-        kerberos.judgeAndSetKrbEnabled();
+        if (kerberos != null) {
+            kerberos.judgeAndSetKrbEnabled();
+        }
         return kerberos;
     }
 
