@@ -155,7 +155,7 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                 conn = ConnectionFactory.createConnection(conf);
             }
 
-            table = conn.getTable(TableName.valueOf(hbaseConf.getTableName()));
+            table = conn.getTable(TableName.valueOf(hbaseConf.getTable()));
             resultScanner = table.getScanner(new Scan());
             for (Result r : resultScanner) {
                 Map<String, Object> kv = new HashMap<>();

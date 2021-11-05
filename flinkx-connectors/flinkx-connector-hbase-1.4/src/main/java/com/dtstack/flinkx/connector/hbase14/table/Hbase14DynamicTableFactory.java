@@ -163,7 +163,7 @@ public class Hbase14DynamicTableFactory
         HBaseConf conf = new HBaseConf();
         conf.setHbaseConfig(getHBaseClientProperties(options));
         String hTableName = config.get(TABLE_NAME);
-        conf.setTableName(hTableName);
+        conf.setTable(hTableName);
         String nullStringLiteral = config.get(NULL_STRING_LITERAL);
         conf.setNullMode(nullStringLiteral);
         return conf;

@@ -91,7 +91,7 @@ public class HBaseDynamicTableSource
         builder.setConfig(conf);
         builder.setEncoding(conf.getEncoding());
         builder.setHbaseConfig(conf.getHbaseConfig());
-        builder.setTableName(conf.getTableName());
+        builder.setTableName(conf.getTable());
         AbstractRowConverter rowConverter = new HBaseConverter(rowType);
         builder.setRowConverter(rowConverter);
         return ParallelSourceFunctionProvider.of(

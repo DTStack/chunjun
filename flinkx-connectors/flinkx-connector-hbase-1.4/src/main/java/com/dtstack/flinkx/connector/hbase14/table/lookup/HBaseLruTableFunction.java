@@ -86,7 +86,7 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
     public void open(FunctionContext context) throws Exception {
         super.open(context);
         this.serde = new AsyncHBaseSerde(hbaseTableSchema, conf.getNullMode());
-        tableName = conf.getTableName();
+        tableName = conf.getTable();
         colNames =
                 conf.getColumnMetaInfos().stream().map(FieldConf::getName).toArray(String[]::new);
         Map<String, Object> hbaseConfig = conf.getHbaseConfig();
