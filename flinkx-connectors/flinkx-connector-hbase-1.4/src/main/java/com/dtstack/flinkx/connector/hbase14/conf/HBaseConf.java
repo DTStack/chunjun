@@ -31,7 +31,7 @@ public class HBaseConf extends FlinkxCommonConf {
     private String startRowkey;
     private String endRowkey;
     private boolean isBinaryRowkey;
-    private String tableName;
+    private String table;
     private int scanCacheSize = 1000;
 
     // writer
@@ -90,12 +90,12 @@ public class HBaseConf extends FlinkxCommonConf {
         isBinaryRowkey = binaryRowkey;
     }
 
-    public String getTableName() {
-        return tableName;
+    public String getTable() {
+        return table;
     }
 
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
+    public void setTable(String tableName) {
+        this.table = table;
     }
 
     public int getScanCacheSize() {

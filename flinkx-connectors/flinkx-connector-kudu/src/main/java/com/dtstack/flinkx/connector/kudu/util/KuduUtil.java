@@ -72,7 +72,8 @@ public class KuduUtil {
     public static KuduClient getKuduClient(KuduCommonConf config) {
         try {
             KerberosConfig kerberosConfig = config.getKerberos();
-            if (kerberosConfig.isEnableKrb()) {
+            if (kerberosConfig != null && kerberosConfig.isEnableKrb()) {
+
                 UserGroupInformation ugi = KerberosUtil.loginAndReturnUgi(kerberosConfig);
                 return ugi.doAs(
                         (PrivilegedExceptionAction<KuduClient>)
