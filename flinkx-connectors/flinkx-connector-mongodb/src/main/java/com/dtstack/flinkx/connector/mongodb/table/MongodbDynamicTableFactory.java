@@ -79,7 +79,7 @@ public class MongodbDynamicTableFactory
         validateConfigOptions(config);
 
         MongoClientConf mongoClientConf = new MongoClientConf();
-        config.getOptional(MongoClientOptions.URI).ifPresent(mongoClientConf::setUri);
+        config.getOptional(MongoClientOptions.URL).ifPresent(mongoClientConf::setUri);
         config.getOptional(MongoClientOptions.DATABASE).ifPresent(mongoClientConf::setDatabase);
         config.getOptional(MongoClientOptions.COLLECTION).ifPresent(mongoClientConf::setCollection);
 
@@ -111,7 +111,7 @@ public class MongodbDynamicTableFactory
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> optionalOptions = new HashSet<>();
-        optionalOptions.add(MongoClientOptions.URI);
+        optionalOptions.add(MongoClientOptions.URL);
         optionalOptions.add(MongoClientOptions.USERNAME);
         optionalOptions.add(MongoClientOptions.PASSWORD);
 
@@ -140,11 +140,11 @@ public class MongodbDynamicTableFactory
      * @param config
      */
     protected void validateConfigOptions(ReadableConfig config) {
-        String uri = config.get(MongoClientOptions.URI);
-        if (uri != null) {
+        String url = config.get(MongoClientOptions.URL);
+        if (url != null) {
             checkState(
-                    uri.startsWith("mongodb://"),
-                    "Cannot handle such mongodb uri must start with mongodb://");
+                    url.startsWith("mongodb://"),
+                    "Cannot handle such mongodb url must start with mongodb://");
         }
     }
 
@@ -161,7 +161,7 @@ public class MongodbDynamicTableFactory
         validateConfigOptions(config);
 
         MongoClientConf mongoClientConf = new MongoClientConf();
-        config.getOptional(MongoClientOptions.URI).ifPresent(mongoClientConf::setUri);
+        config.getOptional(MongoClientOptions.URL).ifPresent(mongoClientConf::setUri);
         config.getOptional(MongoClientOptions.DATABASE).ifPresent(mongoClientConf::setDatabase);
         config.getOptional(MongoClientOptions.COLLECTION).ifPresent(mongoClientConf::setCollection);
 

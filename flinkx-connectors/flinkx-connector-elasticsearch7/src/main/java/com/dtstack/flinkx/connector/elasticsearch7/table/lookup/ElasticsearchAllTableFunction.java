@@ -33,11 +33,9 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,30 +69,13 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
                 (Map<String, List<Map<String, Object>>>) cacheRef;
 
         rhlClient = ElasticsearchUtil.createClient(elasticsearchConf);
-        try {
-            searchData(tmpCache);
-        } catch (Exception e) {
-            LOG.error("Elasticsearch search data failed", e);
-        }
-    }
+        SearchRequest requestBuilder = buildSearchRequest();
 
-    private void searchData(Map<String, List<Map<String, Object>>> tmpCache) throws IOException {
-        SearchSourceBuilder searchSourceBuilder = buildSearchSource();
-        SearchRequest searchRequest = buildSearchRequest(searchSourceBuilder);
-
-        Object[] searchAfterParameter = null;
-        SearchHit[] searchHits;
         SearchResponse searchResponse;
-
-        while (true) {
-            if (searchAfterParameter != null) {
-                searchSourceBuilder.searchAfter(searchAfterParameter);
-            }
-
-            searchRequest.source(searchSourceBuilder);
-            searchResponse = rhlClient.search(searchRequest, RequestOptions.DEFAULT);
+        SearchHit[] searchHits;
+        try {
+            searchResponse = rhlClient.search(requestBuilder, RequestOptions.DEFAULT);
             searchHits = searchResponse.getHits().getHits();
-
             for (SearchHit searchHit : searchHits) {
                 Map<String, Object> oneRow = new HashMap<>();
                 Map<String, Object> source = searchHit.getSourceAsMap();
@@ -109,38 +90,21 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
                     LOG.error("error:{} \n  data:{}", e.getMessage(), source);
                 }
             }
-
-            // determine if all results have been fetched.
-            if (searchHits.length < lookupConf.getFetchSize()) {
-                break;
-            }
-
-            searchAfterParameter = searchHits[searchHits.length - 1].getSortValues();
+        } catch (Exception e) {
+            LOG.error("", e);
         }
     }
 
     /**
      * build search request
      *
-     * @param sourceBuilder
      * @return
      */
-    private SearchRequest buildSearchRequest(SearchSourceBuilder sourceBuilder) {
+    private SearchRequest buildSearchRequest() {
+        SearchSourceBuilder sourceBuilder =
+                ElasticsearchRequestHelper.createSourceBuilder(fieldsName, null, null);
+        sourceBuilder.size(lookupConf.getFetchSize());
         return ElasticsearchRequestHelper.createSearchRequest(
                 elasticsearchConf.getIndex(), null, sourceBuilder);
-    }
-
-    /**
-     * build search source
-     *
-     * @return
-     */
-    private SearchSourceBuilder buildSearchSource() {
-        SearchSourceBuilder sourceBuilder =
-                ElasticsearchRequestHelper.createSourceBuilder(fieldsName, keyNames, null);
-        sourceBuilder.size(lookupConf.getFetchSize());
-        // sort by doc id.
-        sourceBuilder.sort("_id", SortOrder.DESC);
-        return sourceBuilder;
     }
 }
