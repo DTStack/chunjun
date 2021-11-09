@@ -39,11 +39,9 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -86,59 +84,37 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
     public void handleAsyncInvoke(CompletableFuture<Collection<RowData>> future, Object... keys)
             throws Exception {
         String cacheKey = buildCacheKey(keys);
-        SearchSourceBuilder searchSourceBuilder = buildSearchSource(keys);
-        SearchRequest searchRequest = buildSearchRequest(searchSourceBuilder);
+        SearchRequest searchRequest = buildSearchRequest(keys);
         rhlClient.searchAsync(
                 searchRequest,
                 RequestOptions.DEFAULT,
                 new ActionListener<SearchResponse>() {
                     @Override
                     public void onResponse(SearchResponse searchResponse) {
-                        RestHighLevelClient tmp_rhlClient = null;
                         try {
-                            List<Map<String, Object>> cacheContent = Lists.newArrayList();
-                            List<RowData> rowList = Lists.newArrayList();
                             SearchHit[] searchHits = searchResponse.getHits().getHits();
-                            SearchRequest tmp_searchRequest;
                             if (searchHits.length > 0) {
-                                while (true) {
-                                    for (SearchHit searchHit : searchHits) {
-                                        Map<String, Object> result = searchHit.getSourceAsMap();
-                                        RowData rowData;
-                                        try {
-                                            rowData = rowConverter.toInternalLookup(result);
-                                            if (openCache()) {
-                                                cacheContent.add(result);
-                                            }
-                                            rowList.add(rowData);
-                                        } catch (Exception e) {
-                                            LOG.error(
-                                                    "error:{} \n  data:{}", e.getMessage(), result);
+
+                                List<Map<String, Object>> cacheContent = Lists.newArrayList();
+                                List<RowData> rowList = Lists.newArrayList();
+                                for (SearchHit searchHit : searchHits) {
+                                    Map<String, Object> result = searchHit.getSourceAsMap();
+                                    RowData rowData;
+                                    try {
+                                        rowData = rowConverter.toInternalLookup(result);
+                                        if (openCache()) {
+                                            cacheContent.add(result);
                                         }
+                                        rowList.add(rowData);
+                                    } catch (Exception e) {
+                                        LOG.error("error:{} \n  data:{}", e.getMessage(), result);
                                     }
-                                    // determine if all results have been fetched.
-                                    if (searchHits.length < lookupConf.getFetchSize()) {
-                                        break;
-                                    }
-
-                                    if (tmp_rhlClient == null) {
-                                        tmp_rhlClient =
-                                                ElasticsearchUtil.createClient(elasticsearchConf);
-                                    }
-
-                                    Object[] searchAfterParameter =
-                                            searchHits[searchHits.length - 1].getSortValues();
-                                    searchSourceBuilder.searchAfter(searchAfterParameter);
-                                    tmp_searchRequest = buildSearchRequest(searchSourceBuilder);
-                                    searchResponse =
-                                            tmp_rhlClient.search(
-                                                    tmp_searchRequest, RequestOptions.DEFAULT);
-                                    searchHits = searchResponse.getHits().getHits();
                                 }
                                 dealCacheData(
                                         cacheKey,
                                         CacheObj.buildCacheObj(
                                                 ECacheContentType.MultiLine, cacheContent));
+
                                 future.complete(rowList);
                             } else {
                                 dealMissKey(future);
@@ -146,14 +122,6 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
                             }
                         } catch (Exception e) {
                             LOG.error("", e);
-                        } finally {
-                            if (tmp_rhlClient != null) {
-                                try {
-                                    tmp_rhlClient.close();
-                                } catch (IOException e) {
-                                    LOG.warn("Failed to shut down tmpRhlClient.", e);
-                                }
-                            }
                         }
                     }
 
@@ -167,26 +135,14 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
     /**
      * build search request
      *
-     * @param sourceBuilder
-     * @return
-     */
-    private SearchRequest buildSearchRequest(SearchSourceBuilder sourceBuilder) {
-        return ElasticsearchRequestHelper.createSearchRequest(
-                elasticsearchConf.getIndex(), null, sourceBuilder);
-    }
-
-    /**
-     * build search source
-     *
      * @param keys
      * @return
      */
-    private SearchSourceBuilder buildSearchSource(Object... keys) {
+    private SearchRequest buildSearchRequest(Object... keys) {
         SearchSourceBuilder sourceBuilder =
                 ElasticsearchRequestHelper.createSourceBuilder(fieldNames, keyNames, keys);
         sourceBuilder.size(lookupConf.getFetchSize());
-        // sort by doc id.
-        sourceBuilder.sort("_id", SortOrder.DESC);
-        return sourceBuilder;
+        return ElasticsearchRequestHelper.createSearchRequest(
+                elasticsearchConf.getIndex(), null, sourceBuilder);
     }
 }
