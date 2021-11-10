@@ -298,7 +298,6 @@ public class KerberosUtil {
         return dir;
     }
 
-
     /** 刷新krb内容信息 */
     public static void refreshConfig() {
         try {

@@ -28,7 +28,6 @@ import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.security.KerberosUtil;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.AuthUtil;
 import org.apache.hadoop.hbase.Cell;
@@ -52,8 +51,6 @@ import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils.KEY_PRINCIPAL;
 
 public class HBaseAllTableFunction extends AbstractAllTableFunction {
 
@@ -112,7 +109,8 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                 conf.set(HBaseConfigUtils.KEY_HBASE_CLIENT_KEYTAB_FILE, keytab);
                 conf.set(HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL, principal);
                 String krb5conf = KerberosUtil.getKrb5Conf(hbaseConf.getHbaseConfig());
-                UserGroupInformation userGroupInformation = KerberosUtil.loginAndReturnUgi(principal, keytab, krb5conf);
+                UserGroupInformation userGroupInformation =
+                        KerberosUtil.loginAndReturnUgi(principal, keytab, krb5conf);
                 Configuration finalConf = conf;
                 conn =
                         userGroupInformation.doAs(
