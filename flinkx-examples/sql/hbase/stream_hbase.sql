@@ -23,7 +23,6 @@ CREATE TABLE sink
     ,'sink.buffer-flush.max-rows' = '1000'
     ,'sink.buffer-flush.interval' = '60'
     ,'table-name' = 'test'
-    ,'row.expression' = '$(cf1:id)_$(cf1:name)'
 );
 
 insert into sink

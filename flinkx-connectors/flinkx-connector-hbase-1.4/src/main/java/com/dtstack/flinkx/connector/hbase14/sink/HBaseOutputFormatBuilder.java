@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.hbase14.sink;
 
 import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.hbase.HBaseMutationConverter;
 import com.dtstack.flinkx.connector.hbase14.conf.HBaseConfigConstants;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
@@ -70,6 +71,10 @@ public class HBaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     public void setVersionColumnValues(String versionColumnValue) {
         format.setVersionColumnValue(versionColumnValue);
+    }
+
+    public void setHBaseMutationConverter(HBaseMutationConverter hbaseMutationConverter) {
+        format.setMutationConverter(hbaseMutationConverter);
     }
 
     public void setEncoding(String encoding) {
