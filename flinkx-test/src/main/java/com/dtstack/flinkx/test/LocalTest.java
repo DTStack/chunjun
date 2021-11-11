@@ -72,6 +72,7 @@ import com.dtstack.flinkx.polardb.writer.PolardbWriter;
 import com.dtstack.flinkx.postgresql.reader.PostgresqlReader;
 import com.dtstack.flinkx.postgresql.writer.PostgresqlWriter;
 import com.dtstack.flinkx.pulsar.reader.PulsarReader;
+import com.dtstack.flinkx.pulsar.writer.PulsarWriter;
 import com.dtstack.flinkx.reader.BaseDataReader;
 import com.dtstack.flinkx.redis.writer.RedisWriter;
 import com.dtstack.flinkx.restapi.reader.RestapiReader;
@@ -266,6 +267,7 @@ public class LocalTest {
             case PluginNameConstants.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
             case PluginNameConstants.KINGBASE_WRITER : writer = new KingbaseWriter(config); break;
             case PluginNameConstants.RESTAPI_WRITER: writer = new RedisWriter(config); break;
+            case PluginNameConstants.PULSAR_WRITER : writer = new PulsarWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

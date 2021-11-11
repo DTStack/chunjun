@@ -31,6 +31,7 @@ public class FlinkxPulsarClient implements Runnable {
     private boolean blankIgnore;
     private int timeout;
     private String listenerName;
+    private String pulsarServiceUrl;
     private IDecode decode;
     private PulsarInputFormat format;
     private Consumer consumer;
@@ -41,6 +42,7 @@ public class FlinkxPulsarClient implements Runnable {
         this.decode = format.getDecode();
         this.blankIgnore = format.getBlankIgnore();
         this.timeout = format.getTimeout();
+        this.pulsarServiceUrl = format.getPulsarServiceUrl();
 
         ClientBuilder clientBuilder;
         try {
@@ -63,6 +65,7 @@ public class FlinkxPulsarClient implements Runnable {
                     .subscriptionName(CONSUMER_SUBSCRIPTION_NAME)
                     .subscriptionType(SubscriptionType.Failover)
                     .subscriptionInitialPosition(SubscriptionInitialPosition.valueOf(format.getInitialPosition()))
+                    .loadConf(consumerSettings)
                     .subscribe();
         } catch (PulsarClientException e) {
             LOG.error("Pulsar subscribe topic error, topic = {}, e = {}", format.getTopic(), ExceptionUtil.getErrorMessage(e));
