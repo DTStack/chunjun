@@ -37,6 +37,10 @@ public class PulsarInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.consumerSettings = consumerSettings;
     }
 
+    public void setListenerName(String listenerName) {
+        format.listenerName = listenerName;
+    }
+
     public void setMetaColumns(List<MetaColumn> metaColumns) {
         format.metaColumns = metaColumns;
     }

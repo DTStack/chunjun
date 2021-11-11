@@ -30,31 +30,35 @@ public class FlinkxPulsarClient implements Runnable {
     private volatile boolean running = true;
     private boolean blankIgnore;
     private int timeout;
+    private String listenerName;
     private IDecode decode;
     private PulsarInputFormat format;
     private Consumer consumer;
 
     public FlinkxPulsarClient(PulsarInputFormat format) {
         this.format = format;
+        this.listenerName = format.getListenerName();
         this.decode = format.getDecode();
         this.blankIgnore = format.getBlankIgnore();
         this.timeout = format.getTimeout();
 
-        PulsarClient client;
+        ClientBuilder clientBuilder;
         try {
             Map<String, Object> consumerSettings = format.getConsumerSettings();
             if (null != format.getToken()) {
-                client = PulsarClient.builder()
+                clientBuilder = PulsarClient.builder()
                         .serviceUrl(consumerSettings.get(KEY_PULSAR_SERVICE_URL).toString())
-                        .authentication(AuthenticationFactory.token(format.getToken()))
-                        .build();
+                        .authentication(AuthenticationFactory.token(format.getToken()));
             } else {
-                client = PulsarClient.builder()
-                        .serviceUrl(consumerSettings.get(KEY_PULSAR_SERVICE_URL).toString())
-                        .build();
+                clientBuilder = PulsarClient.builder()
+                        .serviceUrl(consumerSettings.get(KEY_PULSAR_SERVICE_URL).toString());
             }
 
-            consumer = client.newConsumer(Schema.STRING)
+            if (null != format.getListenerName()) {
+                clientBuilder.listenerName(listenerName);
+            }
+
+            consumer = clientBuilder.build().newConsumer(Schema.STRING)
                     .topic(format.getTopic())
                     .subscriptionName(CONSUMER_SUBSCRIPTION_NAME)
                     .subscriptionType(SubscriptionType.Failover)

@@ -17,6 +17,7 @@ public class Constants {
     public static final String KEY_TIMEOUT = "timeout";
     public static final String KEY_INITIAL_POSITION = "initialPosition";
     public static final String KEY_FIELD_DELIMITER = "fieldDelimiter";
+    public static final String KEY_LISTENER_NAME = "listenerName";
 
     public static final String DEFAULT_FIELD_DELIMITER = ",";
     public static final int DEFAULT_TIMEOUT = 10000;

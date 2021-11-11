@@ -42,6 +42,7 @@ public class PulsarInputFormat extends BaseRichInputFormat {
     protected int timeout;
     protected List<MetaColumn> metaColumns;
     protected Map<String, Object> consumerSettings;
+    protected String listenerName;
 
     protected volatile boolean running = false;
     protected transient FlinkxPulsarConsumer flinkxPulsarConsumer;
@@ -152,6 +153,10 @@ public class PulsarInputFormat extends BaseRichInputFormat {
 
     public Map<String, Object> getConsumerSettings() {
         return consumerSettings;
+    }
+
+    public String getListenerName() {
+        return listenerName;
     }
 
     public List<MetaColumn> getMetaColumns() {

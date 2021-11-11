@@ -35,6 +35,7 @@ public class PulsarReader extends BaseDataReader {
     protected int timeout;
     protected List<MetaColumn> metaColumns;
     protected Map<String, Object> consumerSettings;
+    protected String listenerName;
 
     public PulsarReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -49,6 +50,7 @@ public class PulsarReader extends BaseDataReader {
         timeout = readerConfig.getParameter().getIntVal(KEY_TIMEOUT, DEFAULT_TIMEOUT);
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         consumerSettings = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
+        listenerName = readerConfig.getParameter().getStringVal(KEY_LISTENER_NAME);
     }
 
     @Override
@@ -59,6 +61,7 @@ public class PulsarReader extends BaseDataReader {
         builder.setCodec(codec);
         builder.setTimeout(timeout);
         builder.setConsumerSettings(consumerSettings);
+        builder.setListenerName(listenerName);
         builder.setMetaColumns(metaColumns);
         builder.setBlankIgnore(blankIgnore);
         builder.setInitialPosition(initialPosition);
