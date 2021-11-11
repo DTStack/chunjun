@@ -33,6 +33,7 @@ public class PulsarReader extends BaseDataReader {
     protected String fieldDelimiter;
     protected boolean blankIgnore;
     protected int timeout;
+    protected String pulsarServiceUrl;
     protected List<MetaColumn> metaColumns;
     protected Map<String, Object> consumerSettings;
     protected String listenerName;
@@ -48,6 +49,7 @@ public class PulsarReader extends BaseDataReader {
         initialPosition = readerConfig.getParameter().getStringVal(KEY_INITIAL_POSITION, SubscriptionInitialPosition.Latest.name());
         blankIgnore = readerConfig.getParameter().getBooleanVal(KEY_BLANK_IGNORE, Boolean.FALSE);
         timeout = readerConfig.getParameter().getIntVal(KEY_TIMEOUT, DEFAULT_TIMEOUT);
+        pulsarServiceUrl = readerConfig.getParameter().getStringVal(KEY_PULSAR_SERVICE_URL);
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         consumerSettings = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
         listenerName = readerConfig.getParameter().getStringVal(KEY_LISTENER_NAME);
@@ -60,6 +62,7 @@ public class PulsarReader extends BaseDataReader {
         builder.setToken(token);
         builder.setCodec(codec);
         builder.setTimeout(timeout);
+        builder.setPulsarServiceUrl(pulsarServiceUrl);
         builder.setConsumerSettings(consumerSettings);
         builder.setListenerName(listenerName);
         builder.setMetaColumns(metaColumns);

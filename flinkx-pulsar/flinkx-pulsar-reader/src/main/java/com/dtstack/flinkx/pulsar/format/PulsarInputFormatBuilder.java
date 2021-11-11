@@ -57,6 +57,10 @@ public class PulsarInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.timeout = timeout;
     }
 
+    public void setPulsarServiceUrl(String pulsarServiceUrl) {
+        format.pulsarServiceUrl = pulsarServiceUrl;
+    }
+
     public void setFieldDelimiter(String fieldDelimiter) {
         format.fieldDelimiter = fieldDelimiter;
     }
