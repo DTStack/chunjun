@@ -1,56 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>flinkx-parent</artifactId>
-        <groupId>com.dtstack.flinkx</groupId>
-        <version>1.12-SNAPSHOT</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>flinkx-parent</artifactId>
+		<groupId>com.dtstack.flinkx</groupId>
+		<version>1.12-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
 
-    <artifactId>flinkx-connectors</artifactId>
-	<name>FlinkX : Connectors : </name>
-    <packaging>pom</packaging>
+	<artifactId>flinkx-connectors</artifactId>
+	<name>FlinkX : Connectors :</name>
+	<packaging>pom</packaging>
 
 	<properties>
 		<connector.base.dir>connector</connector.base.dir>
 	</properties>
 
-    <modules>
-        <!--mock & print-->
-        <module>flinkx-connector-stream</module>
+	<modules>
+		<!--mock & print-->
+		<module>flinkx-connector-stream</module>
 
-        <!--MQ-->
-        <module>flinkx-connector-kafka</module>
+		<!--MQ-->
+		<module>flinkx-connector-kafka</module>
 		<module>flinkx-connector-emqx</module>
 
-        <!--RDB-->
+		<!--RDB-->
 		<module>flinkx-connector-jdbc-base</module>
 		<module>flinkx-connector-mysql</module>
 		<module>flinkx-connector-oracle</module>
 		<module>flinkx-connector-sqlserver</module>
-        <module>flinkx-connector-db2</module>
+		<module>flinkx-connector-db2</module>
 		<module>flinkx-connector-postgresql</module>
 		<module>flinkx-connector-gbase</module>
 		<module>flinkx-connector-kingbase</module>
 		<module>flinkx-connector-greenplum</module>
-        <module>flinkx-connector-dm</module>
+		<module>flinkx-connector-dm</module>
 		<module>flinkx-connector-clickhouse</module>
-        <module>flinkx-connector-saphana</module>
+		<module>flinkx-connector-saphana</module>
+		<module>flinkx-connector-dorisbatch</module>
 
-        <!--File-->
-        <module>flinkx-connector-file</module>
-        <module>flinkx-connector-ftp</module>
-        <module>flinkx-connector-hdfs</module>
-        <module>flinkx-connector-hive</module>
+		<!--File-->
+		<module>flinkx-connector-file</module>
+		<module>flinkx-connector-ftp</module>
+		<module>flinkx-connector-hdfs</module>
+		<module>flinkx-connector-hive</module>
 
-        <!--NoSql-->
-        <module>flinkx-connector-hbase-base</module>
-        <module>flinkx-connector-hbase-1.4</module>
-        <module>flinkx-connector-phoenix5</module>
-<!--		<module>flinkx-connector-elasticsearch5</module>-->
-<!--		<module>flinkx-connector-elasticsearch6</module>-->
+		<!--NoSql-->
+		<module>flinkx-connector-hbase-base</module>
+		<module>flinkx-connector-hbase-1.4</module>
+		<module>flinkx-connector-phoenix5</module>
+		<!--		<module>flinkx-connector-elasticsearch5</module>-->
+		<!--		<module>flinkx-connector-elasticsearch6</module>-->
 		<module>flinkx-connector-elasticsearch7</module>
 		<module>flinkx-connector-redis</module>
 		<module>flinkx-connector-mongodb</module>
@@ -60,12 +61,12 @@
 		<!--CDC-->
 		<module>flinkx-connector-binlog</module>
 		<module>flinkx-connector-oraclelogminer</module>
-        <module>flinkx-connector-sqlservercdc</module>
+		<module>flinkx-connector-sqlservercdc</module>
 		<module>flinkx-connector-pgwal</module>
 
-        <!--Network-->
-        <module>flinkx-connector-http</module>
-        <module>flinkx-connector-socket</module>
+		<!--Network-->
+		<module>flinkx-connector-http</module>
+		<module>flinkx-connector-socket</module>
 	</modules>
 
 
