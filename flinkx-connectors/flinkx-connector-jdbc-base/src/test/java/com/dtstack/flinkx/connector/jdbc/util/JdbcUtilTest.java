@@ -77,4 +77,30 @@ public class JdbcUtilTest {
         Assert.assertEquals("schema", jdbcConf.getSchema());
         Assert.assertEquals("table", jdbcConf.getTable());
     }
+
+    @Test
+    public void testGetTableAndSchema4() {
+        String schema = "[[schema]";
+        String table = "[table]";
+
+        sourceConnectionConf.setTable(
+                Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
+        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+
+        Assert.assertEquals("[schema", jdbcConf.getSchema());
+        Assert.assertEquals("table", jdbcConf.getTable());
+    }
+
+    @Test
+    public void testGetTableAndSchema5() {
+        String schema = "[[sche.ma]]";
+        String table = "[table]";
+
+        sourceConnectionConf.setTable(
+                Lists.newArrayList(schema + ConstantValue.POINT_SYMBOL + table));
+        JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+
+        Assert.assertEquals("[sche.ma]", jdbcConf.getSchema());
+        Assert.assertEquals("table", jdbcConf.getTable());
+    }
 }

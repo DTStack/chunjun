@@ -18,15 +18,19 @@
 
 package com.dtstack.flinkx.connector.sqlserver.table;
 
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.sqlserver.dialect.SqlserverDialect;
 import com.dtstack.flinkx.connector.sqlserver.sink.SqlserverOutputFormat;
 import com.dtstack.flinkx.connector.sqlserver.source.SqlserverInputFormat;
 
 import org.apache.flink.table.connector.source.DynamicTableSource;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
@@ -67,5 +71,15 @@ public class SqlserverDynamicTableFactory extends JdbcDynamicTableFactory {
         Map<String, String> prop = context.getCatalogTable().getOptions();
         prop.put("druid.validation-query", "SELECT 1");
         return super.createDynamicTableSource(context);
+    }
+
+    /** table字段有可能是[schema].[table]格式 需要转换为对应的schema 和 table 字段* */
+    @Override
+    protected void resetTableInfo(JdbcConf jdbcConf) {
+        if (jdbcConf.getTable().startsWith("[")
+                && jdbcConf.getTable().endsWith("]")
+                && StringUtils.isBlank(jdbcConf.getSchema())) {
+            JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        }
     }
 }
