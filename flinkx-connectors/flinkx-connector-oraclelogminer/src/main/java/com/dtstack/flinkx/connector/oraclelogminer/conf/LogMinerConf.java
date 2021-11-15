@@ -24,6 +24,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Properties;
 
 /**
  * @author dujie
@@ -80,6 +81,8 @@ public class LogMinerConf extends FlinkxCommonConf {
 
     /** 缓存的日志数 * */
     private long transactionCacheNumSize = 1000;
+
+    private Properties properties;
 
     /** 缓存的日志时间 * */
     private long transactionExpireTime = 20;
@@ -260,6 +263,14 @@ public class LogMinerConf extends FlinkxCommonConf {
         this.transactionExpireTime = transactionExpireTime;
     }
 
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+
     @Override
     public String toString() {
         return "LogMinerConf{"
@@ -314,6 +325,8 @@ public class LogMinerConf extends FlinkxCommonConf {
                 + transactionCacheNumSize
                 + ", transactionExpireTime="
                 + transactionExpireTime
+                + ", properties="
+                + properties
                 + "} "
                 + super.toString();
     }
