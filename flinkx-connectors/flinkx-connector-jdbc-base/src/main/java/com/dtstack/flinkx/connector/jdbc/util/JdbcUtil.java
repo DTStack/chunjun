@@ -428,10 +428,6 @@ public class JdbcUtil {
 
     /** 解析schema.table 或者 "schema"."table"等格式的表名 获取对应的schema以及table * */
     public static void resetSchemaAndTable(JdbcConf jdbcConf, String leftQuote, String rightQuote) {
-        LOG.info(
-                "before reset table info, schema: {}, table: {}",
-                jdbcConf.getSchema(),
-                jdbcConf.getTable());
         String pattern =
                 String.format(
                         "(?i)(%s(?<schema>(.*))%s\\.%s(?<table>(.*))%s)",
@@ -452,6 +448,11 @@ public class JdbcUtil {
         }
 
         if (StringUtils.isNotBlank(schema)) {
+            LOG.info(
+                    "before reset table info, schema: {}, table: {}",
+                    jdbcConf.getSchema(),
+                    jdbcConf.getTable());
+
             jdbcConf.setSchema(schema);
             jdbcConf.setTable(table);
             LOG.info(

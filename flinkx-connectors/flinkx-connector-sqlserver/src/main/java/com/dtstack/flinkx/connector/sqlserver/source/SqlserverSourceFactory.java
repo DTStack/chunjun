@@ -21,9 +21,12 @@ package com.dtstack.flinkx.connector.sqlserver.source;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.sqlserver.dialect.SqlserverDialect;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Company：www.dtstack.com
@@ -44,5 +47,15 @@ public class SqlserverSourceFactory extends JdbcSourceFactory {
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new SqlserverInputFormat());
+    }
+
+    /** table字段有可能是[schema].[table]格式 需要转换为对应的schema 和 table 字段* */
+    @Override
+    protected void resetTableInfo() {
+        if (jdbcConf.getTable().startsWith("[")
+                && jdbcConf.getTable().endsWith("]")
+                && StringUtils.isBlank(jdbcConf.getSchema())) {
+            JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        }
     }
 }
