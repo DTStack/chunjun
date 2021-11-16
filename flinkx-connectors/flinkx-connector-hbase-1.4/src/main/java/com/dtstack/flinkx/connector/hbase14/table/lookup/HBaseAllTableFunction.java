@@ -18,20 +18,20 @@
 
 package com.dtstack.flinkx.connector.hbase14.table.lookup;
 
-import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.hbase.HBaseConfigurationUtil;
 import com.dtstack.flinkx.connector.hbase.HBaseSerde;
 import com.dtstack.flinkx.connector.hbase.HBaseTableSchema;
-import com.dtstack.flinkx.connector.hbase14.conf.HBaseConf;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
-import com.dtstack.flinkx.connector.hbase14.util.HBaseUtils;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.security.KerberosUtil;
 
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.functions.FunctionContext;
+
+import com.google.common.collect.Maps;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.AuthUtil;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.ChoreService;
 import org.apache.hadoop.hbase.ScheduledChore;
 import org.apache.hadoop.hbase.TableName;
@@ -41,78 +41,61 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.PrivilegedAction;
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
-
-import static com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils.KEY_PRINCIPAL;
 
 public class HBaseAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(HBaseAllTableFunction.class);
-    private final HBaseConf hbaseConf;
+    private Configuration conf;
+    private final byte[] serializedConfig;
     private Connection conn;
+    private String tableName;
     private Table table;
     private ResultScanner resultScanner;
-    private final transient Map<String, Object> hbaseConfig;
 
     private final HBaseTableSchema hbaseTableSchema;
     private transient HBaseSerde serde;
+    private final String nullStringLiteral;
 
     public HBaseAllTableFunction(
-            HBaseConf conf,
+            Configuration conf,
             LookupConf lookupConf,
-            String[] fieldNames,
-            String[] keyNames,
-            HBaseTableSchema hbaseTableSchema) {
-        super(fieldNames, keyNames, lookupConf, null);
-        this.hbaseConf = conf;
+            HBaseTableSchema hbaseTableSchema,
+            String nullStringLiteral) {
+        super(null, null, lookupConf, null);
+        this.serializedConfig = HBaseConfigurationUtil.serializeConfiguration(conf);
+        this.tableName = hbaseTableSchema.getTableName();
         this.hbaseTableSchema = hbaseTableSchema;
-        hbaseConfig = conf.getHbaseConfig();
+        this.nullStringLiteral = nullStringLiteral;
+    }
+
+    @Override
+    public void open(FunctionContext context) throws Exception {
+        this.serde = new HBaseSerde(hbaseTableSchema, nullStringLiteral);
+        super.open(context);
     }
 
     @Override
     protected void loadData(Object cacheRef) {
-        Configuration conf;
+        conf = HBaseConfigurationUtil.prepareRuntimeConfiguration(serializedConfig);
         int loadDataCount = 0;
         try {
-            if (HBaseConfigUtils.isEnableKerberos(hbaseConfig)) {
-                conf = HBaseConfigUtils.getHadoopConfiguration(hbaseConf.getHbaseConfig());
-                conf.set(
-                        HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_QUORUM,
-                        (String)
-                                hbaseConf
-                                        .getHbaseConfig()
-                                        .get(HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_QUORUM));
-                conf.set(
-                        HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM,
-                        (String)
-                                hbaseConf
-                                        .getHbaseConfig()
-                                        .get(HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM));
-
-                String principal = HBaseConfigUtils.getPrincipal(hbaseConf.getHbaseConfig());
-
-                HBaseConfigUtils.fillSyncKerberosConfig(conf, hbaseConf.getHbaseConfig());
-                String keytab =
-                        HBaseConfigUtils.loadKeyFromConf(
-                                hbaseConf.getHbaseConfig(), HBaseConfigUtils.KEY_KEY_TAB);
-
+            if (HBaseConfigUtils.isEnableKerberos(conf)) {
+                String principal = conf.get(HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL);
+                String keytab = conf.get(HBaseConfigUtils.KEY_HBASE_CLIENT_KEYTAB_FILE);
+                String krb5Conf = conf.get(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF);
                 LOG.info("kerberos principal:{}，keytab:{}", principal, keytab);
-
-                conf.set(HBaseConfigUtils.KEY_HBASE_CLIENT_KEYTAB_FILE, keytab);
-                conf.set(HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL, principal);
-
+                System.setProperty(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF, krb5Conf);
                 UserGroupInformation userGroupInformation =
-                        KerberosUtil.loginAndReturnUgi(conf.get(KEY_PRINCIPAL), principal, keytab);
+                        KerberosUtil.loginAndReturnUgi(principal, keytab, krb5Conf);
                 Configuration finalConf = conf;
                 conn =
                         userGroupInformation.doAs(
@@ -139,47 +122,18 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                                         });
 
             } else {
-                conf = HBaseConfigUtils.getConfig(hbaseConf.getHbaseConfig());
-                conf.set(
-                        HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_QUORUM,
-                        (String)
-                                hbaseConf
-                                        .getHbaseConfig()
-                                        .get(HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_QUORUM));
-                conf.set(
-                        HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM,
-                        (String)
-                                hbaseConf
-                                        .getHbaseConfig()
-                                        .get(HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM));
                 conn = ConnectionFactory.createConnection(conf);
             }
 
-            table = conn.getTable(TableName.valueOf(hbaseConf.getTableName()));
+            table = conn.getTable(TableName.valueOf(tableName));
             resultScanner = table.getScanner(new Scan());
+            Map<Object, RowData> tmpCache = (Map<Object, RowData>) cacheRef;
             for (Result r : resultScanner) {
-                Map<String, Object> kv = new HashMap<>();
-                for (Cell cell : r.listCells()) {
-                    String family = Bytes.toString(CellUtil.cloneFamily(cell));
-                    String qualifier = Bytes.toString(CellUtil.cloneQualifier(cell));
-                    StringBuilder key = new StringBuilder();
-                    key.append(family).append(":").append(qualifier);
-                    Optional<String> typeOption =
-                            hbaseConf.getColumnMetaInfos().stream()
-                                    .filter(fieldConf -> key.toString().equals(fieldConf.getName()))
-                                    .map(FieldConf::getType)
-                                    .findAny();
-                    Object value =
-                            HBaseUtils.convertByte(
-                                    CellUtil.cloneValue(cell),
-                                    typeOption.orElseThrow(IllegalArgumentException::new));
-                    kv.put((key.toString()), value);
-                }
+                tmpCache.put(serde.getRowKey(r.getRow()), serde.convertToReusedRow(r));
                 loadDataCount++;
-                fillData(kv);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOG.error(e.getMessage(), e);
         } finally {
             LOG.info("load Data count: {}", loadDataCount);
             try {
@@ -198,5 +152,35 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                 LOG.error("", e);
             }
         }
+    }
+
+    @Override
+    protected void initCache() {
+        Map<Object, RowData> newCache = Maps.newConcurrentMap();
+        cacheRef.set(newCache);
+        loadData(newCache);
+    }
+
+    /** 定时加载数据库中数据 */
+    @Override
+    protected void reloadCache() {
+        // reload cacheRef and replace to old cacheRef
+        Map<Object, RowData> newCache = Maps.newConcurrentMap();
+        loadData(newCache);
+        cacheRef.set(newCache);
+        LOG.info(
+                "----- " + lookupConf.getTableName() + ": all cacheRef reload end:{}",
+                LocalDateTime.now());
+    }
+
+    /**
+     * The invoke entry point of lookup function.
+     *
+     * @param keys the lookup key. Currently only support single rowkey.
+     */
+    @Override
+    public void eval(Object... keys) {
+        Map<Object, RowData> cache = (Map<Object, RowData>) cacheRef.get();
+        collect(cache.get(keys[0]));
     }
 }
