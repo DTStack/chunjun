@@ -181,6 +181,10 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
     @Override
     public void eval(Object... keys) {
         Map<Object, RowData> cache = (Map<Object, RowData>) cacheRef.get();
-        collect(cache.get(keys[0]));
+        RowData rowData = cache.get(keys[0]);
+        if (rowData == null) {
+            return;
+        }
+        collect(rowData);
     }
 }
