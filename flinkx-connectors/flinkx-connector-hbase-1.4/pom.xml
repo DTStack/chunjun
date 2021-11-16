@@ -175,6 +175,16 @@
 							<configuration>
 								<outputDirectory>${project.basedir}/target/hbase-1.4</outputDirectory>
 								<createDependencyReducedPom>false</createDependencyReducedPom>
+								<relocations>
+									<relocation>
+										<pattern>org.jboss.netty</pattern>
+										<shadedPattern>com.dtstack.flinkx.connector.hbase14.org.jboss.netty</shadedPattern>
+									</relocation>
+									<relocation>
+										<pattern>org.apache.http</pattern>
+										<shadedPattern>com.dtstack.flinkx.connector.hbase14.org.apache.http</shadedPattern>
+									</relocation>
+								</relocations>
 								<artifactSet>
 									<excludes>
 										<exclude>org.slf4j:slf4j-api</exclude>
