@@ -127,6 +127,14 @@
 									<pattern>org.apache.hadoop.security.authentication.util</pattern>
 									<shadedPattern>shade.hbase.org.apache.hadoop.security.authentication.util</shadedPattern>
 								</relocation>
+								<relocation>
+									<pattern>org.jboss.netty</pattern>
+									<shadedPattern>com.dtstack.flinkx.connector.hbase14.org.jboss.netty</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.apache.http</pattern>
+									<shadedPattern>com.dtstack.flinkx.connector.hbase14.org.apache.http</shadedPattern>
+								</relocation>
 							</relocations>
 						</configuration>
 					</execution>
