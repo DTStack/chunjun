@@ -32,7 +32,6 @@
 	<artifactId>flinkx-connector-hbase-1.4</artifactId>
 
 	<properties>
-		<connector.dir>hbase14</connector.dir>
 		<license.version>4.1</license.version>
 	</properties>
 
@@ -54,25 +53,9 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-core</artifactId>
-			<version>1.12-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.hadoop</groupId>
-					<artifactId>hadoop-auth</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-table-common</artifactId>
-			<version>1.12.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-shaded-hadoop2</artifactId>
-			<version>2.7.5-1.8.1</version>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-auth</artifactId>
+			<version>2.7.5</version>
 		</dependency>
 	</dependencies>
 
@@ -133,85 +116,56 @@
 									</excludes>
 								</filter>
 							</filters>
+							<relocations>
+								<relocation>
+									<pattern>org.apache.hadoop.security.authentication.util</pattern>
+									<shadedPattern>shade.hbase.org.apache.hadoop.security.authentication.util</shadedPattern>
+								</relocation>
+							</relocations>
 						</configuration>
 					</execution>
 				</executions>
 				<configuration>
-					<outputDirectory>${project.basedir}/target/hbase-2.2</outputDirectory>
+					<outputFile>
+						${basedir}/target/hbase-1.4/original-${project.artifactId}-${project.version}.jar
+					</outputFile>
 				</configuration>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.flink</groupId>
-						<artifactId>flink-connector-hbase-2.2_2.12</artifactId>
+						<artifactId>flink-connector-hbase-1.4_2.12</artifactId>
 						<version>1.12.2</version>
 					</dependency>
 				</dependencies>
 			</plugin>
 
 			<plugin>
-				<groupId>org.twdata.maven</groupId>
-				<artifactId>mojo-executor-maven-plugin</artifactId>
-				<version>2.3.0</version>
+				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
 					<execution>
+						<id>copy-resources</id>
+						<!-- here the phase you need -->
 						<phase>package</phase>
 						<goals>
-							<goal>execute-mojo</goal>
+							<goal>run</goal>
 						</goals>
 						<configuration>
-							<plugin>
-								<groupId>org.apache.maven.plugins</groupId>
-								<artifactId>maven-shade-plugin</artifactId>
-								<version>3.1.0</version>
-								<dependencies>
-									<dependency>
-										<groupId>org.apache.flink</groupId>
-										<artifactId>flink-connector-hbase-1.4_2.12</artifactId>
-										<version>1.12.2</version>
-									</dependency>
-								</dependencies>
-							</plugin>
-							<goal>shade</goal>
-							<configuration>
-								<outputDirectory>${project.basedir}/target/hbase-1.4</outputDirectory>
-								<createDependencyReducedPom>false</createDependencyReducedPom>
-								<relocations>
-									<relocation>
-										<pattern>org.jboss.netty</pattern>
-										<shadedPattern>com.dtstack.flinkx.connector.hbase14.org.jboss.netty</shadedPattern>
-									</relocation>
-									<relocation>
-										<pattern>org.apache.http</pattern>
-										<shadedPattern>com.dtstack.flinkx.connector.hbase14.org.apache.http</shadedPattern>
-									</relocation>
-								</relocations>
-								<artifactSet>
-									<excludes>
-										<exclude>org.slf4j:slf4j-api</exclude>
-										<exclude>log4j:log4j</exclude>
-										<exclude>ch.qos.logback:*</exclude>
-									</excludes>
-								</artifactSet>
-								<filters>
-									<filter>
-										<artifact>*:*</artifact>
-										<excludes>
-											<exclude>META-INF/*.SF</exclude>
-											<exclude>META-INF/*.DSA</exclude>
-											<exclude>META-INF/*.RSA</exclude>
-										</excludes>
-									</filter>
-								</filters>
-							</configuration>
+							<tasks>
+								<copy todir="${basedir}/../../${dist.dir}/connector/hbase/"
+									  file="${basedir}/target/hbase-1.4/original-${project.artifactId}-${project.version}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/connector/hbase/original-${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/connector/hbase/${project.artifactId}-${git.branch}.jar"/>
+								<delete>
+									<!--suppress UnresolvedMavenProperty -->
+									<fileset dir="${basedir}/../../${dist.dir}/connector/hbase/"
+											 includes="${project.artifactId}-*.jar"
+											 excludes="${project.artifactId}-${git.branch}.jar"/>
+								</delete>
+							</tasks>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-			</plugin>
-
 		</plugins>
 	</build>
 </project>
