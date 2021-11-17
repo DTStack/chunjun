@@ -107,10 +107,6 @@
 			<version>3.0.0</version>
 		</dependency>
 		<dependency>
-			<artifactId>hadoop-yarn-api</artifactId>
-			<groupId>org.apache.hadoop</groupId>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.hbase</groupId>
 			<artifactId>hbase-zookeeper</artifactId>
 			<version>2.1.10</version>
