@@ -51,6 +51,7 @@ public class KuduSourceFactory extends SourceFactory {
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getReader().getParameter()), KuduSourceConf.class);
         sourceConf.setColumn(syncConf.getReader().getFieldList());
+        sourceConf.setKerberos(sourceConf.conventHadoopConfig());
         super.initFlinkxCommonConf(sourceConf);
     }
 
