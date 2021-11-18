@@ -48,7 +48,7 @@
         <!--NoSql-->
         <module>flinkx-connector-hbase-base</module>
         <module>flinkx-connector-hbase-1.4</module>
-        <module>flinkx-connector-phoenix5</module>
+<!--        <module>flinkx-connector-phoenix5</module>-->
 <!--		<module>flinkx-connector-elasticsearch5</module>-->
 <!--		<module>flinkx-connector-elasticsearch6</module>-->
 		<module>flinkx-connector-elasticsearch7</module>
