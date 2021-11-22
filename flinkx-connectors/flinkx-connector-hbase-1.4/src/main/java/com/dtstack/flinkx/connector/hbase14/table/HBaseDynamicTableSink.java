@@ -83,7 +83,7 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
         builder.setEncoding(conf.getEncoding());
         builder.setHbaseConfig(conf.getHbaseConfig());
         builder.setNullMode(conf.getNullMode());
-        builder.setTableName(conf.getTable());
+        builder.setTableName(conf.getTableName());
         builder.setRowkeyExpress(conf.getRowkeyExpress());
         builder.setVersionColumnIndex(conf.getVersionColumnIndex());
         builder.setVersionColumnValues(conf.getVersionColumnValue());
