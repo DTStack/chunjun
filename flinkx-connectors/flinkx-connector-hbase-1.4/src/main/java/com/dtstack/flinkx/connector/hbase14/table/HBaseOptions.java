@@ -27,7 +27,7 @@ import java.time.Duration;
 
 public class HBaseOptions extends BaseFileOptions {
     public static final ConfigOption<String> TABLE_NAME =
-            ConfigOptions.key("table")
+            ConfigOptions.key("table-name")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("The name of HBase table to connect.");
