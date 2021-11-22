@@ -32,6 +32,7 @@
 	<artifactId>flinkx-connector-hbase-1.4</artifactId>
 
 	<properties>
+		<connector.dir>hbase14</connector.dir>
 		<license.version>4.1</license.version>
 	</properties>
 
@@ -53,9 +54,14 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-auth</artifactId>
-			<version>2.7.5</version>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-table-common</artifactId>
+			<version>1.12.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-shaded-hadoop2</artifactId>
+			<version>2.7.5-1.8.1</version>
 		</dependency>
 	</dependencies>
 
@@ -166,6 +172,7 @@
 					</execution>
 				</executions>
 			</plugin>
+
 		</plugins>
 	</build>
 </project>

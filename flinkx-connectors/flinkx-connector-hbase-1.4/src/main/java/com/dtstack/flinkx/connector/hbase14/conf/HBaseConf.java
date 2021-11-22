@@ -94,8 +94,16 @@ public class HBaseConf extends FlinkxCommonConf {
         return table;
     }
 
-    public void setTable(String tableName) {
+    public void setTable(String table) {
         this.table = table;
+    }
+
+    public void setTableName(String tableName) {
+        this.table = tableName;
+    }
+
+    public String getTableName() {
+        return table;
     }
 
     public int getScanCacheSize() {
