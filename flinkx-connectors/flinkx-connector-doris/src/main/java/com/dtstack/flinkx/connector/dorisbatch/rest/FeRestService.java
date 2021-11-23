@@ -19,8 +19,8 @@
 package com.dtstack.flinkx.connector.dorisbatch.rest;
 
 import com.dtstack.flinkx.connector.dorisbatch.exception.DorisConnectFailedException;
-import com.dtstack.flinkx.connector.dorisbatch.options.DorisOptions;
-import com.dtstack.flinkx.connector.dorisbatch.options.LoadOptions;
+import com.dtstack.flinkx.connector.dorisbatch.options.DorisConf;
+import com.dtstack.flinkx.connector.dorisbatch.options.LoadConf;
 import com.dtstack.flinkx.connector.dorisbatch.rest.module.Backend;
 import com.dtstack.flinkx.connector.dorisbatch.rest.module.BackendRow;
 import com.dtstack.flinkx.connector.dorisbatch.rest.module.PartitionDefinition;
@@ -97,21 +97,21 @@ public class FeRestService implements Serializable {
      * @return Doris FE response in json string
      * @throws DorisConnectFailedException throw when cannot connect to Doris FE
      */
-    private static String send(DorisOptions options, HttpRequestBase request)
+    private static String send(DorisConf options, HttpRequestBase request)
             throws DorisConnectFailedException {
-        LoadOptions loadOptions = options.getLoadOptions();
+        LoadConf loadConf = options.getLoadConf();
         int connectTimeout =
-                loadOptions.getRequestConnectTimeoutMs() == null
+                loadConf.getRequestConnectTimeoutMs() == null
                         ? DORIS_REQUEST_CONNECT_TIMEOUT_MS_DEFAULT
-                        : loadOptions.getRequestConnectTimeoutMs();
+                        : loadConf.getRequestConnectTimeoutMs();
         int socketTimeout =
-                loadOptions.getRequestReadTimeoutMs() == null
+                loadConf.getRequestReadTimeoutMs() == null
                         ? DORIS_REQUEST_READ_TIMEOUT_MS_DEFAULT
-                        : loadOptions.getRequestReadTimeoutMs();
+                        : loadConf.getRequestReadTimeoutMs();
         int retries =
-                loadOptions.getRequestRetries() == null
+                loadConf.getRequestRetries() == null
                         ? DORIS_REQUEST_RETRIES_DEFAULT
-                        : loadOptions.getRequestRetries();
+                        : loadConf.getRequestRetries();
         LOG.trace(
                 "connect timeout set to '{}'. socket timeout set to '{}'. retries set to '{}'.",
                 connectTimeout,
@@ -283,7 +283,7 @@ public class FeRestService implements Serializable {
      * @throws IllegalArgumentException BE nodes is illegal
      */
     @VisibleForTesting
-    public static String randomBackend(DorisOptions options) throws IOException {
+    public static String randomBackend(DorisConf options) throws IOException {
         List<BackendRow> backends = getBackends(options);
         LOG.trace("Parse beNodes '{}'.", backends);
         if (backends == null || backends.isEmpty()) {
@@ -303,7 +303,7 @@ public class FeRestService implements Serializable {
      * @throws IllegalArgumentException BE nodes is illegal
      */
     @VisibleForTesting
-    static List<BackendRow> getBackends(DorisOptions options) throws IOException {
+    static List<BackendRow> getBackends(DorisConf options) throws IOException {
         List<String> feNodes = options.getFeNodes();
         String feNode = randomEndpoint(feNodes);
         String beUrl = "http://" + feNode + BACKENDS;
@@ -352,7 +352,7 @@ public class FeRestService implements Serializable {
      * @throws IllegalArgumentException throw when configuration is illegal
      */
     @VisibleForTesting
-    static String getUriStr(DorisOptions options) throws IllegalArgumentException {
+    static String getUriStr(DorisConf options) throws IllegalArgumentException {
         return "http://"
                 + randomEndpoint(options.getFeNodes())
                 + API_PREFIX
@@ -370,7 +370,7 @@ public class FeRestService implements Serializable {
      * @return Doris table schema
      * @throws RuntimeException throw when discover failed
      */
-    public static Schema getSchema(DorisOptions options) throws RuntimeException {
+    public static Schema getSchema(DorisConf options) throws RuntimeException {
         LOG.trace("Finding schema.");
         HttpGet httpGet = new HttpGet(getUriStr(options) + SCHEMA);
         String response = send(options, httpGet);
@@ -427,13 +427,11 @@ public class FeRestService implements Serializable {
      * @return an list of Doris RDD partitions
      * @throws RuntimeException throw when find partition failed
      */
-    public static List<PartitionDefinition> findPartitions(DorisOptions options)
+    public static List<PartitionDefinition> findPartitions(DorisConf options)
             throws RuntimeException {
-        LoadOptions loadOptions = options.getLoadOptions();
+        LoadConf loadConf = options.getLoadConf();
         String readFields =
-                StringUtils.isBlank(loadOptions.getReadFields())
-                        ? "*"
-                        : loadOptions.getReadFields();
+                StringUtils.isBlank(loadConf.getReadFields()) ? "*" : loadConf.getReadFields();
         String sql =
                 "select "
                         + readFields
@@ -442,8 +440,8 @@ public class FeRestService implements Serializable {
                         + "`.`"
                         + options.getDatabase()
                         + "`";
-        if (!StringUtils.isEmpty(loadOptions.getFilterQuery())) {
-            sql += " where " + loadOptions.getFilterQuery();
+        if (!StringUtils.isEmpty(loadConf.getFilterQuery())) {
+            sql += " where " + loadConf.getFilterQuery();
         }
         LOG.debug("Query SQL Sending to Doris FE is: '{}'.", sql);
 
@@ -565,14 +563,14 @@ public class FeRestService implements Serializable {
     /**
      * tablet count limit for one Doris RDD partition
      *
-     * @param loadOptions configuration of request
+     * @param loadConf configuration of request
      * @return tablet count limit
      */
     @VisibleForTesting
-    static int tabletCountLimitForOnePartition(LoadOptions loadOptions) {
+    static int tabletCountLimitForOnePartition(LoadConf loadConf) {
         int tabletsSize = DORIS_TABLET_SIZE_DEFAULT;
-        if (loadOptions.getRequestTabletSize() != null) {
-            tabletsSize = loadOptions.getRequestTabletSize();
+        if (loadConf.getRequestTabletSize() != null) {
+            tabletsSize = loadConf.getRequestTabletSize();
         }
         if (tabletsSize < DORIS_TABLET_SIZE_MIN) {
             LOG.warn(
@@ -599,13 +597,13 @@ public class FeRestService implements Serializable {
      */
     @VisibleForTesting
     static List<PartitionDefinition> tabletsMapToPartition(
-            DorisOptions options,
+            DorisConf options,
             Map<String, List<Long>> be2Tablets,
             String opaquedQueryPlan,
             String database,
             String table)
             throws IllegalArgumentException {
-        int tabletsSize = tabletCountLimitForOnePartition(options.getLoadOptions());
+        int tabletsSize = tabletCountLimitForOnePartition(options.getLoadConf());
         List<PartitionDefinition> partitions = new ArrayList<>();
         for (Map.Entry<String, List<Long>> beInfo : be2Tablets.entrySet()) {
             LOG.debug("Generate partition with beInfo: '{}'.", beInfo);

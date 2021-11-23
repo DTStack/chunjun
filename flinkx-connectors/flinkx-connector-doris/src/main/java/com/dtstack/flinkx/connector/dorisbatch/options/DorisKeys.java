@@ -78,6 +78,8 @@ public final class DorisKeys {
 
     public static final Integer DORIS_REQUEST_RETRIES_DEFAULT = 3;
 
+    public static final Integer DORIS_MAX_RETRIES_DEFAULT = 3;
+
     public static final String DORIS_WRITE_MODE_DEFAULT = "APPEND";
 
     public static final Integer DORIS_REQUEST_CONNECT_TIMEOUT_MS_DEFAULT = 30 * 1000;

@@ -31,7 +31,7 @@ import java.util.Properties;
  * @author tiezhu@dtstack
  * @date 2021/9/16 星期四
  */
-public class DorisOptions extends FlinkxCommonConf {
+public class DorisConf extends FlinkxCommonConf {
 
     private String fieldDelimiter;
 
@@ -49,9 +49,10 @@ public class DorisOptions extends FlinkxCommonConf {
 
     private List<String> feNodes;
 
-    private Integer maxRetries;
+    /** * default value is 3 */
+    private Integer maxRetries = 3;
 
-    private LoadOptions loadOptions;
+    private LoadConf loadConf;
 
     private Properties loadProperties;
 
@@ -127,12 +128,12 @@ public class DorisOptions extends FlinkxCommonConf {
         this.maxRetries = maxRetries;
     }
 
-    public LoadOptions getLoadOptions() {
-        return loadOptions;
+    public LoadConf getLoadConf() {
+        return loadConf;
     }
 
-    public void setLoadOptions(LoadOptions loadOptions) {
-        this.loadOptions = loadOptions;
+    public void setLoadConf(LoadConf loadConf) {
+        this.loadConf = loadConf;
     }
 
     public Properties getLoadProperties() {

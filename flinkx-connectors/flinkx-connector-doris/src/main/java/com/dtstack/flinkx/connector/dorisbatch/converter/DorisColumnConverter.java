@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.dorisbatch.converter;
 
-import com.dtstack.flinkx.connector.dorisbatch.options.DorisOptions;
+import com.dtstack.flinkx.connector.dorisbatch.options.DorisConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
@@ -34,18 +34,18 @@ import java.util.StringJoiner;
  * @author shitou
  * @date 2021/11/10
  */
-public class DorisbatchColumnConverter
+public class DorisColumnConverter
         extends AbstractRowConverter<RowData, RowData, StringJoiner, String> {
 
     private List<String> fullColumn;
 
     private List<String> columnNames;
 
-    private final DorisOptions options;
+    private final DorisConf options;
 
     private static final String NULL_VALUE = "\\N";
 
-    public DorisbatchColumnConverter(DorisOptions options) {
+    public DorisColumnConverter(DorisConf options) {
         super(options.getColumn().size());
         this.options = options;
         for (int i = 0; i < options.getColumn().size(); i++) {
@@ -55,7 +55,7 @@ public class DorisbatchColumnConverter
     }
 
     @Override
-    public RowData toInternal(RowData input) throws Exception {
+    public RowData toInternal(RowData input) {
         return null;
     }
 

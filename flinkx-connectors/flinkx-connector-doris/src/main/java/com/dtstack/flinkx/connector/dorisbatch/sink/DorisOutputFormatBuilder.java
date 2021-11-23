@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.dorisbatch.sink;
 
-import com.dtstack.flinkx.connector.dorisbatch.options.DorisOptions;
+import com.dtstack.flinkx.connector.dorisbatch.options.DorisConf;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
 /**
@@ -27,15 +27,15 @@ import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
  * @author shitou
  * @date 2021/11/8
  */
-public class DorisbatchOutputFormatBuilder extends BaseRichOutputFormatBuilder {
+public class DorisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
-    private final DorisbatchOutputFormat format;
+    private final DorisOutputFormat format;
 
-    public DorisbatchOutputFormatBuilder() {
-        super.format = format = new DorisbatchOutputFormat();
+    public DorisOutputFormatBuilder() {
+        super.format = format = new DorisOutputFormat();
     }
 
-    public void setDorisOptions(DorisOptions options) {
+    public void setDorisOptions(DorisConf options) {
         format.setOptions(options);
         format.setConfig(options);
     }

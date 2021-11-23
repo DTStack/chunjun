@@ -20,11 +20,11 @@ package com.dtstack.flinkx.connector.dorisbatch.sink;
 
 import com.dtstack.flinkx.conf.OperatorConf;
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.dorisbatch.converter.DorisbatchColumnConverter;
-import com.dtstack.flinkx.connector.dorisbatch.options.DorisOptions;
-import com.dtstack.flinkx.connector.dorisbatch.options.DorisOptionsBuilder;
-import com.dtstack.flinkx.connector.dorisbatch.options.LoadOptions;
-import com.dtstack.flinkx.connector.dorisbatch.options.LoadOptionsBuilder;
+import com.dtstack.flinkx.connector.dorisbatch.converter.DorisColumnConverter;
+import com.dtstack.flinkx.connector.dorisbatch.options.DorisConf;
+import com.dtstack.flinkx.connector.dorisbatch.options.DorisConfBuilder;
+import com.dtstack.flinkx.connector.dorisbatch.options.LoadConf;
+import com.dtstack.flinkx.connector.dorisbatch.options.LoadConfBuilder;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 
@@ -74,21 +74,21 @@ import static com.dtstack.flinkx.connector.dorisbatch.options.DorisKeys.WRITE_MO
  * @author shitou
  * @date 2021/11/8
  */
-public class DorisbatchSinkFactory extends SinkFactory {
+public class DorisSinkFactory extends SinkFactory {
 
-    private final DorisOptions options;
+    private final DorisConf options;
 
-    public DorisbatchSinkFactory(SyncConf syncConf) {
+    public DorisSinkFactory(SyncConf syncConf) {
         super(syncConf);
 
         final OperatorConf parameter = syncConf.getWriter();
 
-        DorisOptionsBuilder dorisOptionsBuilder = new DorisOptionsBuilder();
-        LoadOptionsBuilder loadOptionsBuilder = new LoadOptionsBuilder();
+        DorisConfBuilder dorisConfBuilder = new DorisConfBuilder();
+        LoadConfBuilder loadConfBuilder = new LoadConfBuilder();
 
         Properties properties = parameter.getProperties(LOAD_OPTIONS_KEY, new Properties());
-        LoadOptions loadOptions =
-                loadOptionsBuilder
+        LoadConf loadConf =
+                loadConfBuilder
                         .setRequestTabletSize(
                                 (int)
                                         properties.getOrDefault(
@@ -133,7 +133,7 @@ public class DorisbatchSinkFactory extends SinkFactory {
                         .build();
 
         options =
-                dorisOptionsBuilder
+                dorisConfBuilder
                         .setDatabase(parameter.getStringVal(DATABASE_KEY))
                         .setTable(parameter.getStringVal(TABLE_KEY))
                         .setFeNodes((List<String>) parameter.getVal(FE_NODES_KEY))
@@ -141,7 +141,7 @@ public class DorisbatchSinkFactory extends SinkFactory {
                                 parameter.getStringVal(FIELD_DELIMITER_KEY, FIELD_DELIMITER))
                         .setLineDelimiter(
                                 parameter.getStringVal(LINE_DELIMITER_KEY, LINE_DELIMITER))
-                        .setLoadOptions(loadOptions)
+                        .setLoadOptions(loadConf)
                         .setLoadProperties(
                                 parameter.getProperties(LOAD_PROPERTIES_KEY, new Properties()))
                         .setMaxRetries(parameter.getIntVal(MAX_RETRIES_KEY, 3))
@@ -157,9 +157,9 @@ public class DorisbatchSinkFactory extends SinkFactory {
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
-        DorisbatchOutputFormatBuilder builder = new DorisbatchOutputFormatBuilder();
+        DorisOutputFormatBuilder builder = new DorisOutputFormatBuilder();
         builder.setDorisOptions(options);
-        builder.setRowConverter(new DorisbatchColumnConverter(options));
+        builder.setRowConverter(new DorisColumnConverter(options));
         return createOutput(dataSet, builder.finish());
     }
 

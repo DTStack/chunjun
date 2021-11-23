@@ -19,8 +19,7 @@
 package com.dtstack.flinkx.connector.dorisbatch.sink;
 
 import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.dorisbatch.converter.DorisbatchColumnConverter;
-import com.dtstack.flinkx.connector.dorisbatch.options.DorisOptions;
+import com.dtstack.flinkx.connector.dorisbatch.options.DorisConf;
 import com.dtstack.flinkx.connector.dorisbatch.rest.DorisStreamLoad;
 import com.dtstack.flinkx.connector.dorisbatch.rest.FeRestService;
 import com.dtstack.flinkx.connector.dorisbatch.rest.module.Field;
@@ -38,14 +37,16 @@ import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * use DorisStreamLoad to write data into doris
+ *
  * @author tiezhu@dtstack
  * @date 2021/9/16 星期四
  */
-public class DorisbatchOutputFormat extends BaseRichOutputFormat {
+public class DorisOutputFormat extends BaseRichOutputFormat {
 
     private List<String> columnNames;
 
-    private DorisOptions options;
+    private DorisConf options;
 
     private String fieldDelimiter;
 
@@ -60,7 +61,7 @@ public class DorisbatchOutputFormat extends BaseRichOutputFormat {
         }
     }
 
-    public void setOptions(DorisOptions options) {
+    public void setOptions(DorisConf options) {
         this.options = options;
     }
 
@@ -116,8 +117,8 @@ public class DorisbatchOutputFormat extends BaseRichOutputFormat {
             fullColumns.add(field.getName());
         }
         setColumnName(options.getColumn());
-        ((DorisbatchColumnConverter) rowConverter).setFullColumn(fullColumns);
-        ((DorisbatchColumnConverter) rowConverter).setColumnNames(columnNames);
+        // ((DorisColumnConverter) rowConverter).setFullColumn(fullColumns);
+        // ((DorisColumnConverter) rowConverter).setColumnNames(columnNames);
     }
 
     @Override

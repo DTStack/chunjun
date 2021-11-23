@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.dorisbatch.rest.module;
 
-import com.dtstack.flinkx.connector.dorisbatch.options.DorisOptions;
+import com.dtstack.flinkx.connector.dorisbatch.options.DorisConf;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -43,7 +43,7 @@ public class PartitionDefinition implements Serializable, Comparable<PartitionDe
     public PartitionDefinition(
             String database,
             String table,
-            DorisOptions settings,
+            DorisConf settings,
             String beAddress,
             Set<Long> tabletIds,
             String queryPlan)

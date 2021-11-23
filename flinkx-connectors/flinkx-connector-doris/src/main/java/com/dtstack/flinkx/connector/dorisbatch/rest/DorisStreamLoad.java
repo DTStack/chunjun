@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.dorisbatch.rest;
 
-import com.dtstack.flinkx.connector.dorisbatch.options.DorisOptions;
+import com.dtstack.flinkx.connector.dorisbatch.options.DorisConf;
 import com.dtstack.flinkx.connector.dorisbatch.rest.module.RespContent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,7 +70,7 @@ public class DorisStreamLoad implements Serializable {
     private final String authEncoding;
     private final Properties streamLoadProp;
 
-    public DorisStreamLoad(String hostPort, DorisOptions options) {
+    public DorisStreamLoad(String hostPort, DorisConf options) {
         this.hostPort = hostPort;
         this.db = options.getDatabase();
         this.tbl = options.getTable();
