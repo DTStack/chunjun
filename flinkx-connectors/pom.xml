@@ -38,7 +38,7 @@
 		<module>flinkx-connector-dm</module>
 		<module>flinkx-connector-clickhouse</module>
 		<module>flinkx-connector-saphana</module>
-		<module>flinkx-connector-dorisbatch</module>
+		<module>flinkx-connector-doris</module>
 
 		<!--File-->
 		<module>flinkx-connector-file</module>
