@@ -26,6 +26,7 @@ import com.dtstack.flinkx.util.ColumnTypeUtil;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.GsonUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flink.types.Row;
 import org.apache.hadoop.fs.FileSystem;
@@ -246,7 +247,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                     group.add(colName,val);
                 }
                 break;
-            case "boolean" : group.add(colName,Boolean.parseBoolean(val));break;
+            case "boolean" : group.add(colName,StringUtil.parseBoolean(val));break;
             case "timestamp" :
                 Timestamp ts = DateUtil.columnToTimestamp(valObj,null);
                 byte[] dst = HdfsUtil.longToByteArray(ts.getTime());
