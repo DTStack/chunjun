@@ -339,4 +339,19 @@ public class StringUtil {
         }
         return stringBuffer.toString();
     }
+
+    public static Boolean parseBoolean(String str) {
+        if (null == str || "null".equalsIgnoreCase(str)) {
+            return Boolean.FALSE;
+        }
+
+        if ("1".equals(str)) {
+            return Boolean.TRUE;
+        } else if ("0".equals(str)) {
+            return Boolean.FALSE;
+        } else {
+            return Boolean.parseBoolean(str);
+        }
+    }
+
 }
