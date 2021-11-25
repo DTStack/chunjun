@@ -47,6 +47,7 @@ public class ConstantValue {
 
     public static final String KEY_HTTP = "http";
 
+    public static final String PROTOCOL_S3A = "s3a://";
     public static final String PROTOCOL_HTTP = "http://";
     public static final String PROTOCOL_HTTPS = "https://";
     public static final String PROTOCOL_HDFS = "hdfs://";
