@@ -30,19 +30,16 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 
+import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import oracle.sql.TIMESTAMP;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalTime;
@@ -78,26 +75,13 @@ public class OracleColumnConverter extends JdbcColumnConverter {
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
             case VARCHAR:
-                return val -> {
-                    if (type instanceof ClobType) {
+                if (type instanceof ClobType) {
+                    return val -> {
                         oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
-                        try (BufferedReader bf = new BufferedReader(clob.getCharacterStream())) {
-                            StringBuilder stringBuilder = new StringBuilder();
-                            String next, line = bf.readLine();
-                            for (boolean last = (line == null); !last; line = next) {
-                                last = ((next = bf.readLine()) == null);
-                                if (last) {
-                                    stringBuilder.append(line);
-                                } else {
-                                    stringBuilder.append(line).append("\n");
-                                }
-                            }
-                            return new StringColumn(stringBuilder.toString());
-                        }
-                    } else {
-                        return new StringColumn((String) val);
-                    }
-                };
+                        return StringData.fromString(ConvertUtil.convertClob(clob));
+                    };
+                }
+                return val -> new StringColumn((String) val);
             case DATE:
                 return val -> new TimestampColumn((Timestamp) val);
             case TIME_WITHOUT_TIME_ZONE:
@@ -113,7 +97,7 @@ public class OracleColumnConverter extends JdbcColumnConverter {
                 return val -> {
                     if (type instanceof BlobType) {
                         oracle.sql.BLOB blob = (oracle.sql.BLOB) val;
-                        byte[] bytes = toByteArray(blob);
+                        byte[] bytes = ConvertUtil.toByteArray(blob);
                         return new BytesColumn(bytes);
                     } else {
                         return new BytesColumn((byte[]) val);
@@ -195,27 +179,6 @@ public class OracleColumnConverter extends JdbcColumnConverter {
                 };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
-        }
-    }
-
-    private byte[] toByteArray(oracle.sql.BLOB fromBlob) throws SQLException, IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        InputStream is = fromBlob.getBinaryStream();
-        try {
-            byte[] buf = new byte[4000];
-            for (; ; ) {
-                int dataSize = is.read(buf);
-                if (dataSize == -1) {
-                    break;
-                }
-                baos.write(buf, 0, dataSize);
-            }
-            return baos.toByteArray();
-        } finally {
-            baos.close();
-            if (is != null) {
-                is.close();
-            }
         }
     }
 }

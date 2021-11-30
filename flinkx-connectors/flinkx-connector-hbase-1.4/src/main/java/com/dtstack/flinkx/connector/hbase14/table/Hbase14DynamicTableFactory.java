@@ -119,7 +119,9 @@ public class Hbase14DynamicTableFactory
         LookupConf lookupConf =
                 getLookupConf(config, context.getObjectIdentifier().getObjectName());
         HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(physicalSchema);
-        return new HBaseDynamicTableSource(conf, physicalSchema, lookupConf, hbaseSchema);
+        String nullStringLiteral = helper.getOptions().get(NULL_STRING_LITERAL);
+        return new HBaseDynamicTableSource(
+                conf, physicalSchema, lookupConf, hbaseSchema, nullStringLiteral);
     }
 
     private static void validatePrimaryKey(TableSchema schema) {

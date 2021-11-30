@@ -24,6 +24,7 @@ import com.dtstack.flinkx.connector.hbase14.conf.HBaseConf;
 import com.dtstack.flinkx.connector.hbase14.source.HBaseInputFormatBuilder;
 import com.dtstack.flinkx.connector.hbase14.table.lookup.HBaseAllTableFunction;
 import com.dtstack.flinkx.connector.hbase14.table.lookup.HBaseLruTableFunction;
+import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
@@ -45,6 +46,8 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
+import org.apache.hadoop.conf.Configuration;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,20 +59,24 @@ import java.util.List;
 public class HBaseDynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
-    private final HBaseConf conf;
+    private final HBaseConf hBaseConf;
+    private Configuration conf;
     private TableSchema tableSchema;
     private final LookupConf lookupConf;
     private final HBaseTableSchema hbaseSchema;
+    protected final String nullStringLiteral;
 
     public HBaseDynamicTableSource(
             HBaseConf conf,
             TableSchema tableSchema,
             LookupConf lookupConf,
-            HBaseTableSchema hbaseSchema) {
-        this.conf = conf;
+            HBaseTableSchema hbaseSchema,
+            String nullStringLiteral) {
+        this.hBaseConf = conf;
         this.tableSchema = tableSchema;
         this.lookupConf = lookupConf;
         this.hbaseSchema = hbaseSchema;
+        this.nullStringLiteral = nullStringLiteral;
     }
 
     @Override
@@ -85,24 +92,25 @@ public class HBaseDynamicTableSource
             field.setIndex(i);
             columnList.add(field);
         }
-        conf.setColumn(columnList);
+        hBaseConf.setColumn(columnList);
         HBaseInputFormatBuilder builder = new HBaseInputFormatBuilder();
-        builder.setColumnMetaInfos(conf.getColumnMetaInfos());
-        builder.setConfig(conf);
-        builder.setEncoding(conf.getEncoding());
-        builder.setHbaseConfig(conf.getHbaseConfig());
-        builder.setTableName(conf.getTableName());
+        builder.setColumnMetaInfos(hBaseConf.getColumnMetaInfos());
+        builder.setConfig(hBaseConf);
+        builder.setEncoding(hBaseConf.getEncoding());
+        builder.setHbaseConfig(hBaseConf.getHbaseConfig());
+        builder.setTableName(hBaseConf.getTableName());
         AbstractRowConverter rowConverter = new HBaseConverter(rowType);
         builder.setRowConverter(rowConverter);
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
                 true,
-                conf.getParallelism());
+                hBaseConf.getParallelism());
     }
 
     @Override
     public DynamicTableSource copy() {
-        return new HBaseDynamicTableSource(this.conf, tableSchema, lookupConf, hbaseSchema);
+        return new HBaseDynamicTableSource(
+                this.hBaseConf, tableSchema, lookupConf, hbaseSchema, nullStringLiteral);
     }
 
     @Override
@@ -124,17 +132,37 @@ public class HBaseDynamicTableSource
                     innerKeyArr.length == 1, "redis only support non-nested look up keys");
             keyNames[i] = tableSchema.getFieldNames()[innerKeyArr[0]];
         }
-        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
-
+        setConf();
+        hbaseSchema.setTableName(hBaseConf.getTableName());
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return ParallelAsyncTableFunctionProvider.of(
-                    new HBaseLruTableFunction(conf, lookupConf, hbaseSchema),
+                    new HBaseLruTableFunction(
+                            conf, lookupConf, hbaseSchema, hBaseConf.getNullMode()),
                     lookupConf.getParallelism());
         }
         return ParallelTableFunctionProvider.of(
-                new HBaseAllTableFunction(
-                        conf, lookupConf, tableSchema.getFieldNames(), keyNames, hbaseSchema),
+                new HBaseAllTableFunction(conf, lookupConf, hbaseSchema, nullStringLiteral),
                 lookupConf.getParallelism());
+    }
+
+    private void setConf() {
+        if (HBaseConfigUtils.isEnableKerberos(hBaseConf.getHbaseConfig())) {
+            conf = HBaseConfigUtils.getHadoopConfiguration(hBaseConf.getHbaseConfig());
+            String principal = HBaseConfigUtils.getPrincipal(hBaseConf.getHbaseConfig());
+            HBaseConfigUtils.fillSyncKerberosConfig(conf, hBaseConf.getHbaseConfig());
+            String keytab =
+                    HBaseConfigUtils.loadKeyFromConf(
+                            hBaseConf.getHbaseConfig(), HBaseConfigUtils.KEY_KEY_TAB);
+            String krb5Conf =
+                    HBaseConfigUtils.loadKeyFromConf(
+                            hBaseConf.getHbaseConfig(),
+                            HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF);
+            conf.set(HBaseConfigUtils.KEY_HBASE_CLIENT_KEYTAB_FILE, keytab);
+            conf.set(HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL, principal);
+            conf.set(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF, krb5Conf);
+        } else {
+            conf = HBaseConfigUtils.getConfig(hBaseConf.getHbaseConfig());
+        }
     }
 
     @Override
