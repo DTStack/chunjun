@@ -17,6 +17,9 @@
  */
 package com.dtstack.flinkx;
 
+import com.dtstack.flinkx.cdc.RestorationFlatMap;
+import com.dtstack.flinkx.cdc.store.MySQLFetcher;
+import com.dtstack.flinkx.cdc.store.MySQLStore;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -164,6 +167,12 @@ public class Main {
 
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
         DataStream<RowData> dataStreamSource = sourceFactory.createSource();
+
+        // TODO skip ddl
+        if (!config.getCdcConf().isSkip()) {
+            // TODO by tiezhu: 做成配置化，插件化
+            dataStreamSource.flatMap(new RestorationFlatMap(new MySQLFetcher(), new MySQLStore()));
+        }
 
         SpeedConf speed = config.getSpeed();
         if (speed.getReaderChannel() > 0) {

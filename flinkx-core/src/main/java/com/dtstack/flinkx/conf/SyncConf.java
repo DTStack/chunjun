@@ -17,12 +17,13 @@
  */
 package com.dtstack.flinkx.conf;
 
+import com.dtstack.flinkx.cdc.CdcRestoreConf;
 import com.dtstack.flinkx.util.GsonUtil;
-
-import org.apache.flink.util.Preconditions;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import org.apache.flink.util.Preconditions;
 
 import java.io.Serializable;
 import java.util.List;
@@ -227,6 +228,10 @@ public class SyncConf implements Serializable {
 
     public void setSyncJarList(List<String> syncJarList) {
         this.syncJarList = syncJarList;
+    }
+
+    public CdcRestoreConf getCdcConf() {
+        return job.getSetting().getCdcRestoreConf();
     }
 
     @Override
