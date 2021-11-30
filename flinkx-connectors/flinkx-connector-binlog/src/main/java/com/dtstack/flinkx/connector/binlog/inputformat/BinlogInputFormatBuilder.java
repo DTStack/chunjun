@@ -97,7 +97,8 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
 
         // 校验binlog cat
         if (StringUtils.isNotEmpty(binlogConf.getCat())) {
-            HashSet<String> set = Sets.newHashSet("INSERT", "UPDATE", "DELETE");
+            HashSet<String> set =
+                    Sets.newHashSet("INSERT", "UPDATE", "DELETE", "ALTER", "TRUNCATE", "CREATE");
             List<String> cats = Lists.newArrayList(binlogConf.getCat().toUpperCase().split(","));
             cats.removeIf(s -> set.contains(s.toUpperCase(Locale.ENGLISH)));
             if (CollectionUtils.isNotEmpty(cats)) {

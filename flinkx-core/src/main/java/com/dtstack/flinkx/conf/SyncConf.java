@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.conf;
 
+import com.dtstack.flinkx.cdc.CdcRestoreConf;
 import com.dtstack.flinkx.util.GsonUtil;
 
 import org.apache.flink.util.Preconditions;
@@ -216,6 +217,10 @@ public class SyncConf implements Serializable {
 
     public MetricPluginConf getMetricPluginConf() {
         return job.getSetting().getMetricPluginConf();
+    }
+
+    public CdcRestoreConf getCdcConf() {
+        return job.getSetting().getCdcRestoreConf();
     }
 
     @Override

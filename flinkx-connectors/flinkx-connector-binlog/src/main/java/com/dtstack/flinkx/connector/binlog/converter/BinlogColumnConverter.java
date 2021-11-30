@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.connector.binlog.converter;
 
+import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
@@ -69,6 +70,13 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
         String table = binlogEventRow.getTable();
         String key = schema + ConstantValue.POINT_SYMBOL + table;
         List<IDeserializationConverter> converters = super.cdcConverterCacheMap.get(key);
+
+        if (rowChange.getIsDdl()) {
+            // 处理 ddl rowChange
+            DdlRowData ddlRowData = swapRowChangeToDdlRowData(rowChange);
+            result.add(ddlRowData);
+        }
+
         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
             if (converters == null) {
                 List<CanalEntry.Column> list = rowData.getBeforeColumnsList();
@@ -252,5 +260,19 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             map.put(column.getName(), column.getValue());
         }
         return map;
+    }
+
+    /**
+     * 将 row change 转化为 ddlRowData
+     *
+     * @param rowChange row change
+     * @return ddl row-data
+     */
+    private DdlRowData swapRowChangeToDdlRowData(CanalEntry.RowChange rowChange) {
+        DdlRowData ddlRowData = new DdlRowData();
+        ddlRowData.setSql(rowChange.getSql());
+        ddlRowData.setType(rowChange.getEventType().name());
+        ddlRowData.setTableIdentifier(rowChange.getDdlSchemaName());
+        return ddlRowData;
     }
 }
