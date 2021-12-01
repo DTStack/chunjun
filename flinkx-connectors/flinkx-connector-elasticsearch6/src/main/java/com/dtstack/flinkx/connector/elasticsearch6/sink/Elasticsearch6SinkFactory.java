@@ -19,9 +19,9 @@
 package com.dtstack.flinkx.connector.elasticsearch6.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
-import com.dtstack.flinkx.connector.elasticsearch6.converter.Elasticsearch6ColumnConverter;
-import com.dtstack.flinkx.connector.elasticsearch6.converter.Elasticsearch6RawTypeConverter;
+import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchColumnConverter;
+import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchRawTypeMapper;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6Conf;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.JsonUtil;
@@ -58,12 +58,12 @@ public class Elasticsearch6SinkFactory extends SinkFactory {
         builder.setEsConf(elasticsearchConf);
         final RowType rowType =
                 TableUtil.createRowType(elasticsearchConf.getColumn(), getRawTypeConverter());
-        builder.setRowConverter(new Elasticsearch6ColumnConverter(rowType));
+        builder.setRowConverter(new ElasticsearchColumnConverter(rowType));
         return createOutput(dataSet, builder.finish());
     }
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return Elasticsearch6RawTypeConverter::apply;
+        return ElasticsearchRawTypeMapper::apply;
     }
 }

@@ -18,9 +18,10 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.sink;
 
-import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
-import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6RequestHelper;
-import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6Util;
+import com.dtstack.flinkx.connector.elasticsearch.KeyExtractor;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6ClientFactory;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6RequestFactory;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 
@@ -131,7 +132,7 @@ public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        rhlClient = Elasticsearch6Util.createClient(elasticsearchConf);
+        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConf);
     }
 
     @Override
@@ -156,17 +157,17 @@ public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
 
         if (elasticsearchConf.getIds() == null || elasticsearchConf.getIds().size() == 0) {
             IndexRequest indexRequest =
-                    Elasticsearch6RequestHelper.createIndexRequest(
+                    Elasticsearch6RequestFactory.createIndexRequest(
                             elasticsearchConf.getIndex(), elasticsearchConf.getType(), message);
             return indexRequest;
         } else {
             final String key =
-                    Elasticsearch6Util.generateDocId(
+                    KeyExtractor.getDocId(
                             elasticsearchConf.getIds(),
                             message,
                             elasticsearchConf.getKeyDelimiter());
             UpdateRequest updateRequest =
-                    Elasticsearch6RequestHelper.createUpdateRequest(
+                    Elasticsearch6RequestFactory.createUpdateRequest(
                             elasticsearchConf.getIndex(),
                             elasticsearchConf.getType(),
                             key,
@@ -181,10 +182,10 @@ public class Elasticsearch6OutputFormat extends BaseRichOutputFormat {
                         rowConverter.toExternal(rowData, new HashMap<String, Object>());
 
         final String key =
-                Elasticsearch6Util.generateDocId(
+                KeyExtractor.getDocId(
                         elasticsearchConf.getIds(), message, elasticsearchConf.getKeyDelimiter());
         DeleteRequest deleteRequest =
-                Elasticsearch6RequestHelper.createDeleteRequest(
+                Elasticsearch6RequestFactory.createDeleteRequest(
                         elasticsearchConf.getIndex(), elasticsearchConf.getType(), key);
         return deleteRequest;
     }

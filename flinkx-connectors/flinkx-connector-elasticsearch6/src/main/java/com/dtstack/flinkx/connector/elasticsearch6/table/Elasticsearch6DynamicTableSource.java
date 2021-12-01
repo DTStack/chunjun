@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.elasticsearch7.table;
+package com.dtstack.flinkx.connector.elasticsearch6.table;
 
 import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchRowConverter;
-import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
-import com.dtstack.flinkx.connector.elasticsearch7.source.ElasticsearchInputFormatBuilder;
-import com.dtstack.flinkx.connector.elasticsearch7.table.lookup.ElasticsearchAllTableFunction;
-import com.dtstack.flinkx.connector.elasticsearch7.table.lookup.ElasticsearchLruTableFunction;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.flinkx.connector.elasticsearch6.source.Elasticsearch6InputFormatBuilder;
+import com.dtstack.flinkx.connector.elasticsearch6.table.lookup.Elasticsearch6AllTableFunction;
+import com.dtstack.flinkx.connector.elasticsearch6.table.lookup.Elasticsearch6LruTableFunction;
 import com.dtstack.flinkx.enums.CacheType;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
 import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
@@ -47,18 +47,18 @@ import org.apache.flink.util.Preconditions;
  * @description:
  * @program: flinkx-all
  * @author: lany
- * @create: 2021/06/27 17:24
+ * @create: 2021/06/22 11:08
  */
-public class ElasticsearchDynamicTableSource
+public class Elasticsearch6DynamicTableSource
         implements ScanTableSource, LookupTableSource, SupportsProjectionPushDown {
 
-    protected final ElasticsearchConf elasticsearchConf;
-    protected final LookupConf lookupConf;
     private TableSchema physicalSchema;
+    protected final Elasticsearch6Conf elasticsearchConf;
+    protected final LookupConf lookupConf;
 
-    public ElasticsearchDynamicTableSource(
+    public Elasticsearch6DynamicTableSource(
             TableSchema physicalSchema,
-            ElasticsearchConf elasticsearchConf,
+            Elasticsearch6Conf elasticsearchConf,
             LookupConf lookupConf) {
         this.physicalSchema = physicalSchema;
         this.elasticsearchConf = elasticsearchConf;
@@ -67,12 +67,12 @@ public class ElasticsearchDynamicTableSource
 
     @Override
     public DynamicTableSource copy() {
-        return new ElasticsearchDynamicTableSource(physicalSchema, elasticsearchConf, lookupConf);
+        return new Elasticsearch6DynamicTableSource(physicalSchema, elasticsearchConf, lookupConf);
     }
 
     @Override
     public String asSummaryString() {
-        return "Elasticsearch7 source.";
+        return "Elasticsearch6 source.";
     }
 
     @Override
@@ -85,14 +85,16 @@ public class ElasticsearchDynamicTableSource
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
         TypeInformation<RowData> typeInformation = InternalTypeInfo.of(rowType);
 
-        ElasticsearchInputFormatBuilder builder = new ElasticsearchInputFormatBuilder();
+        Elasticsearch6InputFormatBuilder builder = new Elasticsearch6InputFormatBuilder();
         builder.setRowConverter(new ElasticsearchRowConverter(rowType));
         String[] fieldNames = physicalSchema.getFieldNames();
         elasticsearchConf.setFieldNames(fieldNames);
         builder.setEsConf(elasticsearchConf);
 
         return ParallelSourceFunctionProvider.of(
-                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation), false, 1);
+                new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
+                false,
+                elasticsearchConf.getParallelism());
     }
 
     @Override
@@ -108,7 +110,7 @@ public class ElasticsearchDynamicTableSource
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
             return ParallelTableFunctionProvider.of(
-                    new ElasticsearchAllTableFunction(
+                    new Elasticsearch6AllTableFunction(
                             elasticsearchConf,
                             lookupConf,
                             physicalSchema.getFieldNames(),
@@ -117,7 +119,7 @@ public class ElasticsearchDynamicTableSource
                     lookupConf.getParallelism());
         }
         return ParallelAsyncTableFunctionProvider.of(
-                new ElasticsearchLruTableFunction(
+                new Elasticsearch6LruTableFunction(
                         elasticsearchConf,
                         lookupConf,
                         physicalSchema.getFieldNames(),

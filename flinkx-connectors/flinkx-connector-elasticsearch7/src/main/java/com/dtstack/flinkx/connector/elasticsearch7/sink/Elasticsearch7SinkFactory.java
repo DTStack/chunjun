@@ -19,9 +19,9 @@
 package com.dtstack.flinkx.connector.elasticsearch7.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchColumnConverter;
-import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRawTypeConverter;
+import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchColumnConverter;
+import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchRawTypeMapper;
+import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.JsonUtil;
@@ -29,6 +29,7 @@ import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -55,16 +56,18 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
-        ElasticsearchOutputFormatBuilder builder = new ElasticsearchOutputFormatBuilder();
-        builder.setEsConf(elasticsearchConf);
         final RowType rowType =
                 TableUtil.createRowType(elasticsearchConf.getColumn(), getRawTypeConverter());
+        TableSchema schema =
+                TableUtil.createTableSchema(elasticsearchConf.getColumn(), getRawTypeConverter());
+        ElasticsearchOutputFormatBuilder builder =
+                new ElasticsearchOutputFormatBuilder(elasticsearchConf, schema);
         builder.setRowConverter(new ElasticsearchColumnConverter(rowType));
         return createOutput(dataSet, builder.finish());
     }
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return ElasticsearchRawTypeConverter::apply;
+        return ElasticsearchRawTypeMapper::apply;
     }
 }

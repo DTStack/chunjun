@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.elasticsearch7.table;
+package com.dtstack.flinkx.connector.elasticsearch6.table;
 
 import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchRowConverter;
-import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
-import com.dtstack.flinkx.connector.elasticsearch7.sink.ElasticsearchOutputFormatBuilder;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.flinkx.connector.elasticsearch6.sink.Elasticsearch6OutputFormatBuilder;
 import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.api.TableSchema;
@@ -34,15 +34,15 @@ import org.apache.flink.types.RowKind;
  * @description:
  * @program: flinkx-all
  * @author: lany
- * @create: 2021/06/27 17:18
+ * @create: 2021/06/19 14:54
  */
-public class ElasticsearchDynamicTableSink implements DynamicTableSink {
+public class Elasticsearch6DynamicTableSink implements DynamicTableSink {
 
     private final TableSchema physicalSchema;
-    private final ElasticsearchConf elasticsearchConf;
+    private final Elasticsearch6Conf elasticsearchConf;
 
-    public ElasticsearchDynamicTableSink(
-            TableSchema physicalSchema, ElasticsearchConf elasticsearchConf) {
+    public Elasticsearch6DynamicTableSink(
+            TableSchema physicalSchema, Elasticsearch6Conf elasticsearchConf) {
         this.physicalSchema = physicalSchema;
         this.elasticsearchConf = elasticsearchConf;
     }
@@ -62,9 +62,9 @@ public class ElasticsearchDynamicTableSink implements DynamicTableSink {
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
-        ElasticsearchOutputFormatBuilder builder =
-                new ElasticsearchOutputFormatBuilder(elasticsearchConf, physicalSchema);
+        Elasticsearch6OutputFormatBuilder builder = new Elasticsearch6OutputFormatBuilder();
         builder.setRowConverter(new ElasticsearchRowConverter(rowType));
+        builder.setEsConf(elasticsearchConf);
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()),
@@ -73,11 +73,11 @@ public class ElasticsearchDynamicTableSink implements DynamicTableSink {
 
     @Override
     public DynamicTableSink copy() {
-        return new ElasticsearchDynamicTableSink(physicalSchema, elasticsearchConf);
+        return new Elasticsearch6DynamicTableSink(physicalSchema, elasticsearchConf);
     }
 
     @Override
     public String asSummaryString() {
-        return "Elasticsearch7 sink";
+        return "Elasticsearch6 sink";
     }
 }

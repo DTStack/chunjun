@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.elasticsearch7.table.lookup;
+package com.dtstack.flinkx.connector.elasticsearch6.table.lookup;
 
-import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7ClientFactory;
-import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7RequestFactory;
-import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6ClientFactory;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6RequestFactory;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
@@ -29,7 +29,6 @@ import org.apache.flink.table.data.GenericRowData;
 
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -44,17 +43,18 @@ import java.util.Map;
  * @description:
  * @program: flinkx-all
  * @author: lany
- * @create: 2021/06/27 13:26
+ * @create: 2021/06/24 22:47
  */
-public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
+public class Elasticsearch6AllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 2L;
-    private final ElasticsearchConf elasticsearchConf;
-    Logger LOG = LoggerFactory.getLogger(ElasticsearchAllTableFunction.class);
+    private static Logger LOG = LoggerFactory.getLogger(Elasticsearch6LruTableFunction.class);
+
+    private final Elasticsearch6Conf elasticsearchConf;
     private transient RestHighLevelClient rhlClient;
 
-    public ElasticsearchAllTableFunction(
-            ElasticsearchConf elasticsearchConf,
+    public Elasticsearch6AllTableFunction(
+            Elasticsearch6Conf elasticsearchConf,
             LookupConf lookupConf,
             String[] fieldNames,
             String[] keyNames,
@@ -68,13 +68,13 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
 
-        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf);
+        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConf);
         SearchRequest requestBuilder = buildSearchRequest();
 
         SearchResponse searchResponse;
         SearchHit[] searchHits;
         try {
-            searchResponse = rhlClient.search(requestBuilder, RequestOptions.DEFAULT);
+            searchResponse = rhlClient.search(requestBuilder);
             searchHits = searchResponse.getHits().getHits();
             for (SearchHit searchHit : searchHits) {
                 Map<String, Object> oneRow = new HashMap<>();
@@ -102,9 +102,9 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
      */
     private SearchRequest buildSearchRequest() {
         SearchSourceBuilder sourceBuilder =
-                Elasticsearch7RequestFactory.createSourceBuilder(fieldsName, null, null);
+                Elasticsearch6RequestFactory.createSourceBuilder(fieldsName, null, null);
         sourceBuilder.size(lookupConf.getFetchSize());
-        return Elasticsearch7RequestFactory.createSearchRequest(
-                elasticsearchConf.getIndex(), null, sourceBuilder);
+        return Elasticsearch6RequestFactory.createSearchRequest(
+                elasticsearchConf.getIndex(), elasticsearchConf.getType(), null, sourceBuilder);
     }
 }

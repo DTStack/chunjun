@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.elasticsearch7.table.lookup;
+package com.dtstack.flinkx.connector.elasticsearch6.table.lookup;
 
-import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7ClientFactory;
-import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7RequestFactory;
-import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6ClientFactory;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6RequestFactory;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
@@ -35,7 +35,6 @@ import com.google.common.collect.Lists;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -51,19 +50,20 @@ import java.util.concurrent.CompletableFuture;
  * @description:
  * @program: flinkx-all
  * @author: lany
- * @create: 2021/06/27 13:26
+ * @create: 2021/06/24 22:47
  */
-public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
+public class Elasticsearch6LruTableFunction extends AbstractLruTableFunction {
 
     private static final long serialVersionUID = 2L;
-    private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchLruTableFunction.class);
+    private static Logger LOG = LoggerFactory.getLogger(Elasticsearch6LruTableFunction.class);
+
+    private Elasticsearch6Conf elasticsearchConf;
     private final String[] fieldNames;
     private final String[] keyNames;
-    private final ElasticsearchConf elasticsearchConf;
     private RestHighLevelClient rhlClient;
 
-    public ElasticsearchLruTableFunction(
-            ElasticsearchConf elasticsearchConf,
+    public Elasticsearch6LruTableFunction(
+            Elasticsearch6Conf elasticsearchConf,
             LookupConf lookupConf,
             String[] fieldNames,
             String[] keyNames,
@@ -77,7 +77,7 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf);
+        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConf);
     }
 
     @Override
@@ -87,7 +87,6 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
         SearchRequest searchRequest = buildSearchRequest(keys);
         rhlClient.searchAsync(
                 searchRequest,
-                RequestOptions.DEFAULT,
                 new ActionListener<SearchResponse>() {
                     @Override
                     public void onResponse(SearchResponse searchResponse) {
@@ -127,7 +126,7 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
 
                     @Override
                     public void onFailure(Exception e) {
-                        future.completeExceptionally(e);
+                        future.completeExceptionally(new RuntimeException("Response failed!"));
                     }
                 });
     }
@@ -135,14 +134,13 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
     /**
      * build search request
      *
-     * @param keys
      * @return
      */
     private SearchRequest buildSearchRequest(Object... keys) {
         SearchSourceBuilder sourceBuilder =
-                Elasticsearch7RequestFactory.createSourceBuilder(fieldNames, keyNames, keys);
+                Elasticsearch6RequestFactory.createSourceBuilder(fieldNames, keyNames, keys);
         sourceBuilder.size(lookupConf.getFetchSize());
-        return Elasticsearch7RequestFactory.createSearchRequest(
-                elasticsearchConf.getIndex(), null, sourceBuilder);
+        return Elasticsearch6RequestFactory.createSearchRequest(
+                elasticsearchConf.getIndex(), elasticsearchConf.getType(), null, sourceBuilder);
     }
 }

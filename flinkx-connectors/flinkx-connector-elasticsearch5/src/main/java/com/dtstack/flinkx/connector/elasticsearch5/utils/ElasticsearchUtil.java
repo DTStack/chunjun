@@ -63,7 +63,7 @@ public class ElasticsearchUtil {
         mapSetting.put("cluster.name", elasticsearchConf.getCluster());
 
         List<InetSocketAddress> transports = new ArrayList<>();
-        for (String address: elasticsearchConf.getHosts()) {
+        for (String address : elasticsearchConf.getHosts()) {
             String[] infoArray = StringUtils.split(address, ":");
             String host = infoArray[0];
             int port = ES_DEFAULT_PORT;
@@ -71,7 +71,7 @@ public class ElasticsearchUtil {
                 port = Integer.valueOf(infoArray[1].trim());
             }
             try {
-                transports.add( new InetSocketAddress(InetAddress.getByName(host), port));
+                transports.add(new InetSocketAddress(InetAddress.getByName(host), port));
             } catch (UnknownHostException e) {
                 LOG.error("", e);
                 throw new RuntimeException(e);
@@ -80,24 +80,29 @@ public class ElasticsearchUtil {
 
         boolean authMesh = elasticsearchConf.isAuthMesh();
         if (authMesh) {
-            String authPassword = elasticsearchConf.getUsername() + ":" + elasticsearchConf.getPassword();
+            String authPassword =
+                    elasticsearchConf.getUsername() + ":" + elasticsearchConf.getPassword();
             mapSetting.put("xpack.security.user", authPassword);
         }
 
-        Settings settings = Settings.builder().put(mapSetting)
-//        https://stackoverflow.com/questions/43585724/elasticsearch-transport-client-caused-by-java-lang-nosuchmethoderror-io-netty
-                .put(NetworkModule.HTTP_TYPE_KEY, Netty3Plugin.NETTY_HTTP_TRANSPORT_NAME)
-                .put(NetworkModule.TRANSPORT_TYPE_KEY, Netty3Plugin.NETTY_TRANSPORT_NAME)
-                .build();
+        Settings settings =
+                Settings.builder()
+                        .put(mapSetting)
+                        //
+                        // https://stackoverflow.com/questions/43585724/elasticsearch-transport-client-caused-by-java-lang-nosuchmethoderror-io-netty
+                        .put(NetworkModule.HTTP_TYPE_KEY, Netty3Plugin.NETTY_HTTP_TRANSPORT_NAME)
+                        .put(NetworkModule.TRANSPORT_TYPE_KEY, Netty3Plugin.NETTY_TRANSPORT_NAME)
+                        .build();
 
         TransportClient transportClient;
         if (elasticsearchConf.isAuthMesh()) {
             transportClient = new PreBuiltXPackTransportClient(settings);
-        }else {
+        } else {
             transportClient = new PreBuiltTransportClient(settings);
         }
 
-        for (TransportAddress transport : ElasticsearchUtils.convertInetSocketAddresses(transports)) {
+        for (TransportAddress transport :
+                ElasticsearchUtils.convertInetSocketAddresses(transports)) {
             transportClient.addTransportAddress(transport);
         }
 
@@ -105,11 +110,14 @@ public class ElasticsearchUtil {
         if (transportClient.connectedNodes().isEmpty()) {
             // close the transportClient here
             IOUtils.closeQuietly(transportClient);
-            throw new RuntimeException("Elasticsearch client is not connected to any Elasticsearch nodes!");
+            throw new RuntimeException(
+                    "Elasticsearch client is not connected to any Elasticsearch nodes!");
         }
 
         if (LOG.isInfoEnabled()) {
-            LOG.info("Created Elasticsearch TransportClient with connected nodes {}", transportClient.connectedNodes());
+            LOG.info(
+                    "Created Elasticsearch TransportClient with connected nodes {}",
+                    transportClient.connectedNodes());
         }
 
         return transportClient;
@@ -117,43 +125,29 @@ public class ElasticsearchUtil {
 
     /**
      * parse address to InetSocketAddress
+     *
      * @param esAddressList
      * @return
      */
     public static List<InetSocketAddress> parseAddress(List<String> esAddressList) {
         List<InetSocketAddress> transports = new ArrayList<>();
 
-        for(String address : esAddressList){
+        for (String address : esAddressList) {
             String[] infoArray = StringUtils.split(address, ":");
             int port = 9300;
             String host = infoArray[0];
-            if(infoArray.length > 1){
+            if (infoArray.length > 1) {
                 port = Integer.valueOf(infoArray[1].trim());
             }
 
             try {
                 transports.add(new InetSocketAddress(InetAddress.getByName(host), port));
-            }catch (Exception e){
+            } catch (Exception e) {
                 LOG.error("", e);
                 throw new RuntimeException(e);
             }
         }
         return transports;
-    }
-
-    /**
-     * generate doc id by id fields.
-     * @param
-     * @return
-     */
-    public static String generateDocId(List<String> idFieldNames, Map<String, Object> dataMap, String keyDelimiter) {
-        String doc_id = "";
-        if (null != idFieldNames) {
-            doc_id = idFieldNames.stream()
-                    .map(idFiledName -> dataMap.get(idFiledName).toString())
-                    .collect(Collectors.joining(keyDelimiter));
-        }
-        return doc_id;
     }
 
     public static List<HttpHost> getHosts(List<String> hosts) {
@@ -196,5 +190,4 @@ public class ElasticsearchUtil {
                     e);
         }
     }
-
 }
