@@ -527,4 +527,19 @@ public class HBaseSerde {
             return TimestampData.fromEpochMillis(milliseconds);
         };
     }
+
+    public byte[] getRowKey(Object rowKey) {
+        checkArgument(keyEncoder != null, "row key is not set.");
+        rowWithRowKey.setField(0, rowKey);
+        byte[] rowkey = keyEncoder.encode(rowWithRowKey, 0);
+        if (rowkey.length == 0) {
+            // drop dirty records, rowkey shouldn't be zero length
+            return null;
+        }
+        return rowkey;
+    }
+
+    public Object getRowKey(byte[] rowKey) {
+        return keyDecoder.decode(rowKey);
+    }
 }

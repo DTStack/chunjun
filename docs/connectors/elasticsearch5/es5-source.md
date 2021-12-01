@@ -110,15 +110,11 @@ Elasticsearch 5.x
 ​
 
 # 五、数据类型
-|支持 | BOOLEAN |
+
+|是否支持 | 类型名称 |
 | --- | --- |
-|  | INTEGER |
-|  | DECIMAL |
-|  | TIMESTAMP |
-|  | DOUBLE |
-|  | FLOAT |
-|  | DATE |
-|  | VARCHAR |
+| 支持 |INTEGER,SMALLINT,DECIMAL,TIMESTAM DOUBLE,FLOAT,DATE,VARCHAR,VARCHAR,TIMESTAMP,TIME,BYTE|
+| 不支持 | IP，binary, nested, object|
 
 # 六、脚本示例
 见项目内FlinkX：Local：Test模块中的demo文件夹。

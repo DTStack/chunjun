@@ -72,7 +72,9 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
         keyPattern
                 .append("_")
                 .append(Arrays.stream(keys).map(String::valueOf).collect(Collectors.joining("_")));
-        List<Map<String, Object>> cacheList = cacheRef.get().get(keyPattern.toString());
+        List<Map<String, Object>> cacheList =
+                ((Map<String, List<Map<String, Object>>>) cacheRef.get())
+                        .get(keyPattern.toString());
 
         // 有数据才往下发，(左/内)连接flink会做相应的处理
         if (!CollectionUtils.isEmpty(cacheList)) {

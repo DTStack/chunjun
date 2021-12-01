@@ -101,7 +101,7 @@ Elasticsearch 6.x
    - 描述：一次性读取es数据的条数
    - 必须：否
    - 参数类型：Integer
-   - 默认值：1
+   - 默认值：1000
 - document-id.key-delimiter
    - 描述：文档id之间的分隔符号，eg:“${col1}_${col2}”
    - 必须：否
