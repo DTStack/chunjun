@@ -2,8 +2,11 @@ package com.dtstack.flinkx.cdc.store;
 
 import org.apache.flink.table.data.RowData;
 
+import java.io.Serializable;
 import java.util.Deque;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -12,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *     <p>主要做两件事： (1) 将blockQueue中的数据，通过store下发到外部数据源； (2)
  *     通过fetcher获取外部数据源对ddl的反馈，并将对应的ddl数据从blockQueue中删除，把数据队列放到unblockQueue中
  */
-public class Monitor implements Runnable {
+public class Monitor implements Runnable, Serializable {
 
     private final Map<String, Deque<RowData>> blockQueue;
 
@@ -24,6 +27,8 @@ public class Monitor implements Runnable {
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
+    private transient ExecutorService executor;
+
     public Monitor(
             Fetcher fetcher,
             Store store,
@@ -33,6 +38,11 @@ public class Monitor implements Runnable {
         this.store = store;
         this.blockQueue = blockQueue;
         this.unblockQueue = unblockQueue;
+    }
+
+    public void work() {
+        executor = Executors.newSingleThreadExecutor();
+        executor.submit(this);
     }
 
     @Override
@@ -58,5 +68,8 @@ public class Monitor implements Runnable {
 
     public void close() {
         closed.compareAndSet(false, true);
+        if (executor != null) {
+            executor.shutdown();
+        }
     }
 }

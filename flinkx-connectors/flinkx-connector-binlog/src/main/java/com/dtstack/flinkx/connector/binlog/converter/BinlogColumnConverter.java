@@ -17,7 +17,10 @@
  */
 package com.dtstack.flinkx.connector.binlog.converter;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
+
 import com.dtstack.flinkx.cdc.DdlRowData;
+import com.dtstack.flinkx.cdc.DdlRowDataBuilder;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
@@ -33,12 +36,11 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
-
-import com.alibaba.otter.canal.protocol.CanalEntry;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -269,10 +271,11 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
      * @return ddl row-data
      */
     private DdlRowData swapRowChangeToDdlRowData(CanalEntry.RowChange rowChange) {
-        DdlRowData ddlRowData = new DdlRowData();
-        ddlRowData.setSql(rowChange.getSql());
-        ddlRowData.setType(rowChange.getEventType().name());
-        ddlRowData.setTableIdentifier(rowChange.getDdlSchemaName());
-        return ddlRowData;
+        // TODO by tiezhu: 缺少lsn, table name
+        return DdlRowDataBuilder.builder()
+                .setTableIdentifier(rowChange.getDdlSchemaName())
+                .setContent(rowChange.getSql())
+                .setType(rowChange.getEventType().name())
+                .build();
     }
 }

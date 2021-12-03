@@ -25,6 +25,7 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
+import java.io.Serializable;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -36,28 +37,25 @@ import java.util.concurrent.TimeUnit;
  *
  * @author shitou
  * @date 2021/12/2
- *   <p> 线程池的创建,一个worker线程一次只处理一张表的队列
+ *     <p>线程池的创建,一个worker线程一次只处理一张表的队列
  */
-public class WorkerManager {
+public class WorkerManager implements Serializable {
 
-    private ThreadPoolExecutor executor;
+    private transient ThreadPoolExecutor executor;
 
-    private ConcurrentHashMap<String, Deque<RowData>> unblockQueues;
+    private final ConcurrentHashMap<String, Deque<RowData>> unblockQueues;
 
-    private ConcurrentHashMap<String, Deque<RowData>> blockedQueues;
+    private final ConcurrentHashMap<String, Deque<RowData>> blockedQueues;
 
     public WorkerManager(
             ConcurrentHashMap<String, Deque<RowData>> unblockQueues,
             ConcurrentHashMap<String, Deque<RowData>> blockedQueues) {
         this.unblockQueues = unblockQueues;
         this.blockedQueues = blockedQueues;
-        open();
     }
 
-    /**
-     * 创建线程池
-     */
-    private void open() {
+    /** 创建线程池 */
+    public void open() {
         executor =
                 executor == null
                         ? new ThreadPoolExecutor(
@@ -74,18 +72,14 @@ public class WorkerManager {
                         : executor;
     }
 
-    /**
-     * 资源关闭
-     */
+    /** 资源关闭 */
     public void close() {
         if (executor != null) {
             executor.shutdown();
         }
     }
 
-    /**
-     * 创建线程并提交
-     */
+    /** 创建线程并提交 */
     public void work(Collector<RowData> out) {
         if (!unblockQueues.isEmpty()) {
             for (String key : unblockQueues.keySet()) {

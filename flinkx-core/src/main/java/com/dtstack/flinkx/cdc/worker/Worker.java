@@ -67,8 +67,8 @@ public class Worker implements Runnable {
 
     /** 发送数据 */
     private void send() {
-        Deque<RowData> queue = unblockQueues.get(tableIdentity);
         for (int i = 0; i < depth; i++) {
+            Deque<RowData> queue = unblockQueues.get(tableIdentity);
             RowData data = queue.peek();
             if (data == null) {
                 break;
@@ -90,7 +90,7 @@ public class Worker implements Runnable {
 
     private void dealDDL(Deque<RowData> queue) {
         // 队列头节点是ddl,将该队列放到blockQueues
-        unblockQueues.remove(tableIdentity);
         blockedQueues.put(tableIdentity, queue);
+        unblockQueues.remove(tableIdentity);
     }
 }
