@@ -33,6 +33,7 @@ public class PluginUtilTest {
                 "F:\\dtstack_workplace\\project_workplace\\flinkx\\code\\flinkx\\syncplugins";
 
         Assert.assertEquals(
-                4, PluginUtil.getJarFileDirPath(pluginName, pluginRoot, remotePluginPath).size());
+                4,
+                PluginUtil.getJarFileDirPath(pluginName, pluginRoot, remotePluginPath, "").size());
     }
 }
