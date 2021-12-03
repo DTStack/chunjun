@@ -7,7 +7,6 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author tiezhu@dtstack.com
@@ -15,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *     <p>主要做两件事： (1) 将blockQueue中的数据，通过store下发到外部数据源； (2)
  *     通过fetcher获取外部数据源对ddl的反馈，并将对应的ddl数据从blockQueue中删除，把数据队列放到unblockQueue中
  */
-public class Monitor implements Runnable, Serializable {
+public class Monitor implements Serializable {
 
     private final Map<String, Deque<RowData>> blockQueue;
 
@@ -25,9 +24,9 @@ public class Monitor implements Runnable, Serializable {
 
     private final Store store;
 
-    private final AtomicBoolean closed = new AtomicBoolean(false);
+    private transient ExecutorService fetcherExecutor;
 
-    private transient ExecutorService executor;
+    private transient ExecutorService storeExecutor;
 
     public Monitor(
             Fetcher fetcher,
@@ -46,35 +45,38 @@ public class Monitor implements Runnable, Serializable {
     }
 
     public void work() {
-        executor = Executors.newSingleThreadExecutor();
-        executor.submit(this);
+        submitFetcher();
+        submitStore();
     }
 
-    @Override
-    public void run() {
-        while (!closed.get()) {
-            // TODO by tiehzu: Fetcher的功能做为一个独立的线程来执行
-            for (String table : blockQueue.keySet()) {
-                // 1. 将block的ddl数据下发到外部数据源中
-                Deque<RowData> rowData = blockQueue.get(table);
-                RowData data = rowData.peekFirst();
-                store.store(data);
+    private void submitFetcher() {
+        fetcher.setDeque(blockQueue, unblockQueue);
+        fetcherExecutor = Executors.newSingleThreadExecutor();
+        fetcherExecutor.submit(fetcher);
+    }
 
-                // 2. 轮训数据库，等待外部数据源的反馈
-                if (fetcher.fetch(data)) {
-                    // 如果外部数据源有所反馈，那么将blockQueue的头元素移除，并将数据队列放置在unblock中
-                    rowData.removeFirst();
-                    unblockQueue.put(table, rowData);
-                    blockQueue.remove(table);
-                }
-            }
-        }
+    private void submitStore() {
+        store.setBlockDeque(blockQueue);
+        storeExecutor = Executors.newSingleThreadExecutor();
+        storeExecutor.submit(store);
     }
 
     public void close() {
-        closed.compareAndSet(false, true);
-        if (executor != null) {
-            executor.shutdown();
+
+        if (fetcher != null) {
+            fetcher.close();
+        }
+
+        if (store != null) {
+            store.close();
+        }
+
+        if (fetcherExecutor != null && !fetcherExecutor.isShutdown()) {
+            fetcherExecutor.shutdown();
+        }
+
+        if (storeExecutor != null && !storeExecutor.isShutdown()) {
+            storeExecutor.shutdown();
         }
     }
 }
