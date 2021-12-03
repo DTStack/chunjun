@@ -101,16 +101,15 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
      * @param tableIdentifier table identifier.
      */
     private void putRowData(RowData data, String tableIdentifier) {
-        if (!unblockQueues.containsKey(tableIdentifier)
-                && !unblockQueues.containsKey(tableIdentifier)) {
+        if (unblockQueues.containsKey(tableIdentifier)) {
+            unblockQueues.get(tableIdentifier).push(data);
+        } else if (blockedQueues.containsKey(tableIdentifier)) {
+            blockedQueues.get(tableIdentifier).push(data);
+        } else {
             // 说明此时不存在该tableIdentifier的数据队列
             Deque<RowData> dataDeque = new LinkedList<>();
             dataDeque.addFirst(data);
             unblockQueues.put(tableIdentifier, dataDeque);
-        } else if (unblockQueues.containsKey(tableIdentifier)) {
-            unblockQueues.get(tableIdentifier).push(data);
-        } else {
-            blockedQueues.get(tableIdentifier).push(data);
         }
     }
 }
