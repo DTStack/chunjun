@@ -40,6 +40,11 @@ public class Monitor implements Runnable, Serializable {
         this.unblockQueue = unblockQueue;
     }
 
+    public void open() {
+        fetcher.open();
+        store.open();
+    }
+
     public void work() {
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this);
