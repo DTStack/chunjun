@@ -2,6 +2,7 @@ package com.dtstack.flinkx.cdc.store;
 
 import org.apache.flink.table.data.RowData;
 
+import java.io.Serializable;
 import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author tiezhu@dtstack.com
  * @since 2021/12/2 星期四
  */
-public abstract class Fetcher implements Runnable {
+public abstract class Fetcher implements Runnable, Serializable {
 
     protected Map<String, Deque<RowData>> blockDeque;
 

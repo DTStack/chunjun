@@ -1,5 +1,6 @@
 package com.dtstack.flinkx.connector.stream.util;
 
+import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
@@ -153,6 +154,14 @@ public class TablePrintUtil {
             }
         } else if (row instanceof GenericRowData) {
             genericRowData = (GenericRowData) row;
+        } else if (row instanceof DdlRowData) {
+            DdlRowData columnRowData = (DdlRowData) row;
+            for (int pos = 0; pos < row.getArity(); pos++) {
+                AbstractBaseColumn field = columnRowData.getField(pos);
+                if (field != null) {
+                    genericRowData.setField(pos, field.asString());
+                }
+            }
         } else {
             throw new UnsupportedTypeException(row.getClass().getSimpleName());
         }
