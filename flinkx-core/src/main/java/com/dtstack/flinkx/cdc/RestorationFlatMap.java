@@ -44,6 +44,13 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
     @Override
     public void open(Configuration parameters) throws Exception {
         workerManager.open();
+        monitor.open();
+    }
+
+    @Override
+    public void close() throws Exception {
+        workerManager.close();
+        monitor.close();
     }
 
     @Override

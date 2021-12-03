@@ -12,4 +12,8 @@ public interface Store extends Serializable {
 
     /** 将ddl数据存储到外部数据源中 */
     void store(RowData data);
+
+    default void open() {
+        // 子类实现
+    }
 }
