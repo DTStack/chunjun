@@ -18,8 +18,8 @@
 package com.dtstack.flinkx;
 
 import com.dtstack.flinkx.cdc.RestorationFlatMap;
-import com.dtstack.flinkx.cdc.store.MySQLFetcher;
-import com.dtstack.flinkx.cdc.store.MySQLStore;
+import com.dtstack.flinkx.cdc.store.Fetcher;
+import com.dtstack.flinkx.cdc.store.Store;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -63,6 +63,7 @@ import org.apache.flink.table.types.DataType;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,10 +169,12 @@ public class Main {
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
         DataStream<RowData> dataStreamSource = sourceFactory.createSource();
 
-        // TODO skip ddl
         if (!config.getCdcConf().isSkip()) {
-            // TODO by tiezhu: 做成配置化，插件化
-            dataStreamSource.flatMap(new RestorationFlatMap(new MySQLFetcher(), new MySQLStore()));
+            Pair<Store, Fetcher> storeFetcherPair =
+                    DataSyncFactoryUtil.discoverStoreAndFetcher(config.getCdcConf(), config);
+            dataStreamSource.flatMap(
+                    new RestorationFlatMap(
+                            storeFetcherPair.getRight(), storeFetcherPair.getLeft()));
         }
 
         SpeedConf speed = config.getSpeed();

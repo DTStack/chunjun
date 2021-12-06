@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.cdc.CdcConf;
+import com.dtstack.flinkx.cdc.store.Fetcher;
+import com.dtstack.flinkx.cdc.store.Store;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.MetricParam;
@@ -38,6 +41,8 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -49,8 +54,6 @@ import java.util.Set;
  * @create: 2021/04/27
  */
 public class DataSyncFactoryUtil {
-
-    private static final String DIRTY_PACKAGE_STR = "com.dtstack.flinkx.dirty";
 
     public static SourceFactory discoverSource(SyncConf config, StreamExecutionEnvironment env) {
         try {
@@ -166,6 +169,39 @@ public class DataSyncFactoryUtil {
             return consumer;
         } catch (Exception e) {
             throw new NoRestartException("Load dirty plugins failed!", e);
+        }
+    }
+
+    public static Pair<Store, Fetcher> discoverStoreAndFetcher(CdcConf cdcConf, SyncConf config) {
+        try {
+            String pluginType = cdcConf.getType();
+            String storePluginClassName =
+                    PluginUtil.getPluginClassName(pluginType, OperatorType.store);
+            String fetcherPluginClassName =
+                    PluginUtil.getPluginClassName(pluginType, OperatorType.fetcher);
+            Set<URL> urlList =
+                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null);
+
+            Store store =
+                    ClassLoaderManager.newInstance(
+                            urlList,
+                            cl -> {
+                                Class<?> clazz = cl.loadClass(storePluginClassName);
+                                Constructor<?> constructor = clazz.getConstructor(CdcConf.class);
+                                return (Store) constructor.newInstance(cdcConf);
+                            });
+
+            Fetcher fetcher =
+                    ClassLoaderManager.newInstance(
+                            urlList,
+                            cl -> {
+                                Class<?> clazz = cl.loadClass(fetcherPluginClassName);
+                                Constructor<?> constructor = clazz.getConstructor(CdcConf.class);
+                                return (Fetcher) constructor.newInstance(cdcConf);
+                            });
+            return Pair.of(store, fetcher);
+        } catch (Exception e) {
+            throw new NoRestartException("Load restore plugins failed!", e);
         }
     }
 }

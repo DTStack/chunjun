@@ -1,7 +1,5 @@
 package com.dtstack.flinkx.cdc;
 
-import com.dtstack.flinkx.element.column.StringColumn;
-
 /**
  * @author tiezhu@dtstack.com
  * @since 2021/12/3 星期五
@@ -13,6 +11,10 @@ public class DdlRowDataBuilder {
 
     private final DdlRowData ddlRowData;
 
+    private String tableName;
+
+    private String databaseName;
+
     private DdlRowDataBuilder() {
         ddlRowData = new DdlRowData(HEADERS);
     }
@@ -21,31 +23,41 @@ public class DdlRowDataBuilder {
         return new DdlRowDataBuilder();
     }
 
+    public DdlRowDataBuilder setTableName(String tableName) {
+        this.tableName = tableName;
+        return this;
+    }
+
+    public DdlRowDataBuilder setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
+        return this;
+    }
+
     public DdlRowDataBuilder setTableIdentifier(String tableIdentifier) {
-        StringColumn tableIdentifierColumn = new StringColumn(tableIdentifier);
-        ddlRowData.setColumn(0, tableIdentifierColumn);
+        ddlRowData.setDdlInfo(0, tableIdentifier);
         return this;
     }
 
     public DdlRowDataBuilder setType(String type) {
-        StringColumn typeColumn = new StringColumn(type);
-        ddlRowData.setColumn(1, typeColumn);
+        ddlRowData.setDdlInfo(1, type);
         return this;
     }
 
     public DdlRowDataBuilder setContent(String content) {
-        StringColumn contentColumn = new StringColumn(content);
-        ddlRowData.setColumn(2, contentColumn);
+        ddlRowData.setDdlInfo(2, content);
         return this;
     }
 
     public DdlRowDataBuilder setLsn(String lsn) {
-        StringColumn lsnColumn = new StringColumn(lsn);
-        ddlRowData.setColumn(3, lsnColumn);
+        ddlRowData.setDdlInfo(3, lsn);
         return this;
     }
 
     public DdlRowData build() {
+        if (tableName != null && databaseName != null) {
+            String tableIdentifier = "`" + databaseName + "`.`" + tableName + "`";
+            ddlRowData.setDdlInfo(0, tableIdentifier);
+        }
         return ddlRowData;
     }
 }

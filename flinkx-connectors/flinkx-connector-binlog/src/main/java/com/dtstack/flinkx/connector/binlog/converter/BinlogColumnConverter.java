@@ -17,8 +17,6 @@
  */
 package com.dtstack.flinkx.connector.binlog.converter;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
-
 import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.cdc.DdlRowDataBuilder;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
@@ -36,11 +34,12 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 
-import org.apache.commons.collections.CollectionUtils;
-
 import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
+
+import com.alibaba.otter.canal.protocol.CanalEntry;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -75,7 +74,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
 
         if (rowChange.getIsDdl()) {
             // 处理 ddl rowChange
-            DdlRowData ddlRowData = swapRowChangeToDdlRowData(rowChange);
+            DdlRowData ddlRowData = swapEventToDdlRowData(binlogEventRow);
             result.add(ddlRowData);
         }
 
@@ -265,17 +264,18 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
     }
 
     /**
-     * 将 row change 转化为 ddlRowData
+     * 将 binlogEventRow {@link BinlogEventRow} 转化为 ddlRowData {@link DdlRowData}
      *
-     * @param rowChange row change
+     * @param binlogEventRow binlog 事件数据
      * @return ddl row-data
      */
-    private DdlRowData swapRowChangeToDdlRowData(CanalEntry.RowChange rowChange) {
-        // TODO by tiezhu: 缺少lsn, table name
+    private DdlRowData swapEventToDdlRowData(BinlogEventRow binlogEventRow) {
         return DdlRowDataBuilder.builder()
-                .setTableIdentifier(rowChange.getDdlSchemaName())
-                .setContent(rowChange.getSql())
-                .setType(rowChange.getEventType().name())
+                .setDatabaseName(binlogEventRow.getSchema())
+                .setTableName(binlogEventRow.getTable())
+                .setContent(binlogEventRow.getRowChange().getSql())
+                .setType(binlogEventRow.getRowChange().getEventType().name())
+                .setLsn(String.valueOf(binlogEventRow.getExecuteTime()))
                 .build();
     }
 }

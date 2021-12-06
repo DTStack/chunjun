@@ -67,8 +67,8 @@ public class Worker implements Runnable {
 
     /** 发送数据 */
     private void send() {
+        Deque<RowData> queue = unblockQueues.get(tableIdentity);
         for (int i = 0; i < depth; i++) {
-            Deque<RowData> queue = unblockQueues.get(tableIdentity);
             RowData data = queue.peek();
             if (data == null) {
                 break;

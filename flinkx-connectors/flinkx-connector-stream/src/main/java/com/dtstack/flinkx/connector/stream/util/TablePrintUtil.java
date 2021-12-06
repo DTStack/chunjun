@@ -157,9 +157,9 @@ public class TablePrintUtil {
         } else if (row instanceof DdlRowData) {
             DdlRowData columnRowData = (DdlRowData) row;
             for (int pos = 0; pos < row.getArity(); pos++) {
-                AbstractBaseColumn field = columnRowData.getField(pos);
+                String field = columnRowData.getInfo(pos);
                 if (field != null) {
-                    genericRowData.setField(pos, field.asString());
+                    genericRowData.setField(pos, field);
                 }
             }
         } else {
