@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.conf;
 
-import com.dtstack.flinkx.cdc.CdcRestoreConf;
+import com.dtstack.flinkx.cdc.CdcConf;
 
 import java.io.Serializable;
 import java.util.StringJoiner;
@@ -44,7 +44,7 @@ public class SettingConf implements Serializable {
     private LogConf log = new LogConf();
 
     /** cdc restore conf */
-    private CdcRestoreConf cdcRestoreConf = new CdcRestoreConf();
+    private CdcConf restoration = new CdcConf();
 
     public void setMetricPluginConf(MetricPluginConf metricPluginConf) {
         this.metricPluginConf = metricPluginConf;
@@ -94,12 +94,12 @@ public class SettingConf implements Serializable {
         this.log = log;
     }
 
-    public CdcRestoreConf getCdcRestoreConf() {
-        return cdcRestoreConf;
+    public CdcConf getRestoration() {
+        return restoration;
     }
 
-    public void setCdcRestoreConf(CdcRestoreConf cdcRestoreConf) {
-        this.cdcRestoreConf = cdcRestoreConf;
+    public void setRestoration(CdcConf restoration) {
+        this.restoration = restoration;
     }
 
     @Override
@@ -111,7 +111,7 @@ public class SettingConf implements Serializable {
                 .add("restore=" + restore)
                 .add("restart=" + restart)
                 .add("log=" + log)
-                .add("cdcRestoreConf=" + cdcRestoreConf)
+                .add("cdcRestoreConf=" + restoration)
                 .toString();
     }
 }

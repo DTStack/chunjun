@@ -1,7 +1,5 @@
 package com.dtstack.flinkx.cdc;
 
-import com.dtstack.flinkx.element.AbstractBaseColumn;
-
 import org.apache.flink.table.data.ArrayData;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericArrayData;
@@ -15,6 +13,7 @@ import org.apache.flink.table.data.binary.BinaryStringData;
 import org.apache.flink.types.RowKind;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,24 +28,24 @@ public class DdlRowData implements RowData, Serializable {
 
     private final String[] headers;
 
-    private final AbstractBaseColumn[] columns;
+    private final String[] ddlInfos;
 
     public DdlRowData(String[] headers) {
         this.headers = headers;
-        this.columns = new AbstractBaseColumn[headers.length];
+        this.ddlInfos = new String[headers.length];
     }
 
-    public void setColumn(int index, AbstractBaseColumn column) {
-        columns[index] = column;
+    public void setDdlInfo(int index, String info) {
+        ddlInfos[index] = info;
     }
 
-    public AbstractBaseColumn getField(int pos) {
-        return columns[pos];
+    public String getInfo(int pos) {
+        return ddlInfos[pos];
     }
 
     @Override
     public int getArity() {
-        return columns.length;
+        return ddlInfos.length;
     }
 
     @Override
@@ -61,7 +60,7 @@ public class DdlRowData implements RowData, Serializable {
 
     @Override
     public boolean isNullAt(int pos) {
-        return this.columns[pos] == null || this.columns[pos].getData() == null;
+        return this.ddlInfos[pos] == null;
     }
 
     @Override
@@ -101,7 +100,7 @@ public class DdlRowData implements RowData, Serializable {
 
     @Override
     public StringData getString(int i) {
-        return new BinaryStringData(columns[i].asString());
+        return new BinaryStringData(ddlInfos[i]);
     }
 
     @Override
@@ -121,19 +120,19 @@ public class DdlRowData implements RowData, Serializable {
 
     @Override
     public byte[] getBinary(int i) {
-        return columns[i].asBinary();
+        return ddlInfos[i].getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
     public ArrayData getArray(int i) {
-        return new GenericArrayData(columns);
+        return new GenericArrayData(ddlInfos);
     }
 
     @Override
     public MapData getMap(int i) {
         final Map<String, Object> ddlMap = new HashMap<>();
-        for (int j = 0; j < columns.length; j++) {
-            ddlMap.put(headers[j], columns[j]);
+        for (int j = 0; j < ddlInfos.length; j++) {
+            ddlMap.put(headers[j], ddlInfos[j]);
         }
         return new GenericMapData(ddlMap);
     }
@@ -146,7 +145,7 @@ public class DdlRowData implements RowData, Serializable {
     public String getSql() {
         for (int i = 0; i < headers.length; i++) {
             if ("content".equalsIgnoreCase(headers[i])) {
-                return columns[i].asString();
+                return ddlInfos[i];
             }
         }
         throw new IllegalArgumentException("Can not find content from DDL RowData!");
@@ -155,7 +154,7 @@ public class DdlRowData implements RowData, Serializable {
     public String getTableIdentifier() {
         for (int i = 0; i < headers.length; i++) {
             if ("tableIdentifier".equalsIgnoreCase(headers[i])) {
-                return columns[i].asString();
+                return ddlInfos[i];
             }
         }
         throw new IllegalArgumentException("Can not find tableIdentifier from DDL RowData!");
@@ -164,7 +163,7 @@ public class DdlRowData implements RowData, Serializable {
     public EventType getType() {
         for (int i = 0; i < headers.length; i++) {
             if ("type".equalsIgnoreCase(headers[i])) {
-                return EventType.valueOf(columns[i].asString());
+                return EventType.valueOf(ddlInfos[i]);
             }
         }
         throw new IllegalArgumentException("Can not find type from DDL RowData!");
@@ -173,7 +172,7 @@ public class DdlRowData implements RowData, Serializable {
     public String getLsn() {
         for (int i = 0; i < headers.length; i++) {
             if ("lsn".equalsIgnoreCase(headers[i])) {
-                return columns[i].asString();
+                return ddlInfos[i];
             }
         }
         throw new IllegalArgumentException("Can not find lsn from DDL RowData!");

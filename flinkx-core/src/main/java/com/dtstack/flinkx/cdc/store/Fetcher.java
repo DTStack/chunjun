@@ -51,11 +51,12 @@ public abstract class Fetcher implements Runnable, Serializable {
      */
     public abstract boolean fetch(RowData data);
 
-    public void open() {
-        // 子类实现
-    }
+    public abstract void open();
+
+    public abstract void closeSubclass();
 
     public void close() {
+        closeSubclass();
         closed.compareAndSet(false, true);
     }
 }
