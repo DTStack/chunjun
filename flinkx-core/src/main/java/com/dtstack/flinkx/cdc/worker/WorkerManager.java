@@ -20,6 +20,8 @@
 
 package com.dtstack.flinkx.cdc.worker;
 
+import com.dtstack.flinkx.cdc.QueuesChamberlain;
+
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import org.apache.flink.table.data.RowData;
@@ -43,15 +45,14 @@ public class WorkerManager implements Serializable {
 
     private transient ThreadPoolExecutor executor;
 
-    private final ConcurrentHashMap<String, Deque<RowData>> unblockQueues;
+    private ConcurrentHashMap<String, Deque<RowData>> unblockQueues;
 
-    private final ConcurrentHashMap<String, Deque<RowData>> blockedQueues;
+    private ConcurrentHashMap<String, Deque<RowData>> blockedQueues;
 
-    public WorkerManager(
-            ConcurrentHashMap<String, Deque<RowData>> unblockQueues,
-            ConcurrentHashMap<String, Deque<RowData>> blockedQueues) {
-        this.unblockQueues = unblockQueues;
-        this.blockedQueues = blockedQueues;
+    private QueuesChamberlain chamberlain;
+
+    public WorkerManager(QueuesChamberlain chamberlain) {
+        this.chamberlain = chamberlain;
     }
 
     /** 创建线程池 */
@@ -81,11 +82,9 @@ public class WorkerManager implements Serializable {
 
     /** 创建线程并提交 */
     public void work(Collector<RowData> out) {
-        if (!unblockQueues.isEmpty()) {
-            for (String key : unblockQueues.keySet()) {
-                Worker worker = new Worker(unblockQueues, blockedQueues, 3, out, key);
-                executor.execute(worker);
-            }
+        for (String key : unblockQueues.keySet()) {
+            Worker worker = new Worker(chamberlain, 3, out, key);
+            executor.execute(worker);
         }
     }
 }
