@@ -12,7 +12,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,9 +35,12 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
 
     private final WorkerManager workerManager;
 
+    private final QueuesChamberlain chamberlain =
+            new QueuesChamberlain(blockedQueues, unblockQueues);
+
     public RestorationFlatMap(Fetcher fetcher, Store store) {
         this.monitor = new Monitor(fetcher, store, blockedQueues, unblockQueues);
-        this.workerManager = new WorkerManager(unblockQueues, blockedQueues);
+        this.workerManager = new WorkerManager(chamberlain);
     }
 
     @Override
@@ -67,7 +69,7 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
         } else {
             tableIdentifier = ((DdlRowData) rowData).getTableIdentifier();
         }
-        putRowData(rowData, tableIdentifier);
+        chamberlain.putRowData(rowData, tableIdentifier);
     }
 
     /**
@@ -92,24 +94,5 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
         String schema = data.getString(schemaIndex).toString();
         String table = data.getString(tableIndex).toString();
         return schema + "." + table;
-    }
-
-    /**
-     * 将row data 放入队列中，如果队列中没有对应的数据队列，那么创建一个。
-     *
-     * @param data row data.
-     * @param tableIdentifier table identifier.
-     */
-    private void putRowData(RowData data, String tableIdentifier) {
-        if (unblockQueues.containsKey(tableIdentifier)) {
-            unblockQueues.get(tableIdentifier).push(data);
-        } else if (blockedQueues.containsKey(tableIdentifier)) {
-            blockedQueues.get(tableIdentifier).push(data);
-        } else {
-            // 说明此时不存在该tableIdentifier的数据队列
-            Deque<RowData> dataDeque = new LinkedList<>();
-            dataDeque.addFirst(data);
-            unblockQueues.put(tableIdentifier, dataDeque);
-        }
     }
 }

@@ -20,42 +20,39 @@
 
 package com.dtstack.flinkx.cdc.worker;
 
+import com.dtstack.flinkx.cdc.QueuesChamberlain;
 import com.dtstack.flinkx.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
 import java.util.Deque;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 下发数据队列中的dml数据，在遇到ddl数据之后，将数据队列的状态置为"block"
+ *
  * @author tiezhu@dtstack.com
  * @since 2021/12/1 星期三
- *     <p>下发数据队列中的dml数据，在遇到ddl数据之后，将数据队列的状态置为"block"
  */
 public class Worker implements Runnable {
 
-    private final ConcurrentHashMap<String, Deque<RowData>> unblockQueues;
-
-    private final ConcurrentHashMap<String, Deque<RowData>> blockedQueues;
-
-    /** 队列遍历深度，避免某队列长时间占用线程 */
-    private final int depth;
+    private final QueuesChamberlain queuesChamberlain;
 
     private final Collector<RowData> out;
 
     /** 表标识 */
     private final String tableIdentity;
 
+    /** 队列遍历深度，避免某队列长时间占用线程 */
+    private final int size;
+
     public Worker(
-            ConcurrentHashMap<String, Deque<RowData>> unblockQueues,
-            ConcurrentHashMap<String, Deque<RowData>> blockedQueues,
-            int depth,
+            QueuesChamberlain queuesChamberlain,
+            int size,
             Collector<RowData> out,
             String tableIdentity) {
-        this.unblockQueues = unblockQueues;
-        this.blockedQueues = blockedQueues;
-        this.depth = depth;
+        this.queuesChamberlain = queuesChamberlain;
+        this.size = size;
         this.out = out;
         this.tableIdentity = tableIdentity;
     }
@@ -67,8 +64,8 @@ public class Worker implements Runnable {
 
     /** 发送数据 */
     private void send() {
-        Deque<RowData> queue = unblockQueues.get(tableIdentity);
-        for (int i = 0; i < depth; i++) {
+        Deque<RowData> queue = queuesChamberlain.getQueueFromUnblockQueues(tableIdentity);
+        for (int i = 0; i < size; i++) {
             RowData data = queue.peek();
             if (data == null) {
                 break;
@@ -77,7 +74,7 @@ public class Worker implements Runnable {
             if (data instanceof ColumnRowData) {
                 dealDML(queue);
             } else {
-                dealDDL(queue);
+                queuesChamberlain.dealDdlRowData(tableIdentity, queue);
             }
         }
     }
@@ -86,11 +83,5 @@ public class Worker implements Runnable {
         // 队列头节点是dml, 将该dml数据发送到sink
         RowData rowData = queue.poll();
         out.collect(rowData);
-    }
-
-    private void dealDDL(Deque<RowData> queue) {
-        // 队列头节点是ddl,将该队列放到blockQueues
-        blockedQueues.put(tableIdentity, queue);
-        unblockQueues.remove(tableIdentity);
     }
 }
