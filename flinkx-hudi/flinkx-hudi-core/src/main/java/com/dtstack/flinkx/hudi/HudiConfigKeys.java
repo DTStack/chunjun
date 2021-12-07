@@ -39,6 +39,8 @@ public class HudiConfigKeys {
 
     public static final String KEY_TABLE_TYPE = "tableType";
 
+    public static final String KEY_TABLE_RECORD_KEY = "recordKey";
+
     public static final String KEY_TABLE_TYPE_RECORD = "record";
 
     public static final String KEY_SCHEMA_FIELDS = "fields";
