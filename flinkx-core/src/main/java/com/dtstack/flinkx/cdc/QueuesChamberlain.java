@@ -25,12 +25,13 @@ import org.apache.flink.table.data.RowData;
 import java.io.Serializable;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Company：www.dtstack.com.
+ * QueuesChamberlain维护blockedQueues、unblockQueues,对外提供访问二者的方法.
  *
  * @author shitou
  * @date 2021/12/6
@@ -55,7 +56,7 @@ public class QueuesChamberlain implements Serializable {
     }
 
     /**
-     * 将rowdata放入队列中，如果队列中没有对应的数据队列，那么创建一个
+     * 将RowData放入队列中，如果队列中没有对应的数据队列，那么创建一个
      *
      * @param data row data.
      * @param tableIdentifier table identifier.
@@ -104,10 +105,12 @@ public class QueuesChamberlain implements Serializable {
         return unblockQueues.get(tableIdentity);
     }
 
-    public String getTableIdentityFromUnblockQueues() {
-        for (String tableIdentity : unblockQueues.keySet()) {
-            return tableIdentity;
-        }
-        return null;
+    /**
+     * 从unblockQueues中获取所有key集.
+     *
+     * @return
+     */
+    public Set<String> getTableIdentityFromUnblockQueues() {
+        return unblockQueues.keySet();
     }
 }

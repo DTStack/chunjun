@@ -16,6 +16,46 @@ public class CdcConf implements Serializable {
     /** whether skip ddl statement or not. */
     private boolean skip = true;
 
+    /**
+     * worker的核心线程数
+     */
+    private int workerNum = 2;
+
+    /**
+     * worker遍历队列时的步长
+     */
+    private int workerSize = 3;
+
+    /**
+     * worker线程池的最大容量
+     */
+    private int workerMax = 3;
+
+
+    public int getWorkerNum() {
+        return workerNum;
+    }
+
+    public void setWorkerNum(int workerNum) {
+        this.workerNum = workerNum;
+    }
+
+    public int getWorkerSize() {
+        return workerSize;
+    }
+
+    public void setWorkerSize(int workerSize) {
+        this.workerSize = workerSize;
+    }
+
+    public int getWorkerMax() {
+        return workerMax;
+    }
+
+    public void setWorkerMax(int workerMax) {
+        this.workerMax = workerMax;
+    }
+
     public boolean isSkip() {
         return skip;
     }
@@ -34,6 +74,12 @@ public class CdcConf implements Serializable {
 
     @Override
     public String toString() {
-        return "CdcConf{" + "type='" + type + '\'' + ", skip=" + skip + '}';
+        return "CdcConf{" +
+                "type='" + type + '\'' +
+                ", skip=" + skip +
+                ", workerNum=" + workerNum +
+                ", workerSize=" + workerSize +
+                ", workerMax=" + workerMax +
+                '}';
     }
 }
