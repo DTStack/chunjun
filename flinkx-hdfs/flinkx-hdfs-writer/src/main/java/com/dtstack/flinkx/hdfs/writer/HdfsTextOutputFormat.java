@@ -23,6 +23,7 @@ import com.dtstack.flinkx.exception.WriteRecordException;
 import com.dtstack.flinkx.hdfs.ECompressType;
 import com.dtstack.flinkx.hdfs.HdfsUtil;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.StringUtil;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.flink.types.Row;
@@ -215,7 +216,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
                     }
                     break;
                 case BOOLEAN:
-                    sb.append(Boolean.valueOf(rowData));
+                    sb.append(StringUtil.parseBoolean(rowData));
                     break;
                 case DATE:
                     column = DateUtil.columnToDate(column,null);
