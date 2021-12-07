@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+      <artifactId>flinkx-oss</artifactId>
+      <groupId>com.dtstack.flinkx</groupId>
+      <version>1.6</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>flinkx-oss-writer</artifactId>
+
+  <dependencies>
+    <!--lzop-->
+      <dependency>
+        <groupId>org.anarres.lzo</groupId>
+        <artifactId>lzo-core</artifactId>
+        <version>1.0.2</version>
+      </dependency>
+      <dependency>
+          <groupId>org.anarres.lzo</groupId>
+          <artifactId>lzo-hadoop</artifactId>
+          <version>1.0.5</version>
+          <exclusions>
+              <exclusion>
+                  <artifactId>hadoop-core</artifactId>
+                  <groupId>org.apache.hadoop</groupId>
+              </exclusion>
+          </exclusions>
+      </dependency>
+      <!--lzop-->
+      <dependency>
+          <groupId>com.dtstack.flinkx</groupId>
+          <artifactId>flinkx-oss-core</artifactId>
+          <version>1.6</version>
+          <exclusions>
+              <exclusion>
+                  <artifactId>httpcore</artifactId>
+                  <groupId>org.apache.httpcomponents</groupId>
+              </exclusion>
+              <exclusion>
+                  <artifactId>httpclient</artifactId>
+                  <groupId>org.apache.httpcomponents</groupId>
+              </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+          <artifactId>httpcore</artifactId>
+          <groupId>org.apache.httpcomponents</groupId>
+          <version>4.4.5</version>
+      </dependency>
+
+      <dependency>
+          <artifactId>httpclient</artifactId>
+          <groupId>org.apache.httpcomponents</groupId>
+          <version>4.5.2</version>
+      </dependency>
+    <dependency>
+      <groupId>com.dtstack.flinkx</groupId>
+      <artifactId>flinkx-oss-core</artifactId>
+      <version>1.6</version>
+      <scope>compile</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <artifactSet>
+                <excludes>
+                  <exclude>org.slf4j:slf4j-api</exclude>
+                  <exclude>ch.qos.logback:*</exclude>
+                  <exclude>com.google.code.gson:*</exclude>
+                  <exclude>com.data-artisans:*</exclude>
+                  <exclude>org.scala-lang:*</exclude>
+                  <exclude>io.netty:*</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <relocations>
+                <relocation>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>shade.core.com.google.common</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google.thirdparty</pattern>
+                  <shadedPattern>shade.core.com.google.thirdparty</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <!-- here the phase you need -->
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy todir="${basedir}/../../syncplugins/osswriter">
+                  <fileset dir="target/">
+                    <include name="${project.name}-${project.version}.jar" />
+                  </fileset>
+                </copy>
+                <!--suppress UnresolvedMavenProperty -->
+                <move file="${basedir}/../../syncplugins/osswriter/${project.name}-${project.version}.jar"
+                      tofile="${basedir}/../../syncplugins/osswriter/${project.name}-${package.name}.jar" />
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>
