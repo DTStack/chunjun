@@ -35,6 +35,9 @@ public class FlinkxPulsarClient implements Runnable {
     private PulsarInputFormat format;
     private Consumer consumer;
     private String listenerName;
+    private int batchInterval;
+    private int batchBytes;
+    private int batchTime;
 
     public FlinkxPulsarClient(PulsarInputFormat format) {
         this.format = format;
@@ -43,6 +46,9 @@ public class FlinkxPulsarClient implements Runnable {
         this.timeout = format.getTimeout();
         this.pulsarServiceUrl = format.getPulsarServiceUrl();
         this.listenerName = format.getListenerName();
+        this.batchInterval = format.getBatchInterval();
+        this.batchBytes = format.getBatchBytes();
+        this.batchTime = format.getBatchTime();
 
         ClientBuilder clientBuilder;
         try {
@@ -60,13 +66,18 @@ public class FlinkxPulsarClient implements Runnable {
                 clientBuilder.listenerName(listenerName);
             }
 
-            consumer = clientBuilder.build().newConsumer(Schema.STRING)
+            ConsumerBuilder consumerBuilder = clientBuilder.build().newConsumer(Schema.STRING)
                     .topic(format.getTopic())
                     .subscriptionName(CONSUMER_SUBSCRIPTION_NAME)
                     .subscriptionType(SubscriptionType.Failover)
                     .subscriptionInitialPosition(SubscriptionInitialPosition.valueOf(format.getInitialPosition()))
-                    .loadConf(consumerSettings)
-                    .subscribe();
+                    .loadConf(consumerSettings);
+            if (this.batchInterval > 1) {
+                consumerBuilder.batchReceivePolicy(BatchReceivePolicy.builder().maxNumMessages(batchInterval)
+                        .maxNumBytes(batchBytes).timeout(batchTime, TimeUnit.MILLISECONDS).build());
+            }
+
+            consumer = consumerBuilder.subscribe();
         } catch (PulsarClientException e) {
             LOG.error("Pulsar subscribe topic error, topic = {}, e = {}", format.getTopic(), ExceptionUtil.getErrorMessage(e));
             throw new RuntimeException("Pulsar client init error", e);
@@ -94,6 +105,7 @@ public class FlinkxPulsarClient implements Runnable {
                 } catch (Exception e) {
                     LOG.error("Pulsar consumer fetch is error, message = {}, e = {}", new String(msg.getData()), ExceptionUtil.getErrorMessage(e));
                 }
+                consumer.acknowledgeAsync(msg.getMessageId());
             }
         } catch (Throwable e) {
             LOG.error("Pulsar consumer fetch is error, e = {}", ExceptionUtil.getErrorMessage(e));

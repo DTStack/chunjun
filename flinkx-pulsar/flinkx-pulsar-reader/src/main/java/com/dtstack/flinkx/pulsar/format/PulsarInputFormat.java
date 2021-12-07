@@ -44,6 +44,9 @@ public class PulsarInputFormat extends BaseRichInputFormat {
     protected List<MetaColumn> metaColumns;
     protected Map<String, Object> consumerSettings;
     protected String listenerName;
+    protected int batchInterval;
+    protected int batchBytes;
+    protected int batchTime;
 
     protected volatile boolean running = false;
     protected transient FlinkxPulsarConsumer flinkxPulsarConsumer;
@@ -170,5 +173,17 @@ public class PulsarInputFormat extends BaseRichInputFormat {
 
     public String getListenerName() {
         return listenerName;
+    }
+
+    public int getBatchInterval() {
+        return batchInterval;
+    }
+
+    public int getBatchBytes() {
+        return batchBytes;
+    }
+
+    public int getBatchTime() {
+        return batchTime;
     }
 }

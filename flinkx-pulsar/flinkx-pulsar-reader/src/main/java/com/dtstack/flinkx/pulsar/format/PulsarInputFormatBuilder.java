@@ -65,6 +65,18 @@ public class PulsarInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.listenerName = listenerName;
     }
 
+    public void setBatchInterval(int batchInterval) {
+        format.batchInterval = batchInterval;
+    }
+
+    public void setBatchBytes(int batchBytes) {
+        format.batchBytes = batchBytes;
+    }
+
+    public void setBatchTime(int batchTime) {
+        format.batchTime = batchTime;
+    }
+
     @Override
     protected void checkFormat() {
         StringBuilder sb = new StringBuilder(128);

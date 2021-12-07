@@ -37,6 +37,9 @@ public class PulsarReader extends BaseDataReader {
     protected List<MetaColumn> metaColumns;
     protected Map<String, Object> consumerSettings;
     protected String listenerName;
+    protected int batchInterval;
+    protected int batchBytes;
+    protected int batchTime;
 
     public PulsarReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -53,6 +56,9 @@ public class PulsarReader extends BaseDataReader {
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         consumerSettings = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
         listenerName = readerConfig.getParameter().getStringVal(KEY_LISTENER_NAME);
+        batchInterval = readerConfig.getParameter().getIntVal(KEY_BATCH_INTERVAL, DEFAULT_BATCH_INTERVAL);
+        batchBytes = readerConfig.getParameter().getIntVal(KEY_BATCH_BYTES, DEFAULT_BATCH_BYTES);
+        batchTime = readerConfig.getParameter().getIntVal(KEY_BATCH_TIME, DEFAULT_BATCH_TIME);
     }
 
     @Override
@@ -70,6 +76,9 @@ public class PulsarReader extends BaseDataReader {
         builder.setFieldDelimiter(fieldDelimiter);
         builder.setDataTransferConfig(dataTransferConfig);
         builder.setListenerName(listenerName);
+        builder.setBatchInterval(batchInterval);
+        builder.setBatchBytes(batchBytes);
+        builder.setBatchTime(batchTime);
 
         return createInput(builder.finish());
     }
