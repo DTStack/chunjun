@@ -31,16 +31,16 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
     private final ConcurrentHashMap<String, Deque<RowData>> unblockQueues =
             new ConcurrentHashMap<>();
 
+    private final QueuesChamberlain chamberlain =
+            new QueuesChamberlain(blockedQueues, unblockQueues);
+
     private final Monitor monitor;
 
     private final WorkerManager workerManager;
 
-    private final QueuesChamberlain chamberlain =
-            new QueuesChamberlain(blockedQueues, unblockQueues);
-
-    public RestorationFlatMap(Fetcher fetcher, Store store) {
+    public RestorationFlatMap(Fetcher fetcher, Store store, CdcConf conf) {
         this.monitor = new Monitor(fetcher, store, blockedQueues, unblockQueues);
-        this.workerManager = new WorkerManager(chamberlain);
+        this.workerManager = new WorkerManager(chamberlain, conf);
     }
 
     @Override
@@ -59,7 +59,9 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
     @Override
     public void flatMap(RowData value, Collector<RowData> out) throws Exception {
         put(value);
-        workerManager.work(out);
+        if (workerManager.getOut() == null) {
+            workerManager.setOut(out);
+        }
     }
 
     private void put(RowData rowData) {

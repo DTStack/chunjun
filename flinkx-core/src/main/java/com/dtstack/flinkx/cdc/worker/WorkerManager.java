@@ -20,6 +20,7 @@
 
 package com.dtstack.flinkx.cdc.worker;
 
+import com.dtstack.flinkx.cdc.CdcConf;
 import com.dtstack.flinkx.cdc.QueuesChamberlain;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
@@ -28,63 +29,114 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
 import java.io.Serializable;
-import java.util.Deque;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Company：www.dtstack.com.
+ * 线程池的创建,管理overseerExecutor和workerExecutor两个线程池,
+ *
+ * <p>worker线程一次只处理一张表的队列
  *
  * @author shitou
  * @date 2021/12/2
- *     <p>线程池的创建,一个worker线程一次只处理一张表的队列
  */
 public class WorkerManager implements Serializable {
 
-    private transient ThreadPoolExecutor executor;
+    private static final long serialVersionUID = 2L;
 
-    private ConcurrentHashMap<String, Deque<RowData>> unblockQueues;
+    private transient ThreadPoolExecutor workerExecutor;
 
-    private ConcurrentHashMap<String, Deque<RowData>> blockedQueues;
+    private transient ThreadPoolExecutor overseerExecutor;
 
-    private QueuesChamberlain chamberlain;
+    private final QueuesChamberlain chamberlain;
 
-    public WorkerManager(QueuesChamberlain chamberlain) {
+    private Overseer overseer;
+
+    private Collector<RowData> out;
+
+    /**
+     * worker的核心线程数
+     */
+    private int workerNum;
+
+    /**
+     * worker遍历队列时的步长
+     */
+    private int workerSize;
+
+    /**
+     * worker线程池的最大容量
+     */
+    private int workerMax;
+
+    public WorkerManager(QueuesChamberlain chamberlain, CdcConf conf) {
         this.chamberlain = chamberlain;
+        this.workerNum = conf.getWorkerNum();
+        this.workerSize = conf.getWorkerSize();
+        this.workerMax = conf.getWorkerMax();
     }
 
     /** 创建线程池 */
     public void open() {
-        executor =
-                executor == null
+        workerExecutor =
+                workerExecutor == null
                         ? new ThreadPoolExecutor(
-                                2,
-                                3,
+                                workerNum,
+                                workerMax,
                                 0,
                                 TimeUnit.NANOSECONDS,
-                                new LinkedBlockingDeque<>(2),
+                                new LinkedBlockingDeque<>(3),
                                 new BasicThreadFactory.Builder()
                                         .uncaughtExceptionHandler(new WorkerExceptionHandler())
                                         .namingPattern("worker-pool-%d")
                                         .daemon(false)
                                         .build())
-                        : executor;
+                        : workerExecutor;
+
+        overseerExecutor =
+                overseerExecutor == null
+                        ? new ThreadPoolExecutor(
+                                1,
+                                1,
+                                0,
+                                TimeUnit.NANOSECONDS,
+                                new LinkedBlockingDeque<>(1),
+                                new BasicThreadFactory.Builder()
+                                        .uncaughtExceptionHandler(new WorkerExceptionHandler())
+                                        .namingPattern("overseer-pool-%d")
+                                        .daemon(false)
+                                        .build())
+                        : overseerExecutor;
     }
 
     /** 资源关闭 */
     public void close() {
-        if (executor != null) {
-            executor.shutdown();
+        if (workerExecutor != null) {
+            workerExecutor.shutdown();
+        }
+
+        if (overseerExecutor != null) {
+            if (overseer != null) {
+                overseer.close();
+            }
+            overseerExecutor.shutdown();
         }
     }
 
-    /** 创建线程并提交 */
-    public void work(Collector<RowData> out) {
-        for (String key : unblockQueues.keySet()) {
-            Worker worker = new Worker(chamberlain, 3, out, key);
-            executor.execute(worker);
-        }
+    public Collector<RowData> getOut() {
+        return out;
+    }
+
+    public void setOut(Collector<RowData> out) {
+        this.out = out;
+        // out赋值后才能通知Overseer启动worker线程
+        openOverseer();
+    }
+
+    /** 开启Overseer线程,持续监听unblockQueues */
+    private void openOverseer() {
+        overseer = new Overseer(workerExecutor, chamberlain, out, workerSize);
+        overseerExecutor.execute(overseer);
     }
 }
