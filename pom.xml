@@ -59,6 +59,7 @@
         <module>flinkx-restapi</module>
         <module>flinkx-sqlservercdc</module>
         <module>flinkx-oraclelogminer</module>
+        <module>flinkx-hudi</module>
     </modules>
 
     <properties>
