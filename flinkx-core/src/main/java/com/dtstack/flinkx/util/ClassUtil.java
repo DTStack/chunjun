@@ -38,6 +38,7 @@ public class ClassUtil {
     public static void forName(String clazz, ClassLoader classLoader)  {
         synchronized (LOCK_STR){
             try {
+                LOG.info("className = " + clazz);
                 Class.forName(clazz, true, classLoader);
                 DriverManager.setLoginTimeout(10);
             } catch (Exception e) {
