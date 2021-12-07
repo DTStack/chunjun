@@ -17,7 +17,7 @@
     </modules>
 
     <properties>
-        <pulsar.version>2.5.0</pulsar.version>
+        <pulsar.version>2.7.2</pulsar.version>
     </properties>
 
     <dependencies>

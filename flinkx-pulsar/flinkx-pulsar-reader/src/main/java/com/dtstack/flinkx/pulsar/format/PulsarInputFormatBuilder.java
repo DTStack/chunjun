@@ -61,6 +61,10 @@ public class PulsarInputFormatBuilder extends BaseRichInputFormatBuilder {
         format.fieldDelimiter = fieldDelimiter;
     }
 
+    public void setListenerName(String listenerName) {
+        format.listenerName = listenerName;
+    }
+
     @Override
     protected void checkFormat() {
         StringBuilder sb = new StringBuilder(128);

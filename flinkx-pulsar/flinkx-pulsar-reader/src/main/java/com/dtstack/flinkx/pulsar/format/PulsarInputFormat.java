@@ -43,6 +43,7 @@ public class PulsarInputFormat extends BaseRichInputFormat {
     protected String pulsarServiceUrl;
     protected List<MetaColumn> metaColumns;
     protected Map<String, Object> consumerSettings;
+    protected String listenerName;
 
     protected volatile boolean running = false;
     protected transient FlinkxPulsarConsumer flinkxPulsarConsumer;
@@ -165,5 +166,9 @@ public class PulsarInputFormat extends BaseRichInputFormat {
 
     public String getFieldDelimiter() {
         return fieldDelimiter;
+    }
+
+    public String getListenerName() {
+        return listenerName;
     }
 }

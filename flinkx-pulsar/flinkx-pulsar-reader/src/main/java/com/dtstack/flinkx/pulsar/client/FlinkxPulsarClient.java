@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.dtstack.flinkx.pulsar.format.Constants.CONSUMER_SUBSCRIPTION_NAME;
+import static com.dtstack.flinkx.pulsar.format.Constants.KEY_PULSAR_SERVICE_URL;
 
 /**
  * The client of pulsar. Avoid confusion to 'org.apache.pulsar.client.api.PulsarClient'
@@ -33,6 +34,7 @@ public class FlinkxPulsarClient implements Runnable {
     private IDecode decode;
     private PulsarInputFormat format;
     private Consumer consumer;
+    private String listenerName;
 
     public FlinkxPulsarClient(PulsarInputFormat format) {
         this.format = format;
@@ -40,22 +42,25 @@ public class FlinkxPulsarClient implements Runnable {
         this.blankIgnore = format.getBlankIgnore();
         this.timeout = format.getTimeout();
         this.pulsarServiceUrl = format.getPulsarServiceUrl();
+        this.listenerName = format.getListenerName();
 
-        PulsarClient client;
+        ClientBuilder clientBuilder;
         try {
             Map<String, Object> consumerSettings = format.getConsumerSettings();
             if (null != format.getToken()) {
-                client = PulsarClient.builder()
-                        .serviceUrl(pulsarServiceUrl)
-                        .authentication(AuthenticationFactory.token(format.getToken()))
-                        .build();
+                clientBuilder = PulsarClient.builder()
+                        .serviceUrl(consumerSettings.get(KEY_PULSAR_SERVICE_URL).toString())
+                        .authentication(AuthenticationFactory.token(format.getToken()));
             } else {
-                client = PulsarClient.builder()
-                        .serviceUrl(pulsarServiceUrl)
-                        .build();
+                clientBuilder = PulsarClient.builder()
+                        .serviceUrl(consumerSettings.get(KEY_PULSAR_SERVICE_URL).toString());
             }
 
-            consumer = client.newConsumer(Schema.STRING)
+            if (null != format.getListenerName()) {
+                clientBuilder.listenerName(listenerName);
+            }
+
+            consumer = clientBuilder.build().newConsumer(Schema.STRING)
                     .topic(format.getTopic())
                     .subscriptionName(CONSUMER_SUBSCRIPTION_NAME)
                     .subscriptionType(SubscriptionType.Failover)

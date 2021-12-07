@@ -36,6 +36,7 @@ public class PulsarReader extends BaseDataReader {
     protected String pulsarServiceUrl;
     protected List<MetaColumn> metaColumns;
     protected Map<String, Object> consumerSettings;
+    protected String listenerName;
 
     public PulsarReader(DataTransferConfig config, StreamExecutionEnvironment env) {
         super(config, env);
@@ -51,6 +52,7 @@ public class PulsarReader extends BaseDataReader {
         pulsarServiceUrl = readerConfig.getParameter().getStringVal(KEY_PULSAR_SERVICE_URL);
         metaColumns = MetaColumn.getMetaColumns(readerConfig.getParameter().getColumn());
         consumerSettings = (Map<String, Object>) readerConfig.getParameter().getVal(KEY_CONSUMER_SETTINGS);
+        listenerName = readerConfig.getParameter().getStringVal(KEY_LISTENER_NAME);
     }
 
     @Override
@@ -67,6 +69,7 @@ public class PulsarReader extends BaseDataReader {
         builder.setInitialPosition(initialPosition);
         builder.setFieldDelimiter(fieldDelimiter);
         builder.setDataTransferConfig(dataTransferConfig);
+        builder.setListenerName(listenerName);
 
         return createInput(builder.finish());
     }
