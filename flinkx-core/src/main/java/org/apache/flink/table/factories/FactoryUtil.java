@@ -26,6 +26,7 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.DelegatingConfiguration;
+import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.api.ValidationException;
@@ -53,6 +54,8 @@ import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.apache.flink.configuration.GlobalConfiguration.HIDDEN_CONTENT;
 
 /**
  * Utility for working with {@link Factory}s. 改动内容：增加方法loadFactories，增加变量pluginPath、env、classPathSet
@@ -473,6 +476,9 @@ public final class FactoryUtil {
     }
 
     private static String stringifyOption(String key, String value) {
+        if (GlobalConfiguration.isSensitive(key)) {
+            value = HIDDEN_CONTENT;
+        }
         return String.format(
                 "'%s'='%s'",
                 EncodingUtils.escapeSingleQuotes(key), EncodingUtils.escapeSingleQuotes(value));
