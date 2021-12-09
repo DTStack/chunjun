@@ -173,7 +173,8 @@ public class Main {
             CdcConf cdcConf = config.getCdcConf();
             Fetcher fetcher = DataSyncFactoryUtil.discoverFetcher(cdcConf.getFetcher(), config);
             Store store = DataSyncFactoryUtil.discoverStore(cdcConf.getStore(), config);
-            dataStreamSource.flatMap(new RestorationFlatMap(fetcher, store, cdcConf));
+            dataStreamSource =
+                    dataStreamSource.flatMap(new RestorationFlatMap(fetcher, store, cdcConf));
         }
 
         SpeedConf speed = config.getSpeed();
