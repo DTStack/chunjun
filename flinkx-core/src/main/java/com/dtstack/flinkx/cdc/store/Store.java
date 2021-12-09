@@ -24,7 +24,7 @@ public abstract class Store implements Runnable, Serializable {
     @Override
     public void run() {
         while (!closed.get()) {
-            for (String table : chamberlain.getTableIdentifierFromBlockQueues()) {
+            for (String table : chamberlain.getTableIdentitiesFromBlockQueues()) {
                 // 如果数据已经被下发了，那么就跳过
                 if (storedTableIdentifier.contains(table)) {
                     continue;

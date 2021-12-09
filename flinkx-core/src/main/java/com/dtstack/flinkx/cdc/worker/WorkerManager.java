@@ -106,7 +106,7 @@ public class WorkerManager implements Serializable {
 
     public void setCollector(Collector<RowData> collector) {
         this.collector = collector;
-        // out赋值后才能通知Overseer启动worker线程
+        // collector赋值后才能通知Overseer启动worker线程
         openOverseer();
     }
 

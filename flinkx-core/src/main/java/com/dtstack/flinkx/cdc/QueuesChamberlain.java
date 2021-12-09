@@ -113,22 +113,22 @@ public class QueuesChamberlain implements Serializable {
         }
     }
 
-    public Deque<RowData> getQueueFromBlockQueues(String tableIdentifier) {
+    public Deque<RowData> getQueueFromBlockQueues(String tableIdentity) {
         lock.lock();
         try {
-            return blockedQueues.get(tableIdentifier);
+            return blockedQueues.get(tableIdentity);
         } finally {
             lock.unlock();
         }
     }
 
     /** 从unblockQueues中获取所有key集. */
-    public Set<String> getTableIdentifierFromUnblockQueues() {
+    public Set<String> getTableIdentitiesFromUnblockQueues() {
         return unblockQueues.keySet();
     }
 
     /** 从blockedQueues中获取所有key集. */
-    public Set<String> getTableIdentifierFromBlockQueues() {
+    public Set<String> getTableIdentitiesFromBlockQueues() {
         return blockedQueues.keySet();
     }
 

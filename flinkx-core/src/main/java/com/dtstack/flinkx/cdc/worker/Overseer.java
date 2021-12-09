@@ -90,7 +90,7 @@ public class Overseer implements Runnable, Serializable {
 
     private void wakeUp() {
         // 创建worker
-        for (String tableIdentity : chamberlain.getTableIdentifierFromUnblockQueues()) {
+        for (String tableIdentity : chamberlain.getTableIdentitiesFromUnblockQueues()) {
             if (!tableSet.contains(tableIdentity)) {
                 tableSet.add(tableIdentity);
                 Worker worker = new Worker(chamberlain, workerSize, out, tableIdentity);
