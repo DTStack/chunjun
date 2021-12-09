@@ -26,6 +26,13 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -46,6 +53,16 @@ public class Overseer implements Runnable, Serializable {
     private final QueuesChamberlain chamberlain;
 
     private final Collector<RowData> out;
+
+    /**
+     * 记录已经被worker线程获得的tableIdentity
+     */
+    private final Set<String> tableSet = new HashSet<>();
+
+    /**
+     * worker线程的返回结果
+     */
+    private final List<Future<String>> futureList = new ArrayList<>();
 
     /** worker遍历队列时的步长 */
     private final int workerSize;
@@ -71,20 +88,37 @@ public class Overseer implements Runnable, Serializable {
     /** 监视unblockQueues */
     private void watch() {
         // 判断unblockQueues是否为空，进行遍历操作
-        if (!chamberlain.getTableIdentifierFromUnblockQueues().isEmpty()) {
+        if (!chamberlain.unblockQueuesIsEmpty()) {
             wakeUp();
+            clear();
         }
     }
 
     private void wakeUp() {
         // 创建worker
         for (String tableIdentity : chamberlain.getTableIdentifierFromUnblockQueues()) {
-            Worker worker = new Worker(chamberlain, workerSize, out, tableIdentity);
-            workerExecutor.execute(worker);
+            if (!tableSet.contains(tableIdentity)) {
+                tableSet.add(tableIdentity);
+                Worker worker = new Worker(chamberlain, workerSize, out, tableIdentity);
+                Future<String> future = workerExecutor.submit(worker);
+                futureList.add(future);
+            }
         }
     }
 
     public void close() {
         closed.compareAndSet(false, true);
+    }
+
+    private void clear(){
+        Iterator<Future<String>> iterator = futureList.iterator();
+        while (iterator.hasNext()) {
+            Future<String> future = iterator.next();
+            try {
+                tableSet.remove(future.get());
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
