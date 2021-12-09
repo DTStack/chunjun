@@ -27,6 +27,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
 import java.util.Deque;
+import java.util.concurrent.Callable;
 
 /**
  * 下发数据队列中的dml数据，在遇到ddl数据之后，将数据队列的状态置为"block"
@@ -34,7 +35,7 @@ import java.util.Deque;
  * @author tiezhu@dtstack.com
  * @since 2021/12/1 星期三
  */
-public class Worker implements Runnable {
+public class Worker implements Callable<String> {
 
     private final QueuesChamberlain queuesChamberlain;
 
@@ -57,10 +58,6 @@ public class Worker implements Runnable {
         this.tableIdentity = tableIdentity;
     }
 
-    @Override
-    public void run() {
-        send();
-    }
 
     /** 发送数据 */
     private void send() {
@@ -72,7 +69,7 @@ public class Worker implements Runnable {
             }
 
             if (data instanceof ColumnRowData) {
-                dealDML(queue);
+                dealDmL(queue);
             } else {
                 queuesChamberlain.dealDdlRowData(tableIdentity, queue);
                 break;
@@ -80,9 +77,15 @@ public class Worker implements Runnable {
         }
     }
 
-    private void dealDML(Deque<RowData> queue) {
+    private void dealDmL(Deque<RowData> queue) {
         // 队列头节点是dml, 将该dml数据发送到sink
         RowData rowData = queue.poll();
         out.collect(rowData);
+    }
+
+    @Override
+    public String call() throws Exception {
+        send();
+        return tableIdentity;
     }
 }

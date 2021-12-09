@@ -115,4 +115,8 @@ public class QueuesChamberlain implements Serializable {
     public Set<String> getTableIdentifierFromBlockQueues() {
         return blockedQueues.keySet();
     }
+
+    public boolean unblockQueuesIsEmpty() {
+        return unblockQueues.isEmpty();
+    }
 }
