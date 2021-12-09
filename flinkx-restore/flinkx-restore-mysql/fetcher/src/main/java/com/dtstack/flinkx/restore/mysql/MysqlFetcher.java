@@ -18,6 +18,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
+ * TODO by tiezhu: 如果ddl库中存在历史数据，这个时候怎么处理呢？
+ *
  * @author tiezhu@dtstack.com
  * @since 2021/12/6 星期一
  */
@@ -54,8 +56,8 @@ public class MysqlFetcher extends Fetcher {
             String tableIdentifier = ddlRowData.getTableIdentifier();
             String[] split = tableIdentifier.split("\\.");
             try {
-                preparedStatement.setString(1, split[0]);
-                preparedStatement.setString(2, split[1]);
+                preparedStatement.setString(1, split[0].replace("'", ""));
+                preparedStatement.setString(2, split[1].replace("'", ""));
                 ResultSet resultSet = preparedStatement.executeQuery();
                 return resultSet.next();
             } catch (SQLException e) {
