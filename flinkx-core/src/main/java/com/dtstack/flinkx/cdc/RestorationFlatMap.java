@@ -95,6 +95,6 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
         }
         String schema = data.getString(schemaIndex).toString();
         String table = data.getString(tableIndex).toString();
-        return schema + "." + table;
+        return "'" + schema + "'.'" + table + "'";
     }
 }

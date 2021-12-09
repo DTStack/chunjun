@@ -99,19 +99,21 @@ public class QueuesChamberlain implements Serializable {
         }
     }
 
+    /**
+     * 从unblockQueues中取出表名为tableIdentity的队列
+     *
+     * @param tableIdentity table identifier.
+     */
     public Deque<RowData> getQueueFromUnblockQueues(String tableIdentity) {
         return unblockQueues.get(tableIdentity);
     }
 
-    /**
-     * 从unblockQueues中获取所有key集.
-     *
-     * @return
-     */
+    /** 从unblockQueues中获取所有key集. */
     public Set<String> getTableIdentifierFromUnblockQueues() {
         return unblockQueues.keySet();
     }
 
+    /** 从blockedQueues中获取所有key集. */
     public Set<String> getTableIdentifierFromBlockQueues() {
         return blockedQueues.keySet();
     }
