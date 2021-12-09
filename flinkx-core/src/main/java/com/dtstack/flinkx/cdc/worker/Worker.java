@@ -75,6 +75,7 @@ public class Worker implements Runnable {
                 dealDML(queue);
             } else {
                 queuesChamberlain.dealDdlRowData(tableIdentity, queue);
+                break;
             }
         }
     }

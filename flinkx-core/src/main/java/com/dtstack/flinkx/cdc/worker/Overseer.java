@@ -48,7 +48,7 @@ public class Overseer implements Runnable, Serializable {
     private final Collector<RowData> out;
 
     /** worker遍历队列时的步长 */
-    private int workerSize;
+    private final int workerSize;
 
     public Overseer(
             ThreadPoolExecutor workerExecutor,
@@ -71,14 +71,14 @@ public class Overseer implements Runnable, Serializable {
     /** 监视unblockQueues */
     private void watch() {
         // 判断unblockQueues是否为空，进行遍历操作
-        if (!chamberlain.getTableIdentityFromUnblockQueues().isEmpty()) {
+        if (!chamberlain.getTableIdentifierFromUnblockQueues().isEmpty()) {
             wakeUp();
         }
     }
 
     private void wakeUp() {
         // 创建worker
-        for (String tableIdentity : chamberlain.getTableIdentityFromUnblockQueues()) {
+        for (String tableIdentity : chamberlain.getTableIdentifierFromUnblockQueues()) {
             Worker worker = new Worker(chamberlain, workerSize, out, tableIdentity);
             workerExecutor.execute(worker);
         }

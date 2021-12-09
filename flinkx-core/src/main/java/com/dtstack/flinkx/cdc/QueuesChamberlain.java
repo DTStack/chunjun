@@ -40,13 +40,11 @@ public class QueuesChamberlain implements Serializable {
 
     private static final long serialVersionUID = 2L;
 
-    private ConcurrentHashMap<String, Deque<RowData>> blockedQueues;
+    private final ConcurrentHashMap<String, Deque<RowData>> blockedQueues;
 
-    private ConcurrentHashMap<String, Deque<RowData>> unblockQueues;
+    private final ConcurrentHashMap<String, Deque<RowData>> unblockQueues;
 
     private final Lock lock = new ReentrantLock();
-
-    public QueuesChamberlain() {}
 
     public QueuesChamberlain(
             ConcurrentHashMap<String, Deque<RowData>> blockedQueues,
@@ -110,7 +108,11 @@ public class QueuesChamberlain implements Serializable {
      *
      * @return
      */
-    public Set<String> getTableIdentityFromUnblockQueues() {
+    public Set<String> getTableIdentifierFromUnblockQueues() {
         return unblockQueues.keySet();
+    }
+
+    public Set<String> getTableIdentifierFromBlockQueues() {
+        return blockedQueues.keySet();
     }
 }

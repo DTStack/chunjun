@@ -1,9 +1,10 @@
 package com.dtstack.flinkx.cdc;
 
 /**
+ * 构建DdlRowData，header顺序如下： tableIdentifier -> 0 | type -> 1 | sql -> 2 | lsn -> 3
+ *
  * @author tiezhu@dtstack.com
  * @since 2021/12/3 星期五
- *     <p>构建DdlRowData，header顺序如下： tableIdentifier -> 0 | type -> 1 | sql -> 2 | lsn -> 3
  */
 public class DdlRowDataBuilder {
 
@@ -55,7 +56,7 @@ public class DdlRowDataBuilder {
 
     public DdlRowData build() {
         if (tableName != null && databaseName != null) {
-            String tableIdentifier = "`" + databaseName + "`.`" + tableName + "`";
+            String tableIdentifier = "'" + databaseName + "'.'" + tableName + "'";
             ddlRowData.setDdlInfo(0, tableIdentifier);
         }
         return ddlRowData;

@@ -1,5 +1,6 @@
 package com.dtstack.flinkx.cdc.store;
 
+import com.dtstack.flinkx.cdc.QueuesChamberlain;
 import org.apache.flink.table.data.RowData;
 
 import java.io.Serializable;
@@ -15,6 +16,8 @@ public abstract class Store implements Runnable, Serializable {
 
     protected Map<String, Deque<RowData>> blockDeque;
 
+    protected QueuesChamberlain chamberlain;
+
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
     @Override
@@ -29,8 +32,8 @@ public abstract class Store implements Runnable, Serializable {
         }
     }
 
-    public void setBlockDeque(Map<String, Deque<RowData>> blockDeque) {
-        this.blockDeque = blockDeque;
+    public void setChamberlain(QueuesChamberlain chamberlain) {
+        this.chamberlain = chamberlain;
     }
 
     public void close() {
@@ -38,9 +41,20 @@ public abstract class Store implements Runnable, Serializable {
         closeSubclass();
     }
 
+    /**
+     * 存储row data.
+     *
+     * @param data row data
+     */
     public abstract void store(RowData data);
 
-    public abstract void open();
+    /**
+     * open sub-class
+     *
+     * @throws Exception exception
+     */
+    public abstract void open() throws Exception;
 
+    /** class sub-class. */
     public abstract void closeSubclass();
 }

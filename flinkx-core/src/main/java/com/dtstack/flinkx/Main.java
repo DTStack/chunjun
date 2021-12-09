@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx;
 
+import com.dtstack.flinkx.cdc.CdcConf;
 import com.dtstack.flinkx.cdc.RestorationFlatMap;
 import com.dtstack.flinkx.cdc.store.Fetcher;
 import com.dtstack.flinkx.cdc.store.Store;
@@ -63,7 +64,6 @@ import org.apache.flink.table.types.DataType;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,11 +170,10 @@ public class Main {
         DataStream<RowData> dataStreamSource = sourceFactory.createSource();
 
         if (!config.getCdcConf().isSkip()) {
-            Pair<Store, Fetcher> storeFetcherPair =
-                    DataSyncFactoryUtil.discoverStoreAndFetcher(config.getCdcConf(), config);
-            dataStreamSource.flatMap(
-                    new RestorationFlatMap(
-                            storeFetcherPair.getRight(), storeFetcherPair.getLeft(), config.getCdcConf()));
+            CdcConf cdcConf = config.getCdcConf();
+            Fetcher fetcher = DataSyncFactoryUtil.discoverFetcher(cdcConf.getFetcher(), config);
+            Store store = DataSyncFactoryUtil.discoverStore(cdcConf.getStore(), config);
+            dataStreamSource.flatMap(new RestorationFlatMap(fetcher, store, cdcConf));
         }
 
         SpeedConf speed = config.getSpeed();
