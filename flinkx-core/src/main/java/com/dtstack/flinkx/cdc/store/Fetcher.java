@@ -33,7 +33,7 @@ public abstract class Fetcher implements Runnable, Serializable {
     public void run() {
         while (!closed.get()) {
             // 遍历block数据队列里的数据
-            for (String table : chamberlain.getTableIdentifierFromBlockQueues()) {
+            for (String table : chamberlain.getTableIdentitiesFromBlockQueues()) {
                 // 取队列中的头节点，查询外部数据源
                 Deque<RowData> rowDataDeque = chamberlain.getQueueFromBlockQueues(table);
                 RowData rowData = rowDataDeque.peekFirst();
