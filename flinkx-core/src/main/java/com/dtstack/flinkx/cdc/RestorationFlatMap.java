@@ -39,7 +39,7 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
     private final WorkerManager workerManager;
 
     public RestorationFlatMap(Fetcher fetcher, Store store, CdcConf conf) {
-        this.monitor = new Monitor(fetcher, store, blockedQueues, unblockQueues);
+        this.monitor = new Monitor(fetcher, store, chamberlain);
         this.workerManager = new WorkerManager(chamberlain, conf);
     }
 
@@ -59,8 +59,8 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
     @Override
     public void flatMap(RowData value, Collector<RowData> out) throws Exception {
         put(value);
-        if (workerManager.getOut() == null) {
-            workerManager.setOut(out);
+        if (workerManager.getCollector() == null) {
+            workerManager.setCollector(out);
         }
     }
 

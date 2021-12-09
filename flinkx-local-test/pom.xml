@@ -289,7 +289,13 @@
 		<!--Cdc-Restore-plugins-->
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-restore-mysql</artifactId>
+			<artifactId>mysql.store</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>mysql.fetcher</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

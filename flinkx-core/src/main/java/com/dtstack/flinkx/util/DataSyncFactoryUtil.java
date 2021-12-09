@@ -18,9 +18,10 @@
 
 package com.dtstack.flinkx.util;
 
-import com.dtstack.flinkx.cdc.CdcConf;
 import com.dtstack.flinkx.cdc.store.Fetcher;
+import com.dtstack.flinkx.cdc.store.FetcherConf;
 import com.dtstack.flinkx.cdc.store.Store;
+import com.dtstack.flinkx.cdc.store.StoreConf;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.MetricParam;
@@ -40,8 +41,6 @@ import org.apache.flink.configuration.ConfigUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -172,34 +171,42 @@ public class DataSyncFactoryUtil {
         }
     }
 
-    public static Pair<Store, Fetcher> discoverStoreAndFetcher(CdcConf cdcConf, SyncConf config) {
+    public static Fetcher discoverFetcher(FetcherConf fetcherConf, SyncConf config) {
         try {
-            String pluginType = cdcConf.getType();
-            String storePluginClassName =
-                    PluginUtil.getPluginClassName(pluginType, OperatorType.store);
+            String pluginType = fetcherConf.getType();
             String fetcherPluginClassName =
                     PluginUtil.getPluginClassName(pluginType, OperatorType.fetcher);
+
             Set<URL> urlList =
                     PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null);
 
-            Store store =
-                    ClassLoaderManager.newInstance(
-                            urlList,
-                            cl -> {
-                                Class<?> clazz = cl.loadClass(storePluginClassName);
-                                Constructor<?> constructor = clazz.getConstructor(CdcConf.class);
-                                return (Store) constructor.newInstance(cdcConf);
-                            });
+            return ClassLoaderManager.newInstance(
+                    urlList,
+                    cl -> {
+                        Class<?> clazz = cl.loadClass(fetcherPluginClassName);
+                        Constructor<?> constructor = clazz.getConstructor(FetcherConf.class);
+                        return (Fetcher) constructor.newInstance(fetcherConf);
+                    });
+        } catch (Exception e) {
+            throw new NoRestartException("Load restore plugins failed!", e);
+        }
+    }
 
-            Fetcher fetcher =
-                    ClassLoaderManager.newInstance(
-                            urlList,
-                            cl -> {
-                                Class<?> clazz = cl.loadClass(fetcherPluginClassName);
-                                Constructor<?> constructor = clazz.getConstructor(CdcConf.class);
-                                return (Fetcher) constructor.newInstance(cdcConf);
-                            });
-            return Pair.of(store, fetcher);
+    public static Store discoverStore(StoreConf storeConf, SyncConf config) {
+        try {
+            String pluginType = storeConf.getType();
+            String storePluginClassName =
+                    PluginUtil.getPluginClassName(pluginType, OperatorType.store);
+            Set<URL> urlList =
+                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null);
+
+            return ClassLoaderManager.newInstance(
+                    urlList,
+                    cl -> {
+                        Class<?> clazz = cl.loadClass(storePluginClassName);
+                        Constructor<?> constructor = clazz.getConstructor(StoreConf.class);
+                        return (Store) constructor.newInstance(storeConf);
+                    });
         } catch (Exception e) {
             throw new NoRestartException("Load restore plugins failed!", e);
         }

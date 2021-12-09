@@ -1,10 +1,11 @@
 package com.dtstack.flinkx.cdc.store;
 
+import com.dtstack.flinkx.cdc.QueuesChamberlain;
+
 import org.apache.flink.table.data.RowData;
 
 import java.io.Serializable;
 import java.util.Deque;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -13,31 +14,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class Fetcher implements Runnable, Serializable {
 
-    protected Map<String, Deque<RowData>> blockDeque;
-
-    protected Map<String, Deque<RowData>> unblockDeque;
+    private QueuesChamberlain chamberlain;
 
     protected final AtomicBoolean closed = new AtomicBoolean(false);
 
-    public void setDeque(
-            Map<String, Deque<RowData>> blockDeque, Map<String, Deque<RowData>> unblockDeque) {
-        this.blockDeque = blockDeque;
-        this.unblockDeque = unblockDeque;
+    public void setChamberlain(QueuesChamberlain chamberlain) {
+        this.chamberlain = chamberlain;
     }
 
     @Override
     public void run() {
         while (!closed.get()) {
             // 遍历block数据队列里的数据
-            for (String table : blockDeque.keySet()) {
+            for (String table : chamberlain.getTableIdentifierFromBlockQueues()) {
                 // 取队列中的头节点，查询外部数据源
-                Deque<RowData> rowDataDeque = blockDeque.get(table);
+                Deque<RowData> rowDataDeque = chamberlain.getQueueFromUnblockQueues(table);
                 RowData rowData = rowDataDeque.peekFirst();
                 // 如果外部数据源已经处理了该数据，那么将此数据从数据队列中移除，此数据队列从block中移除，放入到unblock队列中
                 if (fetch(rowData)) {
                     rowDataDeque.removeFirst();
-                    unblockDeque.put(table, rowDataDeque);
-                    blockDeque.remove(table);
+                    chamberlain.dealDmlRowData(table, rowDataDeque);
                 }
             }
         }
@@ -51,8 +47,14 @@ public abstract class Fetcher implements Runnable, Serializable {
      */
     public abstract boolean fetch(RowData data);
 
-    public abstract void open();
+    /**
+     * open sub-class
+     *
+     * @throws Exception exception
+     */
+    public abstract void open() throws Exception;
 
+    /** 关闭子类 */
     public abstract void closeSubclass();
 
     public void close() {

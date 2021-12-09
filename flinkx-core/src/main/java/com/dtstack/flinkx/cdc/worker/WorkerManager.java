@@ -22,16 +22,14 @@ package com.dtstack.flinkx.cdc.worker;
 
 import com.dtstack.flinkx.cdc.CdcConf;
 import com.dtstack.flinkx.cdc.QueuesChamberlain;
-
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import com.dtstack.flinkx.cdc.exception.LogExceptionHandler;
+import com.dtstack.flinkx.cdc.utils.ExecutorUtils;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
 import java.io.Serializable;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 线程池的创建,管理overseerExecutor和workerExecutor两个线程池,
@@ -53,22 +51,16 @@ public class WorkerManager implements Serializable {
 
     private Overseer overseer;
 
-    private Collector<RowData> out;
+    private Collector<RowData> collector;
 
-    /**
-     * worker的核心线程数
-     */
-    private int workerNum;
+    /** worker的核心线程数 */
+    private final int workerNum;
 
-    /**
-     * worker遍历队列时的步长
-     */
-    private int workerSize;
+    /** worker遍历队列时的步长 */
+    private final int workerSize;
 
-    /**
-     * worker线程池的最大容量
-     */
-    private int workerMax;
+    /** worker线程池的最大容量 */
+    private final int workerMax;
 
     public WorkerManager(QueuesChamberlain chamberlain, CdcConf conf) {
         this.chamberlain = chamberlain;
@@ -80,34 +72,18 @@ public class WorkerManager implements Serializable {
     /** 创建线程池 */
     public void open() {
         workerExecutor =
-                workerExecutor == null
-                        ? new ThreadPoolExecutor(
-                                workerNum,
-                                workerMax,
-                                0,
-                                TimeUnit.NANOSECONDS,
-                                new LinkedBlockingDeque<>(3),
-                                new BasicThreadFactory.Builder()
-                                        .uncaughtExceptionHandler(new WorkerExceptionHandler())
-                                        .namingPattern("worker-pool-%d")
-                                        .daemon(false)
-                                        .build())
-                        : workerExecutor;
+                ExecutorUtils.threadPoolExecutor(
+                        workerNum,
+                        workerMax,
+                        0,
+                        workerSize,
+                        "worker-pool-%d",
+                        false,
+                        new LogExceptionHandler());
 
         overseerExecutor =
-                overseerExecutor == null
-                        ? new ThreadPoolExecutor(
-                                1,
-                                1,
-                                0,
-                                TimeUnit.NANOSECONDS,
-                                new LinkedBlockingDeque<>(1),
-                                new BasicThreadFactory.Builder()
-                                        .uncaughtExceptionHandler(new WorkerExceptionHandler())
-                                        .namingPattern("overseer-pool-%d")
-                                        .daemon(false)
-                                        .build())
-                        : overseerExecutor;
+                ExecutorUtils.singleThreadExecutor(
+                        "overseer-pool-%d", false, new LogExceptionHandler());
     }
 
     /** 资源关闭 */
@@ -124,19 +100,19 @@ public class WorkerManager implements Serializable {
         }
     }
 
-    public Collector<RowData> getOut() {
-        return out;
+    public Collector<RowData> getCollector() {
+        return collector;
     }
 
-    public void setOut(Collector<RowData> out) {
-        this.out = out;
+    public void setCollector(Collector<RowData> collector) {
+        this.collector = collector;
         // out赋值后才能通知Overseer启动worker线程
         openOverseer();
     }
 
     /** 开启Overseer线程,持续监听unblockQueues */
     private void openOverseer() {
-        overseer = new Overseer(workerExecutor, chamberlain, out, workerSize);
+        overseer = new Overseer(workerExecutor, chamberlain, collector, workerSize);
         overseerExecutor.execute(overseer);
     }
 }
