@@ -28,10 +28,8 @@ import org.apache.flink.util.Collector;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,14 +52,10 @@ public class Overseer implements Runnable, Serializable {
 
     private final Collector<RowData> out;
 
-    /**
-     * 记录已经被worker线程获得的tableIdentity
-     */
+    /** 记录已经被worker线程获得的tableIdentity */
     private final Set<String> tableSet = new HashSet<>();
 
-    /**
-     * worker线程的返回结果
-     */
+    /** worker线程的返回结果 */
     private final List<Future<String>> futureList = new ArrayList<>();
 
     /** worker遍历队列时的步长 */
@@ -110,14 +104,14 @@ public class Overseer implements Runnable, Serializable {
         closed.compareAndSet(false, true);
     }
 
-    private void clear(){
-        Iterator<Future<String>> iterator = futureList.iterator();
-        while (iterator.hasNext()) {
-            Future<String> future = iterator.next();
+    /** 根据worker的返回结果，移除tableSet中的记录 */
+    private void clear() {
+        for (Future<String> future : futureList) {
             try {
-                tableSet.remove(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+                String tableIdentity = future.get();
+                tableSet.remove(tableIdentity);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
     }
