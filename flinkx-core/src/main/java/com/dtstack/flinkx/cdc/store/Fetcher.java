@@ -6,6 +6,7 @@ import org.apache.flink.table.data.RowData;
 
 import java.io.Serializable;
 import java.util.Deque;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -18,8 +19,14 @@ public abstract class Fetcher implements Runnable, Serializable {
 
     protected final AtomicBoolean closed = new AtomicBoolean(false);
 
+    protected CopyOnWriteArrayList<String> storedTableIdentifier;
+
     public void setChamberlain(QueuesChamberlain chamberlain) {
         this.chamberlain = chamberlain;
+    }
+
+    public void setStoredTableIdentifier(CopyOnWriteArrayList<String> storedTableIdentifier) {
+        this.storedTableIdentifier = storedTableIdentifier;
     }
 
     @Override
@@ -28,12 +35,13 @@ public abstract class Fetcher implements Runnable, Serializable {
             // 遍历block数据队列里的数据
             for (String table : chamberlain.getTableIdentifierFromBlockQueues()) {
                 // 取队列中的头节点，查询外部数据源
-                Deque<RowData> rowDataDeque = chamberlain.getQueueFromUnblockQueues(table);
+                Deque<RowData> rowDataDeque = chamberlain.getQueueFromBlockQueues(table);
                 RowData rowData = rowDataDeque.peekFirst();
                 // 如果外部数据源已经处理了该数据，那么将此数据从数据队列中移除，此数据队列从block中移除，放入到unblock队列中
                 if (fetch(rowData)) {
                     rowDataDeque.removeFirst();
                     chamberlain.dealDmlRowData(table, rowDataDeque);
+                    storedTableIdentifier.remove(table);
                 }
             }
         }

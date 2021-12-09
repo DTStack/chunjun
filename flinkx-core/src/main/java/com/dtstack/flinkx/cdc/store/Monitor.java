@@ -5,6 +5,7 @@ import com.dtstack.flinkx.cdc.exception.LogExceptionHandler;
 import com.dtstack.flinkx.cdc.utils.ExecutorUtils;
 
 import java.io.Serializable;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -19,6 +20,9 @@ public class Monitor implements Serializable {
     private final Fetcher fetcher;
 
     private final Store store;
+
+    /** 用来存储已经下发的ddl table */
+    private final CopyOnWriteArrayList<String> storedTableIdentifier = new CopyOnWriteArrayList<>();
 
     private transient ExecutorService fetcherExecutor;
 
@@ -44,6 +48,7 @@ public class Monitor implements Serializable {
 
     private void submitFetcher() {
         fetcher.setChamberlain(queuesChamberlain);
+        fetcher.setStoredTableIdentifier(storedTableIdentifier);
         fetcherExecutor =
                 ExecutorUtils.singleThreadExecutor(
                         "fetcher-pool-%d", false, new LogExceptionHandler());
@@ -52,6 +57,7 @@ public class Monitor implements Serializable {
 
     private void submitStore() {
         store.setChamberlain(queuesChamberlain);
+        store.setStoredTableIdentifier(storedTableIdentifier);
         storeExecutor =
                 ExecutorUtils.singleThreadExecutor(
                         "store-pool-%d", false, new LogExceptionHandler());
