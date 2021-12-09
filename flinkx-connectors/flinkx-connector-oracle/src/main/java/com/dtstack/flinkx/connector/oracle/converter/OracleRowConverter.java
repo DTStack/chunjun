@@ -25,15 +25,23 @@ import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.data.DecimalData;
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
+import org.apache.flink.table.types.logical.CharType;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
+import org.apache.flink.table.types.logical.VarCharType;
 
+import io.vertx.core.json.JsonArray;
 import oracle.sql.TIMESTAMP;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
@@ -41,6 +49,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalTime;
+import java.util.ArrayList;
 
 /**
  * company www.dtstack.com
@@ -51,8 +60,41 @@ public class OracleRowConverter extends JdbcRowConverter {
 
     private static final long serialVersionUID = 1L;
 
+    public static final int CLOB_LENGTH = 4000;
+
+    protected ArrayList<IDeserializationConverter> toAsyncInternalConverters;
+
     public OracleRowConverter(RowType rowType) {
         super(rowType);
+        toAsyncInternalConverters = new ArrayList<>(rowType.getFieldCount());
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
+            toAsyncInternalConverters.add(
+                    wrapIntoNullableInternalConverter(
+                            createAsyncInternalConverter(rowType.getTypeAt(i))));
+        }
+    }
+
+    protected IDeserializationConverter createAsyncInternalConverter(LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case BINARY:
+            case VARBINARY:
+                return val -> val;
+            case CHAR:
+            case VARCHAR:
+                return val -> StringData.fromString(val.toString());
+            default:
+                return createInternalConverter(type);
+        }
+    }
+
+    @Override
+    public RowData toInternalLookup(JsonArray jsonArray) throws Exception {
+        GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
+        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
+            Object field = jsonArray.getValue(pos);
+            genericRowData.setField(pos, toAsyncInternalConverters.get(pos).deserialize(field));
+        }
+        return genericRowData;
     }
 
     @Override
@@ -70,10 +112,10 @@ public class OracleRowConverter extends JdbcRowConverter {
                 return val -> ((Integer) val).byteValue();
             case SMALLINT:
                 return val -> val instanceof Integer ? ((Integer) val).shortValue() : val;
-            case INTEGER:
-                return val -> val;
             case BIGINT:
-                return val -> val;
+                return val -> Long.valueOf(val.toString());
+            case INTEGER:
+                return val -> Integer.valueOf(val.toString());
             case DECIMAL:
                 final int precision = ((DecimalType) type).getPrecision();
                 final int scale = ((DecimalType) type).getScale();
@@ -110,11 +152,27 @@ public class OracleRowConverter extends JdbcRowConverter {
                     }
                 };
             case CHAR:
+                if (((CharType) type).getLength() > CLOB_LENGTH) {
+                    return val -> {
+                        oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
+                        return StringData.fromString(ConvertUtil.convertClob(clob));
+                    };
+                }
+                return val -> StringData.fromString(val.toString());
             case VARCHAR:
+                if (((VarCharType) type).getLength() > CLOB_LENGTH) {
+                    return val -> {
+                        oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
+                        return StringData.fromString(ConvertUtil.convertClob(clob));
+                    };
+                }
                 return val -> StringData.fromString(val.toString());
             case BINARY:
             case VARBINARY:
-                return val -> (byte[]) val;
+                return val -> {
+                    oracle.sql.BLOB blob = (oracle.sql.BLOB) val;
+                    return ConvertUtil.toByteArray(blob);
+                };
             default:
                 throw new UnsupportedTypeException("Unsupported type:" + type);
         }
@@ -142,13 +200,37 @@ public class OracleRowConverter extends JdbcRowConverter {
             case DOUBLE:
                 return (val, index, statement) -> statement.setDouble(index, val.getDouble(index));
             case CHAR:
+                if (((CharType) type).getLength() > CLOB_LENGTH) {
+                    return (val, index, statement) -> {
+                        try (StringReader reader =
+                                new StringReader(val.getString(index).toString())) {
+                            statement.setClob(index, reader);
+                        }
+                    };
+                }
+                return (val, index, statement) -> {
+                    statement.setString(index, val.getString(index).toString());
+                };
             case VARCHAR:
                 // value is BinaryString
-                return (val, index, statement) ->
-                        statement.setString(index, val.getString(index).toString());
+                if (((VarCharType) type).getLength() > CLOB_LENGTH) {
+                    return (val, index, statement) -> {
+                        try (StringReader reader =
+                                new StringReader(val.getString(index).toString())) {
+                            statement.setClob(index, reader);
+                        }
+                    };
+                }
+                return (val, index, statement) -> {
+                    statement.setString(index, val.getString(index).toString());
+                };
             case BINARY:
             case VARBINARY:
-                return (val, index, statement) -> statement.setBytes(index, val.getBinary(index));
+                return (val, index, statement) -> {
+                    try (InputStream is = new ByteArrayInputStream(val.getBinary(index))) {
+                        statement.setBlob(index, is);
+                    }
+                };
             case DATE:
                 return (val, index, statement) ->
                         statement.setDate(
