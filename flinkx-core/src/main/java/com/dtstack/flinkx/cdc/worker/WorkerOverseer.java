@@ -26,9 +26,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -56,7 +54,7 @@ public class WorkerOverseer implements Runnable, Serializable {
     private final Set<String> tableSet = new HashSet<>();
 
     /** worker线程的返回结果 */
-    private final List<Future<String>> futureList = new ArrayList<>();
+    private final Set<Future<String>> futureSet = new HashSet<>();
 
     /** worker遍历队列时的步长 */
     private final int workerSize;
@@ -91,11 +89,11 @@ public class WorkerOverseer implements Runnable, Serializable {
     private void wakeUp() {
         // 创建worker
         for (String tableIdentity : chamberlain.getTableIdentitiesFromUnblockQueues()) {
-            if (!tableSet.contains(tableIdentity)) {
+            if (tableIdentity != null && !tableSet.contains(tableIdentity)) {
                 tableSet.add(tableIdentity);
                 Worker worker = new Worker(chamberlain, workerSize, collector, tableIdentity);
                 Future<String> future = workerExecutor.submit(worker);
-                futureList.add(future);
+                futureSet.add(future);
             }
         }
     }
@@ -106,10 +104,11 @@ public class WorkerOverseer implements Runnable, Serializable {
 
     /** 根据worker的返回结果，移除tableSet中的记录 */
     private void clear() {
-        for (Future<String> future : futureList) {
+        for (Future<String> future : futureSet) {
             try {
                 String tableIdentity = future.get();
                 tableSet.remove(tableIdentity);
+                futureSet.remove(future);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
