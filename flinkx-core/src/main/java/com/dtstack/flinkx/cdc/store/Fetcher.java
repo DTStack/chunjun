@@ -42,6 +42,7 @@ public abstract class Fetcher implements Runnable, Serializable {
                     rowDataDeque.removeFirst();
                     chamberlain.dealDmlRowData(table, rowDataDeque);
                     storedTableIdentifier.remove(table);
+                    delete(rowData);
                 }
             }
         }
@@ -54,6 +55,13 @@ public abstract class Fetcher implements Runnable, Serializable {
      * @return 是否被外部数据源处理
      */
     public abstract boolean fetch(RowData data);
+
+    /**
+     * 删除外部数据源对应的ddl data
+     *
+     * @param data 需要删除的ddl data
+     */
+    public abstract void delete(RowData data);
 
     /**
      * open sub-class

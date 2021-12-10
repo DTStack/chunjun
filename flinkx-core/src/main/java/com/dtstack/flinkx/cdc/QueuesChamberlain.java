@@ -69,7 +69,7 @@ public class QueuesChamberlain implements Serializable {
             } else {
                 // 说明此时不存在该tableIdentifier的数据队列
                 Deque<RowData> dataDeque = new LinkedList<>();
-                dataDeque.addFirst(data);
+                dataDeque.add(data);
                 unblockQueues.put(tableIdentifier, dataDeque);
             }
         } finally {
