@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author shitou
  * @date 2021/12/7
  */
-public class Overseer implements Runnable, Serializable {
+public class WorkerOverseer implements Runnable, Serializable {
 
     private static final long serialVersionUID = 2L;
 
@@ -50,7 +50,7 @@ public class Overseer implements Runnable, Serializable {
 
     private final QueuesChamberlain chamberlain;
 
-    private final Collector<RowData> out;
+    private final Collector<RowData> collector;
 
     /** 记录已经被worker线程获得的tableIdentity */
     private final Set<String> tableSet = new HashSet<>();
@@ -61,14 +61,14 @@ public class Overseer implements Runnable, Serializable {
     /** worker遍历队列时的步长 */
     private final int workerSize;
 
-    public Overseer(
+    public WorkerOverseer(
             ThreadPoolExecutor workerExecutor,
             QueuesChamberlain chamberlain,
-            Collector<RowData> out,
+            Collector<RowData> collector,
             int workerSize) {
         this.workerExecutor = workerExecutor;
         this.chamberlain = chamberlain;
-        this.out = out;
+        this.collector = collector;
         this.workerSize = workerSize;
     }
 
@@ -93,7 +93,7 @@ public class Overseer implements Runnable, Serializable {
         for (String tableIdentity : chamberlain.getTableIdentitiesFromUnblockQueues()) {
             if (!tableSet.contains(tableIdentity)) {
                 tableSet.add(tableIdentity);
-                Worker worker = new Worker(chamberlain, workerSize, out, tableIdentity);
+                Worker worker = new Worker(chamberlain, workerSize, collector, tableIdentity);
                 Future<String> future = workerExecutor.submit(worker);
                 futureList.add(future);
             }

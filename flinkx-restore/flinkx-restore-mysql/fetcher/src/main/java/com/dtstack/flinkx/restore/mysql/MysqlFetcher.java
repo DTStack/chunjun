@@ -29,7 +29,11 @@ public class MysqlFetcher extends Fetcher {
 
     private static final String SELECT =
             "select database_name, table_name from `$database`.`$table`"
-                    + " where status = 2 and database_name = ? and table_name = ?";
+                    + " where status = 2 and database_name = ? and table_name = ? and lsn = ?";
+
+    private static final String DELETE =
+            "delete from `$database`.`$table`"
+                    + " where status = 2 and database_name = ? and table_name = ? and lsn = ?";
 
     private static final String DATABASE_KEY = "database";
 
@@ -43,7 +47,9 @@ public class MysqlFetcher extends Fetcher {
 
     private Connection connection;
 
-    private PreparedStatement preparedStatement;
+    private PreparedStatement select;
+
+    private PreparedStatement delete;
 
     public MysqlFetcher(FetcherConf conf) {
         this.conf = conf;
@@ -56,9 +62,10 @@ public class MysqlFetcher extends Fetcher {
             String tableIdentifier = ddlRowData.getTableIdentifier();
             String[] split = tableIdentifier.split("\\.");
             try {
-                preparedStatement.setString(1, split[0].replace("'", ""));
-                preparedStatement.setString(2, split[1].replace("'", ""));
-                ResultSet resultSet = preparedStatement.executeQuery();
+                select.setString(1, split[0].replace("'", ""));
+                select.setString(2, split[1].replace("'", ""));
+                select.setString(3, ddlRowData.getLsn());
+                ResultSet resultSet = select.executeQuery();
                 return resultSet.next();
             } catch (SQLException e) {
                 throw new RuntimeException(
@@ -70,6 +77,24 @@ public class MysqlFetcher extends Fetcher {
     }
 
     @Override
+    public void delete(RowData data) {
+        if (data instanceof DdlRowData) {
+            DdlRowData ddlRowData = (DdlRowData) data;
+            String tableIdentifier = ddlRowData.getTableIdentifier();
+            String[] split = tableIdentifier.split("\\.");
+            try {
+                delete.setString(1, split[0].replace("'", ""));
+                delete.setString(2, split[1].replace("'", ""));
+                delete.setString(3, ddlRowData.getLsn());
+                delete.execute();
+            } catch (SQLException e) {
+                throw new RuntimeException(
+                        "Delete ddl failed! tableIdentifier: " + tableIdentifier, e);
+            }
+        }
+    }
+
+    @Override
     public void open() throws Exception {
         dataSource = DruidDataSourceUtil.getDataSource(conf.getProperties(), DRIVER);
         connection = dataSource.getConnection();
@@ -77,7 +102,9 @@ public class MysqlFetcher extends Fetcher {
         String database = (String) conf.getProperties().get(DATABASE_KEY);
         String table = (String) conf.getProperties().get(TABLE_KEY);
         String select = SELECT.replace("$database", database).replace("$table", table);
-        preparedStatement = connection.prepareStatement(select);
+        String delete = DELETE.replace("$database", database).replace("$table", table);
+        this.select = connection.prepareStatement(select);
+        this.delete = connection.prepareStatement(delete);
     }
 
     @Override
@@ -91,8 +118,8 @@ public class MysqlFetcher extends Fetcher {
         }
 
         try {
-            if (null != preparedStatement && !preparedStatement.isClosed()) {
-                preparedStatement.close();
+            if (null != select && !select.isClosed()) {
+                select.close();
             }
         } catch (SQLException e) {
             logger.error("close preparedStatement failed! conf: " + conf);

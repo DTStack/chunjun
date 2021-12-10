@@ -49,7 +49,7 @@ public class WorkerManager implements Serializable {
 
     private final QueuesChamberlain chamberlain;
 
-    private Overseer overseer;
+    private WorkerOverseer overseer;
 
     private Collector<RowData> collector;
 
@@ -112,7 +112,7 @@ public class WorkerManager implements Serializable {
 
     /** 开启Overseer线程,持续监听unblockQueues */
     private void openOverseer() {
-        overseer = new Overseer(workerExecutor, chamberlain, collector, workerSize);
+        overseer = new WorkerOverseer(workerExecutor, chamberlain, collector, workerSize);
         overseerExecutor.execute(overseer);
     }
 }
