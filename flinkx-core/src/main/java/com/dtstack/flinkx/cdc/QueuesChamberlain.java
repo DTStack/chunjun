@@ -105,21 +105,11 @@ public class QueuesChamberlain implements Serializable {
      * @param tableIdentity table identifier.
      */
     public Deque<RowData> getQueueFromUnblockQueues(String tableIdentity) {
-        lock.lock();
-        try {
-            return unblockQueues.get(tableIdentity);
-        } finally {
-            lock.unlock();
-        }
+        return unblockQueues.get(tableIdentity);
     }
 
     public Deque<RowData> getQueueFromBlockQueues(String tableIdentity) {
-        lock.lock();
-        try {
-            return blockedQueues.get(tableIdentity);
-        } finally {
-            lock.unlock();
-        }
+        return blockedQueues.get(tableIdentity);
     }
 
     /** 从unblockQueues中获取所有key集. */
