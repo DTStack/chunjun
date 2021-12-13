@@ -58,10 +58,9 @@ public class Worker implements Callable<String> {
         this.tableIdentity = tableIdentity;
     }
 
-
     /** 发送数据 */
     private void send() {
-        Deque<RowData> queue = queuesChamberlain.getQueueFromUnblockQueues(tableIdentity);
+        Deque<RowData> queue = queuesChamberlain.fromUnblock(tableIdentity);
         for (int i = 0; i < size; i++) {
             RowData data = queue.peek();
             if (data == null) {
@@ -71,7 +70,7 @@ public class Worker implements Callable<String> {
             if (data instanceof ColumnRowData) {
                 dealDmL(queue);
             } else {
-                queuesChamberlain.dealDdlRowData(tableIdentity, queue);
+                queuesChamberlain.block(tableIdentity, queue);
                 break;
             }
         }

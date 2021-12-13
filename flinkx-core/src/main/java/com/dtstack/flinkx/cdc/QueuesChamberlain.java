@@ -59,7 +59,7 @@ public class QueuesChamberlain implements Serializable {
      * @param data row data.
      * @param tableIdentifier table identifier.
      */
-    public void putRowData(RowData data, String tableIdentifier) {
+    public void put(RowData data, String tableIdentifier) {
         lock.lock();
         try {
             if (unblockQueues.containsKey(tableIdentifier)) {
@@ -77,8 +77,8 @@ public class QueuesChamberlain implements Serializable {
         }
     }
 
-    public void dealDdlRowData(String tableIdentity, Deque<RowData> queue) {
-        // 队列头节点是ddl,将该队列放到blockQueues
+    public void block(String tableIdentity, Deque<RowData> queue) {
+        // 将该队列放到blockQueues
         lock.lock();
         try {
             blockedQueues.put(tableIdentity, queue);
@@ -88,8 +88,8 @@ public class QueuesChamberlain implements Serializable {
         }
     }
 
-    public void dealDmlRowData(String tableIdentity, Deque<RowData> queue) {
-        // 队列头节点是dml,将该队列放到unblockQueues
+    public void unblock(String tableIdentity, Deque<RowData> queue) {
+        // 将该队列放到unblockQueues
         lock.lock();
         try {
             unblockQueues.put(tableIdentity, queue);
@@ -104,21 +104,21 @@ public class QueuesChamberlain implements Serializable {
      *
      * @param tableIdentity table identifier.
      */
-    public Deque<RowData> getQueueFromUnblockQueues(String tableIdentity) {
+    public Deque<RowData> fromUnblock(String tableIdentity) {
         return unblockQueues.get(tableIdentity);
     }
 
-    public Deque<RowData> getQueueFromBlockQueues(String tableIdentity) {
+    public Deque<RowData> fromBlock(String tableIdentity) {
         return blockedQueues.get(tableIdentity);
     }
 
     /** 从unblockQueues中获取所有key集. */
-    public Set<String> getTableIdentitiesFromUnblockQueues() {
+    public Set<String> unblockTableIdentities() {
         return unblockQueues.keySet();
     }
 
     /** 从blockedQueues中获取所有key集. */
-    public Set<String> getTableIdentitiesFromBlockQueues() {
+    public Set<String> blockTableIdentities() {
         return blockedQueues.keySet();
     }
 

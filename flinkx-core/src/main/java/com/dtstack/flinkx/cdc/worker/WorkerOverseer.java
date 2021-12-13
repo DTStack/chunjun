@@ -88,7 +88,7 @@ public class WorkerOverseer implements Runnable, Serializable {
 
     private void wakeUp() {
         // 创建worker
-        for (String tableIdentity : chamberlain.getTableIdentitiesFromUnblockQueues()) {
+        for (String tableIdentity : chamberlain.unblockTableIdentities()) {
             if (tableIdentity != null && !tableSet.contains(tableIdentity)) {
                 tableSet.add(tableIdentity);
                 Worker worker = new Worker(chamberlain, workerSize, collector, tableIdentity);

@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author tiezhu@dtstack.com
  * @since 2021/12/2 星期四
  */
-public abstract class Fetcher implements Runnable, Serializable {
+public abstract class FetcherBase implements Runnable, Serializable {
 
     private QueuesChamberlain chamberlain;
 
@@ -33,14 +33,14 @@ public abstract class Fetcher implements Runnable, Serializable {
     public void run() {
         while (!closed.get()) {
             // 遍历block数据队列里的数据
-            for (String table : chamberlain.getTableIdentitiesFromBlockQueues()) {
+            for (String table : chamberlain.blockTableIdentities()) {
                 // 取队列中的头节点，查询外部数据源
-                Deque<RowData> rowDataDeque = chamberlain.getQueueFromBlockQueues(table);
+                Deque<RowData> rowDataDeque = chamberlain.fromBlock(table);
                 RowData rowData = rowDataDeque.peekFirst();
                 // 如果外部数据源已经处理了该数据，那么将此数据从数据队列中移除，此数据队列从block中移除，放入到unblock队列中
                 if (fetch(rowData)) {
                     rowDataDeque.removeFirst();
-                    chamberlain.dealDmlRowData(table, rowDataDeque);
+                    chamberlain.unblock(table, rowDataDeque);
                     storedTableIdentifier.remove(table);
                     delete(rowData);
                 }

@@ -43,11 +43,11 @@
 		</dependency>
 
 		<!--prometheus-->
-        <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-metrics-prometheus</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-metrics-prometheus</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!--Hadoop-->
 		<dependency>
@@ -132,7 +132,7 @@
 			<version>${project.version}</version>
 		</dependency>
 
-        <!--RDB-->
+		<!--RDB-->
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-mysql</artifactId>
@@ -200,11 +200,11 @@
 			<artifactId>flinkx-connector-ftp</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.flinkx</groupId>-->
-<!--			<artifactId>flinkx-connector-hdfs</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>com.dtstack.flinkx</groupId>-->
+		<!--			<artifactId>flinkx-connector-hdfs</artifactId>-->
+		<!--			<version>${project.version}</version>-->
+		<!--		</dependency>-->
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-hive</artifactId>
@@ -217,16 +217,16 @@
 			<artifactId>flinkx-connector-hbase-1.4</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.flinkx</groupId>-->
-<!--			<artifactId>flinkx-connector-elasticsearch5</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.dtstack.flinkx</groupId>-->
-<!--			<artifactId>flinkx-connector-elasticsearch6</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>com.dtstack.flinkx</groupId>-->
+		<!--			<artifactId>flinkx-connector-elasticsearch5</artifactId>-->
+		<!--			<version>${project.version}</version>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>com.dtstack.flinkx</groupId>-->
+		<!--			<artifactId>flinkx-connector-elasticsearch6</artifactId>-->
+		<!--			<version>${project.version}</version>-->
+		<!--		</dependency>-->
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-elasticsearch7</artifactId>
@@ -289,13 +289,7 @@
 		<!--Cdc-Restore-plugins-->
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>mysql.store</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>mysql.fetcher</artifactId>
+			<artifactId>flinkx-restore-mysql</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

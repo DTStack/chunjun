@@ -10,16 +10,16 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * 主要做两件事： (1) 将blockQueue中的数据，通过store下发到外部数据源； (2)
- * 通过fetcher获取外部数据源对ddl的反馈，并将对应的ddl数据从blockQueue中删除，把数据队列放到unblockQueue中
+ * 通过fetcher获取外部数据源对ddl的反馈，并将对应的ddl数据从blockQueue中删除，把数据队列放到unblockQueue中 // TODO by tiezhu:线程池异常处理机制
  *
  * @author tiezhu@dtstack.com
  * @since 2021/12/2 星期四
  */
 public class Monitor implements Serializable {
 
-    private final Fetcher fetcher;
+    private final FetcherBase fetcher;
 
-    private final Store store;
+    private final StoreBase store;
 
     /** 用来存储已经下发的ddl table */
     private final CopyOnWriteArrayList<String> storedTableIdentifier = new CopyOnWriteArrayList<>();
@@ -30,7 +30,7 @@ public class Monitor implements Serializable {
 
     private final QueuesChamberlain queuesChamberlain;
 
-    public Monitor(Fetcher fetcher, Store store, QueuesChamberlain queuesChamberlain) {
+    public Monitor(FetcherBase fetcher, StoreBase store, QueuesChamberlain queuesChamberlain) {
         this.fetcher = fetcher;
         this.store = store;
         this.queuesChamberlain = queuesChamberlain;

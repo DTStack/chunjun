@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.util;
 
-import com.dtstack.flinkx.cdc.store.Fetcher;
+import com.dtstack.flinkx.cdc.store.FetcherBase;
 import com.dtstack.flinkx.cdc.store.FetcherConf;
-import com.dtstack.flinkx.cdc.store.Store;
+import com.dtstack.flinkx.cdc.store.StoreBase;
 import com.dtstack.flinkx.cdc.store.StoreConf;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
@@ -171,7 +171,7 @@ public class DataSyncFactoryUtil {
         }
     }
 
-    public static Fetcher discoverFetcher(FetcherConf fetcherConf, SyncConf config) {
+    public static FetcherBase discoverFetcher(FetcherConf fetcherConf, SyncConf config) {
         try {
             String pluginType = fetcherConf.getType();
             String fetcherPluginClassName =
@@ -185,14 +185,14 @@ public class DataSyncFactoryUtil {
                     cl -> {
                         Class<?> clazz = cl.loadClass(fetcherPluginClassName);
                         Constructor<?> constructor = clazz.getConstructor(FetcherConf.class);
-                        return (Fetcher) constructor.newInstance(fetcherConf);
+                        return (FetcherBase) constructor.newInstance(fetcherConf);
                     });
         } catch (Exception e) {
             throw new NoRestartException("Load restore plugins failed!", e);
         }
     }
 
-    public static Store discoverStore(StoreConf storeConf, SyncConf config) {
+    public static StoreBase discoverStore(StoreConf storeConf, SyncConf config) {
         try {
             String pluginType = storeConf.getType();
             String storePluginClassName =
@@ -205,7 +205,7 @@ public class DataSyncFactoryUtil {
                     cl -> {
                         Class<?> clazz = cl.loadClass(storePluginClassName);
                         Constructor<?> constructor = clazz.getConstructor(StoreConf.class);
-                        return (Store) constructor.newInstance(storeConf);
+                        return (StoreBase) constructor.newInstance(storeConf);
                     });
         } catch (Exception e) {
             throw new NoRestartException("Load restore plugins failed!", e);
