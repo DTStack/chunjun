@@ -1,7 +1,7 @@
 package com.dtstack.flinkx.restore.mysql;
 
 import com.dtstack.flinkx.cdc.DdlRowData;
-import com.dtstack.flinkx.cdc.store.Store;
+import com.dtstack.flinkx.cdc.store.StoreBase;
 import com.dtstack.flinkx.cdc.store.StoreConf;
 import com.dtstack.flinkx.restore.mysql.utils.DruidDataSourceUtil;
 
@@ -20,7 +20,7 @@ import java.sql.SQLException;
  * @author tiezhu@dtstack.com
  * @since 2021/12/6 星期一
  */
-public class MysqlStore extends Store {
+public class MysqlStore extends StoreBase {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

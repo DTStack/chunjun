@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author tiezhu@dtstack.com
  * @since 2021/12/3 星期五
  */
-public abstract class Store implements Runnable, Serializable {
+public abstract class StoreBase implements Runnable, Serializable {
 
     protected QueuesChamberlain chamberlain;
 
@@ -24,13 +24,13 @@ public abstract class Store implements Runnable, Serializable {
     @Override
     public void run() {
         while (!closed.get()) {
-            for (String table : chamberlain.getTableIdentitiesFromBlockQueues()) {
+            for (String table : chamberlain.blockTableIdentities()) {
                 // 如果数据已经被下发了，那么就跳过
                 if (storedTableIdentifier.contains(table)) {
                     continue;
                 }
                 // 将block的ddl数据下发到外部数据源中
-                Deque<RowData> rowData = chamberlain.getQueueFromBlockQueues(table);
+                Deque<RowData> rowData = chamberlain.fromBlock(table);
                 RowData data = rowData.peekFirst();
                 store(data);
                 storedTableIdentifier.add(table);

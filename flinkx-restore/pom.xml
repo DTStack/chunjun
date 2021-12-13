@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>flinkx-restore</artifactId>
-	<name>FlinkX : Restore </name>
+	<name>FlinkX : Restore</name>
 	<modules>
 		<module>flinkx-restore-common</module>
 		<module>flinkx-restore-mysql</module>

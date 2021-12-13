@@ -1,8 +1,8 @@
 package com.dtstack.flinkx.cdc;
 
-import com.dtstack.flinkx.cdc.store.Fetcher;
+import com.dtstack.flinkx.cdc.store.FetcherBase;
 import com.dtstack.flinkx.cdc.store.Monitor;
-import com.dtstack.flinkx.cdc.store.Store;
+import com.dtstack.flinkx.cdc.store.StoreBase;
 import com.dtstack.flinkx.cdc.worker.WorkerManager;
 import com.dtstack.flinkx.element.ColumnRowData;
 
@@ -38,7 +38,7 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
 
     private final WorkerManager workerManager;
 
-    public RestorationFlatMap(Fetcher fetcher, Store store, CdcConf conf) {
+    public RestorationFlatMap(FetcherBase fetcher, StoreBase store, CdcConf conf) {
         this.monitor = new Monitor(fetcher, store, chamberlain);
         this.workerManager = new WorkerManager(chamberlain, conf);
     }
@@ -71,7 +71,7 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
         } else {
             tableIdentifier = ((DdlRowData) rowData).getTableIdentifier();
         }
-        chamberlain.putRowData(rowData, tableIdentifier);
+        chamberlain.put(rowData, tableIdentifier);
     }
 
     /**

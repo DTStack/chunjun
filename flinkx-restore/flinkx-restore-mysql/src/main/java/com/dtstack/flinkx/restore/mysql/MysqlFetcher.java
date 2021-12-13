@@ -1,7 +1,7 @@
 package com.dtstack.flinkx.restore.mysql;
 
 import com.dtstack.flinkx.cdc.DdlRowData;
-import com.dtstack.flinkx.cdc.store.Fetcher;
+import com.dtstack.flinkx.cdc.store.FetcherBase;
 import com.dtstack.flinkx.cdc.store.FetcherConf;
 import com.dtstack.flinkx.restore.mysql.utils.DruidDataSourceUtil;
 
@@ -23,7 +23,7 @@ import java.sql.SQLException;
  * @author tiezhu@dtstack.com
  * @since 2021/12/6 星期一
  */
-public class MysqlFetcher extends Fetcher {
+public class MysqlFetcher extends FetcherBase {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

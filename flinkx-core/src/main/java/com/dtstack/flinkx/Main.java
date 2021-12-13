@@ -19,8 +19,8 @@ package com.dtstack.flinkx;
 
 import com.dtstack.flinkx.cdc.CdcConf;
 import com.dtstack.flinkx.cdc.RestorationFlatMap;
-import com.dtstack.flinkx.cdc.store.Fetcher;
-import com.dtstack.flinkx.cdc.store.Store;
+import com.dtstack.flinkx.cdc.store.FetcherBase;
+import com.dtstack.flinkx.cdc.store.StoreBase;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -171,8 +171,8 @@ public class Main {
 
         if (!config.getCdcConf().isSkip()) {
             CdcConf cdcConf = config.getCdcConf();
-            Fetcher fetcher = DataSyncFactoryUtil.discoverFetcher(cdcConf.getFetcher(), config);
-            Store store = DataSyncFactoryUtil.discoverStore(cdcConf.getStore(), config);
+            FetcherBase fetcher = DataSyncFactoryUtil.discoverFetcher(cdcConf.getFetcher(), config);
+            StoreBase store = DataSyncFactoryUtil.discoverStore(cdcConf.getStore(), config);
             dataStreamSource =
                     dataStreamSource.flatMap(new RestorationFlatMap(fetcher, store, cdcConf));
         }
