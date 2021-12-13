@@ -125,6 +125,8 @@ public class JdbcDynamicTableSource
         }
         jdbcConf.setColumn(columnList);
 
+        // TODO sql任务使用增量同步或者间隔轮询时暂不支持增量指标写入外部存储，暂时设置为false
+        jdbcConf.setInitReporter(false);
         String increColumn = jdbcConf.getIncreColumn();
         if (StringUtils.isNotBlank(increColumn)) {
             FieldConf fieldConf =

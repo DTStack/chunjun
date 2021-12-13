@@ -18,6 +18,7 @@
 
 package org.apache.flink.table.factories;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.FactoryHelper;
 
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -157,7 +158,8 @@ public class TableFactoryService {
         if (StringUtils.isNotBlank(factoryIdentifier)) {
             factoryHelperThreadLocal
                     .get()
-                    .registerCachedFile(factoryIdentifier, classLoader.get(), true);
+                    .registerCachedFile(
+                            factoryIdentifier, classLoader.get(), ConstantValue.CONNECTOR_DIR_NAME);
         }
         // dtstack fixed end
 

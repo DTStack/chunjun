@@ -73,12 +73,24 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     /** 用于标记是否保存endLocation位置的一条或多条数据 true：不保存 false(默认)：保存 某些情况下可能出现最后几条数据被重复记录的情况，可以将此参数配置为true */
     private boolean useMaxFunc = false;
     // writer
+
+    /** 增量同步或者间隔轮询时，是否初始化外部存储 */
+    private Boolean initReporter = true;
+
     private String mode = "INSERT";
     private List<String> preSql;
     private List<String> postSql;
     private List<String> updateKey;
     /** upsert 写数据库时，是否null覆盖原来的值 */
     private boolean allReplace = false;
+
+    public Boolean getInitReporter() {
+        return initReporter;
+    }
+
+    public void setInitReporter(Boolean initReporter) {
+        this.initReporter = initReporter;
+    }
 
     public String getTable() {
         return connection.get(0).getTable().get(0);
