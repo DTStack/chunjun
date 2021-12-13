@@ -21,6 +21,7 @@ package com.dtstack.flinkx.connector.jdbc.source;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.Semantic;
@@ -66,6 +67,8 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         }
         if (StringUtils.isBlank(conf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
+        } else {
+            conf.setJdbcUrl(JdbcUtil.formatJdbcUrl(conf.getJdbcUrl(), null));
         }
         if (conf.isIncrement()) {
             if (StringUtils.isBlank(conf.getIncreColumn())) {
