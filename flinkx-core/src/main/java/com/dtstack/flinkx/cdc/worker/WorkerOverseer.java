@@ -50,11 +50,11 @@ public class WorkerOverseer implements Runnable, Serializable {
 
     private final Collector<RowData> collector;
 
-    /** 记录已经被worker线程获得的tableIdentity */
-    private final Set<String> tableSet = new HashSet<>();
+    /** 记录已经被worker线程获得的chunk */
+    private final Set<Integer> chunkSet = new HashSet<>();
 
     /** worker线程的返回结果 */
-    private final Set<Future<String>> futureSet = new HashSet<>();
+    private final Set<Future<Integer>> futureSet = new HashSet<>();
 
     /** worker遍历队列时的步长 */
     private final int workerSize;
@@ -88,11 +88,15 @@ public class WorkerOverseer implements Runnable, Serializable {
 
     private void wakeUp() {
         // 创建worker
-        for (String tableIdentity : chamberlain.unblockTableIdentities()) {
-            if (tableIdentity != null && !tableSet.contains(tableIdentity)) {
-                tableSet.add(tableIdentity);
-                Worker worker = new Worker(chamberlain, workerSize, collector, tableIdentity);
-                Future<String> future = workerExecutor.submit(worker);
+        final int workerNum = workerExecutor.getMaximumPoolSize();
+        Set<String> tableIdentities = chamberlain.unblockTableIdentities();
+        if (!tableIdentities.isEmpty()) {
+            //创建任务分片
+            Chunk[] chunks = ChunkSplitter.createChunk(tableIdentities, workerNum);
+            for (Chunk chunk : chunks) {
+                Worker worker = new Worker(chamberlain, collector, chunk, workerSize);
+                Future<Integer> future = workerExecutor.submit(worker);
+                chunkSet.add(chunk.getChunkNum());
                 futureSet.add(future);
             }
         }
@@ -102,16 +106,19 @@ public class WorkerOverseer implements Runnable, Serializable {
         closed.compareAndSet(false, true);
     }
 
-    /** 根据worker的返回结果，移除tableSet中的记录 */
+    /** 根据worker的返回结果，移除chunkSet中的记录 */
     private void clear() {
-        for (Future<String> future : futureSet) {
+        for (Future<Integer> future : futureSet) {
             try {
-                String tableIdentity = future.get();
-                tableSet.remove(tableIdentity);
-                futureSet.remove(future);
+                Integer chunkNum = future.get();
+                chunkSet.remove(chunkNum);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+            if (chunkSet.isEmpty()) {
+                break;
+            }
         }
+        futureSet.clear();
     }
 }
