@@ -12,10 +12,6 @@
     <artifactId>flinkx-core</artifactId>
 	<name>FlinkX : Core</name>
 
-	<properties>
-		<log4j2.version>2.15.0</log4j2.version>
-	</properties>
-
     <dependencies>
 
         <!-- 日志实现 -->
