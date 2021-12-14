@@ -26,7 +26,9 @@ import com.dtstack.flinkx.element.ColumnRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
+import java.util.Arrays;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.concurrent.Callable;
 
 /**
@@ -35,43 +37,47 @@ import java.util.concurrent.Callable;
  * @author tiezhu@dtstack.com
  * @since 2021/12/1 星期三
  */
-public class Worker implements Callable<String> {
+public class Worker implements Callable<Integer> {
 
     private final QueuesChamberlain queuesChamberlain;
 
-    private final Collector<RowData> out;
+    private final Collector<RowData> collector;
 
-    /** 表标识 */
-    private final String tableIdentity;
+    /** 任务分片 */
+    private final Chunk chunk;
 
     /** 队列遍历深度，避免某队列长时间占用线程 */
     private final int size;
 
     public Worker(
             QueuesChamberlain queuesChamberlain,
-            int size,
-            Collector<RowData> out,
-            String tableIdentity) {
+            Collector<RowData> collector,
+            Chunk chunk,
+            int size) {
         this.queuesChamberlain = queuesChamberlain;
+        this.collector = collector;
+        this.chunk = chunk;
         this.size = size;
-        this.out = out;
-        this.tableIdentity = tableIdentity;
     }
 
     /** 发送数据 */
     private void send() {
-        Deque<RowData> queue = queuesChamberlain.fromUnblock(tableIdentity);
-        for (int i = 0; i < size; i++) {
-            RowData data = queue.peek();
-            if (data == null) {
-                break;
-            }
+        Iterator<String> iterator = Arrays.stream(chunk.getTableIdentities()).iterator();
+        while (iterator.hasNext()) {
+            String tableIdentity = iterator.next();
+            Deque<RowData> queue = queuesChamberlain.fromUnblock(tableIdentity);
+            for (int i = 0; i < size; i++) {
+                RowData data = queue.peek();
+                if (data == null) {
+                    break;
+                }
 
-            if (data instanceof ColumnRowData) {
-                dealDmL(queue);
-            } else {
-                queuesChamberlain.block(tableIdentity, queue);
-                break;
+                if (data instanceof ColumnRowData) {
+                    dealDmL(queue);
+                } else {
+                    queuesChamberlain.block(tableIdentity, queue);
+                    break;
+                }
             }
         }
     }
@@ -79,12 +85,13 @@ public class Worker implements Callable<String> {
     private void dealDmL(Deque<RowData> queue) {
         // 队列头节点是dml, 将该dml数据发送到sink
         RowData rowData = queue.poll();
-        out.collect(rowData);
+        collector.collect(rowData);
     }
 
     @Override
-    public String call() throws Exception {
+    public Integer call() throws Exception {
         send();
-        return tableIdentity;
+        //返回当前分片的chunkNum给到WorkerOverseer
+        return chunk.getChunkNum();
     }
 }
