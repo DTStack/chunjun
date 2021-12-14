@@ -23,6 +23,7 @@ import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.mysql.dialect.MysqlDialect;
+
 import org.apache.flink.configuration.ReadableConfig;
 
 /**
