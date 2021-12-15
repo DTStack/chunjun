@@ -18,6 +18,8 @@
 package com.dtstack.flinkx;
 
 import com.dtstack.flinkx.cdc.CdcConf;
+import com.dtstack.flinkx.cdc.mapping.NameMappingConf;
+import com.dtstack.flinkx.cdc.mapping.NameMappingFlatMap;
 import com.dtstack.flinkx.cdc.RestorationFlatMap;
 import com.dtstack.flinkx.cdc.store.FetcherBase;
 import com.dtstack.flinkx.cdc.store.StoreBase;
@@ -175,6 +177,11 @@ public class Main {
             StoreBase store = DataSyncFactoryUtil.discoverStore(cdcConf.getStore(), config);
             dataStreamSource =
                     dataStreamSource.flatMap(new RestorationFlatMap(fetcher, store, cdcConf));
+        }
+
+        if (config.getNameMappingConf() != null) {
+            NameMappingConf mappingConf = config.getNameMappingConf();
+            dataStreamSource = dataStreamSource.flatMap(new NameMappingFlatMap(mappingConf));
         }
 
         SpeedConf speed = config.getSpeed();
