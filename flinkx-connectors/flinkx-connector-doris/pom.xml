@@ -74,6 +74,10 @@
 									<pattern>com.fasterxml.jackson.annotation</pattern>
 									<shadedPattern>shade.dorisbatch.com.fasterxml.jackson.annotation</shadedPattern>
 								</relocation>
+								<relocation>
+									<pattern>org.apache.http</pattern>
+									<shadedPattern>shade.core.org.apache.http</shadedPattern>
+								</relocation>
 							</relocations>
 						</configuration>
 					</execution>
