@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.conf;
 
 import com.dtstack.flinkx.cdc.CdcConf;
+import com.dtstack.flinkx.cdc.mapping.NameMappingConf;
 import com.dtstack.flinkx.util.GsonUtil;
 
 import org.apache.flink.util.Preconditions;
@@ -221,6 +222,10 @@ public class SyncConf implements Serializable {
 
     public CdcConf getCdcConf() {
         return job.getSetting().getRestoration();
+    }
+
+    public NameMappingConf getNameMappingConf() {
+        return job.getContent().get(0).getNameMapping();
     }
 
     @Override
