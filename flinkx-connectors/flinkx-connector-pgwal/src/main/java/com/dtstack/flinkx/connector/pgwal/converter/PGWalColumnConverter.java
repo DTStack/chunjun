@@ -91,7 +91,7 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
 
     public PGWalColumnConverter(boolean pavingData, boolean splitUpdate) {
         super.pavingData = pavingData;
-        super.splitUpdate = splitUpdate;
+        super.split = splitUpdate;
     }
 
     interface DeserializationConverter<A, B> {
@@ -177,7 +177,7 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
         }
 
         // update类型且要拆分
-        if (splitUpdate && PgMessageTypeEnum.UPDATE == entity.getType()) {
+        if (split && PgMessageTypeEnum.UPDATE == entity.getType()) {
             ColumnRowData copy = columnRowData.copy();
             copy.setRowKind(RowKind.UPDATE_BEFORE);
             copy.addField(new StringColumn(RowKind.UPDATE_BEFORE.name()));

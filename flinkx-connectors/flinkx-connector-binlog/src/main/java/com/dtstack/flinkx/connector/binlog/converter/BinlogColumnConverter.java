@@ -56,7 +56,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
 
     public BinlogColumnConverter(boolean pavingData, boolean splitUpdate) {
         super.pavingData = pavingData;
-        super.splitUpdate = splitUpdate;
+        super.split = splitUpdate;
     }
 
     @Override
@@ -127,7 +127,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             }
 
             // update类型且要拆分
-            if (splitUpdate && CanalEntry.EventType.UPDATE == rowChange.getEventType()) {
+            if (split && CanalEntry.EventType.UPDATE == rowChange.getEventType()) {
                 ColumnRowData copy = columnRowData.copy();
                 copy.setRowKind(RowKind.UPDATE_BEFORE);
                 copy.addField(new StringColumn(RowKind.UPDATE_BEFORE.name()));
