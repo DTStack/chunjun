@@ -28,7 +28,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>flinkx-connector-doris</artifactId>
-	<name>FlinkX : Connectors : doris</name>
+	<name>FlinkX : Connectors : Doris</name>
 
 	<properties>
 		<maven.compiler.source>8</maven.compiler.source>

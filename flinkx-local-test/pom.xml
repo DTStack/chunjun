@@ -254,7 +254,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-dorisbatch</artifactId>
+			<artifactId>flinkx-connector-doris</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
