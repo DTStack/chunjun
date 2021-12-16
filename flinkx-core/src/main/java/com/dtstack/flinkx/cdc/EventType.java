@@ -96,7 +96,6 @@ public enum EventType {
 
     QUERY("QUERY", 104),
 
-    // DDL simple name
     ALTER("ALTER", 105),
 
     TRUNCATE("TRUNCATE", 106),
@@ -104,6 +103,22 @@ public enum EventType {
     DROP("DROP", 107),
 
     RENAME("RENAME", 108),
+
+    CREATE("CREATE", 109),
+
+    ERASE("ERASE", 110),
+
+    CINDEX("CINDEX", 111),
+
+    DINDEX("DINDEX", 112),
+
+    GTID("GTID", 113),
+
+    XACOMMIT("XACOMMIT", 114),
+
+    XAROLLBACK("XAROLLBACK", 115),
+
+    MHEARTBEAT("MHEARTBEAT", 116),
     ;
 
     private final String value;
@@ -132,6 +147,16 @@ public enum EventType {
             }
         }
         return UNKNOWN;
+    }
+
+    public static boolean contains(String type) {
+        EventType[] eventTypes = values();
+        for (EventType eventType : eventTypes) {
+            if (eventType.value.equalsIgnoreCase(type)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String getValue() {

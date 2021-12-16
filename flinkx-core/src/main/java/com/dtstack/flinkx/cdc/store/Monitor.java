@@ -52,7 +52,7 @@ public class Monitor implements Serializable {
         fetcherExecutor =
                 ExecutorUtils.singleThreadExecutor(
                         "fetcher-pool-%d", false, new LogExceptionHandler());
-        fetcherExecutor.submit(fetcher);
+        fetcherExecutor.execute(fetcher);
     }
 
     private void submitStore() {
@@ -61,7 +61,7 @@ public class Monitor implements Serializable {
         storeExecutor =
                 ExecutorUtils.singleThreadExecutor(
                         "store-pool-%d", false, new LogExceptionHandler());
-        storeExecutor.submit(store);
+        storeExecutor.execute(store);
     }
 
     public void close() {

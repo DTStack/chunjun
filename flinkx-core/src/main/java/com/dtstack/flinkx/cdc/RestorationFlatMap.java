@@ -71,7 +71,7 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
         } else {
             tableIdentifier = ((DdlRowData) rowData).getTableIdentifier();
         }
-        chamberlain.put(rowData, tableIdentifier);
+        chamberlain.add(rowData, tableIdentifier);
     }
 
     /**
