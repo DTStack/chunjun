@@ -21,7 +21,6 @@
 package com.dtstack.flinkx.cdc.mapping;
 
 import org.apache.commons.collections.CollectionUtils;
-
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.flink.table.data.RowData;
@@ -44,8 +43,10 @@ public class MappingClient implements Serializable {
 
     private final List<Mapping> mappings = new ArrayList<>();
 
+    private final NameMappingConf conf;
+
     public MappingClient(NameMappingConf conf) {
-        createMappings(conf);
+        this.conf = conf;
     }
 
     public RowData map(RowData value) {
@@ -53,7 +54,7 @@ public class MappingClient implements Serializable {
         return mappings.get(0).map(value);
     }
 
-    private void createMappings(NameMappingConf conf) {
+    public void createMappings() {
         List<Map<String, String>> tableMappings = conf.getTableMappings();
         if (CollectionUtils.isNotEmpty(tableMappings)) {
             Map<String, String> map = new HashMap<>(tableMappings.size());
