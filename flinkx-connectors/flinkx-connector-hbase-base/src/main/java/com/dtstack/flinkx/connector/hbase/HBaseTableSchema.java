@@ -49,6 +49,8 @@ public class HBaseTableSchema implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private String tableName;
+
     // A Map with key as column family.
     private final Map<String, Map<String, DataType>> familyMap = new LinkedHashMap<>();
 
@@ -57,6 +59,14 @@ public class HBaseTableSchema implements Serializable {
 
     // charset to parse HBase keys and strings. UTF-8 by default.
     private String charset = "UTF-8";
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
 
     /**
      * Adds a column defined by family, qualifier, and type to the table schema.

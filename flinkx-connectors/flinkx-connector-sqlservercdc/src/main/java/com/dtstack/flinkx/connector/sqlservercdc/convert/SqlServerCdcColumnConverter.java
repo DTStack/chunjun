@@ -59,7 +59,7 @@ public class SqlServerCdcColumnConverter
 
     public SqlServerCdcColumnConverter(boolean pavingData, boolean splitUpdate) {
         super.pavingData = pavingData;
-        super.splitUpdate = splitUpdate;
+        super.split = splitUpdate;
     }
 
     @Override
@@ -188,7 +188,7 @@ public class SqlServerCdcColumnConverter
         }
 
         // update operate needs split
-        if (splitUpdate
+        if (split
                 && SqlServerCdcEnum.UPDATE.name.equalsIgnoreCase(sqlServerCdcEventRow.getType())) {
             ColumnRowData copy = columnRowData.copy();
             copy.setRowKind(RowKind.UPDATE_BEFORE);

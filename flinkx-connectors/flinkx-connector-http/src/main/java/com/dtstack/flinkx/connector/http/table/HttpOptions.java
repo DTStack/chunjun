@@ -41,22 +41,25 @@ public class HttpOptions {
     public static final ConfigOption<String> COLUMN =
             ConfigOptions.key("column")
                     .stringType()
-                    .noDefaultValue()
+                    .defaultValue("[]")
                     .withDescription("return body column");
 
     public static final ConfigOption<String> HEADER =
             ConfigOptions.key("header")
                     .stringType()
-                    .noDefaultValue()
+                    .defaultValue("[]")
                     .withDescription("request header");
 
     public static final ConfigOption<String> BODY =
-            ConfigOptions.key("body").stringType().noDefaultValue().withDescription("request body");
+            ConfigOptions.key("body")
+                    .stringType()
+                    .defaultValue("[]")
+                    .withDescription("request body");
 
     public static final ConfigOption<String> PARAMS =
             ConfigOptions.key("params")
                     .stringType()
-                    .noDefaultValue()
+                    .defaultValue("[]")
                     .withDescription("request params");
 
     public static final ConfigOption<Integer> DELAY =

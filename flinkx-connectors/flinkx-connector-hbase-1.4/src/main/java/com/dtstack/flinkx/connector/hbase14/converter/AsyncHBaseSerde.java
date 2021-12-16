@@ -28,8 +28,6 @@ import org.apache.hadoop.hbase.client.Result;
 
 import java.util.Map;
 
-import static org.apache.flink.util.Preconditions.checkArgument;
-
 /**
  * @program: flinkx
  * @author: wuren
@@ -45,7 +43,7 @@ public class AsyncHBaseSerde extends HBaseSerde {
      *
      * <p>Note: this method is thread-safe.
      */
-    public RowData convertToNewRow(Map<String, byte[]> result, byte[] rowkey) {
+    public RowData convertToNewRow(Map<String, Map<String, byte[]>> result, byte[] rowkey) {
         // The output rows needs to be initialized each time
         // to prevent the possibility of putting the output object into the cache.
         GenericRowData resultRow = new GenericRowData(fieldLength);
@@ -53,17 +51,18 @@ public class AsyncHBaseSerde extends HBaseSerde {
         for (int f = 0; f < families.length; f++) {
             familyRows[f] = new GenericRowData(qualifiers[f].length);
         }
+
         return convertToRow(result, resultRow, familyRows, rowkey);
     }
 
     protected RowData convertToRow(
-            Map<String, byte[]> result,
+            Map<String, Map<String, byte[]>> result,
             GenericRowData resultRow,
             GenericRowData[] familyRows,
             byte[] rowkey) {
         for (int i = 0; i < fieldLength; i++) {
             if (rowkeyIndex == i) {
-                resultRow.setField(rowkeyIndex, rowkey);
+                resultRow.setField(rowkeyIndex, keyDecoder.decode(rowkey));
             } else {
                 int f = (rowkeyIndex != -1 && i > rowkeyIndex) ? i - 1 : i;
                 // get family key
@@ -73,24 +72,16 @@ public class AsyncHBaseSerde extends HBaseSerde {
                     // get quantifier key
                     byte[] qualifier = qualifiers[f][q];
                     // read value
-                    String key = new String(familyKey) + ":" + new String(qualifier);
-                    byte[] value = result.get(key);
+                    if (result.get(new String(familyKey)) == null) {
+                        familyRow.setField(q, null);
+                        continue;
+                    }
+                    byte[] value = result.get(new String(familyKey)).get(new String(qualifier));
                     familyRow.setField(q, qualifierDecoders[f][q].decode(value));
                 }
                 resultRow.setField(i, familyRow);
             }
         }
         return resultRow;
-    }
-
-    public byte[] getRowKey(Object rowKey) {
-        checkArgument(keyEncoder != null, "row key is not set.");
-        rowWithRowKey.setField(0, rowKey);
-        byte[] rowkey = keyEncoder.encode(rowWithRowKey, 0);
-        if (rowkey.length == 0) {
-            // drop dirty records, rowkey shouldn't be zero length
-            return null;
-        }
-        return rowkey;
     }
 }

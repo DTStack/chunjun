@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.connector.http.converter;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.http.client.DefaultRestHandler;
 import com.dtstack.flinkx.connector.http.common.HttpRestConfig;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -74,11 +73,11 @@ public class HttpRowConverter extends AbstractRowConverter<String, RowData, RowD
         Map<String, Object> result =
                 DefaultRestHandler.gson.fromJson(input, GsonUtil.gsonMapTypeToken);
         GenericRowData genericRowData = new GenericRowData(rowType.getFieldCount());
-        List<FieldConf> column = httpRestConfig.getColumn();
-        for (int pos = 0; pos < rowType.getFieldCount(); pos++) {
+        List<String> columns = rowType.getFieldNames();
+        for (int pos = 0; pos < columns.size(); pos++) {
             Object value =
                     MapUtil.getValueByKey(
-                            result, column.get(pos).getName(), httpRestConfig.getFieldDelimiter());
+                            result, columns.get(pos), httpRestConfig.getFieldDelimiter());
             if (value instanceof LinkedTreeMap) {
                 value = value.toString();
             }

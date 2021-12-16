@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.connector.binlog.listener;
 
+import com.alibaba.otter.canal.parse.driver.mysql.packets.server.FieldPacket;
 import com.alibaba.otter.canal.parse.driver.mysql.packets.server.ResultSetPacket;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
 import org.slf4j.Logger;
@@ -32,13 +33,15 @@ public class BinlogJournalValidator {
 
     private static final Logger LOG = LoggerFactory.getLogger(BinlogJournalValidator.class);
 
-    private String host;
+    private static final String BINLOG_NAME_KEY = "Log_name";
 
-    private int port;
+    private final String host;
 
-    private String user;
+    private final int port;
 
-    private String pass;
+    private final String user;
+
+    private final String pass;
 
     public BinlogJournalValidator(String host, int port, String user, String pass) {
         this.host = host;
@@ -54,31 +57,36 @@ public class BinlogJournalValidator {
     /**
      * 查找Binlog日志列表
      *
-     * @return
+     * @return log file list
      */
     public List<String> listJournals() {
         List<String> journalList = new ArrayList<>();
         MysqlConnection conn =
                 new MysqlConnection(new InetSocketAddress(host, port), user, pass, (byte) 33, null);
         try {
+            int logIndex = 0;
             conn.connect();
             ResultSetPacket resultSetPacket = conn.query("show binary logs");
-            List<String> fieldValues = resultSetPacket.getFieldValues();
-            for (int i = 0; i < fieldValues.size(); ++i) {
-                if (i % 2 == 0) {
-                    journalList.add(fieldValues.get(i));
+            List<FieldPacket> fieldDescriptors = resultSetPacket.getFieldDescriptors();
+            final int fieldSize = fieldDescriptors.size();
+            for (int i = 0; i < fieldSize; i++) {
+                if (fieldDescriptors.get(i).getName().equalsIgnoreCase(BINLOG_NAME_KEY)) {
+                    logIndex = i;
+                    break;
                 }
+            }
+            List<String> fieldValues = resultSetPacket.getFieldValues();
+            for (int i = logIndex; i < fieldValues.size(); i += fieldSize) {
+                journalList.add(fieldValues.get(i));
             }
             LOG.info("collect journals: " + journalList);
         } catch (IOException e) {
-            LOG.error("Error occured: " + e.getMessage());
+            LOG.error("Error occurred: " + e.getMessage());
         } finally {
-            if (conn != null) {
-                try {
-                    conn.disconnect();
-                } catch (IOException e) {
-                    LOG.error("Error occured while disconnect mysqlconnection: " + e.getMessage());
-                }
+            try {
+                conn.disconnect();
+            } catch (IOException e) {
+                LOG.error("Error occurred while disconnect mysql_connection: " + e.getMessage());
             }
         }
         return journalList;

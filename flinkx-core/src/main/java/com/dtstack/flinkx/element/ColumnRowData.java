@@ -37,8 +37,10 @@ import com.google.common.collect.Maps;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Date: 2021/04/26 Company: www.dtstack.com
@@ -50,6 +52,7 @@ public final class ColumnRowData implements RowData, Serializable {
     private static final long serialVersionUID = 1L;
     private final List<AbstractBaseColumn> columnList;
     private Map<String, Integer> header;
+    private Set<String> extHeader = new HashSet<>();
 
     private RowKind kind;
 
@@ -69,6 +72,14 @@ public final class ColumnRowData implements RowData, Serializable {
             this.header = Maps.newHashMapWithExpectedSize(this.columnList.size());
         }
         this.header.put(name, this.header.size());
+    }
+
+    public void addExtHeader(String name) {
+        this.extHeader.add(name);
+    }
+
+    public boolean isExtHeader(String name) {
+        return extHeader.contains(name);
     }
 
     public void addAllHeader(List<String> list) {

@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.stream.table;
 
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
+import com.dtstack.flinkx.connector.stream.options.StreamOptions;
 import com.dtstack.flinkx.connector.stream.sink.StreamDynamicTableSink;
 import com.dtstack.flinkx.connector.stream.source.StreamDynamicTableSource;
 
@@ -33,15 +34,9 @@ import org.apache.flink.table.factories.DynamicTableSourceFactory;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
 
-import com.google.common.collect.Lists;
-
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.dtstack.flinkx.connector.stream.options.StreamOptions.NUMBER_OF_ROWS;
-import static com.dtstack.flinkx.connector.stream.options.StreamOptions.PRINT;
-import static com.dtstack.flinkx.connector.stream.options.StreamOptions.ROWS_PER_SECOND;
-import static com.dtstack.flinkx.connector.stream.options.StreamOptions.SINK_PARALLELISM;
 
 /**
  * @author chuixue
@@ -65,10 +60,10 @@ public class StreamDynamicTableFactory
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> options = new HashSet<>();
-        options.add(NUMBER_OF_ROWS);
-        options.add(ROWS_PER_SECOND);
-        options.add(PRINT);
-        options.add(SINK_PARALLELISM);
+        options.add(StreamOptions.NUMBER_OF_ROWS);
+        options.add(StreamOptions.ROWS_PER_SECOND);
+        options.add(StreamOptions.PRINT);
+        options.add(StreamOptions.SINK_PARALLELISM);
         return options;
     }
 
@@ -83,8 +78,8 @@ public class StreamDynamicTableFactory
 
         // 3.封装参数
         StreamConf sinkConf = new StreamConf();
-        sinkConf.setPrint(config.get(PRINT));
-        sinkConf.setParallelism(config.get(SINK_PARALLELISM));
+        sinkConf.setPrint(config.get(StreamOptions.PRINT));
+        sinkConf.setParallelism(config.get(StreamOptions.SINK_PARALLELISM));
 
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
@@ -103,8 +98,9 @@ public class StreamDynamicTableFactory
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
         StreamConf streamConf = new StreamConf();
-        streamConf.setSliceRecordCount(Lists.newArrayList(options.get(NUMBER_OF_ROWS)));
-        streamConf.setPermitsPerSecond(options.get(ROWS_PER_SECOND));
+        streamConf.setSliceRecordCount(
+                Collections.singletonList(options.get(StreamOptions.NUMBER_OF_ROWS)));
+        streamConf.setPermitsPerSecond(options.get(StreamOptions.ROWS_PER_SECOND));
 
         return new StreamDynamicTableSource(schema, streamConf);
     }

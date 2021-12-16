@@ -92,6 +92,11 @@ public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder
         if (config.getFetchSize() < 1) {
             sb.append("fetchSize must bigger than 0;\n");
         }
+
+        if (config.getPavingData() && config.isSplit()) {
+            throw new IllegalArgumentException("can't use pavingData and split at the same time");
+        }
+
         List<String> list =
                 Arrays.asList(
                         LogMinerConnection.ReadPosition.ALL.name(),

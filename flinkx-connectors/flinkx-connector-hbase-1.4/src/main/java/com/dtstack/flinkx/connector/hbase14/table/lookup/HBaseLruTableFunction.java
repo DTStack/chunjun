@@ -18,9 +18,8 @@
 
 package com.dtstack.flinkx.connector.hbase14.table.lookup;
 
-import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.hbase.HBaseConfigurationUtil;
 import com.dtstack.flinkx.connector.hbase.HBaseTableSchema;
-import com.dtstack.flinkx.connector.hbase14.conf.HBaseConf;
 import com.dtstack.flinkx.connector.hbase14.converter.AsyncHBaseSerde;
 import com.dtstack.flinkx.connector.hbase14.util.DtFileUtils;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
@@ -38,7 +37,7 @@ import org.apache.flink.table.functions.FunctionContext;
 
 import com.google.common.collect.Maps;
 import com.stumbleupon.async.Deferred;
-import org.apache.commons.collections.MapUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.hbase.async.Config;
 import org.hbase.async.GetRequest;
@@ -50,9 +49,9 @@ import sun.security.krb5.KrbException;
 
 import javax.security.auth.login.AppConfigurationEntry;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -63,33 +62,43 @@ import java.util.concurrent.TimeUnit;
 public class HBaseLruTableFunction extends AbstractLruTableFunction {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(HBaseLruTableFunction.class);
-    private final HBaseConf conf;
+    private Config asyncClientConfig;
+    private Configuration conf;
+    private final byte[] serializedConfig;
+    private final String nullStringLiteral;
     private static final int DEFAULT_BOSS_THREADS = 1;
     private static final int DEFAULT_IO_THREADS = Runtime.getRuntime().availableProcessors() * 2;
     private static final int DEFAULT_POOL_SIZE = DEFAULT_IO_THREADS + DEFAULT_BOSS_THREADS;
     private transient HBaseClient hBaseClient;
     private String tableName;
-    private String[] colNames;
 
     private final HBaseTableSchema hbaseTableSchema;
     private transient AsyncHBaseSerde serde;
 
     public HBaseLruTableFunction(
-            HBaseConf conf, LookupConf lookupConf, HBaseTableSchema hbaseTableSchema) {
+            Configuration conf,
+            LookupConf lookupConf,
+            HBaseTableSchema hbaseTableSchema,
+            String nullStringLiteral) {
         super(lookupConf, null);
-        this.conf = conf;
+        this.serializedConfig = HBaseConfigurationUtil.serializeConfiguration(conf);
         this.lookupConf = lookupConf;
         this.hbaseTableSchema = hbaseTableSchema;
+        this.nullStringLiteral = nullStringLiteral;
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        this.serde = new AsyncHBaseSerde(hbaseTableSchema, conf.getNullMode());
-        tableName = conf.getTableName();
-        colNames =
-                conf.getColumnMetaInfos().stream().map(FieldConf::getName).toArray(String[]::new);
-        Map<String, Object> hbaseConfig = conf.getHbaseConfig();
+        conf = HBaseConfigurationUtil.prepareRuntimeConfiguration(serializedConfig);
+        asyncClientConfig = new Config();
+        Iterator<Map.Entry<String, String>> iterator = conf.iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, String> entry = iterator.next();
+            asyncClientConfig.overrideConfig(entry.getKey(), entry.getValue());
+        }
+        this.serde = new AsyncHBaseSerde(hbaseTableSchema, nullStringLiteral);
+        tableName = hbaseTableSchema.getTableName();
         ExecutorService executorService =
                 new ThreadPoolExecutor(
                         DEFAULT_POOL_SIZE,
@@ -98,45 +107,31 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
                         TimeUnit.MILLISECONDS,
                         new LinkedBlockingQueue<>(),
                         new FlinkxThreadFactory("hbase-async"));
-
-        Config config = new Config();
-        config.overrideConfig(
-                HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_QUORUM,
-                (String) conf.getHbaseConfig().get(HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_QUORUM));
-        config.overrideConfig(
-                HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM,
-                (String)
-                        conf.getHbaseConfig()
-                                .get(HBaseConfigUtils.KEY_HBASE_ZOOKEEPER_ZNODE_QUORUM));
-        hbaseConfig.forEach((key, value) -> config.overrideConfig(key, (String) value));
-
-        if (HBaseConfigUtils.isEnableKerberos(hbaseConfig)) {
-            HBaseConfigUtils.loadKrb5Conf(hbaseConfig);
-            String principal = MapUtils.getString(hbaseConfig, HBaseConfigUtils.KEY_PRINCIPAL);
-            HBaseConfigUtils.checkOpt(principal, HBaseConfigUtils.KEY_PRINCIPAL);
-            String regionserverPrincipal =
-                    MapUtils.getString(
-                            hbaseConfig,
-                            HBaseConfigUtils.KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL);
-            HBaseConfigUtils.checkOpt(
-                    regionserverPrincipal,
-                    HBaseConfigUtils.KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL);
-            String keytab = MapUtils.getString(hbaseConfig, HBaseConfigUtils.KEY_KEY_TAB);
-            HBaseConfigUtils.checkOpt(keytab, HBaseConfigUtils.KEY_KEY_TAB);
-            String keytabPath = System.getProperty("user.dir") + File.separator + keytab;
-            DtFileUtils.checkExists(keytabPath);
-
+        if (HBaseConfigUtils.isEnableKerberos(conf)) {
+            System.setProperty(
+                    HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF,
+                    asyncClientConfig.getString(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF));
+            String principal =
+                    asyncClientConfig.getString(
+                            HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL);
+            String keytab =
+                    asyncClientConfig.getString(HBaseConfigUtils.KEY_HBASE_CLIENT_KEYTAB_FILE);
+            DtFileUtils.checkExists(keytab);
             LOG.info("Kerberos login with keytab: {} and principal: {}", keytab, principal);
             String name = "HBaseClient";
-            config.overrideConfig("hbase.sasl.clientconfig", name);
+            asyncClientConfig.overrideConfig("hbase.sasl.clientconfig", name);
             appendJaasConf(name, keytab, principal);
             refreshConfig();
         }
 
-        hBaseClient = new HBaseClient(config, executorService);
+        hBaseClient = new HBaseClient(asyncClientConfig, executorService);
         try {
             Deferred deferred =
-                    hBaseClient.ensureTableExists(tableName).addCallbacks(arg -> arg, arg -> arg);
+                    hBaseClient
+                            .ensureTableExists(tableName)
+                            .addCallbacks(
+                                    arg -> new CheckResult(true, ""),
+                                    arg -> new CheckResult(false, arg.toString()));
 
             CheckResult result = (CheckResult) deferred.join();
             if (!result.isConnect()) {
@@ -160,12 +155,17 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
                 .addCallbacks(
                         keyValues -> {
                             try {
-                                Map<String, byte[]> sideMap = Maps.newHashMap();
+                                Map<String, Map<String, byte[]>> sideMap = Maps.newHashMap();
                                 for (KeyValue keyValue : keyValues) {
                                     String cf = new String(keyValue.family());
                                     String col = new String(keyValue.qualifier());
-                                    String mapKey = cf + ":" + col;
-                                    sideMap.put(mapKey, keyValue.value());
+                                    if (!sideMap.containsKey(cf)) {
+                                        Map<String, byte[]> cfMap = Maps.newHashMap();
+                                        cfMap.put(col, keyValue.value());
+                                        sideMap.put(cf, cfMap);
+                                    } else {
+                                        sideMap.get(cf).putIfAbsent(col, keyValue.value());
+                                    }
                                 }
                                 RowData rowData = serde.convertToNewRow(sideMap, key);
                                 if (keyValues.size() > 0) {
@@ -224,10 +224,6 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
     public void close() throws Exception {
         super.close();
         hBaseClient.shutdown();
-    }
-
-    protected RowData fillData(Object sideInput) throws Exception {
-        return rowConverter.toInternalLookup(sideInput);
     }
 
     class CheckResult {

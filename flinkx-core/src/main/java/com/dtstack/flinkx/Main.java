@@ -312,8 +312,10 @@ public class Main {
             factoryHelper.setEnv(env);
 
             DirtyConf dirtyConf = DirtyConfUtil.parse(options);
-            factoryHelper.registerDirtyFile(
-                    dirtyConf.getType(), Thread.currentThread().getContextClassLoader(), true);
+            factoryHelper.registerCachedFile(
+                    dirtyConf.getType(),
+                    Thread.currentThread().getContextClassLoader(),
+                    ConstantValue.DIRTY_DATA_DIR_NAME);
 
             FactoryUtil.setFactoryUtilHelp(factoryHelper);
             TableFactoryService.setFactoryUtilHelp(factoryHelper);
