@@ -38,7 +38,6 @@ import com.dtstack.flinkx.throwable.NoRestartException;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.Set;
@@ -140,7 +139,7 @@ public class DataSyncFactoryUtil {
                     PluginUtil.getPluginClassName(pluginType, OperatorType.fetcher);
 
             Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null);
+                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null, "");
 
             return ClassLoaderManager.newInstance(
                     urlList,
@@ -160,7 +159,7 @@ public class DataSyncFactoryUtil {
             String storePluginClassName =
                     PluginUtil.getPluginClassName(pluginType, OperatorType.store);
             Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null);
+                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null, "" );
 
             return ClassLoaderManager.newInstance(
                     urlList,

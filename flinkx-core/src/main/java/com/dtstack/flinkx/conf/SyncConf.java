@@ -225,16 +225,14 @@ public class SyncConf implements Serializable {
 
     public CdcConf getCdcConf() {
         return job.getSetting().getRestoration();
+    }
+
     public List<String> getSyncJarList() {
         return syncJarList;
     }
 
     public void setSyncJarList(List<String> syncJarList) {
         this.syncJarList = syncJarList;
-    }
-
-    public CdcRestoreConf getCdcConf() {
-        return job.getSetting().getCdcRestoreConf();
     }
 
     public NameMappingConf getNameMappingConf() {
