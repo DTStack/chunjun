@@ -62,7 +62,6 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public LinkedList<RowData> toInternal(BinlogEventRow binlogEventRow) throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
         CanalEntry.RowChange rowChange = binlogEventRow.getRowChange();

@@ -52,7 +52,7 @@ public class MysqlStore extends StoreBase {
     }
 
     @Override
-    public void store(RowData data) {
+    public boolean store(RowData data) {
         // 有数据写入了，但是需要记录已经保存数据的表名
         if (data instanceof DdlRowData) {
             DdlRowData ddlRowData = (DdlRowData) data;
@@ -75,10 +75,12 @@ public class MysqlStore extends StoreBase {
 
             try {
                 preparedStatement.execute(insert);
+                return true;
             } catch (SQLException e) {
                 throw new RuntimeException("Insert ddl failed! value: " + insert, e);
             }
         }
+        return false;
     }
 
     @Override

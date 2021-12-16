@@ -30,10 +30,11 @@ public abstract class StoreBase implements Runnable, Serializable {
                     continue;
                 }
                 // 将block的ddl数据下发到外部数据源中
-                Deque<RowData> rowData = chamberlain.fromBlock(table);
-                RowData data = rowData.peekFirst();
-                store(data);
-                storedTableIdentifier.add(table);
+                final Deque<RowData> rowDataDeque = chamberlain.fromBlock(table);
+                RowData data = rowDataDeque.peekFirst();
+                if (store(data)) {
+                    storedTableIdentifier.add(table);
+                }
             }
         }
     }
@@ -55,8 +56,9 @@ public abstract class StoreBase implements Runnable, Serializable {
      * 存储row data.
      *
      * @param data row data
+     * @return 是否存储成功
      */
-    public abstract void store(RowData data);
+    public abstract boolean store(RowData data);
 
     /**
      * open sub-class

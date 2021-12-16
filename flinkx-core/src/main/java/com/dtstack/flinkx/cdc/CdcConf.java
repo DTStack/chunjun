@@ -4,6 +4,7 @@ import com.dtstack.flinkx.cdc.store.FetcherConf;
 import com.dtstack.flinkx.cdc.store.StoreConf;
 
 import java.io.Serializable;
+import java.util.StringJoiner;
 
 /**
  * 数据还原 cdc-restore 配置参数
@@ -16,7 +17,7 @@ public class CdcConf implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** whether skip ddl statement or not. */
-    private boolean skip = true;
+    private boolean skipDDL = true;
 
     /** worker的核心线程数 */
     private int workerNum = 2;
@@ -55,12 +56,12 @@ public class CdcConf implements Serializable {
         this.workerMax = workerMax;
     }
 
-    public boolean isSkip() {
-        return skip;
+    public boolean isSkipDDL() {
+        return skipDDL;
     }
 
-    public void setSkip(Boolean skip) {
-        this.skip = skip;
+    public void setSkipDDL(Boolean skipDDL) {
+        this.skipDDL = skipDDL;
     }
 
     public StoreConf getStore() {
@@ -81,16 +82,13 @@ public class CdcConf implements Serializable {
 
     @Override
     public String toString() {
-        return "CdcConf{"
-                + '\''
-                + ", skip="
-                + skip
-                + ", workerNum="
-                + workerNum
-                + ", workerSize="
-                + workerSize
-                + ", workerMax="
-                + workerMax
-                + '}';
+        return new StringJoiner(", ", CdcConf.class.getSimpleName() + "[", "]")
+                .add("skipDDL=" + skipDDL)
+                .add("workerNum=" + workerNum)
+                .add("workerSize=" + workerSize)
+                .add("workerMax=" + workerMax)
+                .add("store=" + store)
+                .add("fetcher=" + fetcher)
+                .toString();
     }
 }

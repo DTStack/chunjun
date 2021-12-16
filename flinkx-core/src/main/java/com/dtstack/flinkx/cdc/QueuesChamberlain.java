@@ -59,13 +59,13 @@ public class QueuesChamberlain implements Serializable {
      * @param data row data.
      * @param tableIdentifier table identifier.
      */
-    public void put(RowData data, String tableIdentifier) {
+    public void add(RowData data, String tableIdentifier) {
         lock.lock();
         try {
             if (unblockQueues.containsKey(tableIdentifier)) {
-                unblockQueues.get(tableIdentifier).push(data);
+                unblockQueues.get(tableIdentifier).add(data);
             } else if (blockedQueues.containsKey(tableIdentifier)) {
-                blockedQueues.get(tableIdentifier).push(data);
+                blockedQueues.get(tableIdentifier).add(data);
             } else {
                 // 说明此时不存在该tableIdentifier的数据队列
                 Deque<RowData> dataDeque = new LinkedList<>();

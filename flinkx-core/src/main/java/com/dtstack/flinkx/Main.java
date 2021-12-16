@@ -171,7 +171,7 @@ public class Main {
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
         DataStream<RowData> dataStreamSource = sourceFactory.createSource();
 
-        if (!config.getCdcConf().isSkip()) {
+        if (!config.getCdcConf().isSkipDDL()) {
             CdcConf cdcConf = config.getCdcConf();
             FetcherBase fetcher = DataSyncFactoryUtil.discoverFetcher(cdcConf.getFetcher(), config);
             StoreBase store = DataSyncFactoryUtil.discoverStore(cdcConf.getStore(), config);

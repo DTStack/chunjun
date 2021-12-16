@@ -34,7 +34,7 @@ public class ExecutorUtils {
 
     private static final int DEFAULT_SINGLE = 1;
 
-    private static final String DEFAULT_NAME_PATTERN = "flinkx-single-thread-pool-%d";
+    private static final String DEFAULT_NAME_PATTERN = "flinkx-thread-pool-%d";
 
     private static final boolean DEFAULT_IS_DAEMON = false;
 

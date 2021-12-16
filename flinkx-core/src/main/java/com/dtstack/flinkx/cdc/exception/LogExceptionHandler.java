@@ -15,8 +15,8 @@ public class LogExceptionHandler implements Thread.UncaughtExceptionHandler {
     public void uncaughtException(Thread t, Throwable e) {
         LOG.error(
                 String.format(
-                        "An error occurred during the sending data. thread name : [%s], cause by : [%s]",
-                        t.getName(), e.getMessage()),
+                        "An error occurred during the sending data. thread name : [%s]",
+                        t.getName()),
                 e);
     }
 }
