@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class ConnectorNameConvertUtil {
 
-    // tuple f0 package name,f1 class name
+    // tuple f0 package name && directory name,f1 class name
     private static Map<String, Tuple2<String, String>> connectorNameMap = new HashMap<>();
 
     static {

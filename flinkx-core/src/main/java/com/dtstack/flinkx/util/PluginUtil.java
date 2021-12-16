@@ -105,7 +105,7 @@ public class PluginUtil {
                         .replace(SOURCE_SUFFIX, "")
                         .replace(WRITER_SUFFIX, "")
                         .replace(SINK_SUFFIX, "");
-
+        name = ConnectorNameConvertUtil.convertPackageName(name);
         getJarUrlList(pluginRoot, suffix, name, urlSet);
         getJarUrlList(remotePluginPath, suffix, name, urlSet);
 
