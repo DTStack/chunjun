@@ -41,7 +41,7 @@ public interface Mapping {
     RowData map(RowData value);
 
     /**
-     * 获取中的table、schema的index
+     * 获取RowData中table、schema的index
      *
      * @param value RowData
      * @return index集
