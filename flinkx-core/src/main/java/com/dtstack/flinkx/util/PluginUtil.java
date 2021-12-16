@@ -323,7 +323,7 @@ public class PluginUtil {
             for (URL url : urlSet) {
                 String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
                 env.registerCachedFile(url.getPath(), classFileName, true);
-                urlList.add(url.toString());
+                urlList.add(url.getPath());
                 add.invoke(contextClassLoader, url);
                 i++;
             }
