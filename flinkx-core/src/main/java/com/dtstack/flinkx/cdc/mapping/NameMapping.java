@@ -22,6 +22,7 @@ package com.dtstack.flinkx.cdc.mapping;
 
 import com.dtstack.flinkx.element.ColumnRowData;
 
+import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 
 import org.apache.flink.table.data.RowData;
@@ -38,7 +39,7 @@ import java.util.Map;
 public class NameMapping implements Mapping, Serializable {
 
     private static final long serialVersionUID = 1L;
-
+    /** key:source_name, value: sink_name * */
     private final Map<String, String> mappings;
 
     public NameMapping(Map<String, String> mappings) {
@@ -50,32 +51,46 @@ public class NameMapping implements Mapping, Serializable {
 
         // Dml
         if (value instanceof ColumnRowData) {
-
             Map<String, Integer> identityIndex = getIdentityIndex(value);
-
             Integer tableIndex = identityIndex.get("table");
             Integer schemaIndex = identityIndex.get("schema");
-
+            // what is certain is that the table must have a value
+            // in RowData, while the schema is not certain.
             String table = value.getString(identityIndex.get("table")).toString();
             String schema = "";
             if (schemaIndex != null) {
                 schema = value.getString(schemaIndex).toString();
             }
-
             String tableIdentity = "".equals(schema) ? table : schema + "." + table;
 
             if (mappings.containsKey(tableIdentity)) {
                 String newName = mappings.get(tableIdentity);
                 String[] split = newName.split("\\.");
-                ((ColumnRowData) value).setField(tableIndex, new StringColumn(split[0]));
-                if (split.length == 2) {
-                    if (schemaIndex != null) {
-                        ((ColumnRowData) value).setField(schemaIndex, new StringColumn(split[1]));
-                    } else {
-                        ((ColumnRowData) value).addField(new StringColumn(split[1]));
-                        ((ColumnRowData) value).addHeader("schema");
-                    }
-                    // TODO sqlserver表名可以包含"."
+
+                switch (split.length) {
+                    case 1:
+                        ((ColumnRowData) value).setField(tableIndex, new StringColumn(split[0]));
+                        if (schemaIndex != null)
+                            // oldName include table and schema
+                            // but newName just have table,
+                            // set RowData's schema to null.
+                            ((ColumnRowData) value).setField(schemaIndex, new NullColumn());
+                        break;
+                    case 2:
+                        ((ColumnRowData) value).setField(tableIndex, new StringColumn(split[1]));
+                        if (schemaIndex != null) {
+                            ((ColumnRowData) value)
+                                    .setField(schemaIndex, new StringColumn(split[0]));
+                        } else {
+                            // oldName have not schema but newName
+                            // include schema, add newName's schema into RowData.
+                            ((ColumnRowData) value).addField(new StringColumn(split[0]));
+                            ((ColumnRowData) value).addHeader("schema");
+                        }
+                        // TODO sqlserver表名可以包含"."
+                        break;
+                    default:
+                        break;
                 }
             }
             return value;
