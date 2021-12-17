@@ -59,7 +59,7 @@ public class ElasticsearchUtil {
                                 .setConnectTimeout(elasticsearchConf.getConnectTimeout())
                                 .setConnectionRequestTimeout(elasticsearchConf.getRequestTimeout())
                                 .setSocketTimeout(elasticsearchConf.getSocketTimeout()));
-        if (elasticsearchConf.isAuthMesh()) {
+        if (elasticsearchConf.getPassword() != null && elasticsearchConf.getUsername() != null) {
             // 进行用户和密码认证
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(

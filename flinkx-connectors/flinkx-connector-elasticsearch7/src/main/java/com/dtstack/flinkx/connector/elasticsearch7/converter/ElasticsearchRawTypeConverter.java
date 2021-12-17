@@ -33,46 +33,36 @@ import java.util.Locale;
  */
 public class ElasticsearchRawTypeConverter {
 
+    /**
+     * Inspired by
+     * https://www.elastic.co/guide/en/elasticsearch/reference/current/sql-data-types.html
+     *
+     * @param type
+     * @return
+     */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
                 // Numeric Types
+            case "BOOLEAN":
+                return DataTypes.BOOLEAN();
             case "BYTE":
-            case "INT2":
+                return DataTypes.TINYINT();
+            case "SHORT":
                 return DataTypes.SMALLINT();
-            case "INT":
             case "INTEGER":
-            case "INT4":
                 return DataTypes.INT();
-            case "BIGINT":
-            case "INT8":
             case "LONG":
                 return DataTypes.BIGINT();
-            case "FLOAT4":
             case "FLOAT":
                 return DataTypes.FLOAT();
-            case "DOUBLE PRECISION":
-            case "FLOAT8":
+            case "DOUBLE":
                 return DataTypes.DOUBLE();
-            case "DECIMAL":
-            case "NUMERIC":
-                return DataTypes.DECIMAL(38, 18);
-            case "VARCHAR":
             case "TEXT":
                 return DataTypes.STRING();
-            case "BYTEA":
+            case "BINARY":
                 return DataTypes.BYTES();
-            case "TIMESTAMP":
-            case "TIMESTAMPTZ":
-                return DataTypes.TIMESTAMP();
             case "DATE":
-                return DataTypes.DATE();
-            case "TIME":
-            case "TIMETZ":
-                return DataTypes.TIME();
-                // interval 类型还不知道如何支持
-            case "BOOLEAN":
-            case "BOOL":
-                return DataTypes.BOOLEAN();
+                return DataTypes.TIMESTAMP();
             default:
                 throw new UnsupportedTypeException(type);
         }
