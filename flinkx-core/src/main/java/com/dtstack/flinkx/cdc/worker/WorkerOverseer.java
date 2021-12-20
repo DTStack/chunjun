@@ -115,9 +115,6 @@ public class WorkerOverseer implements Runnable, Serializable {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            if (chunkSet.isEmpty()) {
-                break;
-            }
         }
         futureSet.clear();
     }
