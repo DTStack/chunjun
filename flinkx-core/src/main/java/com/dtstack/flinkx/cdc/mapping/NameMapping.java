@@ -39,7 +39,7 @@ import java.util.Map;
 public class NameMapping implements Mapping, Serializable {
 
     private static final long serialVersionUID = 1L;
-    /** key:source_name, value: sink_name * */
+    /** key:source_name, value:sink_name * */
     private final Map<String, String> mappings;
 
     public NameMapping(Map<String, String> mappings) {
@@ -82,7 +82,7 @@ public class NameMapping implements Mapping, Serializable {
                             ((ColumnRowData) value)
                                     .setField(schemaIndex, new StringColumn(split[0]));
                         } else {
-                            // oldName have not schema but newName
+                            // oldName have no schema but newName
                             // include schema, add newName's schema into RowData.
                             ((ColumnRowData) value).addField(new StringColumn(split[0]));
                             ((ColumnRowData) value).addHeader("schema");
