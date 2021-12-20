@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.test;
 
 import com.dtstack.flink.api.java.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.alluxio.writer.AlluxioWriter;
 import com.dtstack.flinkx.binlog.reader.BinlogReader;
 import com.dtstack.flinkx.carbondata.reader.CarbondataReader;
 import com.dtstack.flinkx.carbondata.writer.CarbondataWriter;
@@ -264,6 +265,7 @@ public class LocalTest {
             case PluginNameConstants.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
             case PluginNameConstants.KINGBASE_WRITER : writer = new KingbaseWriter(config); break;
             case PluginNameConstants.RESTAPI_WRITER: writer = new RedisWriter(config); break;
+            case PluginNameConstants.ALLUXIO_WRITER: writer = new AlluxioWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 

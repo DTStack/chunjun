@@ -52,6 +52,7 @@ public class ConstantValue {
     public static final String PROTOCOL_HTTPS = "https://";
     public static final String PROTOCOL_HDFS = "hdfs://";
     public static final String PROTOCOL_JDBC_MYSQL = "jdbc:mysql://";
+    public static final String PROTOCOL_ALLUXIO = "alluxio://";
 
     public static final String SYSTEM_PROPERTIES_KEY_OS = "os.name";
     public static final String SYSTEM_PROPERTIES_KEY_USER_DIR = "user.dir";
