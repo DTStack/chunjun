@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,36 +16,40 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.ftp.source;
+package com.dtstack.flinkx.connector.ftp.handler;
 
 import com.dtstack.flinkx.connector.ftp.client.File;
 
-import org.apache.flink.core.io.InputSplit;
+import java.io.Serializable;
 
-import java.util.ArrayList;
-import java.util.List;
+public class Position implements Serializable {
 
-/**
- * The Class describing each InputSplit of Ftp
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
-public class FtpInputSplit implements InputSplit {
+    private static final long serialVersionUID = 1L;
 
-    private List<File> paths = new ArrayList<>();
+    /** 第几条数据* */
+    private Long line;
+    /** 读取的数据文件* */
+    private File file;
+
+    public Position(Long line, File file) {
+        this.line = line;
+        this.file = file;
+    }
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public Long getLine() {
+        return line;
+    }
+
+    public File getFile() {
+        return file;
+    }
 
     @Override
-    public int getSplitNumber() {
-        return 0;
-    }
-
-    public List<File> getPaths() {
-        return paths;
-    }
-
-    public void setPaths(List<File> paths) {
-        this.paths = paths;
+    public String toString() {
+        return "Position{" + "line='" + line + '\'' + ", file='" + file + '\'' + '}';
     }
 }

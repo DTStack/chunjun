@@ -19,12 +19,18 @@
 package com.dtstack.flinkx.connector.ftp.source;
 
 import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.connector.ftp.client.Data;
+import com.dtstack.flinkx.connector.ftp.client.File;
+import com.dtstack.flinkx.connector.ftp.client.FileType;
+import com.dtstack.flinkx.connector.ftp.client.FileUtil;
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
 import com.dtstack.flinkx.connector.ftp.converter.FtpColumnConverter;
 import com.dtstack.flinkx.connector.ftp.converter.FtpRowConverter;
 import com.dtstack.flinkx.connector.ftp.handler.FtpHandlerFactory;
 import com.dtstack.flinkx.connector.ftp.handler.IFtpHandler;
+import com.dtstack.flinkx.connector.ftp.handler.Position;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -34,10 +40,14 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -55,7 +65,9 @@ public class FtpInputFormat extends BaseRichInputFormat {
 
     private transient IFtpHandler ftpHandler;
 
-    private transient String line;
+    private transient Data data;
+
+    private transient Position position;
 
     @Override
     public void openInputFormat() throws IOException {
@@ -80,14 +92,37 @@ public class FtpInputFormat extends BaseRichInputFormat {
                 files.addAll(ftpHandler.getFiles(p.trim()));
             }
         }
-        LOG.info("FTP files = {}", GsonUtil.GSON.toJson(files));
+
+        List<File> fileList = new ArrayList<>();
+
+        if (CollectionUtils.isNotEmpty(files)) {
+            for (String filePath : files) {
+                if (StringUtils.isNotBlank(ftpConfig.getCompressType())) {
+                    FileUtil.addFile(ftpHandler, filePath, ftpConfig, fileList);
+                } else {
+                    fileList.add(
+                            new File(
+                                    null,
+                                    filePath,
+                                    filePath.substring(filePath.lastIndexOf("/") + 1),
+                                    null));
+                }
+            }
+        }
+        if (CollectionUtils.isEmpty(fileList)) {
+            throw new RuntimeException("There are no readable files  in directory " + path);
+        }
+        LOG.info("FTP files = {}", GsonUtil.GSON.toJson(fileList));
         int numSplits = (Math.min(files.size(), minNumSplits));
         FtpInputSplit[] ftpInputSplits = new FtpInputSplit[numSplits];
         for (int index = 0; index < numSplits; ++index) {
             ftpInputSplits[index] = new FtpInputSplit();
         }
+
+        Collections.sort(fileList, Comparator.comparing(File::getFileAbsolutePath));
+
         for (int i = 0; i < files.size(); ++i) {
-            ftpInputSplits[i % numSplits].getPaths().add(files.get(i));
+            ftpInputSplits[i % numSplits].getPaths().add(fileList.get(i));
         }
 
         ftpHandler.logoutFtpServer();
@@ -97,37 +132,44 @@ public class FtpInputFormat extends BaseRichInputFormat {
     @Override
     public void openInternal(InputSplit split) throws IOException {
         FtpInputSplit inputSplit = (FtpInputSplit) split;
-        List<String> paths = inputSplit.getPaths();
+        List<File> paths = inputSplit.getPaths();
+        removeFileHasRead(paths);
+        LOG.info("read files = {}", GsonUtil.GSON.toJson(paths));
+        Position position =
+                (formatState != null && formatState.getState() != null)
+                        ? (Position) formatState.getState()
+                        : null;
 
         if (ftpConfig.getIsFirstLineHeader()) {
-            br = new FtpSeqBufferedReader(ftpHandler, paths.iterator(), ftpConfig);
-            br.setFromLine(1);
+            br = new FtpSeqBufferedReader(ftpHandler, paths.iterator(), ftpConfig, position);
+            if (FileType.fromString(ftpConfig.getFileType()) != FileType.EXCEL) {
+                br.setFromLine(1);
+            }
         } else {
-            br = new FtpSeqBufferedReader(ftpHandler, paths.iterator(), ftpConfig);
+            br = new FtpSeqBufferedReader(ftpHandler, paths.iterator(), ftpConfig, position);
             br.setFromLine(0);
         }
-        br.setFileEncoding(ftpConfig.getEncoding());
     }
 
     @Override
     public boolean reachedEnd() throws IOException {
-        line = br.readLine();
-        return line == null;
+        data = br.readLine();
+        return data == null || data.getData() == null;
     }
 
     @Override
     protected RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
-
+        String[] fields = data.getData();
         try {
-            if (StringUtils.isBlank(line)) {
-                LOG.warn("read data:{}, it will not be written.", line);
+            if (fields.length == 1 && StringUtils.isBlank(fields[0])) {
+                LOG.warn("read data:{}, it will not be written.", Arrays.toString(fields));
                 return null;
             }
 
             if (rowConverter instanceof FtpRowConverter) {
-                rowData = rowConverter.toInternal(line);
+                rowData = rowConverter.toInternal(String.join(",", fields));
             } else if (rowConverter instanceof FtpColumnConverter) {
-                String[] fields = line.split(ftpConfig.getFieldDelimiter());
+
                 List<FieldConf> columns = ftpConfig.getColumn();
 
                 GenericRowData genericRowData;
@@ -157,7 +199,17 @@ public class FtpInputFormat extends BaseRichInputFormat {
         } catch (Exception e) {
             throw new ReadRecordException("", e, 0, rowData);
         }
+        position = data.getPosition();
         return rowData;
+    }
+
+    @Override
+    public FormatState getFormatState() {
+        super.getFormatState();
+        if (formatState != null) {
+            formatState.setState(position);
+        }
+        return formatState;
     }
 
     @Override
@@ -176,5 +228,23 @@ public class FtpInputFormat extends BaseRichInputFormat {
 
     public void setFtpConfig(FtpConfig ftpConfig) {
         this.ftpConfig = ftpConfig;
+    }
+
+    /** 移除已经读取的文件* */
+    public void removeFileHasRead(List<File> files) {
+        if (formatState != null && formatState.getState() != null) {
+            LOG.info("start remove the file according to the state value...");
+            Position state = (Position) formatState.getState();
+            Iterator<File> iterator = files.iterator();
+            while (iterator.hasNext()) {
+                File next = iterator.next();
+                if (!state.getFile().getFileAbsolutePath().equals(next.getFileAbsolutePath())) {
+                    LOG.info("skip file {} when recovery from state", next.getFileAbsolutePath());
+                    iterator.remove();
+                } else {
+                    break;
+                }
+            }
+        }
     }
 }

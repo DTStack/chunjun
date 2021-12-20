@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,36 +16,25 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.ftp.source;
+package com.dtstack.flinkx.connector.ftp.client;
 
-import com.dtstack.flinkx.connector.ftp.client.File;
+import com.dtstack.flinkx.connector.ftp.handler.Position;
 
-import org.apache.flink.core.io.InputSplit;
+/** return from ftpSeqBufferedReader contains line and position */
+public class Data {
+    private String[] data;
+    private Position position;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * The Class describing each InputSplit of Ftp
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
-public class FtpInputSplit implements InputSplit {
-
-    private List<File> paths = new ArrayList<>();
-
-    @Override
-    public int getSplitNumber() {
-        return 0;
+    public Data(String[] data, Position position) {
+        this.data = data;
+        this.position = position;
     }
 
-    public List<File> getPaths() {
-        return paths;
+    public String[] getData() {
+        return data;
     }
 
-    public void setPaths(List<File> paths) {
-        this.paths = paths;
+    public Position getPosition() {
+        return position;
     }
 }

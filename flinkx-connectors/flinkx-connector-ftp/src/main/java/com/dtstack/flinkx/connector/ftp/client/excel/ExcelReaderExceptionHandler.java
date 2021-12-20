@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,36 +16,22 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.ftp.source;
+package com.dtstack.flinkx.connector.ftp.client.excel;
 
-import com.dtstack.flinkx.connector.ftp.client.File;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.flink.core.io.InputSplit;
+/** @author by dujie @Description @Date 2021/12/20 */
+public class ExcelReaderExceptionHandler implements Thread.UncaughtExceptionHandler {
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * The Class describing each InputSplit of Ftp
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
-public class FtpInputSplit implements InputSplit {
-
-    private List<File> paths = new ArrayList<>();
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     @Override
-    public int getSplitNumber() {
-        return 0;
-    }
-
-    public List<File> getPaths() {
-        return paths;
-    }
-
-    public void setPaths(List<File> paths) {
-        this.paths = paths;
+    public void uncaughtException(Thread t, Throwable e) {
+        LOG.error(
+                "an error occurred during the reading of the Excel file."
+                        + " thread name : {}, message : {}",
+                t.getName(),
+                e.getMessage());
     }
 }

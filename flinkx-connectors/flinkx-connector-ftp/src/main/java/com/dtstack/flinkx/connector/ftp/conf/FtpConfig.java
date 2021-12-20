@@ -21,6 +21,8 @@ package com.dtstack.flinkx.connector.ftp.conf;
 import com.dtstack.flinkx.conf.BaseFileConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 
+import java.util.Map;
+
 /**
  * @author jiangbo
  * @date 2019/12/9
@@ -44,6 +46,17 @@ public class FtpConfig extends BaseFileConf {
     private boolean listHiddenFiles = true;
 
     private String ftpFileName;
+
+    public String encoding = "UTF-8";
+
+    /** file config * */
+    public Map<String, Object> fileConfig;
+
+    /** Get the specified fileReadClient according to the filetype * */
+    public String fileType;
+
+    /** 压缩格式 * */
+    public String compressType;
 
     public String getUsername() {
         return username;
@@ -163,5 +176,39 @@ public class FtpConfig extends BaseFileConf {
 
     public void setFtpFileName(String ftpFileName) {
         this.ftpFileName = ftpFileName;
+    }
+
+    public String getCompressType() {
+        return compressType;
+    }
+
+    public void setCompressType(String compressType) {
+        this.compressType = compressType;
+    }
+
+    public Map<String, Object> getFileConfig() {
+        return fileConfig;
+    }
+
+    public void setFileConfig(Map<String, Object> fileConfig) {
+        this.fileConfig = fileConfig;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+    @Override
+    public String getEncoding() {
+        return encoding;
+    }
+
+    @Override
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 }
