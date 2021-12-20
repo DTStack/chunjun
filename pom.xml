@@ -31,7 +31,8 @@
 		<http.version>4.5.3</http.version>
 		<guava.version>19.0</guava.version>
 		<dist.dir>flinkx-dist</dist.dir>
-		<log4j2.version>2.15.0</log4j2.version>
+		<!-- fix CVE-2021-45105 -->
+		<log4j2.version>2.17.0</log4j2.version>
 	</properties>
 
 	<dependencies>
