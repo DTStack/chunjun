@@ -18,7 +18,7 @@
  *
  */
 
-package com.dtstack.flinkx.cdc.mapping;
+package com.dtstack.flinkx.mapping;
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.configuration.Configuration;

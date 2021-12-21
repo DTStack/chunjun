@@ -18,8 +18,8 @@
 package com.dtstack.flinkx;
 
 import com.dtstack.flinkx.cdc.CdcConf;
-import com.dtstack.flinkx.cdc.mapping.NameMappingConf;
-import com.dtstack.flinkx.cdc.mapping.NameMappingFlatMap;
+import com.dtstack.flinkx.mapping.NameMappingConf;
+import com.dtstack.flinkx.mapping.NameMappingFlatMap;
 import com.dtstack.flinkx.cdc.RestorationFlatMap;
 import com.dtstack.flinkx.cdc.store.FetcherBase;
 import com.dtstack.flinkx.cdc.store.StoreBase;

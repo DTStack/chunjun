@@ -18,30 +18,55 @@
  *
  */
 
-package com.dtstack.flinkx.cdc.mapping;
-
-import org.apache.flink.table.data.RowData;
+package com.dtstack.flinkx.mapping;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 /**
- * 正则匹配. TODO
+ * Company：www.dtstack.com.
  *
  * @author shitou
  * @date 2021/12/15
  */
-public class PatternMapping implements Mapping, Serializable {
+public class NameMappingConf implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    String pattern;
+    /**
+     * 名称匹配规则,配置source端对sink端表名映射关系
+     * like this: { "source":"aaa", "sink":"bbb" }, { "source":"ccc","sink":"ddd" }, ...
+     */
+    private List<Map<String, String>> tableMappings;
 
-    public PatternMapping(String pattern) {
+    /** 用户自定义的正则 */
+    private String pattern;
+
+    public String getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(String pattern) {
         this.pattern = pattern;
     }
 
+    public List<Map<String, String>> getTableMappings() {
+        return tableMappings;
+    }
+
+    public void setTableMappings(List<Map<String, String>> tableMappings) {
+        this.tableMappings = tableMappings;
+    }
+
     @Override
-    public RowData map(RowData value) {
-        return null;
+    public String toString() {
+        return "NameMappingConf{"
+                + "tableMappings="
+                + tableMappings
+                + ", pattern='"
+                + pattern
+                + '\''
+                + '}';
     }
 }

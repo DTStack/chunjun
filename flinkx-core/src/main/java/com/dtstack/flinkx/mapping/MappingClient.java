@@ -18,7 +18,7 @@
  *
  */
 
-package com.dtstack.flinkx.cdc.mapping;
+package com.dtstack.flinkx.mapping;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

@@ -17,7 +17,7 @@
  */
 package com.dtstack.flinkx.conf;
 
-import com.dtstack.flinkx.cdc.mapping.NameMappingConf;
+import com.dtstack.flinkx.mapping.NameMappingConf;
 
 import java.io.Serializable;
 

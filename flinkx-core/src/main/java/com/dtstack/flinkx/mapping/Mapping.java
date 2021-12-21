@@ -18,7 +18,7 @@
  *
  */
 
-package com.dtstack.flinkx.cdc.mapping;
+package com.dtstack.flinkx.mapping;
 
 import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.element.ColumnRowData;

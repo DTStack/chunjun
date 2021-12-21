@@ -18,7 +18,7 @@
 package com.dtstack.flinkx.conf;
 
 import com.dtstack.flinkx.cdc.CdcConf;
-import com.dtstack.flinkx.cdc.mapping.NameMappingConf;
+import com.dtstack.flinkx.mapping.NameMappingConf;
 import com.dtstack.flinkx.util.GsonUtil;
 
 import org.apache.commons.collections.CollectionUtils;
