@@ -628,7 +628,8 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
                         ? ClusterEntrypoint.ExecutionMode.DETACHED
                         : ClusterEntrypoint.ExecutionMode.NORMAL;
 
-        flinkConfiguration.setString(ClusterEntrypoint.EXECUTION_MODE, executionMode.toString());
+        flinkConfiguration.setString(
+                ClusterEntrypoint.INTERNAL_CLUSTER_EXECUTION_MODE, executionMode.toString());
 
         ApplicationReport report =
                 startAppMaster(
@@ -1778,9 +1779,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 
     private static YarnConfigOptions.UserJarInclusion getUserJarInclusionMode(
             org.apache.flink.configuration.Configuration config) {
-        return config.getEnum(
-                YarnConfigOptions.UserJarInclusion.class,
-                YarnConfigOptions.CLASSPATH_INCLUDE_USER_JAR);
+        return config.get(YarnConfigOptions.CLASSPATH_INCLUDE_USER_JAR);
     }
 
     private static boolean isUsrLibDirIncludedInShipFiles(List<File> shipFiles) {

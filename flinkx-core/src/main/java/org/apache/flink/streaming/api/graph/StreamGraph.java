@@ -36,7 +36,6 @@ import org.apache.flink.api.java.typeutils.MissingTypeInfo;
 import org.apache.flink.core.memory.ManagedMemoryUseCase;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
-import org.apache.flink.runtime.jobgraph.ScheduleMode;
 import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
 import org.apache.flink.runtime.state.StateBackend;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -94,7 +93,7 @@ public class StreamGraph implements Pipeline {
     protected Map<Integer, Long> vertexIDtoLoopTimeout;
     private String jobName;
     private SavepointRestoreSettings savepointRestoreSettings = SavepointRestoreSettings.none();
-    private ScheduleMode scheduleMode;
+
     private boolean chaining;
     private Collection<Tuple2<String, DistributedCache.DistributedCacheEntry>> userArtifacts;
     private TimeCharacteristic timeCharacteristic;
@@ -177,14 +176,6 @@ public class StreamGraph implements Pipeline {
 
     public void setTimerServiceProvider(InternalTimeServiceManager.Provider timerServiceProvider) {
         this.timerServiceProvider = checkNotNull(timerServiceProvider);
-    }
-
-    public ScheduleMode getScheduleMode() {
-        return scheduleMode;
-    }
-
-    public void setScheduleMode(ScheduleMode scheduleMode) {
-        this.scheduleMode = scheduleMode;
     }
 
     public Collection<Tuple2<String, DistributedCache.DistributedCacheEntry>> getUserArtifacts() {

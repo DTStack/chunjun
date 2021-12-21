@@ -32,6 +32,7 @@ import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.catalog.UnresolvedIdentifier;
@@ -44,6 +45,7 @@ import org.apache.flink.table.types.extraction.DataTypeExtractor;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.utils.LogicalTypeParser;
 import org.apache.flink.table.types.utils.TypeConversions;
+import org.apache.flink.table.types.utils.TypeInfoDataTypeConverter;
 import org.apache.flink.types.RowKind;
 
 import com.google.common.collect.Lists;
@@ -463,7 +465,17 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
         }
 
         @Override
+        public <T> DataType createDataType(TypeInformation<T> typeInformation) {
+            return TypeInfoDataTypeConverter.toDataType(this, typeInformation);
+        }
+
+        @Override
         public <T> DataType createRawDataType(Class<T> clazz) {
+            return dataType.orElseThrow(IllegalStateException::new);
+        }
+
+        @Override
+        public <T> DataType createRawDataType(TypeInformation<T> typeInformation) {
             return dataType.orElseThrow(IllegalStateException::new);
         }
     }
