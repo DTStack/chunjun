@@ -35,8 +35,8 @@ public class NameMappingConf implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 名称匹配规则,配置source端对sink端表名映射关系
-     * like this: { "source":"aaa", "sink":"bbb" }, { "source":"ccc","sink":"ddd" }, ...
+     * 名称匹配规则,配置source端对sink端表名映射关系 like this: { "source":"aaa", "sink":"bbb" }, {
+     * "source":"ccc","sink":"ddd" }, ...
      */
     private List<Map<String, String>> tableMappings;
 

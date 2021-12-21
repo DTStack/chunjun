@@ -18,11 +18,9 @@
 package com.dtstack.flinkx;
 
 import com.dtstack.flinkx.cdc.CdcConf;
-import com.dtstack.flinkx.mapping.NameMappingConf;
-import com.dtstack.flinkx.mapping.NameMappingFlatMap;
 import com.dtstack.flinkx.cdc.RestorationFlatMap;
-import com.dtstack.flinkx.cdc.store.FetcherBase;
-import com.dtstack.flinkx.cdc.store.StoreBase;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
+import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -31,6 +29,8 @@ import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.enums.EJobType;
 import com.dtstack.flinkx.environment.EnvFactory;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.mapping.NameMappingConf;
+import com.dtstack.flinkx.mapping.NameMappingFlatMap;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.sink.SinkFactory;

@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.cdc.store;
+package com.dtstack.flinkx.cdc.monitor.store;
 
 import com.dtstack.flinkx.cdc.QueuesChamberlain;
 

@@ -91,7 +91,7 @@ public class Worker implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         send();
-        //返回当前分片的chunkNum给到WorkerOverseer
+        // 返回当前分片的chunkNum给到WorkerOverseer
         return chunk.getChunkNum();
     }
 }

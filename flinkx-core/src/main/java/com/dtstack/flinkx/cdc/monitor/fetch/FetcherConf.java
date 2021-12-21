@@ -1,4 +1,4 @@
-package com.dtstack.flinkx.cdc.store;
+package com.dtstack.flinkx.cdc.monitor.fetch;
 
 import java.io.Serializable;
 import java.util.Map;

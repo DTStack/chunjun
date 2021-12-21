@@ -1,7 +1,9 @@
-package com.dtstack.flinkx.cdc.store;
+package com.dtstack.flinkx.cdc.monitor;
 
 import com.dtstack.flinkx.cdc.QueuesChamberlain;
 import com.dtstack.flinkx.cdc.exception.LogExceptionHandler;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
+import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
 import com.dtstack.flinkx.cdc.utils.ExecutorUtils;
 
 import java.io.Serializable;
@@ -9,8 +11,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 
 /**
- * 主要做两件事： (1) 将blockQueue中的数据，通过store下发到外部数据源； (2)
- * 通过fetcher获取外部数据源对ddl的反馈，并将对应的ddl数据从blockQueue中删除，把数据队列放到unblockQueue中 // TODO by tiezhu:线程池异常处理机制
+ * 主要做两件事：
+ *
+ * <p>(1) 将blockQueue中的数据，通过store下发到外部数据源；
+ *
+ * <p>(2) 通过fetcher获取外部数据源对ddl的反馈，并将对应的ddl数据从blockQueue中删除，把数据队列放到unblockQueue中
  *
  * @author tiezhu@dtstack.com
  * @since 2021/12/2 星期四
@@ -37,6 +42,12 @@ public class Monitor implements Serializable {
     }
 
     public void open() throws Exception {
+        fetcher.setChamberlain(queuesChamberlain);
+        fetcher.setStoredTableIdentifier(storedTableIdentifier);
+
+        store.setChamberlain(queuesChamberlain);
+        store.setStoredTableIdentifier(storedTableIdentifier);
+
         fetcher.open();
         store.open();
     }
@@ -47,8 +58,6 @@ public class Monitor implements Serializable {
     }
 
     private void submitFetcher() {
-        fetcher.setChamberlain(queuesChamberlain);
-        fetcher.setStoredTableIdentifier(storedTableIdentifier);
         fetcherExecutor =
                 ExecutorUtils.singleThreadExecutor(
                         "fetcher-pool-%d", false, new LogExceptionHandler());
@@ -56,8 +65,6 @@ public class Monitor implements Serializable {
     }
 
     private void submitStore() {
-        store.setChamberlain(queuesChamberlain);
-        store.setStoredTableIdentifier(storedTableIdentifier);
         storeExecutor =
                 ExecutorUtils.singleThreadExecutor(
                         "store-pool-%d", false, new LogExceptionHandler());

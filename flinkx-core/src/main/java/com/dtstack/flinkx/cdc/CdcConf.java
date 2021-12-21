@@ -1,7 +1,7 @@
 package com.dtstack.flinkx.cdc;
 
-import com.dtstack.flinkx.cdc.store.FetcherConf;
-import com.dtstack.flinkx.cdc.store.StoreConf;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherConf;
+import com.dtstack.flinkx.cdc.monitor.store.StoreConf;
 
 import java.io.Serializable;
 import java.util.StringJoiner;

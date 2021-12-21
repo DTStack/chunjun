@@ -1,8 +1,8 @@
 package com.dtstack.flinkx.cdc;
 
-import com.dtstack.flinkx.cdc.store.FetcherBase;
-import com.dtstack.flinkx.cdc.store.Monitor;
-import com.dtstack.flinkx.cdc.store.StoreBase;
+import com.dtstack.flinkx.cdc.monitor.Monitor;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
+import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
 import com.dtstack.flinkx.cdc.worker.WorkerManager;
 import com.dtstack.flinkx.element.ColumnRowData;
 

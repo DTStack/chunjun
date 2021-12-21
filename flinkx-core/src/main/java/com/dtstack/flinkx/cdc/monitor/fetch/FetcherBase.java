@@ -1,11 +1,13 @@
-package com.dtstack.flinkx.cdc.store;
+package com.dtstack.flinkx.cdc.monitor.fetch;
 
+import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.cdc.QueuesChamberlain;
 
 import org.apache.flink.table.data.RowData;
 
 import java.io.Serializable;
 import java.util.Deque;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -27,6 +29,17 @@ public abstract class FetcherBase implements Runnable, Serializable {
 
     public void setStoredTableIdentifier(CopyOnWriteArrayList<String> storedTableIdentifier) {
         this.storedTableIdentifier = storedTableIdentifier;
+    }
+
+    public void open() throws Exception {
+        openSubclass();
+
+        // 查询外部数据源中是否存有ddl的数据
+        Map<String, DdlRowData> ddlRowDataMap = query();
+        if (null != ddlRowDataMap) {
+            ddlRowDataMap.forEach(
+                    (tableIdentity, ddlData) -> chamberlain.block(tableIdentity, ddlData));
+        }
     }
 
     @Override
@@ -64,11 +77,18 @@ public abstract class FetcherBase implements Runnable, Serializable {
     public abstract void delete(RowData data);
 
     /**
+     * 查询外部数据源中未被处理的ddl数据，返回map of tableIdentity, ddl-row-data。
+     *
+     * @return map of table-identities and ddl row-data.
+     */
+    public abstract Map<String, DdlRowData> query();
+
+    /**
      * open sub-class
      *
      * @throws Exception exception
      */
-    public abstract void open() throws Exception;
+    public abstract void openSubclass() throws Exception;
 
     /** 关闭子类 */
     public abstract void closeSubclass();

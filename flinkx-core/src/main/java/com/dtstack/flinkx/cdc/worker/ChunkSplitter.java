@@ -36,6 +36,7 @@ public class ChunkSplitter {
 
     /**
      * 创建worker任务分片
+     *
      * @param tableIdentities tableIdentities
      * @param chunkNum how many chunks want.
      * @return Chunk[]

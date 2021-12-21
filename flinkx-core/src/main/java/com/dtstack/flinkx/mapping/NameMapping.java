@@ -21,7 +21,6 @@
 package com.dtstack.flinkx.mapping;
 
 import com.dtstack.flinkx.element.ColumnRowData;
-
 import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 

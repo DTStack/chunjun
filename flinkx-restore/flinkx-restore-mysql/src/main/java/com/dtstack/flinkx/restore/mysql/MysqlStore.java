@@ -1,8 +1,8 @@
 package com.dtstack.flinkx.restore.mysql;
 
 import com.dtstack.flinkx.cdc.DdlRowData;
-import com.dtstack.flinkx.cdc.store.StoreBase;
-import com.dtstack.flinkx.cdc.store.StoreConf;
+import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
+import com.dtstack.flinkx.cdc.monitor.store.StoreConf;
 import com.dtstack.flinkx.restore.mysql.utils.DruidDataSourceUtil;
 
 import org.apache.flink.table.data.RowData;

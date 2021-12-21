@@ -18,10 +18,10 @@
 
 package com.dtstack.flinkx.util;
 
-import com.dtstack.flinkx.cdc.store.FetcherBase;
-import com.dtstack.flinkx.cdc.store.FetcherConf;
-import com.dtstack.flinkx.cdc.store.StoreBase;
-import com.dtstack.flinkx.cdc.store.StoreConf;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherConf;
+import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
+import com.dtstack.flinkx.cdc.monitor.store.StoreConf;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.MetricParam;
@@ -159,7 +159,7 @@ public class DataSyncFactoryUtil {
             String storePluginClassName =
                     PluginUtil.getPluginClassName(pluginType, OperatorType.store);
             Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null, "" );
+                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null, "");
 
             return ClassLoaderManager.newInstance(
                     urlList,

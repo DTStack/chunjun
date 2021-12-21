@@ -32,14 +32,10 @@ public class Chunk implements Serializable {
 
     private static final long serialVersionUID = 2L;
 
-    /**
-     * chunk唯一标识
-     */
+    /** chunk唯一标识 */
     private final Integer chunkNum;
 
-    /**
-     * 表标识
-     */
+    /** 表标识 */
     private final String[] tableIdentities;
 
     public Chunk(Integer chunkNum, String[] tableIdentities) {

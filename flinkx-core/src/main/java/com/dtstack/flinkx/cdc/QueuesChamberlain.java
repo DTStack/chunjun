@@ -77,6 +77,23 @@ public class QueuesChamberlain implements Serializable {
         }
     }
 
+    public void block(String tableIdentity, RowData rowData) {
+        lock.lock();
+        try {
+            if (blockedQueues.containsKey(tableIdentity)) {
+                Deque<RowData> rowDataDeque = blockedQueues.get(tableIdentity);
+                rowDataDeque.add(rowData);
+                return;
+            }
+
+            Deque<RowData> dataDeque = new LinkedList<>();
+            dataDeque.add(rowData);
+            blockedQueues.put(tableIdentity, dataDeque);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public void block(String tableIdentity, Deque<RowData> queue) {
         // 将该队列放到blockQueues
         lock.lock();

@@ -1,8 +1,9 @@
 package com.dtstack.flinkx.restore.mysql;
 
 import com.dtstack.flinkx.cdc.DdlRowData;
-import com.dtstack.flinkx.cdc.store.FetcherBase;
-import com.dtstack.flinkx.cdc.store.FetcherConf;
+import com.dtstack.flinkx.cdc.DdlRowDataBuilder;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherConf;
 import com.dtstack.flinkx.restore.mysql.utils.DruidDataSourceUtil;
 
 import org.apache.flink.table.data.RowData;
@@ -16,30 +17,23 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.DATABASE_KEY;
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.DELETE;
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.DRIVER;
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.QUERY;
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.SELECT;
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.TABLE_KEY;
 
 /**
- * TODO by tiezhu: 如果ddl库中存在历史数据，这个时候怎么处理呢？
- *
  * @author tiezhu@dtstack.com
  * @since 2021/12/6 星期一
  */
 public class MysqlFetcher extends FetcherBase {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private static final String SELECT =
-            "select database_name, table_name from `$database`.`$table`"
-                    + " where status = 2 and database_name = ? and table_name = ? and lsn = ?";
-
-    private static final String DELETE =
-            "delete from `$database`.`$table`"
-                    + " where status = 2 and database_name = ? and table_name = ? and lsn = ?";
-
-    private static final String DATABASE_KEY = "database";
-
-    private static final String TABLE_KEY = "table";
-
-    private static final String DRIVER = "com.mysql.jdbc.Driver";
 
     private final FetcherConf conf;
 
@@ -50,6 +44,8 @@ public class MysqlFetcher extends FetcherBase {
     private PreparedStatement select;
 
     private PreparedStatement delete;
+
+    private PreparedStatement query;
 
     public MysqlFetcher(FetcherConf conf) {
         this.conf = conf;
@@ -99,7 +95,42 @@ public class MysqlFetcher extends FetcherBase {
     }
 
     @Override
-    public void open() throws Exception {
+    public Map<String, DdlRowData> query() {
+        final Map<String, DdlRowData> ddlRowDataMap = new HashMap<>();
+        try (final ResultSet resultSet = query.executeQuery()) {
+            while (resultSet.next()) {
+                String databaseName = resultSet.getString(1);
+                String tableName = resultSet.getString(2);
+                String operationType = resultSet.getString(3);
+                String lsn = resultSet.getString(4);
+                String content = resultSet.getString(5);
+
+                DdlRowData ddl =
+                        DdlRowDataBuilder.builder()
+                                .setDatabaseName(databaseName)
+                                .setTableName(tableName)
+                                .setType(operationType)
+                                .setLsn(lsn)
+                                .setContent(content)
+                                .build();
+
+                String tableIdentity = "'" + databaseName + "'.'" + tableName + "'";
+                ddlRowDataMap.put(tableIdentity, ddl);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("query database, table failed.", e);
+        } finally {
+            try {
+                query.close();
+            } catch (SQLException e) {
+                logger.error("close query statement failed.", e);
+            }
+        }
+        return ddlRowDataMap;
+    }
+
+    @Override
+    public void openSubclass() throws Exception {
         dataSource = DruidDataSourceUtil.getDataSource(conf.getProperties(), DRIVER);
         connection = dataSource.getConnection();
 
@@ -107,8 +138,10 @@ public class MysqlFetcher extends FetcherBase {
         String table = (String) conf.getProperties().get(TABLE_KEY);
         String select = SELECT.replace("$database", database).replace("$table", table);
         String delete = DELETE.replace("$database", database).replace("$table", table);
+        String query = QUERY.replace("$database", database).replace("$table", table);
         this.select = connection.prepareStatement(select);
         this.delete = connection.prepareStatement(delete);
+        this.query = connection.prepareStatement(query);
     }
 
     @Override

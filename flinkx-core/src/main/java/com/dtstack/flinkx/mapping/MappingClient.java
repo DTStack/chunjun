@@ -20,10 +20,10 @@
 
 package com.dtstack.flinkx.mapping;
 
+import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.table.data.RowData;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -91,7 +91,7 @@ public class WorkerOverseer implements Runnable, Serializable {
         final int workerNum = workerExecutor.getMaximumPoolSize();
         Set<String> tableIdentities = chamberlain.unblockTableIdentities();
         if (!tableIdentities.isEmpty()) {
-            //创建任务分片
+            // 创建任务分片
             Chunk[] chunks = ChunkSplitter.createChunk(tableIdentities, workerNum);
             for (Chunk chunk : chunks) {
                 Worker worker = new Worker(chamberlain, collector, chunk, workerSize);

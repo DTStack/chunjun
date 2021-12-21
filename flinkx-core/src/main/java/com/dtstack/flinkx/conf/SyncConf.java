@@ -21,10 +21,10 @@ import com.dtstack.flinkx.cdc.CdcConf;
 import com.dtstack.flinkx.mapping.NameMappingConf;
 import com.dtstack.flinkx.util.GsonUtil;
 
+import org.apache.flink.util.Preconditions;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import org.apache.flink.util.Preconditions;
 
 import java.io.Serializable;
 import java.util.List;
