@@ -79,8 +79,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
- * Utility class to encapsulate the logic of building an {@link DefaultExecutionGraphBuilder} from a {@link
- * JobGraph}. 改动内容：jobManager中支持获取上传的文件#240 改动原因：flink
+ * Utility class to encapsulate the logic of building an {@link DefaultExecutionGraphBuilder} from a
+ * {@link JobGraph}. 改动内容：jobManager中支持获取上传的文件#240 改动原因：flink
  * 1.12中改为异步提交导致上传的文件异步提交后立即被删除，jobManager初始化时无法获取这些文件
  */
 public class DefaultExecutionGraphBuilder {
