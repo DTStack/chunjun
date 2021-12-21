@@ -83,6 +83,7 @@ FlinkX目前支持下面这些数据库：
 |                        | Stream         | [doc](docs/offline/reader/streamreader.md)       | [doc](docs/offline/writer/streamwriter.md) |
 |                        | Redis          |                                                  | [doc](docs/offline/writer/rediswriter.md)      |
 |                        | Hive           |                                                  | [doc](docs/offline/writer/hivewriter.md)       |
+|                        | Alluxio        |                                                  | [doc](docs/offline/writer/alluxiowriter.md)    |
 | Stream Synchronization | Kafka          | [doc](docs/realTime/reader/kafkareader.md)       | [doc](docs/realTime/writer/kafkawriter.md)     |
 |                        | EMQX           | [doc](docs/realTime/reader/emqxreader.md)        | [doc](docs/realTime/writer/emqxwriter.md)      |
 |                        | RestApi        |[doc](docs/realTime/reader/restapireader.md)  | [doc](docs/realTime/writer/restapiwriter.md)   |
