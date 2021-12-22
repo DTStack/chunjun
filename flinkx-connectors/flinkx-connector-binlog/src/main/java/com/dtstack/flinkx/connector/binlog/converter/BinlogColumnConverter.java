@@ -19,6 +19,8 @@ package com.dtstack.flinkx.connector.binlog.converter;
 
 import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.cdc.DdlRowDataBuilder;
+import com.alibaba.otter.canal.protocol.CanalEntry;
+
 import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
@@ -34,12 +36,11 @@ import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
-
-import com.alibaba.otter.canal.protocol.CanalEntry;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -49,6 +50,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.dtstack.flinkx.constants.CDCConstantValue.AFTER;
+import static com.dtstack.flinkx.constants.CDCConstantValue.AFTER_;
+import static com.dtstack.flinkx.constants.CDCConstantValue.BEFORE;
+import static com.dtstack.flinkx.constants.CDCConstantValue.BEFORE_;
+import static com.dtstack.flinkx.constants.CDCConstantValue.OP_TIME;
+import static com.dtstack.flinkx.constants.CDCConstantValue.SCHEMA;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TABLE;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TS;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TYPE;
 /**
  * Date: 2021/04/29 Company: www.dtstack.com
  *

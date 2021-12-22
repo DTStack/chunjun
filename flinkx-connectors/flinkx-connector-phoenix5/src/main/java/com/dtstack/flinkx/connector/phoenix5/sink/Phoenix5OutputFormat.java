@@ -55,9 +55,6 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
                 dbConn.setAutoCommit(false);
             }
             initColumnList();
-            fieldNamedPreparedStatement =
-                    FieldNamedPreparedStatement.prepareStatement(
-                            dbConn, prepareTemplates(), this.columnNameList.toArray(new String[0]));
 
             LOG.info("subTask[{}] wait finished", taskNumber);
         } catch (SQLException sqe) {

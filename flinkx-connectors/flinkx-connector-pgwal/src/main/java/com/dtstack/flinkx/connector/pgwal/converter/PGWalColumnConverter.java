@@ -67,6 +67,16 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.dtstack.flinkx.constants.CDCConstantValue.AFTER;
+import static com.dtstack.flinkx.constants.CDCConstantValue.AFTER_;
+import static com.dtstack.flinkx.constants.CDCConstantValue.BEFORE;
+import static com.dtstack.flinkx.constants.CDCConstantValue.BEFORE_;
+import static com.dtstack.flinkx.constants.CDCConstantValue.OP_TIME;
+import static com.dtstack.flinkx.constants.CDCConstantValue.SCHEMA;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TABLE;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TS;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TYPE;
+
 /** */
 public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, LogicalType> {
 

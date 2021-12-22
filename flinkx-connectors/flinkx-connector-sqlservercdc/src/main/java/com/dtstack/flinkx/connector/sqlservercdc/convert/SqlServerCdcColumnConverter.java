@@ -49,6 +49,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.dtstack.flinkx.constants.CDCConstantValue.AFTER;
+import static com.dtstack.flinkx.constants.CDCConstantValue.AFTER_;
+import static com.dtstack.flinkx.constants.CDCConstantValue.BEFORE;
+import static com.dtstack.flinkx.constants.CDCConstantValue.BEFORE_;
+import static com.dtstack.flinkx.constants.CDCConstantValue.OP_TIME;
+import static com.dtstack.flinkx.constants.CDCConstantValue.SCHEMA;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TABLE;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TS;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TYPE;
+
 /**
  * Date: 2021/05/12 Company: www.dtstack.com
  *
