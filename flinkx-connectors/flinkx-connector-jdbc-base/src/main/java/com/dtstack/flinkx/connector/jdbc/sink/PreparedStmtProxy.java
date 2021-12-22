@@ -144,10 +144,12 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         return currentFieldNamedPstmt.executeQuery();
     }
 
+    @Override
     public void addBatch() throws SQLException {
         currentFieldNamedPstmt.executeBatch();
     }
 
+    @Override
     public int[] executeBatch() throws SQLException {
         return currentFieldNamedPstmt.executeBatch();
     }
