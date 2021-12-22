@@ -8,6 +8,7 @@ import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.util.TableUtil;
 
+import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
@@ -37,13 +38,11 @@ public class DynamicPreparedStmt {
     protected List<String> columnTypeList = new ArrayList<>();
 
     protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
-
     protected JdbcConf jdbcConf;
-
+    private String key;
     private boolean writeExtInfo;
-
+    private RowKind rowKind;
     private JdbcDialect jdbcDialect;
-
     private AbstractRowConverter rowConverter;
 
     public static DynamicPreparedStmt buildStmt(
@@ -120,6 +119,13 @@ public class DynamicPreparedStmt {
             int index = nameList.indexOf(columnName);
             columnTypeList.add(typeList.get(index));
         }
+    }
+
+    public void writeRow(RowData row) throws Exception {
+        fieldNamedPreparedStatement =
+                (FieldNamedPreparedStatement)
+                        rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
+        fieldNamedPreparedStatement.execute();
     }
 
     public void close() throws SQLException {
