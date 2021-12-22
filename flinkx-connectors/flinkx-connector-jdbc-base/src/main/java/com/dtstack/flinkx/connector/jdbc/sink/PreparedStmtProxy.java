@@ -94,9 +94,12 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             int dataBaseIndex = head.get(CDCConstantValue.SCHEMA);
             int tableIndex = head.get(CDCConstantValue.TABLE);
 
-            // pg 表都是小写的
-            String dataBase = row.getString(dataBaseIndex).toString().toLowerCase();
-            String tableName = row.getString(tableIndex).toString().toLowerCase();
+            // jdbcDialect 提供统一的处理放肆 比如pg 表都是小写的
+            String dataBase =
+                    jdbcDialect.getDialectTableName(row.getString(dataBaseIndex).toString());
+            String tableName =
+                    jdbcDialect.getDialectTableName(
+                            row.getString(tableIndex).toString().toLowerCase());
             String key = dataBase + "_" + tableName + "_" + row.getRowKind().toString();
             List<String> types = new ArrayList<>();
 
@@ -123,6 +126,9 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
             currentFieldNamedPstmt = fieldNamedPreparedStatement.getFieldNamedPreparedStatement();
             currentRowConverter = fieldNamedPreparedStatement.getRowConverter();
+            if (!writeExtInfo) {
+                columnRowData.removeExtHeaderInfo();
+            }
         }
     }
 

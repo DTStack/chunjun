@@ -8,7 +8,6 @@ import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.util.TableUtil;
 
-import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.types.RowKind;
 
@@ -59,10 +58,10 @@ public class DynamicPreparedStmt {
         DynamicPreparedStmt dynamicPreparedStmt = new DynamicPreparedStmt();
 
         dynamicPreparedStmt.writeExtInfo = writeExtInfo;
-        dynamicPreparedStmt.getColumnNameList(header, extHeader);
-        dynamicPreparedStmt.getColumnMeta(schemaName, tableName, connection);
         dynamicPreparedStmt.jdbcDialect = jdbcDialect;
         dynamicPreparedStmt.columnTypeList = types;
+        dynamicPreparedStmt.getColumnNameList(header, extHeader);
+        dynamicPreparedStmt.getColumnMeta(schemaName, tableName, connection);
         dynamicPreparedStmt.init();
 
         String sql = dynamicPreparedStmt.prepareTemplates(rowKind, schemaName, tableName);
@@ -95,11 +94,18 @@ public class DynamicPreparedStmt {
 
     public void getColumnNameList(Map<String, Integer> header, Set<String> extHeader) {
         if (writeExtInfo) {
-            columnNameList.addAll(header.keySet());
+            header.keySet()
+                    .forEach(
+                            fieldName ->
+                                    columnNameList.add(
+                                            jdbcDialect.getDialectColumnName(fieldName)));
         } else {
             header.keySet().stream()
-                    .filter(tmpkey -> !extHeader.contains(tmpkey))
-                    .forEach(tmpkey -> columnNameList.add(tmpkey));
+                    .filter(fieldName -> !extHeader.contains(fieldName))
+                    .forEach(
+                            fieldName ->
+                                    columnNameList.add(
+                                            jdbcDialect.getDialectColumnName(fieldName)));
         }
     }
 
@@ -119,13 +125,6 @@ public class DynamicPreparedStmt {
             int index = nameList.indexOf(columnName);
             columnTypeList.add(typeList.get(index));
         }
-    }
-
-    public void writeRow(RowData row) throws Exception {
-        fieldNamedPreparedStatement =
-                (FieldNamedPreparedStatement)
-                        rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
-        fieldNamedPreparedStatement.execute();
     }
 
     public void close() throws SQLException {

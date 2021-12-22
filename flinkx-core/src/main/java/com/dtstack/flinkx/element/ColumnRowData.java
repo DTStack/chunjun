@@ -96,6 +96,15 @@ public final class ColumnRowData implements RowData, Serializable {
         return header;
     }
 
+    public void removeExtHeaderInfo() {
+        List<AbstractBaseColumn> needToRemove = new ArrayList<>();
+        for (String key : extHeader) {
+            Integer index = header.remove(key);
+            needToRemove.add(columnList.get(index));
+        }
+        columnList.removeAll(needToRemove);
+    }
+
     public String[] getHeaders() {
         if (this.header == null) {
             return null;
