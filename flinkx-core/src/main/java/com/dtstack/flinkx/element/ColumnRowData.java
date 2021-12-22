@@ -69,7 +69,7 @@ public final class ColumnRowData implements RowData, Serializable {
 
     public void addHeader(String name) {
         if (this.header == null) {
-            this.header = Maps.newHashMapWithExpectedSize(this.columnList.size());
+            this.header = Maps.newLinkedHashMap();
         }
         this.header.put(name, this.header.size());
     }
