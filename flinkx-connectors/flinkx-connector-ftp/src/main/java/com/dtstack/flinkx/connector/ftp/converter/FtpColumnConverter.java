@@ -24,6 +24,7 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
@@ -145,6 +146,6 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
     @Override
     protected ISerializationConverter<List<String>> createExternalConverter(FieldConf fieldConf) {
         return (rowData, index, list) ->
-                list.add(index, ((GenericRowData) rowData).getField(index).toString());
+                list.add(index, ((ColumnRowData) rowData).getField(index).toString());
     }
 }

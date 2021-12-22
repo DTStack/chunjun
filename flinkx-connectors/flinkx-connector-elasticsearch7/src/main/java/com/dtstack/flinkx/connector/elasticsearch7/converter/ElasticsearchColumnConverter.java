@@ -138,21 +138,21 @@ public class ElasticsearchColumnConverter
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
-                return val -> new BigDecimalColumn(((Integer) val).byteValue());
+                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).byteValue());
             case SMALLINT:
             case INTEGER:
-                return val -> new BigDecimalColumn((Integer) val);
+                return val -> new BigDecimalColumn((new BigDecimal(val.toString()).intValue()));
             case FLOAT:
-                return val -> new BigDecimalColumn((Float) val);
+                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).floatValue());
             case DOUBLE:
-                return val -> new BigDecimalColumn((Double) val);
+                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).doubleValue());
             case BIGINT:
-                return val -> new BigDecimalColumn((Long) val);
+                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).longValue());
             case DECIMAL:
-                return val -> new BigDecimalColumn(BigDecimal.valueOf((Double) val));
+                return val -> new BigDecimalColumn(new BigDecimal(val.toString()));
             case CHAR:
             case VARCHAR:
-                return val -> new StringColumn((String) val);
+                return val -> new StringColumn(val.toString());
             case DATE:
                 return val ->
                         new BigDecimalColumn(
