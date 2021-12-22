@@ -61,12 +61,13 @@ public class MysqlFetcher extends FetcherBase {
                 select.setString(1, split[0].replace("'", ""));
                 select.setString(2, split[1].replace("'", ""));
                 select.setString(3, ddlRowData.getLsn());
-                ResultSet resultSet = select.executeQuery();
-                String table = null;
-                while (resultSet.next()) {
-                    table = resultSet.getString(1);
+                try (ResultSet resultSet = select.executeQuery()) {
+                    String table = null;
+                    while (resultSet.next()) {
+                        table = resultSet.getString(1);
+                    }
+                    return table != null;
                 }
-                return table != null;
             } catch (SQLException e) {
                 throw new RuntimeException(
                         "Select ddl failed! tableIdentifier: " + tableIdentifier, e);
