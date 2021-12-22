@@ -71,7 +71,6 @@ public class JdbcUtil {
     public static final String TEMPORARY_TABLE_NAME = "flinkx_tmp";
     public static final String NULL_STRING = "null";
     private static final Logger LOG = LoggerFactory.getLogger(JdbcUtil.class);
-    public static int NANOS_PART_LENGTH = 9;
     /** 数据库连接的最大重试次数 */
     private static final int MAX_RETRY_TIMES = 3;
     /** 秒级时间戳的长度为10位 */
@@ -84,6 +83,8 @@ public class JdbcUtil {
     private static final int NANOS_LENGTH = 19;
 
     private static final int FORMAT_TIME_NANOS_LENGTH = 29;
+    private static final String ALL_TABLE = "*";
+    public static int NANOS_PART_LENGTH = 9;
 
     /**
      * 获取JDBC连接
@@ -134,6 +135,10 @@ public class JdbcUtil {
             String schema, String tableName, Connection dbConn) {
         try {
             // check table exists
+            if (ALL_TABLE.equalsIgnoreCase(tableName.trim())) {
+                return Pair.of(new LinkedList<>(), new LinkedList<>());
+            }
+
             ResultSet tableRs = dbConn.getMetaData().getTables(null, schema, tableName, null);
             if (!tableRs.next()) {
                 String tableInfo = schema == null ? tableName : schema + "." + tableName;

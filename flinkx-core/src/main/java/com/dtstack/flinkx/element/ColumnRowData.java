@@ -82,10 +82,18 @@ public final class ColumnRowData implements RowData, Serializable {
         return extHeader.contains(name);
     }
 
+    public Set<String> getExtHeader() {
+        return extHeader;
+    }
+
     public void addAllHeader(List<String> list) {
         for (String name : list) {
             this.addHeader(name);
         }
+    }
+
+    public Map<String, Integer> getHeaderInfo() {
+        return header;
     }
 
     public String[] getHeaders() {

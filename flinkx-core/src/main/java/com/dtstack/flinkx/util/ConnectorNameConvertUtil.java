@@ -37,6 +37,7 @@ public class ConnectorNameConvertUtil {
         connectorNameMap.put("hbase", new Tuple2<>("hbase14", "HBase14"));
         connectorNameMap.put("tidb", new Tuple2<>("mysql", "mysql"));
         connectorNameMap.put("restapi", new Tuple2<>("http", "http"));
+        connectorNameMap.put("adbpostgresql", new Tuple2<>("postgresql", "postgresql"));
     }
 
     public static String convertClassPrefix(String originName) {

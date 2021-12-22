@@ -44,16 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializable {
     protected static final long serialVersionUID = 1L;
-    // cdc keys
-    protected static final String SCHEMA = "schema";
-    protected static final String TABLE = "table";
-    protected static final String TS = "ts";
-    protected static final String OP_TIME = "opTime";
-    protected static final String TYPE = "type";
-    protected static final String BEFORE_ = "before_";
-    protected static final String AFTER_ = "after_";
-    protected static final String BEFORE = "before";
-    protected static final String AFTER = "after";
+
     // times
     protected static final DateTimeFormatter SQL_TIME_FORMAT =
             (new DateTimeFormatterBuilder())

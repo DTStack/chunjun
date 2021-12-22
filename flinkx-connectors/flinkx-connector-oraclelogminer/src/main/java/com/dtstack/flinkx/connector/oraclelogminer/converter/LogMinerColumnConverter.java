@@ -22,6 +22,7 @@ import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRow;
 import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRowData;
 import com.dtstack.flinkx.connector.oraclelogminer.entity.TableMetaData;
 import com.dtstack.flinkx.connector.oraclelogminer.listener.LogParser;
+import com.dtstack.flinkx.constants.CDCConstantValue;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -65,7 +66,6 @@ import java.util.stream.Collectors;
  */
 public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, String> {
 
-    protected static final String SCN = "scn";
     // 存储表字段
     protected final Map<String, TableMetaData> tableMetaDataCacheMap = new ConcurrentHashMap<>(32);
     protected Connection connection;
@@ -118,24 +118,24 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                     beforeList,
                     beforeFieldList,
                     beforeHeaderList,
-                    BEFORE_);
+                    CDCConstantValue.BEFORE_);
             parseColumnList(
                     converters,
                     metadata.getFieldList(),
                     afterList,
                     afterFieldList,
                     afterHeaderList,
-                    AFTER_);
+                    CDCConstantValue.AFTER_);
         } else if (split) {
             dealEventRowSplit(columnRowData, metadata, eventRow, result);
         } else {
             beforeFieldList.add(new MapColumn(processColumnList(beforeList)));
-            beforeHeaderList.add(BEFORE);
+            beforeHeaderList.add(CDCConstantValue.BEFORE);
             afterFieldList.add(new MapColumn(processColumnList(afterList)));
-            afterHeaderList.add(AFTER);
+            afterHeaderList.add(CDCConstantValue.AFTER);
             columnRowData.setRowKind(getRowKindByType(eventType));
             columnRowData.addField(new StringColumn(eventType));
-            columnRowData.addHeader(TYPE);
+            columnRowData.addHeader(CDCConstantValue.TYPE);
             columnRowData.addAllField(beforeFieldList);
             columnRowData.addAllHeader(beforeHeaderList);
             columnRowData.addAllField(afterFieldList);
@@ -259,20 +259,20 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
     public void fillColumnMetaData(
             ColumnRowData columnRowData, EventRow eventRow, String schema, String table) {
         columnRowData.addField(new BigDecimalColumn(eventRow.getScn()));
-        columnRowData.addHeader(SCN);
-        columnRowData.addExtHeader(SCN);
+        columnRowData.addHeader(CDCConstantValue.SCN);
+        columnRowData.addExtHeader(CDCConstantValue.SCN);
         columnRowData.addField(new StringColumn(schema));
-        columnRowData.addHeader(SCHEMA);
-        columnRowData.addExtHeader(SCHEMA);
+        columnRowData.addHeader(CDCConstantValue.SCHEMA);
+        columnRowData.addExtHeader(CDCConstantValue.SCHEMA);
         columnRowData.addField(new StringColumn(table));
-        columnRowData.addHeader(TABLE);
-        columnRowData.addExtHeader(TABLE);
+        columnRowData.addHeader(CDCConstantValue.TABLE);
+        columnRowData.addExtHeader(CDCConstantValue.TABLE);
         columnRowData.addField(new BigDecimalColumn(eventRow.getTs()));
-        columnRowData.addHeader(TS);
-        columnRowData.addExtHeader(TS);
+        columnRowData.addHeader(CDCConstantValue.TS);
+        columnRowData.addExtHeader(CDCConstantValue.TS);
         columnRowData.addField(new TimestampColumn(eventRow.getOpTime()));
-        columnRowData.addHeader(OP_TIME);
-        columnRowData.addExtHeader(OP_TIME);
+        columnRowData.addHeader(CDCConstantValue.OP_TIME);
+        columnRowData.addExtHeader(CDCConstantValue.OP_TIME);
     }
 
     /**

@@ -66,7 +66,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected JdbcDialect jdbcDialect;
 
     protected transient Connection dbConn;
-    protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
+
+    protected transient PreparedStmtProxy stmtProxy;
 
     @Override
     public void initializeGlobal(int parallelism) {
@@ -98,7 +99,22 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }
             }
 
-            fieldNamedPreparedStatement =
+            buildStmtProxy();
+            LOG.info("subTask[{}}] wait finished", taskNumber);
+        } catch (SQLException sqe) {
+            throw new IllegalArgumentException("open() failed.", sqe);
+        } finally {
+            JdbcUtil.commit(dbConn);
+        }
+    }
+
+    public void buildStmtProxy() throws SQLException {
+        String tableInfo = jdbcConf.getTable();
+
+        if ("*".equalsIgnoreCase(tableInfo)) {
+            stmtProxy = new PreparedStmtProxy(dbConn, jdbcDialect, false);
+        } else {
+            FieldNamedPreparedStatement fieldNamedPreparedStatement =
                     FieldNamedPreparedStatement.prepareStatement(
                             dbConn, prepareTemplates(), this.columnNameList.toArray(new String[0]));
             RowType rowType =
@@ -108,11 +124,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     rowConverter == null
                             ? jdbcDialect.getColumnConverter(rowType, jdbcConf)
                             : rowConverter);
-            LOG.info("subTask[{}}] wait finished", taskNumber);
-        } catch (SQLException sqe) {
-            throw new IllegalArgumentException("open() failed.", sqe);
-        } finally {
-            JdbcUtil.commit(dbConn);
+            stmtProxy = new PreparedStmtProxy(fieldNamedPreparedStatement, rowConverter);
         }
     }
 
@@ -169,10 +181,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
         int index = 0;
         try {
-            fieldNamedPreparedStatement =
-                    (FieldNamedPreparedStatement)
-                            rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
-            fieldNamedPreparedStatement.execute();
+            stmtProxy.writeSingleRecordInternal(row);
             if (Semantic.EXACTLY_ONCE == semantic) {
                 JdbcUtil.commit(dbConn);
             }
@@ -197,13 +206,11 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
             for (RowData row : rows) {
-                fieldNamedPreparedStatement =
-                        (FieldNamedPreparedStatement)
-                                rowConverter.toExternal(row, this.fieldNamedPreparedStatement);
-                fieldNamedPreparedStatement.addBatch();
+                stmtProxy.convertToExternal(row);
+                stmtProxy.addBatch();
                 lastRow = row;
             }
-            fieldNamedPreparedStatement.executeBatch();
+            stmtProxy.executeBatch();
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
             if (Semantic.EXACTLY_ONCE == semantic) {
                 rowsOfCurrentTransaction += rows.size();
@@ -218,7 +225,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             throw e;
         } finally {
             // 执行完后清空batch
-            fieldNamedPreparedStatement.clearBatch();
+            stmtProxy.clearBatch();
         }
     }
 
@@ -243,7 +250,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         if (rows != null && rows.size() > 0) {
             super.writeRecordInternal();
         } else {
-            fieldNamedPreparedStatement.executeBatch();
+            stmtProxy.executeBatch();
         }
     }
 
@@ -253,7 +260,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             dbConn.commit();
             snapshotWriteCounter.add(rowsOfCurrentTransaction);
             rowsOfCurrentTransaction = 0;
-            fieldNamedPreparedStatement.clearBatch();
+            stmtProxy.clearBatch();
         } catch (Exception e) {
             dbConn.rollback();
             throw e;
@@ -348,8 +355,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     public void closeInternal() {
         snapshotWriteCounter.add(rowsOfCurrentTransaction);
         try {
-            if (fieldNamedPreparedStatement != null) {
-                fieldNamedPreparedStatement.close();
+            if (stmtProxy != null) {
+                stmtProxy.close();
             }
         } catch (SQLException e) {
             LOG.error(ExceptionUtil.getErrorMessage(e));
