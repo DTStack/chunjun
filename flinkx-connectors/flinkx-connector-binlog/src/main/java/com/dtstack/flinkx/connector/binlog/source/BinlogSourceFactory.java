@@ -61,7 +61,7 @@ public class BinlogSourceFactory extends SourceFactory {
         if (useAbstractBaseColumn) {
             rowConverter =
                     new BinlogColumnConverter(
-                            binlogConf.isPavingData(), binlogConf.isSplitUpdate());
+                            binlogConf.isPavingData(), binlogConf.isSplit());
         } else {
             final RowType rowType =
                     TableUtil.createRowType(binlogConf.getColumn(), getRawTypeConverter());

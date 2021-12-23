@@ -138,7 +138,7 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
         binlogConf.setParallel(config.get(BinlogOptions.PARALLEL));
         binlogConf.setParallelThreadSize(config.get(BinlogOptions.PARALLEL_THREAD_SIZE));
         binlogConf.setGTIDMode(config.get(BinlogOptions.IS_GTID_MODE));
-        binlogConf.setSplitUpdate(true);
+        binlogConf.setSplit(true);
 
         return binlogConf;
     }

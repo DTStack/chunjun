@@ -27,7 +27,6 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
-
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -173,6 +172,11 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
                         .append(GsonUtil.GSON.toJson(failedTable));
             }
 
+            if (binlogConf.isPavingData() && binlogConf.isSplit()) {
+                throw new IllegalArgumentException(
+                        "can't use pavingData and split at the same time");
+            }
+
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
@@ -180,7 +184,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
         } catch (SQLException e) {
             StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
             if (sb.length() > 0) {
-                detailsInfo.append(" binlog config not right，details is  ").append(sb.toString());
+                detailsInfo.append(" binlog config not right，details is  ").append(sb);
             }
             detailsInfo
                     .append(" \n error to check binlog config, e = ")
