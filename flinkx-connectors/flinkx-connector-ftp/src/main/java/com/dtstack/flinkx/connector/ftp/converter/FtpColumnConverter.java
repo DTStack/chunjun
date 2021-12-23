@@ -65,12 +65,15 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
 
     @Override
     public RowData toInternal(RowData input) throws Exception {
-        GenericRowData row = new GenericRowData(input.getArity());
+        ColumnRowData row = new ColumnRowData(input.getArity());
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
-                row.setField(
-                        i, toInternalConverters.get(i).deserialize(genericRowData.getField(i)));
+                row.addField(
+                        (AbstractBaseColumn)
+                                toInternalConverters
+                                        .get(i)
+                                        .deserialize(genericRowData.getField(i)));
             }
         } else {
             throw new FlinkxRuntimeException(

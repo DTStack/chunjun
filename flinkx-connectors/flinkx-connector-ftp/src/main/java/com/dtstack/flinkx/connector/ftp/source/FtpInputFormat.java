@@ -121,7 +121,7 @@ public class FtpInputFormat extends BaseRichInputFormat {
 
         Collections.sort(fileList, Comparator.comparing(File::getFileAbsolutePath));
 
-        for (int i = 0; i < files.size(); ++i) {
+        for (int i = 0; i < fileList.size(); ++i) {
             ftpInputSplits[i % numSplits].getPaths().add(fileList.get(i));
         }
 
