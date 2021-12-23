@@ -264,6 +264,7 @@ public class LocalTest {
             case PluginNameConstants.PHOENIX5_WRITER : writer = new Phoenix5Writer(config); break;
             case PluginNameConstants.KINGBASE_WRITER : writer = new KingbaseWriter(config); break;
             case PluginNameConstants.RESTAPI_WRITER: writer = new RedisWriter(config); break;
+            case PluginNameConstants.OSS_WRITER: writer = new OssWriter(config); break;
             default:throw new IllegalArgumentException("Can not find writer by name:" + writerName);
         }
 
