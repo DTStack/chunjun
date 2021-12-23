@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -191,7 +192,11 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         try {
             internalRow = nextRecordInternal(rowData);
         } catch (ReadRecordException e) {
-            dirtyManager.collect(e.getRowData().toString(), e, null, getRuntimeContext());
+            dirtyManager.collect(
+                    Objects.nonNull(e.getRowData()) ? e.getRowData().toString() : "",
+                    e,
+                    null,
+                    getRuntimeContext());
         }
         if (internalRow != null) {
             updateDuration();
