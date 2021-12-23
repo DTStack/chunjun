@@ -470,6 +470,11 @@
             <artifactId>flinkx-kingbase-writer</artifactId>
             <version>1.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.dtstack.flinkx</groupId>
+            <artifactId>flinkx-alluxio-writer</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
 
 </project>

@@ -44,6 +44,7 @@
         <module>flinkx-carbondata</module>
         <module>flinkx-kudu</module>
         <module>flinkx-cassandra</module>
+        <module>flinkx-alluxio</module>
 
         <module>flinkx-redis</module>
         <module>flinkx-mongodb</module>
