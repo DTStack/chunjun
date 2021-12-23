@@ -22,17 +22,12 @@ package com.dtstack.flinkx.mapping;
 
 import org.apache.flink.table.data.RowData;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
- * Company：www.dtstack.com.
+ * 根据映射规则获取对应的目标信息
+ *
+ * <p>Company：www.dtstack.com.
  *
  * @author shitou
  * @date 2021/12/15
@@ -41,30 +36,14 @@ public class MappingClient implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final List<Mapping> mappings = new ArrayList<>();
-
-    private final NameMappingConf conf;
+    private final NameMapping nameMapping;
 
     public MappingClient(NameMappingConf conf) {
-        this.conf = conf;
+        this.nameMapping = new NameMapping(conf);
     }
 
     public RowData map(RowData value) {
         // TODO 根据配置选择匹配方式（名称匹配或正则匹配）
-        return mappings.get(0).map(value);
-    }
-
-    public void createMappings() {
-        List<Map<String, String>> tableMappings = conf.getTableMappings();
-        if (CollectionUtils.isNotEmpty(tableMappings)) {
-            Map<String, String> map = new HashMap<>(tableMappings.size());
-            tableMappings.forEach(m -> map.put(m.get("source"), m.get("sink")));
-            mappings.add(new NameMapping(map));
-        }
-
-        String pattern = conf.getPattern();
-        if (StringUtils.isNotBlank(pattern)) {
-            mappings.add(new PatternMapping(pattern));
-        }
+        return nameMapping.map(value);
     }
 }

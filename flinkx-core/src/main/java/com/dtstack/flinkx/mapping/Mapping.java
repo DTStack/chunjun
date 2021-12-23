@@ -29,6 +29,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.dtstack.flinkx.constants.CDCConstantValue.SCHEMA;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TABLE;
+
 /** @author shitou */
 public interface Mapping {
 
@@ -52,12 +55,12 @@ public interface Mapping {
         if (value instanceof ColumnRowData) {
             String[] headers = ((ColumnRowData) value).getHeaders();
             for (int i = 0; i < Objects.requireNonNull(headers).length; i++) {
-                if ("table".equalsIgnoreCase(headers[i])) {
-                    identityIndex.put("table", i);
+                if (TABLE.equalsIgnoreCase(headers[i])) {
+                    identityIndex.put(TABLE, i);
                 }
 
-                if ("schema".equalsIgnoreCase(headers[i])) {
-                    identityIndex.put("schema", i);
+                if (SCHEMA.equalsIgnoreCase(headers[i])) {
+                    identityIndex.put(SCHEMA, i);
                 }
             }
             return identityIndex;

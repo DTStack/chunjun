@@ -21,7 +21,6 @@
 package com.dtstack.flinkx.mapping;
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
@@ -37,11 +36,6 @@ public class NameMappingFlatMap extends RichFlatMapFunction<RowData, RowData> {
 
     public NameMappingFlatMap(NameMappingConf conf) {
         this.client = new MappingClient(conf);
-    }
-
-    @Override
-    public void open(Configuration parameters) throws Exception {
-        client.createMappings();
     }
 
     @Override
