@@ -8,6 +8,7 @@ import com.dtstack.flinkx.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
 
+import com.esotericsoftware.minlog.Log;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
@@ -24,13 +25,19 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 构建prepare代理 Company: www.dtstack.com
+ * build prepare proxy, proxy implements FieldNamedPreparedStatement. it support to build
+ * preparestmt and manager it with cache.
+ *
+ * <p></>Company: www.dtstack.com
  *
  * @author xuchao
  * @date 2021-12-20
@@ -39,17 +46,26 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedStmtProxy.class);
 
-    // LUR  database_table_rowkind
+    private int cacheSize = 100;
+
+    private int cacheDurationMin = 10;
+
+    /** LUR cache key info: database_table_rowkind * */
     protected Cache<String, DynamicPreparedStmt> pstmtCache;
 
-    // 初始化的时候确定的类型
+    /** 当前的执行sql的preparestatement */
     protected transient FieldNamedPreparedStatement currentFieldNamedPstmt;
 
-    /** 数据类型转换器 */
+    /** 当前执行sql的数据类型转换器 */
     protected AbstractRowConverter currentRowConverter;
+
+    /** 当调用writeMultipleRecords 可能会涉及到多个pstmt */
+    private Set<FieldNamedPreparedStatement> unExecutePstmt = new LinkedHashSet<>();
 
     protected Connection connection;
     protected JdbcDialect jdbcDialect;
+
+    /** 是否将框架额外添加的扩展信息写入到数据库,默认不写入* */
     protected boolean writeExtInfo;
 
     public PreparedStmtProxy(Connection connection, JdbcDialect jdbcDialect, boolean writeExtInfo) {
@@ -59,15 +75,15 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
         pstmtCache =
                 CacheBuilder.newBuilder()
-                        .maximumSize(100)
-                        .expireAfterAccess(60, TimeUnit.MINUTES)
+                        .maximumSize(cacheSize)
+                        .expireAfterAccess(cacheDurationMin, TimeUnit.MINUTES)
                         .removalListener(
                                 (RemovalListener<String, DynamicPreparedStmt>)
                                         notification -> {
                                             try {
                                                 notification.getValue().close();
                                             } catch (SQLException e) {
-                                                e.printStackTrace();
+                                                Log.error("", e);
                                             }
                                         })
                         .build();
@@ -101,7 +117,6 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                     jdbcDialect.getDialectTableName(
                             row.getString(tableIndex).toString().toLowerCase());
             String key = dataBase + "_" + tableName + "_" + row.getRowKind().toString();
-            List<String> types = new ArrayList<>();
 
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
@@ -114,7 +129,6 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                                             dataBase,
                                             tableName,
                                             columnRowData.getRowKind(),
-                                            types,
                                             connection,
                                             jdbcDialect,
                                             writeExtInfo);
@@ -152,17 +166,31 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     @Override
     public void addBatch() throws SQLException {
-        currentFieldNamedPstmt.executeBatch();
+        currentFieldNamedPstmt.addBatch();
+        unExecutePstmt.add(currentFieldNamedPstmt);
     }
 
     @Override
     public int[] executeBatch() throws SQLException {
-        return currentFieldNamedPstmt.executeBatch();
+        List<Integer> exeResult = new ArrayList<>();
+        for (FieldNamedPreparedStatement pstmt : unExecutePstmt) {
+            int[] resultArray = pstmt.executeBatch();
+            Arrays.stream(resultArray).forEach(exeResult::add);
+        }
+
+        int[] result = new int[exeResult.size()];
+        for (int i = 0; i < exeResult.size(); i++) {
+            result[i] = exeResult.get(i);
+        }
+        return result;
     }
 
     @Override
     public void clearBatch() throws SQLException {
-        currentFieldNamedPstmt.clearBatch();
+        for (FieldNamedPreparedStatement pstmt : unExecutePstmt) {
+            pstmt.clearBatch();
+        }
+        unExecutePstmt.clear();
     }
 
     @Override

@@ -23,7 +23,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Company: www.dtstack.com
+ * base on row data info to build preparedStatement. row data info include rowkind(which is to set
+ * which sql kind to use )
+ *
+ * <p>Company: www.dtstack.com
  *
  * @author xuchao
  * @date 2021-12-20
@@ -38,9 +41,7 @@ public class DynamicPreparedStmt {
 
     protected transient FieldNamedPreparedStatement fieldNamedPreparedStatement;
     protected JdbcConf jdbcConf;
-    private String key;
     private boolean writeExtInfo;
-    private RowKind rowKind;
     private JdbcDialect jdbcDialect;
     private AbstractRowConverter rowConverter;
 
@@ -50,7 +51,6 @@ public class DynamicPreparedStmt {
             String schemaName,
             String tableName,
             RowKind rowKind,
-            List<String> types,
             Connection connection,
             JdbcDialect jdbcDialect,
             boolean writeExtInfo)
@@ -59,10 +59,9 @@ public class DynamicPreparedStmt {
 
         dynamicPreparedStmt.writeExtInfo = writeExtInfo;
         dynamicPreparedStmt.jdbcDialect = jdbcDialect;
-        dynamicPreparedStmt.columnTypeList = types;
         dynamicPreparedStmt.getColumnNameList(header, extHeader);
         dynamicPreparedStmt.getColumnMeta(schemaName, tableName, connection);
-        dynamicPreparedStmt.init();
+        dynamicPreparedStmt.buildRowConvert();
 
         String sql = dynamicPreparedStmt.prepareTemplates(rowKind, schemaName, tableName);
         String[] fieldNames = new String[dynamicPreparedStmt.columnNameList.size()];
@@ -76,16 +75,19 @@ public class DynamicPreparedStmt {
         String singleSql = null;
         switch (rowKind) {
             case INSERT:
+            case UPDATE_AFTER:
                 singleSql =
                         jdbcDialect.getInsertIntoStatement(
                                 schemaName, tableName, columnNameList.toArray(new String[0]));
                 break;
             case DELETE:
+            case UPDATE_BEFORE:
                 String[] columnNames = new String[columnNameList.size()];
                 columnNameList.toArray(columnNames);
                 singleSql = jdbcDialect.getDeleteStatement(schemaName, tableName, columnNames);
                 break;
             default:
+                // TODO 异常如何处理
                 LOG.warn("not support rowkind " + rowKind.toString());
         }
 
@@ -109,7 +111,7 @@ public class DynamicPreparedStmt {
         }
     }
 
-    public void init() {
+    public void buildRowConvert() {
         RowType rowType =
                 TableUtil.createRowType(
                         columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
