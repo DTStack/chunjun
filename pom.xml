@@ -33,6 +33,7 @@
         <module>flinkx-kingbase</module>
 
         <module>flinkx-hdfs</module>
+        <module>flinkx-oss</module>
         <module>flinkx-hive</module>
         <module>flinkx-es</module>
         <module>flinkx-ftp</module>
@@ -68,6 +69,7 @@
         <flink.version>1.11.3</flink.version>
         <scala.binary.version>2.12</scala.binary.version>
         <hadoop.version>2.7.3</hadoop.version>
+        <hive.version>2.3.1</hive.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
         <package.name>release_1.11.0</package.name>
