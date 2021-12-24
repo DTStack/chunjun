@@ -1,7 +1,6 @@
 package com.dtstack.flinkx.cdc;
 
-import com.dtstack.flinkx.cdc.monitor.fetch.FetcherConf;
-import com.dtstack.flinkx.cdc.monitor.store.StoreConf;
+import com.dtstack.flinkx.cdc.monitor.MonitorConf;
 
 import java.io.Serializable;
 import java.util.StringJoiner;
@@ -28,9 +27,7 @@ public class CdcConf implements Serializable {
     /** worker线程池的最大容量 */
     private int workerMax = 3;
 
-    private StoreConf store;
-
-    private FetcherConf fetcher;
+    private MonitorConf monitor;
 
     public int getWorkerNum() {
         return workerNum;
@@ -60,24 +57,16 @@ public class CdcConf implements Serializable {
         return skipDDL;
     }
 
-    public void setSkipDDL(Boolean skipDDL) {
+    public void setSkipDDL(boolean skipDDL) {
         this.skipDDL = skipDDL;
     }
 
-    public StoreConf getStore() {
-        return store;
+    public MonitorConf getMonitor() {
+        return monitor;
     }
 
-    public void setStore(StoreConf store) {
-        this.store = store;
-    }
-
-    public FetcherConf getFetcher() {
-        return fetcher;
-    }
-
-    public void setFetcher(FetcherConf fetcher) {
-        this.fetcher = fetcher;
+    public void setMonitor(MonitorConf monitor) {
+        this.monitor = monitor;
     }
 
     @Override
@@ -87,8 +76,7 @@ public class CdcConf implements Serializable {
                 .add("workerNum=" + workerNum)
                 .add("workerSize=" + workerSize)
                 .add("workerMax=" + workerMax)
-                .add("store=" + store)
-                .add("fetcher=" + fetcher)
+                .add("monitor=" + monitor)
                 .toString();
     }
 }

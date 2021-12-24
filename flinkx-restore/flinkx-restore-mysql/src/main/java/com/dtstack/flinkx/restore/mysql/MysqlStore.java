@@ -1,17 +1,14 @@
 package com.dtstack.flinkx.restore.mysql;
 
 import com.dtstack.flinkx.cdc.DdlRowData;
+import com.dtstack.flinkx.cdc.monitor.MonitorConf;
 import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
-import com.dtstack.flinkx.cdc.monitor.store.StoreConf;
-import com.dtstack.flinkx.restore.mysql.utils.DruidDataSourceUtil;
-
+import com.dtstack.flinkx.restore.mysql.utils.DataSourceUtil;
 import org.apache.flink.table.data.RowData;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -35,7 +32,7 @@ public class MysqlStore extends StoreBase {
 
     private static final String DRIVER = "com.mysql.jdbc.Driver";
 
-    private final StoreConf conf;
+    private final MonitorConf conf;
 
     private DataSource dataSource;
 
@@ -47,7 +44,7 @@ public class MysqlStore extends StoreBase {
 
     private String ddlTable;
 
-    public MysqlStore(StoreConf conf) {
+    public MysqlStore(MonitorConf conf) {
         this.conf = conf;
     }
 
@@ -85,7 +82,7 @@ public class MysqlStore extends StoreBase {
 
     @Override
     public void open() throws Exception {
-        dataSource = DruidDataSourceUtil.getDataSource(conf.getProperties(), DRIVER);
+        dataSource = DataSourceUtil.getDataSource(conf.getProperties(), DRIVER);
         connection = dataSource.getConnection();
 
         this.ddlDatabase = (String) conf.getProperties().get(DATABASE_KEY);
@@ -96,24 +93,6 @@ public class MysqlStore extends StoreBase {
 
     @Override
     public void closeSubclass() {
-        try {
-            if (null != connection && !connection.isClosed()) {
-                connection.close();
-            }
-        } catch (SQLException e) {
-            logger.error("close datasource failed! conf: " + conf);
-        }
-
-        try {
-            if (null != preparedStatement && !preparedStatement.isClosed()) {
-                preparedStatement.close();
-            }
-        } catch (SQLException e) {
-            logger.error("close preparedStatement failed! conf: " + conf);
-        }
-
-        if (dataSource != null) {
-            dataSource = null;
-        }
+        DataSourceUtil.close(conf.getProperties(), dataSource, connection, preparedStatement);
     }
 }

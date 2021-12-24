@@ -2,17 +2,14 @@ package com.dtstack.flinkx.restore.mysql;
 
 import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.cdc.DdlRowDataBuilder;
+import com.dtstack.flinkx.cdc.monitor.MonitorConf;
 import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
-import com.dtstack.flinkx.cdc.monitor.fetch.FetcherConf;
-import com.dtstack.flinkx.restore.mysql.utils.DruidDataSourceUtil;
-
+import com.dtstack.flinkx.restore.mysql.utils.DataSourceUtil;
 import org.apache.flink.table.data.RowData;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +32,7 @@ public class MysqlFetcher extends FetcherBase {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final FetcherConf conf;
+    private final MonitorConf conf;
 
     private DataSource dataSource;
 
@@ -47,7 +44,7 @@ public class MysqlFetcher extends FetcherBase {
 
     private PreparedStatement query;
 
-    public MysqlFetcher(FetcherConf conf) {
+    public MysqlFetcher(MonitorConf conf) {
         this.conf = conf;
     }
 
@@ -132,7 +129,7 @@ public class MysqlFetcher extends FetcherBase {
 
     @Override
     public void openSubclass() throws Exception {
-        dataSource = DruidDataSourceUtil.getDataSource(conf.getProperties(), DRIVER);
+        dataSource = DataSourceUtil.getDataSource(conf.getProperties(), DRIVER);
         connection = dataSource.getConnection();
 
         String database = (String) conf.getProperties().get(DATABASE_KEY);

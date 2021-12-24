@@ -1,20 +1,25 @@
 package com.dtstack.flinkx.restore.mysql.utils;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author tiezhu@dtstack.com
  * @since 2021/12/8 星期三
  */
-public class DruidDataSourceUtil {
+public class DataSourceUtil {
 
-    private DruidDataSourceUtil() {}
+    private static final Logger logger = LoggerFactory.getLogger(DataSourceUtil.class);
+
+    private DataSourceUtil() {}
 
     public static final String JDBC_URL_KEY = "jdbc.url";
 
@@ -31,7 +36,7 @@ public class DruidDataSourceUtil {
      *
      * @param properties 参数
      */
-    private static void checkLegitimacy(Map<String, Object> properties) {
+    private static void checkLegitimacy(Properties properties) {
         if (null == properties) {
             throw new NullPointerException("Get null properties for store");
         }
@@ -59,17 +64,18 @@ public class DruidDataSourceUtil {
         }
     }
 
-    public static DataSource getDataSource(Map<String, Object> conf, String driverName)
+    public static DataSource getDataSource(Properties properties, String driverName)
             throws SQLException, ClassNotFoundException {
 
-        checkLegitimacy(conf);
+        checkLegitimacy(properties);
 
         Class.forName(driverName);
 
-        String jdbcUrl = (String) conf.get(JDBC_URL_KEY);
-        String username = (String) conf.get(USER_NAME_KEY);
-        String password = conf.get(PASSWORD_KEY) == null ? null : (String) conf.get(PASSWORD_KEY);
-        String database = (String) conf.get(DATABASE_KEY);
+        String jdbcUrl = (String) properties.get(JDBC_URL_KEY);
+        String username = (String) properties.get(USER_NAME_KEY);
+        String password =
+                properties.get(PASSWORD_KEY) == null ? null : (String) properties.get(PASSWORD_KEY);
+        String database = (String) properties.get(DATABASE_KEY);
 
         DruidDataSource dataSource = new DruidDataSource();
         dataSource.setDriverClassName(driverName);
@@ -101,5 +107,33 @@ public class DruidDataSourceUtil {
 
         dataSource.init();
         return dataSource;
+    }
+
+    public static void close(
+            Properties properties,
+            DataSource dataSource,
+            Connection connection,
+            PreparedStatement... preparedStatements) {
+        try {
+            if (null != connection && !connection.isClosed()) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            logger.error("close datasource failed! properties: " + properties);
+        }
+
+        for (PreparedStatement preparedStatement : preparedStatements) {
+            try {
+                if (null != preparedStatement && !preparedStatement.isClosed()) {
+                    preparedStatement.close();
+                }
+            } catch (SQLException e) {
+                logger.error("close preparedStatement failed! properties: " + properties);
+            }
+        }
+
+        if (dataSource != null) {
+            dataSource = null;
+        }
     }
 }

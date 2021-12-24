@@ -18,10 +18,9 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.cdc.monitor.MonitorConf;
 import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
-import com.dtstack.flinkx.cdc.monitor.fetch.FetcherConf;
 import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
-import com.dtstack.flinkx.cdc.monitor.store.StoreConf;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.MetricParam;
@@ -34,7 +33,6 @@ import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.NoRestartException;
-
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -132,7 +130,7 @@ public class DataSyncFactoryUtil {
         }
     }
 
-    public static FetcherBase discoverFetcher(FetcherConf fetcherConf, SyncConf config) {
+    public static FetcherBase discoverFetcher(MonitorConf fetcherConf, SyncConf config) {
         try {
             String pluginType = fetcherConf.getType();
             String fetcherPluginClassName =
@@ -145,7 +143,7 @@ public class DataSyncFactoryUtil {
                     urlList,
                     cl -> {
                         Class<?> clazz = cl.loadClass(fetcherPluginClassName);
-                        Constructor<?> constructor = clazz.getConstructor(FetcherConf.class);
+                        Constructor<?> constructor = clazz.getConstructor(MonitorConf.class);
                         return (FetcherBase) constructor.newInstance(fetcherConf);
                     });
         } catch (Exception e) {
@@ -153,7 +151,7 @@ public class DataSyncFactoryUtil {
         }
     }
 
-    public static StoreBase discoverStore(StoreConf storeConf, SyncConf config) {
+    public static StoreBase discoverStore(MonitorConf storeConf, SyncConf config) {
         try {
             String pluginType = storeConf.getType();
             String storePluginClassName =
@@ -165,7 +163,7 @@ public class DataSyncFactoryUtil {
                     urlList,
                     cl -> {
                         Class<?> clazz = cl.loadClass(storePluginClassName);
-                        Constructor<?> constructor = clazz.getConstructor(StoreConf.class);
+                        Constructor<?> constructor = clazz.getConstructor(MonitorConf.class);
                         return (StoreBase) constructor.newInstance(storeConf);
                     });
         } catch (Exception e) {

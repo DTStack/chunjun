@@ -173,8 +173,8 @@ public class Main {
 
         if (!config.getCdcConf().isSkipDDL()) {
             CdcConf cdcConf = config.getCdcConf();
-            FetcherBase fetcher = DataSyncFactoryUtil.discoverFetcher(cdcConf.getFetcher(), config);
-            StoreBase store = DataSyncFactoryUtil.discoverStore(cdcConf.getStore(), config);
+            FetcherBase fetcher = DataSyncFactoryUtil.discoverFetcher(cdcConf.getMonitor(), config);
+            StoreBase store = DataSyncFactoryUtil.discoverStore(cdcConf.getMonitor(), config);
             dataStreamSource =
                     dataStreamSource.flatMap(new RestorationFlatMap(fetcher, store, cdcConf));
         }
