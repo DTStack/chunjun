@@ -39,11 +39,13 @@
 		<module>flinkx-connector-clickhouse</module>
 		<module>flinkx-connector-saphana</module>
 
-		<!--File-->
-		<module>flinkx-connector-file</module>
-		<module>flinkx-connector-ftp</module>
-		<module>flinkx-connector-hdfs</module>
-		<module>flinkx-connector-hive</module>
+
+        <!--File-->
+        <module>flinkx-connector-file</module>
+		<module>flinkx-connector-filesystem</module>
+        <module>flinkx-connector-ftp</module>
+        <module>flinkx-connector-hdfs</module>
+        <module>flinkx-connector-hive</module>
 
 		<!--NoSql-->
 		<module>flinkx-connector-hbase-base</module>
