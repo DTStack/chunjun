@@ -24,9 +24,6 @@ import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
-
-import com.dtstack.flinkx.throwable.FlinkxException;
-
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import org.apache.flink.table.data.GenericRowData;
