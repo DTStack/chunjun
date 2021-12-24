@@ -44,7 +44,8 @@ import com.dtstack.flinkx.util.PluginUtil;
 import com.dtstack.flinkx.util.PrintUtil;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
-
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.core.execution.JobClient;
@@ -63,9 +64,6 @@ import org.apache.flink.table.expressions.ExpressionParser;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.factories.TableFactoryService;
 import org.apache.flink.table.types.DataType;
-
-import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,7 +183,7 @@ public class Main {
         }
 
         SpeedConf speed = config.getSpeed();
-        if (speed.getReaderChannel() > 0) {
+        if (speed.getReaderChannel() > 1) {
             dataStreamSource =
                     ((DataStreamSource<RowData>) dataStreamSource)
                             .setParallelism(speed.getReaderChannel());
