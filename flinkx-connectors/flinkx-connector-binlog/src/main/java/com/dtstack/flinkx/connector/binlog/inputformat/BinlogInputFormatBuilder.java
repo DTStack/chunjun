@@ -39,6 +39,7 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 
 /**
  * Date: 2020/12/16 Company: www.dtstack.com
@@ -130,13 +131,15 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
         }
 
         ClassUtil.forName(BinlogUtil.DRIVER_NAME, getClass().getClassLoader());
+        Properties properties = new Properties();
+        properties.put("user", binlogConf.getUsername());
+        properties.put("password", binlogConf.getPassword());
+        properties.put("socketTimeout", binlogConf.getQueryTimeOut());
+        properties.put("connectTimeout", binlogConf.getConnectTimeOut());
+
         try (Connection conn =
                 RetryUtil.executeWithRetry(
-                        () ->
-                                DriverManager.getConnection(
-                                        binlogConf.getJdbcUrl(),
-                                        binlogConf.getUsername(),
-                                        binlogConf.getPassword()),
+                        () -> DriverManager.getConnection(binlogConf.getJdbcUrl(), properties),
                         BinlogUtil.RETRY_TIMES,
                         BinlogUtil.SLEEP_TIME,
                         false)) {
@@ -182,7 +185,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
         } catch (SQLException e) {
             StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
             if (sb.length() > 0) {
-                detailsInfo.append(" binlog config not right，details is  ").append(sb.toString());
+                detailsInfo.append(" binlog config not right，details is  ").append(sb);
             }
             detailsInfo
                     .append(" \n error to check binlog config, e = ")

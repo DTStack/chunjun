@@ -73,6 +73,10 @@ public class BinlogConf extends FlinkxCommonConf {
 
     private String timestampFormat = "sql";
 
+    private int queryTimeOut = 300000;
+
+    private int connectTimeOut = 60000;
+
     public String getHost() {
         return host;
     }
@@ -249,6 +253,22 @@ public class BinlogConf extends FlinkxCommonConf {
         this.timestampFormat = timestampFormat;
     }
 
+    public int getQueryTimeOut() {
+        return queryTimeOut;
+    }
+
+    public void setQueryTimeOut(int queryTimeOut) {
+        this.queryTimeOut = queryTimeOut;
+    }
+
+    public int getConnectTimeOut() {
+        return connectTimeOut;
+    }
+
+    public void setConnectTimeOut(int connectTimeOut) {
+        this.connectTimeOut = connectTimeOut;
+    }
+
     @Override
     public String toString() {
         return "BinlogConf{"
@@ -305,6 +325,10 @@ public class BinlogConf extends FlinkxCommonConf {
                 + ", timestampFormat='"
                 + timestampFormat
                 + '\''
+                + ", queryTimeOut="
+                + queryTimeOut
+                + ", connectTimeOut="
+                + connectTimeOut
                 + '}';
     }
 }

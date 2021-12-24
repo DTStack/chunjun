@@ -14,12 +14,12 @@
 		<module>flinkx-core</module>
 		<module>flinkx-connectors</module>
 		<module>flinkx-clients</module>
-		<!--<module>flinkx-local-test</module>-->
+		<!--		<module>flinkx-local-test</module>-->
 		<module>flinkx-formats</module>
 		<module>flinkx-docker</module>
 		<module>flinkx-metrics</module>
-        <module>flinkx-dirtydata-collectors</module>
-    </modules>
+		<module>flinkx-dirtydata-collectors</module>
+	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,6 +31,8 @@
 		<http.version>4.5.3</http.version>
 		<guava.version>19.0</guava.version>
 		<dist.dir>flinkx-dist</dist.dir>
+		<!-- fix CVE-2021-45105 -->
+		<log4j2.version>2.17.0</log4j2.version>
 	</properties>
 
 	<dependencies>

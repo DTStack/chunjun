@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.table.lookup;
 
-import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchRequestHelper;
-import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchUtil;
+import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7ClientFactory;
+import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7RequestFactory;
+import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.enums.ECacheContentType;
 import com.dtstack.flinkx.lookup.AbstractLruTableFunction;
@@ -77,7 +77,7 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        rhlClient = ElasticsearchUtil.createClient(elasticsearchConf);
+        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf);
     }
 
     @Override
@@ -127,7 +127,7 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
 
                     @Override
                     public void onFailure(Exception e) {
-                        future.completeExceptionally(new RuntimeException("Response failed!"));
+                        future.completeExceptionally(e);
                     }
                 });
     }
@@ -140,9 +140,9 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
      */
     private SearchRequest buildSearchRequest(Object... keys) {
         SearchSourceBuilder sourceBuilder =
-                ElasticsearchRequestHelper.createSourceBuilder(fieldNames, keyNames, keys);
+                Elasticsearch7RequestFactory.createSourceBuilder(fieldNames, keyNames, keys);
         sourceBuilder.size(lookupConf.getFetchSize());
-        return ElasticsearchRequestHelper.createSearchRequest(
+        return Elasticsearch7RequestFactory.createSearchRequest(
                 elasticsearchConf.getIndex(), null, sourceBuilder);
     }
 }

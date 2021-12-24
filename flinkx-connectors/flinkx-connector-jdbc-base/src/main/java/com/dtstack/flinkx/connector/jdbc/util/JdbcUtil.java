@@ -388,7 +388,9 @@ public class JdbcUtil {
         if (!CollectionUtil.isNullOrEmpty(extParamMap)) {
             paramMap.putAll(extParamMap);
         }
+        // useCursorFetch参数 MySQL读取生效
         paramMap.put("useCursorFetch", "true");
+        // rewriteBatchedStatements 参数MySQL批量写入生效
         paramMap.put("rewriteBatchedStatements", "true");
 
         StringBuffer sb = new StringBuffer(dbUrl.length() + 128);

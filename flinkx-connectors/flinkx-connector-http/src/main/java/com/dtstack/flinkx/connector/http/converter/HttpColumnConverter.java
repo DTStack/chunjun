@@ -18,7 +18,6 @@
 
 package com.dtstack.flinkx.connector.http.converter;
 
-import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.http.client.DefaultRestHandler;
 import com.dtstack.flinkx.connector.http.common.ConstantValue;
 import com.dtstack.flinkx.connector.http.common.HttpRestConfig;
@@ -29,6 +28,7 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
@@ -37,14 +37,12 @@ import com.dtstack.flinkx.util.MapUtil;
 
 import org.apache.flink.table.data.RowData;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author shifang
@@ -61,16 +59,13 @@ public class HttpColumnConverter
         this.httpRestConfig = httpRestConfig;
 
         // Only json need to extract the fields
-        if (!CollectionUtils.isEmpty(httpRestConfig.getColumn())) {
-            List<String> typeList =
-                    httpRestConfig.getColumn().stream()
-                            .map(FieldConf::getType)
-                            .collect(Collectors.toList());
+        if (StringUtils.isNotBlank((httpRestConfig.getFields()))) {
+            String[] split = httpRestConfig.getFields().split(",");
+
             this.toInternalConverters = new ArrayList<>();
-            for (int i = 0; i < typeList.size(); i++) {
+            for (int i = 0; i < split.length; i++) {
                 toInternalConverters.add(
-                        wrapIntoNullableInternalConverter(
-                                createInternalConverter(typeList.get(i))));
+                        wrapIntoNullableInternalConverter(createInternalConverter("STRING")));
             }
         }
     }
@@ -84,21 +79,28 @@ public class HttpColumnConverter
     @Override
     public RowData toInternal(String input) throws Exception {
         ColumnRowData row;
-        if (httpRestConfig.getDecode().equals(ConstantValue.DEFAULT_DECODE)
-                && toInternalConverters != null
-                && toInternalConverters.size() > 0) {
+        if (httpRestConfig.getDecode().equals(ConstantValue.DEFAULT_DECODE)) {
             Map<String, Object> result =
                     DefaultRestHandler.gson.fromJson(input, GsonUtil.gsonMapTypeToken);
-            row = new ColumnRowData(toInternalConverters.size());
-            List<FieldConf> column = httpRestConfig.getColumn();
-            for (int i = 0; i < column.size(); i++) {
-                Object value =
-                        MapUtil.getValueByKey(
-                                result,
-                                column.get(i).getName(),
-                                httpRestConfig.getFieldDelimiter());
-                row.addField((AbstractBaseColumn) toInternalConverters.get(i).deserialize(value));
+            if (toInternalConverters != null && toInternalConverters.size() > 0) {
+                // 同步任务配置了field参数(对应的类型转换都是string) 需要对每个字段进行类型转换
+                row = new ColumnRowData(toInternalConverters.size());
+                String fields = httpRestConfig.getFields();
+                String[] split = fields.split(",");
+
+                for (int i = 0; i < split.length; i++) {
+                    Object value =
+                            MapUtil.getValueByKey(
+                                    result, split[i], httpRestConfig.getFieldDelimiter());
+                    row.addField(
+                            (AbstractBaseColumn) toInternalConverters.get(i).deserialize(value));
+                }
+            } else {
+                // 直接作为mapColumn
+                row = new ColumnRowData(1);
+                row.addField(new MapColumn(result));
             }
+
         } else {
             row = new ColumnRowData(1);
             row.addField(new StringColumn(input));

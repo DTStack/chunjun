@@ -117,6 +117,17 @@ public class TableUtil {
      * @return
      */
     public static RowType createRowType(List<FieldConf> fields, RawTypeConverter converter) {
+        return (RowType) createTableSchema(fields, converter).toRowDataType().getLogicalType();
+    }
+
+    /**
+     * only using in data sync/integration
+     *
+     * @param fields List<FieldConf>, field information name, type etc.
+     * @return
+     */
+    public static TableSchema createTableSchema(
+            List<FieldConf> fields, RawTypeConverter converter) {
         String[] fieldNames = fields.stream().map(FieldConf::getName).toArray(String[]::new);
         String[] fieldTypes = fields.stream().map(FieldConf::getType).toArray(String[]::new);
         TableSchema.Builder builder = TableSchema.builder();
@@ -124,7 +135,6 @@ public class TableUtil {
             DataType dataType = converter.apply(fieldTypes[i]);
             builder.add(TableColumn.physical(fieldNames[i], dataType));
         }
-
-        return (RowType) builder.build().toRowDataType().getLogicalType();
+        return builder.build();
     }
 }
