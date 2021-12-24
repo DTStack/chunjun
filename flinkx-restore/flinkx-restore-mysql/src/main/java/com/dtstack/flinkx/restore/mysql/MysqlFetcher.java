@@ -5,11 +5,14 @@ import com.dtstack.flinkx.cdc.DdlRowDataBuilder;
 import com.dtstack.flinkx.cdc.monitor.MonitorConf;
 import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
 import com.dtstack.flinkx.restore.mysql.utils.DataSourceUtil;
+
 import org.apache.flink.table.data.RowData;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

@@ -22,6 +22,7 @@ package com.dtstack.flinkx.mapping;
 
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.StringColumn;
+
 import org.apache.flink.table.data.RowData;
 
 import java.io.Serializable;
