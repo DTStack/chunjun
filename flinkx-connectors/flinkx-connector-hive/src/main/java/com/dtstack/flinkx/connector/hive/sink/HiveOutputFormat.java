@@ -299,6 +299,7 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             HiveConf copyHiveConf =
                     GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(hiveConf), HiveConf.class);
             copyHiveConf.setPath(path);
+            copyHiveConf.setFileName(null);
             List<String> columnNameList = tableInfo.getColumnNameList();
             List<String> columnTypeList = tableInfo.getColumnTypeList();
             List<FieldConf> fieldConfList = new ArrayList<>(columnNameList.size());
