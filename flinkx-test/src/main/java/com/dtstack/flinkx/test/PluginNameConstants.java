@@ -88,4 +88,5 @@ public class PluginNameConstants {
     public static final String PHOENIX5_WRITER = "phoenix5writer";
     public static final String KINGBASE_WRITER = "kingbasewriter";
     public static final String ALLUXIO_WRITER = "alluxiowriter";
+    public static final String OSS_WRITER = "osswriter";
 }
