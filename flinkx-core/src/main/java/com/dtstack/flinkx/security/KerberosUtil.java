@@ -84,7 +84,8 @@ public class KerberosUtil {
         return loginAndReturnUgi(principal, keytabPath, krb5confPath);
     }
 
-    public static UserGroupInformation loginAndReturnUgi(Configuration conf, String principal, String keytab) throws IOException {
+    public static UserGroupInformation loginAndReturnUgi(
+            Configuration conf, String principal, String keytab) throws IOException {
         if (conf == null) {
             throw new IllegalArgumentException("kerberos conf can not be null");
         }
@@ -93,7 +94,7 @@ public class KerberosUtil {
             throw new IllegalArgumentException("principal can not be null");
         }
 
-        if(StringUtils.isEmpty(keytab)){
+        if (StringUtils.isEmpty(keytab)) {
             throw new IllegalArgumentException("keytab can not be null");
         }
         conf.set("hadoop.security.authentication", "Kerberos");
