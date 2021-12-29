@@ -69,7 +69,7 @@ public class BinlogConf extends FlinkxCommonConf {
 
     private boolean isGTIDMode;
 
-    private boolean splitUpdate;
+    private boolean split;
 
     private String timestampFormat = "sql";
 
@@ -237,12 +237,12 @@ public class BinlogConf extends FlinkxCommonConf {
         isGTIDMode = GTIDMode;
     }
 
-    public boolean isSplitUpdate() {
-        return splitUpdate;
+    public boolean isSplit() {
+        return split;
     }
 
-    public void setSplitUpdate(boolean splitUpdate) {
-        this.splitUpdate = splitUpdate;
+    public void setSplit(boolean split) {
+        this.split = split;
     }
 
     public String getTimestampFormat() {
@@ -321,7 +321,7 @@ public class BinlogConf extends FlinkxCommonConf {
                 + ", isGTIDMode="
                 + isGTIDMode
                 + ", splitUpdate="
-                + splitUpdate
+                + split
                 + ", timestampFormat='"
                 + timestampFormat
                 + '\''

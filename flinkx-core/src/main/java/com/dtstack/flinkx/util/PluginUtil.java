@@ -79,7 +79,10 @@ public class PluginUtil {
     private static final String METRIC_PACKAGE_PREFIX = "com.dtstack.flinkx.metrics.";
     private static final String METRIC_REPORT_PREFIX = "Report";
     private static final String DIRTY_PACKAGE_STR = "com.dtstack.flinkx.dirty.";
+    private static final String RESTORE_PACKAGE_STR = "com.dtstack.flinkx.restore.";
     private static final String DIRTY_CLASS_SUFFIX = "DirtyDataCollector";
+    private static final String STORE_CLASS_SUFFIX = "Store";
+    private static final String FETCHER_CLASS_SUFFIX = "Fetcher";
 
     private static final String JAR_PREFIX = "flinkx";
 
@@ -201,6 +204,24 @@ public class PluginUtil {
                                 + DtStringUtil.captureFirstLetter(pluginName)
                                 + DIRTY_CLASS_SUFFIX;
                 break;
+            case store:
+                pluginClassName =
+                        RESTORE_PACKAGE_STR
+                                + pluginName
+                                + "."
+                                + DtStringUtil.captureFirstLetter(pluginName)
+                                + STORE_CLASS_SUFFIX;
+                break;
+
+            case fetcher:
+                pluginClassName =
+                        RESTORE_PACKAGE_STR
+                                + pluginName
+                                + "."
+                                + DtStringUtil.captureFirstLetter(pluginName)
+                                + FETCHER_CLASS_SUFFIX;
+                break;
+
             default:
                 throw new FlinkxRuntimeException("unknown operatorType: " + operatorType);
         }

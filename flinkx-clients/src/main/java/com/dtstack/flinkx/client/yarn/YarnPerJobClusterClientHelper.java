@@ -185,6 +185,7 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
                                 ValueUtil.getInt(
                                         conProp.getProperty(
                                                 JobManagerOptions.TOTAL_PROCESS_MEMORY.key())));
+                jobManagerMemoryMb = jobManagerMemoryMb >> 20;
             }
             if (conProp.containsKey(TaskManagerOptions.TOTAL_PROCESS_MEMORY.key())) {
                 taskManagerMemoryMb =
@@ -193,6 +194,8 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
                                 ValueUtil.getInt(
                                         conProp.getProperty(
                                                 TaskManagerOptions.TOTAL_PROCESS_MEMORY.key())));
+
+                taskManagerMemoryMb = taskManagerMemoryMb >> 20;
             }
             if (conProp.containsKey(NUM_TASK_SLOTS.key())) {
                 slotsPerTaskManager = ValueUtil.getInt(conProp.get(NUM_TASK_SLOTS.key()));

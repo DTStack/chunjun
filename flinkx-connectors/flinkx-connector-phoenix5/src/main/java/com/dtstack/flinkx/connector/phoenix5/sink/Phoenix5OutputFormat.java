@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.phoenix5.sink;
 
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
-import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.phoenix5.converter.Phoenix5RawTypeConverter;
 import com.dtstack.flinkx.connector.phoenix5.util.Phoenix5Util;
@@ -55,9 +54,6 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
                 dbConn.setAutoCommit(false);
             }
             initColumnList();
-            fieldNamedPreparedStatement =
-                    FieldNamedPreparedStatement.prepareStatement(
-                            dbConn, prepareTemplates(), this.columnNameList.toArray(new String[0]));
 
             LOG.info("subTask[{}] wait finished", taskNumber);
         } catch (SQLException sqe) {

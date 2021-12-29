@@ -86,6 +86,88 @@ public final class JDBCStatementHelper {
         this.castDatetime = config.getBoolean("castDatetime", true);
     }
 
+    public static Object convertSqlValue(Object value) throws SQLException {
+        if (value == null) {
+            return null;
+        }
+
+        // valid json types are just returned as is
+        if (value instanceof Boolean || value instanceof String || value instanceof byte[]) {
+            return value;
+        }
+
+        // numeric values
+        if (value instanceof Number) {
+            if (value instanceof BigDecimal) {
+                BigDecimal d = (BigDecimal) value;
+                if (d.scale() == 0) {
+                    return ((BigDecimal) value).toBigInteger();
+                } else {
+                    // we might loose precision here
+                    // DTSTACK fix remove value convert double
+                    return value;
+                }
+            }
+
+            return value;
+        }
+
+        // temporal values
+        if (value instanceof Time || value instanceof Date || value instanceof Timestamp) {
+            // DTSTACK fix remove timestamp check
+            return value;
+        }
+
+        // large objects
+        if (value instanceof Clob) {
+            Clob c = (Clob) value;
+            try {
+                // result might be truncated due to downcasting to int
+                return c.getSubString(1, (int) c.length());
+            } finally {
+                try {
+                    c.free();
+                } catch (AbstractMethodError | SQLFeatureNotSupportedException e) {
+                    // ignore since it is an optional feature since 1.6 and non existing before 1.6
+                }
+            }
+        }
+
+        if (value instanceof Blob) {
+            Blob b = (Blob) value;
+            try {
+                // result might be truncated due to downcasting to int
+                return b.getBytes(1, (int) b.length());
+            } finally {
+                try {
+                    b.free();
+                } catch (AbstractMethodError | SQLFeatureNotSupportedException e) {
+                    // ignore since it is an optional feature since 1.6 and non existing before 1.6
+                }
+            }
+        }
+
+        // arrays
+        if (value instanceof Array) {
+            Array a = (Array) value;
+            try {
+                Object[] arr = (Object[]) a.getArray();
+                if (arr != null) {
+                    JsonArray jsonArray = new JsonArray();
+                    for (Object o : arr) {
+                        jsonArray.add(convertSqlValue(o));
+                    }
+                    return jsonArray;
+                }
+            } finally {
+                a.free();
+            }
+        }
+
+        // fallback to String
+        return value.toString();
+    }
+
     public void fillStatement(PreparedStatement statement, JsonArray in) throws SQLException {
         if (in == null) {
             in = EMPTY;
@@ -190,88 +272,6 @@ public final class JDBCStatementHelper {
         }
 
         return new io.vertx.ext.sql.ResultSet(columnNames, results, null);
-    }
-
-    public static Object convertSqlValue(Object value) throws SQLException {
-        if (value == null) {
-            return null;
-        }
-
-        // valid json types are just returned as is
-        if (value instanceof Boolean || value instanceof String || value instanceof byte[]) {
-            return value;
-        }
-
-        // numeric values
-        if (value instanceof Number) {
-            if (value instanceof BigDecimal) {
-                BigDecimal d = (BigDecimal) value;
-                if (d.scale() == 0) {
-                    return ((BigDecimal) value).toBigInteger();
-                } else {
-                    // we might loose precision here
-                    // DTSTACK fix remove value convert double
-                    return value;
-                }
-            }
-
-            return value;
-        }
-
-        // temporal values
-        if (value instanceof Time || value instanceof Date || value instanceof Timestamp) {
-            // DTSTACK fix remove timestamp check
-            return value;
-        }
-
-        // large objects
-        if (value instanceof Clob) {
-            Clob c = (Clob) value;
-            try {
-                // result might be truncated due to downcasting to int
-                return c.getSubString(1, (int) c.length());
-            } finally {
-                try {
-                    c.free();
-                } catch (AbstractMethodError | SQLFeatureNotSupportedException e) {
-                    // ignore since it is an optional feature since 1.6 and non existing before 1.6
-                }
-            }
-        }
-
-        if (value instanceof Blob) {
-            Blob b = (Blob) value;
-            try {
-                // result might be truncated due to downcasting to int
-                return b.getBytes(1, (int) b.length());
-            } finally {
-                try {
-                    b.free();
-                } catch (AbstractMethodError | SQLFeatureNotSupportedException e) {
-                    // ignore since it is an optional feature since 1.6 and non existing before 1.6
-                }
-            }
-        }
-
-        // arrays
-        if (value instanceof Array) {
-            Array a = (Array) value;
-            try {
-                Object[] arr = (Object[]) a.getArray();
-                if (arr != null) {
-                    JsonArray jsonArray = new JsonArray();
-                    for (Object o : arr) {
-                        jsonArray.add(convertSqlValue(o));
-                    }
-                    return jsonArray;
-                }
-            } finally {
-                a.free();
-            }
-        }
-
-        // fallback to String
-        return value.toString();
     }
 
     public Object optimisticCast(String value) {

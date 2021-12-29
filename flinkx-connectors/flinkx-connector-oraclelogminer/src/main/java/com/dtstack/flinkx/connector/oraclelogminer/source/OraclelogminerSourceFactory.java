@@ -73,7 +73,7 @@ public class OraclelogminerSourceFactory extends SourceFactory {
         if (useAbstractBaseColumn) {
             rowConverter =
                     new LogMinerColumnConverter(
-                            logMinerConf.isPavingData(), logMinerConf.isSplitUpdate());
+                            logMinerConf.isPavingData(), logMinerConf.isSplit());
         } else {
             final RowType rowType =
                     TableUtil.createRowType(logMinerConf.getColumn(), getRawTypeConverter());

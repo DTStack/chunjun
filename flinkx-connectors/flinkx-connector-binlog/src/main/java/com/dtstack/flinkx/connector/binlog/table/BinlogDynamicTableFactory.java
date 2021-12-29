@@ -140,7 +140,7 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
         binlogConf.setParallel(config.get(BinlogOptions.PARALLEL));
         binlogConf.setParallelThreadSize(config.get(BinlogOptions.PARALLEL_THREAD_SIZE));
         binlogConf.setGTIDMode(config.get(BinlogOptions.IS_GTID_MODE));
-        binlogConf.setSplitUpdate(true);
+        binlogConf.setSplit(true);
         binlogConf.setQueryTimeOut(config.get(BinlogOptions.QUERY_TIME_OUT));
         binlogConf.setConnectTimeOut(config.get(BinlogOptions.CONNECT_TIME_OUT));
 
