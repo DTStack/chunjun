@@ -12,6 +12,10 @@
     <artifactId>flinkx-core</artifactId>
 	<name>FlinkX : Core</name>
 
+	<properties>
+		<log4j2.version>2.15.0</log4j2.version>
+	</properties>
+
     <dependencies>
 
         <!-- 日志实现 -->
@@ -28,7 +32,7 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
-			<version>${log4j2.version}</version>
+			<version>${log4j.version}</version>
 			<scope>provided</scope>
         </dependency>
 
