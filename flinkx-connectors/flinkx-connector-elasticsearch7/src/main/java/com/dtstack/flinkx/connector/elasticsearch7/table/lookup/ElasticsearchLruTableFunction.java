@@ -145,4 +145,12 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
         return Elasticsearch7RequestFactory.createSearchRequest(
                 elasticsearchConf.getIndex(), null, sourceBuilder);
     }
+
+    @Override
+    public void close() throws Exception {
+        super.close();
+        if (rhlClient != null) {
+            rhlClient.close();
+        }
+    }
 }

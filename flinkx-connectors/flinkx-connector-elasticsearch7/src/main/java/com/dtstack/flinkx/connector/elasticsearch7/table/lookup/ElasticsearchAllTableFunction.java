@@ -78,7 +78,7 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
         try {
             searchResponse = rhlClient.search(requestBuilder, RequestOptions.DEFAULT);
             searchHits = searchResponse.getHits().getHits();
-            while (searchHits != null) {
+            while (searchHits != null && searchHits.length > 0) {
                 for (SearchHit searchHit : searchHits) {
                     Map<String, Object> oneRow = new HashMap<>();
                     Map<String, Object> source = searchHit.getSourceAsMap();
@@ -118,5 +118,13 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
         }
         return Elasticsearch7RequestFactory.createSearchRequest(
                 elasticsearchConf.getIndex(), null, sourceBuilder);
+    }
+
+    @Override
+    public void close() throws Exception {
+        super.close();
+        if (rhlClient != null) {
+            rhlClient.close();
+        }
     }
 }
