@@ -12,27 +12,21 @@
     <artifactId>flinkx-core</artifactId>
 	<name>FlinkX : Core</name>
 
-	<properties>
-		<log4j2.version>2.15.0</log4j2.version>
-	</properties>
-
     <dependencies>
 
         <!-- 日志实现 -->
-		<!-- fix CVE-2021-44228 -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>${log4j2.version}</version>
+            <version>2.12.1</version>
 			<scope>provided</scope>
         </dependency>
 
         <!-- 日志桥接包   桥接包的版本须对应log4j2的版本 -->
-		<!-- fix CVE-2021-44228 -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
-			<version>${log4j.version}</version>
+            <version>2.12.1</version>
 			<scope>provided</scope>
         </dependency>
 
