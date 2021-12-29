@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.ftp.source;
 
+import com.dtstack.flinkx.connector.ftp.client.File;
+
 import org.apache.flink.core.io.InputSplit;
 
 import java.util.ArrayList;
@@ -32,18 +34,18 @@ import java.util.List;
  */
 public class FtpInputSplit implements InputSplit {
 
-    private List<String> paths = new ArrayList<>();
+    private List<File> paths = new ArrayList<>();
 
     @Override
     public int getSplitNumber() {
         return 0;
     }
 
-    public List<String> getPaths() {
+    public List<File> getPaths() {
         return paths;
     }
 
-    public void setPaths(List<String> paths) {
+    public void setPaths(List<File> paths) {
         this.paths = paths;
     }
 }

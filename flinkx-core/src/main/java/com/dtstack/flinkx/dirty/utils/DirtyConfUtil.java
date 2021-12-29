@@ -84,8 +84,8 @@ public class DirtyConfUtil {
                                         item.getValue()));
 
         dirtyConf.setType(type);
-        dirtyConf.setMaxConsumed(maxConsumed);
-        dirtyConf.setMaxFailedConsumed(maxFailed);
+        dirtyConf.setMaxConsumed(maxConsumed < 0 ? Long.MAX_VALUE : maxConsumed);
+        dirtyConf.setMaxFailedConsumed(maxFailed < 0 ? Long.MAX_VALUE : maxFailed);
         dirtyConf.setPrintRate(printRate);
         dirtyConf.setPluginProperties(pluginProperties);
         dirtyConf.setLocalPluginPath(pluginDir);
