@@ -19,6 +19,7 @@ package com.dtstack.flinkx.connector.binlog.conf;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -72,6 +73,50 @@ public class BinlogConf extends FlinkxCommonConf {
     private boolean split;
 
     private String timestampFormat = "sql";
+
+    private int queryTimeOut = 300000;
+
+    private int connectTimeOut = 60000;
+
+    private boolean isUpdrdb = false;
+
+    private List<String> nodeGroupList = new ArrayList<>();
+
+    private List<String> innodbTableNameList = new ArrayList<>();
+
+    private List<String> lamostTableNameList = new ArrayList<>();
+
+    public boolean isUpdrdb() {
+        return isUpdrdb;
+    }
+
+    public void setUpdrdb(boolean Updrdb) {
+        isUpdrdb = Updrdb;
+    }
+
+    public List<String> getNodeGroupList() {
+        return nodeGroupList;
+    }
+
+    public void setDatanodeGroupList(List<String> datanodeGroupList) {
+        this.nodeGroupList = datanodeGroupList;
+    }
+
+    public List<String> getInnodbTableNameList() {
+        return innodbTableNameList;
+    }
+
+    public void setInnodbTableNameList(List<String> innodbTableNameList) {
+        this.innodbTableNameList = innodbTableNameList;
+    }
+
+    public List<String> getLamostTableNameList() {
+        return lamostTableNameList;
+    }
+
+    public void setLamostTableNameList(List<String> lamostTableNameList) {
+        this.lamostTableNameList = lamostTableNameList;
+    }
 
     public String getHost() {
         return host;
@@ -249,6 +294,22 @@ public class BinlogConf extends FlinkxCommonConf {
         this.timestampFormat = timestampFormat;
     }
 
+    public int getQueryTimeOut() {
+        return queryTimeOut;
+    }
+
+    public void setQueryTimeOut(int queryTimeOut) {
+        this.queryTimeOut = queryTimeOut;
+    }
+
+    public int getConnectTimeOut() {
+        return connectTimeOut;
+    }
+
+    public void setConnectTimeOut(int connectTimeOut) {
+        this.connectTimeOut = connectTimeOut;
+    }
+
     @Override
     public String toString() {
         return "BinlogConf{"
@@ -305,6 +366,18 @@ public class BinlogConf extends FlinkxCommonConf {
                 + ", timestampFormat='"
                 + timestampFormat
                 + '\''
+                + ", queryTimeOut="
+                + queryTimeOut
+                + ", connectTimeOut="
+                + connectTimeOut
+                + ", isUpdrdb="
+                + isUpdrdb
+                + ", nodeGroupList="
+                + nodeGroupList
+                + ", innodbTableNameList="
+                + innodbTableNameList
+                + ", lamostTableNameList="
+                + lamostTableNameList
                 + '}';
     }
 }

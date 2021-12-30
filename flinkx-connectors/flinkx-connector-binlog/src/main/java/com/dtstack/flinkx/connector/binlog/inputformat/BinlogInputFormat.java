@@ -29,6 +29,7 @@ import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.util.ClassUtil;
+import com.dtstack.flinkx.util.JsonUtil;
 
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
@@ -54,13 +55,13 @@ import java.util.stream.Collectors;
 /** @author toutian */
 public class BinlogInputFormat extends BaseRichInputFormat {
 
-    private BinlogConf binlogConf;
-    private volatile EntryPosition entryPosition;
-    private List<String> categories = new ArrayList<>();
-    private AbstractCDCRowConverter rowConverter;
+    protected BinlogConf binlogConf;
+    protected volatile EntryPosition entryPosition;
+    protected List<String> categories = new ArrayList<>();
+    protected AbstractCDCRowConverter rowConverter;
 
-    private transient MysqlEventParser controller;
-    private transient BinlogEventSink binlogEventSink;
+    protected transient MysqlEventParser controller;
+    protected transient BinlogEventSink binlogEventSink;
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) {
@@ -132,9 +133,16 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         }
 
         LOG.info("binlog openInternal split number:{} start...", inputSplit.getSplitNumber());
-        LOG.info("binlog config:{}", binlogConf.toString());
+        LOG.info("binlog config:{}", JsonUtil.toPrintJson(binlogConf));
 
-        controller = new MysqlEventParser();
+        binlogEventSink = new BinlogEventSink(this);
+        controller = getController(binlogConf.username, binlogConf.getFilter(), binlogEventSink);
+        controller.start();
+    }
+
+    protected MysqlEventParser getController(
+            String username, String filter, BinlogEventSink binlogEventSink) {
+        MysqlEventParser controller = new MysqlEventParser();
         controller.setConnectionCharset(Charset.forName(binlogConf.getConnectionCharset()));
         controller.setSlaveId(binlogConf.getSlaveId());
         controller.setDetectingEnable(binlogConf.isDetectingEnable());
@@ -142,8 +150,9 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         controller.setMasterInfo(
                 new AuthenticationInfo(
                         new InetSocketAddress(binlogConf.getHost(), binlogConf.getPort()),
-                        binlogConf.getUsername(),
-                        binlogConf.getPassword()));
+                        username,
+                        binlogConf.getPassword(),
+                        BinlogUtil.getDataBaseByUrl(binlogConf.getJdbcUrl())));
         controller.setEnableTsdb(binlogConf.isEnableTsdb());
         controller.setDestination("example");
         controller.setParallel(binlogConf.isParallel());
@@ -153,7 +162,6 @@ public class BinlogInputFormat extends BaseRichInputFormat {
 
         controller.setAlarmHandler(new BinlogAlarmHandler());
 
-        binlogEventSink = new BinlogEventSink(this);
         controller.setEventSink(binlogEventSink);
 
         controller.setLogPositionManager(new BinlogPositionManager(this));
@@ -166,12 +174,11 @@ public class BinlogInputFormat extends BaseRichInputFormat {
             controller.setMasterPosition(startPosition);
         }
 
-        if (StringUtils.isNotEmpty(binlogConf.getFilter())) {
-            LOG.info("binlogFilter最终值：{}", binlogConf.getFilter());
-            controller.setEventFilter(new AviaterRegexFilter(binlogConf.getFilter()));
+        if (StringUtils.isNotEmpty(filter)) {
+            LOG.info("binlogFilter最终值：{},current username: {}", filter, username);
+            controller.setEventFilter(new AviaterRegexFilter(filter));
         }
-
-        controller.start();
+        return controller;
     }
 
     @Override
@@ -210,7 +217,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
      *
      * @return
      */
-    private EntryPosition findStartPosition() {
+    protected EntryPosition findStartPosition() {
         EntryPosition startPosition = null;
         if (formatState != null
                 && formatState.getState() != null

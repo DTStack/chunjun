@@ -31,8 +31,10 @@
 		<hadoop.version>2.7.5</hadoop.version>
 		<http.version>4.5.3</http.version>
 		<guava.version>19.0</guava.version>
-		<log4j2.version>2.17.0</log4j2.version>
 		<dist.dir>flinkx-dist</dist.dir>
+		<!-- fix CVE-2021-45105 -->
+		<log4j2.version>2.17.0</log4j2.version>
+		<powermock.version>2.0.4</powermock.version>
 	</properties>
 
 	<dependencies>
@@ -63,6 +65,24 @@
 			<artifactId>mockito-core</artifactId>
 			<version>3.0.0</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito2</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.mockito</groupId>
+					<artifactId>mockito-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
