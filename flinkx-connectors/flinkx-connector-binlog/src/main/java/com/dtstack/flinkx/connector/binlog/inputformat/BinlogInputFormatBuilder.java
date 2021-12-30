@@ -132,8 +132,8 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
         Properties properties = new Properties();
         properties.put("user", binlogConf.getUsername());
         properties.put("password", binlogConf.getPassword());
-        properties.put("socketTimeout", binlogConf.getQueryTimeOut());
-        properties.put("connectTimeout", binlogConf.getConnectTimeOut());
+        properties.put("socketTimeout", String.valueOf(binlogConf.getQueryTimeOut()));
+        properties.put("connectTimeout", String.valueOf(binlogConf.getConnectTimeOut()));
 
         try (Connection conn =
                 RetryUtil.executeWithRetry(
