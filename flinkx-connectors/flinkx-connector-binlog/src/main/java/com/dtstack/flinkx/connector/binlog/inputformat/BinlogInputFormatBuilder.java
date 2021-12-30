@@ -214,6 +214,20 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
                         .append("];\n");
             }
 
+            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
+            try {
+                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
+            } catch (FlinkxException e) {
+                sb.append(e.getMessage());
+            }
+
+            // updrdb支持多并发
+            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
+                sb.append("binLog can not support channel bigger than 1, current channel is [")
+                        .append(binlogConf.getParallelism())
+                        .append("];\n");
+            }
+
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
