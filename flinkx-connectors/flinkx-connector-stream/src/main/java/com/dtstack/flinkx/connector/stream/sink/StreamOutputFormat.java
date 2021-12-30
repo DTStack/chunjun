@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.stream.sink;
 
+import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.stream.conf.StreamConf;
 import com.dtstack.flinkx.connector.stream.util.TablePrintUtil;
@@ -76,6 +77,11 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
         if (rowData instanceof ColumnRowData) {
             fieldNames = ((ColumnRowData) rowData).getHeaders();
         }
+
+        if (rowData instanceof DdlRowData) {
+            fieldNames = ((DdlRowData) rowData).getHeaders();
+        }
+
         if (fieldNames == null) {
             List<FieldConf> fieldConfList = streamConf.getColumn();
             if (CollectionUtils.isNotEmpty(fieldConfList)) {

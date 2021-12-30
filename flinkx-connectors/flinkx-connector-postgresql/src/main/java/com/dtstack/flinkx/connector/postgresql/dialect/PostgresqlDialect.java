@@ -135,4 +135,14 @@ public class PostgresqlDialect implements JdbcDialect {
                 fieldDelimiter,
                 nullVal);
     }
+
+    @Override
+    public String getDialectColumnName(String columnName) {
+        return columnName.toLowerCase();
+    }
+
+    @Override
+    public String getDialectTableName(String tableName) {
+        return tableName.toLowerCase();
+    }
 }

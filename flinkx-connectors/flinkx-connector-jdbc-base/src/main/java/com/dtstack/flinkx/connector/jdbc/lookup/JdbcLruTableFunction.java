@@ -82,12 +82,6 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     private static final Logger LOG = LoggerFactory.getLogger(JdbcLruTableFunction.class);
     /** when network is unhealthy block query */
     private final AtomicBoolean connectionStatus = new AtomicBoolean(true);
-    /** query data thread */
-    private transient ThreadPoolExecutor executor;
-    /** vertx */
-    private transient Vertx vertx;
-    /** rdb client */
-    private transient SQLClient rdbSqlClient;
     /** select sql */
     private final String query;
     /** jdbc Dialect */
@@ -96,6 +90,12 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
     private final JdbcConf jdbcConf;
     /** vertx async pool size */
     protected int asyncPoolSize;
+    /** query data thread */
+    private transient ThreadPoolExecutor executor;
+    /** vertx */
+    private transient Vertx vertx;
+    /** rdb client */
+    private transient SQLClient rdbSqlClient;
 
     public JdbcLruTableFunction(
             JdbcConf jdbcConf,

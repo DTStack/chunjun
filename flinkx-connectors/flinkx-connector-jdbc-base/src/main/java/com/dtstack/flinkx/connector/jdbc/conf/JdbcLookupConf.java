@@ -31,11 +31,20 @@ public class JdbcLookupConf extends LookupConf {
     /** vertx pool size */
     protected int asyncPoolSize = 5;
 
+    protected Map<String, Object> druidConf;
+
+    public static JdbcLookupConf build() {
+        return new JdbcLookupConf();
+    }
+
     public Map<String, Object> getDruidConf() {
         return druidConf;
     }
 
-    protected Map<String, Object> druidConf;
+    public JdbcLookupConf setDruidConf(Map<String, Object> druidConf) {
+        this.druidConf = druidConf;
+        return this;
+    }
 
     public int getAsyncPoolSize() {
         return asyncPoolSize;
@@ -44,14 +53,5 @@ public class JdbcLookupConf extends LookupConf {
     public JdbcLookupConf setAsyncPoolSize(int asyncPoolSize) {
         this.asyncPoolSize = asyncPoolSize;
         return this;
-    }
-
-    public JdbcLookupConf setDruidConf(Map<String, Object> druidConf) {
-        this.druidConf = druidConf;
-        return this;
-    }
-
-    public static JdbcLookupConf build() {
-        return new JdbcLookupConf();
     }
 }

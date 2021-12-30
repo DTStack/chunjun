@@ -18,6 +18,9 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.cdc.monitor.MonitorConf;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
+import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.MetricParam;
@@ -125,6 +128,47 @@ public class DataSyncFactoryUtil {
             return consumer;
         } catch (Exception e) {
             throw new NoRestartException("Load dirty plugins failed!", e);
+        }
+    }
+
+    public static FetcherBase discoverFetcher(MonitorConf fetcherConf, SyncConf config) {
+        try {
+            String pluginType = fetcherConf.getType();
+            String fetcherPluginClassName =
+                    PluginUtil.getPluginClassName(pluginType, OperatorType.fetcher);
+
+            Set<URL> urlList =
+                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null, "");
+
+            return ClassLoaderManager.newInstance(
+                    urlList,
+                    cl -> {
+                        Class<?> clazz = cl.loadClass(fetcherPluginClassName);
+                        Constructor<?> constructor = clazz.getConstructor(MonitorConf.class);
+                        return (FetcherBase) constructor.newInstance(fetcherConf);
+                    });
+        } catch (Exception e) {
+            throw new NoRestartException("Load restore plugins failed!", e);
+        }
+    }
+
+    public static StoreBase discoverStore(MonitorConf storeConf, SyncConf config) {
+        try {
+            String pluginType = storeConf.getType();
+            String storePluginClassName =
+                    PluginUtil.getPluginClassName(pluginType, OperatorType.store);
+            Set<URL> urlList =
+                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null, "");
+
+            return ClassLoaderManager.newInstance(
+                    urlList,
+                    cl -> {
+                        Class<?> clazz = cl.loadClass(storePluginClassName);
+                        Constructor<?> constructor = clazz.getConstructor(MonitorConf.class);
+                        return (StoreBase) constructor.newInstance(storeConf);
+                    });
+        } catch (Exception e) {
+            throw new NoRestartException("Load restore plugins failed!", e);
         }
     }
 }

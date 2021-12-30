@@ -170,12 +170,14 @@ public class YarnSessionClientUtil {
                         Math.max(
                                 MIN_JM_MEMORY,
                                 ValueUtil.getInt(conProp.getProperty(JOBMANAGER_MEMORY_MB)));
+                jobManagerMemoryMb = jobManagerMemoryMb >> 20;
             }
             if (conProp.containsKey(TASKMANAGER_MEMORY_MB)) {
                 taskManagerMemoryMb =
                         Math.max(
                                 MIN_TM_MEMORY,
                                 ValueUtil.getInt(conProp.getProperty(TASKMANAGER_MEMORY_MB)));
+                taskManagerMemoryMb = taskManagerMemoryMb >> 20;
             }
             if (conProp.containsKey(SLOTS_PER_TASKMANAGER)) {
                 slotsPerTaskManager = ValueUtil.getInt(conProp.get(SLOTS_PER_TASKMANAGER));

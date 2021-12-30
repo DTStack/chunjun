@@ -55,10 +55,10 @@ public class JdbcDynamicTableSource
 
     protected final JdbcConf jdbcConf;
     protected final LookupConf lookupConf;
-    protected TableSchema physicalSchema;
     protected final String dialectName;
     protected final JdbcDialect jdbcDialect;
     protected final JdbcInputFormatBuilder builder;
+    protected TableSchema physicalSchema;
 
     public JdbcDynamicTableSource(
             JdbcConf jdbcConf,

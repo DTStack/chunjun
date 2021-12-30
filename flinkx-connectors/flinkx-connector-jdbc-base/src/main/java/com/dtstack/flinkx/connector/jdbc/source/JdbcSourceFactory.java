@@ -55,11 +55,10 @@ import java.util.Properties;
  */
 public abstract class JdbcSourceFactory extends SourceFactory {
 
-    protected JdbcConf jdbcConf;
-    protected JdbcDialect jdbcDialect;
-
     private static final int DEFAULT_FETCH_SIZE = 1024;
     private static final int DEFAULT_QUERY_TIMEOUT = 300;
+    protected JdbcConf jdbcConf;
+    protected JdbcDialect jdbcDialect;
 
     public JdbcSourceFactory(
             SyncConf syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {

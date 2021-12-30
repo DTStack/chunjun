@@ -17,7 +17,10 @@
  */
 package com.dtstack.flinkx.conf;
 
+import com.dtstack.flinkx.cdc.CdcConf;
+
 import java.io.Serializable;
+import java.util.StringJoiner;
 
 /**
  * Date: 2021/01/18 Company: www.dtstack.com
@@ -39,6 +42,9 @@ public class SettingConf implements Serializable {
     private RestartConf restart = new RestartConf();
     /** FlinkX日志记录配置 */
     private LogConf log = new LogConf();
+
+    /** cdc restore conf */
+    private CdcConf restoration = new CdcConf();
 
     public void setMetricPluginConf(MetricPluginConf metricPluginConf) {
         this.metricPluginConf = metricPluginConf;
@@ -88,21 +94,24 @@ public class SettingConf implements Serializable {
         this.log = log;
     }
 
+    public CdcConf getRestoration() {
+        return restoration;
+    }
+
+    public void setRestoration(CdcConf restoration) {
+        this.restoration = restoration;
+    }
+
     @Override
     public String toString() {
-        return "SettingConf{"
-                + "speed="
-                + speed
-                + ", errorLimit="
-                + errorLimit
-                + ", metricPluginConf="
-                + metricPluginConf
-                + ", restore="
-                + restore
-                + ", restart="
-                + restart
-                + ", log="
-                + log
-                + '}';
+        return new StringJoiner(", ", SettingConf.class.getSimpleName() + "[", "]")
+                .add("speed=" + speed)
+                .add("errorLimit=" + errorLimit)
+                .add("metricPluginConf=" + metricPluginConf)
+                .add("restore=" + restore)
+                .add("restart=" + restart)
+                .add("log=" + log)
+                .add("cdcRestoreConf=" + restoration)
+                .toString();
     }
 }

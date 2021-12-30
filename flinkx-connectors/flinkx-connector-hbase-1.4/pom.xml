@@ -164,18 +164,50 @@
 							<goal>run</goal>
 						</goals>
 						<configuration>
-							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/hbase/"
-									  file="${basedir}/target/hbase-1.4/original-${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/hbase/original-${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/hbase/${project.artifactId}-${git.branch}.jar"/>
-								<delete>
-									<!--suppress UnresolvedMavenProperty -->
-									<fileset dir="${basedir}/../../${dist.dir}/connector/hbase/"
-											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}-${git.branch}.jar"/>
-								</delete>
-							</tasks>
+							<plugin>
+								<groupId>org.apache.maven.plugins</groupId>
+								<artifactId>maven-shade-plugin</artifactId>
+								<version>3.1.0</version>
+								<dependencies>
+									<dependency>
+										<groupId>org.apache.flink</groupId>
+										<artifactId>flink-connector-hbase-1.4_2.12</artifactId>
+										<version>1.12.2</version>
+									</dependency>
+								</dependencies>
+							</plugin>
+							<goal>shade</goal>
+							<configuration>
+								<outputDirectory>${project.basedir}/target/hbase-1.4</outputDirectory>
+								<createDependencyReducedPom>false</createDependencyReducedPom>
+								<relocations>
+									<relocation>
+										<pattern>org.jboss.netty</pattern>
+										<shadedPattern>com.dtstack.flinkx.connector.hbase14.org.jboss.netty</shadedPattern>
+									</relocation>
+									<relocation>
+										<pattern>org.apache.http</pattern>
+										<shadedPattern>com.dtstack.flinkx.connector.hbase14.org.apache.http</shadedPattern>
+									</relocation>
+								</relocations>
+								<artifactSet>
+									<excludes>
+										<exclude>org.slf4j:slf4j-api</exclude>
+										<exclude>log4j:log4j</exclude>
+										<exclude>ch.qos.logback:*</exclude>
+									</excludes>
+								</artifactSet>
+								<filters>
+									<filter>
+										<artifact>*:*</artifact>
+										<excludes>
+											<exclude>META-INF/*.SF</exclude>
+											<exclude>META-INF/*.DSA</exclude>
+											<exclude>META-INF/*.RSA</exclude>
+										</excludes>
+									</filter>
+								</filters>
+							</configuration>
 						</configuration>
 					</execution>
 				</executions>
