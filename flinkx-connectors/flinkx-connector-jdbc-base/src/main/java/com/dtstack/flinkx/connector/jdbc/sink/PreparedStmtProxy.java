@@ -12,6 +12,7 @@ import com.esotericsoftware.minlog.Log;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +61,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
     protected AbstractRowConverter currentRowConverter;
 
     /** 当调用writeMultipleRecords 可能会涉及到多个pstmt */
-    private Set<FieldNamedPreparedStatement> unExecutePstmt = new LinkedHashSet<>();
+    private final Set<FieldNamedPreparedStatement> unExecutePstmt = new LinkedHashSet<>();
 
     protected Connection connection;
     protected JdbcDialect jdbcDialect;
@@ -81,6 +82,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                                 (RemovalListener<String, DynamicPreparedStmt>)
                                         notification -> {
                                             try {
+                                                assert notification.getValue() != null;
                                                 notification.getValue().close();
                                             } catch (SQLException e) {
                                                 Log.error("", e);
@@ -107,10 +109,13 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         if (row instanceof ColumnRowData) {
             ColumnRowData columnRowData = (ColumnRowData) row;
             Map<String, Integer> head = columnRowData.getHeaderInfo();
+            if (MapUtils.isEmpty(head)) {
+                return;
+            }
             int dataBaseIndex = head.get(CDCConstantValue.SCHEMA);
             int tableIndex = head.get(CDCConstantValue.TABLE);
 
-            // jdbcDialect 提供统一的处理放肆 比如pg 表都是小写的
+            // jdbcDialect 提供统一的处理 比如pg 表都是小写的
             String dataBase =
                     jdbcDialect.getDialectTableName(row.getString(dataBaseIndex).toString());
             String tableName =
