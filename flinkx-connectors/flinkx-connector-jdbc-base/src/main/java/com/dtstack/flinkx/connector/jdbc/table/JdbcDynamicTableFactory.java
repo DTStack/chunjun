@@ -174,7 +174,7 @@ public abstract class JdbcDynamicTableFactory
 
         List<String> keyFields =
                 schema.getPrimaryKey().map(UniqueConstraint::getColumns).orElse(null);
-        jdbcConf.setUpdateKey(keyFields);
+        jdbcConf.setUniqueKey(keyFields);
         resetTableInfo(jdbcConf);
         return jdbcConf;
     }

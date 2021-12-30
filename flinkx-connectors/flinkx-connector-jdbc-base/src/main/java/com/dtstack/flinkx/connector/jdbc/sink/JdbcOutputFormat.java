@@ -89,13 +89,13 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             }
             initColumnList();
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
-                List<String> updateKey = jdbcConf.getUpdateKey();
+                List<String> updateKey = jdbcConf.getUniqueKey();
                 if (CollectionUtils.isEmpty(updateKey)) {
                     List<String> tableIndex =
                             JdbcUtil.getTableIndex(
                                     jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-                    jdbcConf.setUpdateKey(tableIndex);
-                    LOG.info("updateKey = {}", JsonUtil.toPrintJson(tableIndex));
+                    jdbcConf.setUniqueKey(tableIndex);
+                    LOG.info("updateKey = {}", JsonUtil.toJson(tableIndex));
                 }
             }
 
@@ -324,7 +324,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                                     jdbcConf.getSchema(),
                                     jdbcConf.getTable(),
                                     columnNameList.toArray(new String[0]),
-                                    jdbcConf.getUpdateKey().toArray(new String[0]),
+                                    jdbcConf.getUniqueKey().toArray(new String[0]),
                                     jdbcConf.isAllReplace())
                             .get();
         } else {
