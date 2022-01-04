@@ -100,9 +100,9 @@ public class DorisLoadClient implements Serializable {
         boolean merge =
                 (value.getRowKind() == RowKind.DELETE
                         || value.getRowKind() == RowKind.UPDATE_BEFORE);
-        // If NameMapping is configured, RowData will carry the database
-        // and table names after the name matches, and the database, table,
-        // and column configured on the sink side are invalid.
+        /* If NameMapping is configured, RowData will carry the database
+        and table names after the name matches, and the database, table,
+        and column configured on the sink side are invalid.*/
         if (conf.isNeedMapping()) {
             Map<String, String> identityMap = new HashMap<>(2);
             wrapColumnsFromRowData(value, columns, insertV, deleteV, identityMap);

@@ -27,20 +27,17 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -62,19 +59,10 @@ public class DorisStreamLoad implements Serializable {
 
     private static final List<String> DORIS_SUCCESS_STATUS =
             new ArrayList<>(Arrays.asList("Success", "Publish Timeout"));
-    private static final String loadUrlPattern = "http://%s/api/%s/%s/_stream_load?";
-    private String loadUrlStr;
-    private String hostPort;
-    private final String db;
-    private final String tbl;
     private final String authEncoding;
     private final Properties streamLoadProp;
 
-    public DorisStreamLoad(String hostPort, DorisConf options) {
-        this.hostPort = hostPort;
-        this.db = options.getDatabase();
-        this.tbl = options.getTable();
-        this.loadUrlStr = String.format(loadUrlPattern, hostPort, db, tbl);
+    public DorisStreamLoad(DorisConf options) {
         this.authEncoding =
                 Base64.getEncoder()
                         .encodeToString(
@@ -83,43 +71,33 @@ public class DorisStreamLoad implements Serializable {
         this.streamLoadProp = options.getLoadProperties();
     }
 
-    public String getLoadUrlStr() {
-        return loadUrlStr;
-    }
+    private HttpPut getConnection(
+            List<String> columnNames, String urlStr, String label, String mergeConditions) {
 
-    public void setHostPort(String hostPort) {
-        this.hostPort = hostPort;
-        this.loadUrlStr = String.format(loadUrlPattern, hostPort, this.db, this.tbl);
-    }
-
-    private HttpURLConnection getConnection(String urlStr, String label) throws IOException {
-        // TODO use merge 来实现update功能
-
-        URL url = new URL(urlStr);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setInstanceFollowRedirects(false);
-        conn.setRequestMethod("PUT");
-        conn.setRequestProperty("Authorization", "Basic " + authEncoding);
-        conn.addRequestProperty("Expect", "100-continue");
-        conn.addRequestProperty("Content-Type", "text/plain; charset=UTF-8");
-        conn.addRequestProperty("label", label);
-        for (Map.Entry<Object, Object> entry : streamLoadProp.entrySet()) {
-            conn.addRequestProperty(
-                    String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
+        HttpPut httpPut = new HttpPut(urlStr);
+        httpPut.setHeader("Authorization", "Basic " + authEncoding);
+        httpPut.setHeader("Expect", "100-continue");
+        httpPut.setHeader("Content-Type", "text/plain; charset=UTF-8");
+        httpPut.setHeader("label", label);
+        httpPut.setHeader("columns", StringUtils.join(columnNames, ","));
+        if (StringUtils.isNotBlank(mergeConditions)) {
+            httpPut.setHeader("merge_type", "MERGE");
+            httpPut.setHeader("delete", mergeConditions);
+        } else {
+            httpPut.setHeader("merge_type", "APPEND");
         }
-        conn.setDoOutput(true);
-        conn.setDoInput(true);
-        return conn;
+        for (Map.Entry<Object, Object> entry : streamLoadProp.entrySet()) {
+            httpPut.setHeader(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
+        }
+        return httpPut;
     }
 
     public static class LoadResponse {
         public int status;
-        public String respMsg;
         public String respContent;
 
-        public LoadResponse(int status, String respMsg, String respContent) {
+        public LoadResponse(int status, String respContent) {
             this.status = status;
-            this.respMsg = respMsg;
             this.respContent = respContent;
         }
 
@@ -127,7 +105,6 @@ public class DorisStreamLoad implements Serializable {
         public String toString() {
             return new ToStringBuilder(this)
                     .append("status", status)
-                    .append("respMsg", respMsg)
                     .append("respContent", respContent)
                     .toString();
         }
@@ -140,8 +117,10 @@ public class DorisStreamLoad implements Serializable {
      * @param value the data load to doris.
      * @throws IOException io exception.
      */
-    public void load(List<String> columnNames, String value) throws IOException {
-        LoadResponse loadResponse = loadBatch(columnNames, value);
+    public void load(
+            List<String> columnNames, String value, String mergeConditions, String loadUrlStr)
+            throws IOException {
+        LoadResponse loadResponse = loadBatch(columnNames, value, mergeConditions, loadUrlStr);
         LOG.debug("StreamLoad Response:{}", loadResponse);
         if (loadResponse.status != 200) {
             throw new ConnectException("stream load error, detail : " + loadResponse);
@@ -154,7 +133,8 @@ public class DorisStreamLoad implements Serializable {
         }
     }
 
-    private LoadResponse loadBatch(List<String> columnNames, String value) {
+    private LoadResponse loadBatch(
+            List<String> columnNames, String value, String mergeConditions, String loadUrlStr) {
         String label = streamLoadProp.getProperty("label");
         if (StringUtils.isBlank(label)) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
@@ -165,35 +145,21 @@ public class DorisStreamLoad implements Serializable {
                             formatDate, UUID.randomUUID().toString().replaceAll("-", ""));
         }
 
-        HttpURLConnection beConn = null;
-        try {
+        HttpPut httpPut;
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().build()) {
             // build request and send to new be location
-            beConn = getConnection(loadUrlStr, label);
-            // send data to be
-            BufferedOutputStream bos = new BufferedOutputStream(beConn.getOutputStream());
-            bos.write(value.getBytes());
-            bos.close();
+            httpPut = getConnection(columnNames, loadUrlStr, label, mergeConditions);
+            httpPut.setEntity(new ByteArrayEntity(value.getBytes()));
 
-            // get respond
-            int status = beConn.getResponseCode();
-            String respMsg = beConn.getResponseMessage();
-            InputStream stream = (InputStream) beConn.getContent();
-            BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-            StringBuilder response = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                response.append(line);
-            }
-            return new LoadResponse(status, respMsg, response.toString());
+            HttpResponse response = httpclient.execute(httpPut);
+            int status = response.getStatusLine().getStatusCode();
+            HttpEntity entity = response.getEntity();
+            return new LoadResponse(status, entity != null ? EntityUtils.toString(entity) : "");
 
         } catch (Exception e) {
             String err = "failed to load audit via AuditLoader plugin with label: " + label;
             LOG.warn(err, e);
-            return new LoadResponse(-1, e.getMessage(), err);
-        } finally {
-            if (beConn != null) {
-                beConn.disconnect();
-            }
+            return new LoadResponse(-1, err);
         }
     }
 
@@ -209,14 +175,7 @@ public class DorisStreamLoad implements Serializable {
                 HttpGet httpget = new HttpGet(respContent.getErrorURL());
                 HttpResponse response = httpclient.execute(httpget);
                 HttpEntity entity = response.getEntity();
-                InputStream content = entity.getContent();
-                BufferedReader br = new BufferedReader(new InputStreamReader(content));
-                StringBuilder contentBuilder = new StringBuilder();
-                String line;
-                while ((line = br.readLine()) != null) {
-                    contentBuilder.append(line);
-                }
-                return contentBuilder.toString();
+                return EntityUtils.toString(entity);
             } else {
                 return respContent.toString();
             }

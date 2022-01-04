@@ -195,10 +195,10 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
                         .append(GsonUtil.GSON.toJson(failedTable));
             }
 
-            if (binlogConf.isPavingData() && binlogConf.isSplit()) {
-                throw new IllegalArgumentException(
-                        "can't use pavingData and split at the same time");
-            }
+            // if (binlogConf.isPavingData() && binlogConf.isSplit()) {
+            //     throw new IllegalArgumentException(
+            //             "can't use pavingData and split at the same time");
+            // }
 
             // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
             try {

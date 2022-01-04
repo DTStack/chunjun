@@ -24,7 +24,6 @@ import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.LogicalType;
 
 import java.util.List;
 import java.util.StringJoiner;

@@ -51,6 +51,8 @@ public class DorisConf extends FlinkxCommonConf {
 
     /** * default value is 3 */
     private Integer maxRetries = 3;
+    /** 是否配置了NameMapping, true, RowData中将携带名称匹配后的数据库和表名, sink端配置的database和table失效* */
+    private boolean needMapping;
 
     private LoadConf loadConf;
 
@@ -142,6 +144,14 @@ public class DorisConf extends FlinkxCommonConf {
 
     public void setLoadProperties(Properties loadProperties) {
         this.loadProperties = loadProperties;
+    }
+
+    public boolean isNeedMapping() {
+        return needMapping;
+    }
+
+    public void setNeedMapping(boolean needMapping) {
+        this.needMapping = needMapping;
     }
 
     public String serializeToString() {
