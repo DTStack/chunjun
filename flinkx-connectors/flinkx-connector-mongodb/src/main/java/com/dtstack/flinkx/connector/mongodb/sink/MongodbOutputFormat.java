@@ -28,6 +28,7 @@ import org.apache.flink.table.data.RowData;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.FindOneAndReplaceOptions;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,7 @@ public class MongodbOutputFormat extends BaseRichOutputFormat {
 
     private transient MongoClient mongoClient;
     private transient MongoCollection mongoCollection;
+    private transient FindOneAndReplaceOptions options;
 
     public MongodbOutputFormat(MongoClientConf mongoClientConf, String key, WriteMode writeMode) {
         this.mongoClientConf = mongoClientConf;
@@ -65,7 +67,7 @@ public class MongodbOutputFormat extends BaseRichOutputFormat {
             rowConverter.toExternal(rowData, document);
             if (writeMode == WriteMode.UPSERT) {
                 Document filter = new Document(key, document.get(key));
-                mongoCollection.findOneAndReplace(filter, document);
+                mongoCollection.findOneAndReplace(filter, document, options);
             } else {
                 mongoCollection.insertOne(document);
             }
@@ -97,6 +99,7 @@ public class MongodbOutputFormat extends BaseRichOutputFormat {
                         mongoClient,
                         mongoClientConf.getDatabase(),
                         mongoClientConf.getCollection());
+        options = new FindOneAndReplaceOptions().upsert(true);
     }
 
     @Override
