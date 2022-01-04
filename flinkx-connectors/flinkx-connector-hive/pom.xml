@@ -78,6 +78,10 @@
 			<version>2.1.0</version>
 			<exclusions>
 				<exclusion>
+					<artifactId>commons-cli</artifactId>
+					<groupId>commons-cli</groupId>
+				</exclusion>
+				<exclusion>
 					<artifactId>log4j-api</artifactId>
 					<groupId>org.apache.logging.log4j</groupId>
 				</exclusion>
