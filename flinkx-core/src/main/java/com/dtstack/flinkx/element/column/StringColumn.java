@@ -45,7 +45,9 @@ public class StringColumn extends AbstractBaseColumn {
 
     public StringColumn(final String data, String format) {
         super(data);
-        this.format = format;
+        if (format != null) {
+            this.format = format;
+        }
     }
 
     public StringColumn(Byte aByte) {
@@ -178,7 +180,7 @@ public class StringColumn extends AbstractBaseColumn {
             return null;
         }
         try {
-            return new Timestamp(super.asLong());
+            return new Timestamp(this.asDate().getTime());
         } catch (CastException e) {
             throw new CastException("String", "Timestamp", (String) data);
         }
