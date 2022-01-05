@@ -20,13 +20,14 @@ package com.dtstack.flinkx.connector.clickhouse.util;
 
 import com.dtstack.flinkx.util.SysUtil;
 
-import ru.yandex.clickhouse.BalancedClickhouseDataSource;
-import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+
+import org.apache.commons.lang3.StringUtils;
+import ru.yandex.clickhouse.BalancedClickhouseDataSource;
+import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
 
 /**
  * Date: 2019/11/05 Company: www.dtstack.com
@@ -40,7 +41,9 @@ public class ClickhouseUtil {
             throws SQLException {
         Properties properties = new Properties();
         properties.put(ClickHouseQueryParam.USER.getKey(), username);
-        properties.put(ClickHouseQueryParam.PASSWORD.getKey(), password);
+        if (StringUtils.isNotEmpty(password)) {
+            properties.put(ClickHouseQueryParam.PASSWORD.getKey(), password);
+        }
         boolean failed = true;
         Connection conn = null;
         for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
