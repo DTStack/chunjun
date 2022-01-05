@@ -20,14 +20,14 @@ package com.dtstack.flinkx.connector.clickhouse.util;
 
 import com.dtstack.flinkx.util.SysUtil;
 
+import org.apache.commons.lang.StringUtils;
+import ru.yandex.clickhouse.BalancedClickhouseDataSource;
+import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
-
-import org.apache.commons.lang3.StringUtils;
-import ru.yandex.clickhouse.BalancedClickhouseDataSource;
-import ru.yandex.clickhouse.settings.ClickHouseQueryParam;
 
 /**
  * Date: 2019/11/05 Company: www.dtstack.com
