@@ -39,6 +39,7 @@ public class ClickhouseUtil {
         Properties properties = new Properties();
         properties.put(ClickHouseQueryParam.USER.getKey(), username);
         properties.put(ClickHouseQueryParam.PASSWORD.getKey(), password);
+        properties.put("socket_timeout", 300000);
         boolean failed = true;
         Connection conn = null;
         for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
