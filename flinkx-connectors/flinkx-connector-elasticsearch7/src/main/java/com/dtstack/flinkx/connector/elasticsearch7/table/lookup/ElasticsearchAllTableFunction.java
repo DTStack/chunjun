@@ -71,7 +71,7 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
 
-        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf);
+        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf, null);
         SearchRequest requestBuilder = buildSearchRequest(null);
         SearchResponse searchResponse;
         SearchHit[] searchHits;

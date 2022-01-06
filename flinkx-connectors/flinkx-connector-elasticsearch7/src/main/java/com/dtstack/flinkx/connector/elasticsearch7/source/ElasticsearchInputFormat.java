@@ -85,7 +85,9 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
         GenericInputSplit genericInputSplit = (GenericInputSplit) inputSplit;
 
-        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf);
+        rhlClient =
+                Elasticsearch7ClientFactory.createClient(
+                        elasticsearchConf, getRuntimeContext().getDistributedCache());
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
 
         String[] fieldsNames = elasticsearchConf.getFieldNames();
