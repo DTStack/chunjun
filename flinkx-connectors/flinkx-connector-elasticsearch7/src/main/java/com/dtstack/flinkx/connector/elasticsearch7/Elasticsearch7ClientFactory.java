@@ -18,18 +18,33 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7;
 
+import com.dtstack.flinkx.security.SSLUtil;
+import com.dtstack.flinkx.util.MapUtil;
+
+import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.table.api.ValidationException;
 
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 
+import javax.net.ssl.SSLContext;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.HOSTS_OPTION;
@@ -46,8 +61,10 @@ public class Elasticsearch7ClientFactory {
      * @param elasticsearchConf
      * @return
      */
-    public static RestHighLevelClient createClient(ElasticsearchConf elasticsearchConf) {
-        List<HttpHost> httpAddresses = getHosts(elasticsearchConf.getHosts());
+    public static RestHighLevelClient createClient(
+            ElasticsearchConf elasticsearchConf, DistributedCache distributedCache) {
+        boolean useSsl = Objects.nonNull(elasticsearchConf.getSslConfig());
+        List<HttpHost> httpAddresses = getHosts(elasticsearchConf.getHosts(), useSsl);
         RestClientBuilder restClientBuilder =
                 RestClient.builder(httpAddresses.toArray(new HttpHost[httpAddresses.size()]));
         restClientBuilder.setRequestConfigCallback(
@@ -65,13 +82,23 @@ public class Elasticsearch7ClientFactory {
                             elasticsearchConf.getUsername(), elasticsearchConf.getPassword()));
 
             restClientBuilder.setHttpClientConfigCallback(
-                    httpAsyncClientBuilder ->
-                            httpAsyncClientBuilder
-                                    .setDefaultCredentialsProvider(credentialsProvider)
-                                    .setKeepAliveStrategy(
-                                            (response, context) ->
-                                                    elasticsearchConf.getKeepAliveTime())
-                                    .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute()));
+                    httpAsyncClientBuilder -> {
+                        HttpAsyncClientBuilder httpAsyncClientBuilder1 =
+                                httpAsyncClientBuilder
+                                        .setDefaultCredentialsProvider(credentialsProvider)
+                                        .setKeepAliveStrategy(
+                                                (response, context) ->
+                                                        elasticsearchConf.getKeepAliveTime())
+                                        .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute());
+                        if (useSsl) {
+                            httpAsyncClientBuilder1.setSSLContext(
+                                    getSslContext(
+                                            elasticsearchConf.getSslConfig(), distributedCache));
+                            httpAsyncClientBuilder1.setSSLHostnameVerifier(
+                                    NoopHostnameVerifier.INSTANCE);
+                        }
+                        return httpAsyncClientBuilder1;
+                    });
         } else {
             restClientBuilder.setHttpClientConfigCallback(
                     httpAsyncClientBuilder ->
@@ -81,12 +108,22 @@ public class Elasticsearch7ClientFactory {
                                                     elasticsearchConf.getKeepAliveTime())
                                     .setMaxConnPerRoute(elasticsearchConf.getMaxConnPerRoute()));
         }
-
-        RestHighLevelClient rhlClient = new RestHighLevelClient(restClientBuilder);
-        return rhlClient;
+        return new RestHighLevelClient(restClientBuilder);
     }
 
-    private static List<HttpHost> getHosts(List<String> hosts) {
+    private static List<HttpHost> getHosts(List<String> hosts, boolean ssl) {
+        if (ssl) {
+            hosts =
+                    hosts.stream()
+                            .map(
+                                    i -> {
+                                        if (!i.startsWith("https://")) {
+                                            return "https://" + i;
+                                        }
+                                        return i;
+                                    })
+                            .collect(Collectors.toList());
+        }
         return hosts.stream()
                 .map(host -> validateAndParseHostsString(host))
                 .collect(Collectors.toList());
@@ -124,6 +161,26 @@ public class Elasticsearch7ClientFactory {
                             "Could not parse host '%s' in option '%s'. It should follow the format 'http://host_name:port'.",
                             host, HOSTS_OPTION.key()),
                     e);
+        }
+    }
+
+    private static SSLContext getSslContext(SslConf sslConf, DistributedCache distributedCache) {
+        try {
+            String path = sslConf.getFilePath() + File.separator + sslConf.getFileName();
+            String file = SSLUtil.loadFile(MapUtil.objectToMap(sslConf), path, distributedCache);
+            Path trustStorePath = Paths.get(file);
+            // use the certificate to obtain KeyStore
+            KeyStore trustStore =
+                    SSLUtil.getKeyStoreByType(
+                            sslConf.getType(), trustStorePath, sslConf.getKeyStorePass());
+
+            SSLContextBuilder sslBuilder =
+                    SSLContexts.custom()
+                            .loadTrustMaterial(trustStore, (x509Certificates, s) -> true);
+            return sslBuilder.build();
+
+        } catch (Exception e) {
+            throw new RuntimeException("get sslContext failed ", e);
         }
     }
 }

@@ -74,6 +74,9 @@ public class ElasticsearchConf extends FlinkxCommonConf implements Serializable 
     /** table field names */
     private String[] fieldNames;
 
+    /** sslConf * */
+    private SslConf sslConfig;
+
     public String[] getFieldNames() {
         return fieldNames;
     }
@@ -176,5 +179,13 @@ public class ElasticsearchConf extends FlinkxCommonConf implements Serializable 
 
     public void setKeyDelimiter(String keyDelimiter) {
         this.keyDelimiter = keyDelimiter;
+    }
+
+    public SslConf getSslConfig() {
+        return sslConfig;
+    }
+
+    public void setSslConfig(SslConf sslConfig) {
+        this.sslConfig = sslConfig;
     }
 }

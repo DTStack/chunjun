@@ -124,7 +124,9 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf);
+        rhlClient =
+                Elasticsearch7ClientFactory.createClient(
+                        elasticsearchConf, getRuntimeContext().getDistributedCache());
         indexGenerator.open();
     }
 

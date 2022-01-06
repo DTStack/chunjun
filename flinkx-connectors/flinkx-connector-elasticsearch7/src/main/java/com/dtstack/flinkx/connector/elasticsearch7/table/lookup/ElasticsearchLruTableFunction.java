@@ -77,7 +77,7 @@ public class ElasticsearchLruTableFunction extends AbstractLruTableFunction {
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf);
+        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf, null);
     }
 
     @Override
