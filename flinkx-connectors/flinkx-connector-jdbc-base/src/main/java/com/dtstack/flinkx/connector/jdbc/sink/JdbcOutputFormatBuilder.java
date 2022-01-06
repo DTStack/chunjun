@@ -19,7 +19,6 @@ package com.dtstack.flinkx.connector.jdbc.sink;
 
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
@@ -60,8 +59,6 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         }
         if (StringUtils.isBlank(jdbcConf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
-        } else {
-            jdbcConf.setJdbcUrl(JdbcUtil.formatJdbcUrl(jdbcConf.getJdbcUrl(), null));
         }
         if (sb.length() > 0) {
             throw new IllegalArgumentException(sb.toString());
