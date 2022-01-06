@@ -25,6 +25,7 @@ import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.mysql.dialect.MysqlDialect;
 
 import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.table.api.TableSchema;
 
 /**
  * @program: flinkx
@@ -57,7 +58,14 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     protected JdbcConf getSourceConnectionConf(ReadableConfig readableConfig) {
         JdbcConf jdbcConf = super.getSourceConnectionConf(readableConfig);
-        jdbcConf.setJdbcUrl(JdbcUtil.formatJdbcUrl(jdbcConf.getJdbcUrl(), null));
+        JdbcUtil.putExtParam(jdbcConf);
+        return jdbcConf;
+    }
+
+    @Override
+    protected JdbcConf getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
+        JdbcConf jdbcConf = super.getSinkConnectionConf(readableConfig, schema);
+        JdbcUtil.putExtParam(jdbcConf);
         return jdbcConf;
     }
 }
