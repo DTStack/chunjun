@@ -124,7 +124,13 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     rowConverter == null
                             ? jdbcDialect.getColumnConverter(rowType, jdbcConf)
                             : rowConverter);
-            stmtProxy = new PreparedStmtProxy(fieldNamedPreparedStatement, rowConverter);
+            stmtProxy =
+                    new PreparedStmtProxy(
+                            fieldNamedPreparedStatement,
+                            rowConverter,
+                            dbConn,
+                            jdbcConf,
+                            jdbcDialect);
         }
     }
 
