@@ -1,5 +1,23 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.constants.CDCConstantValue;
@@ -47,9 +65,9 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedStmtProxy.class);
 
-    private int cacheSize = 100;
+    private final int cacheSize = 100;
 
-    private int cacheDurationMin = 10;
+    private final int cacheDurationMin = 10;
 
     /** LUR cache key info: database_table_rowkind * */
     protected Cache<String, DynamicPreparedStmt> pstmtCache;
@@ -65,6 +83,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     protected Connection connection;
     protected JdbcDialect jdbcDialect;
+    protected JdbcConf jdbcConf;
 
     /** 是否将框架额外添加的扩展信息写入到数据库,默认不写入* */
     protected boolean writeExtInfo;
@@ -73,29 +92,21 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         this.connection = connection;
         this.jdbcDialect = jdbcDialect;
         this.writeExtInfo = writeExtInfo;
-
-        pstmtCache =
-                CacheBuilder.newBuilder()
-                        .maximumSize(cacheSize)
-                        .expireAfterAccess(cacheDurationMin, TimeUnit.MINUTES)
-                        .removalListener(
-                                (RemovalListener<String, DynamicPreparedStmt>)
-                                        notification -> {
-                                            try {
-                                                assert notification.getValue() != null;
-                                                notification.getValue().close();
-                                            } catch (SQLException e) {
-                                                Log.error("", e);
-                                            }
-                                        })
-                        .build();
+        initCache();
     }
 
     public PreparedStmtProxy(
             FieldNamedPreparedStatement currentFieldNamedPstmt,
-            AbstractRowConverter currentRowConverter) {
+            AbstractRowConverter currentRowConverter,
+            Connection connection,
+            JdbcConf jdbcConf,
+            JdbcDialect jdbcDialect) {
         this.currentFieldNamedPstmt = currentFieldNamedPstmt;
         this.currentRowConverter = currentRowConverter;
+        this.connection = connection;
+        this.jdbcConf = jdbcConf;
+        this.jdbcDialect = jdbcDialect;
+        initCache();
     }
 
     public void convertToExternal(RowData row) throws Exception {
@@ -148,6 +159,32 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             if (!writeExtInfo) {
                 columnRowData.removeExtHeaderInfo();
             }
+        } else {
+            String key =
+                    jdbcConf.getSchema()
+                            + "_"
+                            + jdbcConf.getTable()
+                            + "_"
+                            + row.getRowKind().toString();
+            DynamicPreparedStmt fieldNamedPreparedStatement =
+                    pstmtCache.get(
+                            key,
+                            () -> {
+                                try {
+                                    return DynamicPreparedStmt.buildStmt(
+                                            jdbcConf.getSchema(),
+                                            jdbcConf.getTable(),
+                                            row.getRowKind(),
+                                            connection,
+                                            jdbcDialect,
+                                            jdbcConf.getColumn(),
+                                            currentRowConverter);
+                                } catch (SQLException e) {
+                                    LOG.warn("", e);
+                                    return null;
+                                }
+                            });
+            currentFieldNamedPstmt = fieldNamedPreparedStatement.getFieldNamedPreparedStatement();
         }
     }
 
@@ -157,6 +194,24 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                 (FieldNamedPreparedStatement)
                         currentRowConverter.toExternal(row, this.currentFieldNamedPstmt);
         currentFieldNamedPstmt.execute();
+    }
+
+    protected void initCache() {
+        this.pstmtCache =
+                CacheBuilder.newBuilder()
+                        .maximumSize(cacheSize)
+                        .expireAfterAccess(cacheDurationMin, TimeUnit.MINUTES)
+                        .removalListener(
+                                (RemovalListener<String, DynamicPreparedStmt>)
+                                        notification -> {
+                                            try {
+                                                assert notification.getValue() != null;
+                                                notification.getValue().close();
+                                            } catch (SQLException e) {
+                                                Log.error("", e);
+                                            }
+                                        })
+                        .build();
     }
 
     @Override
