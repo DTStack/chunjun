@@ -23,13 +23,14 @@ import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7RequestFactory;
 import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
+import com.dtstack.flinkx.util.JsonUtil;
 
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.MapUtils;
 import org.elasticsearch.action.search.ClearScrollRequest;
 import org.elasticsearch.action.search.ClearScrollResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -56,7 +57,6 @@ import java.util.Map;
  * @create: 2021/06/27 17:25
  */
 public class ElasticsearchInputFormat extends BaseRichInputFormat {
-    protected String query;
     protected long keepAlive = 1;
     /** Elasticsearch Configuration */
     private ElasticsearchConf elasticsearchConf;
@@ -95,8 +95,9 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
                 Elasticsearch7RequestFactory.createSourceBuilder(fieldsNames, null, null);
         searchSourceBuilder.size(elasticsearchConf.getBatchSize());
 
-        if (StringUtils.isNotEmpty(query)) {
-            searchSourceBuilder.query(QueryBuilders.wrapperQuery(query));
+        if (MapUtils.isNotEmpty(elasticsearchConf.getQuery())) {
+            searchSourceBuilder.query(
+                    QueryBuilders.wrapperQuery(JsonUtil.toJson(elasticsearchConf.getQuery())));
         }
 
         if (genericInputSplit.getTotalNumberOfSplits() > 1) {
