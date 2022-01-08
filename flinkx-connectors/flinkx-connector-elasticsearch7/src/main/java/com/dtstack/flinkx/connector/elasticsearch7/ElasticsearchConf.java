@@ -22,6 +22,7 @@ import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description:
@@ -74,8 +75,11 @@ public class ElasticsearchConf extends FlinkxCommonConf implements Serializable 
     /** table field names */
     private String[] fieldNames;
 
-    /** sslConf * */
+    /** sslConf */
     private SslConf sslConfig;
+
+    /** Filter condition expression */
+    protected Map query;
 
     public String[] getFieldNames() {
         return fieldNames;
@@ -187,5 +191,13 @@ public class ElasticsearchConf extends FlinkxCommonConf implements Serializable 
 
     public void setSslConfig(SslConf sslConfig) {
         this.sslConfig = sslConfig;
+    }
+
+    public Map getQuery() {
+        return query;
+    }
+
+    public void setQuery(Map query) {
+        this.query = query;
     }
 }
