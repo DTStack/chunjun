@@ -25,6 +25,7 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
 
 import com.esotericsoftware.minlog.Log;
 import com.google.common.cache.Cache;
@@ -107,6 +108,13 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         this.jdbcConf = jdbcConf;
         this.jdbcDialect = jdbcDialect;
         initCache();
+        this.pstmtCache.put(
+                jdbcConf.getSchema() + "_" + jdbcConf.getTable() + "_" + RowKind.INSERT,
+                DynamicPreparedStmt.buildStmt(
+                        jdbcDialect,
+                        jdbcConf.getColumn(),
+                        currentRowConverter,
+                        currentFieldNamedPstmt));
     }
 
     public void convertToExternal(RowData row) throws Exception {

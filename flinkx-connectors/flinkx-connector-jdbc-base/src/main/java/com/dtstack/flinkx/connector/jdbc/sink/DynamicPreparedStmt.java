@@ -114,6 +114,23 @@ public class DynamicPreparedStmt {
         return dynamicPreparedStmt;
     }
 
+    public static DynamicPreparedStmt buildStmt(
+            JdbcDialect jdbcDialect,
+            List<FieldConf> fieldConfList,
+            AbstractRowConverter<?, ?, ?, ?> rowConverter,
+            FieldNamedPreparedStatement fieldNamedPreparedStatement) {
+        DynamicPreparedStmt dynamicPreparedStmt = new DynamicPreparedStmt();
+        dynamicPreparedStmt.jdbcDialect = jdbcDialect;
+        dynamicPreparedStmt.rowConverter = rowConverter;
+        dynamicPreparedStmt.fieldNamedPreparedStatement = fieldNamedPreparedStatement;
+        for (int i = 0; i < fieldConfList.size(); i++) {
+            FieldConf fieldConf = fieldConfList.get(i);
+            dynamicPreparedStmt.columnNameList.add(fieldConf.getName());
+            dynamicPreparedStmt.columnTypeList.add(fieldConf.getType());
+        }
+        return dynamicPreparedStmt;
+    }
+
     protected String prepareTemplates(RowKind rowKind, String schemaName, String tableName) {
         String singleSql = null;
         switch (rowKind) {
