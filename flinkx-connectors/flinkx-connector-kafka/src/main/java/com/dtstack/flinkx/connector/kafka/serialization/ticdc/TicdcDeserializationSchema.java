@@ -29,6 +29,12 @@ import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.JsonUtil;
+
+import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.Collector;
+
 import com.pingcap.ticdc.cdc.KafkaMessage;
 import com.pingcap.ticdc.cdc.TicdcEventData;
 import com.pingcap.ticdc.cdc.TicdcEventDecoder;
@@ -40,10 +46,6 @@ import com.pingcap.ticdc.cdc.value.TicdcEventDDL;
 import com.pingcap.ticdc.cdc.value.TicdcEventResolve;
 import com.pingcap.ticdc.cdc.value.TicdcEventRowChange;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.flink.api.common.serialization.DeserializationSchema;
-import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.Collector;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import java.nio.charset.StandardCharsets;

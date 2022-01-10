@@ -33,15 +33,17 @@ import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
+
+import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
+
 import com.google.common.collect.Lists;
 import com.pingcap.ticdc.cdc.key.TicdcEventKey;
 import com.pingcap.ticdc.cdc.value.TicdcEventColumn;
 import com.pingcap.ticdc.cdc.value.TicdcEventRowChange;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.RowKind;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -217,8 +219,7 @@ public class TicdcColumnConverter
     }
 
     private String getTypeFromRowChange(
-            TicdcEventRowChange rowChange,
-            List<TicdcEventColumn> beforeColumns) {
+            TicdcEventRowChange rowChange, List<TicdcEventColumn> beforeColumns) {
         if (UPDATE_OR_DELETE_TYPE.equalsIgnoreCase(rowChange.getUpdateOrDelete())) {
             if (CollectionUtils.isEmpty(beforeColumns)) {
                 return EventType.INSERT.name();
