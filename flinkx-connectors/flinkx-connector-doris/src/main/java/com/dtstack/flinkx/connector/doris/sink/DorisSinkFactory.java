@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.doris.sink;
 
 import com.dtstack.flinkx.conf.OperatorConf;
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.doris.converter.DorisColumnConverter;
 import com.dtstack.flinkx.connector.doris.options.DorisConf;
 import com.dtstack.flinkx.connector.doris.options.DorisConfBuilder;
 import com.dtstack.flinkx.connector.doris.options.LoadConf;
@@ -56,7 +55,6 @@ import static com.dtstack.flinkx.connector.doris.options.DorisKeys.LINE_DELIMITE
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.LINE_DELIMITER_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.LOAD_OPTIONS_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.LOAD_PROPERTIES_KEY;
-import static com.dtstack.flinkx.connector.doris.options.DorisKeys.MAX_RETRIES_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.PASSWORD_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.REQUEST_BATCH_SIZE_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.REQUEST_CONNECT_TIMEOUT_MS_KEY;
@@ -144,8 +142,8 @@ public class DorisSinkFactory extends SinkFactory {
                         .setLoadOptions(loadConf)
                         .setLoadProperties(
                                 parameter.getProperties(LOAD_PROPERTIES_KEY, new Properties()))
-                        .setMaxRetries(parameter.getIntVal(MAX_RETRIES_KEY, 3))
-                        .setPassword(parameter.getStringVal(PASSWORD_KEY))
+                        .setPassword(parameter.getStringVal(PASSWORD_KEY, ""))
+                        .setNameMapped(syncConf.getNameMappingConf() != null)
                         .setWriteMode(
                                 parameter.getStringVal(WRITE_MODE_KEY, DORIS_WRITE_MODE_DEFAULT))
                         .setUsername(parameter.getStringVal(USER_NAME_KEY))
@@ -159,7 +157,6 @@ public class DorisSinkFactory extends SinkFactory {
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         DorisOutputFormatBuilder builder = new DorisOutputFormatBuilder();
         builder.setDorisOptions(options);
-        builder.setRowConverter(new DorisColumnConverter(options));
         return createOutput(dataSet, builder.finish());
     }
 

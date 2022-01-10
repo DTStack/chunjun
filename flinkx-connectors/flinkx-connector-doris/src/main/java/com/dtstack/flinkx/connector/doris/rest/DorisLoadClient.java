@@ -25,11 +25,13 @@ import com.dtstack.flinkx.connector.doris.options.DorisConf;
 import com.dtstack.flinkx.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.types.RowKind;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nonnull;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -55,18 +57,21 @@ public class DorisLoadClient implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(DorisLoadClient.class);
 
     private final Set<String> metaHeader =
-            Stream.of("schema", "table", "type", "opTime", "ts")
+            Stream.of("schema", "table", "type", "opTime", "ts", "scn")
                     .collect(Collectors.toCollection(HashSet::new));
 
     private static final String LOAD_URL_PATTERN = "http://%s/api/%s/%s/_stream_load?";
     private static final String NULL_VALUE = "\\N";
     private static final String KEY_SCHEMA = "schema";
     private static final String KEY_TABLE = "table";
+    private static final String KEY_POINT = ".";
+    public static final String KEY_BEFORE = "before_";
+    public static final String KEY_AFTER = "after_";
 
     private final DorisStreamLoad dorisStreamLoad;
-
     private final String fieldDelimiter;
     private final String lineDelimiter;
+    private final boolean nameMapped;
     private int batchSize = 1024;
     private String hostPort;
     private final DorisConf conf;
@@ -82,6 +87,7 @@ public class DorisLoadClient implements Serializable {
         this.dorisStreamLoad = dorisStreamLoad;
         this.hostPort = hostPort;
         this.conf = conf;
+        this.nameMapped = conf.isNameMapped();
         this.batchSize = conf.getBatchSize();
         this.fieldDelimiter = conf.getFieldDelimiter();
         this.lineDelimiter = conf.getLineDelimiter();
@@ -97,45 +103,47 @@ public class DorisLoadClient implements Serializable {
         List<String> columns = new LinkedList<>();
         List<String> insertV = new LinkedList<>();
         List<String> deleteV = new LinkedList<>();
-        boolean merge =
-                (value.getRowKind() == RowKind.DELETE
-                        || value.getRowKind() == RowKind.UPDATE_BEFORE);
-        /* If NameMapping is configured, RowData will carry the database
-        and table names after the name matches, and the database, table,
-        and column configured on the sink side are invalid.*/
-        if (conf.isNeedMapping()) {
-            Map<String, String> identityMap = new HashMap<>(2);
-            wrapColumnsFromRowData(value, columns, insertV, deleteV, identityMap);
-            schema = identityMap.get(KEY_SCHEMA);
-            table = identityMap.get(KEY_TABLE);
-            load(columns, insertV, deleteV, schema, table, merge, single);
-        } else {
-            columns = getColumnName(conf.getColumn());
-            wrapValuesFromRowData(value, columns, insertV, deleteV);
-            load(columns, insertV, deleteV, conf.getDatabase(), conf.getTable(), merge, single);
+        // sync job.
+        if (value instanceof ColumnRowData) {
+            /* If NameMapping is configured, RowData will carry the database
+            and table names after the name matches, and the database, table,
+            and column configured on the sink side are invalid.*/
+            if (nameMapped) {
+                Map<String, String> identityMap = new HashMap<>(2);
+                wrapColumnsFromRowData(
+                        (ColumnRowData) value, columns, insertV, deleteV, identityMap);
+                schema = MapUtils.getString(identityMap, KEY_SCHEMA, conf.getDatabase());
+                table = MapUtils.getString(identityMap, KEY_TABLE, conf.getTable());
+            } else {
+                columns = getColumnName(conf.getColumn());
+                wrapValuesFromRowData((ColumnRowData) value, columns, insertV, deleteV);
+                schema = conf.getDatabase();
+                table = conf.getTable();
+            }
+            loadData(columns, insertV, deleteV, schema, table, single);
         }
+        // TODO sql support
     }
 
-    private void load(
+    private void loadData(
             List<String> columns,
             List<String> insertV,
             List<String> deleteV,
             String schema,
             String table,
-            boolean merge,
             boolean single)
             throws IOException {
 
         // if batchSize is 1 or write SingleRecord.
         if (single) {
-            singleLoad(columns, insertV, deleteV, schema, table, merge);
+            singleLoad(columns, insertV, deleteV, schema, table);
             return;
         }
-        String key = schema + "." + table;
+        String key = schema + KEY_POINT + table;
         // exist.
         boolean exist = insertValueMap.containsKey(key) || mergeValueMap.containsKey(key);
         if (exist) {
-            if (merge) {
+            if (!deleteV.isEmpty()) {
                 // need use merge.
                 String mergeConditions = buildMergeOnConditions(columns, deleteV);
                 mergeValueMap.merge(key, mergeConditions, (o, n) -> o + " OR " + n);
@@ -164,10 +172,9 @@ public class DorisLoadClient implements Serializable {
                 mergeValueMap.remove(key);
                 batchSizeMap.remove(key);
             }
-            // not exist.
         } else {
-            if (merge) {
-                // need use merge.
+            // need use merge.
+            if (!deleteV.isEmpty()) {
                 String mergeConditions = buildMergeOnConditions(columns, deleteV);
                 mergeValueMap.put(key, mergeConditions);
             }
@@ -192,26 +199,22 @@ public class DorisLoadClient implements Serializable {
      * @return delete on condition
      */
     private String buildMergeOnConditions(List<String> columns, List<String> values) {
-        if (!values.isEmpty()) {
-            List<String> deleteOnStr = new ArrayList<>();
-            for (int i = 0, size = columns.size(); i < size; i++) {
-                String stringBuilder =
-                        columns.get(i)
-                                + "<=>"
-                                + "'"
-                                + ((values.get(i)) == null ? "" : values.get(i))
-                                + "'";
-                String s =
-                        stringBuilder
-                                .replaceAll("\\r", "\\\\r")
-                                .replaceAll("\\n", "\\\\n")
-                                .replaceAll("\\t", "\\\t");
-                deleteOnStr.add(s);
-            }
-
-            return StringUtils.join(deleteOnStr, " AND ");
+        List<String> deleteOnStr = new ArrayList<>();
+        for (int i = 0, size = columns.size(); i < size; i++) {
+            String stringBuilder =
+                    columns.get(i)
+                            + "<=>"
+                            + "'"
+                            + ((values.get(i)) == null ? "" : values.get(i))
+                            + "'";
+            String s =
+                    stringBuilder
+                            .replaceAll("\\r", "\\\\r")
+                            .replaceAll("\\n", "\\\\n")
+                            .replaceAll("\\t", "\\\t");
+            deleteOnStr.add(s);
         }
-        return "";
+        return StringUtils.join(deleteOnStr, " AND ");
     }
 
     private void singleLoad(
@@ -219,11 +222,10 @@ public class DorisLoadClient implements Serializable {
             List<String> insertV,
             List<String> deleteV,
             String schema,
-            String table,
-            boolean merge)
+            String table)
             throws IOException {
 
-        if (merge) {
+        if (!deleteV.isEmpty()) {
             String mergeConditions = buildMergeOnConditions(columns, deleteV);
             dorisStreamLoad.load(
                     columns,
@@ -234,34 +236,31 @@ public class DorisLoadClient implements Serializable {
         } else {
             dorisStreamLoad.load(
                     columns,
-                    StringUtils.join(insertV, fieldDelimiter),
+                    insertV.isEmpty() ? "" : StringUtils.join(insertV, fieldDelimiter),
                     "",
                     String.format(LOAD_URL_PATTERN, hostPort, schema, table));
         }
     }
 
     /**
-     * Obtain column name, insert values, delete values, and schema and table from RowData
+     * Obtain column name, insert values, delete values, and schema and table from ColumnRowData
      *
-     * @param value RowData
+     * @param value ColumnRowData
      * @param columns column name list
      * @param insertV insert value list
      * @param deleteV delete value list
      * @param identityMap schema and table name
      */
     private void wrapColumnsFromRowData(
-            RowData value,
+            ColumnRowData value,
             List<String> columns,
             List<String> insertV,
             List<String> deleteV,
             Map<String, String> identityMap) {
 
-        String[] headers = ((ColumnRowData) value).getHeaders();
-        int schemaIndex = 0;
-        int tableIndex = 0;
-
-        boolean hasBefore = false;
-        boolean hasAfter = false;
+        String[] headers = value.getHeaders();
+        Integer schemaIndex = null, tableIndex = null;
+        boolean hasBefore = false, hasAfter = false;
         // obtain the schema, table and values.
         for (int i = 0; i < Objects.requireNonNull(headers).length; i++) {
             if (KEY_SCHEMA.equalsIgnoreCase(headers[i])) {
@@ -276,67 +275,54 @@ public class DorisLoadClient implements Serializable {
             // is column.
             if (!metaHeader.contains(headers[i])) {
                 // case 1, need to delete.
-                if (headers[i].startsWith("before_")) {
+                if (headers[i].startsWith(KEY_BEFORE)) {
                     String column = headers[i].substring(7);
                     hasBefore = true;
                     if (!hasAfter) {
                         columns.add(column);
                     }
-                    insertV.add(
-                            ((ColumnRowData) value).getField(i) == null
-                                    ? NULL_VALUE
-                                    : ((ColumnRowData) value).getField(i).toString());
-                    deleteV.add(
-                            ((ColumnRowData) value).getField(i) == null
-                                    ? NULL_VALUE
-                                    : ((ColumnRowData) value).getField(i).toString());
+                    insertV.add(convert(value, i));
+                    deleteV.add(convert(value, i));
                     continue;
                 }
                 // case 2, need to insert.
-                if (headers[i].startsWith("after_")) {
+                if (headers[i].startsWith(KEY_AFTER)) {
                     String column = headers[i].substring(6);
                     hasAfter = true;
                     if (!hasBefore) {
                         columns.add(column);
                     }
-                    insertV.add(
-                            ((ColumnRowData) value).getField(i) == null
-                                    ? NULL_VALUE
-                                    : ((ColumnRowData) value).getField(i).toString());
+                    insertV.add(convert(value, i));
                     continue;
                 }
-                // case 3. split is true or simple insert.
+                // case 3, simple insert.
                 columns.add(headers[i]);
-                insertV.add(
-                        ((ColumnRowData) value).getField(i) == null
-                                ? NULL_VALUE
-                                : ((ColumnRowData) value).getField(i).toString());
+                insertV.add(convert(value, i));
             }
         }
-        String schema = value.getString(schemaIndex).toString();
-        String table = value.getString(tableIndex).toString();
-        identityMap.put(KEY_SCHEMA, schema);
-        identityMap.put(KEY_TABLE, table);
+        if (schemaIndex != null && tableIndex != null) {
+            String schema = value.getString(schemaIndex).toString();
+            String table = value.getString(tableIndex).toString();
+            identityMap.put(KEY_SCHEMA, schema);
+            identityMap.put(KEY_TABLE, table);
+        }
     }
 
     /**
-     * Obtain insert values and delete values from RowData according to the known column name
+     * Obtain insert values and delete values from ColumnRowData according to the known column name
      *
-     * @param value RowData
+     * @param value ColumnRowData
      * @param columns column name list
      * @param insertV insert value list
      * @param deleteV delete value list
      */
     private void wrapValuesFromRowData(
-            RowData value, List<String> columns, List<String> insertV, List<String> deleteV) {
-        String[] headers = ((ColumnRowData) value).getHeaders();
+            ColumnRowData value, List<String> columns, List<String> insertV, List<String> deleteV) {
+        String[] headers = value.getHeaders();
         if (headers == null) {
             for (String column : columns) {
                 int index = columns.indexOf(column);
-                insertV.add(
-                        ((ColumnRowData) value).getField(index) == null
-                                ? NULL_VALUE
-                                : ((ColumnRowData) value).getField(index).toString());
+                insertV.add(convert(value, index));
             }
             return;
         }
@@ -345,37 +331,25 @@ public class DorisLoadClient implements Serializable {
             for (int i = 0; i < Objects.requireNonNull(headers).length; i++) {
                 if (!metaHeader.contains(headers[i])) {
                     // case 1, need to delete.
-                    if (headers[i].startsWith("before_")) {
+                    if (headers[i].startsWith(KEY_BEFORE)) {
                         String trueCol = headers[i].substring(7);
                         if (column.equalsIgnoreCase(trueCol)) {
-                            insertV.add(
-                                    ((ColumnRowData) value).getField(i) == null
-                                            ? NULL_VALUE
-                                            : ((ColumnRowData) value).getField(i).toString());
-                            deleteV.add(
-                                    ((ColumnRowData) value).getField(i) == null
-                                            ? NULL_VALUE
-                                            : ((ColumnRowData) value).getField(i).toString());
+                            insertV.add(convert(value, i));
+                            deleteV.add(convert(value, i));
                             break;
                         }
                     }
                     // case 2, need to insert.
-                    if (headers[i].startsWith("after_")) {
+                    if (headers[i].startsWith(KEY_AFTER)) {
                         String trueCol = headers[i].substring(6);
                         if (column.equalsIgnoreCase(trueCol)) {
-                            insertV.add(
-                                    ((ColumnRowData) value).getField(i) == null
-                                            ? NULL_VALUE
-                                            : ((ColumnRowData) value).getField(i).toString());
+                            insertV.add(convert(value, i));
                             break;
                         }
                     }
-                    // case 3. split is true or simple insert.
+                    // case 3. simple insert.
                     if (column.equalsIgnoreCase(headers[i])) {
-                        insertV.add(
-                                ((ColumnRowData) value).getField(i) == null
-                                        ? NULL_VALUE
-                                        : ((ColumnRowData) value).getField(i).toString());
+                        insertV.add(convert(value, i));
                         break;
                     }
                 }
@@ -389,5 +363,10 @@ public class DorisLoadClient implements Serializable {
             fields.forEach(column -> columns.add(column.getName()));
         }
         return columns;
+    }
+
+    private String convert(@Nonnull ColumnRowData rowData, int index) {
+        Object value = rowData.getField(index);
+        return (value == null || "".equals(value.toString())) ? NULL_VALUE : value.toString();
     }
 }
