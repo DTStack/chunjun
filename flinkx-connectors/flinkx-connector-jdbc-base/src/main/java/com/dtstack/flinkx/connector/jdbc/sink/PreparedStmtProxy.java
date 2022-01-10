@@ -30,7 +30,6 @@ import org.apache.flink.types.RowKind;
 import com.esotericsoftware.minlog.Log;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +92,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         this.connection = connection;
         this.jdbcDialect = jdbcDialect;
         this.writeExtInfo = writeExtInfo;
-        initCache();
+        initCache(true);
     }
 
     public PreparedStmtProxy(
@@ -107,9 +106,9 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         this.connection = connection;
         this.jdbcConf = jdbcConf;
         this.jdbcDialect = jdbcDialect;
-        initCache();
+        initCache(false);
         this.pstmtCache.put(
-                jdbcConf.getSchema() + "_" + jdbcConf.getTable() + "_" + RowKind.INSERT,
+                getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.INSERT),
                 DynamicPreparedStmt.buildStmt(
                         jdbcDialect,
                         jdbcConf.getColumn(),
@@ -140,7 +139,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             String tableName =
                     jdbcDialect.getDialectTableName(
                             row.getString(tableIndex).toString().toLowerCase());
-            String key = dataBase + "_" + tableName + "_" + row.getRowKind().toString();
+            String key = getPstmtCacheKey(dataBase, tableName, row.getRowKind());
 
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
@@ -169,11 +168,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             }
         } else {
             String key =
-                    jdbcConf.getSchema()
-                            + "_"
-                            + jdbcConf.getTable()
-                            + "_"
-                            + row.getRowKind().toString();
+                    getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), row.getRowKind());
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
                             key,
@@ -204,22 +199,27 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         currentFieldNamedPstmt.execute();
     }
 
-    protected void initCache() {
-        this.pstmtCache =
+    protected void initCache(boolean isExpired) {
+        CacheBuilder<String, DynamicPreparedStmt> cacheBuilder =
                 CacheBuilder.newBuilder()
                         .maximumSize(cacheSize)
-                        .expireAfterAccess(cacheDurationMin, TimeUnit.MINUTES)
                         .removalListener(
-                                (RemovalListener<String, DynamicPreparedStmt>)
-                                        notification -> {
-                                            try {
-                                                assert notification.getValue() != null;
-                                                notification.getValue().close();
-                                            } catch (SQLException e) {
-                                                Log.error("", e);
-                                            }
-                                        })
-                        .build();
+                                notification -> {
+                                    try {
+                                        assert notification.getValue() != null;
+                                        notification.getValue().close();
+                                    } catch (SQLException e) {
+                                        Log.error("", e);
+                                    }
+                                });
+        if (isExpired) {
+            cacheBuilder.expireAfterAccess(cacheDurationMin, TimeUnit.MINUTES);
+        }
+        this.pstmtCache = cacheBuilder.build();
+    }
+
+    public String getPstmtCacheKey(String schema, String table, RowKind rowKind) {
+        return String.format("%s_%s_%s", schema, table, rowKind);
     }
 
     @Override
