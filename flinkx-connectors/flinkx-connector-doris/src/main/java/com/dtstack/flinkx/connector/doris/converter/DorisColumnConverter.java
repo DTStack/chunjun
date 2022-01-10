@@ -38,9 +38,7 @@ public class DorisColumnConverter
         extends AbstractRowConverter<RowData, RowData, StringJoiner, String> {
 
     private List<String> fullColumn;
-
     private List<String> columnNames;
-
     private final DorisConf options;
 
     private static final String NULL_VALUE = "\\N";

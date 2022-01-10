@@ -224,7 +224,7 @@ public class SyncConf implements Serializable {
     }
 
     public CdcConf getCdcConf() {
-        return job.getSetting().getRestoration();
+        return job.getCdcConf();
     }
 
     public List<String> getSyncJarList() {
@@ -236,7 +236,7 @@ public class SyncConf implements Serializable {
     }
 
     public NameMappingConf getNameMappingConf() {
-        return job.getContent().get(0).getNameMapping();
+        return job.getNameMapping();
     }
 
     @Override

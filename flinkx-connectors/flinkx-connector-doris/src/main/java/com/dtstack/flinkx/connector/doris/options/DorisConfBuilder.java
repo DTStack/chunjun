@@ -73,8 +73,8 @@ public class DorisConfBuilder {
         return this;
     }
 
-    public DorisConfBuilder setMaxRetries(Integer maxRetries) {
-        this.dorisConf.setMaxRetries(maxRetries);
+    public DorisConfBuilder setNameMapped(boolean needNameMapping) {
+        this.dorisConf.setNameMapped(needNameMapping);
         return this;
     }
 
