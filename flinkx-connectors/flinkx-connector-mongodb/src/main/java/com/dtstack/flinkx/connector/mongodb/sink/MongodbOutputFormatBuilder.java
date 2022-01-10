@@ -18,11 +18,16 @@
 
 package com.dtstack.flinkx.connector.mongodb.sink;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.mongodb.conf.MongoClientConf;
 import com.dtstack.flinkx.connector.mongodb.datasync.MongoClientConfFactory;
 import com.dtstack.flinkx.connector.mongodb.datasync.MongodbDataSyncConf;
 import com.dtstack.flinkx.sink.WriteMode;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
+
+import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
 
 /**
  * @author Ada Wong
@@ -30,8 +35,10 @@ import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
  * @create 2021/06/24
  */
 public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
+    MongodbDataSyncConf mongodbDataSyncConf;
 
     public MongodbOutputFormatBuilder(MongodbDataSyncConf mongodbDataSyncConf) {
+        this.mongodbDataSyncConf = mongodbDataSyncConf;
         MongoClientConf mongoClientConf =
                 MongoClientConfFactory.createMongoClientConf(mongodbDataSyncConf);
         MongodbOutputFormat.WriteMode writeMode =
@@ -47,7 +54,25 @@ public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     }
 
     @Override
-    protected void checkFormat() {}
+    protected void checkFormat() {
+        String upsertKey = mongodbDataSyncConf.getReplaceKey();
+        if (!StringUtils.isBlank(upsertKey)) {
+            List<FieldConf> fields = mongodbDataSyncConf.getColumn();
+            boolean flag = false;
+            for (FieldConf field : fields) {
+                if (field.getName().equalsIgnoreCase(upsertKey)) {
+                    flag = true;
+                    break;
+                }
+            }
+            if (!flag) {
+                throw new IllegalArgumentException(
+                        String.format(
+                                "upsertKey must be included in the column,upsertKey=[%s]",
+                                upsertKey));
+            }
+        }
+    }
 
     private MongodbOutputFormat.WriteMode parseWriteMode(String str) {
         if (WriteMode.REPLACE.getMode().equals(str) || WriteMode.UPDATE.getMode().equals(str)) {
