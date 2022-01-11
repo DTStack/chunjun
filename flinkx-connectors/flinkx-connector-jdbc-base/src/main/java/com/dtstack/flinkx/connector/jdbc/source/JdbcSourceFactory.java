@@ -71,6 +71,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                         .create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), getConfClass());
+        if (StringUtils.isBlank(jdbcConf.getIncreColumn())) jdbcConf.setPolling(false);
         jdbcConf.setColumn(syncConf.getReader().getFieldList());
 
         Properties properties = syncConf.getWriter().getProperties("properties", null);
