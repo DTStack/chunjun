@@ -100,6 +100,14 @@ public class TicdcColumnConverter
         String key = schema + ConstantValue.POINT_SYMBOL + table;
         List<IDeserializationConverter> converters = super.cdcConverterCacheMap.get(key);
 
+        // If type is delete, eventRowChange.getColumns() gets real data
+        // , and eventRowChange.getOldColumns() gets empty.
+        if (RowKind.DELETE.name().equals(type) && beforeColumns.isEmpty()) {
+            List<TicdcEventColumn> tempColumns = Collections.emptyList();
+            beforeColumns = afterColumns;
+            afterColumns = tempColumns;
+        }
+
         if (null == converters) {
             List<TicdcEventColumn> eventColumns =
                     CollectionUtils.isEmpty(beforeColumns) ? afterColumns : beforeColumns;
