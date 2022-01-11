@@ -69,6 +69,8 @@ public class Worker implements Callable<Integer> {
             for (int i = 0; i < size; i++) {
                 RowData data = queue.peek();
                 if (data == null) {
+                    // if queue is empty, remove this queue.
+                    queuesChamberlain.removeEmptyQueue(tableIdentity);
                     break;
                 }
 

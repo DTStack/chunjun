@@ -77,6 +77,10 @@ public class QueuesChamberlain implements Serializable {
         }
     }
 
+    public void removeEmptyQueue(String tableIdentifier) {
+        unblockQueues.remove(tableIdentifier);
+    }
+
     public void block(String tableIdentity, RowData rowData) {
         lock.lock();
         try {
