@@ -24,8 +24,10 @@ import com.dtstack.flinkx.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -77,14 +79,15 @@ public interface Mapping {
      * @param value ROwData
      * @return index集
      */
-    default Map<String, Integer> getFieldIndex(RowData value) {
-        Map<String, Integer> fieldIndex = new HashMap<>(value.getArity());
+    default List<String> getFields(RowData value) {
+        List<String> fields = new ArrayList<>(value.getArity());
         String[] headers = ((ColumnRowData) value).getHeaders();
-        for (int i = 0; i < Objects.requireNonNull(headers).length; i++) {
-            if (!META_HEADER.contains(headers[i])) {
-                fieldIndex.put(headers[i], i);
+        assert headers != null;
+        for (String header : headers) {
+            if (!META_HEADER.contains(header)) {
+                fields.add(header);
             }
         }
-        return fieldIndex;
+        return fields;
     }
 }
