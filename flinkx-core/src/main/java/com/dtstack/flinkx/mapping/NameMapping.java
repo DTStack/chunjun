@@ -28,6 +28,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.commons.collections.MapUtils;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.constants.CDCConstantValue.SCHEMA;
@@ -66,11 +67,12 @@ public class NameMapping implements Mapping, Serializable {
 
             Map<String, String> mapFields = mappingRule.getMapFields(schema, table);
             if (MapUtils.isNotEmpty(mapFields)) {
-                Map<String, Integer> fieldIndex = getFieldIndex(rowData);
-                for (Map.Entry<String, Integer> entry : fieldIndex.entrySet()) {
-                    String targetField = mappingRule.fieldMapping(entry.getKey(), mapFields);
-                    ((ColumnRowData) rowData).replaceHeader(entry.getKey(), targetField);
-                }
+                List<String> fields = getFields(rowData);
+                fields.forEach(
+                        filed -> {
+                            String targetField = mappingRule.fieldMapping(filed, mapFields);
+                            ((ColumnRowData) rowData).replaceHeader(filed, targetField);
+                        });
             }
 
             ((ColumnRowData) rowData).setField(tableIndex, new StringColumn(targetTable));
