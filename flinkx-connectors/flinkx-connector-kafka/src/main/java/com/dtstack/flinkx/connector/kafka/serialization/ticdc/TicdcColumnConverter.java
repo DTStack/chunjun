@@ -194,7 +194,8 @@ public class TicdcColumnConverter
             TicdcEventColumn eventColumn = eventColumns.get(i);
             if (null != eventColumn.getV()) {
                 AbstractBaseColumn column =
-                        (AbstractBaseColumn) converters.get(i).deserialize(eventColumn.getV());
+                        (AbstractBaseColumn)
+                                converters.get(i).deserialize(eventColumn.getV().toString());
 
                 columnList.add(column);
             } else {
