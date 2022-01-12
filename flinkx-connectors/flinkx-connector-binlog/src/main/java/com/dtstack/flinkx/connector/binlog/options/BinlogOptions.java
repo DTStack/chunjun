@@ -140,4 +140,18 @@ public class BinlogOptions {
                     .booleanType()
                     .defaultValue(false)
                     .withDescription("MySQL Binlog isGTIDMode.");
+
+    public static final ConfigOption<Integer> QUERY_TIME_OUT =
+            ConfigOptions.key("query-time-out")
+                    .intType()
+                    .defaultValue(300000)
+                    .withDescription(
+                            "After sending data through the TCP connection (here is the SQL to be executed), the timeout period for waiting for a response, in milliseconds");
+
+    public static final ConfigOption<Integer> CONNECT_TIME_OUT =
+            ConfigOptions.key("connect-time-out")
+                    .intType()
+                    .defaultValue(60000)
+                    .withDescription(
+                            "The timeout period for the database driver (mysql-connector-java) to establish a TCP connection with the mysql server, in milliseconds");
 }

@@ -41,6 +41,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 
 /**
  * Date: 2020/12/16 Company: www.dtstack.com
@@ -147,13 +148,15 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
         }
 
         ClassUtil.forName(BinlogUtil.DRIVER_NAME, getClass().getClassLoader());
+        Properties properties = new Properties();
+        properties.put("user", binlogConf.getUsername());
+        properties.put("password", binlogConf.getPassword());
+        properties.put("socketTimeout", String.valueOf(binlogConf.getQueryTimeOut()));
+        properties.put("connectTimeout", String.valueOf(binlogConf.getConnectTimeOut()));
+
         try (Connection conn =
                 RetryUtil.executeWithRetry(
-                        () ->
-                                DriverManager.getConnection(
-                                        binlogConf.getJdbcUrl(),
-                                        binlogConf.getUsername(),
-                                        binlogConf.getPassword()),
+                        () -> DriverManager.getConnection(binlogConf.getJdbcUrl(), properties),
                         BinlogUtil.RETRY_TIMES,
                         BinlogUtil.SLEEP_TIME,
                         false)) {
@@ -192,9 +195,51 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
                         .append(GsonUtil.GSON.toJson(failedTable));
             }
 
-            if (binlogConf.isPavingData() && binlogConf.isSplit()) {
-                throw new IllegalArgumentException(
-                        "can't use pavingData and split at the same time");
+            // if (binlogConf.isPavingData() && binlogConf.isSplit()) {
+            //     throw new IllegalArgumentException(
+            //             "can't use pavingData and split at the same time");
+            // }
+
+            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
+            try {
+                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
+            } catch (FlinkxException e) {
+                sb.append(e.getMessage());
+            }
+
+            // updrdb支持多并发
+            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
+                sb.append("binLog can not support channel bigger than 1, current channel is [")
+                        .append(binlogConf.getParallelism())
+                        .append("];\n");
+            }
+
+            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
+            try {
+                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
+            } catch (FlinkxException e) {
+                sb.append(e.getMessage());
+            }
+
+            // updrdb支持多并发
+            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
+                sb.append("binLog can not support channel bigger than 1, current channel is [")
+                        .append(binlogConf.getParallelism())
+                        .append("];\n");
+            }
+
+            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
+            try {
+                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
+            } catch (FlinkxException e) {
+                sb.append(e.getMessage());
+            }
+
+            // updrdb支持多并发
+            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
+                sb.append("binLog can not support channel bigger than 1, current channel is [")
+                        .append(binlogConf.getParallelism())
+                        .append("];\n");
             }
 
             // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息

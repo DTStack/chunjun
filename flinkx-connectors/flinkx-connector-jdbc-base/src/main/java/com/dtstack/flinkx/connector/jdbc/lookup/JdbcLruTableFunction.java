@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -312,11 +313,13 @@ public class JdbcLruTableFunction extends AbstractLruTableFunction {
                 rs -> {
                     try {
                         if (rs.failed()) {
-                            LOG.error(
+                            String msg =
                                     String.format(
                                             "\nget data with sql [%s],data [%s] failed! \ncause: [%s]",
-                                            query, Arrays.toString(keys), rs.cause().getMessage()));
-                            throw new RuntimeException(rs.cause().getMessage(), rs.cause());
+                                            query, Arrays.toString(keys), rs.cause().getMessage());
+                            LOG.error(msg);
+                            future.completeExceptionally(new SQLException(msg));
+                            return;
                         }
 
                         List<JsonArray> cacheContent = new ArrayList<>();

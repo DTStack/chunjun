@@ -20,20 +20,29 @@
 
 package com.dtstack.flinkx.mapping;
 
-import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.dtstack.flinkx.constants.CDCConstantValue.SCHEMA;
 import static com.dtstack.flinkx.constants.CDCConstantValue.TABLE;
 
 /** @author shitou */
 public interface Mapping {
+
+    Set<String> META_HEADER =
+            Stream.of("schema", "table", "type", "opTime", "ts", "scn")
+                    .collect(Collectors.toCollection(HashSet::new));
 
     /**
      * 匹配表名映射关系,根据映射关系修改RowData中表名等信息.
@@ -51,31 +60,34 @@ public interface Mapping {
      */
     default Map<String, Integer> getIdentityIndex(RowData value) {
         Map<String, Integer> identityIndex = new HashMap<>(2);
-        // dml
-        if (value instanceof ColumnRowData) {
-            String[] headers = ((ColumnRowData) value).getHeaders();
-            for (int i = 0; i < Objects.requireNonNull(headers).length; i++) {
-                if (TABLE.equalsIgnoreCase(headers[i])) {
-                    identityIndex.put(TABLE, i);
-                }
-
-                if (SCHEMA.equalsIgnoreCase(headers[i])) {
-                    identityIndex.put(SCHEMA, i);
-                }
+        String[] headers = ((ColumnRowData) value).getHeaders();
+        for (int i = 0; i < Objects.requireNonNull(headers).length; i++) {
+            if (TABLE.equalsIgnoreCase(headers[i])) {
+                identityIndex.put(TABLE, i);
             }
-            return identityIndex;
-        }
 
-        // ddl
-        if (value instanceof DdlRowData) {
-            String[] headers = ((DdlRowData) value).getHeaders();
-            for (int i = 0; i < Objects.requireNonNull(headers).length; i++) {
-                if ("tableIdentifier".equalsIgnoreCase(headers[i])) {
-                    identityIndex.put("tableIdentifier", i);
-                }
+            if (SCHEMA.equalsIgnoreCase(headers[i])) {
+                identityIndex.put(SCHEMA, i);
             }
         }
-
         return identityIndex;
+    }
+
+    /**
+     * 获取RowData中 field's index
+     *
+     * @param value ROwData
+     * @return index集
+     */
+    default List<String> getFields(RowData value) {
+        List<String> fields = new ArrayList<>(value.getArity());
+        String[] headers = ((ColumnRowData) value).getHeaders();
+        assert headers != null;
+        for (String header : headers) {
+            if (!META_HEADER.contains(header)) {
+                fields.add(header);
+            }
+        }
+        return fields;
     }
 }

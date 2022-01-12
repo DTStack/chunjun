@@ -24,6 +24,7 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
+import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
@@ -64,12 +65,15 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
 
     @Override
     public RowData toInternal(RowData input) throws Exception {
-        GenericRowData row = new GenericRowData(input.getArity());
+        ColumnRowData row = new ColumnRowData(input.getArity());
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
-                row.setField(
-                        i, toInternalConverters.get(i).deserialize(genericRowData.getField(i)));
+                row.addField(
+                        (AbstractBaseColumn)
+                                toInternalConverters
+                                        .get(i)
+                                        .deserialize(genericRowData.getField(i)));
             }
         } else {
             throw new FlinkxRuntimeException(
@@ -145,6 +149,6 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
     @Override
     protected ISerializationConverter<List<String>> createExternalConverter(FieldConf fieldConf) {
         return (rowData, index, list) ->
-                list.add(index, ((GenericRowData) rowData).getField(index).toString());
+                list.add(index, ((ColumnRowData) rowData).getField(index).toString());
     }
 }

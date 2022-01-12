@@ -86,10 +86,10 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
     protected void loadData(Object cacheRef) {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
-
-        redisSyncClient = new RedisSyncClient(redisConf);
+        if (redisSyncClient == null) {
+            redisSyncClient = new RedisSyncClient(redisConf);
+        }
         JedisCommands jedis = redisSyncClient.getJedis();
-
         StringBuilder keyPattern = new StringBuilder(redisConf.getTableName());
         for (int i = 0; i < keyNames.length; i++) {
             keyPattern.append("_").append("*");
@@ -120,7 +120,7 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
         } catch (Exception e) {
             LOG.error("", e);
         } finally {
-            redisSyncClient.close(jedis);
+            redisSyncClient.closeJedis(jedis);
         }
     }
 

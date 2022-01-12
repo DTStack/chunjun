@@ -26,6 +26,7 @@ import com.dtstack.flinkx.throwable.WriteRecordException;
 import org.apache.flink.table.data.RowData;
 
 import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 /**
  * @author chuixue
@@ -40,6 +41,8 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
     /** jedis */
     private JedisCommands jedis;
 
+    private String TEST_KEY = "test";
+
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         redisSyncClient = new RedisSyncClient(redisConf);
@@ -49,9 +52,27 @@ public class RedisOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
-            rowConverter.toExternal(rowData, jedis);
+            writeSingleRecordWithRetry(rowData);
         } catch (Exception e) {
-            throw new WriteRecordException("", e, 0, rowData);
+            throw new WriteRecordException("writer data error", e, 0, rowData);
+        }
+    }
+
+    /**
+     * insert data and jedis retry
+     *
+     * @param rowData
+     * @throws Exception
+     */
+    private void writeSingleRecordWithRetry(RowData rowData) throws Exception {
+        try {
+            rowConverter.toExternal(rowData, jedis);
+        } catch (JedisConnectionException e) {
+            // JedisConnectionException may be caused by jedis time out ,retry to get jedis from
+            // pool
+            LOG.error("retry get redis once");
+            jedis = redisSyncClient.testTimeout(jedis, TEST_KEY);
+            rowConverter.toExternal(rowData, jedis);
         }
     }
 

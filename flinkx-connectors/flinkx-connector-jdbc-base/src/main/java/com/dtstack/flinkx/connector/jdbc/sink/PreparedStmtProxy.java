@@ -1,5 +1,23 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.constants.CDCConstantValue;
@@ -7,11 +25,11 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
 
 import com.esotericsoftware.minlog.Log;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +65,9 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedStmtProxy.class);
 
-    private int cacheSize = 100;
+    private final int cacheSize = 100;
 
-    private int cacheDurationMin = 10;
+    private final int cacheDurationMin = 10;
 
     /** LUR cache key info: database_table_rowkind * */
     protected Cache<String, DynamicPreparedStmt> pstmtCache;
@@ -65,6 +83,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     protected Connection connection;
     protected JdbcDialect jdbcDialect;
+    protected JdbcConf jdbcConf;
 
     /** 是否将框架额外添加的扩展信息写入到数据库,默认不写入* */
     protected boolean writeExtInfo;
@@ -73,29 +92,28 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         this.connection = connection;
         this.jdbcDialect = jdbcDialect;
         this.writeExtInfo = writeExtInfo;
-
-        pstmtCache =
-                CacheBuilder.newBuilder()
-                        .maximumSize(cacheSize)
-                        .expireAfterAccess(cacheDurationMin, TimeUnit.MINUTES)
-                        .removalListener(
-                                (RemovalListener<String, DynamicPreparedStmt>)
-                                        notification -> {
-                                            try {
-                                                assert notification.getValue() != null;
-                                                notification.getValue().close();
-                                            } catch (SQLException e) {
-                                                Log.error("", e);
-                                            }
-                                        })
-                        .build();
+        initCache(true);
     }
 
     public PreparedStmtProxy(
             FieldNamedPreparedStatement currentFieldNamedPstmt,
-            AbstractRowConverter currentRowConverter) {
+            AbstractRowConverter currentRowConverter,
+            Connection connection,
+            JdbcConf jdbcConf,
+            JdbcDialect jdbcDialect) {
         this.currentFieldNamedPstmt = currentFieldNamedPstmt;
         this.currentRowConverter = currentRowConverter;
+        this.connection = connection;
+        this.jdbcConf = jdbcConf;
+        this.jdbcDialect = jdbcDialect;
+        initCache(false);
+        this.pstmtCache.put(
+                getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.INSERT),
+                DynamicPreparedStmt.buildStmt(
+                        jdbcDialect,
+                        jdbcConf.getColumn(),
+                        currentRowConverter,
+                        currentFieldNamedPstmt));
     }
 
     public void convertToExternal(RowData row) throws Exception {
@@ -121,7 +139,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             String tableName =
                     jdbcDialect.getDialectTableName(
                             row.getString(tableIndex).toString().toLowerCase());
-            String key = dataBase + "_" + tableName + "_" + row.getRowKind().toString();
+            String key = getPstmtCacheKey(dataBase, tableName, row.getRowKind());
 
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
@@ -148,6 +166,28 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             if (!writeExtInfo) {
                 columnRowData.removeExtHeaderInfo();
             }
+        } else {
+            String key =
+                    getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), row.getRowKind());
+            DynamicPreparedStmt fieldNamedPreparedStatement =
+                    pstmtCache.get(
+                            key,
+                            () -> {
+                                try {
+                                    return DynamicPreparedStmt.buildStmt(
+                                            jdbcConf.getSchema(),
+                                            jdbcConf.getTable(),
+                                            row.getRowKind(),
+                                            connection,
+                                            jdbcDialect,
+                                            jdbcConf.getColumn(),
+                                            currentRowConverter);
+                                } catch (SQLException e) {
+                                    LOG.warn("", e);
+                                    return null;
+                                }
+                            });
+            currentFieldNamedPstmt = fieldNamedPreparedStatement.getFieldNamedPreparedStatement();
         }
     }
 
@@ -157,6 +197,29 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                 (FieldNamedPreparedStatement)
                         currentRowConverter.toExternal(row, this.currentFieldNamedPstmt);
         currentFieldNamedPstmt.execute();
+    }
+
+    protected void initCache(boolean isExpired) {
+        CacheBuilder<String, DynamicPreparedStmt> cacheBuilder =
+                CacheBuilder.newBuilder()
+                        .maximumSize(cacheSize)
+                        .removalListener(
+                                notification -> {
+                                    try {
+                                        assert notification.getValue() != null;
+                                        notification.getValue().close();
+                                    } catch (SQLException e) {
+                                        Log.error("", e);
+                                    }
+                                });
+        if (isExpired) {
+            cacheBuilder.expireAfterAccess(cacheDurationMin, TimeUnit.MINUTES);
+        }
+        this.pstmtCache = cacheBuilder.build();
+    }
+
+    public String getPstmtCacheKey(String schema, String table, RowKind rowKind) {
+        return String.format("%s_%s_%s", schema, table, rowKind);
     }
 
     @Override

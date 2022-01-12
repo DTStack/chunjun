@@ -31,6 +31,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.JobManagerOptions;
 import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.runtime.jobgraph.JobGraph;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.util.CollectionUtil;
@@ -207,6 +208,13 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
                         .setTaskManagerMemoryMB(taskManagerMemoryMb)
                         .setSlotsPerTaskManager(slotsPerTaskManager)
                         .createClusterSpecification();
+
+        // 设置从savepoint启动
+        if (conProp != null && conProp.containsKey("execution.savepoint.path")) {
+            clusterSpecification.setSpSetting(
+                    SavepointRestoreSettings.forPath(
+                            ValueUtil.getStringVal(conProp.get("execution.savepoint.path"))));
+        }
 
         clusterSpecification.setCreateProgramDelay(true);
 

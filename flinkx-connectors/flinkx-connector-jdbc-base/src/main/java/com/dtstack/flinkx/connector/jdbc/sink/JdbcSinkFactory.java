@@ -38,8 +38,12 @@ import org.apache.flink.table.types.logical.RowType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -78,6 +82,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         jdbcConf.setProperties(properties);
         super.initFlinkxCommonConf(jdbcConf);
         resetTableInfo();
+        rebuildJdbcConf(jdbcConf);
     }
 
     @Override
@@ -116,6 +121,19 @@ public abstract class JdbcSinkFactory extends SinkFactory {
     protected void resetTableInfo() {
         if (StringUtils.isBlank(jdbcConf.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
+        }
+    }
+
+    protected void rebuildJdbcConf(JdbcConf jdbcConf) {
+        // updateKey has Deprecated，please use uniqueKey
+        if (MapUtils.isNotEmpty(jdbcConf.getUpdateKey())
+                && CollectionUtils.isEmpty(jdbcConf.getUniqueKey())) {
+            for (Map.Entry<String, List<String>> entry : jdbcConf.getUpdateKey().entrySet()) {
+                if (CollectionUtils.isNotEmpty(entry.getValue())) {
+                    jdbcConf.setUniqueKey(entry.getValue());
+                    break;
+                }
+            }
         }
     }
 }

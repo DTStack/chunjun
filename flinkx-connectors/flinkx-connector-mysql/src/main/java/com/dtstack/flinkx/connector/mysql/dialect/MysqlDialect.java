@@ -106,7 +106,7 @@ public class MysqlDialect implements JdbcDialect {
                         .map(this::quoteIdentifier)
                         .collect(Collectors.joining(", "));
         String placeholders =
-                Arrays.stream(fieldNames).map(f -> "?").collect(Collectors.joining(", "));
+                Arrays.stream(fieldNames).map(f -> ":" + f).collect(Collectors.joining(", "));
         return Optional.of(
                 "REPLACE INTO "
                         + buildTableInfoWithSchema(schema, tableName)

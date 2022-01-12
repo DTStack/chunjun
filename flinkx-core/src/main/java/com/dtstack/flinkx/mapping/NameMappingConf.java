@@ -35,16 +35,9 @@ public class NameMappingConf implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 名称匹配规则,配置source端对sink端表名映射关系 like this: { "source":"aaa", "sink":"bbb" }, {
-     * "source":"ccc","sink":"ddd" }, ...
-     */
-    private Map<String, String> tableMappings = new HashMap<>();
-
+    private Map<String, Object> tableMappings = new HashMap<>();
     private Map<String, String> schemaMappings = new HashMap<>();
-
-    private Map<String, String> fieldMappings = new HashMap<>();
-
+    private Map<String, Object> fieldMappings = new HashMap<>();
     /** 用户自定义的正则 */
     private String pattern;
 
@@ -56,14 +49,6 @@ public class NameMappingConf implements Serializable {
         this.pattern = pattern;
     }
 
-    public Map<String, String> getTableMappings() {
-        return tableMappings;
-    }
-
-    public void setTableMappings(Map<String, String> tableMappings) {
-        this.tableMappings = tableMappings;
-    }
-
     public Map<String, String> getSchemaMappings() {
         return schemaMappings;
     }
@@ -72,11 +57,19 @@ public class NameMappingConf implements Serializable {
         this.schemaMappings = schemaMappings;
     }
 
-    public Map<String, String> getFieldMappings() {
+    public Map<String, Object> getTableMappings() {
+        return tableMappings;
+    }
+
+    public void setTableMappings(Map<String, Object> tableMappings) {
+        this.tableMappings = tableMappings;
+    }
+
+    public Map<String, Object> getFieldMappings() {
         return fieldMappings;
     }
 
-    public void setFieldMappings(Map<String, String> fieldMappings) {
+    public void setFieldMappings(Map<String, Object> fieldMappings) {
         this.fieldMappings = fieldMappings;
     }
 

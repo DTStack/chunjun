@@ -76,7 +76,7 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
     private void validatePrimaryKey(ChangelogMode requestedMode) {
         checkState(
                 ChangelogMode.insertOnly().equals(requestedMode)
-                        || !CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey()),
+                        || !CollectionUtil.isNullOrEmpty(jdbcConf.getUniqueKey()),
                 "please declare primary key for sink table when query contains update/delete record.");
     }
 
@@ -98,7 +98,7 @@ public class JdbcDynamicTableSink implements DynamicTableSink {
         }
         jdbcConf.setColumn(columnList);
         jdbcConf.setMode(
-                (CollectionUtil.isNullOrEmpty(jdbcConf.getUpdateKey()))
+                (CollectionUtil.isNullOrEmpty(jdbcConf.getUniqueKey()))
                         ? EWriteMode.INSERT.name()
                         : EWriteMode.UPDATE.name());
 

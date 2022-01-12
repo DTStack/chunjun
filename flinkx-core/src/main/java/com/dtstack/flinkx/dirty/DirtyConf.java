@@ -35,19 +35,18 @@ public class DirtyConf implements Serializable {
 
     /**
      * This is the limit on the max consumed-data. The consumer would to be killed with throwing a
-     * {@link NoRestartException} when the consumed-count exceed the limit. The default is {@link
-     * Long#MAX_VALUE}, which means unlimited.
+     * {@link NoRestartException} when the consumed-count exceed the limit.
      */
-    protected long maxConsumed = Long.MAX_VALUE;
+    protected long maxConsumed;
 
     /** This is the limit on the max failed-consumed-data. Same as {@link #maxConsumed} */
-    protected long maxFailedConsumed = Long.MAX_VALUE;
+    protected long maxFailedConsumed;
 
     /** The type of dirty-plugin. */
     private String type;
 
-    /** Print dirty-data every ${printRate}. Defaults to no print. */
-    private Long printRate = Long.MAX_VALUE;
+    /** Print dirty-data every ${printRate}. */
+    private Long printRate = 1L;
 
     /** Custom parameters of different dirty-plugin. */
     private Properties pluginProperties = new Properties();
