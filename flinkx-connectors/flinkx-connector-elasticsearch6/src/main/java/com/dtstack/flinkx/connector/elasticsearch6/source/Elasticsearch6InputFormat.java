@@ -18,9 +18,9 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.source;
 
-import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
-import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6RequestHelper;
-import com.dtstack.flinkx.connector.elasticsearch6.utils.Elasticsearch6Util;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6ClientFactory;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6Conf;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6RequestFactory;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
 
@@ -89,11 +89,11 @@ public class Elasticsearch6InputFormat extends BaseRichInputFormat {
         super.openInputFormat();
         GenericInputSplit genericInputSplit = (GenericInputSplit) inputSplit;
 
-        rhlClient = Elasticsearch6Util.createClient(elasticsearchConf);
+        rhlClient = Elasticsearch6ClientFactory.createClient(elasticsearchConf);
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
         String[] fieldsNames = elasticsearchConf.getFieldNames();
         SearchSourceBuilder searchSourceBuilder =
-                Elasticsearch6RequestHelper.createSourceBuilder(fieldsNames, null, null);
+                Elasticsearch6RequestFactory.createSourceBuilder(fieldsNames, null, null);
         searchSourceBuilder.size(elasticsearchConf.getBatchSize());
 
         if (StringUtils.isNotEmpty(query)) {
@@ -108,7 +108,7 @@ public class Elasticsearch6InputFormat extends BaseRichInputFormat {
         }
 
         searchRequest =
-                Elasticsearch6RequestHelper.createSearchRequest(
+                Elasticsearch6RequestFactory.createSearchRequest(
                         elasticsearchConf.getIndex(),
                         elasticsearchConf.getType(),
                         scroll,

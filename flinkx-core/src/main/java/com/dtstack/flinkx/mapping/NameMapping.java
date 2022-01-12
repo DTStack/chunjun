@@ -25,7 +25,10 @@ import com.dtstack.flinkx.element.column.StringColumn;
 
 import org.apache.flink.table.data.RowData;
 
+import org.apache.commons.collections.MapUtils;
+
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 import static com.dtstack.flinkx.constants.CDCConstantValue.SCHEMA;
@@ -41,7 +44,6 @@ public class NameMapping implements Mapping, Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** key:source_name, value:sink_name * */
     private final NameMappingRule mappingRule;
 
     public NameMapping(NameMappingConf conf) {
@@ -60,8 +62,18 @@ public class NameMapping implements Mapping, Serializable {
             String table = rowData.getString(identityIndex.get(TABLE)).toString();
             String schema = rowData.getString(identityIndex.get(SCHEMA)).toString();
 
-            String targetTable = mappingRule.tableMapping(table);
             String targetSchema = mappingRule.schemaMapping(schema);
+            String targetTable = mappingRule.tableMapping(schema, table);
+
+            Map<String, String> mapFields = mappingRule.getMapFields(schema, table);
+            if (MapUtils.isNotEmpty(mapFields)) {
+                List<String> fields = getFields(rowData);
+                fields.forEach(
+                        filed -> {
+                            String targetField = mappingRule.fieldMapping(filed, mapFields);
+                            ((ColumnRowData) rowData).replaceHeader(filed, targetField);
+                        });
+            }
 
             ((ColumnRowData) rowData).setField(tableIndex, new StringColumn(targetTable));
             ((ColumnRowData) rowData).setField(schemaIndex, new StringColumn(targetSchema));

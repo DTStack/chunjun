@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.mapping;
 
+import org.apache.commons.collections.MapUtils;
+
 import java.io.Serializable;
 import java.util.Map;
 
@@ -28,12 +30,12 @@ import java.util.Map;
 public class NameMappingRule implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    public static final String KEY_BEFORE = "before_";
+    public static final String KEY_AFTER = "after_";
 
     private final Map<String, String> schemaMappings;
-
-    private final Map<String, String> tableMappings;
-
-    private final Map<String, String> fieldMappings;
+    private final Map<String, Object> tableMappings;
+    private final Map<String, Object> fieldMappings;
 
     public NameMappingRule(NameMappingConf conf) {
         this.schemaMappings = conf.getSchemaMappings();
@@ -45,19 +47,48 @@ public class NameMappingRule implements Serializable {
         return mapping(original, schemaMappings);
     }
 
-    public String tableMapping(String original) {
-        return mapping(original, tableMappings);
+    public String tableMapping(String schema, String original) {
+        if (tableMappings.containsKey(schema)) {
+            return mapping(original, (Map<String, String>) tableMappings.get(schema));
+        }
+        return original;
     }
 
-    public String fieldMapping(String original) {
-        return mapping(original, fieldMappings);
+    public Map<String, String> getMapFields(String schema, String table) {
+        if (fieldMappings.containsKey(schema)) {
+            Map<String, Map<String, String>> tableFields =
+                    (Map<String, Map<String, String>>) fieldMappings.get(schema);
+            if (tableFields.containsKey(table)) {
+                return tableFields.get(table);
+            }
+        }
+        return null;
     }
 
-    private String mapping(String original, Map<String, String> mappings) {
+    public String mapping(String original, Map<String, String> mappings) {
         if (mappings.containsKey(original)) {
             return mappings.get(original);
         }
-
         return original;
+    }
+
+    public String fieldMapping(String original, Map<String, String> mappings) {
+        if (original.startsWith(KEY_BEFORE)) {
+            String trueCol = original.substring(7);
+            String targetCol = mappings.get(trueCol);
+            if (targetCol != null) {
+                return KEY_BEFORE + targetCol;
+            }
+            return original;
+        }
+        if (original.startsWith(KEY_AFTER)) {
+            String trueCol = original.substring(6);
+            String targetCol = mappings.get(trueCol);
+            if (targetCol != null) {
+                return KEY_AFTER + targetCol;
+            }
+            return original;
+        }
+        return MapUtils.getString(mappings, original, original);
     }
 }

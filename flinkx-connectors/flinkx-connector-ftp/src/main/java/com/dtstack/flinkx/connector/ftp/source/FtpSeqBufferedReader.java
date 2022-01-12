@@ -18,18 +18,22 @@
 
 package com.dtstack.flinkx.connector.ftp.source;
 
+import com.dtstack.flinkx.connector.ftp.client.Data;
+import com.dtstack.flinkx.connector.ftp.client.File;
+import com.dtstack.flinkx.connector.ftp.client.FileReadClient;
+import com.dtstack.flinkx.connector.ftp.client.FileReadClientFactory;
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
 import com.dtstack.flinkx.connector.ftp.handler.FtpHandler;
 import com.dtstack.flinkx.connector.ftp.handler.FtpHandlerFactory;
 import com.dtstack.flinkx.connector.ftp.handler.IFtpHandler;
+import com.dtstack.flinkx.connector.ftp.handler.Position;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -44,37 +48,45 @@ public class FtpSeqBufferedReader {
 
     private IFtpHandler ftpHandler;
 
-    private Iterator<String> iter;
+    private Iterator<File> iter;
 
     private int fromLine = 0;
 
-    private BufferedReader br;
+    private FileReadClient fileReadClient;
 
-    private String fileEncoding;
+    private File currentFile;
+
+    private Long currentFileReadLineNum = 0L;
+
+    private Position startPosition;
 
     // ftp配置信息
     private FtpConfig ftpConfig;
 
     public FtpSeqBufferedReader(
-            IFtpHandler ftpHandler, Iterator<String> iter, FtpConfig ftpConfig) {
+            IFtpHandler ftpHandler,
+            Iterator<File> iter,
+            FtpConfig ftpConfig,
+            Position startPosition) {
         this.ftpHandler = ftpHandler;
         this.iter = iter;
         this.ftpConfig = ftpConfig;
+        this.startPosition = startPosition;
     }
 
-    public String readLine() throws IOException {
-        if (br == null) {
+    public Data readLine() throws IOException {
+        if (fileReadClient == null) {
             nextStream();
         }
 
-        if (br != null) {
-            String line = br.readLine();
-            if (line == null) {
+        if (fileReadClient != null) {
+            if (!fileReadClient.hasNext()) {
                 close();
                 return readLine();
             }
-
-            return line;
+            currentFileReadLineNum++;
+            return new Data(
+                    fileReadClient.nextRecord(), new Position(currentFileReadLineNum, currentFile));
         } else {
             return null;
         }
@@ -82,8 +94,14 @@ public class FtpSeqBufferedReader {
 
     private void nextStream() throws IOException {
         if (iter.hasNext()) {
-            String file = iter.next();
-            InputStream in = ftpHandler.getInputStream(file);
+            File file = iter.next();
+            InputStream in = null;
+            if (file.getFileCompressPath() != null) {
+                in = ftpHandler.getInputStream(file.getFileCompressPath());
+            } else {
+                in = ftpHandler.getInputStream(file.getFileAbsolutePath());
+            }
+
             if (in == null) {
                 throw new RuntimeException(
                         String.format(
@@ -91,21 +109,51 @@ public class FtpSeqBufferedReader {
                                 file));
             }
 
-            br = new BufferedReader(new InputStreamReader(in, fileEncoding));
-
+            fileReadClient =
+                    FileReadClientFactory.create(
+                            file.getFileAbsolutePath(), ftpConfig.getFileType());
+            fileReadClient.open(file, in, ftpConfig);
+            currentFile = file;
+            currentFileReadLineNum = 0L;
             for (int i = 0; i < fromLine; i++) {
-                String skipLine = br.readLine();
-                LOG.info("Skip line:{}", skipLine);
+                if (fileReadClient.hasNext()) {
+                    String[] strings = fileReadClient.nextRecord();
+                    LOG.info("Skip line:{}", Arrays.toString(strings));
+                } else {
+                    break;
+                }
             }
+
+            // 从续跑时恢复需要过滤已经读取的数据
+            if (startPosition != null
+                    && startPosition.getLine() > 0
+                    && startPosition
+                            .getFile()
+                            .getFileAbsolutePath()
+                            .equals(file.getFileAbsolutePath())) {
+                LOG.info("start skip  [{}]  number line", startPosition.getLine());
+                for (int i = 0; i < startPosition.getLine(); i++) {
+                    if (fileReadClient.hasNext()) {
+                        String[] strings = fileReadClient.nextRecord();
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Skip line:{}", Arrays.toString(strings));
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                startPosition = null;
+            }
+
         } else {
-            br = null;
+            fileReadClient = null;
         }
     }
 
     public void close() throws IOException {
-        if (br != null) {
-            br.close();
-            br = null;
+        if (fileReadClient != null) {
+            fileReadClient.close();
+            fileReadClient = null;
 
             if (ftpHandler instanceof FtpHandler) {
                 try {
@@ -129,7 +177,7 @@ public class FtpSeqBufferedReader {
         this.fromLine = fromLine;
     }
 
-    public void setFileEncoding(String fileEncoding) {
-        this.fileEncoding = fileEncoding;
+    public File getCurrentFile() {
+        return currentFile;
     }
 }

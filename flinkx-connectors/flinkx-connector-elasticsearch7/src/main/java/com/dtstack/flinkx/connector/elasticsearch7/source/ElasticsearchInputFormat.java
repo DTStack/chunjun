@@ -18,18 +18,19 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.source;
 
-import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchRequestHelper;
-import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchUtil;
+import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7ClientFactory;
+import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7RequestFactory;
+import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
+import com.dtstack.flinkx.util.JsonUtil;
 
 import org.apache.flink.core.io.GenericInputSplit;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.MapUtils;
 import org.elasticsearch.action.search.ClearScrollRequest;
 import org.elasticsearch.action.search.ClearScrollResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -56,7 +57,6 @@ import java.util.Map;
  * @create: 2021/06/27 17:25
  */
 public class ElasticsearchInputFormat extends BaseRichInputFormat {
-    protected String query;
     protected long keepAlive = 1;
     /** Elasticsearch Configuration */
     private ElasticsearchConf elasticsearchConf;
@@ -85,16 +85,19 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
         super.openInputFormat();
         GenericInputSplit genericInputSplit = (GenericInputSplit) inputSplit;
 
-        rhlClient = ElasticsearchUtil.createClient(elasticsearchConf);
+        rhlClient =
+                Elasticsearch7ClientFactory.createClient(
+                        elasticsearchConf, getRuntimeContext().getDistributedCache());
         scroll = new Scroll(TimeValue.timeValueMinutes(keepAlive));
 
         String[] fieldsNames = elasticsearchConf.getFieldNames();
         SearchSourceBuilder searchSourceBuilder =
-                ElasticsearchRequestHelper.createSourceBuilder(fieldsNames, null, null);
+                Elasticsearch7RequestFactory.createSourceBuilder(fieldsNames, null, null);
         searchSourceBuilder.size(elasticsearchConf.getBatchSize());
 
-        if (StringUtils.isNotEmpty(query)) {
-            searchSourceBuilder.query(QueryBuilders.wrapperQuery(query));
+        if (MapUtils.isNotEmpty(elasticsearchConf.getQuery())) {
+            searchSourceBuilder.query(
+                    QueryBuilders.wrapperQuery(JsonUtil.toJson(elasticsearchConf.getQuery())));
         }
 
         if (genericInputSplit.getTotalNumberOfSplits() > 1) {
@@ -105,7 +108,7 @@ public class ElasticsearchInputFormat extends BaseRichInputFormat {
         }
 
         searchRequest =
-                ElasticsearchRequestHelper.createSearchRequest(
+                Elasticsearch7RequestFactory.createSearchRequest(
                         elasticsearchConf.getIndex(), scroll, searchSourceBuilder);
     }
 

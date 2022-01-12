@@ -1,5 +1,23 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -43,7 +61,7 @@ public class DynamicPreparedStmt {
     protected JdbcConf jdbcConf;
     private boolean writeExtInfo;
     private JdbcDialect jdbcDialect;
-    private AbstractRowConverter rowConverter;
+    private AbstractRowConverter<?, ?, ?, ?> rowConverter;
 
     public static DynamicPreparedStmt buildStmt(
             Map<String, Integer> header,
@@ -71,6 +89,48 @@ public class DynamicPreparedStmt {
         return dynamicPreparedStmt;
     }
 
+    public static DynamicPreparedStmt buildStmt(
+            String schemaName,
+            String tableName,
+            RowKind rowKind,
+            Connection connection,
+            JdbcDialect jdbcDialect,
+            List<FieldConf> fieldConfList,
+            AbstractRowConverter<?, ?, ?, ?> rowConverter)
+            throws SQLException {
+        DynamicPreparedStmt dynamicPreparedStmt = new DynamicPreparedStmt();
+        dynamicPreparedStmt.jdbcDialect = jdbcDialect;
+        dynamicPreparedStmt.rowConverter = rowConverter;
+        String[] fieldNames = new String[fieldConfList.size()];
+        for (int i = 0; i < fieldConfList.size(); i++) {
+            FieldConf fieldConf = fieldConfList.get(i);
+            fieldNames[i] = fieldConf.getName();
+            dynamicPreparedStmt.columnNameList.add(fieldConf.getName());
+            dynamicPreparedStmt.columnTypeList.add(fieldConf.getType());
+        }
+        String sql = dynamicPreparedStmt.prepareTemplates(rowKind, schemaName, tableName);
+        dynamicPreparedStmt.fieldNamedPreparedStatement =
+                FieldNamedPreparedStatementImpl.prepareStatement(connection, sql, fieldNames);
+        return dynamicPreparedStmt;
+    }
+
+    public static DynamicPreparedStmt buildStmt(
+            JdbcDialect jdbcDialect,
+            List<FieldConf> fieldConfList,
+            AbstractRowConverter<?, ?, ?, ?> rowConverter,
+            FieldNamedPreparedStatement fieldNamedPreparedStatement) {
+        DynamicPreparedStmt dynamicPreparedStmt = new DynamicPreparedStmt();
+        dynamicPreparedStmt.jdbcDialect = jdbcDialect;
+        dynamicPreparedStmt.rowConverter = rowConverter;
+        dynamicPreparedStmt.fieldNamedPreparedStatement = fieldNamedPreparedStatement;
+        for (int i = 0; i < fieldConfList.size(); i++) {
+            FieldConf fieldConf = fieldConfList.get(i);
+            dynamicPreparedStmt.columnNameList.add(fieldConf.getName());
+            dynamicPreparedStmt.columnTypeList.add(fieldConf.getType());
+        }
+        return dynamicPreparedStmt;
+    }
+
     protected String prepareTemplates(RowKind rowKind, String schemaName, String tableName) {
         String singleSql = null;
         switch (rowKind) {
@@ -88,7 +148,7 @@ public class DynamicPreparedStmt {
                 break;
             default:
                 // TODO 异常如何处理
-                LOG.warn("not support rowkind " + rowKind.toString());
+                LOG.warn("not support RowKind: {}", rowKind);
         }
 
         return singleSql;

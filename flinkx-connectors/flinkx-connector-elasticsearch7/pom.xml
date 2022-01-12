@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>org.elasticsearch.client</groupId>
 			<artifactId>elasticsearch-rest-high-level-client</artifactId>
-			<version>7.9.2</version>
+			<version>7.5.1</version>
 		</dependency>
 
 		<dependency>
@@ -36,11 +36,10 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-elasticsearch-base_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-elasticsearch-base</artifactId>
+			<version>${project.version}</version>
 		</dependency>
-
 	</dependencies>
 
 	<build>

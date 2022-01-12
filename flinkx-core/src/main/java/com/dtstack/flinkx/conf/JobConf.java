@@ -17,6 +17,9 @@
  */
 package com.dtstack.flinkx.conf;
 
+import com.dtstack.flinkx.cdc.CdcConf;
+import com.dtstack.flinkx.mapping.NameMappingConf;
+
 import java.io.Serializable;
 import java.util.LinkedList;
 
@@ -37,6 +40,14 @@ public class JobConf implements Serializable {
 
     public OperatorConf getWriter() {
         return content.get(0).getWriter();
+    }
+
+    public CdcConf getCdcConf() {
+        return content.get(0).getRestoration();
+    }
+
+    public NameMappingConf getNameMapping() {
+        return content.get(0).getNameMapping();
     }
 
     public TransformerConf getTransformer() {

@@ -18,8 +18,12 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.sink;
 
-import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
+import com.dtstack.flinkx.connector.elasticsearch.table.IndexGenerator;
+import com.dtstack.flinkx.connector.elasticsearch.table.IndexGeneratorFactory;
+import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
+
+import org.apache.flink.table.api.TableSchema;
 
 import com.google.common.base.Preconditions;
 
@@ -33,27 +37,22 @@ public class ElasticsearchOutputFormatBuilder extends BaseRichOutputFormatBuilde
 
     protected ElasticsearchOutputFormat format;
 
-    public ElasticsearchOutputFormatBuilder() {
-        super.format = format = new ElasticsearchOutputFormat();
-    }
-
-    public void setEsConf(ElasticsearchConf esConf) {
-        super.setConfig(esConf);
-        format.setElasticsearchConf(esConf);
+    public ElasticsearchOutputFormatBuilder(ElasticsearchConf conf, TableSchema schema) {
+        IndexGenerator indexGenerator =
+                IndexGeneratorFactory.createIndexGenerator(conf.getIndex(), schema);
+        super.format = format = new ElasticsearchOutputFormat(conf, indexGenerator);
+        super.setConfig(conf);
     }
 
     @Override
     protected void checkFormat() {
-        ElasticsearchConf esConf = format.getElasticsearchConf();
+        ElasticsearchConf esConf = format.elasticsearchConf;
         Preconditions.checkNotNull(esConf.getHosts(), "elasticsearch7 type of address is required");
         Preconditions.checkNotNull(esConf.getIndex(), "elasticsearch7 type of index is required");
 
-        /** is open basic auth */
-        if (esConf.isAuthMesh()) {
+        if (esConf.getUsername() != null) {
             Preconditions.checkNotNull(
-                    esConf.getUsername(), "elasticsearch7 type of userName is required");
-            Preconditions.checkNotNull(
-                    esConf.getPassword(), "elasticsearch7 type of password is required");
+                    esConf.getPassword(), "When set the username option, password is required");
         }
     }
 }

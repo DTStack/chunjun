@@ -18,8 +18,8 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.table;
 
-import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRowConverter;
+import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchRowConverter;
+import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.flinkx.connector.elasticsearch7.sink.ElasticsearchOutputFormatBuilder;
 import com.dtstack.flinkx.sink.DtOutputFormatSinkFunction;
 
@@ -62,9 +62,9 @@ public class ElasticsearchDynamicTableSink implements DynamicTableSink {
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
-        ElasticsearchOutputFormatBuilder builder = new ElasticsearchOutputFormatBuilder();
+        ElasticsearchOutputFormatBuilder builder =
+                new ElasticsearchOutputFormatBuilder(elasticsearchConf, physicalSchema);
         builder.setRowConverter(new ElasticsearchRowConverter(rowType));
-        builder.setEsConf(elasticsearchConf);
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction<>(builder.finish()),
