@@ -30,7 +30,6 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 
-import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -78,7 +77,7 @@ public class OracleColumnConverter extends JdbcColumnConverter {
                 if (type instanceof ClobType) {
                     return val -> {
                         oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
-                        return StringData.fromString(ConvertUtil.convertClob(clob));
+                        return new StringColumn(ConvertUtil.convertClob(clob));
                     };
                 }
                 return val -> new StringColumn((String) val);
