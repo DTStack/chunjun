@@ -31,7 +31,6 @@ import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
-import com.dtstack.flinkx.sink.WriteErrorTypes;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
@@ -48,7 +47,6 @@ import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
 
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -223,7 +221,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         if (initAccumulatorAndDirty) {
             initAccumulatorCollector();
             initErrorLimiter();
-            initDirtyDataManager();
         }
         openInternal(taskNumber, numTasks);
         this.startTime = System.currentTimeMillis();
@@ -243,7 +240,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     public synchronized void writeRecord(RowData rowData) {
         int size = 0;
         if (batchSize <= 1) {
-            writeSingleRecord(rowData);
+            writeSingleRecord(rowData, numWriteCounter);
             size = 1;
         } else {
             rows.add(rowData);
@@ -254,7 +251,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         }
 
         updateDuration();
-        numWriteCounter.add(size);
         bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
         if (checkpointEnabled) {
             snapshotWriteCounter.add(size);
@@ -402,21 +398,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         }
     }
 
-    /** 初始化脏数据管理器 */
-    private void initDirtyDataManager() {
-        if (StringUtils.isNotBlank(config.getDirtyDataPath())) {
-            dirtyDataManager =
-                    new DirtyDataManager(
-                            config.getDirtyDataPath(),
-                            config.getDirtyDataHadoopConf(),
-                            config.getFieldNameList().toArray(new String[0]),
-                            jobId,
-                            getRuntimeContext().getDistributedCache());
-            dirtyDataManager.open();
-            LOG.info("init dirtyDataManager: {}", this.dirtyDataManager);
-        }
-    }
-
     /** 从checkpoint状态缓存map中恢复上次任务的指标信息 */
     private void initRestoreInfo() {
         if (formatState == null) {
@@ -477,17 +458,17 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
      *
      * @param rowData 单条数据
      */
-    protected void writeSingleRecord(RowData rowData) {
+    protected void writeSingleRecord(RowData rowData, LongCounter numWriteCounter) {
         if (errorLimiter != null) {
             errorLimiter.checkErrorLimit();
         }
 
         try {
             writeSingleRecordInternal(rowData);
+            numWriteCounter.add(1L);
         } catch (WriteRecordException e) {
-            // todo 脏数据记录
             dirtyManager.collect(String.valueOf(rowData), e, null, getRuntimeContext());
-            updateDirtyDataMsg(rowData, e);
+            errCounter.add(1);
             if (LOG.isTraceEnabled()) {
                 LOG.trace(
                         "write error rowData, rowData = {}, e = {}",
@@ -502,55 +483,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         if (flushEnable.get()) {
             try {
                 writeMultipleRecordsInternal();
+                numWriteCounter.add(rows.size());
             } catch (Exception e) {
                 // 批量写异常转为单条写
-                rows.forEach(this::writeSingleRecord);
+                rows.forEach(item -> writeSingleRecord(item, numWriteCounter));
             } finally {
                 // Data is either recorded dirty data or written normally
                 rows.clear();
-            }
-        }
-    }
-
-    /**
-     * 更新脏数据信息
-     *
-     * @param rowData 当前读取的数据
-     * @param e 异常
-     */
-    private void updateDirtyDataMsg(RowData rowData, WriteRecordException e) {
-        errCounter.add(1);
-
-        String errMsg = ExceptionUtil.getErrorMessage(e);
-        int pos = e.getColIndex();
-        if (pos != -1) {
-            errMsg += recordConvertDetailErrorMessage(pos, e.getRowData());
-        }
-
-        // 每2000条打印一次脏数据
-        if (errCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
-            LOG.error(errMsg);
-        }
-
-        if (errorLimiter != null) {
-            errorLimiter.setErrMsg(errMsg);
-            errorLimiter.setErrorData(rowData);
-        }
-
-        if (dirtyDataManager != null) {
-            String errorType = dirtyDataManager.writeData(rowData, e);
-            switch (errorType) {
-                case WriteErrorTypes.ERR_NULL_POINTER:
-                    nullErrCounter.add(1);
-                    break;
-                case WriteErrorTypes.ERR_FORMAT_TRANSFORM:
-                    conversionErrCounter.add(1);
-                    break;
-                case WriteErrorTypes.ERR_PRIMARY_CONFLICT:
-                    duplicateErrCounter.add(1);
-                    break;
-                default:
-                    otherErrCounter.add(1);
             }
         }
     }
