@@ -38,6 +38,8 @@ import org.apache.flink.calcite.shaded.com.google.common.collect.Maps;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResult;
+import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -48,6 +50,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.dtstack.flinkx.constants.CDCConstantValue.AFTER;
 import static com.dtstack.flinkx.constants.CDCConstantValue.AFTER_;
@@ -83,8 +86,38 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
 
         if (rowChange.getIsDdl()) {
             // 处理 ddl rowChange
-            DdlRowData ddlRowData = swapEventToDdlRowData(binlogEventRow);
-            result.add(ddlRowData);
+            if (rowChange.getEventType().equals(CanalEntry.EventType.ERASE)) {
+                List<DdlResult> parse =
+                        DruidDdlParser.parse(
+                                binlogEventRow.getRowChange().getSql(),
+                                binlogEventRow.getRowChange().getDdlSchemaName());
+                result.addAll(
+                        parse.stream()
+                                .map(
+                                        i ->
+                                                DdlRowDataBuilder.builder()
+                                                        .setDatabaseName(i.getSchemaName())
+                                                        .setTableName(i.getTableName())
+                                                        .setContent(
+                                                                "DROP TABLE "
+                                                                        + i.getSchemaName()
+                                                                        + "."
+                                                                        + i.getTableName())
+                                                        .setType(
+                                                                binlogEventRow
+                                                                        .getRowChange()
+                                                                        .getEventType()
+                                                                        .name())
+                                                        .setLsn(
+                                                                String.valueOf(
+                                                                        binlogEventRow
+                                                                                .getExecuteTime()))
+                                                        .build())
+                                .collect(Collectors.toList()));
+
+            } else {
+                result.add(swapEventToDdlRowData(binlogEventRow));
+            }
         }
 
         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
