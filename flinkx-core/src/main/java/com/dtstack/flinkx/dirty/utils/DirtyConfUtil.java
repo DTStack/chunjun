@@ -23,9 +23,9 @@ import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.throwable.NoRestartException;
 import com.dtstack.flinkx.util.PropertiesUtil;
 
-import org.apache.flink.shaded.guava18.com.google.common.collect.Maps;
-
 import org.apache.commons.collections.MapUtils;
+
+import org.apache.flink.shaded.guava18.com.google.common.collect.Maps;
 
 import java.io.File;
 import java.util.Locale;
@@ -86,7 +86,7 @@ public class DirtyConfUtil {
         dirtyConf.setType(type);
         dirtyConf.setMaxConsumed(maxConsumed < 0 ? Long.MAX_VALUE : maxConsumed);
         dirtyConf.setMaxFailedConsumed(maxFailed < 0 ? Long.MAX_VALUE : maxFailed);
-        dirtyConf.setPrintRate(printRate);
+        dirtyConf.setPrintRate(printRate <= 0 ? Long.MAX_VALUE : printRate);
         dirtyConf.setPluginProperties(pluginProperties);
         dirtyConf.setLocalPluginPath(pluginDir);
 
