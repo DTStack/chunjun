@@ -33,6 +33,7 @@ import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 
 import org.apache.flink.api.common.ExecutionConfig;
@@ -467,7 +468,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             writeSingleRecordInternal(rowData);
             numWriteCounter.add(1L);
         } catch (WriteRecordException e) {
-            dirtyManager.collect(String.valueOf(rowData), e, null, getRuntimeContext());
+            dirtyManager.collect(
+                    GsonUtil.GSON.toJson(e.getRowData()), e, null, getRuntimeContext());
             errCounter.add(1);
             if (LOG.isTraceEnabled()) {
                 LOG.trace(
