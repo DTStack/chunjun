@@ -188,9 +188,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         int index = 0;
         try {
             stmtProxy.writeSingleRecordInternal(row);
-            if (Semantic.EXACTLY_ONCE == semantic) {
-                JdbcUtil.commit(dbConn);
-            }
         } catch (Exception e) {
             JdbcUtil.rollBack(dbConn);
             processWriteException(e, index, row);

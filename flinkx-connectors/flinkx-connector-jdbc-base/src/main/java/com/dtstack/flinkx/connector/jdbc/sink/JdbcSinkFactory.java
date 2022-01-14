@@ -80,6 +80,9 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         jdbcConf.setColumn(syncConf.getWriter().getFieldList());
         Properties properties = syncConf.getWriter().getProperties("properties", null);
         jdbcConf.setProperties(properties);
+        if (StringUtils.isNotEmpty(syncConf.getWriter().getSemantic())) {
+            jdbcConf.setSemantic(syncConf.getWriter().getSemantic());
+        }
         super.initFlinkxCommonConf(jdbcConf);
         resetTableInfo();
         rebuildJdbcConf(jdbcConf);
