@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.conf;
 
+import com.dtstack.flinkx.cdc.CdcConf;
+import com.dtstack.flinkx.mapping.NameMappingConf;
 import com.dtstack.flinkx.util.GsonUtil;
 
 import org.apache.flink.util.Preconditions;
@@ -45,6 +47,9 @@ public class SyncConf implements Serializable {
     private String remotePluginPath;
 
     private String savePointPath;
+
+    /** 本次任务所需插件jar包路径列表 */
+    private List<String> syncJarList;
 
     /**
      * 解析job字符串
@@ -218,9 +223,25 @@ public class SyncConf implements Serializable {
         return job.getSetting().getMetricPluginConf();
     }
 
+    public CdcConf getCdcConf() {
+        return job.getCdcConf();
+    }
+
+    public List<String> getSyncJarList() {
+        return syncJarList;
+    }
+
+    public void setSyncJarList(List<String> syncJarList) {
+        this.syncJarList = syncJarList;
+    }
+
+    public NameMappingConf getNameMappingConf() {
+        return job.getNameMapping();
+    }
+
     @Override
     public String toString() {
-        return "FlinkxConf{"
+        return "SyncConf{"
                 + "job="
                 + job
                 + ", pluginRoot='"
@@ -232,6 +253,8 @@ public class SyncConf implements Serializable {
                 + ", savePointPath='"
                 + savePointPath
                 + '\''
+                + ", syncJarList="
+                + syncJarList
                 + '}';
     }
 
@@ -241,8 +264,8 @@ public class SyncConf implements Serializable {
      * @return
      */
     public String asString() {
-        return "FlinkxConf{"
-                + ", pluginRoot='"
+        return "SyncConf{"
+                + "pluginRoot='"
                 + pluginRoot
                 + '\''
                 + ", remotePluginPath='"
@@ -251,6 +274,8 @@ public class SyncConf implements Serializable {
                 + ", savePointPath='"
                 + savePointPath
                 + '\''
+                + ", syncJarList="
+                + syncJarList
                 + '}';
     }
 }

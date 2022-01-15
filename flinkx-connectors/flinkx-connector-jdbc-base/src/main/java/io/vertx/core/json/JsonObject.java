@@ -117,6 +117,120 @@ public class JsonObject
         }
     }
 
+    private static boolean objectEquals(Map<?, ?> m1, Object o2) {
+        Map<?, ?> m2;
+        if (o2 instanceof JsonObject) {
+            m2 = ((JsonObject) o2).map;
+        } else if (o2 instanceof Map<?, ?>) {
+            m2 = (Map<?, ?>) o2;
+        } else {
+            return false;
+        }
+        if (!m1.keySet().equals(m2.keySet())) {
+            return false;
+        }
+        for (Map.Entry<?, ?> entry : m1.entrySet()) {
+            Object val1 = entry.getValue();
+            Object val2 = m2.get(entry.getKey());
+            if (val1 == null ? val2 != null : !equals(val1, val2)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static boolean equals(Object o1, Object o2) {
+        if (o1 == o2) {
+            return true;
+        }
+        if (o1 instanceof JsonObject) {
+            return objectEquals(((JsonObject) o1).map, o2);
+        }
+        if (o1 instanceof Map<?, ?>) {
+            return objectEquals((Map<?, ?>) o1, o2);
+        }
+        if (o1 instanceof JsonArray) {
+            return JsonArray.arrayEquals(((JsonArray) o1).getList(), o2);
+        }
+        if (o1 instanceof List<?>) {
+            return JsonArray.arrayEquals((List<?>) o1, o2);
+        }
+        if (o1 instanceof Number && o2 instanceof Number && o1.getClass() != o2.getClass()) {
+            Number n1 = (Number) o1;
+            Number n2 = (Number) o2;
+            if (o1 instanceof Float
+                    || o1 instanceof Double
+                    || o2 instanceof Float
+                    || o2 instanceof Double) {
+                return n1.doubleValue() == n2.doubleValue();
+            } else {
+                return n1.longValue() == n2.longValue();
+            }
+        }
+        return o1.equals(o2);
+    }
+
+    @SuppressWarnings("unchecked")
+    static Object checkAndCopy(Object val, boolean copy) {
+        if (val == null) {
+            // OK
+            // DTSTACK fix remove BigDecimal check
+        } else if (val instanceof Number) {
+            // OK
+        } else if (val instanceof Boolean) {
+            // OK
+        } else if (val instanceof String) {
+            // OK
+        } else if (val instanceof Character) {
+            // OK
+        } else if (val instanceof CharSequence) {
+            val = val.toString();
+        } else if (val instanceof JsonObject) {
+            if (copy) {
+                val = ((JsonObject) val).copy();
+            }
+        } else if (val instanceof JsonArray) {
+            if (copy) {
+                val = ((JsonArray) val).copy();
+            }
+        } else if (val instanceof Map) {
+            if (copy) {
+                val = (new JsonObject((Map) val)).copy();
+            } else {
+                val = new JsonObject((Map) val);
+            }
+        } else if (val instanceof List) {
+            if (copy) {
+                val = (new JsonArray((List) val)).copy();
+            } else {
+                val = new JsonArray((List) val);
+            }
+        } else if (val instanceof byte[]) {
+            // DTSTACK fix remove timestamp check
+            // ok
+            // val = Base64.getEncoder().encodeToString((byte[])val);
+        } else if (val instanceof Instant) {
+            val = ISO_INSTANT.format((Instant) val);
+        } else if (val instanceof Timestamp) {
+            // DTSTACK fix remove timestamp check
+            // ok
+        } else if (val instanceof Date) {
+            // DTSTACK fix remove timestamp check
+            // ok
+        } else if (val instanceof Time) {
+            // DTSTACK fix remove timestamp check
+            // ok
+        } else {
+            throw new IllegalStateException("Illegal type in JsonObject: " + val.getClass());
+        }
+        return val;
+    }
+
+    static <T> Stream<T> asStream(Iterator<T> sourceIterator) {
+        Iterable<T> iterable = () -> sourceIterator;
+        return StreamSupport.stream(iterable.spliterator(), false);
+    }
+
     /**
      * Instantiate a Java object from a JsonObject. Faster than calling
      * `Json.decodeValue(Json.encode(jsonObject), type)`.
@@ -946,59 +1060,6 @@ public class JsonObject
         return objectEquals(map, o);
     }
 
-    private static boolean objectEquals(Map<?, ?> m1, Object o2) {
-        Map<?, ?> m2;
-        if (o2 instanceof JsonObject) {
-            m2 = ((JsonObject) o2).map;
-        } else if (o2 instanceof Map<?, ?>) {
-            m2 = (Map<?, ?>) o2;
-        } else {
-            return false;
-        }
-        if (!m1.keySet().equals(m2.keySet())) {
-            return false;
-        }
-        for (Map.Entry<?, ?> entry : m1.entrySet()) {
-            Object val1 = entry.getValue();
-            Object val2 = m2.get(entry.getKey());
-            if (val1 == null ? val2 != null : !equals(val1, val2)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    static boolean equals(Object o1, Object o2) {
-        if (o1 == o2) {
-            return true;
-        }
-        if (o1 instanceof JsonObject) {
-            return objectEquals(((JsonObject) o1).map, o2);
-        }
-        if (o1 instanceof Map<?, ?>) {
-            return objectEquals((Map<?, ?>) o1, o2);
-        }
-        if (o1 instanceof JsonArray) {
-            return JsonArray.arrayEquals(((JsonArray) o1).getList(), o2);
-        }
-        if (o1 instanceof List<?>) {
-            return JsonArray.arrayEquals((List<?>) o1, o2);
-        }
-        if (o1 instanceof Number && o2 instanceof Number && o1.getClass() != o2.getClass()) {
-            Number n1 = (Number) o1;
-            Number n2 = (Number) o2;
-            if (o1 instanceof Float
-                    || o1 instanceof Double
-                    || o2 instanceof Float
-                    || o2 instanceof Double) {
-                return n1.doubleValue() == n2.doubleValue();
-            } else {
-                return n1.longValue() == n2.longValue();
-            }
-        }
-        return o1.equals(o2);
-    }
-
     @Override
     public int hashCode() {
         return map.hashCode();
@@ -1029,6 +1090,31 @@ public class JsonObject
         map = JsonCodec.INSTANCE.fromBuffer(buf, Map.class);
     }
 
+    private static final class Entry implements Map.Entry<String, Object> {
+        final String key;
+        final Object value;
+
+        public Entry(String key, Object value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+        public String getKey() {
+            return key;
+        }
+
+        @Override
+        public Object getValue() {
+            return value;
+        }
+
+        @Override
+        public Object setValue(Object value) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     private class Iter implements Iterator<Map.Entry<String, Object>> {
 
         final Iterator<Map.Entry<String, Object>> mapIter;
@@ -1057,91 +1143,5 @@ public class JsonObject
         public void remove() {
             mapIter.remove();
         }
-    }
-
-    private static final class Entry implements Map.Entry<String, Object> {
-        final String key;
-        final Object value;
-
-        public Entry(String key, Object value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public String getKey() {
-            return key;
-        }
-
-        @Override
-        public Object getValue() {
-            return value;
-        }
-
-        @Override
-        public Object setValue(Object value) {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static Object checkAndCopy(Object val, boolean copy) {
-        if (val == null) {
-            // OK
-            // DTSTACK fix remove BigDecimal check
-        } else if (val instanceof Number) {
-            // OK
-        } else if (val instanceof Boolean) {
-            // OK
-        } else if (val instanceof String) {
-            // OK
-        } else if (val instanceof Character) {
-            // OK
-        } else if (val instanceof CharSequence) {
-            val = val.toString();
-        } else if (val instanceof JsonObject) {
-            if (copy) {
-                val = ((JsonObject) val).copy();
-            }
-        } else if (val instanceof JsonArray) {
-            if (copy) {
-                val = ((JsonArray) val).copy();
-            }
-        } else if (val instanceof Map) {
-            if (copy) {
-                val = (new JsonObject((Map) val)).copy();
-            } else {
-                val = new JsonObject((Map) val);
-            }
-        } else if (val instanceof List) {
-            if (copy) {
-                val = (new JsonArray((List) val)).copy();
-            } else {
-                val = new JsonArray((List) val);
-            }
-        } else if (val instanceof byte[]) {
-            // DTSTACK fix remove timestamp check
-            // ok
-            // val = Base64.getEncoder().encodeToString((byte[])val);
-        } else if (val instanceof Instant) {
-            val = ISO_INSTANT.format((Instant) val);
-        } else if (val instanceof Timestamp) {
-            // DTSTACK fix remove timestamp check
-            // ok
-        } else if (val instanceof Date) {
-            // DTSTACK fix remove timestamp check
-            // ok
-        } else if (val instanceof Time) {
-            // DTSTACK fix remove timestamp check
-            // ok
-        } else {
-            throw new IllegalStateException("Illegal type in JsonObject: " + val.getClass());
-        }
-        return val;
-    }
-
-    static <T> Stream<T> asStream(Iterator<T> sourceIterator) {
-        Iterable<T> iterable = () -> sourceIterator;
-        return StreamSupport.stream(iterable.spliterator(), false);
     }
 }

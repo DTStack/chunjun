@@ -233,6 +233,20 @@ Why does Binlog need these permissions:
     - Default value: false
     <br />
 
+- **queryTimeOut**
+  - Description: After sending data through the TCP connection (here is the SQL to be executed), the timeout period for waiting for a response, in milliseconds
+  - Required: No
+  - Field type: int
+  - Default value: 300000
+    <br />
+
+- **connectTimeOut**
+  - Description: The timeout period for the database driver (mysql-connector-java) to establish a TCP connection with the mysql server, in milliseconds
+  - Required: No
+  - Field type: int
+  - Default value: 60000
+    <br />
+
 ### vii. SQL
 - **url**
     - Description: jdbc url of MySQL database, reference document: [Mysql official document](http://dev.mysql.com/doc/connector- j/en/connector- j- reference- configuration- properties.html)
@@ -370,6 +384,20 @@ Why does Binlog need these permissions:
     - Required: No
     - Field type: boolean
     - Default value: false
+    <br />
+
+- **query-time-out**
+  - Description: After sending data through the TCP connection (here is the SQL to be executed), the timeout period for waiting for a response, in milliseconds
+  - Required: No
+  - Field type: int
+  - Default value: 300000
+    <br />
+
+- **connect-time-out**
+  - Description: The timeout period for the database driver (mysql-connector-java) to establish a TCP connection with the mysql server, in milliseconds
+  - Required: No
+  - Field type: int
+  - Default value: 60000
     <br />
 
 - **timestamp- format.standard**

@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -47,11 +48,21 @@ public class ClassLoaderManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClassLoaderManager.class);
 
-    private static Map<String, URLClassLoader> pluginClassLoader = new ConcurrentHashMap<>();
+    private static final Map<String, URLClassLoader> pluginClassLoader = new ConcurrentHashMap<>();
 
     public static <R> R newInstance(Set<URL> jarUrls, ClassLoaderSupplier<R> supplier)
             throws Exception {
         ClassLoader classLoader = retrieveClassLoad(new ArrayList<>(jarUrls));
+        return ClassLoaderSupplierCallBack.callbackAndReset(supplier, classLoader);
+    }
+
+    public static <R> R newInstance(List<String> jarPathList, ClassLoaderSupplier<R> supplier)
+            throws Exception {
+        List<URL> jarUrlList = new ArrayList<>(jarPathList.size());
+        for (String path : jarPathList) {
+            jarUrlList.add(new File(path).toURI().toURL());
+        }
+        ClassLoader classLoader = retrieveClassLoad(jarUrlList);
         return ClassLoaderSupplierCallBack.callbackAndReset(supplier, classLoader);
     }
 

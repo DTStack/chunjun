@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.elasticsearch6.sink;
 
-import com.dtstack.flinkx.connector.elasticsearch6.conf.Elasticsearch6Conf;
+import com.dtstack.flinkx.connector.elasticsearch6.Elasticsearch6Conf;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
 import com.google.common.base.Preconditions;
@@ -49,12 +49,9 @@ public class Elasticsearch6OutputFormatBuilder extends BaseRichOutputFormatBuild
         Preconditions.checkNotNull(esConf.getIndex(), "elasticsearch6 type of index is required");
         Preconditions.checkNotNull(esConf.getType(), "elasticsearch6 type of type is required");
 
-        /** is open basic auth */
-        if (esConf.isAuthMesh()) {
+        if (esConf.getUsername() != null) {
             Preconditions.checkNotNull(
-                    esConf.getUsername(), "elasticsearch6 type of userName is required");
-            Preconditions.checkNotNull(
-                    esConf.getPassword(), "elasticsearch6 type of password is required");
+                    esConf.getPassword(), "When set the username option, password is required");
         }
     }
 }

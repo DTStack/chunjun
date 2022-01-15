@@ -24,6 +24,7 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Properties;
 
 /**
  * @author dujie
@@ -67,7 +68,7 @@ public class LogMinerConf extends FlinkxCommonConf {
     /** Oracle 12c第二个版本之后LogMiner不支持自动添加日志 */
     private boolean supportAutoAddLog;
 
-    private boolean splitUpdate;
+    private boolean split;
 
     /** logminer一次最大加载数据量 默认5g * */
     private long maxLogFileSize = 5 * ConstantValue.STORE_SIZE_G;
@@ -80,6 +81,8 @@ public class LogMinerConf extends FlinkxCommonConf {
 
     /** 缓存的日志数 * */
     private long transactionCacheNumSize = 1000;
+
+    private Properties properties;
 
     /** 缓存的日志时间 * */
     private long transactionExpireTime = 20;
@@ -204,12 +207,12 @@ public class LogMinerConf extends FlinkxCommonConf {
         this.pavingData = pavingData;
     }
 
-    public boolean isSplitUpdate() {
-        return splitUpdate;
+    public boolean isSplit() {
+        return split;
     }
 
-    public void setSplitUpdate(boolean splitUpdate) {
-        this.splitUpdate = splitUpdate;
+    public void setSplit(boolean split) {
+        this.split = split;
     }
 
     public int getIoThreads() {
@@ -260,6 +263,14 @@ public class LogMinerConf extends FlinkxCommonConf {
         this.transactionExpireTime = transactionExpireTime;
     }
 
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+
     @Override
     public String toString() {
         return "LogMinerConf{"
@@ -303,7 +314,7 @@ public class LogMinerConf extends FlinkxCommonConf {
                 + ", supportAutoAddLog="
                 + supportAutoAddLog
                 + ", splitUpdate="
-                + splitUpdate
+                + split
                 + ", maxLogFileSize="
                 + maxLogFileSize
                 + ", ioThreads="
@@ -314,6 +325,8 @@ public class LogMinerConf extends FlinkxCommonConf {
                 + transactionCacheNumSize
                 + ", transactionExpireTime="
                 + transactionExpireTime
+                + ", properties="
+                + properties
                 + "} "
                 + super.toString();
     }

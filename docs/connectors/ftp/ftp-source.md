@@ -131,7 +131,30 @@ FTP服务搭建<br />windows：[地址](https://help.aliyun.com/document_detail/
    - 必选：是
    - 参数类型：数组
    - 默认值：无
+<br />
 
+- **fileType**
+    - 描述：读取的文件类型，默认取文件后缀名，支持CSV,TXT,EXCEL
+    - 必选：否
+    - 字段类型：string
+    - 默认值：无
+<br />
+
+- **compressType**
+    - 描述：文件压缩类型,支持ZIP
+    - 必选：否
+    - 字段类型：string
+    - 默认值：无
+<br />
+
+- **fileConfig**
+    - 描述：文件参数配置
+    - 必选：否
+    - 字段类型：Map
+    - 默认值：无
+    - 示例：
+        - csv文件是否进行trim：`"fileConfig":{"trimWhitespace":true}`
+  <br />
 
 #### 2、sql
 

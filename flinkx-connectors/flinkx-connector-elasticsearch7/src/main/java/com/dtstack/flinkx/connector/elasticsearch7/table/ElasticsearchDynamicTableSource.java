@@ -18,8 +18,8 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.table;
 
-import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-import com.dtstack.flinkx.connector.elasticsearch7.converter.ElasticsearchRowConverter;
+import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchRowConverter;
+import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.flinkx.connector.elasticsearch7.source.ElasticsearchInputFormatBuilder;
 import com.dtstack.flinkx.connector.elasticsearch7.table.lookup.ElasticsearchAllTableFunction;
 import com.dtstack.flinkx.connector.elasticsearch7.table.lookup.ElasticsearchLruTableFunction;
@@ -106,9 +106,9 @@ public class ElasticsearchDynamicTableSource
         }
 
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return ParallelAsyncTableFunctionProvider.of(
-                    new ElasticsearchLruTableFunction(
+        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+            return ParallelTableFunctionProvider.of(
+                    new ElasticsearchAllTableFunction(
                             elasticsearchConf,
                             lookupConf,
                             physicalSchema.getFieldNames(),
@@ -116,9 +116,8 @@ public class ElasticsearchDynamicTableSource
                             new ElasticsearchRowConverter(rowType)),
                     lookupConf.getParallelism());
         }
-
-        return ParallelTableFunctionProvider.of(
-                new ElasticsearchAllTableFunction(
+        return ParallelAsyncTableFunctionProvider.of(
+                new ElasticsearchLruTableFunction(
                         elasticsearchConf,
                         lookupConf,
                         physicalSchema.getFieldNames(),

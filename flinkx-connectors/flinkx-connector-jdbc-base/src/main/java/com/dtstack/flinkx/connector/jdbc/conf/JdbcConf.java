@@ -19,8 +19,11 @@ package com.dtstack.flinkx.connector.jdbc.conf;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -73,12 +76,28 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     /** 用于标记是否保存endLocation位置的一条或多条数据 true：不保存 false(默认)：保存 某些情况下可能出现最后几条数据被重复记录的情况，可以将此参数配置为true */
     private boolean useMaxFunc = false;
     // writer
+
+    /** 增量同步或者间隔轮询时，是否初始化外部存储 */
+    private Boolean initReporter = true;
+
+    @SerializedName(value = "mode", alternate = "writeMode")
     private String mode = "INSERT";
+
     private List<String> preSql;
     private List<String> postSql;
-    private List<String> updateKey;
+    private List<String> uniqueKey;
+    @Deprecated private Map<String, List<String>> updateKey;
+
     /** upsert 写数据库时，是否null覆盖原来的值 */
     private boolean allReplace = false;
+
+    public Boolean getInitReporter() {
+        return initReporter;
+    }
+
+    public void setInitReporter(Boolean initReporter) {
+        this.initReporter = initReporter;
+    }
 
     public String getTable() {
         return connection.get(0).getTable().get(0);
@@ -88,12 +107,12 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         connection.get(0).getTable().set(0, table);
     }
 
-    public void setSchema(String schema) {
-        connection.get(0).setSchema(schema);
-    }
-
     public String getSchema() {
         return connection.get(0).getSchema();
+    }
+
+    public void setSchema(String schema) {
+        connection.get(0).setSchema(schema);
     }
 
     public String getJdbcUrl() {
@@ -330,12 +349,12 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.postSql = postSql;
     }
 
-    public List<String> getUpdateKey() {
-        return updateKey;
+    public List<String> getUniqueKey() {
+        return uniqueKey;
     }
 
-    public void setUpdateKey(List<String> updateKey) {
-        this.updateKey = updateKey;
+    public void setUniqueKey(List<String> uniqueKey) {
+        this.uniqueKey = uniqueKey;
     }
 
     public boolean isAllReplace() {
@@ -352,6 +371,10 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
 
     public void setSplitStrategy(String splitStrategy) {
         this.splitStrategy = splitStrategy;
+    }
+
+    public Map<String, List<String>> getUpdateKey() {
+        return updateKey;
     }
 
     @Override
@@ -430,6 +453,8 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
                 + preSql
                 + ", postSql="
                 + postSql
+                + ", uniqueKey="
+                + uniqueKey
                 + ", updateKey="
                 + updateKey
                 + ", allReplace="

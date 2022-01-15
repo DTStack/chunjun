@@ -43,20 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author tudou
  */
 public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializable {
-    protected final Logger LOG = LoggerFactory.getLogger(getClass());
-
     protected static final long serialVersionUID = 1L;
-
-    // cdc keys
-    protected static final String SCHEMA = "schema";
-    protected static final String TABLE = "table";
-    protected static final String TS = "ts";
-    protected static final String OP_TIME = "opTime";
-    protected static final String TYPE = "type";
-    protected static final String BEFORE_ = "before_";
-    protected static final String AFTER_ = "after_";
-    protected static final String BEFORE = "before";
-    protected static final String AFTER = "after";
 
     // times
     protected static final DateTimeFormatter SQL_TIME_FORMAT =
@@ -86,12 +73,14 @@ public abstract class AbstractCDCRowConverter<SourceT, T> implements Serializabl
                     .append(DateTimeFormatter.ISO_LOCAL_TIME)
                     .appendPattern("'Z'")
                     .toFormatter();
-
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
     protected final Map<String, List<IDeserializationConverter>> cdcConverterCacheMap =
             new ConcurrentHashMap<>(32);
     protected final SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
+    /** pavingData 和 split 互斥 */
     protected boolean pavingData;
-    protected boolean splitUpdate;
+
+    protected boolean split;
     protected List<String> fieldNameList;
     protected List<IDeserializationConverter> converters;
 

@@ -23,16 +23,16 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.dirty.DirtyConf;
 import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.enums.OperatorType;
-import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import org.apache.flink.api.common.cache.DistributedCache;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +79,10 @@ public class PluginUtil {
     private static final String METRIC_PACKAGE_PREFIX = "com.dtstack.flinkx.metrics.";
     private static final String METRIC_REPORT_PREFIX = "Report";
     private static final String DIRTY_PACKAGE_STR = "com.dtstack.flinkx.dirty.";
+    private static final String RESTORE_PACKAGE_STR = "com.dtstack.flinkx.restore.";
     private static final String DIRTY_CLASS_SUFFIX = "DirtyDataCollector";
+    private static final String STORE_CLASS_SUFFIX = "Store";
+    private static final String FETCHER_CLASS_SUFFIX = "Fetcher";
 
     private static final String JAR_PREFIX = "flinkx";
 
@@ -93,30 +96,61 @@ public class PluginUtil {
      * @param pluginName 插件名称，如: kafkareader、kafkasource等
      * @param pluginRoot
      * @param remotePluginPath
+     * @param suffix
      * @return
      */
     public static Set<URL> getJarFileDirPath(
-            String pluginName, String pluginRoot, String remotePluginPath) {
-        Set<URL> urlList = new HashSet<>();
-
-        String pluginPath = Objects.isNull(remotePluginPath) ? pluginRoot : remotePluginPath;
+            String pluginName, String pluginRoot, String remotePluginPath, String suffix) {
+        Set<URL> urlSet = new HashSet<>();
         String name =
                 pluginName
                         .replace(READER_SUFFIX, "")
                         .replace(SOURCE_SUFFIX, "")
                         .replace(WRITER_SUFFIX, "")
                         .replace(SINK_SUFFIX, "");
+        name = ConnectorNameConvertUtil.convertPackageName(name);
+        getJarUrlList(pluginRoot, suffix, name, urlSet);
+        getJarUrlList(remotePluginPath, suffix, name, urlSet);
 
-        try {
-            String pluginJarPath = pluginRoot + SP + name;
-            // 获取jar包名字，构建对应的URL地址
-            for (String jarName : getJarNames(new File(pluginJarPath))) {
-                urlList.add(new URL(FILE_PREFIX + pluginPath + SP + name + SP + jarName));
-            }
-            return urlList;
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+        return urlSet;
+    }
+
+    /**
+     * Obtain local and remote FlinkX plugin jar package path
+     *
+     * @param pluginPath
+     * @param suffix
+     * @param pluginName
+     * @param urlSet
+     * @return
+     */
+    private static Set<URL> getJarUrlList(
+            String pluginPath, String suffix, String pluginName, Set<URL> urlSet) {
+        if (StringUtils.isBlank(pluginPath)) {
+            return urlSet;
         }
+        try {
+            String pluginPathDir;
+            if (new File(pluginPath).exists()) {
+                if (StringUtils.isNotBlank(suffix)) {
+                    pluginPathDir = pluginPath + SP + suffix;
+                } else {
+                    pluginPathDir = pluginPath;
+                }
+                String pluginJarPath = pluginPathDir + SP + pluginName;
+                // 获取jar包名字，构建对应的URL地址
+                for (String jarName : getJarNames(new File(pluginJarPath))) {
+                    urlSet.add(new File(pluginJarPath + SP + jarName).toURI().toURL());
+                }
+            }
+        } catch (MalformedURLException e) {
+            throw new FlinkxRuntimeException(
+                    String.format(
+                            "can't get flinkx jar from %s, suffix = %s, pluginName = %s",
+                            pluginPath, suffix, pluginName),
+                    e);
+        }
+        return urlSet;
     }
 
     /**
@@ -170,6 +204,24 @@ public class PluginUtil {
                                 + DtStringUtil.captureFirstLetter(pluginName)
                                 + DIRTY_CLASS_SUFFIX;
                 break;
+            case store:
+                pluginClassName =
+                        RESTORE_PACKAGE_STR
+                                + pluginName
+                                + "."
+                                + DtStringUtil.captureFirstLetter(pluginName)
+                                + STORE_CLASS_SUFFIX;
+                break;
+
+            case fetcher:
+                pluginClassName =
+                        RESTORE_PACKAGE_STR
+                                + pluginName
+                                + "."
+                                + DtStringUtil.captureFirstLetter(pluginName)
+                                + FETCHER_CLASS_SUFFIX;
+                break;
+
             default:
                 throw new FlinkxRuntimeException("unknown operatorType: " + operatorType);
         }
@@ -223,59 +275,98 @@ public class PluginUtil {
             Options options, SyncConf config, StreamExecutionEnvironment env) {
         DirtyConf dirtyConf = DirtyConfUtil.parse(options);
         Set<URL> urlSet = new HashSet<>();
-        Set<URL> coreUrlList = getJarFileDirPath("", config.getPluginRoot(), null);
-        Set<URL> formatsUrlList = getJarFileDirPath(FORMATS_SUFFIX, config.getPluginRoot(), null);
-        Set<URL> sourceUrlList =
+        Set<URL> coreUrlSet =
+                getJarFileDirPath("", config.getPluginRoot(), config.getRemotePluginPath(), "");
+        Set<URL> formatsUrlSet =
+                getJarFileDirPath(
+                        FORMATS_SUFFIX, config.getPluginRoot(), config.getRemotePluginPath(), "");
+        Set<URL> sourceUrlSet =
                 getJarFileDirPath(
                         config.getReader().getName(),
-                        config.getPluginRoot() + SP + CONNECTOR_DIR_NAME,
-                        null);
-        Set<URL> sinkUrlList =
+                        config.getPluginRoot(),
+                        config.getRemotePluginPath(),
+                        CONNECTOR_DIR_NAME);
+        Set<URL> sinkUrlSet =
                 getJarFileDirPath(
                         config.getWriter().getName(),
-                        config.getPluginRoot() + SP + CONNECTOR_DIR_NAME,
-                        null);
-        Set<URL> metricUrlList =
+                        config.getPluginRoot(),
+                        config.getRemotePluginPath(),
+                        CONNECTOR_DIR_NAME);
+        Set<URL> metricUrlSet =
                 getJarFileDirPath(
                         config.getMetricPluginConf().getPluginName(),
-                        config.getPluginRoot() + SP + METRIC_SUFFIX,
-                        null);
+                        config.getPluginRoot(),
+                        config.getRemotePluginPath(),
+                        METRIC_SUFFIX);
 
-        Set<URL> dirtyUrlList =
+        Set<URL> dirtyUrlSet =
                 getJarFileDirPath(
                         dirtyConf.getType(),
-                        config.getPluginRoot() + SP + DIRTY_DATA_DIR_NAME,
-                        null);
+                        config.getPluginRoot(),
+                        config.getRemotePluginPath(),
+                        DIRTY_DATA_DIR_NAME);
 
-        urlSet.addAll(coreUrlList);
-        urlSet.addAll(formatsUrlList);
-        urlSet.addAll(sourceUrlList);
-        urlSet.addAll(sinkUrlList);
-        urlSet.addAll(metricUrlList);
-        urlSet.addAll(dirtyUrlList);
+        urlSet.addAll(coreUrlSet);
+        urlSet.addAll(formatsUrlSet);
+        urlSet.addAll(sourceUrlSet);
+        urlSet.addAll(sinkUrlSet);
+        urlSet.addAll(metricUrlSet);
+        urlSet.addAll(dirtyUrlSet);
 
-        int i = 0;
-        for (URL url : urlSet) {
-            String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
-            env.registerCachedFile(url.getPath(), classFileName, true);
-            i++;
+        List<String> urlList = new ArrayList<>(urlSet.size());
+        try {
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+            add.setAccessible(true);
+
+            int i = 0;
+            for (URL url : urlSet) {
+                String classFileName = String.format(CLASS_FILE_NAME_FMT, i);
+                env.registerCachedFile(url.getPath(), classFileName, true);
+                urlList.add(url.getPath());
+                add.invoke(contextClassLoader, url);
+                i++;
+            }
+        } catch (Exception e) {
+            LOG.warn(
+                    "cannot add core jar into contextClassLoader, coreUrlSet = {}",
+                    GsonUtil.GSON.toJson(coreUrlSet),
+                    e);
         }
 
-        if (env instanceof MyLocalStreamEnvironment) {
-            ((MyLocalStreamEnvironment) env).setClasspaths(new ArrayList<>(urlSet));
-            if (CollectionUtils.isNotEmpty(coreUrlList)) {
-                try {
-                    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-                    Method add = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-                    add.setAccessible(true);
-                    add.invoke(contextClassLoader, new ArrayList<>(coreUrlList).get(0));
-                } catch (Exception e) {
-                    LOG.warn(
-                            "cannot add core jar into contextClassLoader, coreUrlList = {}",
-                            GsonUtil.GSON.toJson(coreUrlList),
-                            e);
-                }
+        config.setSyncJarList(setPipelineOptionsToEnvConfig(env, urlList));
+    }
+
+    /**
+     * 设置PipelineOptions.JARS, PipelineOptions.CLASSPATHS
+     *
+     * @param env
+     * @param urlList
+     * @return
+     */
+    @SuppressWarnings("all")
+    public static List<String> setPipelineOptionsToEnvConfig(
+            StreamExecutionEnvironment env, List<String> urlList) {
+        try {
+            Configuration configuration =
+                    (Configuration)
+                            ReflectionUtils.getDeclaredMethod(env, "getConfiguration").invoke(env);
+            List<String> jarList = configuration.get(PipelineOptions.JARS);
+            if (jarList == null) {
+                jarList = new ArrayList<>(urlList.size());
             }
+            jarList.addAll(urlList);
+            configuration.set(PipelineOptions.JARS, jarList);
+
+            List<String> classpathList = configuration.get(PipelineOptions.CLASSPATHS);
+            if (classpathList == null) {
+                classpathList = new ArrayList<>(urlList.size());
+            }
+            classpathList.addAll(urlList);
+            configuration.set(PipelineOptions.CLASSPATHS, classpathList);
+            return jarList;
+        } catch (Exception e) {
+            throw new FlinkxRuntimeException(e);
         }
     }
 
