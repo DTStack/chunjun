@@ -33,23 +33,22 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
+import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-
-import org.apache.flink.table.data.GenericRowData;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * OutputFormat for writing data to relational database.
@@ -219,8 +218,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     "write Multiple Records error, start to rollback connection, row size = {}, first row = {}",
                     rows.size(),
                     rows.size() > 0 ? GsonUtil.GSON.toJson(rows.get(0)) : "null",
-                    e
-            );
+                    e);
             JdbcUtil.rollBack(dbConn);
             throw e;
         } finally {
@@ -280,7 +278,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void executeBatch(List<String> sqlList) {
         if (CollectionUtils.isNotEmpty(sqlList)) {
             try (Connection conn = getConnection();
-                 Statement stmt = conn.createStatement()) {
+                    Statement stmt = conn.createStatement()) {
                 for (String sql : sqlList) {
                     // 兼容多条SQL写在同一行的情况
                     String[] strings = sql.split(";");
@@ -296,8 +294,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 LOG.error(
                         "execute sql failed, sqlList = {}, e = {}",
                         JsonUtil.toPrintJson(sqlList),
-                        e
-                );
+                        e);
             }
         }
     }
@@ -309,16 +306,14 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     jdbcDialect.getInsertIntoStatement(
                             jdbcConf.getSchema(),
                             jdbcConf.getTable(),
-                            columnNameList.toArray(new String[0])
-                    );
+                            columnNameList.toArray(new String[0]));
         } else if (EWriteMode.REPLACE.name().equalsIgnoreCase(jdbcConf.getMode())) {
             singleSql =
                     jdbcDialect
                             .getReplaceStatement(
                                     jdbcConf.getSchema(),
                                     jdbcConf.getTable(),
-                                    columnNameList.toArray(new String[0])
-                            )
+                                    columnNameList.toArray(new String[0]))
                             .get();
         } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(jdbcConf.getMode())) {
             singleSql =
@@ -328,8 +323,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                                     jdbcConf.getTable(),
                                     columnNameList.toArray(new String[0]),
                                     jdbcConf.getUpdateKey().toArray(new String[0]),
-                                    jdbcConf.isAllReplace()
-                            )
+                                    jdbcConf.isAllReplace())
                             .get();
         } else {
             throw new IllegalArgumentException("Unknown write mode:" + jdbcConf.getMode());

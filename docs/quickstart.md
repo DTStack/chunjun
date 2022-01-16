@@ -12,7 +12,7 @@ cd flinkx
 
 ```bash
 mvn -T 4 clean package -DskipTests 
-```
+`
 或者执行
 ```bash
 sh build/build.sh
