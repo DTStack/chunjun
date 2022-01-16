@@ -18,9 +18,14 @@
 
 package com.dtstack.flinkx.connector.mysql.table;
 
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.mysql.dialect.MysqlDialect;
+
+import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.table.api.TableSchema;
 
 /**
  * @program: flinkx
@@ -48,5 +53,19 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     protected int getDefaultFetchSize() {
         return DEFAULT_FETCH_SIZE;
+    }
+
+    @Override
+    protected JdbcConf getSourceConnectionConf(ReadableConfig readableConfig) {
+        JdbcConf jdbcConf = super.getSourceConnectionConf(readableConfig);
+        JdbcUtil.putExtParam(jdbcConf);
+        return jdbcConf;
+    }
+
+    @Override
+    protected JdbcConf getSinkConnectionConf(ReadableConfig readableConfig, TableSchema schema) {
+        JdbcConf jdbcConf = super.getSinkConnectionConf(readableConfig, schema);
+        JdbcUtil.putExtParam(jdbcConf);
+        return jdbcConf;
     }
 }

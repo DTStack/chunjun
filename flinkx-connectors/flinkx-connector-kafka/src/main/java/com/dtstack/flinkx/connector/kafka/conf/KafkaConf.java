@@ -55,6 +55,12 @@ public class KafkaConf extends FlinkxCommonConf {
     /** kafka sink分区字段 */
     private List<String> partitionAssignColumns;
 
+    private String deserialization = "default";
+
+    private boolean pavingData;
+
+    private boolean split;
+
     public String getCodec() {
         return codec;
     }
@@ -147,6 +153,30 @@ public class KafkaConf extends FlinkxCommonConf {
 
     public void setDataCompelOrder(boolean dataCompelOrder) {
         this.dataCompelOrder = dataCompelOrder;
+    }
+
+    public String getDeserialization() {
+        return deserialization;
+    }
+
+    public void setDeserialization(String deserialization) {
+        this.deserialization = deserialization;
+    }
+
+    public boolean isPavingData() {
+        return pavingData;
+    }
+
+    public void setPavingData(boolean pavingData) {
+        this.pavingData = pavingData;
+    }
+
+    public boolean isSplit() {
+        return split;
+    }
+
+    public void setSplit(boolean split) {
+        this.split = split;
     }
 
     @Override

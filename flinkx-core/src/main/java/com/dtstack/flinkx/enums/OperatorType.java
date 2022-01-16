@@ -28,5 +28,9 @@ public enum OperatorType {
     metric,
     /** dirty plugins. */
     dirty,
+    /** cdc store plugins */
+    store,
+    /** cdc fetcher plugins */
+    fetcher,
     ;
 }

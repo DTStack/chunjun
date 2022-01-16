@@ -22,6 +22,7 @@ import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRow;
 import com.dtstack.flinkx.connector.oraclelogminer.entity.EventRowData;
 import com.dtstack.flinkx.connector.oraclelogminer.entity.TableMetaData;
 import com.dtstack.flinkx.connector.oraclelogminer.listener.LogParser;
+import com.dtstack.flinkx.constants.CDCConstantValue;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -65,14 +66,13 @@ import java.util.stream.Collectors;
  */
 public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, String> {
 
-    protected static final String SCN = "scn";
     // 存储表字段
     protected final Map<String, TableMetaData> tableMetaDataCacheMap = new ConcurrentHashMap<>(32);
     protected Connection connection;
 
     public LogMinerColumnConverter(boolean pavingData, boolean splitUpdate) {
         super.pavingData = pavingData;
-        super.splitUpdate = splitUpdate;
+        super.split = splitUpdate;
     }
 
     @Override
@@ -85,11 +85,74 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         String table = eventRow.getTable();
         String key = schema + ConstantValue.POINT_SYMBOL + table;
         List<IDeserializationConverter> converters = super.cdcConverterCacheMap.get(key);
-        TableMetaData metadata = tableMetaDataCacheMap.get(key);
-
         List<EventRowData> beforeColumnList = eventRow.getBeforeColumnList();
 
-        //  如果缓存为空 或者 长度变了 或者名字变了  重新更新缓存
+        // 如果缓存为空 或者 长度变了 或者名字变了  重新更新缓存
+        updateCache(schema, table, key, tableMetaDataCacheMap, beforeColumnList);
+        TableMetaData metadata = tableMetaDataCacheMap.get(key);
+
+        int size;
+        if (pavingData) {
+            // 6: scn, type, schema, table, ts, opTime
+            size = 6 + eventRow.getBeforeColumnList().size() + eventRow.getAfterColumnList().size();
+        } else {
+            // 7: scn, type, schema, table, ts, opTime, before, after
+            size = 8;
+        }
+
+        ColumnRowData columnRowData = new ColumnRowData(size);
+        fillColumnMetaData(columnRowData, eventRow, schema, table);
+
+        List<EventRowData> beforeList = eventRow.getBeforeColumnList();
+        List<EventRowData> afterList = eventRow.getAfterColumnList();
+
+        List<AbstractBaseColumn> beforeFieldList = new ArrayList<>(beforeList.size());
+        List<String> beforeHeaderList = new ArrayList<>(beforeList.size());
+        List<AbstractBaseColumn> afterFieldList = new ArrayList<>(afterList.size());
+        List<String> afterHeaderList = new ArrayList<>(afterList.size());
+
+        if (pavingData) {
+            parseColumnList(
+                    converters,
+                    metadata.getFieldList(),
+                    beforeList,
+                    beforeFieldList,
+                    beforeHeaderList,
+                    CDCConstantValue.BEFORE_);
+            parseColumnList(
+                    converters,
+                    metadata.getFieldList(),
+                    afterList,
+                    afterFieldList,
+                    afterHeaderList,
+                    CDCConstantValue.AFTER_);
+        } else if (split) {
+            dealEventRowSplit(columnRowData, metadata, eventRow, result);
+        } else {
+            beforeFieldList.add(new MapColumn(processColumnList(beforeList)));
+            beforeHeaderList.add(CDCConstantValue.BEFORE);
+            afterFieldList.add(new MapColumn(processColumnList(afterList)));
+            afterHeaderList.add(CDCConstantValue.AFTER);
+            columnRowData.setRowKind(getRowKindByType(eventType));
+            columnRowData.addField(new StringColumn(eventType));
+            columnRowData.addHeader(CDCConstantValue.TYPE);
+            columnRowData.addAllField(beforeFieldList);
+            columnRowData.addAllHeader(beforeHeaderList);
+            columnRowData.addAllField(afterFieldList);
+            columnRowData.addAllHeader(afterHeaderList);
+            result.add(columnRowData);
+        }
+
+        return result;
+    }
+
+    public void updateCache(
+            String schema,
+            String table,
+            String key,
+            Map<String, TableMetaData> tableMetaDataCacheMap,
+            List<EventRowData> beforeColumnList) {
+        TableMetaData metadata = tableMetaDataCacheMap.get(key);
         if (Objects.isNull(converters)
                 || Objects.isNull(metadata)
                 || beforeColumnList.size() != converters.size()
@@ -113,85 +176,103 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
             super.cdcConverterCacheMap.put(key, converters);
             tableMetaDataCacheMap.put(key, metadata);
         }
+    }
 
-        int size;
-        if (pavingData) {
-            // 6: scn, type, schema, table, ts, opTime
-            size = 6 + eventRow.getBeforeColumnList().size() + eventRow.getAfterColumnList().size();
-        } else {
-            // 7: scn, type, schema, table, ts, opTime, before, after
-            size = 8;
+    /**
+     * 将eventRowData 拆分 成多条数据并且附带RowKind
+     *
+     * @param columnRowData
+     * @param metadata
+     * @param result
+     * @throws Exception
+     */
+    public void dealEventRowSplit(
+            ColumnRowData columnRowData,
+            TableMetaData metadata,
+            EventRow eventRow,
+            LinkedList<RowData> result)
+            throws Exception {
+
+        String eventType = eventRow.getType();
+
+        switch (eventType.toUpperCase()) {
+            case "INSERT":
+                dealOneEventRowData(
+                        columnRowData,
+                        metadata,
+                        eventRow.getAfterColumnList(),
+                        RowKind.INSERT,
+                        result);
+                break;
+            case "UPDATE":
+                dealOneEventRowData(
+                        columnRowData,
+                        metadata,
+                        eventRow.getBeforeColumnList(),
+                        RowKind.UPDATE_BEFORE,
+                        result);
+                dealOneEventRowData(
+                        columnRowData,
+                        metadata,
+                        eventRow.getAfterColumnList(),
+                        RowKind.UPDATE_AFTER,
+                        result);
+                break;
+            case "DELETE":
+                dealOneEventRowData(
+                        columnRowData,
+                        metadata,
+                        eventRow.getBeforeColumnList(),
+                        RowKind.DELETE,
+                        result);
+            default:
+                LOG.info("not support type:" + eventType.toUpperCase());
         }
+    }
 
-        ColumnRowData columnRowData = new ColumnRowData(size);
+    public void dealOneEventRowData(
+            ColumnRowData columnRowData,
+            TableMetaData metadata,
+            List<EventRowData> entryColumnList,
+            RowKind rowKind,
+            LinkedList<RowData> result)
+            throws Exception {
+        ColumnRowData copy = columnRowData.copy();
+        copy.setRowKind(rowKind);
+        List<AbstractBaseColumn> fieldList = new ArrayList<>(entryColumnList.size());
+        List<String> headerList = new ArrayList<>(entryColumnList.size());
+        parseColumnList(
+                converters, metadata.getFieldList(), entryColumnList, fieldList, headerList, "");
+        copy.addAllField(fieldList);
+        copy.addAllHeader(headerList);
+        result.add(copy);
+    }
 
+    /**
+     * 填充column 元数据信息
+     *
+     * @param columnRowData
+     * @param eventRow
+     * @param schema
+     * @param table
+     */
+    public void fillColumnMetaData(
+            ColumnRowData columnRowData, EventRow eventRow, String schema, String table) {
         columnRowData.addField(new BigDecimalColumn(eventRow.getScn()));
-        columnRowData.addHeader(SCN);
+        columnRowData.addHeader(CDCConstantValue.SCN);
+        columnRowData.addExtHeader(CDCConstantValue.SCN);
         columnRowData.addField(new StringColumn(schema));
-        columnRowData.addHeader(SCHEMA);
+        columnRowData.addHeader(CDCConstantValue.SCHEMA);
+        columnRowData.addExtHeader(CDCConstantValue.SCHEMA);
         columnRowData.addField(new StringColumn(table));
-        columnRowData.addHeader(TABLE);
+        columnRowData.addHeader(CDCConstantValue.TABLE);
+        columnRowData.addExtHeader(CDCConstantValue.TABLE);
         columnRowData.addField(new BigDecimalColumn(eventRow.getTs()));
-        columnRowData.addHeader(TS);
+        columnRowData.addHeader(CDCConstantValue.TS);
+        columnRowData.addExtHeader(CDCConstantValue.TS);
         columnRowData.addField(new TimestampColumn(eventRow.getOpTime()));
-        columnRowData.addHeader(OP_TIME);
-
-        List<EventRowData> beforeList = eventRow.getBeforeColumnList();
-        List<EventRowData> afterList = eventRow.getAfterColumnList();
-
-        List<AbstractBaseColumn> beforeFieldList = new ArrayList<>(beforeList.size());
-        List<String> beforeHeaderList = new ArrayList<>(beforeList.size());
-        List<AbstractBaseColumn> afterFieldList = new ArrayList<>(afterList.size());
-        List<String> afterHeaderList = new ArrayList<>(afterList.size());
-
-        if (pavingData) {
-            parseColumnList(
-                    converters,
-                    metadata.getFieldList(),
-                    beforeList,
-                    beforeFieldList,
-                    beforeHeaderList,
-                    BEFORE_);
-            parseColumnList(
-                    converters,
-                    metadata.getFieldList(),
-                    afterList,
-                    afterFieldList,
-                    afterHeaderList,
-                    AFTER_);
-        } else {
-            beforeFieldList.add(new MapColumn(processColumnList(beforeList)));
-            beforeHeaderList.add(BEFORE);
-            afterFieldList.add(new MapColumn(processColumnList(afterList)));
-            afterHeaderList.add(AFTER);
-        }
-
-        // update类型且要拆分
-        if (splitUpdate && "UPDATE".equalsIgnoreCase(eventType)) {
-            ColumnRowData copy = columnRowData.copy();
-            copy.setRowKind(RowKind.UPDATE_BEFORE);
-            copy.addField(new StringColumn(RowKind.UPDATE_BEFORE.name()));
-            copy.addHeader(TYPE);
-            copy.addAllField(beforeFieldList);
-            copy.addAllHeader(beforeHeaderList);
-            result.add(copy);
-
-            columnRowData.setRowKind(RowKind.UPDATE_AFTER);
-            columnRowData.addField(new StringColumn(RowKind.UPDATE_AFTER.name()));
-            columnRowData.addHeader(TYPE);
-        } else {
-            columnRowData.setRowKind(getRowKindByType(eventType));
-            columnRowData.addField(new StringColumn(eventType));
-            columnRowData.addHeader(TYPE);
-            columnRowData.addAllField(beforeFieldList);
-            columnRowData.addAllHeader(beforeHeaderList);
-        }
-        columnRowData.addAllField(afterFieldList);
-        columnRowData.addAllHeader(afterHeaderList);
-
-        result.add(columnRowData);
-
-        return result;
+        columnRowData.addHeader(CDCConstantValue.OP_TIME);
+        columnRowData.addExtHeader(CDCConstantValue.OP_TIME);
     }
 
     /**

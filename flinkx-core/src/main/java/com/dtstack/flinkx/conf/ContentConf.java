@@ -17,6 +17,9 @@
  */
 package com.dtstack.flinkx.conf;
 
+import com.dtstack.flinkx.cdc.CdcConf;
+import com.dtstack.flinkx.mapping.NameMappingConf;
+
 import java.io.Serializable;
 
 /**
@@ -30,6 +33,9 @@ public class ContentConf implements Serializable {
     private OperatorConf reader;
     private OperatorConf writer;
     private TransformerConf transformer;
+    private NameMappingConf nameMapping;
+    /** cdc restore conf */
+    private CdcConf restoration = new CdcConf();
 
     public OperatorConf getReader() {
         return reader;
@@ -55,6 +61,22 @@ public class ContentConf implements Serializable {
         this.transformer = transformer;
     }
 
+    public NameMappingConf getNameMapping() {
+        return nameMapping;
+    }
+
+    public void setNameMapping(NameMappingConf nameMapping) {
+        this.nameMapping = nameMapping;
+    }
+
+    public CdcConf getRestoration() {
+        return restoration;
+    }
+
+    public void setRestoration(CdcConf restoration) {
+        this.restoration = restoration;
+    }
+
     @Override
     public String toString() {
         return "ContentConf{"
@@ -64,6 +86,10 @@ public class ContentConf implements Serializable {
                 + writer
                 + ", transformer="
                 + transformer
+                + ", nameMapping="
+                + nameMapping
+                + ", restoration="
+                + restoration
                 + '}';
     }
 }

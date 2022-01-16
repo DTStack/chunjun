@@ -17,18 +17,21 @@
  */
 package com.dtstack.flinkx.connector.binlog.inputformat;
 
+import com.dtstack.flinkx.cdc.EventType;
 import com.dtstack.flinkx.connector.binlog.conf.BinlogConf;
 import com.dtstack.flinkx.connector.binlog.util.BinlogUtil;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
+import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+import com.dtstack.flinkx.throwable.FlinkxException;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.RetryUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -36,9 +39,9 @@ import org.apache.commons.lang.StringUtils;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 
 /**
  * Date: 2020/12/16 Company: www.dtstack.com
@@ -60,6 +63,22 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter) {
         this.format.setRowConverter(rowConverter);
+    }
+
+    @Override
+    public BaseRichInputFormat finish() {
+        Preconditions.checkNotNull(format);
+        if (format.getConfig().isCheckFormat()) {
+            checkFormat();
+        }
+        if (format.getBinlogConf().isUpdrdb()) {
+            UpdrdbBinlogInputFormat updrdbBinlogInputFormat = new UpdrdbBinlogInputFormat();
+            updrdbBinlogInputFormat.setBinlogConf(format.binlogConf);
+            updrdbBinlogInputFormat.setConfig(format.binlogConf);
+            updrdbBinlogInputFormat.setRowConverter(format.rowConverter);
+            return updrdbBinlogInputFormat;
+        }
+        return format;
     }
 
     @Override
@@ -97,14 +116,13 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
 
         // 校验binlog cat
         if (StringUtils.isNotEmpty(binlogConf.getCat())) {
-            HashSet<String> set = Sets.newHashSet("INSERT", "UPDATE", "DELETE");
             List<String> cats = Lists.newArrayList(binlogConf.getCat().toUpperCase().split(","));
-            cats.removeIf(s -> set.contains(s.toUpperCase(Locale.ENGLISH)));
+            cats.removeIf(s -> EventType.contains(s.toUpperCase(Locale.ENGLISH)));
             if (CollectionUtils.isNotEmpty(cats)) {
                 sb.append("binlog cat not support-> ")
                         .append(GsonUtil.GSON.toJson(cats))
                         .append(",just support->")
-                        .append(GsonUtil.GSON.toJson(set))
+                        .append(GsonUtil.GSON.toJson(EventType.values()))
                         .append(";\n");
             }
         }
@@ -130,13 +148,15 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
         }
 
         ClassUtil.forName(BinlogUtil.DRIVER_NAME, getClass().getClassLoader());
+        Properties properties = new Properties();
+        properties.put("user", binlogConf.getUsername());
+        properties.put("password", binlogConf.getPassword());
+        properties.put("socketTimeout", String.valueOf(binlogConf.getQueryTimeOut()));
+        properties.put("connectTimeout", String.valueOf(binlogConf.getConnectTimeOut()));
+
         try (Connection conn =
                 RetryUtil.executeWithRetry(
-                        () ->
-                                DriverManager.getConnection(
-                                        binlogConf.getJdbcUrl(),
-                                        binlogConf.getUsername(),
-                                        binlogConf.getPassword()),
+                        () -> DriverManager.getConnection(binlogConf.getJdbcUrl(), properties),
                         BinlogUtil.RETRY_TIMES,
                         BinlogUtil.SLEEP_TIME,
                         false)) {
@@ -175,6 +195,67 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
                         .append(GsonUtil.GSON.toJson(failedTable));
             }
 
+            // if (binlogConf.isPavingData() && binlogConf.isSplit()) {
+            //     throw new IllegalArgumentException(
+            //             "can't use pavingData and split at the same time");
+            // }
+
+            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
+            try {
+                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
+            } catch (FlinkxException e) {
+                sb.append(e.getMessage());
+            }
+
+            // updrdb支持多并发
+            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
+                sb.append("binLog can not support channel bigger than 1, current channel is [")
+                        .append(binlogConf.getParallelism())
+                        .append("];\n");
+            }
+
+            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
+            try {
+                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
+            } catch (FlinkxException e) {
+                sb.append(e.getMessage());
+            }
+
+            // updrdb支持多并发
+            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
+                sb.append("binLog can not support channel bigger than 1, current channel is [")
+                        .append(binlogConf.getParallelism())
+                        .append("];\n");
+            }
+
+            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
+            try {
+                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
+            } catch (FlinkxException e) {
+                sb.append(e.getMessage());
+            }
+
+            // updrdb支持多并发
+            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
+                sb.append("binLog can not support channel bigger than 1, current channel is [")
+                        .append(binlogConf.getParallelism())
+                        .append("];\n");
+            }
+
+            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
+            try {
+                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
+            } catch (FlinkxException e) {
+                sb.append(e.getMessage());
+            }
+
+            // updrdb支持多并发
+            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
+                sb.append("binLog can not support channel bigger than 1, current channel is [")
+                        .append(binlogConf.getParallelism())
+                        .append("];\n");
+            }
+
             if (sb.length() > 0) {
                 throw new IllegalArgumentException(sb.toString());
             }
@@ -182,7 +263,7 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
         } catch (SQLException e) {
             StringBuilder detailsInfo = new StringBuilder(sb.length() + 128);
             if (sb.length() > 0) {
-                detailsInfo.append(" binlog config not right，details is  ").append(sb.toString());
+                detailsInfo.append(" binlog config not right，details is  ").append(sb);
             }
             detailsInfo
                     .append(" \n error to check binlog config, e = ")

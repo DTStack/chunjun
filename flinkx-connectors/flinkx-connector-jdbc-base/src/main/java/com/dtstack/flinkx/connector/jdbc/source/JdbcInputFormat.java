@@ -329,8 +329,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
 
         // 将累加器信息添加至prometheus
-        customReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
-        customReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+        if (useCustomReporter()) {
+            customReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
+            customReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
+        }
         getRuntimeContext().addAccumulator(start, startLocationAccumulator);
         getRuntimeContext().addAccumulator(end, endLocationAccumulator);
     }
@@ -843,7 +845,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     /** 使用自定义的指标输出器把增量指标打到普罗米修斯 */
     @Override
     protected boolean useCustomReporter() {
-        return jdbcConf.isIncrement();
+        return jdbcConf.isIncrement() && jdbcConf.getInitReporter();
     }
 
     /** 为了保证增量数据的准确性，指标输出失败时使任务失败 */

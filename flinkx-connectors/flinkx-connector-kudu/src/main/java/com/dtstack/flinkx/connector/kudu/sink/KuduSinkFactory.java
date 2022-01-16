@@ -51,6 +51,7 @@ public class KuduSinkFactory extends SinkFactory {
                 JsonUtil.toObject(
                         JsonUtil.toJson(syncConf.getWriter().getParameter()), KuduSinkConf.class);
         sinkConf.setColumn(syncConf.getWriter().getFieldList());
+        sinkConf.setKerberos(sinkConf.conventHadoopConfig());
         super.initFlinkxCommonConf(sinkConf);
     }
 

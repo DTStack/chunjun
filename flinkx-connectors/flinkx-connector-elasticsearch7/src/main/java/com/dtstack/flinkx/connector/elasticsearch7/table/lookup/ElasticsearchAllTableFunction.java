@@ -18,12 +18,13 @@
 
 package com.dtstack.flinkx.connector.elasticsearch7.table.lookup;
 
-import com.dtstack.flinkx.connector.elasticsearch7.conf.ElasticsearchConf;
-import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchRequestHelper;
-import com.dtstack.flinkx.connector.elasticsearch7.utils.ElasticsearchUtil;
+import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7ClientFactory;
+import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7RequestFactory;
+import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.lookup.AbstractAllTableFunction;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 
 import org.apache.flink.table.data.GenericRowData;
 
@@ -36,6 +37,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +54,7 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
     private final ElasticsearchConf elasticsearchConf;
     Logger LOG = LoggerFactory.getLogger(ElasticsearchAllTableFunction.class);
     private transient RestHighLevelClient rhlClient;
+    private static String SORT_COLUMN = "_id";
 
     public ElasticsearchAllTableFunction(
             ElasticsearchConf elasticsearchConf,
@@ -68,30 +71,36 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
 
-        rhlClient = ElasticsearchUtil.createClient(elasticsearchConf);
-        SearchRequest requestBuilder = buildSearchRequest();
-
+        rhlClient = Elasticsearch7ClientFactory.createClient(elasticsearchConf, null);
+        SearchRequest requestBuilder = buildSearchRequest(null);
         SearchResponse searchResponse;
         SearchHit[] searchHits;
         try {
             searchResponse = rhlClient.search(requestBuilder, RequestOptions.DEFAULT);
             searchHits = searchResponse.getHits().getHits();
-            for (SearchHit searchHit : searchHits) {
-                Map<String, Object> oneRow = new HashMap<>();
-                Map<String, Object> source = searchHit.getSourceAsMap();
-                try {
-                    GenericRowData rowData = (GenericRowData) rowConverter.toInternal(source);
-                    for (int i = 0; i < fieldsName.length; i++) {
-                        Object object = rowData.getField(i);
-                        oneRow.put(fieldsName[i].trim(), object);
+            while (searchHits != null && searchHits.length > 0) {
+                for (SearchHit searchHit : searchHits) {
+                    Map<String, Object> oneRow = new HashMap<>();
+                    Map<String, Object> source = searchHit.getSourceAsMap();
+                    try {
+                        GenericRowData rowData = (GenericRowData) rowConverter.toInternal(source);
+                        for (int i = 0; i < fieldsName.length; i++) {
+                            Object object = rowData.getField(i);
+                            oneRow.put(fieldsName[i].trim(), object);
+                        }
+                        buildCache(oneRow, tmpCache);
+                    } catch (Exception e) {
+                        LOG.error("error:{} \n  data:{}", e.getMessage(), source);
                     }
-                    buildCache(oneRow, tmpCache);
-                } catch (Exception e) {
-                    LOG.error("error:{} \n  data:{}", e.getMessage(), source);
                 }
+                requestBuilder =
+                        buildSearchRequest(searchHits[searchHits.length - 1].getSortValues());
+                searchResponse = rhlClient.search(requestBuilder, RequestOptions.DEFAULT);
+                searchHits = searchResponse.getHits().getHits();
             }
-        } catch (Exception e) {
-            LOG.error("", e);
+
+        } catch (IOException e) {
+            throw new FlinkxRuntimeException(e);
         }
     }
 
@@ -100,11 +109,22 @@ public class ElasticsearchAllTableFunction extends AbstractAllTableFunction {
      *
      * @return
      */
-    private SearchRequest buildSearchRequest() {
+    private SearchRequest buildSearchRequest(Object[] searchAfter) {
         SearchSourceBuilder sourceBuilder =
-                ElasticsearchRequestHelper.createSourceBuilder(fieldsName, null, null);
-        sourceBuilder.size(lookupConf.getFetchSize());
-        return ElasticsearchRequestHelper.createSearchRequest(
+                Elasticsearch7RequestFactory.createSourceBuilder(fieldsName, null, null);
+        sourceBuilder.size(lookupConf.getFetchSize()).sort(SORT_COLUMN);
+        if (searchAfter != null) {
+            sourceBuilder.searchAfter(searchAfter);
+        }
+        return Elasticsearch7RequestFactory.createSearchRequest(
                 elasticsearchConf.getIndex(), null, sourceBuilder);
+    }
+
+    @Override
+    public void close() throws Exception {
+        super.close();
+        if (rhlClient != null) {
+            rhlClient.close();
+        }
     }
 }

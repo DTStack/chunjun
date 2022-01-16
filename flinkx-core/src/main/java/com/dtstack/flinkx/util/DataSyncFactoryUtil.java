@@ -18,11 +18,13 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.cdc.monitor.MonitorConf;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
+import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
 import com.dtstack.flinkx.classloader.ClassLoaderManager;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.MetricParam;
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.dirty.DirtyConf;
 import com.dtstack.flinkx.dirty.consumer.DirtyDataCollector;
 import com.dtstack.flinkx.enums.OperatorType;
@@ -33,12 +35,8 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.NoRestartException;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.configuration.ConfigUtils;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.Set;
@@ -50,43 +48,34 @@ import java.util.Set;
  */
 public class DataSyncFactoryUtil {
 
-    private static final String DIRTY_PACKAGE_STR = "com.dtstack.flinkx.dirty";
-
     public static SourceFactory discoverSource(SyncConf config, StreamExecutionEnvironment env) {
         try {
             String pluginName = config.getJob().getReader().getName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.source);
-            Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(
-                            pluginName,
-                            config.getPluginRoot()
-                                    + File.separatorChar
-                                    + ConstantValue.CONNECTOR_DIR_NAME,
-                            null);
-            urlList.addAll(
-                    PluginUtil.getJarFileDirPath(
-                            PluginUtil.FORMATS_SUFFIX, config.getPluginRoot(), null));
-            ConfigUtils.encodeCollectionToConfig(
-                    (Configuration)
-                            ReflectionUtils.getDeclaredMethod(env, "getConfiguration").invoke(env),
-                    PipelineOptions.JARS,
-                    urlList,
-                    URL::toString);
-            ConfigUtils.encodeCollectionToConfig(
-                    (Configuration)
-                            ReflectionUtils.getDeclaredMethod(env, "getConfiguration").invoke(env),
-                    PipelineOptions.CLASSPATHS,
-                    urlList,
-                    URL::toString);
-
             return ClassLoaderManager.newInstance(
-                    urlList,
+                    config.getSyncJarList(),
                     cl -> {
                         Class<?> clazz = cl.loadClass(pluginClassName);
                         Constructor<?> constructor =
                                 clazz.getConstructor(
                                         SyncConf.class, StreamExecutionEnvironment.class);
                         return (SourceFactory) constructor.newInstance(config, env);
+                    });
+        } catch (Exception e) {
+            throw new FlinkxRuntimeException(e);
+        }
+    }
+
+    public static SinkFactory discoverSink(SyncConf config) {
+        try {
+            String pluginName = config.getJob().getContent().get(0).getWriter().getName();
+            String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.sink);
+            return ClassLoaderManager.newInstance(
+                    config.getSyncJarList(),
+                    cl -> {
+                        Class<?> clazz = cl.loadClass(pluginClassName);
+                        Constructor<?> constructor = clazz.getConstructor(SyncConf.class);
+                        return (SinkFactory) constructor.newInstance(config);
                     });
         } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
@@ -102,7 +91,7 @@ public class DataSyncFactoryUtil {
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.metric);
             Set<URL> urlList =
                     PluginUtil.getJarFileDirPath(
-                            pluginName, flinkxCommonConf.getMetricPluginRoot(), null);
+                            pluginName, flinkxCommonConf.getMetricPluginRoot(), null, "");
             MetricParam metricParam =
                     new MetricParam(
                             context,
@@ -120,39 +109,12 @@ public class DataSyncFactoryUtil {
         }
     }
 
-    public static SinkFactory discoverSink(SyncConf config) {
-        try {
-            String pluginName = config.getJob().getContent().get(0).getWriter().getName();
-            String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.sink);
-            Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(
-                            pluginName,
-                            config.getPluginRoot()
-                                    + File.separatorChar
-                                    + ConstantValue.CONNECTOR_DIR_NAME,
-                            null);
-            urlList.addAll(
-                    PluginUtil.getJarFileDirPath(
-                            PluginUtil.FORMATS_SUFFIX, config.getPluginRoot(), null));
-
-            return ClassLoaderManager.newInstance(
-                    urlList,
-                    cl -> {
-                        Class<?> clazz = cl.loadClass(pluginClassName);
-                        Constructor<?> constructor = clazz.getConstructor(SyncConf.class);
-                        return (SinkFactory) constructor.newInstance(config);
-                    });
-        } catch (Exception e) {
-            throw new FlinkxRuntimeException(e);
-        }
-    }
-
     public static DirtyDataCollector discoverDirty(DirtyConf conf) {
         try {
             String pluginName = conf.getType();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.dirty);
             Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginName, conf.getLocalPluginPath(), null);
+                    PluginUtil.getJarFileDirPath(pluginName, conf.getLocalPluginPath(), null, "");
 
             final DirtyDataCollector consumer =
                     ClassLoaderManager.newInstance(
@@ -166,6 +128,47 @@ public class DataSyncFactoryUtil {
             return consumer;
         } catch (Exception e) {
             throw new NoRestartException("Load dirty plugins failed!", e);
+        }
+    }
+
+    public static FetcherBase discoverFetcher(MonitorConf fetcherConf, SyncConf config) {
+        try {
+            String pluginType = fetcherConf.getType();
+            String fetcherPluginClassName =
+                    PluginUtil.getPluginClassName(pluginType, OperatorType.fetcher);
+
+            Set<URL> urlList =
+                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null, "");
+
+            return ClassLoaderManager.newInstance(
+                    urlList,
+                    cl -> {
+                        Class<?> clazz = cl.loadClass(fetcherPluginClassName);
+                        Constructor<?> constructor = clazz.getConstructor(MonitorConf.class);
+                        return (FetcherBase) constructor.newInstance(fetcherConf);
+                    });
+        } catch (Exception e) {
+            throw new NoRestartException("Load restore plugins failed!", e);
+        }
+    }
+
+    public static StoreBase discoverStore(MonitorConf storeConf, SyncConf config) {
+        try {
+            String pluginType = storeConf.getType();
+            String storePluginClassName =
+                    PluginUtil.getPluginClassName(pluginType, OperatorType.store);
+            Set<URL> urlList =
+                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null, "");
+
+            return ClassLoaderManager.newInstance(
+                    urlList,
+                    cl -> {
+                        Class<?> clazz = cl.loadClass(storePluginClassName);
+                        Constructor<?> constructor = clazz.getConstructor(MonitorConf.class);
+                        return (StoreBase) constructor.newInstance(storeConf);
+                    });
+        } catch (Exception e) {
+            throw new NoRestartException("Load restore plugins failed!", e);
         }
     }
 }

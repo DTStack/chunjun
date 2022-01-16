@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.binlog.converter;
 
+import com.dtstack.flinkx.cdc.DdlRowData;
+import com.dtstack.flinkx.cdc.DdlRowDataBuilder;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
@@ -47,6 +49,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.dtstack.flinkx.constants.CDCConstantValue.AFTER;
+import static com.dtstack.flinkx.constants.CDCConstantValue.AFTER_;
+import static com.dtstack.flinkx.constants.CDCConstantValue.BEFORE;
+import static com.dtstack.flinkx.constants.CDCConstantValue.BEFORE_;
+import static com.dtstack.flinkx.constants.CDCConstantValue.OP_TIME;
+import static com.dtstack.flinkx.constants.CDCConstantValue.SCHEMA;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TABLE;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TS;
+import static com.dtstack.flinkx.constants.CDCConstantValue.TYPE;
+
 /**
  * Date: 2021/04/29 Company: www.dtstack.com
  *
@@ -56,11 +68,10 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
 
     public BinlogColumnConverter(boolean pavingData, boolean splitUpdate) {
         super.pavingData = pavingData;
-        super.splitUpdate = splitUpdate;
+        super.split = splitUpdate;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public LinkedList<RowData> toInternal(BinlogEventRow binlogEventRow) throws Exception {
         LinkedList<RowData> result = new LinkedList<>();
         CanalEntry.RowChange rowChange = binlogEventRow.getRowChange();
@@ -69,6 +80,13 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
         String table = binlogEventRow.getTable();
         String key = schema + ConstantValue.POINT_SYMBOL + table;
         List<IDeserializationConverter> converters = super.cdcConverterCacheMap.get(key);
+
+        if (rowChange.getIsDdl()) {
+            // 处理 ddl rowChange
+            DdlRowData ddlRowData = swapEventToDdlRowData(binlogEventRow);
+            result.add(ddlRowData);
+        }
+
         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
             if (converters == null) {
                 List<CanalEntry.Column> list = rowData.getBeforeColumnsList();
@@ -127,7 +145,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             }
 
             // update类型且要拆分
-            if (splitUpdate && CanalEntry.EventType.UPDATE == rowChange.getEventType()) {
+            if (split && CanalEntry.EventType.UPDATE == rowChange.getEventType()) {
                 ColumnRowData copy = columnRowData.copy();
                 copy.setRowKind(RowKind.UPDATE_BEFORE);
                 copy.addField(new StringColumn(RowKind.UPDATE_BEFORE.name()));
@@ -252,5 +270,21 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             map.put(column.getName(), column.getValue());
         }
         return map;
+    }
+
+    /**
+     * 将 binlogEventRow {@link BinlogEventRow} 转化为 ddlRowData {@link DdlRowData}
+     *
+     * @param binlogEventRow binlog 事件数据
+     * @return ddl row-data
+     */
+    private DdlRowData swapEventToDdlRowData(BinlogEventRow binlogEventRow) {
+        return DdlRowDataBuilder.builder()
+                .setDatabaseName(binlogEventRow.getSchema())
+                .setTableName(binlogEventRow.getTable())
+                .setContent(binlogEventRow.getRowChange().getSql())
+                .setType(binlogEventRow.getRowChange().getEventType().name())
+                .setLsn(String.valueOf(binlogEventRow.getExecuteTime()))
+                .build();
     }
 }

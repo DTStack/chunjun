@@ -17,6 +17,10 @@
  */
 package com.dtstack.flinkx;
 
+import com.dtstack.flinkx.cdc.CdcConf;
+import com.dtstack.flinkx.cdc.RestorationFlatMap;
+import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
+import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -25,6 +29,8 @@ import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.enums.EJobType;
 import com.dtstack.flinkx.environment.EnvFactory;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
+import com.dtstack.flinkx.mapping.NameMappingConf;
+import com.dtstack.flinkx.mapping.NameMappingFlatMap;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.sink.SinkFactory;
@@ -165,8 +171,21 @@ public class Main {
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
         DataStream<RowData> dataStreamSource = sourceFactory.createSource();
 
+        if (!config.getCdcConf().isSkipDDL()) {
+            CdcConf cdcConf = config.getCdcConf();
+            FetcherBase fetcher = DataSyncFactoryUtil.discoverFetcher(cdcConf.getMonitor(), config);
+            StoreBase store = DataSyncFactoryUtil.discoverStore(cdcConf.getMonitor(), config);
+            dataStreamSource =
+                    dataStreamSource.flatMap(new RestorationFlatMap(fetcher, store, cdcConf));
+        }
+
+        if (config.getNameMappingConf() != null) {
+            NameMappingConf mappingConf = config.getNameMappingConf();
+            dataStreamSource = dataStreamSource.flatMap(new NameMappingFlatMap(mappingConf));
+        }
+
         SpeedConf speed = config.getSpeed();
-        if (speed.getReaderChannel() > 0) {
+        if (speed.getReaderChannel() > 1) {
             dataStreamSource =
                     ((DataStreamSource<RowData>) dataStreamSource)
                             .setParallelism(speed.getReaderChannel());
@@ -293,8 +312,10 @@ public class Main {
             factoryHelper.setEnv(env);
 
             DirtyConf dirtyConf = DirtyConfUtil.parse(options);
-            factoryHelper.registerDirtyFile(
-                    dirtyConf.getType(), Thread.currentThread().getContextClassLoader(), true);
+            factoryHelper.registerCachedFile(
+                    dirtyConf.getType(),
+                    Thread.currentThread().getContextClassLoader(),
+                    ConstantValue.DIRTY_DATA_DIR_NAME);
 
             FactoryUtil.setFactoryUtilHelp(factoryHelper);
             TableFactoryService.setFactoryUtilHelp(factoryHelper);

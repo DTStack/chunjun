@@ -21,10 +21,13 @@ package com.dtstack.flinkx.connector.sqlserver.sink;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverJtdsRawTypeConverter;
 import com.dtstack.flinkx.connector.sqlserver.converter.SqlserverMicroSoftRawTypeConverter;
 import com.dtstack.flinkx.connector.sqlserver.dialect.SqlserverDialect;
 import com.dtstack.flinkx.converter.RawTypeConverter;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Company：www.dtstack.com
@@ -53,5 +56,15 @@ public class SqlserverSinkFactory extends JdbcSinkFactory {
             return SqlserverJtdsRawTypeConverter::apply;
         }
         return SqlserverMicroSoftRawTypeConverter::apply;
+    }
+
+    /** table字段有可能是[schema].[table]格式 需要转换为对应的schema 和 table 字段* */
+    @Override
+    protected void resetTableInfo() {
+        if (jdbcConf.getTable().startsWith("[")
+                && jdbcConf.getTable().endsWith("]")
+                && StringUtils.isBlank(jdbcConf.getSchema())) {
+            JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        }
     }
 }

@@ -72,6 +72,10 @@ public class AsyncHBaseSerde extends HBaseSerde {
                     // get quantifier key
                     byte[] qualifier = qualifiers[f][q];
                     // read value
+                    if (result.get(new String(familyKey)) == null) {
+                        familyRow.setField(q, null);
+                        continue;
+                    }
                     byte[] value = result.get(new String(familyKey)).get(new String(qualifier));
                     familyRow.setField(q, qualifierDecoders[f][q].decode(value));
                 }

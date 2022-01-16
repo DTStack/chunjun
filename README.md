@@ -46,8 +46,9 @@ The following databases are currently supported:
 |                        | Database Type  | Source                          | Sink                          | Lookup
 |:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|:-------------------------------:|
 | Batch Synchronization  | MySQL          | [doc](docs/connectors/mysql/mysql-source.md)        | [doc](docs/connectors/mysql/mysql-sink.md)      |[doc](docs/connectors/mysql/mysql-lookup.md)      |
-|                        | TiDB           |                                                     | reference mysql                                 |reference mysql                                   |   
+|                        | TiDB           || reference mysql                                 |reference mysql                                   |   
 |                        | Oracle         | [doc](docs/connectors/oracle/oracle-source.md)       | [doc](docs/connectors/oracle/oracle-sink.md)     |[doc](docs/connectors/oracle/oracle-lookup.md)      |
+|                        | Doris          |                                 | [doc](docs/connectors/doris/dorisbatch-sink.md)     |                    |
 |                        | SqlServer      | [doc](docs/connectors/sqlserver/sqlserver-source.md)    | [doc](docs/connectors/sqlserver/sqlserver-sink.md)  |[doc](docs/connectors/sqlserver/sqlserver-lookup.md)
 |                        | PostgreSQL     | [doc](docs/connectors/postgres/postgres-source.md) | [doc](docs/connectors/postgres/postgres-sink.md) | [doc](docs/connectors/postgres/postgres-lookup.md) |
 |                        | DB2            | [doc](docs/connectors/db2/db2-source.md)          | [doc](docs/connectors/db2/db2-sink.md)        | [doc](docs/connectors/db2/db2-lookup.md)

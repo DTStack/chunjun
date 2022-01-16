@@ -45,6 +45,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -134,12 +135,11 @@ public class RedisRowConverter
             toExternalConverters.get(index).serialize(rowData, index, fieldValue);
         }
 
-        Map<String, Object> collect =
-                fieldNames.stream()
-                        .collect(
-                                Collectors.toMap(
-                                        key -> key,
-                                        key -> fieldValue.get(fieldNames.indexOf(key))));
+        Map<String, Object> collect = new HashMap<>();
+        fieldNames.forEach(
+                key -> {
+                    collect.put(key, fieldValue.get(fieldNames.indexOf(key)));
+                });
         String key = buildCacheKey(collect);
         collect.forEach((field, value) -> jedis.hset(key, field, String.valueOf(value)));
 

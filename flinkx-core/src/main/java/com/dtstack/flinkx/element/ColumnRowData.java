@@ -37,8 +37,10 @@ import com.google.common.collect.Maps;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Date: 2021/04/26 Company: www.dtstack.com
@@ -50,6 +52,7 @@ public final class ColumnRowData implements RowData, Serializable {
     private static final long serialVersionUID = 1L;
     private final List<AbstractBaseColumn> columnList;
     private Map<String, Integer> header;
+    private Set<String> extHeader = new HashSet<>();
 
     private RowKind kind;
 
@@ -66,15 +69,50 @@ public final class ColumnRowData implements RowData, Serializable {
 
     public void addHeader(String name) {
         if (this.header == null) {
-            this.header = Maps.newHashMapWithExpectedSize(this.columnList.size());
+            this.header = Maps.newLinkedHashMap();
         }
         this.header.put(name, this.header.size());
+    }
+
+    public void replaceHeader(String original, String another) {
+        if (this.header == null || !this.header.containsKey(original)) {
+            addHeader(another);
+            return;
+        }
+        Integer value = this.header.get(original);
+        this.header.remove(original);
+        this.header.put(another, value);
+    }
+
+    public void addExtHeader(String name) {
+        this.extHeader.add(name);
+    }
+
+    public boolean isExtHeader(String name) {
+        return extHeader.contains(name);
+    }
+
+    public Set<String> getExtHeader() {
+        return extHeader;
     }
 
     public void addAllHeader(List<String> list) {
         for (String name : list) {
             this.addHeader(name);
         }
+    }
+
+    public Map<String, Integer> getHeaderInfo() {
+        return header;
+    }
+
+    public void removeExtHeaderInfo() {
+        List<AbstractBaseColumn> needToRemove = new ArrayList<>();
+        for (String key : extHeader) {
+            Integer index = header.remove(key);
+            needToRemove.add(columnList.get(index));
+        }
+        columnList.removeAll(needToRemove);
     }
 
     public String[] getHeaders() {

@@ -22,16 +22,18 @@ import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.util.ExceptionUtil;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisSentinelPool;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
@@ -64,7 +66,7 @@ public class RedisSyncClient {
     }
 
     private JedisCommands getJedisInner() {
-        GenericObjectPoolConfig poolConfig = getConfig();
+        JedisPoolConfig poolConfig = getConfig();
         String[] nodes = StringUtils.split(redisConf.getHostPort(), ",");
 
         switch (redisConf.getRedisConnectType()) {
@@ -77,7 +79,7 @@ public class RedisSyncClient {
                     firstPort = standalone.group("port").trim();
                     firstPort = firstPort == null ? REDIS_DEFAULT_PORT.defaultValue() : firstPort;
                 }
-                if (Objects.nonNull(firstIp)) {
+                if (Objects.nonNull(firstIp) && pool == null) {
                     pool =
                             new JedisPool(
                                     poolConfig,
@@ -95,15 +97,16 @@ public class RedisSyncClient {
                 break;
             case SENTINEL:
                 Set<String> ipPorts = new HashSet<>(Arrays.asList(nodes));
-                jedisSentinelPool =
-                        new JedisSentinelPool(
-                                redisConf.getMasterName(),
-                                ipPorts,
-                                poolConfig,
-                                redisConf.getTimeout(),
-                                redisConf.getPassword(),
-                                redisConf.getDatabase());
-
+                if (jedisSentinelPool == null) {
+                    jedisSentinelPool =
+                            new JedisSentinelPool(
+                                    redisConf.getMasterName(),
+                                    ipPorts,
+                                    poolConfig,
+                                    redisConf.getTimeout(),
+                                    redisConf.getPassword(),
+                                    redisConf.getDatabase());
+                }
                 jedis = jedisSentinelPool.getResource();
                 break;
             case CLUSTER:
@@ -138,6 +141,26 @@ public class RedisSyncClient {
         return jedis;
     }
 
+    /**
+     * test jedis client whether is in active or not,if not,close and get a new jedis client
+     *
+     * @param jedis
+     * @param key
+     * @return
+     * @throws IOException
+     */
+    public JedisCommands testTimeout(JedisCommands jedis, String key) throws IOException {
+        try {
+            jedis.exists(key);
+            return jedis;
+        } catch (JedisConnectionException e) {
+            if (jedis != null) {
+                closeJedis(jedis);
+            }
+            return pool.getResource();
+        }
+    }
+
     public JedisCommands getJedis() {
         JedisCommands jedisInner = null;
         for (int i = 0; i <= 2; i++) {
@@ -167,6 +190,18 @@ public class RedisSyncClient {
         return jedisInner;
     }
 
+    public void closeJedis(JedisCommands jedis) {
+        try {
+            if (jedis != null) {
+                if (jedis instanceof Closeable) {
+                    ((Closeable) jedis).close();
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("close jedis error", e);
+        }
+    }
+
     public void close(JedisCommands jedis) {
         try {
             if (jedis != null) {
@@ -185,11 +220,13 @@ public class RedisSyncClient {
         }
     }
 
-    private GenericObjectPoolConfig getConfig() {
-        GenericObjectPoolConfig jedisPoolConfig = new GenericObjectPoolConfig();
-        jedisPoolConfig.setMaxIdle(redisConf.getMaxIdle());
+    private JedisPoolConfig getConfig() {
+        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
         jedisPoolConfig.setMaxTotal(redisConf.getMaxTotal());
+        jedisPoolConfig.setMaxIdle(redisConf.getMaxIdle());
         jedisPoolConfig.setMinIdle(redisConf.getMinIdle());
+        jedisPoolConfig.setTestOnBorrow(true);
+        jedisPoolConfig.setTestOnReturn(true);
         return jedisPoolConfig;
     }
 }

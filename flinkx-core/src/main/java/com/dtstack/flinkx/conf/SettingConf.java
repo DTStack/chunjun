@@ -18,6 +18,7 @@
 package com.dtstack.flinkx.conf;
 
 import java.io.Serializable;
+import java.util.StringJoiner;
 
 /**
  * Date: 2021/01/18 Company: www.dtstack.com
@@ -90,19 +91,13 @@ public class SettingConf implements Serializable {
 
     @Override
     public String toString() {
-        return "SettingConf{"
-                + "speed="
-                + speed
-                + ", errorLimit="
-                + errorLimit
-                + ", metricPluginConf="
-                + metricPluginConf
-                + ", restore="
-                + restore
-                + ", restart="
-                + restart
-                + ", log="
-                + log
-                + '}';
+        return new StringJoiner(", ", SettingConf.class.getSimpleName() + "[", "]")
+                .add("speed=" + speed)
+                .add("errorLimit=" + errorLimit)
+                .add("metricPluginConf=" + metricPluginConf)
+                .add("restore=" + restore)
+                .add("restart=" + restart)
+                .add("log=" + log)
+                .toString();
     }
 }

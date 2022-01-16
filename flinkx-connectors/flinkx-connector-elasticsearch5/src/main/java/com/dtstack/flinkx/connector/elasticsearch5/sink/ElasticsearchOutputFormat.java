@@ -45,22 +45,16 @@ import java.util.Map;
  * @create: 2021/06/27 23:50
  */
 public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
-    /**
-     * Elasticsearch Configuration
-     */
+    /** Elasticsearch Configuration */
     private ElasticsearchConf elasticsearchConf;
 
-    /**
-     * Elasticsearch High Level Client
-     */
+    /** Elasticsearch High Level Client */
     private transient TransportClient client;
 
     private transient BulkRequest bulkRequest;
 
     @Override
-    protected void preCommit() throws Exception {
-
-    }
+    protected void preCommit() throws Exception {}
 
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
@@ -71,15 +65,18 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
                 case UPDATE_AFTER:
                     docWriteRequest = processUpsert(rowData);
                     if (docWriteRequest instanceof IndexRequest) {
-                        client.index((IndexRequest) docWriteRequest).actionGet(elasticsearchConf.getActionTimeout());
+                        client.index((IndexRequest) docWriteRequest)
+                                .actionGet(elasticsearchConf.getActionTimeout());
                     } else {
-                        client.update((UpdateRequest) docWriteRequest).actionGet(elasticsearchConf.getActionTimeout());
+                        client.update((UpdateRequest) docWriteRequest)
+                                .actionGet(elasticsearchConf.getActionTimeout());
                     }
                     break;
                 case DELETE:
                 case UPDATE_BEFORE:
                     docWriteRequest = processDelete(rowData);
-                    client.delete((DeleteRequest) docWriteRequest).actionGet(elasticsearchConf.getActionTimeout());
+                    client.delete((DeleteRequest) docWriteRequest)
+                            .actionGet(elasticsearchConf.getActionTimeout());
                     break;
                 default:
                     throw new RuntimeException("Unsupported row kind.");
@@ -109,9 +106,9 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
                 default:
                     throw new RuntimeException("Unsupported row kind.");
             }
-
         }
-        BulkResponse response = client.bulk(bulkRequest).actionGet(elasticsearchConf.getActionTimeout());
+        BulkResponse response =
+                client.bulk(bulkRequest).actionGet(elasticsearchConf.getActionTimeout());
         if (response.hasFailures()) {
             processFailResponse(response);
         }
@@ -121,10 +118,12 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
         BulkItemResponse[] itemResponses = response.getItems();
         WriteRecordException exception;
         for (int i = 0; i < itemResponses.length; i++) {
-            if(itemResponses[i].isFailed()){
-                if (dirtyDataManager != null){
-                    exception = new WriteRecordException(itemResponses[i].getFailureMessage()
-                            ,itemResponses[i].getFailure().getCause());
+            if (itemResponses[i].isFailed()) {
+                if (dirtyDataManager != null) {
+                    exception =
+                            new WriteRecordException(
+                                    itemResponses[i].getFailureMessage(),
+                                    itemResponses[i].getFailure().getCause());
                     dirtyDataManager.writeData(rows.get(i), exception);
                 }
 
@@ -155,44 +154,44 @@ public class ElasticsearchOutputFormat extends BaseRichOutputFormat {
         this.elasticsearchConf = elasticsearchConf;
     }
 
-    private DocWriteRequest processUpsert(RowData rowData) throws Exception{
-        Map<String, Object> message = (Map<String, Object>) rowConverter.toExternal(rowData, new HashMap<String, Object>());
-
+    private DocWriteRequest processUpsert(RowData rowData) throws Exception {
+        Map<String, Object> message =
+                (Map<String, Object>)
+                        rowConverter.toExternal(rowData, new HashMap<String, Object>());
 
         if (elasticsearchConf.getIds() == null || elasticsearchConf.getIds().size() == 0) {
-            IndexRequest indexRequest = ElasticsearchRequestHelper.createIndexRequest(
-                    elasticsearchConf.getIndex(),
-                    elasticsearchConf.getType(),
-                    message
-            );
+            IndexRequest indexRequest =
+                    ElasticsearchRequestHelper.createIndexRequest(
+                            elasticsearchConf.getIndex(), elasticsearchConf.getType(), message);
             return indexRequest;
         } else {
-            final String key = ElasticsearchUtil.generateDocId(elasticsearchConf.getIds(),
-                    message,
-                    elasticsearchConf.getKeyDelimiter());
+            final String key =
+                    KeyExtractor.generateDocId(
+                            elasticsearchConf.getIds(),
+                            message,
+                            elasticsearchConf.getKeyDelimiter());
 
-            UpdateRequest updateRequest = ElasticsearchRequestHelper.createUpdateRequest(
-                    elasticsearchConf.getIndex(),
-                    elasticsearchConf.getType(),
-                    key,
-                    message
-            );
+            UpdateRequest updateRequest =
+                    ElasticsearchRequestHelper.createUpdateRequest(
+                            elasticsearchConf.getIndex(),
+                            elasticsearchConf.getType(),
+                            key,
+                            message);
             return updateRequest;
         }
     }
 
     private DeleteRequest processDelete(RowData rowData) throws Exception {
-        Map<String, Object> message = (Map<String, Object>) rowConverter.toExternal(rowData, new HashMap<String, Object>());
+        Map<String, Object> message =
+                (Map<String, Object>)
+                        rowConverter.toExternal(rowData, new HashMap<String, Object>());
 
-        final String key = ElasticsearchUtil.generateDocId(elasticsearchConf.getIds(),
-                message,
-                elasticsearchConf.getKeyDelimiter());
-        DeleteRequest deleteRequest = ElasticsearchRequestHelper.createDeleteRequest(
-                elasticsearchConf.getIndex(),
-                elasticsearchConf.getType(),
-                key
-        );
+        final String key =
+                KeyExtractor.generateDocId(
+                        elasticsearchConf.getIds(), message, elasticsearchConf.getKeyDelimiter());
+        DeleteRequest deleteRequest =
+                ElasticsearchRequestHelper.createDeleteRequest(
+                        elasticsearchConf.getIndex(), elasticsearchConf.getType(), key);
         return deleteRequest;
     }
-
 }
