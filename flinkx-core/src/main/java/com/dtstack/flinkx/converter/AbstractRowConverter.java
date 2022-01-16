@@ -92,7 +92,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
                 try {
                     return IDeserializationConverter.deserialize(val);
                 } catch (Exception e) {
-                    LOG.error("value [{}] convent failed ", val);
+                    LOG.error("value [{}] convent failed ", val, e);
                     throw e;
                 }
             }

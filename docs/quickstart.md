@@ -11,7 +11,7 @@ cd flinkx
 在flinkx home目录下执行
 
 ```bash
-mvn clean package -DskipTests 
+mvn -T 4 clean package -DskipTests 
 ```
 或者执行
 ```bash
