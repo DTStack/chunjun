@@ -66,6 +66,7 @@ import org.apache.flink.table.types.DataType;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,10 +172,12 @@ public class Main {
 
         if (!config.getCdcConf().isSkipDDL()) {
             CdcConf cdcConf = config.getCdcConf();
-            FetcherBase fetcher = DataSyncFactoryUtil.discoverFetcher(cdcConf.getMonitor(), config);
-            StoreBase store = DataSyncFactoryUtil.discoverStore(cdcConf.getMonitor(), config);
+            Pair<FetcherBase, StoreBase> monitorPair =
+                    DataSyncFactoryUtil.discoverMonitor(cdcConf.getMonitor(), config);
             dataStreamSource =
-                    dataStreamSource.flatMap(new RestorationFlatMap(fetcher, store, cdcConf));
+                    dataStreamSource.flatMap(
+                            new RestorationFlatMap(
+                                    monitorPair.getLeft(), monitorPair.getRight(), cdcConf));
         }
 
         if (config.getNameMappingConf() != null) {

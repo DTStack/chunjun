@@ -37,6 +37,8 @@ import com.dtstack.flinkx.throwable.NoRestartException;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.Set;
@@ -131,42 +133,36 @@ public class DataSyncFactoryUtil {
         }
     }
 
-    public static FetcherBase discoverFetcher(MonitorConf fetcherConf, SyncConf config) {
+    public static Pair<FetcherBase, StoreBase> discoverMonitor(
+            MonitorConf monitorConf, SyncConf syncConf) {
         try {
-            String pluginType = fetcherConf.getType();
-            String fetcherPluginClassName =
-                    PluginUtil.getPluginClassName(pluginType, OperatorType.fetcher);
-
-            Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null, "");
-
-            return ClassLoaderManager.newInstance(
-                    urlList,
-                    cl -> {
-                        Class<?> clazz = cl.loadClass(fetcherPluginClassName);
-                        Constructor<?> constructor = clazz.getConstructor(MonitorConf.class);
-                        return (FetcherBase) constructor.newInstance(fetcherConf);
-                    });
-        } catch (Exception e) {
-            throw new NoRestartException("Load restore plugins failed!", e);
-        }
-    }
-
-    public static StoreBase discoverStore(MonitorConf storeConf, SyncConf config) {
-        try {
-            String pluginType = storeConf.getType();
+            String pluginType = monitorConf.getType();
             String storePluginClassName =
                     PluginUtil.getPluginClassName(pluginType, OperatorType.store);
+            String fetcherPluginClassName =
+                    PluginUtil.getPluginClassName(pluginType, OperatorType.fetcher);
             Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginType, config.getPluginRoot(), null, "");
+                    PluginUtil.getJarFileDirPath(pluginType, syncConf.getPluginRoot(), null, "restore-plugins");
 
-            return ClassLoaderManager.newInstance(
-                    urlList,
-                    cl -> {
-                        Class<?> clazz = cl.loadClass(storePluginClassName);
-                        Constructor<?> constructor = clazz.getConstructor(MonitorConf.class);
-                        return (StoreBase) constructor.newInstance(storeConf);
-                    });
+            StoreBase store =
+                    ClassLoaderManager.newInstance(
+                            urlList,
+                            cl -> {
+                                Class<?> clazz = cl.loadClass(storePluginClassName);
+                                Constructor<?> constructor =
+                                        clazz.getConstructor(MonitorConf.class);
+                                return (StoreBase) constructor.newInstance(monitorConf);
+                            });
+            FetcherBase fetcher =
+                    ClassLoaderManager.newInstance(
+                            urlList,
+                            cl -> {
+                                Class<?> clazz = cl.loadClass(fetcherPluginClassName);
+                                Constructor<?> constructor =
+                                        clazz.getConstructor(MonitorConf.class);
+                                return (FetcherBase) constructor.newInstance(monitorConf);
+                            });
+            return Pair.of(fetcher, store);
         } catch (Exception e) {
             throw new NoRestartException("Load restore plugins failed!", e);
         }

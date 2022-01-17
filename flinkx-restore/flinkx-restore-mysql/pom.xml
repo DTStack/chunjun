@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>flinkx-restore-mysql</artifactId>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 	<name>FlinkX : Restore : MySQL</name>
 
 	<properties>
