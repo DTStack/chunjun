@@ -142,7 +142,8 @@ public class DataSyncFactoryUtil {
             String fetcherPluginClassName =
                     PluginUtil.getPluginClassName(pluginType, OperatorType.fetcher);
             Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginType, syncConf.getPluginRoot(), null, "restore-plugins");
+                    PluginUtil.getJarFileDirPath(
+                            pluginType, syncConf.getPluginRoot(), null, "restore-plugins");
 
             StoreBase store =
                     ClassLoaderManager.newInstance(
