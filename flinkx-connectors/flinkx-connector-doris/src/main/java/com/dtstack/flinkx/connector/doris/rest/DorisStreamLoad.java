@@ -113,13 +113,14 @@ public class DorisStreamLoad implements Serializable {
     /**
      * Doris load data via stream.
      *
-     * @param columnNames column name.
-     * @param value the data load to doris.
+     * @param carrier data carrier.
+     * @param loadUrlStr doris load url.
      * @throws IOException io exception.
      */
-    public void load(
-            List<String> columnNames, String value, String mergeConditions, String loadUrlStr)
-            throws IOException {
+    public void load(Carrier carrier, String loadUrlStr) throws IOException {
+        List<String> columnNames = carrier.getColumns();
+        String value = carrier.getInsertContent();
+        String mergeConditions = carrier.getDeleteContent();
         LoadResponse loadResponse = loadBatch(columnNames, value, mergeConditions, loadUrlStr);
         LOG.debug("StreamLoad Response:{}", loadResponse);
         if (loadResponse.status != 200) {
