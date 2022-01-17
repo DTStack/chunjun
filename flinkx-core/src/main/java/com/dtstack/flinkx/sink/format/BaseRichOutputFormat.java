@@ -437,9 +437,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                                     }
                                     try {
                                         if (!rows.isEmpty()) {
-                                            int size = rows.size();
                                             writeRecordInternal();
-                                            numWriteCounter.add(size);
                                         }
                                     } catch (Exception e) {
                                         LOG.error(
