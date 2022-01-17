@@ -56,7 +56,7 @@ import java.util.UUID;
 public class DorisStreamLoad implements Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DorisStreamLoad.class);
-
+    private static final ObjectMapper OM = new ObjectMapper();
     private static final List<String> DORIS_SUCCESS_STATUS =
             new ArrayList<>(Arrays.asList("Success", "Publish Timeout"));
     private final String authEncoding;
@@ -126,8 +126,7 @@ public class DorisStreamLoad implements Serializable {
         if (loadResponse.status != 200) {
             throw new ConnectException("stream load error, detail : " + loadResponse);
         } else {
-            ObjectMapper obj = new ObjectMapper();
-            RespContent respContent = obj.readValue(loadResponse.respContent, RespContent.class);
+            RespContent respContent = OM.readValue(loadResponse.respContent, RespContent.class);
             if (!DORIS_SUCCESS_STATUS.contains(respContent.getStatus())) {
                 throw new IOException("stream load error: " + getDetailErrorLog(respContent));
             }
