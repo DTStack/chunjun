@@ -31,10 +31,14 @@ import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.sink.ErrorLimiter;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.NoRestartException;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.JsonUtil;
+
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
@@ -47,7 +51,6 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
 
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,6 +168,8 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /** the manager of dirty data. */
     protected DirtyManager dirtyManager;
 
+    private transient volatile Exception timerWriteException;
+
     @Override
     public void initializeGlobal(int parallelism) {
         // 任务开始前操作，在configure前调用。
@@ -239,6 +244,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     @Override
     public synchronized void writeRecord(RowData rowData) {
+        checkTimerWriteException();
         int size = 0;
         if (batchSize <= 1) {
             writeSingleRecord(rowData, numWriteCounter);
@@ -267,6 +273,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         }
 
         Exception closeException = null;
+
+        if (null != timerWriteException) {
+            closeException = timerWriteException;
+        }
 
         // when exist data
         int size = rows.size();
@@ -443,6 +453,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                                         LOG.error(
                                                 "Writing records failed. {}",
                                                 ExceptionUtil.getErrorMessage(e));
+                                        timerWriteException = e;
                                     }
                                 }
                             },
@@ -489,6 +500,18 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             } finally {
                 // Data is either recorded dirty data or written normally
                 rows.clear();
+            }
+        }
+    }
+
+    private void checkTimerWriteException() {
+        if (null != timerWriteException) {
+            if (timerWriteException instanceof NoRestartException) {
+                throw (NoRestartException) timerWriteException;
+            } else if (timerWriteException instanceof RuntimeException) {
+                throw (RuntimeException) timerWriteException;
+            } else {
+                throw new FlinkxRuntimeException("Writing records failed.", timerWriteException);
             }
         }
     }
