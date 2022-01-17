@@ -69,7 +69,10 @@ public class DorisOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
-    protected void closeInternal() throws IOException {}
+    protected void closeInternal() throws IOException {
+        // load cache data before close.
+        client.loadCachedCarrier();
+    }
 
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {

@@ -308,4 +308,15 @@ public class DorisLoadClient implements Serializable {
         Object value = rowData.getField(index);
         return (value == null || "".equals(value.toString())) ? NULL_VALUE : value.toString();
     }
+
+    public void loadCachedCarrier() throws IOException {
+        for (Map.Entry<String, Carrier> entry : carrierMap.entrySet()) {
+            String key = entry.getKey();
+            String[] split = StringUtils.split(key, KEY_POINT);
+            String schema = split[0];
+            String table = split[1];
+            dorisStreamLoad.load(
+                    entry.getValue(), String.format(LOAD_URL_PATTERN, hostPort, schema, table));
+        }
+    }
 }
