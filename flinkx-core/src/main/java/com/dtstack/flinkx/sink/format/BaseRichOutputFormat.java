@@ -202,7 +202,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         ExecutionConfig.GlobalJobParameters params =
                 context.getExecutionConfig().getGlobalJobParameters();
         DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
-        this.dirtyManager = new DirtyManager(dc);
+        this.dirtyManager = new DirtyManager(dc, this.context);
 
         checkpointMode =
                 context.getCheckpointMode() == null
@@ -470,7 +470,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         } catch (WriteRecordException e) {
             dirtyManager.collect(
                     GsonUtil.GSON.toJson(e.getRowData()), e, null, getRuntimeContext());
-            errCounter.add(1);
             if (LOG.isTraceEnabled()) {
                 LOG.trace(
                         "write error rowData, rowData = {}, e = {}",

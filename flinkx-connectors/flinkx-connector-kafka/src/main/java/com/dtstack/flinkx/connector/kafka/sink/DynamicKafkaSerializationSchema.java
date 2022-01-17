@@ -156,7 +156,7 @@ public class DynamicKafkaSerializationSchema
         ExecutionConfig.GlobalJobParameters params =
                 context.getExecutionConfig().getGlobalJobParameters();
         DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
-        this.dirtyManager = new DirtyManager(dc);
+        this.dirtyManager = new DirtyManager(dc, context);
 
         initStatisticsAccumulator();
         initRestoreInfo();

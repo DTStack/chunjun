@@ -140,7 +140,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         ExecutionConfig.GlobalJobParameters params =
                 context.getExecutionConfig().getGlobalJobParameters();
         DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
-        this.dirtyManager = new DirtyManager(dc);
+        this.dirtyManager = new DirtyManager(dc, this.context);
 
         if (inputSplit instanceof ErrorInputSplit) {
             throw new RuntimeException(((ErrorInputSplit) inputSplit).getErrorMessage());

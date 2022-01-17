@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.dirty.manager;
 
+import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.dirty.DirtyConf;
 import com.dtstack.flinkx.dirty.consumer.DirtyDataCollector;
 import com.dtstack.flinkx.dirty.impl.DirtyDataEntry;
@@ -57,17 +58,27 @@ public class DirtyManager implements Serializable {
 
     private static final int MAX_THREAD_POOL_SIZE = 1;
 
-    /** singleton instance. */
-    private static DirtyManager instance;
-
     private transient ThreadPoolExecutor executor;
 
     private final AtomicBoolean isAlive = new AtomicBoolean(true);
 
     private DirtyDataCollector consumer;
 
-    public DirtyManager(DirtyConf dirtyConf) {
+    private final String jobId;
+
+    private final String jobName;
+
+    private final String operationName;
+
+    private final LongCounter errorCounter;
+
+    public DirtyManager(DirtyConf dirtyConf, RuntimeContext runtimeContext) {
         this.consumer = DataSyncFactoryUtil.discoverDirty(dirtyConf);
+        Map<String, String> allVariables = runtimeContext.getMetricGroup().getAllVariables();
+        this.jobId = allVariables.get(JOB_ID);
+        this.jobName = allVariables.getOrDefault(JOB_NAME, "defaultJobName");
+        this.operationName = allVariables.getOrDefault(OPERATOR_NAME, "defaultOperatorName");
+        this.errorCounter = runtimeContext.getLongCounter(Metrics.NUM_ERRORS);
     }
 
     public void execute() {
@@ -110,17 +121,16 @@ public class DirtyManager implements Serializable {
 
         DirtyDataEntry entity = new DirtyDataEntry();
 
-        Map<String, String> allVariables = runtimeContext.getMetricGroup().getAllVariables();
-
-        entity.setJobId(allVariables.get(JOB_ID));
-        entity.setJobName(allVariables.getOrDefault(JOB_NAME, "defaultJobName"));
-        entity.setOperatorName(allVariables.getOrDefault(OPERATOR_NAME, "defaultOperatorName"));
+        entity.setJobId(jobId);
+        entity.setJobName(jobName);
+        entity.setOperatorName(operationName);
         entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
         entity.setDirtyContent(data);
         entity.setFieldName(field);
         entity.setErrorMessage(ExceptionUtil.getErrorMessage(cause));
 
         consumer.offer(entity);
+        errorCounter.add(1L);
     }
 
     /** Close manager. */

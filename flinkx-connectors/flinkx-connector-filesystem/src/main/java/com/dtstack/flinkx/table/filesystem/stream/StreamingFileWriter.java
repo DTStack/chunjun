@@ -197,7 +197,7 @@ public class StreamingFileWriter<IN> extends AbstractStreamingWriter<IN, Partiti
         ExecutionConfig.GlobalJobParameters params =
                 streamingRuntimeContext.getExecutionConfig().getGlobalJobParameters();
         DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
-        this.dirtyManager = new DirtyManager(dc);
+        this.dirtyManager = new DirtyManager(dc, streamingRuntimeContext);
         initStatisticsAccumulator();
         initRestoreInfo();
         initAccumulatorCollector();
