@@ -43,11 +43,12 @@ import org.apache.commons.collections.CollectionUtils;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.dtstack.flinkx.connector.kafka.option.KafkaOptions.DEFAULT_CODEC;
@@ -140,17 +141,22 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
                         org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
             }
         } else {
-            if (arity == 1) {
-                Object obj = row.getField(0);
-                if (obj instanceof MapColumn) {
-                    map = (Map<String, Object>) ((MapColumn) obj).getData();
-                } else if (obj instanceof StringColumn) {
-                    map = jsonDecoder.decode(obj.toString());
-                } else {
-                    map = Collections.singletonMap("message", row.toString());
+            String[] headers = row.getHeaders();
+            if (Objects.nonNull(headers) && headers.length >= 1) {
+                // cdc
+                map = new HashMap<>(headers.length >> 1);
+                for (int i = 0; i < headers.length; i++) {
+                    map.put(headers[i], row.getField(headers[i]).getData());
                 }
+            } else if (row.getArity() == 1 && row.getField(0) instanceof MapColumn) {
+                // from kafka source
+                map = (Map<String, Object>) row.getField(0).getData();
             } else {
-                map = Collections.singletonMap("message", row.toString());
+                List<String> values = new ArrayList<>(row.getArity());
+                for (int i = 0; i < row.getArity(); i++) {
+                    values.add(row.getField(i).asString());
+                }
+                return String.join(",", values).getBytes(StandardCharsets.UTF_8);
             }
         }
 
