@@ -317,6 +317,7 @@ public class Main {
                     dirtyConf.getType(),
                     Thread.currentThread().getContextClassLoader(),
                     ConstantValue.DIRTY_DATA_DIR_NAME);
+            // TODO sql 支持restore.
 
             FactoryUtil.setFactoryUtilHelp(factoryHelper);
             TableFactoryService.setFactoryUtilHelp(factoryHelper);

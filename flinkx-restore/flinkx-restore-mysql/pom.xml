@@ -28,13 +28,6 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.apache.shardingsphere/sharding-jdbc-core -->
-		<dependency>
-			<groupId>org.apache.shardingsphere</groupId>
-			<artifactId>sharding-jdbc-core</artifactId>
-			<version>${sharding.jdbc.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
