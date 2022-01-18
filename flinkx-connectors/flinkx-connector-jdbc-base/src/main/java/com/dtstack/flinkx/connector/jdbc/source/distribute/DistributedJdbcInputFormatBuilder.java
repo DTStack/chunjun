@@ -46,7 +46,9 @@ public class DistributedJdbcInputFormatBuilder extends JdbcInputFormatBuilder {
     protected void checkFormat() {
         JdbcConf conf = format.getJdbcConf();
         StringBuilder sb = new StringBuilder(256);
-        boolean hasGlobalAccountInfo = !StringUtils.isBlank(conf.getUsername()) && !StringUtils.isBlank(conf.getPassword());
+        boolean hasGlobalAccountInfo =
+                !StringUtils.isBlank(conf.getUsername())
+                        && !StringUtils.isBlank(conf.getPassword());
 
         if (conf.getConnection() == null || conf.getConnection().size() == 0) {
             sb.append("One or more data sources must be specified;\n");
