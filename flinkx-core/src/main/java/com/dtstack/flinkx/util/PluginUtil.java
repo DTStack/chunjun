@@ -307,12 +307,15 @@ public class PluginUtil {
                         config.getRemotePluginPath(),
                         DIRTY_DATA_DIR_NAME);
 
-        Set<URL> restoreUrlSet =
-                getJarFileDirPath(
-                        config.getCdcConf().getMonitor().getType(),
-                        config.getPluginRoot(),
-                        config.getRemotePluginPath(),
-                        RESTORE_DIR_NAME);
+        if (null != config.getCdcConf().getMonitor()) {
+            Set<URL> restoreUrlSet =
+                    getJarFileDirPath(
+                            config.getCdcConf().getMonitor().getType(),
+                            config.getPluginRoot(),
+                            config.getRemotePluginPath(),
+                            RESTORE_DIR_NAME);
+            urlSet.addAll(restoreUrlSet);
+        }
 
         urlSet.addAll(coreUrlSet);
         urlSet.addAll(formatsUrlSet);
@@ -320,7 +323,6 @@ public class PluginUtil {
         urlSet.addAll(sinkUrlSet);
         urlSet.addAll(metricUrlSet);
         urlSet.addAll(dirtyUrlSet);
-        urlSet.addAll(restoreUrlSet);
 
         List<String> urlList = new ArrayList<>(urlSet.size());
         try {
