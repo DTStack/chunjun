@@ -14,7 +14,7 @@
 		<module>flinkx-core</module>
 		<module>flinkx-connectors</module>
 		<module>flinkx-clients</module>
-		<!--		<module>flinkx-local-test</module>-->
+<!--		<module>flinkx-local-test</module>-->
 		<module>flinkx-formats</module>
 		<module>flinkx-docker</module>
 		<module>flinkx-metrics</module>
