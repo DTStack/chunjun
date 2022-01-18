@@ -25,6 +25,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -38,6 +39,7 @@ import java.util.Date;
 public class StringColumn extends AbstractBaseColumn {
 
     private String format = "yyyy-MM-dd HH:mm:ss";
+    private boolean isCustomFormat = false;
 
     public StringColumn(final String data) {
         super(data);
@@ -47,6 +49,7 @@ public class StringColumn extends AbstractBaseColumn {
         super(data);
         if (format != null) {
             this.format = format;
+            isCustomFormat = true;
         }
     }
 
@@ -59,7 +62,11 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return String.valueOf(data);
+        if (isCustomFormat) {
+            return asTimestampStr();
+        } else {
+            return String.valueOf(data);
+        }
     }
 
     @Override
@@ -192,6 +199,51 @@ public class StringColumn extends AbstractBaseColumn {
                     String.format(
                             "String[%s]belongs to the special type of Double and cannot be converted to other types.",
                             data));
+        }
+    }
+
+    @Override
+    public Time asTime() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("String", "java.sql.Time", this.asString());
+    }
+
+    @Override
+    public java.sql.Date asSqlDate() {
+        if (null == data) {
+            return null;
+        }
+        return java.sql.Date.valueOf(asTimestamp().toLocalDateTime().toLocalDate());
+    }
+
+    @Override
+    public String asTimestampStr() {
+        if (null == data) {
+            return null;
+        }
+        String data = this.asString();
+        SimpleDateFormat formatter = DateUtil.buildDateFormatter(format);
+        try {
+            // 如果string是时间戳
+            Long time = NumberUtils.createLong(data);
+            return formatter.format(time);
+        } catch (Exception ignored) {
+            // doNothing
+        }
+
+        try {
+            if (isCustomFormat) {
+                // 格式化
+                return formatter.format(asDate().getTime());
+            } else {
+                // 校验格式
+                DateUtil.stringToDate(data);
+                return data;
+            }
+        } catch (Exception e) {
+            throw new CastException("String", "Timestamp", data);
         }
     }
 }

@@ -26,6 +26,7 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
@@ -36,6 +37,7 @@ import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -133,9 +135,27 @@ public class HdfsTextColumnConverter
             case "CHAR":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "TIMESTAMP":
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> {
+                            try {
+                                return new TimestampColumn(
+                                        Timestamp.valueOf(val),
+                                        DateUtil.getPrecisionFromTimestampStr(val));
+                            } catch (Exception e) {
+                                return new TimestampColumn(DateUtil.getTimestampFromStr(val), 0);
+                            }
+                        };
             case "DATE":
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
-                        val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
+                        val -> {
+                            Timestamp timestamp = DateUtil.getTimestampFromStr(val);
+                            if (timestamp == null) {
+                                return new SqlDateColumn(null);
+                            } else {
+                                return new SqlDateColumn(
+                                        Date.valueOf(timestamp.toLocalDateTime().toLocalDate()));
+                            }
+                        };
             case "BINARY":
             case "ARRAY":
             case "MAP":
@@ -179,8 +199,10 @@ public class HdfsTextColumnConverter
                 return (rowData, index, data) ->
                         data[index] = String.valueOf(rowData.getString(index));
             case "TIMESTAMP":
-                return (rowData, index, data) ->
-                        data[index] = String.valueOf(rowData.getTimestamp(index, 6));
+                return (rowData, index, data) -> {
+                    AbstractBaseColumn field = ((ColumnRowData) rowData).getField(index);
+                    data[index] = field.asTimestampStr();
+                };
             case "DATE":
                 return (rowData, index, data) ->
                         data[index] =

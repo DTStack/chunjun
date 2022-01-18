@@ -139,7 +139,7 @@ public class MongodbColumnConverter
             case TIME_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn((java.util.Date) val);
+                return val -> new TimestampColumn((java.util.Date) val, 0);
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn(((Binary) val).getData());

@@ -22,6 +22,7 @@ import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -114,5 +115,27 @@ public class BigDecimalColumn extends AbstractBaseColumn {
         }
         BigDecimal bigDecimal = (BigDecimal) data;
         return new Timestamp(bigDecimal.longValue());
+    }
+
+    @Override
+    public java.sql.Date asSqlDate() {
+        if (null == data) {
+            return null;
+        }
+        return java.sql.Date.valueOf(asTimestamp().toLocalDateTime().toLocalDate());
+    }
+
+    @Override
+    public String asTimestampStr() {
+        return asTimestamp().toString();
+    }
+
+    @Override
+    public Time asTime() {
+        if (null == data) {
+            return null;
+        }
+        BigDecimal bigDecimal = (BigDecimal) data;
+        return new Time(bigDecimal.longValue());
     }
 }

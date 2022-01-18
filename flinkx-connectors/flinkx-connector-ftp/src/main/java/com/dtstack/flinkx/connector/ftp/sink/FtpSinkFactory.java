@@ -27,10 +27,12 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
 import java.util.List;
 
@@ -67,7 +69,9 @@ public class FtpSinkFactory extends SinkFactory {
         FtpOutputFormatBuilder builder = new FtpOutputFormatBuilder();
         builder.setConfig(ftpConfig);
         builder.setFtpConfig(ftpConfig);
-        builder.setRowConverter(new FtpColumnConverter(ftpConfig));
+        final RowType rowType =
+                TableUtil.createRowType(ftpConfig.getColumn(), getRawTypeConverter());
+        builder.setRowConverter(new FtpColumnConverter(rowType, ftpConfig));
 
         return createOutput(dataSet, builder.finish());
     }

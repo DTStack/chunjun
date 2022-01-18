@@ -23,15 +23,19 @@ import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
 
 import com.sap.db.jdbc.HanaClob;
 
@@ -40,8 +44,6 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
 public class SaphanaColumnConverter extends JdbcColumnConverter {
@@ -92,17 +94,16 @@ public class SaphanaColumnConverter extends JdbcColumnConverter {
                     }
                 };
             case DATE:
-                return val ->
-                        new BigDecimalColumn(
-                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
+                return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:
-                return val ->
-                        new BigDecimalColumn(
-                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
-                                        / 1_000_000L);
+                return val -> new TimeColumn((Time) val);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn((Timestamp) val);
+                return (IDeserializationConverter<Object, AbstractBaseColumn>)
+                        val -> {
+                            int precision = ((TimestampType) (type)).getPrecision();
+                            return new TimestampColumn((Timestamp) val, precision);
+                        };
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
@@ -149,19 +150,14 @@ public class SaphanaColumnConverter extends JdbcColumnConverter {
                                 index, ((ColumnRowData) val).getField(index).asString());
             case DATE:
                 return (val, index, statement) ->
-                        statement.setDate(
-                                index,
-                                Date.valueOf(
-                                        LocalDate.ofEpochDay(
-                                                ((ColumnRowData) val).getField(index).asInt())));
+                        statement.setDate(index, ((ColumnRowData) val).getField(index).asSqlDate());
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
-                        statement.setTime(
-                                index,
-                                Time.valueOf(
-                                        LocalTime.ofNanoOfDay(
-                                                ((ColumnRowData) val).getField(index).asInt()
-                                                        * 1_000_000L)));
+                        statement.setTime(index, ((ColumnRowData) val).getField(index).asTime());
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+                return (val, index, statement) ->
+                        statement.setTimestamp(
+                                index, ((ColumnRowData) val).getField(index).asTimestamp());
             case BINARY:
             case VARBINARY:
                 return (val, index, statement) ->

@@ -28,7 +28,9 @@ import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.util.DateUtil;
@@ -36,6 +38,7 @@ import com.dtstack.flinkx.util.DateUtil;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
 
 import io.vertx.core.json.JsonArray;
 
@@ -118,11 +121,17 @@ public class Phoenix5ColumnConverter
             case VARCHAR:
                 return val -> new StringColumn((String) val);
             case INTERVAL_YEAR_MONTH:
+                return val -> new BigDecimalColumn(Integer.parseInt(String.valueOf(val)));
             case DATE:
+                return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:
+                return val -> new TimeColumn((Time) val);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
+                return val ->
+                        new TimestampColumn(
+                                DateUtil.getTimestampFromStr(val.toString()),
+                                ((TimestampType) (type)).getPrecision());
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
@@ -169,34 +178,13 @@ public class Phoenix5ColumnConverter
                                 index, ((ColumnRowData) val).getField(index).asString());
             case INTERVAL_YEAR_MONTH:
                 return (val, index, statement) ->
-                        statement.setInt(
-                                index,
-                                ((ColumnRowData) val)
-                                        .getField(index)
-                                        .asTimestamp()
-                                        .toLocalDateTime()
-                                        .toLocalDate()
-                                        .getYear());
+                        statement.setInt(index, ((ColumnRowData) val).getField(index).asYearInt());
             case DATE:
                 return (val, index, statement) ->
-                        statement.setDate(
-                                index,
-                                Date.valueOf(
-                                        ((ColumnRowData) val)
-                                                .getField(index)
-                                                .asTimestamp()
-                                                .toLocalDateTime()
-                                                .toLocalDate()));
+                        statement.setDate(index, ((ColumnRowData) val).getField(index).asSqlDate());
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
-                        statement.setTime(
-                                index,
-                                Time.valueOf(
-                                        ((ColumnRowData) val)
-                                                .getField(index)
-                                                .asTimestamp()
-                                                .toLocalDateTime()
-                                                .toLocalTime()));
+                        statement.setTime(index, ((ColumnRowData) val).getField(index).asTime());
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->

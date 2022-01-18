@@ -53,7 +53,7 @@ public class MysqlRawTypeConverter {
                 return DataTypes.INTERVAL(DataTypes.YEAR());
             case "TIMESTAMP":
             case "DATETIME":
-                return DataTypes.TIMESTAMP();
+                return DataTypes.TIMESTAMP(0);
             case "TINYBLOB":
             case "BLOB":
             case "MEDIUMBLOB":

@@ -64,7 +64,7 @@ public class Db2RawTypeConverter {
                 return DataTypes.TIME();
             case "TIMESTAMP":
             case "DATETIME":
-                return DataTypes.TIMESTAMP();
+                return DataTypes.TIMESTAMP(0);
             case "BLOB":
             case "BOOLEAN":
                 return DataTypes.BYTES();

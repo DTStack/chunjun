@@ -39,9 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.LocalTime;
 
 /**
  * company www.dtstack.com
@@ -82,12 +80,7 @@ public class OracleColumnConverter extends JdbcColumnConverter {
                 }
                 return val -> new StringColumn((String) val);
             case DATE:
-                return val -> new TimestampColumn((Timestamp) val);
-            case TIME_WITHOUT_TIME_ZONE:
-                return val ->
-                        new BigDecimalColumn(
-                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
-                                        / 1_000_000L);
+                return val -> new TimestampColumn((Timestamp) val, 0);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn(((TIMESTAMP) val).timestampValue());
@@ -150,14 +143,6 @@ public class OracleColumnConverter extends JdbcColumnConverter {
                                 index, ((ColumnRowData) val).getField(index).asString());
                     }
                 };
-            case TIME_WITHOUT_TIME_ZONE:
-                return (val, index, statement) ->
-                        statement.setTime(
-                                index,
-                                Time.valueOf(
-                                        LocalTime.ofNanoOfDay(
-                                                ((ColumnRowData) val).getField(index).asInt()
-                                                        * 1_000_000L)));
             case DATE:
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:

@@ -23,15 +23,19 @@ import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
-import com.dtstack.flinkx.util.DateUtil;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.math.BigDecimal;
 import java.sql.Blob;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 
 /**
  * convert db2 type to flink type Company: www.dtstack.com
@@ -73,10 +77,12 @@ public class Db2ColumnConverter extends JdbcColumnConverter {
             case VARCHAR:
                 return val -> new StringColumn((String) val);
             case DATE:
+                return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:
+                return val -> new TimeColumn((Time) val);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
+                return val -> new TimestampColumn((Timestamp) val);
             case BINARY:
             case VARBINARY:
                 return val -> {

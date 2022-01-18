@@ -25,43 +25,56 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
-/**
- * @author tiezhu
- * @since 2021/6/25 星期五
- */
-public class ByteColumn extends AbstractBaseColumn {
-    public ByteColumn(byte data) {
+/** @author liuliu 2022/1/12 */
+public class SqlDateColumn extends AbstractBaseColumn {
+    public SqlDateColumn(Date data) {
         super(data);
     }
 
-    public ByteColumn(char data) {
-        super(data);
+    public SqlDateColumn(long data) {
+        super(Date.valueOf(LocalDate.ofEpochDay(data)));
     }
 
     @Override
     public Boolean asBoolean() {
-        return (byte) data != 0x00;
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("java.sql.Date", "Boolean", this.asString());
     }
 
     @Override
     public byte[] asBytes() {
-        return new byte[] {(byte) data};
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("java.sql.Date", "Bytes", this.asString());
     }
 
     @Override
     public String asString() {
-        return String.valueOf(data);
+        if (null == data) {
+            return null;
+        }
+        return data.toString();
     }
 
     @Override
     public BigDecimal asBigDecimal() {
-        throw new CastException("Byte", "BigDecimal", String.valueOf(data));
+        if (null == data) {
+            return null;
+        }
+        return BigDecimal.valueOf(((Date) data).toLocalDate().toEpochDay());
     }
 
     @Override
     public Timestamp asTimestamp() {
-        throw new CastException("Byte", "Timestamp", String.valueOf(data));
+        if (null == data) {
+            return null;
+        }
+        return new Timestamp(((Date) data).getTime());
     }
 
     @Override
@@ -69,7 +82,7 @@ public class ByteColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        throw new CastException("Byte", "java.sql.Time", String.valueOf(data));
+        throw new CastException("java.sql.Date", "java.sql.Time", this.asString());
     }
 
     @Override
@@ -77,11 +90,16 @@ public class ByteColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        throw new CastException("Byte", "java.sql.Date", String.valueOf(data));
+        return (Date) data;
     }
 
     @Override
     public String asTimestampStr() {
-        return asTimestamp().toString();
+        return data.toString();
+    }
+
+    @Override
+    public Integer asYearInt() {
+        return asTimestamp().toLocalDateTime().getYear();
     }
 }

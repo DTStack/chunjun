@@ -110,8 +110,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
             FieldConf fieldConf, AbstractBaseColumn baseColumn) {
         if (StringUtils.isNotBlank(fieldConf.getValue())) {
             baseColumn = new StringColumn(fieldConf.getValue(), fieldConf.getFormat());
-        } else if (baseColumn instanceof StringColumn
-                && StringUtils.isNotBlank(fieldConf.getFormat())) {
+        } else if (StringUtils.isNotBlank(fieldConf.getFormat())) {
             baseColumn = new StringColumn(baseColumn.asString(), fieldConf.getFormat());
         }
         return baseColumn;

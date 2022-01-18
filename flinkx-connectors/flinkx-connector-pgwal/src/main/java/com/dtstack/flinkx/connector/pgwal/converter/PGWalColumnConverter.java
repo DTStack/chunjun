@@ -29,7 +29,9 @@ import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 
 import org.apache.flink.table.api.DataTypes;
@@ -54,8 +56,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Time;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -324,26 +325,12 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
             case VARCHAR:
                 return val -> new StringColumn((String) val);
             case DATE:
-                return val ->
-                        new BigDecimalColumn(
-                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
+                return val -> new SqlDateColumn(Date.valueOf(String.valueOf(val)));
             case TIME_WITHOUT_TIME_ZONE:
-                return val ->
-                        new BigDecimalColumn(
-                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
-                                        / 1_000_000L);
+                return val -> new TimeColumn(Time.valueOf(String.valueOf(val)));
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> {
-                    SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    java.util.Date date;
-                    try {
-                        date = sf.parse((String) val);
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return new TimestampColumn(date.getTime());
-                };
+                return val -> new TimestampColumn(Timestamp.valueOf(String.valueOf(val)), 6);
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn(((String) val).getBytes(StandardCharsets.UTF_8));

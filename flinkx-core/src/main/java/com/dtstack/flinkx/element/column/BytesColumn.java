@@ -23,6 +23,8 @@ import com.dtstack.flinkx.throwable.CastException;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 
 /**
@@ -80,5 +82,26 @@ public class BytesColumn extends AbstractBaseColumn {
             return null;
         }
         throw new CastException("Bytes", "Timestamp", this.asString());
+    }
+
+    @Override
+    public Time asTime() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Bytes", "java.sql.Time", this.asString());
+    }
+
+    @Override
+    public Date asSqlDate() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Bytes", "java.sql.Date", this.asString());
+    }
+
+    @Override
+    public String asTimestampStr() {
+        return asTimestamp().toString();
     }
 }

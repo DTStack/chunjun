@@ -296,10 +296,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }
                 stmt.executeBatch();
             } catch (SQLException e) {
-                LOG.error(
-                        "execute sql failed, sqlList = {}, e = {}",
-                        JsonUtil.toPrintJson(sqlList),
-                        e);
+                LOG.error("execute sql failed, sqlList = {}, e = {}", sqlList, e);
             }
         }
     }

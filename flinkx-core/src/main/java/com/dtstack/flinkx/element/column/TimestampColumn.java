@@ -21,6 +21,7 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -31,16 +32,38 @@ import java.util.Date;
  */
 public class TimestampColumn extends AbstractBaseColumn {
 
+    private static final int DATETIME_STR_LENGTH = 19;
+
+    private int precision;
+
     public TimestampColumn(Timestamp data) {
         super(data);
+        this.precision = 6;
     }
 
     public TimestampColumn(long data) {
         super(new Timestamp(data));
+        this.precision = 6;
     }
 
     public TimestampColumn(Date data) {
         super(new Timestamp(data.getTime()));
+        this.precision = 6;
+    }
+
+    public TimestampColumn(Timestamp data, int precision) {
+        super(data);
+        this.precision = precision;
+    }
+
+    public TimestampColumn(long data, int precision) {
+        super(new Timestamp(data));
+        this.precision = precision;
+    }
+
+    public TimestampColumn(Date data, int precision) {
+        super(new Timestamp(data.getTime()));
+        this.precision = precision;
     }
 
     @Override
@@ -64,7 +87,32 @@ public class TimestampColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return data.toString();
+        return asTimestampStr();
+    }
+
+    /**
+     * 根据precision补全/删减0 2022-01-01 00:00:00.0 -> precision=0 -> 2022-01-01 00:00:00 2022-01-01
+     * 00:00:00.0 -> precision=3 -> 2022-01-01 00:00:00.000
+     *
+     * @return 指定precision的Timestamp字符串
+     */
+    @Override
+    public String asTimestampStr() {
+        if (null == data) {
+            return null;
+        }
+        // precision>0需要补上'.'的长度
+        int resLength =
+                (precision == 0 ? DATETIME_STR_LENGTH : DATETIME_STR_LENGTH + 1 + precision);
+        String resStr = data.toString();
+        if (resStr.length() == resLength) {
+            return resStr;
+        } else if (resStr.length() > resLength) {
+            return resStr.substring(0, resLength);
+        } else {
+            String fix = String.format("%0" + (resLength - resStr.length()) + "d", 0);
+            return resStr + fix;
+        }
     }
 
     @Override
@@ -81,5 +129,35 @@ public class TimestampColumn extends AbstractBaseColumn {
             return null;
         }
         return (Timestamp) data;
+    }
+
+    @Override
+    public Time asTime() {
+        if (null == data) {
+            return null;
+        }
+        return new Time(((Timestamp) data).getTime());
+    }
+
+    @Override
+    public java.sql.Date asSqlDate() {
+        if (null == data) {
+            return null;
+        }
+        return java.sql.Date.valueOf(asTimestamp().toLocalDateTime().toLocalDate());
+    }
+
+    public int getPrecision() {
+        return precision;
+    }
+
+    @Override
+    public Integer asInt() {
+        throw new CastException("java.sql.Timestamp", "Integer", this.asString());
+    }
+
+    @Override
+    public Integer asYearInt() {
+        return asTimestamp().toLocalDateTime().getYear();
     }
 }

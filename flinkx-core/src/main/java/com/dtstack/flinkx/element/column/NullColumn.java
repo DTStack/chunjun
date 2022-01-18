@@ -20,6 +20,7 @@ package com.dtstack.flinkx.element.column;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -66,6 +67,21 @@ public class NullColumn extends AbstractBaseColumn {
 
     @Override
     public Timestamp asTimestamp() {
+        return null;
+    }
+
+    @Override
+    public Time asTime() {
+        return null;
+    }
+
+    @Override
+    public java.sql.Date asSqlDate() {
+        return null;
+    }
+
+    @Override
+    public String asTimestampStr() {
         return null;
     }
 }

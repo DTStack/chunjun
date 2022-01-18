@@ -27,7 +27,9 @@ import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.ByteColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 
 import org.apache.flink.table.data.RowData;
@@ -35,6 +37,8 @@ import org.apache.flink.table.data.RowData;
 import com.github.jsonzou.jmockdata.JMockData;
 
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Time;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,11 +110,13 @@ public class StreamColumnConverter
             case "DECIMAL":
                 return val -> new BigDecimalColumn(JMockData.mock(BigDecimal.class));
             case "DATE":
+                return val -> new SqlDateColumn(JMockData.mock(Date.class));
             case "DATETIME":
+                return val -> new TimestampColumn(System.currentTimeMillis(), 0);
             case "TIMESTAMP":
                 return val -> new TimestampColumn(System.currentTimeMillis());
             case "TIME":
-                return val -> new TimestampColumn((LocalTime.now().toNanoOfDay() / 1_000_000L));
+                return val -> new TimeColumn(Time.valueOf(LocalTime.now()));
             default:
                 return val -> new StringColumn(JMockData.mock(String.class));
         }

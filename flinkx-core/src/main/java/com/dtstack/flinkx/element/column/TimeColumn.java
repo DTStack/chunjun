@@ -25,43 +25,57 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalTime;
 
-/**
- * @author tiezhu
- * @since 2021/6/25 星期五
- */
-public class ByteColumn extends AbstractBaseColumn {
-    public ByteColumn(byte data) {
+/** @author liuliu 2022/1/12 */
+public class TimeColumn extends AbstractBaseColumn {
+
+    public TimeColumn(Time data) {
         super(data);
     }
 
-    public ByteColumn(char data) {
-        super(data);
+    public TimeColumn(int data) {
+        super(Time.valueOf(LocalTime.ofNanoOfDay(data * 1_000_000L)));
     }
 
     @Override
     public Boolean asBoolean() {
-        return (byte) data != 0x00;
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("java.sql.Time", "Boolean", this.asString());
     }
 
     @Override
     public byte[] asBytes() {
-        return new byte[] {(byte) data};
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("java.sql.Time", "Bytes", this.asString());
     }
 
     @Override
     public String asString() {
-        return String.valueOf(data);
+        if (null == data) {
+            return null;
+        }
+        return data.toString();
     }
 
     @Override
     public BigDecimal asBigDecimal() {
-        throw new CastException("Byte", "BigDecimal", String.valueOf(data));
+        if (null == data) {
+            return null;
+        }
+        return BigDecimal.valueOf(((Time) data).toLocalTime().toNanoOfDay() / 1_000_000L);
     }
 
     @Override
     public Timestamp asTimestamp() {
-        throw new CastException("Byte", "Timestamp", String.valueOf(data));
+        if (null == data) {
+            return null;
+        }
+        return new Timestamp(((Time) data).getTime());
     }
 
     @Override
@@ -69,7 +83,7 @@ public class ByteColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        throw new CastException("Byte", "java.sql.Time", String.valueOf(data));
+        return (Time) data;
     }
 
     @Override
@@ -77,11 +91,16 @@ public class ByteColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        throw new CastException("Byte", "java.sql.Date", String.valueOf(data));
+        throw new CastException("java.sql.Time", "java.sql.Date", this.asString());
     }
 
     @Override
     public String asTimestampStr() {
-        return asTimestamp().toString();
+        return data.toString();
+    }
+
+    @Override
+    public Integer asInt() {
+        throw new CastException("java.sql.Time", "Integer", this.asString());
     }
 }
