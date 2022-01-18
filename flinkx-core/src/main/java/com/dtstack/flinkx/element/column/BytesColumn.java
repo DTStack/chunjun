@@ -102,6 +102,9 @@ public class BytesColumn extends AbstractBaseColumn {
 
     @Override
     public String asTimestampStr() {
-        return asTimestamp().toString();
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Bytes", "Timestamp", this.asString());
     }
 }

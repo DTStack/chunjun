@@ -94,6 +94,6 @@ public class BooleanColumn extends AbstractBaseColumn {
 
     @Override
     public String asTimestampStr() {
-        return asTimestamp().toString();
+        throw new CastException("Boolean", "Timestamp", this.asString());
     }
 }

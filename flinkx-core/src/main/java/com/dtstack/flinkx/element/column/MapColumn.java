@@ -105,6 +105,9 @@ public class MapColumn extends AbstractBaseColumn {
 
     @Override
     public String asTimestampStr() {
-        return asTimestamp().toString();
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Map", "Timestamp", this.asString());
     }
 }

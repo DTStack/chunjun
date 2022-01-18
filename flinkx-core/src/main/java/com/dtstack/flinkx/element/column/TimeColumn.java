@@ -96,6 +96,9 @@ public class TimeColumn extends AbstractBaseColumn {
 
     @Override
     public String asTimestampStr() {
+        if (null == data) {
+            return null;
+        }
         return data.toString();
     }
 

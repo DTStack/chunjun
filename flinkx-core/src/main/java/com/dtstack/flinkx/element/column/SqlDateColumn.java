@@ -95,6 +95,9 @@ public class SqlDateColumn extends AbstractBaseColumn {
 
     @Override
     public String asTimestampStr() {
+        if (null == data) {
+            return null;
+        }
         return data.toString();
     }
 

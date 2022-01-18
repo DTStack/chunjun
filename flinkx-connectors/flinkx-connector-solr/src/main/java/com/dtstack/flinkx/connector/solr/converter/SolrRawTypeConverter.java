@@ -51,6 +51,7 @@ public class SolrRawTypeConverter {
             case "DOUBLE":
                 return DataTypes.DOUBLE();
             case "DATE":
+                // todo Date type and accuracy need to be further confirmed
                 return DataTypes.DATE();
             default:
                 throw new UnsupportedTypeException(type);
