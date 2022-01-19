@@ -314,34 +314,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             }
         }
 
-        if (errorLimiter != null) {
-            try {
-                errorLimiter.updateErrorInfo();
-            } catch (Exception e) {
-                LOG.warn(
-                        "errorLimiter.updateErrorInfo() Exception:{}",
-                        ExceptionUtil.getErrorMessage(e));
-            }
-
-            try {
-                errorLimiter.checkErrorLimit();
-            } catch (Exception e) {
-                LOG.error(
-                        "errorLimiter.checkErrorLimit() Exception:{}",
-                        ExceptionUtil.getErrorMessage(e));
-                if (closeException != null) {
-                    closeException.addSuppressed(e);
-                } else {
-                    closeException = e;
-                }
-            } finally {
-                if (accumulatorCollector != null) {
-                    accumulatorCollector.close();
-                    accumulatorCollector = null;
-                }
-            }
-        }
-
         if (accumulatorCollector != null) {
             accumulatorCollector.close();
         }
