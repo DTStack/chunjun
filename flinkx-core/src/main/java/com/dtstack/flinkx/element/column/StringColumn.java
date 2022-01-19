@@ -78,7 +78,7 @@ public class StringColumn extends AbstractBaseColumn {
         }
         Long time = null;
         Date result = null;
-        String data = this.asString();
+        String data = String.valueOf(this.data);
         try {
             // 如果string是时间戳
             time = NumberUtils.createLong(data);
@@ -126,7 +126,7 @@ public class StringColumn extends AbstractBaseColumn {
             return null;
         }
 
-        String data = this.asString();
+        String data = String.valueOf(this.data);
         // 如果是数值类型
         try {
             return NumberUtils.toInt(data) != 0;
@@ -150,7 +150,7 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        String data = this.asString();
+        String data = String.valueOf(this.data);
         this.validateDoubleSpecific(data);
 
         try {
@@ -166,7 +166,7 @@ public class StringColumn extends AbstractBaseColumn {
             return null;
         }
 
-        String data = this.asString();
+        String data = String.valueOf(this.data);
         if ("NaN".equals(data)) {
             return Double.NaN;
         }
@@ -208,7 +208,7 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        throw new CastException("String", "java.sql.Time", this.asString());
+        throw new CastException("String", "java.sql.Time", String.valueOf(data));
     }
 
     @Override
@@ -224,7 +224,7 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        String data = this.asString();
+        String data = String.valueOf(this.data);
         try {
             // 如果string是时间戳
             Long time = NumberUtils.createLong(data);
