@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.oracle.converter;
 
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
+import com.dtstack.flinkx.util.ColumnTypeUtil;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.AtomicDataType;
@@ -49,6 +50,13 @@ public class OracleRawTypeConverter {
      * @throws SQLException
      */
     public static DataType apply(String type) {
+        ColumnTypeUtil.DecimalInfo decimalInfo = null;
+        if (ColumnTypeUtil.isDecimalType(type)) {
+            decimalInfo = ColumnTypeUtil.getDecimalInfo(type, null);
+            if (decimalInfo != null) {
+                type = ColumnTypeUtil.TYPE_NAME;
+            }
+        }
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "SMALLINT":
                 return DataTypes.SMALLINT();
@@ -59,7 +67,7 @@ public class OracleRawTypeConverter {
             case "VARCHAR2":
             case "NCHAR":
             case "NVARCHAR2":
-                return DataTypes.STRING();
+                return DataTypes.VARCHAR(OracleRowConverter.CLOB_LENGTH - 1);
             case "CLOB":
             case "NCLOB":
                 return new AtomicDataType(new ClobType(true, LogicalTypeRoot.VARCHAR));
@@ -67,12 +75,15 @@ public class OracleRawTypeConverter {
             case "INT":
             case "INTEGER":
             case "NUMBER":
-            case "DECIMAL":
             case "FLOAT":
                 return DataTypes.DECIMAL(38, 18);
+            case "DECIMAL":
+                return DataTypes.DECIMAL(decimalInfo.getPrecision(), decimalInfo.getScale());
             case "DATE":
                 return DataTypes.DATE();
             case "RAW":
+            case "TIMESTAMP":
+                return DataTypes.TIMESTAMP();
             case "LONG RAW":
                 return DataTypes.BYTES();
             case "BLOB":
