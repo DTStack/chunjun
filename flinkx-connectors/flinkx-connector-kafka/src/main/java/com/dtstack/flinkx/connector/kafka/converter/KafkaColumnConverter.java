@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.kafka.converter;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
+import com.dtstack.flinkx.constants.CDCConstantValue;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.decoder.IDecode;
@@ -43,6 +44,8 @@ import org.apache.commons.collections.CollectionUtils;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -148,6 +151,17 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
                 for (int i = 0; i < headers.length; i++) {
                     map.put(headers[i], row.getField(headers[i]).getData());
                 }
+                if (Arrays.stream(headers)
+                                .filter(
+                                        i ->
+                                                i.equals(CDCConstantValue.BEFORE)
+                                                        || i.equals(CDCConstantValue.AFTER)
+                                                        || i.equals(CDCConstantValue.TABLE))
+                                .collect(Collectors.toSet())
+                                .size()
+                        == 3) {
+                    map = Collections.singletonMap("message", map);
+                }
             } else if (row.getArity() == 1 && row.getField(0) instanceof MapColumn) {
                 // from kafka source
                 map = (Map<String, Object>) row.getField(0).getData();
@@ -156,7 +170,7 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
                 for (int i = 0; i < row.getArity(); i++) {
                     values.add(row.getField(i).asString());
                 }
-                return String.join(",", values).getBytes(StandardCharsets.UTF_8);
+                map = decode.decode(String.join(",", values));
             }
         }
 
