@@ -61,6 +61,8 @@ public class DorisStreamLoad implements Serializable {
             new ArrayList<>(Arrays.asList("Success", "Publish Timeout"));
     private final String authEncoding;
     private final Properties streamLoadProp;
+    private final String fieldDelimiter;
+    private final String lineDelimiter;
 
     public DorisStreamLoad(DorisConf options) {
         this.authEncoding =
@@ -69,6 +71,8 @@ public class DorisStreamLoad implements Serializable {
                                 String.format("%s:%s", options.getUsername(), options.getPassword())
                                         .getBytes(StandardCharsets.UTF_8));
         this.streamLoadProp = options.getLoadProperties();
+        this.fieldDelimiter = options.getFieldDelimiter();
+        this.lineDelimiter = options.getLineDelimiter();
     }
 
     private HttpPut getConnection(
@@ -85,6 +89,10 @@ public class DorisStreamLoad implements Serializable {
             httpPut.setHeader("delete", mergeConditions);
         } else {
             httpPut.setHeader("merge_type", "APPEND");
+        }
+        httpPut.setHeader("column_separator", fieldDelimiter);
+        if (!"\n".equals(lineDelimiter)) {
+            httpPut.setHeader("line_delimiter", lineDelimiter);
         }
         for (Map.Entry<Object, Object> entry : streamLoadProp.entrySet()) {
             httpPut.setHeader(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
