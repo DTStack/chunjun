@@ -122,6 +122,7 @@ public class JdbcColumnConverter
                 return val -> new BigDecimalColumn(((Integer) val).byteValue());
             case SMALLINT:
             case INTEGER:
+                return val -> new BigDecimalColumn((Integer) val);
             case INTERVAL_YEAR_MONTH:
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)
                         val -> {
