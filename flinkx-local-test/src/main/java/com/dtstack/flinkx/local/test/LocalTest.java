@@ -30,7 +30,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /** @author jiangbo */
@@ -138,6 +140,23 @@ public class LocalTest {
 //            argsList.add("{\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"flink.checkpoint.interval\":\"300000\"}");
 //            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"state.backend\":\"FILESYSTEM\",\"state.checkpoints.dir\":\"hdfs://ns1/dtInsight/flink110/savepoints/POC_MEIDI_STREAM_JOIN\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
 //            argsList.add("{\"sql.env.parallelism\":\"2\",\"metrics.latency.interval\":\"30000\",\"metrics.latency.granularity\":\"operator\",\"time.characteristic\":\"eventTime\",\"sql.ttl.min\":\"5m\",\"sql.ttl.max\":\"10m\",\"flink.checkpoint.interval\":\"300000\",\"sql.checkpoint.mode\":\"EXACTLY_ONCE\",\"sql.checkpoint.timeout\":\"200000\",\"sql.max.concurrent.checkpoints\":\"1\",\"sql.checkpoint.cleanup.mode\":\"true\",\"timezone\":\"Asia/Shanghai\",\"early.trigger\":\"1\"}");
+
+            /*
+                python.files                             -pyfs
+                python.client.executable                [flink configuration] -> [table api] -> [environment variable PYFLINK_CLIENT_EXECUTABLE]
+                python.executable                       -pyexec
+                python.requirements                     -pyreq
+             */
+            /* ---------------------------------------- pyFlink 测试 start --------------------------------------- */
+            Map<String,String> config = new HashMap<>();
+            config.put("python.files","/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/test1.py");
+            config.put("python.client.executable","python3");
+            config.put("python.executable","python3");
+            config.put("python.requirements","/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/requirements3.txt#/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/cached_dir_binary3");
+            String configJsonString = GsonUtil.GSON.toJson(config);
+            argsList.add("-confProp");
+            argsList.add(configJsonString);
+            /* ---------------------------------------- pyFlink 测试 end --------------------------------------- */
         }
 
         Main.main(argsList.toArray(new String[0]));
