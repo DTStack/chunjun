@@ -254,7 +254,7 @@ public class DynamicKafkaSerializationSchema
                     valueSerialized,
                     readMetadata(consumedRow, KafkaDynamicSink.WritableMetadata.HEADERS));
         } catch (Exception e) {
-            dirtyManager.collect(consumedRow.toString(), e, null, runtimeContext);
+            dirtyManager.collect(consumedRow, e, null, runtimeContext);
         }
         return null;
     }

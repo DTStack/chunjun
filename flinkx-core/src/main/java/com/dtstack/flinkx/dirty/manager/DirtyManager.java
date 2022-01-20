@@ -29,6 +29,9 @@ import com.dtstack.flinkx.util.ExceptionUtil;
 import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +60,11 @@ public class DirtyManager implements Serializable {
     private static final String OPERATOR_NAME = "<operator_name>";
 
     private static final int MAX_THREAD_POOL_SIZE = 1;
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    private static final Gson GSON =
+            new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
 
     private transient ThreadPoolExecutor executor;
 
@@ -114,7 +122,7 @@ public class DirtyManager implements Serializable {
         return consumer.getFailedConsumed();
     }
 
-    public void collect(String data, Throwable cause, String field, RuntimeContext runtimeContext) {
+    public void collect(Object data, Throwable cause, String field, RuntimeContext runtimeContext) {
         if (executor == null) {
             execute();
         }
@@ -125,12 +133,25 @@ public class DirtyManager implements Serializable {
         entity.setJobName(jobName);
         entity.setOperatorName(operationName);
         entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        entity.setDirtyContent(data);
+        entity.setDirtyContent(toString(data));
         entity.setFieldName(field);
         entity.setErrorMessage(ExceptionUtil.getErrorMessage(cause));
 
         consumer.offer(entity);
         errorCounter.add(1L);
+    }
+
+    public String toString(Object data) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(data);
+        } catch (Exception e) {
+            try {
+                return GSON.toJson(data);
+            } catch (Exception processingException) {
+                LOG.warn("Dirty transform to String failed.", processingException);
+                return null;
+            }
+        }
     }
 
     /** Close manager. */

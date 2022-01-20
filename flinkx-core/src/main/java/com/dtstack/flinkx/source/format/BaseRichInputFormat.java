@@ -32,7 +32,6 @@ import com.dtstack.flinkx.source.ByteRateLimiter;
 import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
-import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 
 import org.apache.flink.api.common.ExecutionConfig;
@@ -192,8 +191,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         try {
             internalRow = nextRecordInternal(rowData);
         } catch (ReadRecordException e) {
-            dirtyManager.collect(
-                    GsonUtil.GSON.toJson(e.getRowData()), e, null, getRuntimeContext());
+            dirtyManager.collect(e.getRowData(), e, null, getRuntimeContext());
         }
         if (internalRow != null) {
             updateDuration();
