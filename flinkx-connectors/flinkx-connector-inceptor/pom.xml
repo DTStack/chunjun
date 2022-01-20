@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>flinkx-connectors</artifactId>
+		<groupId>com.dtstack.flinkx</groupId>
+		<version>1.12-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>flinkx-connector-inceptor</artifactId>
+	<name>FlinkX : Connectors : Inceptor</name>
+
+	<dependencies>
+		<!-- 星环 inceptor 依赖 -->
+		<dependency>
+			<groupId>io.transwarp</groupId>
+			<artifactId>inceptor-driver</artifactId>
+			<version>6.0.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-jdbc-base</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<relocations>
+								<relocation>
+									<pattern>org.apache.hive</pattern>
+									<shadedPattern>shade.inceptor.org.apache.hive</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>com.google.thirdparty</pattern>
+									<shadedPattern>shade.inceptor.com.google.thirdparty</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.apache.thrift</pattern>
+									<shadedPattern>shade.inceptor.org.apache.thrift</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>com.esotericsoftware.kryo</pattern>
+									<shadedPattern>shade.inceptor.com.esotericsoftware.kryo</shadedPattern>
+								</relocation>
+							</relocations>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+									<resource>META-INF/services/java.sql.Driver</resource>
+								</transformer>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+									<resource>META-INF/services</resource>
+									<file>java.sql.hive2.Driver</file>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<!-- here the phase you need -->
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<copy todir="${basedir}/../../${dist.dir}/connector/inceptor"
+									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+								<!--suppress UnresolvedMavenProperty -->
+								<move
+									file="${basedir}/../../${dist.dir}/connector/inceptor/${project.artifactId}-${project.version}.jar"
+									tofile="${basedir}/../../${dist.dir}/connector/inceptor/${project.artifactId}-${git.branch}.jar"/>
+								<delete>
+									<!--suppress UnresolvedMavenProperty -->
+									<fileset dir="${basedir}/../../${dist.dir}/connector/inceptor/"
+											 includes="${project.artifactId}-*.jar"
+											 excludes="${project.artifactId}-${git.branch}.jar"/>
+								</delete>
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

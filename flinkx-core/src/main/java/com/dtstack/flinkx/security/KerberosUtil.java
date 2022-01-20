@@ -20,6 +20,7 @@ package com.dtstack.flinkx.security;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.Md5Util;
 
@@ -73,6 +74,27 @@ public class KerberosUtil {
         }
 
         createDir(LOCAL_CACHE_DIR);
+    }
+
+    public static UserGroupInformation loginAndReturnUgi(Map<String, Object> hadoopConfig) {
+        String keytabFileName = KerberosUtil.getPrincipalFileName(hadoopConfig);
+        keytabFileName = KerberosUtil.loadFile(hadoopConfig, keytabFileName);
+
+        String principal = KerberosUtil.getPrincipal(hadoopConfig, keytabFileName);
+        KerberosUtil.loadKrb5Conf(hadoopConfig, null);
+
+        Configuration conf = FileSystemUtil.getConfiguration(hadoopConfig, null);
+
+        UserGroupInformation ugi;
+        try {
+            ugi = KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
+        } catch (Exception e) {
+            throw new RuntimeException("Login kerberos error:", e);
+        }
+
+        LOG.info("current ugi:{}", ugi);
+
+        return ugi;
     }
 
     public static UserGroupInformation loginAndReturnUgi(KerberosConfig kerberosConfig)

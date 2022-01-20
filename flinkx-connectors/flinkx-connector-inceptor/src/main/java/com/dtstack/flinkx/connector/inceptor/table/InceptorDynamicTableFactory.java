@@ -1,0 +1,291 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.dtstack.flinkx.connector.inceptor.table;
+
+import com.dtstack.flinkx.connector.inceptor.conf.InceptorConf;
+import com.dtstack.flinkx.connector.inceptor.dialect.InceptorDialect;
+import com.dtstack.flinkx.connector.inceptor.options.InceptorOptions;
+import com.dtstack.flinkx.connector.inceptor.sink.InceptorDynamicTableSink;
+import com.dtstack.flinkx.connector.inceptor.sink.InceptorOutputFormat;
+import com.dtstack.flinkx.connector.inceptor.sink.InceptorOutputFormatBuilder;
+import com.dtstack.flinkx.connector.inceptor.source.InceptorDynamicTableSource;
+import com.dtstack.flinkx.connector.inceptor.source.InceptorInputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
+import com.dtstack.flinkx.connector.jdbc.conf.SourceConnectionConf;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.enums.Semantic;
+
+import org.apache.flink.configuration.ConfigOption;
+import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.api.constraints.UniqueConstraint;
+import org.apache.flink.table.connector.sink.DynamicTableSink;
+import org.apache.flink.table.connector.source.DynamicTableSource;
+import org.apache.flink.table.factories.FactoryUtil;
+import org.apache.flink.table.utils.TableSchemaUtils;
+
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.*;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.*;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DRUID_PREFIX;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.*;
+import static com.dtstack.flinkx.source.options.SourceOptions.*;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_FETCH_SIZE;
+import static com.dtstack.flinkx.table.options.SinkOptions.*;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_MAX_RETRIES;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_PARALLELISM;
+import static org.apache.flink.util.Preconditions.checkState;
+
+/**
+ * Date: 2021/06/22 Company: www.dtstack.com
+ *
+ * @author tudou
+ */
+public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
+    public static final String IDENTIFIER = "inceptor-x";
+
+    @Override
+    public String factoryIdentifier() {
+        return IDENTIFIER;
+    }
+
+    @Override
+    protected JdbcDialect getDialect() {
+        return new InceptorDialect();
+    }
+
+    @Override
+    public Set<ConfigOption<?>> requiredOptions() {
+        Set<ConfigOption<?>> requiredOptions = super.requiredOptions();
+        // 必须是分区表 指定分区
+        requiredOptions.add(InceptorOptions.PARTITION);
+        requiredOptions.add(InceptorOptions.PARTITION_TYPE);
+        return requiredOptions;
+    }
+
+    @Override
+    public DynamicTableSource createDynamicTableSource(Context context) {
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
+        // 1.所有的requiredOptions和optionalOptions参数
+        final ReadableConfig config = helper.getOptions();
+
+        // 2.参数校验
+        helper.validateExcept(VERTX_PREFIX, DRUID_PREFIX, "security.kerberos.");
+        validateConfigOptions(config);
+        // 3.封装参数
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        JdbcDialect jdbcDialect = getDialect();
+
+        final Map<String, Object> druidConf =
+                getLibConfMap(context.getCatalogTable().getOptions(), DRUID_PREFIX);
+
+        InceptorConf sourceConnectionConf = getSourceConnectionConf(helper.getOptions());
+
+        addKerberosConfig(sourceConnectionConf, context.getCatalogTable().getOptions());
+
+        return new InceptorDynamicTableSource(
+                sourceConnectionConf,
+                getJdbcLookupConf(
+                        helper.getOptions(),
+                        context.getObjectIdentifier().getObjectName(),
+                        druidConf),
+                physicalSchema,
+                jdbcDialect,
+                getInputFormatBuilder());
+    }
+
+    @Override
+    public DynamicTableSink createDynamicTableSink(Context context) {
+        final FactoryUtil.TableFactoryHelper helper =
+                FactoryUtil.createTableFactoryHelper(this, context);
+        // 1.所有的requiredOptions和optionalOptions参数
+        final ReadableConfig config = helper.getOptions();
+
+        // 2.参数校验
+        helper.validateExcept("properties.", "security.kerberos");
+        JdbcDialect jdbcDialect = getDialect();
+
+        // 3.封装参数
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+
+        InceptorConf inceptorConf = getSinkConnectionConf(config, physicalSchema);
+
+        addKerberosConfig(inceptorConf, context.getCatalogTable().getOptions());
+
+        return new InceptorDynamicTableSink(
+                jdbcDialect, physicalSchema, getOutputFormatBuilder(), inceptorConf);
+    }
+
+    @Override
+    protected InceptorConf getSinkConnectionConf(
+            ReadableConfig readableConfig, TableSchema schema) {
+        InceptorConf inceptorConf = new InceptorConf();
+
+        SinkConnectionConf sinkConnectionConf = new SinkConnectionConf();
+        inceptorConf.setConnection(Collections.singletonList(sinkConnectionConf));
+
+        sinkConnectionConf.setJdbcUrl(readableConfig.get(URL));
+        sinkConnectionConf.setTable(Collections.singletonList(readableConfig.get(TABLE_NAME)));
+        sinkConnectionConf.setSchema(readableConfig.get(SCHEMA));
+        sinkConnectionConf.setAllReplace(readableConfig.get(SINK_ALL_REPLACE));
+        sinkConnectionConf.setUsername(readableConfig.get(USERNAME));
+        sinkConnectionConf.setPassword(readableConfig.get(PASSWORD));
+
+        inceptorConf.setPartition(readableConfig.get(InceptorOptions.PARTITION));
+        inceptorConf.setPartitionType(readableConfig.get(InceptorOptions.PARTITION_TYPE));
+
+        inceptorConf.setUsername(readableConfig.get(USERNAME));
+        inceptorConf.setPassword(readableConfig.get(PASSWORD));
+
+        inceptorConf.setAllReplace(sinkConnectionConf.getAllReplace());
+        inceptorConf.setBatchSize(readableConfig.get(SINK_BUFFER_FLUSH_MAX_ROWS));
+        inceptorConf.setFlushIntervalMills(readableConfig.get(SINK_BUFFER_FLUSH_INTERVAL));
+        inceptorConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
+        inceptorConf.setSemantic(readableConfig.get(SINK_SEMANTIC));
+
+        List<String> keyFields =
+                schema.getPrimaryKey().map(UniqueConstraint::getColumns).orElse(null);
+        inceptorConf.setUniqueKey(keyFields);
+        resetTableInfo(inceptorConf);
+        JdbcUtil.putExtParam(inceptorConf);
+        return inceptorConf;
+    }
+
+    @Override
+    protected InceptorConf getSourceConnectionConf(ReadableConfig readableConfig) {
+        InceptorConf jdbcConf = new InceptorConf();
+        SourceConnectionConf conf = new SourceConnectionConf();
+        jdbcConf.setConnection(Collections.singletonList(conf));
+
+        conf.setJdbcUrl(Arrays.asList(readableConfig.get(URL)));
+        conf.setTable(Arrays.asList(readableConfig.get(TABLE_NAME)));
+        conf.setSchema(readableConfig.get(SCHEMA));
+
+        jdbcConf.setJdbcUrl(readableConfig.get(URL));
+        jdbcConf.setUsername(readableConfig.get(USERNAME));
+        jdbcConf.setPassword(readableConfig.get(PASSWORD));
+
+        jdbcConf.setParallelism(readableConfig.get(SCAN_PARALLELISM));
+        jdbcConf.setFetchSize(
+                readableConfig.get(SCAN_FETCH_SIZE) == 0
+                        ? getDefaultFetchSize()
+                        : readableConfig.get(SCAN_FETCH_SIZE));
+        jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
+
+        jdbcConf.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
+        jdbcConf.setSplitStrategy(readableConfig.get(SCAN_PARTITION_STRATEGY));
+
+        String increColumn = readableConfig.get(SCAN_INCREMENT_COLUMN);
+        if (StringUtils.isNotBlank(increColumn)) {
+            jdbcConf.setIncrement(true);
+            jdbcConf.setIncreColumn(increColumn);
+            jdbcConf.setIncreColumnType(readableConfig.get(SCAN_INCREMENT_COLUMN_TYPE));
+        }
+
+        jdbcConf.setStartLocation(readableConfig.get(SCAN_START_LOCATION));
+
+        jdbcConf.setRestoreColumn(readableConfig.get(SCAN_RESTORE_COLUMNNAME));
+        jdbcConf.setRestoreColumnType(readableConfig.get(SCAN_RESTORE_COLUMNTYPE));
+
+        Optional<Integer> pollingInterval = readableConfig.getOptional(SCAN_POLLING_INTERVAL);
+        if (pollingInterval.isPresent() && pollingInterval.get() > 0) {
+            jdbcConf.setPolling(true);
+            jdbcConf.setPollingInterval(pollingInterval.get());
+            jdbcConf.setFetchSize(
+                    readableConfig.get(SCAN_FETCH_SIZE) == 0
+                            ? SCAN_DEFAULT_FETCH_SIZE.defaultValue()
+                            : readableConfig.get(SCAN_FETCH_SIZE));
+        }
+
+        resetTableInfo(jdbcConf);
+        return jdbcConf;
+    }
+
+    @Override
+    protected JdbcOutputFormatBuilder getOutputFormatBuilder() {
+        return new InceptorOutputFormatBuilder(new InceptorOutputFormat());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getInputFormatBuilder() {
+        return new InceptorInputFormatBuilder(new JdbcInputFormat());
+    }
+
+    @Override
+    protected void validateConfigOptions(ReadableConfig config) {
+        String jdbcUrl = config.get(URL);
+        final Optional<JdbcDialect> dialect = Optional.of(getDialect());
+        checkState(true, "Cannot handle such jdbc url: " + jdbcUrl);
+
+        if (config.getOptional(SCAN_POLLING_INTERVAL).isPresent()
+                && config.getOptional(SCAN_POLLING_INTERVAL).get() > 0) {
+            checkState(
+                    StringUtils.isNotBlank(config.get(SCAN_INCREMENT_COLUMN)),
+                    "scan.increment.column can not null or empty in polling-interval mode.");
+        }
+
+        checkAllOrNone(config, new ConfigOption[] {LOOKUP_CACHE_MAX_ROWS, LOOKUP_CACHE_TTL});
+
+        if (config.get(LOOKUP_MAX_RETRIES) < 0) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "The value of '%s' option shouldn't be negative, but is %s.",
+                            LOOKUP_MAX_RETRIES.key(), config.get(LOOKUP_MAX_RETRIES)));
+        }
+
+        if (config.get(SINK_MAX_RETRIES) < 0) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "The value of '%s' option shouldn't be negative, but is %s.",
+                            SINK_MAX_RETRIES.key(), config.get(SINK_MAX_RETRIES)));
+        }
+        try {
+            Semantic.getByName(config.get(SINK_SEMANTIC));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "The value of '%s' option should only be %s or %s, but is %s.",
+                            SINK_SEMANTIC.key(),
+                            Semantic.EXACTLY_ONCE.getAlisName(),
+                            Semantic.AT_LEAST_ONCE.getAlisName(),
+                            config.get(SINK_SEMANTIC)));
+        }
+    }
+
+    private void addKerberosConfig(InceptorConf inceptorConf, Map<String, String> options) {
+        Map<String, Object> kerberosConfig = InceptorOptions.getKerberosConfig(options);
+        kerberosConfig.put("useLocalFile", true);
+        inceptorConf.setHadoopConfig(kerberosConfig);
+    }
+}

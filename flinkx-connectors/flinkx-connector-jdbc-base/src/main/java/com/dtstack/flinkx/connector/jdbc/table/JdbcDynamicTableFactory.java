@@ -333,7 +333,7 @@ public abstract class JdbcDynamicTableFactory
         }
     }
 
-    private void checkAllOrNone(ReadableConfig config, ConfigOption<?>[] configOptions) {
+    protected void checkAllOrNone(ReadableConfig config, ConfigOption<?>[] configOptions) {
         int presentCount = 0;
         for (ConfigOption configOption : configOptions) {
             if (config.getOptional(configOption).isPresent()) {

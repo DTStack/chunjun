@@ -191,7 +191,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         }
     }
 
-    protected void writeSingleRecordInternal(RowData row) throws Exception {
+    public void writeSingleRecordInternal(RowData row) throws Exception {
         getOrCreateFieldNamedPstmt(row);
         currentFieldNamedPstmt =
                 (FieldNamedPreparedStatement)
