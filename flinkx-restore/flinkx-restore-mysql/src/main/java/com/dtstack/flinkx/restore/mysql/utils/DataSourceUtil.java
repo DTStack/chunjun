@@ -22,7 +22,7 @@ public class DataSourceUtil {
 
     private DataSourceUtil() {}
 
-    public static final String JDBC_URL_KEY = "jdbc.url";
+    public static final String JDBC_URL_KEY = "jdbcUrl";
 
     public static final String USER_NAME_KEY = "username";
 
