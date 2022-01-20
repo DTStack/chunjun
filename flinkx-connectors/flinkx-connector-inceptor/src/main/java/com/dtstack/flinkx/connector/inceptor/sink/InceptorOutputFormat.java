@@ -43,7 +43,7 @@ import java.util.TimeZone;
  *
  * <p>Company: www.dtstack.com
  *
- * @author huyifan.zju@163.com
+ * @author dujie
  */
 public class InceptorOutputFormat extends JdbcOutputFormat {
 

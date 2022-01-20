@@ -24,7 +24,7 @@ import com.dtstack.flinkx.converter.AbstractRowConverter;
 
 import org.apache.commons.lang.StringUtils;
 
-/** @author sishu.yss @Company: www.dtstack.com */
+/** @author dujie */
 public class InceptorOutputFormatBuilder extends JdbcOutputFormatBuilder {
 
     protected InceptorOutputFormat format;

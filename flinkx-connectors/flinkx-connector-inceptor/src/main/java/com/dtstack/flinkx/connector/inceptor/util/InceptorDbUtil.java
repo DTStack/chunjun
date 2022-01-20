@@ -39,7 +39,7 @@ import java.sql.SQLException;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * @author wujuan
+ * @author dujie
  * @version 1.0
  * @date 2021/12/15 16:44 星期三
  * @email wujuan@dtstack.com

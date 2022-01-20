@@ -20,7 +20,7 @@ package com.dtstack.flinkx.connector.inceptor.enums;
 /**
  * Date: 2021/06/22 Company: www.dtstack.com
  *
- * @author tudou
+ * @author dujie
  */
 public enum PartitionEnum {
     /** 天分区 */

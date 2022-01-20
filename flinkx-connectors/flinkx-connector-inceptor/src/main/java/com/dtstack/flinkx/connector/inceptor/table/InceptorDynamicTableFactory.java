@@ -67,7 +67,7 @@ import static org.apache.flink.util.Preconditions.checkState;
 /**
  * Date: 2021/06/22 Company: www.dtstack.com
  *
- * @author tudou
+ * @author dujie
  */
 public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
     public static final String IDENTIFIER = "inceptor-x";

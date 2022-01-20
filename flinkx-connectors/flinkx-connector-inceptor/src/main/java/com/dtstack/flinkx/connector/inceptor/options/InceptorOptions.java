@@ -31,7 +31,7 @@ import static com.dtstack.flinkx.security.KerberosUtil.KRB5_CONF_KEY;
 /**
  * Date: 2021/06/24 Company: www.dtstack.com
  *
- * @author tudou
+ * @author dujie
  */
 public class InceptorOptions extends JdbcCommonOptions {
 

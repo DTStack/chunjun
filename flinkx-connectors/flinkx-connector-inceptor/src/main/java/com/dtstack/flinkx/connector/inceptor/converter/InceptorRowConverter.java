@@ -39,7 +39,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/** @author kunni */
+/** @author dujie */
 public class InceptorRowConverter extends JdbcRowConverter {
 
     private static final long serialVersionUID = 1L;
