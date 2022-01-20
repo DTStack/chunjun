@@ -345,7 +345,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
         if (index < row.getArity()) {
             String message = recordConvertDetailErrorMessage(index, row);
-            LOG.error(message, e);
             throw new WriteRecordException(message, e, index, row);
         }
         throw new WriteRecordException(e.getMessage(), e);

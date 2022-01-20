@@ -80,7 +80,6 @@ public class DorisOutputFormat extends BaseRichOutputFormat {
             client.load(rowData, true);
         } catch (Exception e) {
             String errormessage = recordConvertDetailErrorMessage(-1, rowData);
-            LOG.error(errormessage, e);
             throw new WriteRecordException(errormessage, e, -1, rowData);
         }
     }
