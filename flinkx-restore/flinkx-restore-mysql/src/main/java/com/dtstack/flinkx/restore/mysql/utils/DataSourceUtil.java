@@ -99,10 +99,8 @@ public class DataSourceUtil {
         dataSource.setPoolPreparedStatements(false);
         dataSource.setConnectionInitSqls(Collections.singletonList("set names 'utf8'"));
 
-        dataSource.setRemoveAbandoned(true);
-        dataSource.setRemoveAbandonedTimeout(600);
+        dataSource.setRemoveAbandoned(false);
         dataSource.setLogAbandoned(true);
-        //        dataSource.setBreakAfterAcquireFailure(true);
         dataSource.setTimeBetweenConnectErrorMillis(60000);
         dataSource.setConnectionErrorRetryAttempts(3);
 
