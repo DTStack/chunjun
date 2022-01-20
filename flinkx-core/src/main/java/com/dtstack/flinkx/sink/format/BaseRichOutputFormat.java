@@ -440,10 +440,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
      * @param rowData 单条数据
      */
     protected void writeSingleRecord(RowData rowData, LongCounter numWriteCounter) {
-        if (errorLimiter != null) {
-            errorLimiter.checkErrorLimit();
-        }
-
         try {
             writeSingleRecordInternal(rowData);
             numWriteCounter.add(1L);
