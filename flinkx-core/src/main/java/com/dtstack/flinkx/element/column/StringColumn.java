@@ -249,4 +249,8 @@ public class StringColumn extends AbstractBaseColumn {
             throw new CastException("String", "Timestamp", data);
         }
     }
+
+    public boolean isCustomFormat() {
+        return isCustomFormat;
+    }
 }

@@ -107,15 +107,22 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
                 for (RowType.RowField rowField : rowType.getFields()) {
                     Map<String, String> columnInfo = indexColumnInfo.get(rowField.getName());
                     String type = columnInfo.get("type");
-                    if (type.equalsIgnoreCase("date")) {
+                    if ("date".equalsIgnoreCase(type)
+                            || rowField.getType().getTypeRoot()
+                                    == LogicalTypeRoot.TIME_WITHOUT_TIME_ZONE) {
                         String format = columnInfo.get("format");
                         if (StringUtils.isNotBlank(format)) {
-                            rowField =
-                                    new RowType.RowField(
-                                            rowField.getName(),
-                                            rowField.getType(),
-                                            columnInfo.get("format"));
+                            format = format.split("\\|\\|")[0];
+                        } else {
+                            /**
+                             * 默认格式
+                             * https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-date-format.html#strict-date-time
+                             */
+                            format = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
                         }
+                        rowField =
+                                new RowType.RowField(
+                                        rowField.getName(), rowField.getType(), format);
                     }
                     rowFieldList.add(rowField);
                 }

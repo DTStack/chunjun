@@ -23,6 +23,8 @@ import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.types.DataType;
 
+import org.elasticsearch.index.mapper.ObjectMapper;
+
 import java.util.Locale;
 
 public class ElasticsearchRawTypeMapper {
@@ -57,6 +59,10 @@ public class ElasticsearchRawTypeMapper {
                 return DataTypes.BYTES();
             case "DATE":
                 return DataTypes.TIMESTAMP();
+            case "OBJECT":
+            case "NESTED":
+                return DataTypes.STRUCTURED(
+                        ObjectMapper.Nested.class, DataTypes.FIELD("null", DataTypes.STRING()));
             default:
                 throw new UnsupportedTypeException(type);
         }
