@@ -65,6 +65,8 @@ public class SqlserverSinkFactory extends JdbcSinkFactory {
                 && jdbcConf.getTable().endsWith("]")
                 && StringUtils.isBlank(jdbcConf.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        } else {
+            super.resetTableInfo();
         }
     }
 }
