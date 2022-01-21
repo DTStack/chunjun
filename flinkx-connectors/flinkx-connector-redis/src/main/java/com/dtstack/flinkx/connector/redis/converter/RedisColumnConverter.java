@@ -28,6 +28,7 @@ import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.dtstack.flinkx.util.JsonUtil;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -38,7 +39,10 @@ import redis.clients.jedis.Jedis;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.REDIS_CRITICAL_TIME;
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.REDIS_KEY_VALUE_SIZE;
@@ -168,7 +172,17 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
     }
 
     private String concatValues(ColumnRowData row) {
-        return StringUtils.join(getValues(row), redisConf.getValueFieldDelimiter());
+        List<FieldConf> columns = redisConf.getColumn();
+        Map<String, Object> fieldMap = new HashMap<>();
+        int index = 0;
+
+        for (FieldConf fieldConf : columns) {
+            if (Objects.nonNull(row.getField(index))) {
+                fieldMap.put(fieldConf.getName(), row.getField(index).getData());
+            }
+            index++;
+        }
+        return JsonUtil.toJson(fieldMap);
     }
 
     private String concatKey(ColumnRowData row) {
