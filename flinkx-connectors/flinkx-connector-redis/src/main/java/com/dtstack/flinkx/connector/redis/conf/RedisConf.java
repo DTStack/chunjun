@@ -38,6 +38,8 @@ public class RedisConf extends FlinkxCommonConf {
     private String password;
     /** database */
     private int database = 0;
+    /** keyPrefix */
+    private String keyPrefix;
     /**
      * keyIndexes indicates which columns at the source end need to be used as keys (the first
      * column starts from 0). If the first column and the second column need to be combined as the
@@ -114,6 +116,14 @@ public class RedisConf extends FlinkxCommonConf {
 
     public List<Integer> getKeyIndexes() {
         return keyIndexes;
+    }
+
+    public String getKeyPrefix() {
+        return keyPrefix;
+    }
+
+    public void setKeyPrefix(String keyPrefix) {
+        this.keyPrefix = keyPrefix;
     }
 
     public void setKeyIndexes(List<Integer> keyIndexes) {
@@ -245,6 +255,8 @@ public class RedisConf extends FlinkxCommonConf {
                 + database
                 + ", keyIndexes="
                 + keyIndexes
+                + ", keyPrefix="
+                + keyPrefix
                 + ", keyFieldDelimiter='"
                 + keyFieldDelimiter
                 + '\''
