@@ -52,11 +52,14 @@ public class StringColumn extends AbstractBaseColumn {
         if (StringUtils.isNotBlank(format)) {
             this.format = DateUtil.buildDateFormatter(format);
             isCustomFormat = true;
+        } else {
+            this.format = DateUtil.buildDateFormatter("yyyy-MM-dd HH:mm:ss");
         }
     }
 
     public StringColumn(Byte aByte) {
         super(aByte);
+        this.format = DateUtil.buildDateFormatter("yyyy-MM-dd HH:mm:ss");
     }
 
     @Override

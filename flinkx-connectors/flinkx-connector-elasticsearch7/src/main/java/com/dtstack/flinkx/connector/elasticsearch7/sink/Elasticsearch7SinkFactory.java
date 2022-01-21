@@ -39,6 +39,7 @@ import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 
 import com.esotericsoftware.minlog.Log;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
@@ -98,28 +99,30 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
      * @return
      */
     public RowType getFormatDescription(RowType rowType) {
+        RowType result = rowType;
         if (checkContainTimestamp(rowType)) {
             Map<String, Map<String, String>> indexColumnInfo = getIndexMappingProperties();
-            List<RowType.RowField> rowFieldList = new ArrayList<>();
-            for (RowType.RowField rowField : rowType.getFields()) {
-                Map<String, String> columnInfo = indexColumnInfo.get(rowField.getName());
-                String type = columnInfo.get("type");
-                if (type.equalsIgnoreCase("date")) {
-                    String format = columnInfo.get("format");
-                    if (format != null) {
-                        rowField =
-                                new RowType.RowField(
-                                        rowField.getName(),
-                                        rowField.getType(),
-                                        columnInfo.get("format"));
+            if (indexColumnInfo != null) {
+                List<RowType.RowField> rowFieldList = new ArrayList<>();
+                for (RowType.RowField rowField : rowType.getFields()) {
+                    Map<String, String> columnInfo = indexColumnInfo.get(rowField.getName());
+                    String type = columnInfo.get("type");
+                    if (type.equalsIgnoreCase("date")) {
+                        String format = columnInfo.get("format");
+                        if (StringUtils.isNotBlank(format)) {
+                            rowField =
+                                    new RowType.RowField(
+                                            rowField.getName(),
+                                            rowField.getType(),
+                                            columnInfo.get("format"));
+                        }
                     }
+                    rowFieldList.add(rowField);
                 }
-                rowFieldList.add(rowField);
+                result = new RowType(rowFieldList);
             }
-            return new RowType(rowFieldList);
-        } else {
-            return rowType;
         }
+        return result;
     }
 
     /** @return 索引mapping配置详情 */
