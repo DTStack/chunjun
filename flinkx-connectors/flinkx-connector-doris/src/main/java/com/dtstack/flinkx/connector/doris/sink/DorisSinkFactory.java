@@ -51,6 +51,7 @@ import static com.dtstack.flinkx.connector.doris.options.DorisKeys.EXEC_MEM_LIMI
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.FE_NODES_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.FIELD_DELIMITER;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.FIELD_DELIMITER_KEY;
+import static com.dtstack.flinkx.connector.doris.options.DorisKeys.FLUSH_INTERNAL_MS_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.LINE_DELIMITER;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.LINE_DELIMITER_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.LOAD_OPTIONS_KEY;
@@ -148,6 +149,7 @@ public class DorisSinkFactory extends SinkFactory {
                                 parameter.getStringVal(WRITE_MODE_KEY, DORIS_WRITE_MODE_DEFAULT))
                         .setUsername(parameter.getStringVal(USER_NAME_KEY))
                         .setBatchSize(parameter.getIntVal(BATCH_SIZE_KEY, 1000))
+                        .setFlushIntervalMills(parameter.getLongVal(FLUSH_INTERNAL_MS_KEY, 10000L))
                         .build();
         options.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(options);

@@ -20,6 +20,8 @@ public class Carrier implements Serializable {
     private final String fieldDelimiter;
     private final int batchSize;
     private int batch = 0;
+    private String database;
+    private String table;
     private List<String> columns;
 
     public Carrier(String fieldDelimiter, String lineDelimiter, int batchSize) {
@@ -27,6 +29,22 @@ public class Carrier implements Serializable {
         this.batchSize = batchSize;
         insertContent = new StringJoiner(lineDelimiter);
         deleteContent = new StringJoiner(" OR ");
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    public String getTable() {
+        return table;
+    }
+
+    public void setTable(String table) {
+        this.table = table;
     }
 
     public String getInsertContent() {
@@ -86,19 +104,38 @@ public class Carrier implements Serializable {
     private String buildMergeOnConditions(List<String> columns, List<String> values) {
         List<String> deleteOnStr = new ArrayList<>();
         for (int i = 0, size = columns.size(); i < size; i++) {
-            String stringBuilder =
+            String s =
                     columns.get(i)
                             + "<=>"
                             + "'"
                             + ((values.get(i)) == null ? "" : values.get(i))
                             + "'";
-            String s =
-                    stringBuilder
-                            .replaceAll("\\r", "\\\\r")
-                            .replaceAll("\\n", "\\\\n")
-                            .replaceAll("\\t", "\\\t");
             deleteOnStr.add(s);
         }
         return StringUtils.join(deleteOnStr, " AND ");
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{database:");
+        sb.append(database);
+        sb.append(", table:");
+        sb.append(table);
+        sb.append(", columns:[");
+        for (int i = 0; i < columns.size(); i++) {
+            if (i != 0) {
+                sb.append(",");
+            }
+            sb.append(columns.get(i));
+        }
+        sb.append("], insert_value:");
+        sb.append(insertContent);
+        sb.append(", delete_value:");
+        sb.append(deleteContent);
+        sb.append(", batch:");
+        sb.append(batch);
+        sb.append("}");
+        return sb.toString();
     }
 }
