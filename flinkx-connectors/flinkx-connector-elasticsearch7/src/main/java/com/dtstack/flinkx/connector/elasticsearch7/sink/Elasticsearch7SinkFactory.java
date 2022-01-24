@@ -106,25 +106,27 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
                 List<RowType.RowField> rowFieldList = new ArrayList<>();
                 for (RowType.RowField rowField : rowType.getFields()) {
                     Map<String, String> columnInfo = indexColumnInfo.get(rowField.getName());
-                    String type = columnInfo.get("type");
-                    if ("date".equalsIgnoreCase(type)
-                            || rowField.getType().getTypeRoot()
-                                    == LogicalTypeRoot.TIME_WITHOUT_TIME_ZONE) {
-                        String format = columnInfo.get("format");
-                        if (StringUtils.isNotBlank(format)) {
-                            format = format.split("\\|\\|")[0];
-                        } else {
-                            /**
-                             * 默认格式
-                             * https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-date-format.html#strict-date-time
-                             */
-                            format = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+                    if (columnInfo != null) {
+                        String type = columnInfo.get("type");
+                        if ("date".equalsIgnoreCase(type)
+                                || rowField.getType().getTypeRoot()
+                                        == LogicalTypeRoot.TIME_WITHOUT_TIME_ZONE) {
+                            String format = columnInfo.get("format");
+                            if (StringUtils.isNotBlank(format)) {
+                                format = format.split("\\|\\|")[0];
+                            } else {
+                                /**
+                                 * 默认格式 选择精度最高的
+                                 * https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-date-format.html#strict-date-time
+                                 */
+                                format = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+                            }
+                            rowField =
+                                    new RowType.RowField(
+                                            rowField.getName(), rowField.getType(), format);
                         }
-                        rowField =
-                                new RowType.RowField(
-                                        rowField.getName(), rowField.getType(), format);
+                        rowFieldList.add(rowField);
                     }
-                    rowFieldList.add(rowField);
                 }
                 result = new RowType(rowFieldList);
             }
