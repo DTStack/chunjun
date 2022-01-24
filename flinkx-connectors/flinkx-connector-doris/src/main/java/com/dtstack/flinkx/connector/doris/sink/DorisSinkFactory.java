@@ -34,6 +34,7 @@ import org.apache.flink.table.data.RowData;
 import java.util.List;
 import java.util.Properties;
 
+import static com.dtstack.flinkx.connector.doris.options.DorisKeys.BATCH_INTERNAL_MS_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.BATCH_SIZE_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.DATABASE_KEY;
 import static com.dtstack.flinkx.connector.doris.options.DorisKeys.DESERIALIZE_ARROW_ASYNC_KEY;
@@ -151,6 +152,12 @@ public class DorisSinkFactory extends SinkFactory {
                         .setBatchSize(parameter.getIntVal(BATCH_SIZE_KEY, 1000))
                         .setFlushIntervalMills(parameter.getLongVal(FLUSH_INTERNAL_MS_KEY, 10000L))
                         .build();
+        Object flushIntervalMills =
+                parameter.getVal(BATCH_INTERNAL_MS_KEY) == null
+                        ? parameter.getVal(FLUSH_INTERNAL_MS_KEY)
+                        : parameter.getVal(BATCH_INTERNAL_MS_KEY);
+        options.setFlushIntervalMills(
+                flushIntervalMills == null ? 10000L : (long) flushIntervalMills);
         options.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(options);
     }
