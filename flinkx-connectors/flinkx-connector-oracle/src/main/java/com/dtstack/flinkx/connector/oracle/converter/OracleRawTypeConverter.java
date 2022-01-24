@@ -67,6 +67,7 @@ public class OracleRawTypeConverter {
             case "VARCHAR2":
             case "NCHAR":
             case "NVARCHAR2":
+            case "LONG":
                 return DataTypes.VARCHAR(OracleRowConverter.CLOB_LENGTH - 1);
             case "CLOB":
             case "NCLOB":
@@ -90,8 +91,6 @@ public class OracleRawTypeConverter {
                 return new AtomicDataType(new BlobType(true, LogicalTypeRoot.VARBINARY));
             case "BINARY_FLOAT":
                 return DataTypes.FLOAT();
-            case "LONG":
-                // when mode is update and allReplace is false, LONG type is not support
             default:
                 if (TIMESTAMP_PREDICATE.test(type)) {
                     return DataTypes.TIMESTAMP();
