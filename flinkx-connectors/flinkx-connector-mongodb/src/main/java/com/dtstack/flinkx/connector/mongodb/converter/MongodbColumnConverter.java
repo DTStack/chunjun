@@ -41,6 +41,7 @@ import org.bson.types.Decimal128;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,7 +97,7 @@ public class MongodbColumnConverter
     }
 
     @Override
-    public RowData toInternal(Document document) {
+    public RowData toInternal(Document document) throws ParseException {
         List<FieldConf> fieldList = commonConf.getColumn();
         ColumnRowData result = new ColumnRowData(fieldList.size());
         int convertIndex = 0;

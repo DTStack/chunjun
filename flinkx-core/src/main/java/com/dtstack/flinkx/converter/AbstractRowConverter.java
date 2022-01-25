@@ -111,7 +111,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      * @return
      */
     protected AbstractBaseColumn assembleFieldProps(
-            FieldConf fieldConf, AbstractBaseColumn baseColumn) {
+            FieldConf fieldConf, AbstractBaseColumn baseColumn) throws ParseException {
         String format = fieldConf.getFormat();
         String parseFormat = fieldConf.getParseFormat();
         if (StringUtils.isNotBlank(fieldConf.getValue())) {
@@ -134,20 +134,37 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         } else if (StringUtils.isNotBlank(format)) {
             baseColumn =
                     new StringColumn(
-                            getTimestampWithParseFormat(baseColumn.asString(), parseFormat),
+                            getMilliSecondsWithParseFormat(
+                                    baseColumn.asString(), parseFormat, format),
                             format);
         }
         return baseColumn;
     }
 
-    /** Convert val from timestampString to longString with parseFormat */
-    public String getTimestampWithParseFormat(String val, String parseFormat) {
+    /** Convert val from timestampString to longString with parseFormat and */
+    public String getMilliSecondsWithParseFormat(String val, String parseFormat, String format)
+            throws ParseException {
         if (StringUtils.isNotBlank(parseFormat) && val != null) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(parseFormat);
             try {
                 return String.valueOf(simpleDateFormat.parse(val).getTime());
             } catch (ParseException e) {
-                LOG.error(String.format("Cannot parse val %s with the given parseFormat", val), e);
+                LOG.warn(
+                        String.format(
+                                "Cannot parse val %s with the given parseFormat[%s],try parsing with format[%s]",
+                                val, parseFormat, format),
+                        e);
+                try {
+                    simpleDateFormat = new SimpleDateFormat(format);
+                    return String.valueOf(simpleDateFormat.parse(val).getTime());
+                } catch (ParseException parseException) {
+                    LOG.error(
+                            String.format(
+                                    "Cannot parse val %s with the given parseFormat[%s] and format[%s]",
+                                    val, parseFormat, format),
+                            parseException);
+                    throw parseException;
+                }
             }
         }
         return val;

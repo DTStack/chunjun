@@ -129,6 +129,11 @@ public class FieldConf implements Serializable {
             field.setFormat(String.valueOf(format));
         }
 
+        Object parseFormat = map.get("parseFormat");
+        if (parseFormat != null && String.valueOf(parseFormat).trim().length() > 0) {
+            field.setParseFormat(String.valueOf(parseFormat));
+        }
+
         Object splitter = map.get("splitter");
         field.setSplitter(splitter != null ? String.valueOf(splitter) : null);
 
