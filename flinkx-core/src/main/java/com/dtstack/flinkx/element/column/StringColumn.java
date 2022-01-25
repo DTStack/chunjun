@@ -39,27 +39,23 @@ import java.util.Date;
  */
 public class StringColumn extends AbstractBaseColumn {
 
-    private SimpleDateFormat format;
+    private String format = "yyyy-MM-dd HH:mm:ss";
     private boolean isCustomFormat = false;
 
     public StringColumn(final String data) {
         super(data);
-        this.format = DateUtil.buildDateFormatter("yyyy-MM-dd HH:mm:ss");
     }
 
     public StringColumn(final String data, String format) {
         super(data);
         if (StringUtils.isNotBlank(format)) {
-            this.format = DateUtil.buildDateFormatter(format);
+            this.format = format;
             isCustomFormat = true;
-        } else {
-            this.format = DateUtil.buildDateFormatter("yyyy-MM-dd HH:mm:ss");
         }
     }
 
     public StringColumn(Byte aByte) {
         super(aByte);
-        this.format = DateUtil.buildDateFormatter("yyyy-MM-dd HH:mm:ss");
     }
 
     @Override
@@ -79,6 +75,7 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
+        SimpleDateFormat dateFormat = DateUtil.buildDateFormatter(format);
         Long time = null;
         Date result = null;
         String data = String.valueOf(this.data);
@@ -91,21 +88,21 @@ public class StringColumn extends AbstractBaseColumn {
         if (time != null) {
             Date date = new Date(time);
             try {
-                result = format.parse(format.format(date));
+                result = dateFormat.parse(dateFormat.format(date));
             } catch (ParseException ignored) {
                 // doNothing
             }
         } else {
             try {
                 // 如果是日期格式字符串
-                result = format.parse(data);
+                result = dateFormat.parse(data);
             } catch (ParseException ignored) {
                 // doNothing
             }
         }
 
         if (result == null) {
-            result = DateUtil.columnToDate(data, format);
+            result = DateUtil.columnToDate(data, dateFormat);
 
             if (result == null) {
                 throw new CastException("String", "Date", data);
@@ -227,11 +224,12 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
+        SimpleDateFormat dateFormat = DateUtil.buildDateFormatter(format);
         String data = String.valueOf(this.data);
         try {
             // 如果string是时间戳
             Long time = NumberUtils.createLong(data);
-            return format.format(time);
+            return dateFormat.format(time);
         } catch (Exception ignored) {
             // doNothing
         }
@@ -239,7 +237,7 @@ public class StringColumn extends AbstractBaseColumn {
         try {
             if (isCustomFormat) {
                 // 格式化
-                return format.format(asDate().getTime());
+                return dateFormat.format(asDate().getTime());
             } else {
                 // 校验格式
                 DateUtil.stringToDate(data);
