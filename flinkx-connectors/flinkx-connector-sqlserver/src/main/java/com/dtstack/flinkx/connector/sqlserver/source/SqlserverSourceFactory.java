@@ -56,6 +56,8 @@ public class SqlserverSourceFactory extends JdbcSourceFactory {
                 && jdbcConf.getTable().endsWith("]")
                 && StringUtils.isBlank(jdbcConf.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        } else {
+            super.resetTableInfo();
         }
     }
 }
