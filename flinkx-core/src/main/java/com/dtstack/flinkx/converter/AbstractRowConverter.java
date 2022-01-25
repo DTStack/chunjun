@@ -111,7 +111,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      * @return
      */
     protected AbstractBaseColumn assembleFieldProps(
-            FieldConf fieldConf, AbstractBaseColumn baseColumn) throws ParseException {
+            FieldConf fieldConf, AbstractBaseColumn baseColumn) {
         String format = fieldConf.getFormat();
         String parseFormat = fieldConf.getParseFormat();
         if (StringUtils.isNotBlank(fieldConf.getValue())) {
@@ -142,8 +142,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     }
 
     /** Convert val from timestampString to longString with parseFormat and */
-    public String getMilliSecondsWithParseFormat(String val, String parseFormat, String format)
-            throws ParseException {
+    public String getMilliSecondsWithParseFormat(String val, String parseFormat, String format) {
         if (StringUtils.isNotBlank(parseFormat) && val != null) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(parseFormat);
             try {
@@ -158,12 +157,10 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
                     simpleDateFormat = new SimpleDateFormat(format);
                     return String.valueOf(simpleDateFormat.parse(val).getTime());
                 } catch (ParseException parseException) {
-                    LOG.error(
+                    throw new UnsupportedOperationException(
                             String.format(
                                     "Cannot parse val %s with the given parseFormat[%s] and format[%s]",
-                                    val, parseFormat, format),
-                            parseException);
-                    throw parseException;
+                                    val, parseFormat, format));
                 }
             }
         }

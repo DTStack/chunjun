@@ -197,7 +197,7 @@ public class DateUtil {
             return new java.sql.Timestamp(d.getTime());
         }
 
-        throw new IllegalArgumentException(
+        throw new UnsupportedOperationException(
                 "Can't convert " + column.getClass().getName() + " to Date");
     }
 
