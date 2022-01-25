@@ -457,8 +457,12 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     protected synchronized void writeRecordInternal() {
         if (flushEnable.get()) {
             try {
+                int size = rows.size();
                 writeMultipleRecordsInternal();
-                numWriteCounter.add(rows.size());
+                // In doris, the successfully written data will be removed from the rows
+                // , so the actual amount of successfully written data is size minus the current
+                // rows.size.
+                numWriteCounter.add(size > rows.size() ? size - rows.size() : size);
             } catch (Exception e) {
                 // 批量写异常转为单条写
                 rows.forEach(item -> writeSingleRecord(item, numWriteCounter));

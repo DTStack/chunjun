@@ -4,7 +4,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 
 /**
@@ -18,15 +20,14 @@ public class Carrier implements Serializable {
     private final StringJoiner insertContent;
     private final StringJoiner deleteContent;
     private final String fieldDelimiter;
-    private final int batchSize;
     private int batch = 0;
     private String database;
     private String table;
     private List<String> columns;
+    private final Set<Integer> rowDataIndexes = new HashSet<>();
 
-    public Carrier(String fieldDelimiter, String lineDelimiter, int batchSize) {
+    public Carrier(String fieldDelimiter, String lineDelimiter) {
         this.fieldDelimiter = fieldDelimiter;
-        this.batchSize = batchSize;
         insertContent = new StringJoiner(lineDelimiter);
         deleteContent = new StringJoiner(" OR ");
     }
@@ -63,6 +64,14 @@ public class Carrier implements Serializable {
         this.columns = columns;
     }
 
+    public Set<Integer> getRowDataIndexes() {
+        return rowDataIndexes;
+    }
+
+    public void addRowDataIndex(int index) {
+        rowDataIndexes.add(index);
+    }
+
     public void addInsertContent(List<String> insertV) {
         if (!insertV.isEmpty()) {
             if (insertV.size() > columns.size()) {
@@ -90,10 +99,6 @@ public class Carrier implements Serializable {
 
     public void updateBatch() {
         batch++;
-    }
-
-    public boolean isFull() {
-        return batch >= batchSize;
     }
 
     /**
