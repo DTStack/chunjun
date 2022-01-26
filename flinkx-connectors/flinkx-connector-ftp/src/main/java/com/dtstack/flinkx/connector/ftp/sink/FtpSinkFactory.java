@@ -71,11 +71,15 @@ public class FtpSinkFactory extends SinkFactory {
         FtpOutputFormatBuilder builder = new FtpOutputFormatBuilder();
         builder.setConfig(ftpConfig);
         builder.setFtpConfig(ftpConfig);
-        List<FieldConf> fieldConfList = ftpConfig.getColumn().stream().peek(fieldConf -> {
-            if (fieldConf.getName() == null) {
-                fieldConf.setName(String.valueOf(fieldConf.getIndex()));
-            }
-        }).collect(Collectors.toList());
+        List<FieldConf> fieldConfList =
+                ftpConfig.getColumn().stream()
+                        .peek(
+                                fieldConf -> {
+                                    if (fieldConf.getName() == null) {
+                                        fieldConf.setName(String.valueOf(fieldConf.getIndex()));
+                                    }
+                                })
+                        .collect(Collectors.toList());
         ftpConfig.setColumn(fieldConfList);
         final RowType rowType =
                 TableUtil.createRowType(ftpConfig.getColumn(), getRawTypeConverter());
