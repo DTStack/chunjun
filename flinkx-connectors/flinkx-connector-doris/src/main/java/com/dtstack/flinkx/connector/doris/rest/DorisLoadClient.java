@@ -95,7 +95,7 @@ public class DorisLoadClient implements Serializable {
      * @param value RowData
      * @return Carrier
      */
-    public Carrier process(RowData value) {
+    public void process(RowData value) throws WriteRecordException {
         String schema;
         String table;
         List<String> columns = new LinkedList<>();
@@ -107,10 +107,10 @@ public class DorisLoadClient implements Serializable {
             wrap((ColumnRowData) value, columns, insertV, deleteV, identityMap);
             schema = MapUtils.getString(identityMap, KEY_SCHEMA, conf.getDatabase());
             table = MapUtils.getString(identityMap, KEY_TABLE, conf.getTable());
-            return initCarrier(columns, insertV, deleteV, schema, table);
+            Carrier carrier = initCarrier(columns, insertV, deleteV, schema, table);
+            flush(carrier);
         }
         // TODO sql support
-        return null;
     }
 
     /**
@@ -121,7 +121,7 @@ public class DorisLoadClient implements Serializable {
      * @param index RowData index
      * @param carrierMap A batch of data is cached
      */
-    public void processBatch(RowData value, int index, Map<String, Carrier> carrierMap) {
+    public void process(RowData value, int index, Map<String, Carrier> carrierMap) {
         String schema;
         String table;
         List<String> columns = new LinkedList<>();

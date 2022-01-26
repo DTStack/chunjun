@@ -78,15 +78,14 @@ public class DorisOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
-        Carrier carrier = client.process(rowData);
-        client.flush(carrier);
+        client.process(rowData);
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         int size = rows.size();
         for (int i = 0; i < size; i++) {
-            client.processBatch(rows.get(i), i, carrierMap);
+            client.process(rows.get(i), i, carrierMap);
         }
         if (!carrierMap.isEmpty()) {
             Set<String> keys = carrierMap.keySet();
@@ -96,6 +95,8 @@ public class DorisOutputFormat extends BaseRichOutputFormat {
                     client.flush(carrier);
                     Set<Integer> indexes = carrier.getRowDataIndexes();
                     List<RowData> removeList = new ArrayList<>(indexes.size());
+                    // Add the amount of data written successfully.
+                    numWriteCounter.add(indexes.size());
                     for (int index : indexes) {
                         removeList.add(rows.get(index));
                     }
@@ -105,6 +106,21 @@ public class DorisOutputFormat extends BaseRichOutputFormat {
                 } finally {
                     carrierMap.remove(key);
                 }
+            }
+        }
+    }
+
+    @Override
+    protected synchronized void writeRecordInternal() {
+        if (flushEnable.get()) {
+            try {
+                writeMultipleRecordsInternal();
+            } catch (Exception e) {
+                // 批量写异常转为单条写
+                rows.forEach(item -> writeSingleRecord(item, numWriteCounter));
+            } finally {
+                // Data is either recorded dirty data or written normally
+                rows.clear();
             }
         }
     }
