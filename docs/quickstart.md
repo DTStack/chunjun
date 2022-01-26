@@ -26,10 +26,10 @@ sh build/build.sh
 
 ```bash
 ## windows平台
-./install_jars.bat
+./$FLINKX_HOME/bin/install_jars.bat
 
 ## unix平台
-./install_jars.sh
+./$FLINKX_HOME/bin/install_jars.sh
 ```
 
 ## 运行任务
@@ -164,7 +164,7 @@ from source;
 bin/flinkx \
 	-mode local \
 	-jobType sync \
-	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
+	-job flinkx-examples/json/stream/stream.json \
 	-flinkxDistDir flinkx-dist
 ```
 
@@ -181,7 +181,7 @@ rest.bind-port: 8888
 bin/flinkx \
 	-mode local \
 	-jobType sync \
-	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
+	-job flinkx-examples/json/stream/stream.json \
 	-flinkxDistDir flinkx-dist
 ```
 
