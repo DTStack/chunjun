@@ -29,7 +29,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -348,8 +347,6 @@ public class DorisLoadClient implements Serializable {
 
     private String convert(@Nonnull ColumnRowData rowData, int index) {
         Object value = rowData.getField(index);
-        return (value == null || "".equals(value.toString()))
-                ? NULL_VALUE
-                : StringEscapeUtils.escapeJava(value.toString());
+        return (value == null || "".equals(value.toString())) ? NULL_VALUE : value.toString();
     }
 }
