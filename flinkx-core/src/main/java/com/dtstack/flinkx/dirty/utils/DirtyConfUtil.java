@@ -62,9 +62,9 @@ public class DirtyConfUtil {
         if (type.equals("jdbc")) {
             type = "mysql";
         }
-        long maxConsumed = Long.parseLong(String.valueOf(confMap.getOrDefault(MAX_ROWS_KEY, "1")));
+        long maxConsumed = Long.parseLong(String.valueOf(confMap.getOrDefault(MAX_ROWS_KEY, "0")));
         long maxFailed =
-                Long.parseLong(String.valueOf(confMap.getOrDefault(MAX_FAILED_ROWS_KEY, "1")));
+                Long.parseLong(String.valueOf(confMap.getOrDefault(MAX_FAILED_ROWS_KEY, "0")));
         long printRate = Long.parseLong(String.valueOf(confMap.getOrDefault(PRINT_INTERVAL, "1")));
         String pluginDir = MapUtils.getString(confMap, DIRTY_DIR);
 
