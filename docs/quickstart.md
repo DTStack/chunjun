@@ -200,7 +200,7 @@ NOTE:将flinkx-dist目录拷贝到$FLINK_HOME/lib下，并修改$FLINK_HOME/conf
 bin/flinkx \
 	-mode standalone \
 	-jobType sync \
-	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
+	-job flinkx-examples/json/stream/stream.json \
 	-flinkxDistDir flinkx-dist \
 	-flinkConfDir $FLINK_HOME/conf \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
@@ -226,7 +226,7 @@ $FLINK_HOME/bin/start-cluster.sh
 	-mode standalone \
 	-jobType sync \
 	-flinkxDistDir flinkx-dist \
-	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
+	-job flinkx-examples/json/stream/stream.json \
 	-flinkConfDir $FLINK_HOME/conf
 ```
 
@@ -245,7 +245,7 @@ NOTE:可以先在现在flinkx-clients模块YarnSessionClientUtil类中启动一�
 bin/flinkx \
 	-mode yarn-session \
 	-jobType sync \
-	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
+	-job flinkx-examples/json/stream/stream.json \
 	-flinkxDistDir flinkx-dist \
 	-flinkConfDir $FLINK_HOME/conf \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
@@ -272,7 +272,7 @@ $FLINK_HOME/bin/yarn-session.sh -n 1 -s 1 -jm 1024 -tm 1024
 bin/flinkx \
 	-mode yarn-session \
 	-jobType sync \
-	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
+	-job flinkx-examples/json/stream/stream.json \
 	-flinkConfDir $FLINK_HOME/conf \
 	-flinkxDistDir flinkx-dist \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop
@@ -292,7 +292,7 @@ bin/flinkx \
 bin/flinkx \
 	-mode yarn-per-job \
 	-jobType sync \
-	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
+	-job flinkx-examples/json/stream/stream.json \
 	-flinkxDistDir flinkx-dist \
 	-flinkConfDir $FLINK_HOME/conf \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
@@ -306,7 +306,7 @@ bin/flinkx \
 bin/flinkx \
 	-mode yarn-per-job \
 	-jobType sync \
-	-job flinkx-local-test/src/main/demo/json/stream/stream.json \
+	-job flinkx-examples/json/stream/stream.json \
 	-flinkxDistDir flinkx-dist \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
 	-flinkLibDir $FLINK_HOME/lib \
@@ -331,7 +331,7 @@ bin/flinkx \
 bin/flinkx \
     -mode kubernetes-session \
     -jobType sync \
-    -job flinkx-local-test/src/main/demo/json/stream/stream.json \
+    -job flinkx-examples/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
     -flinkxDistDir flinkx-dist \
@@ -354,7 +354,7 @@ $FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink-session-test
 bin/flinkx \
     -mode kubernetes-application \
     -jobType sync \
-    -job flinkx-local-test/src/main/demo/json/stream/stream.json \
+    -job flinkx-examples/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
     -flinkxDistDir flinkx-dist \
