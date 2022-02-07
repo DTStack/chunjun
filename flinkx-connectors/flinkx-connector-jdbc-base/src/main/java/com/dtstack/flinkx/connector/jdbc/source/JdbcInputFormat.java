@@ -244,6 +244,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 Object obj;
                 switch (type) {
                     case TIMESTAMP:
+                    case DATETIME:
                     case DATE:
                         obj = resultSet.getTimestamp(jdbcConf.getIncreColumn()).getTime();
                         break;
@@ -609,6 +610,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         boolean isNumber = StringUtils.isNumeric(startLocation);
         switch (type) {
             case TIMESTAMP:
+            case DATETIME:
                 Timestamp ts =
                         isNumber
                                 ? new Timestamp(Long.parseLong(startLocation))
