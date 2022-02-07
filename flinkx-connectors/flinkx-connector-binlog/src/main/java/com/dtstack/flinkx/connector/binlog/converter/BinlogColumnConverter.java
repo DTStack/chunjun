@@ -115,6 +115,38 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
                                                         .build())
                                 .collect(Collectors.toList()));
 
+            } else if (rowChange.getEventType().equals(CanalEntry.EventType.RENAME)) {
+                List<DdlResult> parse =
+                        DruidDdlParser.parse(
+                                binlogEventRow.getRowChange().getSql(),
+                                binlogEventRow.getRowChange().getDdlSchemaName());
+                result.addAll(
+                        parse.stream()
+                                .map(
+                                        i ->
+                                                DdlRowDataBuilder.builder()
+                                                        .setDatabaseName(i.getSchemaName())
+                                                        .setTableName(i.getTableName())
+                                                        .setContent(
+                                                                "RENAME TABLE "
+                                                                        + i.getOriSchemaName()
+                                                                        + "."
+                                                                        + i.getOriTableName()
+                                                                        + " TO "
+                                                                        + i.getSchemaName()
+                                                                        + "."
+                                                                        + i.getTableName())
+                                                        .setType(
+                                                                binlogEventRow
+                                                                        .getRowChange()
+                                                                        .getEventType()
+                                                                        .name())
+                                                        .setLsn(
+                                                                String.valueOf(
+                                                                        binlogEventRow
+                                                                                .getExecuteTime()))
+                                                        .build())
+                                .collect(Collectors.toList()));
             } else {
                 result.add(swapEventToDdlRowData(binlogEventRow));
             }
