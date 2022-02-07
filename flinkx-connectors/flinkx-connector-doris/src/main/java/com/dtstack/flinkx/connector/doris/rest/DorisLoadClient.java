@@ -325,7 +325,7 @@ public class DorisLoadClient implements Serializable {
         if (nameMapped) {
             wrapColumnsFromRowData(value, columns, insertV, deleteV, identityMap, delete);
         } else {
-            columns = getColumnName(conf.getColumn());
+            columns.addAll(getColumnName(conf.getColumn()));
             if (columns.isEmpty()) {
                 // neither nameMapping nor column are set.
                 wrapColumnsFromRowData(value, columns, insertV, deleteV, identityMap, delete);
