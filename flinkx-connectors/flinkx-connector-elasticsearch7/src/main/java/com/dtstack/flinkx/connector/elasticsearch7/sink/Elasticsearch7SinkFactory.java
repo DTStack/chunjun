@@ -21,9 +21,11 @@ package com.dtstack.flinkx.connector.elasticsearch7.sink;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchColumnConverter;
 import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchRawTypeMapper;
+import com.dtstack.flinkx.connector.elasticsearch.ElasticsearchRowConverter;
 import com.dtstack.flinkx.connector.elasticsearch7.Elasticsearch7ClientFactory;
 import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.flinkx.constants.ConstantValue;
+import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -83,7 +85,13 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
                 TableUtil.createTableSchema(elasticsearchConf.getColumn(), getRawTypeConverter());
         ElasticsearchOutputFormatBuilder builder =
                 new ElasticsearchOutputFormatBuilder(elasticsearchConf, schema);
-        builder.setRowConverter(new ElasticsearchColumnConverter(rowType));
+        AbstractRowConverter rowConverter;
+        if (useAbstractBaseColumn) {
+            rowConverter = new ElasticsearchColumnConverter(rowType);
+        } else {
+            rowConverter = new ElasticsearchRowConverter(rowType);
+        }
+        builder.setRowConverter(rowConverter);
         return createOutput(dataSet, builder.finish());
     }
 
