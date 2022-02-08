@@ -161,6 +161,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
         controller.setIsGTIDMode(binlogConf.isGTIDMode());
 
         controller.setAlarmHandler(new BinlogAlarmHandler());
+        controller.setTransactionSize(binlogConf.getTransactionSize());
 
         controller.setEventSink(binlogEventSink);
 

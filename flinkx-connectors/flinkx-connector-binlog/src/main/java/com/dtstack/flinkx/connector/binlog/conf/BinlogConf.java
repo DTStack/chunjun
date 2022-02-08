@@ -50,6 +50,8 @@ public class BinlogConf extends FlinkxCommonConf {
 
     public int bufferSize = 256;
 
+    public int transactionSize = 1024;
+
     public boolean pavingData = true;
 
     public List<String> table;
@@ -310,6 +312,10 @@ public class BinlogConf extends FlinkxCommonConf {
         this.connectTimeOut = connectTimeOut;
     }
 
+    public int getTransactionSize() {
+        return transactionSize;
+    }
+
     @Override
     public String toString() {
         return "BinlogConf{"
@@ -339,6 +345,8 @@ public class BinlogConf extends FlinkxCommonConf {
                 + period
                 + ", bufferSize="
                 + bufferSize
+                + ", transactionSize="
+                + transactionSize
                 + ", pavingData="
                 + pavingData
                 + ", table="
