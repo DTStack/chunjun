@@ -57,6 +57,11 @@ public final class InceptorDbUtil {
     private static final Logger LOG = LoggerFactory.getLogger(InceptorDbUtil.class);
     private static final ReentrantLock lock = new ReentrantLock();
 
+    public static final String INCEPTOR_TRANSACTION_TYPE = "set transaction.type=inceptor";
+    public static final String INCEPTOR_TRANSACTION_BEGIN = "BEGIN TRANSACTION";
+    public static final String INCEPTOR_TRANSACTION_COMMIT = "COMMIT";
+    public static final String INCEPTOR_TRANSACTION_ROLLBACK = "ROLLBACK";
+
     private InceptorDbUtil() {}
 
     public static Connection getConnection(
