@@ -75,16 +75,20 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
     }
 
     public void init() {
-        try {
-            initKerberos();
-        } catch (LoginException e) {
-            throw new FlinkxRuntimeException(e);
+        if (solrConf.getKerberosConfig() != null) {
+            try {
+                initKerberos();
+            } catch (LoginException e) {
+                throw new FlinkxRuntimeException(e);
+            }
+            doWithKerberos(
+                    () -> {
+                        connect();
+                        return null;
+                    });
+        } else {
+            connect();
         }
-        doWithKerberos(
-                () -> {
-                    connect();
-                    return null;
-                });
     }
 
     private <T> T doWithKerberos(PrivilegedAction<T> func) {
