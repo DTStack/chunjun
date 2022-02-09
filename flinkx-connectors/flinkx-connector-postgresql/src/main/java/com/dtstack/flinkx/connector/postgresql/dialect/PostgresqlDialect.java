@@ -78,6 +78,7 @@ public class PostgresqlDialect implements JdbcDialect {
                         .collect(Collectors.joining(", "));
         updateClause =
                 Arrays.stream(fieldNames)
+                        .filter(f -> !Arrays.asList(uniqueKeyFields).contains(f))
                         .map(f -> quoteIdentifier(f) + "=EXCLUDED." + quoteIdentifier(f))
                         .collect(Collectors.joining(", "));
 
