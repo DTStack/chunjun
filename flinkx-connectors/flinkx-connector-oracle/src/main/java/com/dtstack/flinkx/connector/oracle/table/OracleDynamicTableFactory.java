@@ -18,11 +18,15 @@
 
 package com.dtstack.flinkx.connector.oracle.table;
 
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.oracle.dialect.OracleDialect;
 import com.dtstack.flinkx.connector.oracle.source.OracleInputFormat;
+
+import java.util.Properties;
 
 /**
  * company www.dtstack.com
@@ -47,5 +51,20 @@ public class OracleDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     protected JdbcDialect getDialect() {
         return new OracleDialect();
+    }
+
+    @Override
+    protected void rebuildJdbcConf(JdbcConf jdbcConf) {
+        super.rebuildJdbcConf(jdbcConf);
+
+        Properties properties = new Properties();
+        if (jdbcConf.getConnectTimeOut() != 0) {
+            properties.put(
+                    "oracle.jdbc.ReadTimeout", String.valueOf(jdbcConf.getConnectTimeOut() * 1000));
+            properties.put(
+                    "oracle.net.CONNECT_TIMEOUT",
+                    String.valueOf((jdbcConf.getConnectTimeOut()) * 1000));
+        }
+        JdbcUtil.putExtParam(jdbcConf, properties);
     }
 }

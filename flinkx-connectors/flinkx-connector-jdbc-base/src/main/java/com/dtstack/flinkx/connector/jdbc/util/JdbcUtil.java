@@ -386,6 +386,24 @@ public class JdbcUtil {
     }
 
     /**
+     * Add additional parameters to jdbc properties，
+     *
+     * @param jdbcConf jdbc datasource configuration
+     * @param extraProperties default customConfiguration
+     * @return
+     */
+    public static void putExtParam(JdbcConf jdbcConf, Properties extraProperties) {
+        Properties properties = jdbcConf.getProperties();
+        if (properties == null) {
+            properties = new Properties();
+        }
+        Properties finalProperties = properties;
+        extraProperties.forEach(finalProperties::putIfAbsent);
+
+        jdbcConf.setProperties(finalProperties);
+    }
+
+    /**
      * 获取数据库的LogicalType
      *
      * @param jdbcConf 连接信息

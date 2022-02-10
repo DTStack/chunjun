@@ -18,8 +18,12 @@
 package com.dtstack.flinkx.connector.oracle.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.oracle.dialect.OracleDialect;
+
+import java.util.Properties;
 
 /**
  * company www.dtstack.com
@@ -30,5 +34,20 @@ public class OracleSinkFactory extends JdbcSinkFactory {
 
     public OracleSinkFactory(SyncConf syncConf) {
         super(syncConf, new OracleDialect());
+    }
+
+    @Override
+    protected void rebuildJdbcConf(JdbcConf jdbcConf) {
+        super.rebuildJdbcConf(jdbcConf);
+
+        Properties properties = new Properties();
+        if (jdbcConf.getConnectTimeOut() != 0) {
+            properties.put(
+                    "oracle.jdbc.ReadTimeout", String.valueOf(jdbcConf.getConnectTimeOut() * 1000));
+            properties.put(
+                    "oracle.net.CONNECT_TIMEOUT",
+                    String.valueOf((jdbcConf.getConnectTimeOut()) * 1000));
+        }
+        JdbcUtil.putExtParam(jdbcConf, properties);
     }
 }

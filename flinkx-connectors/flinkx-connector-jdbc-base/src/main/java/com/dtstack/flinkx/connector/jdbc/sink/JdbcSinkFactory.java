@@ -54,6 +54,8 @@ import java.util.Properties;
  */
 public abstract class JdbcSinkFactory extends SinkFactory {
 
+    private static final int DEFAULT_CONNECTION_TIMEOUT = 600;
+
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
@@ -94,6 +96,11 @@ public abstract class JdbcSinkFactory extends SinkFactory {
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         JdbcOutputFormatBuilder builder = getBuilder();
+
+        int connectTimeOut = jdbcConf.getConnectTimeOut();
+        jdbcConf.setConnectTimeOut(
+                connectTimeOut == 0 ? DEFAULT_CONNECTION_TIMEOUT : connectTimeOut);
+
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
 

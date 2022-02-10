@@ -53,6 +53,8 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private String splitStrategy = "range";
     private int fetchSize = 0;
     private int queryTimeOut = 0;
+    // 连接超时时间
+    private int connectTimeOut = 0;
     /** 是否为增量任务 */
     private boolean increment = false;
     /** 是否为增量轮询 */
@@ -237,6 +239,14 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.queryTimeOut = queryTimeOut;
     }
 
+    public int getConnectTimeOut() {
+        return connectTimeOut;
+    }
+
+    public void setConnectTimeOut(int connectTimeOut) {
+        this.connectTimeOut = connectTimeOut;
+    }
+
     public boolean isIncrement() {
         return increment;
     }
@@ -419,6 +429,8 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
                 + fetchSize
                 + ", queryTimeOut="
                 + queryTimeOut
+                + ", connectTimeOut="
+                + connectTimeOut
                 + ", increment="
                 + increment
                 + ", polling="

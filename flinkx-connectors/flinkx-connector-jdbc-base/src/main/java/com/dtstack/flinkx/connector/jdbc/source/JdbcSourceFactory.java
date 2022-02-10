@@ -58,6 +58,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
     private static final int DEFAULT_FETCH_SIZE = 1024;
     private static final int DEFAULT_QUERY_TIMEOUT = 300;
+    private static final int DEFAULT_CONNECTION_TIMEOUT = 600;
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
@@ -92,7 +93,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         }
         initIncrementConfig(jdbcConf);
         super.initFlinkxCommonConf(jdbcConf);
-        resetTableInfo();
+        rebuildJdbcConf();
     }
 
     protected Class<? extends JdbcConf> getConfClass() {
@@ -108,6 +109,10 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
         int queryTimeOut = jdbcConf.getQueryTimeOut();
         jdbcConf.setQueryTimeOut(queryTimeOut == 0 ? DEFAULT_QUERY_TIMEOUT : queryTimeOut);
+
+        int connectTimeOut = jdbcConf.getConnectTimeOut();
+        jdbcConf.setConnectTimeOut(
+                connectTimeOut == 0 ? DEFAULT_CONNECTION_TIMEOUT : connectTimeOut);
 
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
@@ -200,8 +205,8 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         return jdbcDialect.getRawTypeConverter();
     }
 
-    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段* */
-    protected void resetTableInfo() {
+    protected void rebuildJdbcConf() {
+        // table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段
         if (StringUtils.isBlank(jdbcConf.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
         }
