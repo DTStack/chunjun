@@ -75,7 +75,9 @@ public class SolrOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
-        solrClientWrapper = new CloudSolrClientKerberosWrapper(solrConf);
+        solrClientWrapper =
+                new CloudSolrClientKerberosWrapper(
+                        solrConf, getRuntimeContext().getDistributedCache());
         solrClientWrapper.init();
     }
 

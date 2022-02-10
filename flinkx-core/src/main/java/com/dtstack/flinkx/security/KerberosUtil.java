@@ -210,7 +210,7 @@ public class KerberosUtil {
         return loadFile(kerberosConfig, filePath, null);
     }
 
-    private static void checkFileExists(String filePath) {
+    public static void checkFileExists(String filePath) {
         File file = new File(filePath);
         if (file.exists()) {
             if (file.isDirectory()) {
