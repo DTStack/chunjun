@@ -77,8 +77,9 @@ public class DmRawTypeConverter {
                 return DataTypes.DOUBLE();
             case "BIT":
                 return DataTypes.BOOLEAN();
-            case "DATE":
             case "YEAR":
+                return DataTypes.INTERVAL(DataTypes.YEAR());
+            case "DATE":
                 return DataTypes.DATE();
             case "TIME":
                 return DataTypes.TIME();

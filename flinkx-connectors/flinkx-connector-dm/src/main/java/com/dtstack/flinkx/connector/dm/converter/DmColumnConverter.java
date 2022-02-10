@@ -21,15 +21,19 @@ package com.dtstack.flinkx.connector.dm.converter;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.StringUtil;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.YearMonthIntervalType;
 
 import dm.jdbc.driver.DmdbBlob;
 import dm.jdbc.driver.DmdbClob;
@@ -72,6 +76,22 @@ public class DmColumnConverter extends JdbcColumnConverter {
                         return new BigDecimalColumn((Integer) val);
                     }
                 };
+            case INTERVAL_YEAR_MONTH:
+                return (IDeserializationConverter<Object, AbstractBaseColumn>)
+                        val -> {
+                            YearMonthIntervalType yearMonthIntervalType =
+                                    (YearMonthIntervalType) type;
+                            switch (yearMonthIntervalType.getResolution()) {
+                                case YEAR:
+                                    return new BigDecimalColumn(
+                                            Integer.parseInt(String.valueOf(val).substring(0, 4)));
+                                case MONTH:
+                                case YEAR_TO_MONTH:
+                                default:
+                                    throw new UnsupportedOperationException(
+                                            "jdbc converter only support YEAR");
+                            }
+                        };
             case FLOAT:
                 return val -> new BigDecimalColumn((Float) val);
             case DOUBLE:
@@ -107,14 +127,9 @@ public class DmColumnConverter extends JdbcColumnConverter {
                     }
                 };
             case DATE:
-                return val ->
-                        new BigDecimalColumn(
-                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
+                return val -> new SqlDateColumn(Date.valueOf(String.valueOf(val)));
             case TIME_WITHOUT_TIME_ZONE:
-                return val ->
-                        new BigDecimalColumn(
-                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
-                                        / 1_000_000L);
+                return val -> new TimeColumn(Time.valueOf(String.valueOf(val)));
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn((Timestamp) val);

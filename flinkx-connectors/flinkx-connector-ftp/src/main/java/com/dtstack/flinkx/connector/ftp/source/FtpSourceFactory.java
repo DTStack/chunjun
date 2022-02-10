@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.ftp.source;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.ftp.conf.ConfigConstants;
 import com.dtstack.flinkx.connector.ftp.conf.FtpConfig;
@@ -27,10 +28,15 @@ import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
+import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @program: flinkx
@@ -62,7 +68,19 @@ public class FtpSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
-        builder.setRowConverter(new FtpColumnConverter(ftpConfig));
+        List<FieldConf> fieldConfList =
+                ftpConfig.getColumn().stream()
+                        .peek(
+                                fieldConf -> {
+                                    if (fieldConf.getName() == null) {
+                                        fieldConf.setName(String.valueOf(fieldConf.getIndex()));
+                                    }
+                                })
+                        .collect(Collectors.toList());
+        ftpConfig.setColumn(fieldConfList);
+        final RowType rowType =
+                TableUtil.createRowType(ftpConfig.getColumn(), getRawTypeConverter());
+        builder.setRowConverter(new FtpColumnConverter(rowType, ftpConfig));
 
         return createInput(builder.finish());
     }

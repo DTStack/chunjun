@@ -170,7 +170,8 @@ public class JdbcUtil {
         ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, tableName, true, false);
         List<String> indexList = new LinkedList<>();
         while (rs.next()) {
-            indexList.add(rs.getString(9));
+            String index = rs.getString(9);
+            if (StringUtils.isNotBlank(index)) indexList.add(index);
         }
         return indexList;
     }

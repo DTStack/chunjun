@@ -46,7 +46,7 @@ public class FtpInputFormatBuilder extends BaseRichInputFormatBuilder {
             throw new FlinkxRuntimeException("Please Set protocol");
         }
         if (StringUtils.isBlank(ftpConfig.getHost())) {
-            throw new FlinkxRuntimeException("Please Set gost");
+            throw new FlinkxRuntimeException("Please Set host");
         }
         if (StringUtils.isBlank(ftpConfig.getPath())) {
             throw new FlinkxRuntimeException("Please Set path");

@@ -177,7 +177,11 @@ public class FtpInputFormat extends BaseRichInputFormat {
                         && ConstantValue.STAR_SYMBOL.equals(columns.get(0).getName())) {
                     genericRowData = new GenericRowData(fields.length);
                     for (int i = 0; i < fields.length; i++) {
-                        genericRowData.setField(i, fields[i]);
+                        Object value = fields[i];
+                        if ("".equals(value) && null != ftpConfig.getNullIsReplacedWithValue()) {
+                            value = ftpConfig.getNullIsReplacedWithValue();
+                        }
+                        genericRowData.setField(i, value);
                     }
                 } else {
                     genericRowData = new GenericRowData(columns.size());
@@ -190,6 +194,9 @@ public class FtpInputFormat extends BaseRichInputFormat {
                         } else if (fieldConf.getIndex() != null
                                 && fieldConf.getIndex() < fields.length) {
                             value = fields[fieldConf.getIndex()];
+                        }
+                        if ("".equals(value) && null != ftpConfig.getNullIsReplacedWithValue()) {
+                            value = ftpConfig.getNullIsReplacedWithValue();
                         }
                         genericRowData.setField(i, value);
                     }

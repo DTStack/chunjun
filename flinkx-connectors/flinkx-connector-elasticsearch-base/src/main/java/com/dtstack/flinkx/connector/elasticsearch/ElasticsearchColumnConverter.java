@@ -26,26 +26,32 @@ import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.dtstack.flinkx.throwable.CastException;
 import com.dtstack.flinkx.util.DateUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import scala.Tuple3;
@@ -61,13 +67,24 @@ public class ElasticsearchColumnConverter
                 Map<String, Object>, Object, Map<String, Object>, LogicalType> {
 
     private static final long serialVersionUID = 2L;
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     private final List<Tuple3<String, Integer, LogicalType>> typeIndexList = new ArrayList<>();
+    private final Map<Integer, SimpleDateFormat> dateFormatMap = new HashMap<>();
 
     public ElasticsearchColumnConverter(RowType rowType) {
         super(rowType);
+        List<RowType.RowField> fieldList = rowType.getFields();
         List<String> fieldNames = rowType.getFieldNames();
         for (int i = 0; i < rowType.getFieldCount(); i++) {
+            // 获取description中的format信息
+            RowType.RowField rowField = fieldList.get(i);
+            Optional<String> description = rowField.getDescription();
+            if (fieldTypes[i].getTypeRoot().equals(LogicalTypeRoot.TIMESTAMP_WITHOUT_TIME_ZONE)) {
+                if (description.isPresent()) {
+                    dateFormatMap.put(i, new SimpleDateFormat(description.get()));
+                }
+            }
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
                             createInternalConverter(rowType.getTypeAt(i))));
@@ -148,20 +165,26 @@ public class ElasticsearchColumnConverter
             case VARCHAR:
                 return val -> new StringColumn(val.toString());
             case DATE:
-                return val ->
-                        new BigDecimalColumn(
-                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
+                return val -> new SqlDateColumn(Date.valueOf(String.valueOf(val)));
             case TIME_WITHOUT_TIME_ZONE:
-                return val ->
-                        new BigDecimalColumn(
-                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
-                                        / 1_000_000L);
+                return val -> new TimeColumn(Time.valueOf(String.valueOf(val)));
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
+                return val -> {
+                    String valStr = val.toString();
+                    try {
+                        return new TimestampColumn(
+                                Timestamp.valueOf(valStr),
+                                DateUtil.getPrecisionFromTimestampStr(valStr));
+                    } catch (Exception e) {
+                        return new TimestampColumn(DateUtil.getTimestampFromStr(valStr), 0);
+                    }
+                };
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
+            case STRUCTURED_TYPE:
+                return val -> new StringColumn(objectMapper.writeValueAsString(val));
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
@@ -224,28 +247,24 @@ public class ElasticsearchColumnConverter
                 return (val, index, output) -> {
                     output.put(
                             typeIndexList.get(index)._1(),
-                            Date.valueOf(
-                                            LocalDate.ofEpochDay(
-                                                    ((ColumnRowData) val).getField(index).asInt()))
-                                    .toString());
+                            ((ColumnRowData) val).getField(index).asSqlDate().toString());
                 };
             case TIME_WITHOUT_TIME_ZONE:
-                return (val, index, output) -> {
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            Time.valueOf(
-                                            LocalTime.ofNanoOfDay(
-                                                    ((ColumnRowData) val).getField(index).asInt()
-                                                            * 1_000_000L))
-                                    .toString());
-                };
+                return (val, index, output) ->
+                        output.put(
+                                typeIndexList.get(index)._1(),
+                                ((ColumnRowData) val).getField(index).asTime().toString());
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, output) -> {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    output.put(
-                            typeIndexList.get(index)._1(),
-                            sdf.format(((ColumnRowData) val).getField(index).asDate()));
+                    AbstractBaseColumn field = ((ColumnRowData) val).getField(index);
+                    if (field instanceof StringColumn && ((StringColumn) field).isCustomFormat()) {
+                        output.put(typeIndexList.get(index)._1(), field.asTimestampStr());
+                    } else {
+                        output.put(
+                                typeIndexList.get(index)._1(),
+                                dateFormatMap.get(index).format(field.asTimestamp().getTime()));
+                    }
                 };
             case BINARY:
             case VARBINARY:
@@ -253,6 +272,23 @@ public class ElasticsearchColumnConverter
                     output.put(
                             typeIndexList.get(index)._1(),
                             ((ColumnRowData) val).getField(index).asBytes());
+                };
+            case STRUCTURED_TYPE:
+                return (val, index, output) -> {
+                    String field = ((ColumnRowData) val).getField(index).asString();
+                    try {
+                        output.put(
+                                typeIndexList.get(index)._1(),
+                                GsonUtil.GSON.fromJson(field, Map.class));
+                    } catch (Exception e) {
+                        try {
+                            output.put(
+                                    typeIndexList.get(index)._1(),
+                                    GsonUtil.GSON.fromJson(field, List.class));
+                        } catch (Exception e1) {
+                            throw new CastException("String", "Es Complex Type", field);
+                        }
+                    }
                 };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);

@@ -56,6 +56,7 @@ import java.util.concurrent.Future;
 import static com.dtstack.flinkx.constants.ConstantValue.CONNECTOR_DIR_NAME;
 import static com.dtstack.flinkx.constants.ConstantValue.DIRTY_DATA_DIR_NAME;
 import static com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
+import static com.dtstack.flinkx.constants.ConstantValue.RESTORE_DIR_NAME;
 
 /**
  * Reason: Date: 2018/6/27 Company: www.dtstack.com
@@ -305,6 +306,16 @@ public class PluginUtil {
                         config.getPluginRoot(),
                         config.getRemotePluginPath(),
                         DIRTY_DATA_DIR_NAME);
+
+        if (null != config.getCdcConf().getMonitor()) {
+            Set<URL> restoreUrlSet =
+                    getJarFileDirPath(
+                            config.getCdcConf().getMonitor().getType(),
+                            config.getPluginRoot(),
+                            config.getRemotePluginPath(),
+                            RESTORE_DIR_NAME);
+            urlSet.addAll(restoreUrlSet);
+        }
 
         urlSet.addAll(coreUrlSet);
         urlSet.addAll(formatsUrlSet);

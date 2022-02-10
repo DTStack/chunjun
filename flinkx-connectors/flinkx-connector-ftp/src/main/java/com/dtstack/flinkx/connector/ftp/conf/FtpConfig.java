@@ -49,6 +49,9 @@ public class FtpConfig extends BaseFileConf {
 
     public String encoding = "UTF-8";
 
+    /** 空值替换 */
+    public Object nullIsReplacedWithValue = null;
+
     /** file config * */
     public Map<String, Object> fileConfig;
 
@@ -210,5 +213,68 @@ public class FtpConfig extends BaseFileConf {
     @Override
     public void setEncoding(String encoding) {
         this.encoding = encoding;
+    }
+
+    public Object getNullIsReplacedWithValue() {
+        return nullIsReplacedWithValue;
+    }
+
+    public void setNullIsReplacedWithValue(Object nullIsReplacedWithValue) {
+        this.nullIsReplacedWithValue = nullIsReplacedWithValue;
+    }
+
+    @Override
+    public String toString() {
+        return "FtpConfig{"
+                + "timeout="
+                + timeout
+                + ", username='"
+                + username
+                + '\''
+                + ", password='"
+                + password
+                + '\''
+                + ", privateKeyPath='"
+                + privateKeyPath
+                + '\''
+                + ", protocol='"
+                + protocol
+                + '\''
+                + ", fieldDelimiter='"
+                + fieldDelimiter
+                + '\''
+                + ", connectPattern='"
+                + connectPattern
+                + '\''
+                + ", host='"
+                + host
+                + '\''
+                + ", port="
+                + port
+                + ", isFirstLineHeader="
+                + isFirstLineHeader
+                + ", controlEncoding='"
+                + controlEncoding
+                + '\''
+                + ", listHiddenFiles="
+                + listHiddenFiles
+                + ", ftpFileName='"
+                + ftpFileName
+                + '\''
+                + ", encoding='"
+                + encoding
+                + '\''
+                + ", nullIsReplacedWithValue="
+                + nullIsReplacedWithValue
+                + ", fileConfig="
+                + fileConfig
+                + ", fileType='"
+                + fileType
+                + '\''
+                + ", compressType='"
+                + compressType
+                + '\''
+                + '}'
+                + super.toString();
     }
 }

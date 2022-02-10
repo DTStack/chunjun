@@ -142,7 +142,7 @@ public class DynamicKafkaDeserializationSchema implements KafkaDeserializationSc
         ExecutionConfig.GlobalJobParameters params =
                 context.getExecutionConfig().getGlobalJobParameters();
         DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
-        this.dirtyManager = new DirtyManager(dc);
+        this.dirtyManager = new DirtyManager(dc, context);
     }
 
     @Override

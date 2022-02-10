@@ -21,18 +21,37 @@ package com.dtstack.flinkx.connector.sqlserver.converter;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.jdbc.converter.JdbcColumnConverter;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.converter.IDeserializationConverter;
+import com.dtstack.flinkx.converter.ISerializationConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
+import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
+import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
+import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.StringUtil;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
 
+import microsoft.sql.DateTimeOffset;
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.ResultSet;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Company：www.dtstack.com
@@ -71,5 +90,138 @@ public class SqlserverJtdsColumnConverter extends JdbcColumnConverter {
             result.addField(assembleFieldProps(fieldConf, baseColumn));
         }
         return result;
+    }
+
+    @Override
+    protected IDeserializationConverter createInternalConverter(LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case BOOLEAN:
+                return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
+            case TINYINT:
+                return val -> new BigDecimalColumn(((Integer) val).byteValue());
+            case SMALLINT:
+            case INTEGER:
+            case FLOAT:
+                return val -> new BigDecimalColumn((Float) val);
+            case DOUBLE:
+                return val -> new BigDecimalColumn((Double) val);
+            case BIGINT:
+                return val -> new BigDecimalColumn((Long) val);
+            case DECIMAL:
+                return val -> new BigDecimalColumn((BigDecimal) val);
+            case CHAR:
+            case VARCHAR:
+                return val -> new StringColumn((String) val);
+            case DATE:
+                return val -> new SqlDateColumn((Date) val);
+            case TIME_WITHOUT_TIME_ZONE:
+                return val -> new TimeColumn((Time) val);
+            case TIMESTAMP_WITH_TIME_ZONE:
+                return val -> {
+                    String[] timeAndTimeZone = String.valueOf(val).split(" ");
+                    if (timeAndTimeZone.length == 2) {
+                        Timestamp timestamp = Timestamp.valueOf(String.valueOf(val));
+                        long localTime =
+                                timestamp.getTime()
+                                        + (long) getMillSecondDiffWithTimeZone(timeAndTimeZone[1]);
+                        return new TimestampColumn(localTime, 7);
+                    } else {
+                        return new TimestampColumn(Timestamp.valueOf(timeAndTimeZone[0]), 7);
+                    }
+                };
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+                return (IDeserializationConverter<Object, AbstractBaseColumn>)
+                        val ->
+                                new TimestampColumn(
+                                        (Timestamp) val, ((TimestampType) (type)).getPrecision());
+
+            case BINARY:
+            case VARBINARY:
+                return val -> new BytesColumn((byte[]) val);
+            default:
+                throw new UnsupportedOperationException("Unsupported type:" + type);
+        }
+    }
+
+    @Override
+    protected ISerializationConverter<FieldNamedPreparedStatement> createExternalConverter(
+            LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case BOOLEAN:
+                return (val, index, statement) ->
+                        statement.setBoolean(
+                                index, ((ColumnRowData) val).getField(index).asBoolean());
+            case TINYINT:
+                return (val, index, statement) -> statement.setByte(index, val.getByte(index));
+            case SMALLINT:
+            case INTEGER:
+            case INTERVAL_YEAR_MONTH:
+                return (val, index, statement) ->
+                        statement.setInt(index, ((ColumnRowData) val).getField(index).asYearInt());
+            case FLOAT:
+                return (val, index, statement) ->
+                        statement.setFloat(index, ((ColumnRowData) val).getField(index).asFloat());
+            case DOUBLE:
+                return (val, index, statement) ->
+                        statement.setDouble(
+                                index, ((ColumnRowData) val).getField(index).asDouble());
+
+            case BIGINT:
+                return (val, index, statement) ->
+                        statement.setLong(index, ((ColumnRowData) val).getField(index).asLong());
+            case DECIMAL:
+                return (val, index, statement) ->
+                        statement.setBigDecimal(
+                                index, ((ColumnRowData) val).getField(index).asBigDecimal());
+            case CHAR:
+            case VARCHAR:
+                return (val, index, statement) ->
+                        statement.setString(
+                                index, ((ColumnRowData) val).getField(index).asString());
+            case DATE:
+                return (val, index, statement) ->
+                        statement.setDate(index, ((ColumnRowData) val).getField(index).asSqlDate());
+            case TIME_WITHOUT_TIME_ZONE:
+                return (val, index, statement) ->
+                        statement.setTime(index, ((ColumnRowData) val).getField(index).asTime());
+            case TIMESTAMP_WITH_TIME_ZONE:
+                return (val, index, statement) ->
+                        statement.setObject(
+                                index,
+                                DateTimeOffset.valueOf(
+                                        ((ColumnRowData) val).getField(index).asTimestamp(),
+                                        getMinutesOffset()));
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+                return (val, index, statement) ->
+                        statement.setTimestamp(
+                                index, ((ColumnRowData) val).getField(index).asTimestamp());
+
+            case BINARY:
+            case VARBINARY:
+                return (val, index, statement) ->
+                        statement.setBytes(index, ((ColumnRowData) val).getField(index).asBytes());
+            default:
+                throw new UnsupportedOperationException("Unsupported type:" + type);
+        }
+    }
+
+    public int getMinutesOffset() {
+        return getMillSecondOffset() / 1000 / 60;
+    }
+
+    public int getMillSecondDiffWithTimeZone(String sqlServerTimeZone) {
+        long currentTimeMillis = System.currentTimeMillis();
+        TimeZone timeZone = TimeZone.getTimeZone("GMT" + sqlServerTimeZone);
+        return timeZone.getOffset(currentTimeMillis) - getMillSecondOffset(currentTimeMillis);
+    }
+
+    public int getMillSecondOffset(long time) {
+        Calendar calendar = new GregorianCalendar();
+        return calendar.getTimeZone().getOffset(time);
+    }
+
+    public int getMillSecondOffset() {
+        Calendar calendar = new GregorianCalendar();
+        return calendar.getTimeZone().getOffset(System.currentTimeMillis());
     }
 }

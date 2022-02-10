@@ -15,7 +15,7 @@
 	<properties>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
-		<mysql.connector.version>8.0.26</mysql.connector.version>
+		<mysql.connector.version>5.1.46</mysql.connector.version>
 	</properties>
 
 	<dependencies>

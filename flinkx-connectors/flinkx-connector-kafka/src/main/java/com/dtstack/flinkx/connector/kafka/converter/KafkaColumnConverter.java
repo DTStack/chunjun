@@ -31,7 +31,9 @@ import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.MapUtil;
@@ -43,6 +45,9 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -139,9 +144,14 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
                 && !(row.getField(0) instanceof MapColumn)) {
             map = new LinkedHashMap<>((arity << 2) / 3);
             for (int i = 0; i < arity; i++) {
-                map.put(
-                        kafkaConf.getTableFields().get(i),
-                        org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
+                Object object = row.getField(i);
+                Object value;
+                if (object instanceof TimestampColumn) {
+                    value = ((TimestampColumn) object).asTimestampStr();
+                } else {
+                    value = org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i));
+                }
+                map.put(kafkaConf.getTableFields().get(i), value);
             }
         } else {
             String[] headers = row.getHeaders();
@@ -216,10 +226,22 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
             case "DECIMAL":
                 return val -> new BigDecimalColumn(new BigDecimal(val.toString()));
             case "DATE":
+                return val -> new SqlDateColumn(Date.valueOf(val.toString()));
             case "TIME":
+                return val -> new TimeColumn(Time.valueOf(val.toString()));
             case "DATETIME":
+                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()), 0);
             case "TIMESTAMP":
-                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
+                return val -> {
+                    String valStr = val.toString();
+                    try {
+                        return new TimestampColumn(
+                                Timestamp.valueOf(valStr),
+                                DateUtil.getPrecisionFromTimestampStr(valStr));
+                    } catch (Exception e) {
+                        return new TimestampColumn(DateUtil.getTimestampFromStr(valStr), 0);
+                    }
+                };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }

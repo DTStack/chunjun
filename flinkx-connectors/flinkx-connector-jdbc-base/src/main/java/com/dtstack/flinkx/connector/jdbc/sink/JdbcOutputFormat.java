@@ -188,9 +188,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         int index = 0;
         try {
             stmtProxy.writeSingleRecordInternal(row);
-            if (Semantic.EXACTLY_ONCE == semantic) {
-                JdbcUtil.commit(dbConn);
-            }
         } catch (Exception e) {
             JdbcUtil.rollBack(dbConn);
             processWriteException(e, index, row);
@@ -299,10 +296,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 }
                 stmt.executeBatch();
             } catch (SQLException e) {
-                LOG.error(
-                        "execute sql failed, sqlList = {}, e = {}",
-                        JsonUtil.toPrintJson(sqlList),
-                        e);
+                LOG.error("execute sql failed, sqlList = {}, e = {}", sqlList, e);
             }
         }
     }
@@ -351,7 +345,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
         if (index < row.getArity()) {
             String message = recordConvertDetailErrorMessage(index, row);
-            LOG.error(message, e);
             throw new WriteRecordException(message, e, index, row);
         }
         throw new WriteRecordException(e.getMessage(), e);

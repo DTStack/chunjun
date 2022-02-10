@@ -74,13 +74,17 @@ public class SqlserverMicroSoftRawTypeConverter {
             case "UNIQUEIDENTIFIER":
                 return DataTypes.STRING();
             case "TIME":
+                return DataTypes.TIME();
             case "DATE":
                 return DataTypes.DATE();
             case "DATETIME":
+                return DataTypes.TIMESTAMP(3);
             case "DATETIME2":
-            case "SMALLDATETIME":
+                return DataTypes.TIMESTAMP(7);
             case "DATETIMEOFFSET":
-                return DataTypes.TIMESTAMP();
+                return DataTypes.TIMESTAMP_WITH_TIME_ZONE(7);
+            case "SMALLDATETIME":
+                return DataTypes.TIMESTAMP(0);
             case "BINARY":
             case "VARBINARY":
             case "IMAGE":

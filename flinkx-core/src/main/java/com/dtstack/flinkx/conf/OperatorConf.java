@@ -50,6 +50,8 @@ public class OperatorConf implements Serializable {
     /** fieldNameList */
     private List<String> fieldNameList;
 
+    private String semantic;
+
     public List<FieldConf> getFieldList() {
         if (fieldList == null) {
             List list = (List) parameter.get(ConfigConstant.KEY_COLUMN);
@@ -60,6 +62,14 @@ public class OperatorConf implements Serializable {
             }
         }
         return fieldList;
+    }
+
+    public String getSemantic() {
+        return semantic;
+    }
+
+    public void setSemantic(String semantic) {
+        this.semantic = semantic;
     }
 
     public List<String> getFieldNameList() {

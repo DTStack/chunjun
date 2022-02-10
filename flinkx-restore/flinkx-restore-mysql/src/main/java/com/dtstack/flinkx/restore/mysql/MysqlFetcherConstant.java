@@ -37,6 +37,19 @@ public class MysqlFetcherConstant {
     public static final String QUERY =
             "select database_name, table_name, operation_type, lsn, content, update_time from `$database`.`$table`"
                     + " where status != 2";
+
+    public static final String INSERT =
+            "INSERT INTO `$database`.`$table` "
+                    + "(database_name, table_name, operation_type, lsn, content, update_time, status)"
+                    + " VALUE ($database_name, $table_name, '$operation_type', '$lsn', '$content', $update_time, 0)";
+
+    public static final String SELECT_CHECK = "SELECT * FROM `$database`.`$table` WHERE 1 = 2";
+
+    public static final String DELETE_CHECK = "DELETE FROM `$database`.`$table` WHERE 1 = 2";
+
+    public static final String INSERT_CHECK =
+            "INSERT INTO `$database`.`$table` (SELECT * FROM `$database`.`$table` WHERE 1 = 2)";
+
     public static final String DATABASE_KEY = "database";
 
     public static final String TABLE_KEY = "table";

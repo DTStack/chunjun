@@ -29,23 +29,30 @@ import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.StringUtil;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
 
+import microsoft.sql.DateTimeOffset;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Company：www.dtstack.com
@@ -107,12 +114,29 @@ public class SqlserverMicroSoftColumnConverter extends JdbcColumnConverter {
             case CHAR:
             case VARCHAR:
                 return val -> new StringColumn((String) val);
-            case INTERVAL_YEAR_MONTH:
             case DATE:
+                return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:
+                return val -> new TimeColumn((Time) val);
             case TIMESTAMP_WITH_TIME_ZONE:
+                return val -> {
+                    String[] timeAndTimeZone = String.valueOf(val).split(" ");
+                    if (timeAndTimeZone.length == 2) {
+                        Timestamp timestamp = Timestamp.valueOf(String.valueOf(val));
+                        long localTime =
+                                timestamp.getTime()
+                                        + (long) getMillSecondDiffWithTimeZone(timeAndTimeZone[1]);
+                        return new TimestampColumn(localTime, 7);
+                    } else {
+                        return new TimestampColumn(Timestamp.valueOf(timeAndTimeZone[0]), 7);
+                    }
+                };
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
+                return (IDeserializationConverter<Object, AbstractBaseColumn>)
+                        val -> {
+                            int precision = ((TimestampType) (type)).getPrecision();
+                            return new TimestampColumn((Timestamp) val, precision);
+                        };
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
@@ -155,37 +179,19 @@ public class SqlserverMicroSoftColumnConverter extends JdbcColumnConverter {
                 return (val, index, statement) ->
                         statement.setString(
                                 index, ((ColumnRowData) val).getField(index).asString());
-            case INTERVAL_YEAR_MONTH:
-                return (val, index, statement) ->
-                        statement.setInt(
-                                index,
-                                ((ColumnRowData) val)
-                                        .getField(index)
-                                        .asTimestamp()
-                                        .toLocalDateTime()
-                                        .toLocalDate()
-                                        .getYear());
             case DATE:
                 return (val, index, statement) ->
-                        statement.setDate(
-                                index,
-                                Date.valueOf(
-                                        ((ColumnRowData) val)
-                                                .getField(index)
-                                                .asTimestamp()
-                                                .toLocalDateTime()
-                                                .toLocalDate()));
+                        statement.setDate(index, ((ColumnRowData) val).getField(index).asSqlDate());
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
-                        statement.setTime(
-                                index,
-                                Time.valueOf(
-                                        ((ColumnRowData) val)
-                                                .getField(index)
-                                                .asTimestamp()
-                                                .toLocalDateTime()
-                                                .toLocalTime()));
+                        statement.setTime(index, ((ColumnRowData) val).getField(index).asTime());
             case TIMESTAMP_WITH_TIME_ZONE:
+                return (val, index, statement) ->
+                        statement.setObject(
+                                index,
+                                DateTimeOffset.valueOf(
+                                        ((ColumnRowData) val).getField(index).asTimestamp(),
+                                        getMinutesOffset()));
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTimestamp(
@@ -198,5 +204,25 @@ public class SqlserverMicroSoftColumnConverter extends JdbcColumnConverter {
             default:
                 throw new UnsupportedTypeException("Unsupported type:" + type);
         }
+    }
+
+    public int getMinutesOffset() {
+        return getMillSecondOffset() / 1000 / 60;
+    }
+
+    public int getMillSecondDiffWithTimeZone(String sqlServerTimeZone) {
+        long currentTimeMillis = System.currentTimeMillis();
+        TimeZone timeZone = TimeZone.getTimeZone("GMT" + sqlServerTimeZone);
+        return timeZone.getOffset(currentTimeMillis) - getMillSecondOffset(currentTimeMillis);
+    }
+
+    public int getMillSecondOffset(long time) {
+        Calendar calendar = new GregorianCalendar();
+        return calendar.getTimeZone().getOffset(time);
+    }
+
+    public int getMillSecondOffset() {
+        Calendar calendar = new GregorianCalendar();
+        return calendar.getTimeZone().getOffset(System.currentTimeMillis());
     }
 }

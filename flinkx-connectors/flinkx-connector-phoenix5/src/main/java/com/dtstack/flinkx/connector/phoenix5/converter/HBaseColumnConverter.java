@@ -27,15 +27,17 @@ import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.dtstack.flinkx.throwable.CastException;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
-import com.dtstack.flinkx.util.DateUtil;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.NoTagsKeyValue;
@@ -71,6 +73,8 @@ import org.apache.phoenix.schema.types.PVarchar;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -86,6 +90,7 @@ public class HBaseColumnConverter
         extends AbstractRowConverter<NoTagsKeyValue, Object, NoTagsKeyValue, LogicalType> {
 
     private static final long serialVersionUID = 2L;
+    private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     public transient RowProjector rowProjector;
     private transient List<PDataType> phoenixTypeList;
@@ -180,13 +185,34 @@ public class HBaseColumnConverter
                         new BigDecimalColumn(
                                 Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
             case TIME_WITHOUT_TIME_ZONE:
-                return val ->
-                        new BigDecimalColumn(
-                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
-                                        / 1_000_000L);
+                return val -> new TimeColumn(Time.valueOf(String.valueOf(val)));
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
+                return val -> {
+                    int precision = ((TimestampType) (type)).getPrecision();
+                    try {
+                        return new TimestampColumn((Timestamp) val, precision);
+                    } catch (Exception e) {
+                        // doNothing
+                    }
+                    String valStr = String.valueOf(val);
+                    try {
+                        // yyyy-MM-dd HH:mm:ss(.SSS)
+                        return new TimestampColumn(Timestamp.valueOf(valStr), precision);
+                    } catch (Exception e) {
+                        // doNothing
+                    }
+                    try {
+                        // 兼容yyyy-MM-dd'T'HH:mm:ss(.fffZ)的情况
+                        dateTimeFormat.parse(valStr);
+                        return new StringColumn(valStr, "yyyy-MM-dd'T'HH:mm:ss");
+                    } catch (Exception e) {
+                        // doNothing
+                    }
+
+                    // yyyy-MM-dd HH:mm:ss
+                    throw new CastException("", "", valStr);
+                };
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
@@ -207,6 +233,7 @@ public class HBaseColumnConverter
         }
         switch (type.toUpperCase()) {
             case "INTEGER":
+            case "INTERVAL_YEAR_MONTH":
                 return PInteger.INSTANCE;
             case "UNSIGNED_INT":
                 return PUnsignedInt.INSTANCE;
@@ -235,12 +262,11 @@ public class HBaseColumnConverter
             case "BOOLEAN":
                 return PBoolean.INSTANCE;
             case "TIME":
+            case "TIME_WITHOUT_TIME_ZONE":
                 return PTime.INSTANCE;
             case "DATE":
                 return PDate.INSTANCE;
             case "TIMESTAMP":
-            case "INTERVAL_YEAR_MONTH":
-            case "TIME_WITHOUT_TIME_ZONE":
             case "TIMESTAMP_WITH_TIME_ZONE":
             case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return PTimestamp.INSTANCE;

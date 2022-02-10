@@ -22,7 +22,7 @@ public class DataSourceUtil {
 
     private DataSourceUtil() {}
 
-    public static final String JDBC_URL_KEY = "jdbc.url";
+    public static final String JDBC_URL_KEY = "jdbcUrl";
 
     public static final String USER_NAME_KEY = "username";
 
@@ -99,10 +99,8 @@ public class DataSourceUtil {
         dataSource.setPoolPreparedStatements(false);
         dataSource.setConnectionInitSqls(Collections.singletonList("set names 'utf8'"));
 
-        dataSource.setRemoveAbandoned(true);
-        dataSource.setRemoveAbandonedTimeout(600);
+        dataSource.setRemoveAbandoned(false);
         dataSource.setLogAbandoned(true);
-        //        dataSource.setBreakAfterAcquireFailure(true);
         dataSource.setTimeBetweenConnectErrorMillis(60000);
         dataSource.setConnectionErrorRetryAttempts(3);
 

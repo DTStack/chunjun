@@ -17,14 +17,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.DATABASE_KEY;
 import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.DELETE;
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.DELETE_CHECK;
 import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.DRIVER;
 import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.QUERY;
 import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.SELECT;
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.SELECT_CHECK;
 import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.TABLE_KEY;
 
 /**
@@ -137,12 +140,45 @@ public class MysqlFetcher extends FetcherBase {
 
         String database = (String) conf.getProperties().get(DATABASE_KEY);
         String table = (String) conf.getProperties().get(TABLE_KEY);
+
+        check(database, table);
+
         String select = SELECT.replace("$database", database).replace("$table", table);
         String delete = DELETE.replace("$database", database).replace("$table", table);
         String query = QUERY.replace("$database", database).replace("$table", table);
         this.select = connection.prepareStatement(select);
         this.delete = connection.prepareStatement(delete);
         this.query = connection.prepareStatement(query);
+    }
+
+    /**
+     * check sql privilege.
+     *
+     * @param database sql database
+     * @param table sql table
+     * @throws SQLException sql exception
+     */
+    private void check(String database, String table) throws SQLException {
+        try (final Statement statement = connection.createStatement()) {
+            StringBuilder checkError = new StringBuilder();
+            try {
+                statement.execute(
+                        SELECT_CHECK.replace("$database", database).replace("$table", table));
+            } catch (Exception e) {
+                checkError.append(e.getMessage()).append("\n");
+            }
+
+            try {
+                statement.execute(
+                        DELETE_CHECK.replace("$database", database).replace("$table", table));
+            } catch (Exception e) {
+                checkError.append(e.getMessage()).append("\n");
+            }
+
+            if (checkError.length() > 0) {
+                throw new SQLException(checkError.toString());
+            }
+        }
     }
 
     @Override

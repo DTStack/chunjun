@@ -23,6 +23,7 @@ import com.dtstack.flinkx.util.JsonUtil;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Map;
@@ -80,6 +81,30 @@ public class MapColumn extends AbstractBaseColumn {
 
     @Override
     public Timestamp asTimestamp() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Map", "Timestamp", this.asString());
+    }
+
+    @Override
+    public Time asTime() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Map", "java.sql.Time", this.asString());
+    }
+
+    @Override
+    public java.sql.Date asSqlDate() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Map", "java.sql.Date", this.asString());
+    }
+
+    @Override
+    public String asTimestampStr() {
         if (null == data) {
             return null;
         }

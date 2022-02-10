@@ -77,13 +77,15 @@ public class GBaseRawTypeConverter {
             case "SET":
                 return DataTypes.STRING();
             case "DATE":
-            case "YEAR":
                 return DataTypes.DATE();
+            case "YEAR":
+                return DataTypes.INTERVAL(DataTypes.YEAR());
             case "TIME":
                 return DataTypes.TIME();
             case "TIMESTAMP":
-            case "DATETIME":
                 return DataTypes.TIMESTAMP();
+            case "DATETIME":
+                return DataTypes.TIMESTAMP(5);
             case "TINYBLOB":
             case "BLOB":
             case "MEDIUMBLOB":

@@ -107,8 +107,9 @@ public class ClickhouseRawTypeConverter {
             case "TIME":
                 return DataTypes.TIME();
             case "TIMESTAMP":
-            case "DATETIME":
                 return DataTypes.TIMESTAMP();
+            case "DATETIME":
+                return DataTypes.TIMESTAMP(0);
             case "NOTHING":
             case "NULLABLE":
             case "NULL":

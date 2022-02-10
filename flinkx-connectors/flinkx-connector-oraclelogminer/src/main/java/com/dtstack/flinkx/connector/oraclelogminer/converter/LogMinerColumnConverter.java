@@ -355,7 +355,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
                         val -> {
                             val = LogParser.parseTime(val);
-                            return new TimestampColumn(DateUtil.getTimestampFromStr(val));
+                            return new TimestampColumn(DateUtil.getTimestampFromStr(val), 0);
                         };
             case "TIMESTAMP":
                 return (IDeserializationConverter<String, AbstractBaseColumn>)

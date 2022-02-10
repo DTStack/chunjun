@@ -89,7 +89,7 @@ public class Phoenix5OutputFormat extends JdbcOutputFormat {
                                     jdbcConf.getTable(),
                                     columnNameList.toArray(new String[0]),
                                     jdbcConf.getUpdateKey() != null
-                                            ? jdbcConf.getUpdateKey().toArray(new String[0])
+                                            ? jdbcConf.getUniqueKey().toArray(new String[0])
                                             : null,
                                     jdbcConf.isAllReplace())
                             .get();

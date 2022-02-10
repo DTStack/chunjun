@@ -65,9 +65,11 @@ public class SqlServerCdcRawTypeConverter {
             case "TIME":
                 return DataTypes.TIME();
             case "DATETIME":
+                return DataTypes.TIMESTAMP(3);
             case "DATETIME2":
+                return DataTypes.TIMESTAMP(7);
             case "SMALLDATETIME":
-                return DataTypes.TIMESTAMP();
+                return DataTypes.TIMESTAMP(0);
             case "BINARY":
             case "VARBINARY":
                 // BYTES 底层调用的是VARBINARY最大长度
