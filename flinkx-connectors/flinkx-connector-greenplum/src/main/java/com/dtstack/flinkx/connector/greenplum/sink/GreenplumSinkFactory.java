@@ -21,15 +21,16 @@ package com.dtstack.flinkx.connector.greenplum.sink;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.greenplum.dialect.GreenplumDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
+import com.dtstack.flinkx.connector.postgresql.sink.PostgresqlSinkFactory;
 
 /**
  * company www.dtstack.com
  *
  * @author jier
  */
-public class GreenplumSinkFactory extends JdbcSinkFactory {
+public class GreenplumSinkFactory extends PostgresqlSinkFactory {
 
     public GreenplumSinkFactory(SyncConf syncConf) {
-        super(syncConf, new GreenplumDialect());
+        super(syncConf);
     }
 }

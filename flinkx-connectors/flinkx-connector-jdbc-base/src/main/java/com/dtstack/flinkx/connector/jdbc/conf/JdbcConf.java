@@ -37,6 +37,9 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     protected List<String> fullColumn;
     /** for postgresql */
     protected String insertSqlMode;
+    protected String fieldDelim;
+    protected String nullDelim;
+
     /** for sqlserver */
     private boolean withNoLock;
     // common
@@ -99,6 +102,22 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
 
     public void setInitReporter(Boolean initReporter) {
         this.initReporter = initReporter;
+    }
+
+    public String getFieldDelim() {
+        return fieldDelim;
+    }
+
+    public void setFieldDelim(String fieldDelim) {
+        this.fieldDelim = fieldDelim;
+    }
+
+    public String getNullDelim() {
+        return nullDelim;
+    }
+
+    public void setNullDelim(String nullDelim) {
+        this.nullDelim = nullDelim;
     }
 
     public String getTable() {
@@ -394,6 +413,12 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
                 + fullColumn
                 + ", insertSqlMode='"
                 + insertSqlMode
+                + '\''
+                + ", fieldDelim='"
+                + fieldDelim
+                + '\''
+                + ", nullDelim='"
+                + nullDelim
                 + '\''
                 + ", withNoLock="
                 + withNoLock
