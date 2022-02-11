@@ -135,7 +135,19 @@ public class DmColumnConverter extends JdbcColumnConverter {
                 return val -> new TimestampColumn((Timestamp) val);
             case BINARY:
             case VARBINARY:
-                return val -> new BytesColumn((byte[]) val);
+                return val -> {
+                    if (val instanceof DmdbBlob) {
+                        try {
+                            return new StringColumn(
+                                    StringUtil.inputStream2String(
+                                            ((DmdbBlob) val).getBinaryStream()));
+                        } catch (Exception e) {
+                            throw new UnsupportedOperationException(
+                                    "failed to get length from blob");
+                        }
+                    }
+                    return new BytesColumn((byte[]) val);
+                };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
