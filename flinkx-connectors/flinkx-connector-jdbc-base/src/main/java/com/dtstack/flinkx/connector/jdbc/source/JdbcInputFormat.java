@@ -59,6 +59,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import static com.dtstack.flinkx.enums.ColumnType.TIMESTAMPTZ;
+
 /**
  * InputFormat for reading data from a database and generate Rows.
  *
@@ -566,7 +568,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             String incrementColType, String incrementCol, String location, String operator) {
         String endTimeStr;
         String endLocationSql;
-
+        ColumnType type = ColumnType.fromString(incrementColType);
+        if (type == TIMESTAMPTZ) {
+            return String.valueOf(Timestamp.valueOf(location).getTime());
+        }
         if (ColumnType.isTimeType(incrementColType)) {
             endTimeStr = getTimeStr(Long.parseLong(location));
             endLocationSql = incrementCol + operator + endTimeStr;
@@ -614,6 +619,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         boolean isNumber = StringUtils.isNumeric(startLocation);
         switch (type) {
             case TIMESTAMP:
+            case TIMESTAMPTZ:
             case DATETIME:
                 Timestamp ts =
                         isNumber
@@ -793,7 +799,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      *
      * @throws SQLException
      */
-    private void queryStartLocation() throws SQLException {
+    protected void queryStartLocation() throws SQLException {
         ps = dbConn.prepareStatement(jdbcConf.getQuerySql(), resultSetType, resultSetConcurrency);
         ps.setFetchSize(jdbcConf.getFetchSize());
         ps.setQueryTimeout(jdbcConf.getQueryTimeOut());

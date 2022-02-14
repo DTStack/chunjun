@@ -19,8 +19,10 @@
 package com.dtstack.flinkx.connector.postgresql.table;
 
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.postgresql.dialect.PostgresqlDialect;
+import com.dtstack.flinkx.connector.postgresql.source.PostgresqlInputFormat;
 
 /**
  * @program: flinkx
@@ -39,5 +41,10 @@ public class PostgresqlDynamicTableFactory extends JdbcDynamicTableFactory {
     @Override
     protected JdbcDialect getDialect() {
         return new PostgresqlDialect();
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getInputFormatBuilder() {
+        return new JdbcInputFormatBuilder(new PostgresqlInputFormat());
     }
 }

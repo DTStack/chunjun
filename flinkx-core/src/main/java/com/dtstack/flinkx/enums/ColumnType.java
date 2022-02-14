@@ -76,7 +76,9 @@ public enum ColumnType {
     DECIMAL,
     YEAR,
     BIT,
-    OBJECT;
+    OBJECT,
+    /** for postgresql */
+    TIMESTAMPTZ;
 
     public static List<ColumnType> TIME_TYPE = Arrays.asList(DATE, DATETIME, TIME, TIMESTAMP);
 

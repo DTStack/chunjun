@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.connector.postgresql.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.flinkx.connector.postgresql.dialect.PostgresqlDialect;
 
@@ -35,5 +36,10 @@ public class PostgresqlSourceFactory extends JdbcSourceFactory {
 
     public PostgresqlSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env, new PostgresqlDialect());
+    }
+
+    @Override
+    protected JdbcInputFormatBuilder getBuilder() {
+        return new JdbcInputFormatBuilder(new PostgresqlInputFormat());
     }
 }
