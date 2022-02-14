@@ -303,7 +303,27 @@ public class InceptorOutputFormat extends JdbcOutputFormat {
             data.add(lineData);
         }
         return data.stream()
-                .filter(i -> i.values().stream().anyMatch(i1 -> i1.startsWith("transactional")))
-                .anyMatch(i -> i.values().stream().anyMatch(i1 -> i1.startsWith("true")));
+                .filter(
+                        i ->
+                                i.values().stream()
+                                        .anyMatch(
+                                                i1 -> {
+                                                    if (i1 != null) {
+                                                        return i1.startsWith("transactional");
+                                                    } else {
+                                                        return false;
+                                                    }
+                                                }))
+                .anyMatch(
+                        i ->
+                                i.values().stream()
+                                        .anyMatch(
+                                                i1 -> {
+                                                    if (i1 != null) {
+                                                        return i1.startsWith("true");
+                                                    } else {
+                                                        return false;
+                                                    }
+                                                }));
     }
 }
