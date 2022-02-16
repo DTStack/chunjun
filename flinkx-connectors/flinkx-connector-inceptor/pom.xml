@@ -53,6 +53,14 @@
 							</filters>
 							<relocations>
 								<relocation>
+									<pattern>org.apache.commons.cli</pattern>
+									<shadedPattern>shade.inceptor.org.apache.commons.cli</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.apache.hadoop</pattern>
+									<shadedPattern>shade.inceptor.org.apache.hadoop</shadedPattern>
+								</relocation>
+								<relocation>
 									<pattern>org.apache.hive</pattern>
 									<shadedPattern>shade.inceptor.org.apache.hive</shadedPattern>
 								</relocation>
