@@ -46,9 +46,6 @@ public class ElasticsearchConf extends FlinkxCommonConf implements Serializable 
     /** es doc id */
     private List<String> ids;
 
-    /** is open basic auth. */
-    private boolean authMesh = false;
-
     /** basic auth : username */
     private String username;
 
@@ -58,19 +55,19 @@ public class ElasticsearchConf extends FlinkxCommonConf implements Serializable 
     private String keyDelimiter = "_";
 
     /** client socket timeout */
-    private int socketTimeout;
+    private int socketTimeout = 1800000;
 
     /** client keepAlive time */
-    private int keepAliveTime;
+    private int keepAliveTime = 5000;
 
     /** client connect timeout */
-    private int connectTimeout;
+    private int connectTimeout = 5000;
 
     /** client request timeout */
-    private int requestTimeout;
+    private int requestTimeout = 2000;
 
     /** Assigns maximum connection per route value. */
-    private int maxConnPerRoute;
+    private int maxConnPerRoute = 10;
 
     /** table field names */
     private String[] fieldNames;

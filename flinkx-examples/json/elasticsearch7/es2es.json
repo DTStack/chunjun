@@ -5,32 +5,33 @@
         "reader": {
           "name": "elasticsearch7reader",
           "parameter": {
-            "hosts": ["localhost:9200"],
+            "hosts": ["localhost:9200","127.0.0.1:9200"],
             "index": "mowen",
+            "connectTimeout": "10000",
             "column": [
               {
                 "name": "id",
-                "type": "int"
+                "type": "integer"
               },
               {
                 "name": "phone",
-                "type": "bigint"
+                "type": "long"
               },
               {
                 "name": "qq",
-                "type": "varchar"
+                "type": "long"
               },
               {
                 "name": "wechat",
-                "type": "varchar"
+                "type": "text"
               },
               {
                 "name": "income",
-                "type": "decimal"
+                "type": "float"
               },
               {
                 "name": "birthday",
-                "type": "timestamp"
+                "type": "date"
               },
               {
                 "name": "today",
@@ -38,7 +39,7 @@
               },
               {
                 "name": "timecurrent",
-                "type": "time"
+                "type": "date"
               }
             ]
           }
@@ -48,27 +49,27 @@
             "column": [
               {
                 "name": "id",
-                "type": "int"
+                "type": "integer"
               },
               {
                 "name": "phone",
-                "type": "bigint"
+                "type": "long"
               },
               {
                 "name": "qq",
-                "type": "varchar"
+                "type": "long"
               },
               {
                 "name": "wechat",
-                "type": "varchar"
+                "type": "text"
               },
               {
                 "name": "income",
-                "type": "decimal"
+                "type": "float"
               },
               {
                 "name": "birthday",
-                "type": "timestamp"
+                "type": "date"
               },
               {
                 "name": "today",
@@ -76,10 +77,10 @@
               },
               {
                 "name": "timecurrent",
-                "type": "time"
+                "type": "date"
               }
             ],
-            "hosts": ["localhost:9200"],
+            "hosts": ["localhost:9200","127.0.0.1:9200"],
             "index": "mowen_target"
           },
           "name": "elasticsearch7writer"
