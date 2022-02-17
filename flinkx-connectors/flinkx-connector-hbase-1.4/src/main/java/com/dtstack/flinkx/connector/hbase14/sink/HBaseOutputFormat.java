@@ -22,6 +22,7 @@ import com.dtstack.flinkx.connector.hbase.HBaseMutationConverter;
 import com.dtstack.flinkx.connector.hbase14.converter.DataSyncSinkConverter;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseHelper;
+import com.dtstack.flinkx.security.KerberosUtil;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 
@@ -45,6 +46,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static org.apache.zookeeper.client.ZooKeeperSaslClient.LOGIN_CONTEXT_NAME_KEY;
 
 /**
  * The Hbase Implementation of OutputFormat
@@ -108,6 +111,15 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
     public void openInternal(int taskNumber, int numTasks) throws IOException {
         boolean openKerberos = HBaseConfigUtils.isEnableKerberos(hbaseConfig);
         if (openKerberos) {
+            // TDH环境并且zk开启了kerberos需要设置zk的环境变量
+            if (HBaseHelper.openKerberosForZk(hbaseConfig)) {
+                String keytabFile =
+                        HBaseHelper.getKeyTabFileName(
+                                hbaseConfig, getRuntimeContext().getDistributedCache(), jobId);
+                String principal = KerberosUtil.getPrincipal(hbaseConfig, keytabFile);
+                String client = System.getProperty(LOGIN_CONTEXT_NAME_KEY, "Client");
+                KerberosUtil.appendOrUpdateJaasConf(client, keytabFile, principal);
+            }
             UserGroupInformation ugi =
                     HBaseHelper.getUgi(
                             hbaseConfig, getRuntimeContext().getDistributedCache(), jobId);
