@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -95,7 +96,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
                             sqlserverCdcConf.getUrl(),
                             sqlserverCdcConf.getUsername(),
                             sqlserverCdcConf.getPassword());
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(sqlserverCdcConf.isAutoCommit());
             SqlServerCdcUtil.changeDatabase(conn, sqlserverCdcConf.getDatabaseName());
 
             if (StringUtils.isNotBlank(sqlserverCdcConf.getLsn())) {
@@ -191,4 +192,5 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
     public void setSqlServerCdcConf(SqlServerCdcConf sqlserverCdcConf) {
         this.sqlserverCdcConf = sqlserverCdcConf;
     }
+
 }
