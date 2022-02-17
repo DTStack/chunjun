@@ -74,10 +74,13 @@ public class HiveUtil {
                     "TableAlreadyExistsException");
 
     public static void createHiveTableWithTableInfo(
-            TableInfo tableInfo, ConnectionInfo connectionInfo, DistributedCache distributedCache) {
+            TableInfo tableInfo,
+            ConnectionInfo connectionInfo,
+            DistributedCache distributedCache,
+            String jobId) {
         Connection connection = null;
         try {
-            connection = HiveDbUtil.getConnection(connectionInfo, distributedCache);
+            connection = HiveDbUtil.getConnection(connectionInfo, distributedCache, jobId);
             createTable(connection, tableInfo, connectionInfo);
             fillTableInfo(connection, tableInfo);
         } catch (Exception e) {
@@ -93,10 +96,11 @@ public class HiveUtil {
             TableInfo tableInfo,
             String partition,
             ConnectionInfo connectionInfo,
-            DistributedCache distributedCache) {
+            DistributedCache distributedCache,
+            String jobId) {
         Connection connection = null;
         try {
-            connection = HiveDbUtil.getConnection(connectionInfo, distributedCache);
+            connection = HiveDbUtil.getConnection(connectionInfo, distributedCache, jobId);
             String sql =
                     String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
             HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
