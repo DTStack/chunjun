@@ -83,6 +83,10 @@ public class FtpRawTypeConverter {
                     }
                 }
                 return DataTypes.TIMESTAMP(6);
+            case "DATETIME":
+                return DataTypes.TIMESTAMP(0);
+            case "TIME":
+                return DataTypes.TIME();
             case "DATE":
                 return DataTypes.DATE();
             default:

@@ -40,7 +40,6 @@ public class SaphanaRawTypeConverter {
      * @link https://data-flair.training/blogs/sql-data-types-in-sap-hana/
      * @param type
      * @return
-     * @throws SQLException
      */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
@@ -49,9 +48,9 @@ public class SaphanaRawTypeConverter {
             case "TIME":
                 return DataTypes.TIME();
             case "SECONDDATE":
-                return DataTypes.TIMESTAMP();
+                return DataTypes.TIMESTAMP(0);
             case "TIMESTAMP":
-                return DataTypes.TIMESTAMP();
+                return DataTypes.TIMESTAMP(7);
                 // Numeric Data Type
             case "TINYINT":
                 return DataTypes.TINYINT();

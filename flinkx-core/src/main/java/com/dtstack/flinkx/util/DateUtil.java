@@ -197,7 +197,7 @@ public class DateUtil {
             return new java.sql.Timestamp(d.getTime());
         }
 
-        throw new IllegalArgumentException(
+        throw new UnsupportedOperationException(
                 "Can't convert " + column.getClass().getName() + " to Date");
     }
 
@@ -439,5 +439,16 @@ public class DateUtil {
         }
         Date date = stringToDate(dateStr);
         return null == date ? null : new java.sql.Date(date.getTime());
+    }
+
+    public static int getPrecisionFromTimestampStr(String timestampStr) {
+        char radixPoint = '.';
+        int length = timestampStr.length();
+        for (int i = length - 1; i >= Math.max(0, length - 10); i--) {
+            if (radixPoint == timestampStr.charAt(i)) {
+                return length - i - 1;
+            }
+        }
+        return -1;
     }
 }

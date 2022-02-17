@@ -21,6 +21,7 @@ package com.dtstack.flinkx.connector.doris.converter;
 import com.dtstack.flinkx.connector.doris.options.DorisConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
@@ -91,8 +92,11 @@ public class DorisColumnConverter
     @Override
     protected ISerializationConverter<StringJoiner> createExternalConverter(String type) {
         return (rowData, index, joiner) -> {
-            Object value = ((ColumnRowData) rowData).getField(index);
-            joiner.add("".equals(value.toString()) ? NULL_VALUE : value.toString());
+            AbstractBaseColumn value = ((ColumnRowData) rowData).getField(index);
+            joiner.add(
+                    "".equals(value.toString())
+                            ? NULL_VALUE
+                            : ((ColumnRowData) rowData).getField(index).asString());
         };
     }
 

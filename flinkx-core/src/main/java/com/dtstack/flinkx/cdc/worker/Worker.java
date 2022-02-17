@@ -39,13 +39,11 @@ import java.util.concurrent.Callable;
  */
 public class Worker implements Callable<Integer> {
 
+    private static final Object LOCK = new Object();
     private final QueuesChamberlain queuesChamberlain;
-
     private final Collector<RowData> collector;
-
     /** 任务分片 */
     private final Chunk chunk;
-
     /** 队列遍历深度，避免某队列长时间占用线程 */
     private final int size;
 
@@ -87,7 +85,9 @@ public class Worker implements Callable<Integer> {
     private void dealDmL(Deque<RowData> queue) {
         // 队列头节点是dml, 将该dml数据发送到sink
         RowData rowData = queue.poll();
-        collector.collect(rowData);
+        synchronized (LOCK) {
+            collector.collect(rowData);
+        }
     }
 
     @Override

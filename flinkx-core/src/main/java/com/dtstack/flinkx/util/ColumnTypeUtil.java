@@ -26,13 +26,15 @@ import java.util.Objects;
  */
 public class ColumnTypeUtil {
 
-    private static final String TYPE_NAME = "decimal";
+    public static final String TYPE_NAME = "decimal";
+    private static final String NUMBER_TYPE_NAME = "number";
     private static final String LEFT_BRACKETS = "(";
     private static final String RIGHT_BRACKETS = ")";
     private static final String DELIM = ",";
 
     public static boolean isDecimalType(String typeName) {
-        return typeName.toLowerCase().startsWith(TYPE_NAME);
+        return typeName.toLowerCase().startsWith(TYPE_NAME)
+                || typeName.toLowerCase().startsWith(NUMBER_TYPE_NAME);
     }
 
     public static DecimalInfo getDecimalInfo(String typeName, DecimalInfo defaultInfo) {

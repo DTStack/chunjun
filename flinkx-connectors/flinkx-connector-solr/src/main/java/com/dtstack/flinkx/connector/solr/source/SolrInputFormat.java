@@ -70,7 +70,9 @@ public class SolrInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) {
-        solrClientWrapper = new CloudSolrClientKerberosWrapper(solrConf);
+        solrClientWrapper =
+                new CloudSolrClientKerberosWrapper(
+                        solrConf, getRuntimeContext().getDistributedCache());
         solrClientWrapper.init();
 
         GenericInputSplit genericInputSplit = (GenericInputSplit) inputSplit;

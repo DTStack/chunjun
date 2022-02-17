@@ -93,6 +93,11 @@ public class DorisConfBuilder {
         return this;
     }
 
+    public DorisConfBuilder setFlushIntervalMills(long flushIntervalMills) {
+        this.dorisConf.setFlushIntervalMills(flushIntervalMills);
+        return this;
+    }
+
     public DorisConf build() {
         StringJoiner errorMessage = new StringJoiner("\n");
 

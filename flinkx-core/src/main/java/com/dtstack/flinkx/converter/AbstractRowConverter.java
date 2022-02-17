@@ -22,6 +22,8 @@ import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.enums.ColumnType;
+import com.dtstack.flinkx.util.DateUtil;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -33,6 +35,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
@@ -108,13 +112,59 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
      */
     protected AbstractBaseColumn assembleFieldProps(
             FieldConf fieldConf, AbstractBaseColumn baseColumn) {
+        String format = fieldConf.getFormat();
+        String parseFormat = fieldConf.getParseFormat();
         if (StringUtils.isNotBlank(fieldConf.getValue())) {
-            baseColumn = new StringColumn(fieldConf.getValue(), fieldConf.getFormat());
-        } else if (baseColumn instanceof StringColumn
-                && StringUtils.isNotBlank(fieldConf.getFormat())) {
-            baseColumn = new StringColumn(baseColumn.asString(), fieldConf.getFormat());
+            String type = fieldConf.getType();
+            if ((ColumnType.isStringType(type) || ColumnType.isTimeType(type))
+                    && StringUtils.isNotBlank(format)) {
+                SimpleDateFormat parseDateFormat = null;
+                if (StringUtils.isNotBlank(parseFormat)) {
+                    parseDateFormat = new SimpleDateFormat(parseFormat);
+                }
+                baseColumn =
+                        new StringColumn(
+                                String.valueOf(
+                                        DateUtil.columnToDate(fieldConf.getValue(), parseDateFormat)
+                                                .getTime()),
+                                format);
+            } else {
+                baseColumn = new StringColumn(fieldConf.getValue(), format);
+            }
+        } else if (StringUtils.isNotBlank(format)) {
+            baseColumn =
+                    new StringColumn(
+                            getMilliSecondsWithParseFormat(
+                                    baseColumn.asString(), parseFormat, format),
+                            format);
         }
         return baseColumn;
+    }
+
+    /** Convert val from timestampString to longString with parseFormat and */
+    public String getMilliSecondsWithParseFormat(String val, String parseFormat, String format) {
+        if (StringUtils.isNotBlank(parseFormat) && val != null) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(parseFormat);
+            try {
+                return String.valueOf(simpleDateFormat.parse(val).getTime());
+            } catch (ParseException e) {
+                LOG.warn(
+                        String.format(
+                                "Cannot parse val %s with the given parseFormat[%s],try parsing with format[%s]",
+                                val, parseFormat, format),
+                        e);
+                try {
+                    simpleDateFormat = new SimpleDateFormat(format);
+                    return String.valueOf(simpleDateFormat.parse(val).getTime());
+                } catch (ParseException parseException) {
+                    throw new UnsupportedOperationException(
+                            String.format(
+                                    "Cannot parse val %s with the given parseFormat[%s] and format[%s]",
+                                    val, parseFormat, format));
+                }
+            }
+        }
+        return val;
     }
 
     protected ISerializationConverter<SinkT> wrapIntoNullableExternalConverter(

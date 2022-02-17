@@ -47,7 +47,7 @@
         <module>flinkx-connector-ftp</module>
         <module>flinkx-connector-hdfs</module>
         <module>flinkx-connector-hive</module>
-        <module>flinkx-connector-inceptor</module>
+<!--        <module>flinkx-connector-inceptor</module>-->
 
 		<!--NoSql-->
 		<module>flinkx-connector-hbase-base</module>

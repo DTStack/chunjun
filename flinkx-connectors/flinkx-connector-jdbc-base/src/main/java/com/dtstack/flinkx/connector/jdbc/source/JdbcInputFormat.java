@@ -820,9 +820,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         // 查询到数据，更新querySql
         StringBuilder builder = new StringBuilder(128);
-        builder.append(jdbcConf.getQuerySql())
-                .append(" AND ")
-                .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+        builder.append(jdbcConf.getQuerySql());
+        if (jdbcConf.getQuerySql().contains("WHERE")) {
+            builder.append(" AND ");
+        } else {
+            builder.append(" WHERE ");
+        }
+        builder.append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
                 .append(" > ? ORDER BY ")
                 .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
                 .append(" ASC");

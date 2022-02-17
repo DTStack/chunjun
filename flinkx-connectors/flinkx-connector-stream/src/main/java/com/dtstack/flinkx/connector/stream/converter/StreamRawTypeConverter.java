@@ -63,6 +63,7 @@ public class StreamRawTypeConverter {
             case "TIME":
                 return DataTypes.TIME();
             case "DATETIME":
+                return DataTypes.TIMESTAMP(0);
             case "TIMESTAMP":
                 return DataTypes.TIMESTAMP();
             case "TIMESTAMP WITH LOCAL TIME ZONE":

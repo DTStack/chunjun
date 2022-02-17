@@ -21,6 +21,8 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 
 /**
@@ -71,6 +73,27 @@ public class BooleanColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
+        throw new CastException("Boolean", "Timestamp", this.asString());
+    }
+
+    @Override
+    public Time asTime() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Boolean", "java.sql.Time", this.asString());
+    }
+
+    @Override
+    public Date asSqlDate() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Boolean", "java.sql.Date", this.asString());
+    }
+
+    @Override
+    public String asTimestampStr() {
         throw new CastException("Boolean", "Timestamp", this.asString());
     }
 }

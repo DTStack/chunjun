@@ -19,16 +19,21 @@
 package com.dtstack.flinkx.connector.doris.sink;
 
 import com.dtstack.flinkx.connector.doris.options.DorisConf;
+import com.dtstack.flinkx.connector.doris.rest.Carrier;
 import com.dtstack.flinkx.connector.doris.rest.DorisLoadClient;
 import com.dtstack.flinkx.connector.doris.rest.DorisStreamLoad;
 import com.dtstack.flinkx.connector.doris.rest.FeRestService;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.WriteRecordException;
-import com.dtstack.flinkx.util.GsonUtil;
 
 import org.apache.flink.table.data.RowData;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * use DorisStreamLoad to write data into doris
@@ -37,10 +42,10 @@ import java.io.IOException;
  * @date 2021/9/16 星期四
  */
 public class DorisOutputFormat extends BaseRichOutputFormat {
-
     private DorisConf options;
-
     private DorisLoadClient client;
+    /** cache carriers * */
+    private final Map<String, Carrier> carrierMap = new HashMap<>();
 
     public void setOptions(DorisConf options) {
         this.options = options;
@@ -73,28 +78,50 @@ public class DorisOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
-        try {
-            client.load(rowData, true);
-        } catch (Exception e) {
-            String errormessage = recordConvertDetailErrorMessage(-1, rowData);
-            LOG.error(errormessage, e);
-            throw new WriteRecordException(errormessage, e, -1, rowData);
-        }
+        client.process(rowData);
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
-        try {
-            for (RowData rowData : rows) {
-                client.load(rowData, false);
+        int size = rows.size();
+        for (int i = 0; i < size; i++) {
+            client.process(rows.get(i), i, carrierMap);
+        }
+        if (!carrierMap.isEmpty()) {
+            Set<String> keys = carrierMap.keySet();
+            for (String key : keys) {
+                try {
+                    Carrier carrier = carrierMap.get(key);
+                    client.flush(carrier);
+                    Set<Integer> indexes = carrier.getRowDataIndexes();
+                    List<RowData> removeList = new ArrayList<>(indexes.size());
+                    // Add the amount of data written successfully.
+                    numWriteCounter.add(indexes.size());
+                    for (int index : indexes) {
+                        removeList.add(rows.get(index));
+                    }
+                    // Remove RowData from rows after a successful write
+                    // to prevent multiple writes.
+                    rows.removeAll(removeList);
+                } finally {
+                    carrierMap.remove(key);
+                }
             }
-        } catch (Exception e) {
-            LOG.error(
-                    "write Multiple Records error, row size = {}, first row = {}",
-                    rows.size(),
-                    rows.size() > 0 ? GsonUtil.GSON.toJson(rows.get(0)) : "null",
-                    e);
-            throw e;
+        }
+    }
+
+    @Override
+    protected synchronized void writeRecordInternal() {
+        if (flushEnable.get()) {
+            try {
+                writeMultipleRecordsInternal();
+            } catch (Exception e) {
+                // 批量写异常转为单条写
+                rows.forEach(item -> writeSingleRecord(item, numWriteCounter));
+            } finally {
+                // Data is either recorded dirty data or written normally
+                rows.clear();
+            }
         }
     }
 }

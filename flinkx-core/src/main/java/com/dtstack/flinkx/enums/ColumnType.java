@@ -48,6 +48,10 @@ public enum ColumnType {
 
     /** number type */
     INT,
+    // for pg INT2,INT4,INT8
+    INT2,
+    INT4,
+    INT8,
     INT32,
     MEDIUMINT,
     TINYINT,

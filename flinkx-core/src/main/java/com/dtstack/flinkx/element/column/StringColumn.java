@@ -21,10 +21,12 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.throwable.CastException;
 import com.dtstack.flinkx.util.DateUtil;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -38,6 +40,7 @@ import java.util.Date;
 public class StringColumn extends AbstractBaseColumn {
 
     private String format = "yyyy-MM-dd HH:mm:ss";
+    private boolean isCustomFormat = false;
 
     public StringColumn(final String data) {
         super(data);
@@ -45,8 +48,9 @@ public class StringColumn extends AbstractBaseColumn {
 
     public StringColumn(final String data, String format) {
         super(data);
-        if (format != null) {
+        if (StringUtils.isNotBlank(format)) {
             this.format = format;
+            isCustomFormat = true;
         }
     }
 
@@ -59,7 +63,11 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return String.valueOf(data);
+        if (isCustomFormat) {
+            return asTimestampStr();
+        } else {
+            return String.valueOf(data);
+        }
     }
 
     @Override
@@ -67,34 +75,34 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
+        SimpleDateFormat dateFormat = DateUtil.buildDateFormatter(format);
         Long time = null;
         Date result = null;
-        String data = this.asString();
+        String data = String.valueOf(this.data);
         try {
             // 如果string是时间戳
             time = NumberUtils.createLong(data);
         } catch (Exception ignored) {
             // doNothing
         }
-        SimpleDateFormat formatter = DateUtil.buildDateFormatter(format);
         if (time != null) {
             Date date = new Date(time);
             try {
-                result = formatter.parse(formatter.format(date));
+                result = dateFormat.parse(dateFormat.format(date));
             } catch (ParseException ignored) {
                 // doNothing
             }
         } else {
             try {
                 // 如果是日期格式字符串
-                result = formatter.parse(data);
+                result = dateFormat.parse(data);
             } catch (ParseException ignored) {
                 // doNothing
             }
         }
 
         if (result == null) {
-            result = DateUtil.columnToDate(data, formatter);
+            result = DateUtil.columnToDate(data, dateFormat);
 
             if (result == null) {
                 throw new CastException("String", "Date", data);
@@ -118,7 +126,7 @@ public class StringColumn extends AbstractBaseColumn {
             return null;
         }
 
-        String data = this.asString();
+        String data = String.valueOf(this.data);
         // 如果是数值类型
         try {
             return NumberUtils.toInt(data) != 0;
@@ -142,7 +150,7 @@ public class StringColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        String data = this.asString();
+        String data = String.valueOf(this.data);
         this.validateDoubleSpecific(data);
 
         try {
@@ -158,7 +166,7 @@ public class StringColumn extends AbstractBaseColumn {
             return null;
         }
 
-        String data = this.asString();
+        String data = String.valueOf(this.data);
         if ("NaN".equals(data)) {
             return Double.NaN;
         }
@@ -193,5 +201,54 @@ public class StringColumn extends AbstractBaseColumn {
                             "String[%s]belongs to the special type of Double and cannot be converted to other types.",
                             data));
         }
+    }
+
+    @Override
+    public Time asTime() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("String", "java.sql.Time", String.valueOf(data));
+    }
+
+    @Override
+    public java.sql.Date asSqlDate() {
+        if (null == data) {
+            return null;
+        }
+        return java.sql.Date.valueOf(asTimestamp().toLocalDateTime().toLocalDate());
+    }
+
+    @Override
+    public String asTimestampStr() {
+        if (null == data) {
+            return null;
+        }
+        SimpleDateFormat dateFormat = DateUtil.buildDateFormatter(format);
+        String data = String.valueOf(this.data);
+        try {
+            // 如果string是时间戳
+            Long time = NumberUtils.createLong(data);
+            return dateFormat.format(time);
+        } catch (Exception ignored) {
+            // doNothing
+        }
+
+        try {
+            if (isCustomFormat) {
+                // 格式化
+                return dateFormat.format(asDate().getTime());
+            } else {
+                // 校验格式
+                DateUtil.stringToDate(data);
+                return data;
+            }
+        } catch (Exception e) {
+            throw new CastException("String", "Timestamp", data);
+        }
+    }
+
+    public boolean isCustomFormat() {
+        return isCustomFormat;
     }
 }

@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.connector.mongodb.converter;
 
+import com.dtstack.flinkx.conf.FieldConf;
+import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
@@ -31,11 +33,11 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.util.StringUtils;
 
 import org.bson.Document;
 import org.bson.types.Binary;
 import org.bson.types.Decimal128;
-import org.bson.types.ObjectId;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -54,9 +56,9 @@ public class MongodbColumnConverter
     private final List<MongoSerializationConverter> toExternalConverters;
     private final String[] fieldNames;
 
-    public MongodbColumnConverter(RowType rowType, String[] fieldNames) {
-        super(rowType);
-        this.fieldNames = fieldNames;
+    public MongodbColumnConverter(RowType rowType, FlinkxCommonConf commonConf) {
+        super(rowType, commonConf);
+        this.fieldNames = rowType.getFieldNames().toArray(new String[0]);
         toInternalConverters = new ArrayList<>();
         toExternalConverters = new ArrayList<>();
         for (int i = 0; i < rowType.getFieldCount(); i++) {
@@ -95,15 +97,21 @@ public class MongodbColumnConverter
 
     @Override
     public RowData toInternal(Document document) {
-        ColumnRowData data = new ColumnRowData(toInternalConverters.size());
-        for (int pos = 0; pos < toInternalConverters.size(); pos++) {
-            Object field = document.get(fieldNames[pos]);
-            if (field instanceof ObjectId) {
-                field = field.toString();
+        List<FieldConf> fieldList = commonConf.getColumn();
+        ColumnRowData result = new ColumnRowData(fieldList.size());
+        int convertIndex = 0;
+        for (FieldConf fieldConf : fieldList) {
+            AbstractBaseColumn baseColumn = null;
+            if (StringUtils.isNullOrWhitespaceOnly(fieldConf.getValue())) {
+                Object field = document.get(fieldConf.getName());
+                baseColumn =
+                        (AbstractBaseColumn)
+                                toInternalConverters.get(convertIndex).deserialize(field);
+                convertIndex++;
             }
-            data.addField((AbstractBaseColumn) toInternalConverters.get(pos).deserialize(field));
+            result.addField(assembleFieldProps(fieldConf, baseColumn));
         }
-        return data;
+        return result;
     }
 
     @Override
@@ -139,7 +147,7 @@ public class MongodbColumnConverter
             case TIME_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
-                return val -> new TimestampColumn((java.util.Date) val);
+                return val -> new TimestampColumn((java.util.Date) val, 0);
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn(((Binary) val).getData());

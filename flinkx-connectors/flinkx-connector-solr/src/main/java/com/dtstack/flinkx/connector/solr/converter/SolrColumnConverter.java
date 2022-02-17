@@ -103,7 +103,7 @@ public class SolrColumnConverter
     protected SolrSerializationConverter wrapIntoNullableSolrExternalConverter(
             SolrSerializationConverter solrSerializationConverter) {
         return (val, pos, name, solrInputDocument) -> {
-            if (val == null) {
+            if (((ColumnRowData) val).getField(pos) == null) {
                 solrInputDocument.setField(name, null);
             } else {
                 solrSerializationConverter.serialize(val, pos, name, solrInputDocument);

@@ -23,11 +23,12 @@ package com.dtstack.flinkx.connector.doris.rest;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.doris.options.DorisConf;
 import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.throwable.WriteRecordException;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.types.RowKind;
 
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,6 @@ import javax.annotation.Nonnull;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -53,7 +53,7 @@ import java.util.stream.Stream;
  * @date 2021/12/21
  */
 public class DorisLoadClient implements Serializable {
-
+    private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(DorisLoadClient.class);
 
     private final Set<String> metaHeader =
@@ -72,23 +72,14 @@ public class DorisLoadClient implements Serializable {
     private final String fieldDelimiter;
     private final String lineDelimiter;
     private final boolean nameMapped;
-    private int batchSize = 1024;
     private String hostPort;
     private final DorisConf conf;
-
-    /** key:db.table* */
-    private final Map<String, String> insertValueMap = new HashMap<>();
-    /** key:db.table* */
-    private final Map<String, String> mergeValueMap = new HashMap<>();
-    /** key:db.table* */
-    private final Map<String, Integer> batchSizeMap = new HashMap<>();
 
     public DorisLoadClient(DorisStreamLoad dorisStreamLoad, DorisConf conf, String hostPort) {
         this.dorisStreamLoad = dorisStreamLoad;
         this.hostPort = hostPort;
         this.conf = conf;
         this.nameMapped = conf.isNameMapped();
-        this.batchSize = conf.getBatchSize();
         this.fieldDelimiter = conf.getFieldDelimiter();
         this.lineDelimiter = conf.getLineDelimiter();
     }
@@ -97,7 +88,13 @@ public class DorisLoadClient implements Serializable {
         this.hostPort = hostPort;
     }
 
-    public void load(RowData value, boolean single) throws IOException {
+    /**
+     * Each time a RowData is processed, a Carrier is obtained and then returned.
+     *
+     * @param value RowData
+     * @return Carrier
+     */
+    public void process(RowData value) throws WriteRecordException {
         String schema;
         String table;
         List<String> columns = new LinkedList<>();
@@ -105,141 +102,71 @@ public class DorisLoadClient implements Serializable {
         List<String> deleteV = new LinkedList<>();
         // sync job.
         if (value instanceof ColumnRowData) {
-            /* If NameMapping is configured, RowData will carry the database
-            and table names after the name matches, and the database, table,
-            and column configured on the sink side are invalid.*/
-            if (nameMapped) {
-                Map<String, String> identityMap = new HashMap<>(2);
-                wrapColumnsFromRowData(
-                        (ColumnRowData) value, columns, insertV, deleteV, identityMap);
-                schema = MapUtils.getString(identityMap, KEY_SCHEMA, conf.getDatabase());
-                table = MapUtils.getString(identityMap, KEY_TABLE, conf.getTable());
-            } else {
-                columns = getColumnName(conf.getColumn());
-                wrapValuesFromRowData((ColumnRowData) value, columns, insertV, deleteV);
-                schema = conf.getDatabase();
-                table = conf.getTable();
-            }
-            loadData(columns, insertV, deleteV, schema, table, single);
+            Map<String, String> identityMap = new HashMap<>(2);
+            wrap((ColumnRowData) value, columns, insertV, deleteV, identityMap);
+            schema = MapUtils.getString(identityMap, KEY_SCHEMA, conf.getDatabase());
+            table = MapUtils.getString(identityMap, KEY_TABLE, conf.getTable());
+            Carrier carrier = initCarrier(columns, insertV, deleteV, schema, table);
+            flush(carrier);
         }
         // TODO sql support
     }
 
-    private void loadData(
-            List<String> columns,
-            List<String> insertV,
-            List<String> deleteV,
-            String schema,
-            String table,
-            boolean single)
-            throws IOException {
-
-        // if batchSize is 1 or write SingleRecord.
-        if (single) {
-            singleLoad(columns, insertV, deleteV, schema, table);
-            return;
+    /**
+     * Each time a RowData is processed, after a Carrier is obtained , it is added to the cache ,
+     * and the position of each RowData is recorded.
+     *
+     * @param value RowData
+     * @param index RowData index
+     * @param carrierMap A batch of data is cached
+     */
+    public void process(RowData value, int index, Map<String, Carrier> carrierMap) {
+        String schema;
+        String table;
+        List<String> columns = new LinkedList<>();
+        List<String> insertV = new LinkedList<>();
+        List<String> deleteV = new LinkedList<>();
+        if (value instanceof ColumnRowData) {
+            Map<String, String> identityMap = new HashMap<>(2);
+            wrap((ColumnRowData) value, columns, insertV, deleteV, identityMap);
+            schema = MapUtils.getString(identityMap, KEY_SCHEMA, conf.getDatabase());
+            table = MapUtils.getString(identityMap, KEY_TABLE, conf.getTable());
+            String key = schema + KEY_POINT + table;
+            if (carrierMap.containsKey(key)) {
+                Carrier carrier = carrierMap.get(key);
+                carrier.addInsertContent(insertV);
+                carrier.addDeleteContent(deleteV);
+                carrier.addRowDataIndex(index);
+                carrier.updateBatch();
+            } else {
+                Carrier carrier = initCarrier(columns, insertV, deleteV, schema, table);
+                carrier.addRowDataIndex(index);
+                carrierMap.put(key, carrier);
+            }
         }
-        String key = schema + KEY_POINT + table;
-        // exist.
-        boolean exist = insertValueMap.containsKey(key) || mergeValueMap.containsKey(key);
-        if (exist) {
-            if (!deleteV.isEmpty()) {
-                // need use merge.
-                String mergeConditions = buildMergeOnConditions(columns, deleteV);
-                mergeValueMap.merge(key, mergeConditions, (o, n) -> o + " OR " + n);
-            }
-            // then maybe need insert.
-            if (!insertV.isEmpty()) {
-                insertValueMap.merge(
-                        key,
-                        StringUtils.join(insertV, fieldDelimiter),
-                        (o, n) -> o + lineDelimiter + n);
-            }
+        // TODO sql support
+    }
 
-            int size = batchSizeMap.get(key);
-            size++;
-            batchSizeMap.put(key, size);
-
-            if (batchSizeMap.get(key) >= batchSize) {
-                // load batch data.
-                dorisStreamLoad.load(
-                        columns,
-                        insertValueMap.get(key) == null ? "" : insertValueMap.get(key),
-                        mergeValueMap.get(key) == null ? "" : mergeValueMap.get(key),
-                        String.format(LOAD_URL_PATTERN, hostPort, schema, table));
-                // cleanup cache data.
-                insertValueMap.remove(key);
-                mergeValueMap.remove(key);
-                batchSizeMap.remove(key);
-            }
-        } else {
-            // need use merge.
-            if (!deleteV.isEmpty()) {
-                String mergeConditions = buildMergeOnConditions(columns, deleteV);
-                mergeValueMap.put(key, mergeConditions);
-            }
-            // maybe have insert.
-            if (!insertV.isEmpty()) {
-                insertValueMap.put(key, StringUtils.join(insertV, fieldDelimiter));
-            }
-
-            int size = 0;
-            size++;
-            batchSizeMap.put(key, size);
+    /**
+     * flush data to doris BE.
+     *
+     * @param carrier data carrier
+     * @throws WriteRecordException
+     */
+    public void flush(Carrier carrier) throws WriteRecordException {
+        try {
+            dorisStreamLoad.load(
+                    carrier,
+                    String.format(
+                            LOAD_URL_PATTERN, hostPort, carrier.getDatabase(), carrier.getTable()));
+        } catch (IOException e) {
+            String errorMessage = "write record failed.";
+            throw new WriteRecordException(errorMessage, e, -1, carrier.toString());
         }
     }
 
     public String getHostPort() {
         return hostPort;
-    }
-
-    /**
-     * Construct the Doris delete on condition, which only takes effect in the merge http request.
-     *
-     * @return delete on condition
-     */
-    private String buildMergeOnConditions(List<String> columns, List<String> values) {
-        List<String> deleteOnStr = new ArrayList<>();
-        for (int i = 0, size = columns.size(); i < size; i++) {
-            String stringBuilder =
-                    columns.get(i)
-                            + "<=>"
-                            + "'"
-                            + ((values.get(i)) == null ? "" : values.get(i))
-                            + "'";
-            String s =
-                    stringBuilder
-                            .replaceAll("\\r", "\\\\r")
-                            .replaceAll("\\n", "\\\\n")
-                            .replaceAll("\\t", "\\\t");
-            deleteOnStr.add(s);
-        }
-        return StringUtils.join(deleteOnStr, " AND ");
-    }
-
-    private void singleLoad(
-            List<String> columns,
-            List<String> insertV,
-            List<String> deleteV,
-            String schema,
-            String table)
-            throws IOException {
-
-        if (!deleteV.isEmpty()) {
-            String mergeConditions = buildMergeOnConditions(columns, deleteV);
-            dorisStreamLoad.load(
-                    columns,
-                    insertV.isEmpty() ? "" : StringUtils.join(insertV, fieldDelimiter),
-                    mergeConditions,
-                    String.format(LOAD_URL_PATTERN, hostPort, schema, table));
-
-        } else {
-            dorisStreamLoad.load(
-                    columns,
-                    insertV.isEmpty() ? "" : StringUtils.join(insertV, fieldDelimiter),
-                    "",
-                    String.format(LOAD_URL_PATTERN, hostPort, schema, table));
-        }
     }
 
     /**
@@ -256,7 +183,8 @@ public class DorisLoadClient implements Serializable {
             List<String> columns,
             List<String> insertV,
             List<String> deleteV,
-            Map<String, String> identityMap) {
+            Map<String, String> identityMap,
+            boolean delete) {
 
         String[] headers = value.getHeaders();
         Integer schemaIndex = null, tableIndex = null;
@@ -295,8 +223,11 @@ public class DorisLoadClient implements Serializable {
                     insertV.add(convert(value, i));
                     continue;
                 }
-                // case 3, simple insert.
+                // case 3, column name is obvious.
                 columns.add(headers[i]);
+                if (delete) {
+                    deleteV.add(convert(value, i));
+                }
                 insertV.add(convert(value, i));
             }
         }
@@ -317,7 +248,11 @@ public class DorisLoadClient implements Serializable {
      * @param deleteV delete value list
      */
     private void wrapValuesFromRowData(
-            ColumnRowData value, List<String> columns, List<String> insertV, List<String> deleteV) {
+            ColumnRowData value,
+            List<String> columns,
+            List<String> insertV,
+            List<String> deleteV,
+            boolean delete) {
         String[] headers = value.getHeaders();
         if (headers == null) {
             for (String column : columns) {
@@ -347,12 +282,57 @@ public class DorisLoadClient implements Serializable {
                             break;
                         }
                     }
-                    // case 3. simple insert.
+                    // case 3. column name is obvious.
                     if (column.equalsIgnoreCase(headers[i])) {
                         insertV.add(convert(value, i));
+                        if (delete) {
+                            deleteV.add(convert(value, i));
+                        }
                         break;
                     }
                 }
+            }
+        }
+    }
+
+    private Carrier initCarrier(
+            List<String> columns,
+            List<String> insertV,
+            List<String> deleteV,
+            String schema,
+            String table) {
+        Carrier carrier = new Carrier(fieldDelimiter, lineDelimiter);
+        carrier.setColumns(columns);
+        carrier.setDatabase(schema);
+        carrier.setTable(table);
+        carrier.addInsertContent(insertV);
+        carrier.addDeleteContent(deleteV);
+        carrier.updateBatch();
+        return carrier;
+    }
+
+    private void wrap(
+            ColumnRowData value,
+            List<String> columns,
+            List<String> insertV,
+            List<String> deleteV,
+            Map<String, String> identityMap) {
+        boolean delete =
+                value.getRowKind() == RowKind.DELETE || value.getRowKind() == RowKind.UPDATE_BEFORE;
+        /* If NameMapping is configured, RowData will carry the database
+        and table names after the name matches, and the database, table,
+        and column configured on the sink side are invalid.*/
+        if (nameMapped) {
+            wrapColumnsFromRowData(value, columns, insertV, deleteV, identityMap, delete);
+        } else {
+            columns.addAll(getColumnName(conf.getColumn()));
+            if (columns.isEmpty()) {
+                // neither nameMapping nor column are set.
+                wrapColumnsFromRowData(value, columns, insertV, deleteV, identityMap, delete);
+            } else {
+                wrapValuesFromRowData(value, columns, insertV, deleteV, delete);
+                identityMap.put(KEY_SCHEMA, conf.getDatabase());
+                identityMap.put(KEY_TABLE, conf.getTable());
             }
         }
     }
