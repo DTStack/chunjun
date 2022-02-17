@@ -92,7 +92,7 @@ public final class InceptorDbUtil {
 
         String principal =
                 KerberosUtil.getPrincipal(connectionInfo.getHadoopConfig(), keytabFileName);
-        KerberosUtil.loadKrb5Conf(connectionInfo.getHadoopConfig(), distributedCache);
+        KerberosUtil.loadKrb5Conf(connectionInfo.getHadoopConfig(), distributedCache, jobId);
 
         Configuration conf =
                 FileSystemUtil.getConfiguration(connectionInfo.getHadoopConfig(), null);
