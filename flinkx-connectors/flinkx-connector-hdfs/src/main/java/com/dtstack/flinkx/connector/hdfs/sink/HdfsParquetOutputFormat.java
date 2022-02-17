@@ -130,7 +130,8 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                         FileSystemUtil.getUGI(
                                 hdfsConf.getHadoopConfig(),
                                 hdfsConf.getDefaultFS(),
-                                getRuntimeContext().getDistributedCache());
+                                getRuntimeContext().getDistributedCache(),
+                                jobId);
                 ugi.doAs(
                         (PrivilegedAction<Object>)
                                 () -> {

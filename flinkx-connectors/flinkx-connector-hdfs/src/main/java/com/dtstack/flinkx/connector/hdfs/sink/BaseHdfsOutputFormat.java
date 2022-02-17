@@ -145,7 +145,10 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         try {
             fs =
                     FileSystemUtil.getFileSystem(
-                            hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), distributedCache);
+                            hdfsConf.getHadoopConfig(),
+                            hdfsConf.getDefaultFS(),
+                            distributedCache,
+                            jobId);
         } catch (Exception e) {
             throw new FlinkxRuntimeException("can't init fileSystem", e);
         }
