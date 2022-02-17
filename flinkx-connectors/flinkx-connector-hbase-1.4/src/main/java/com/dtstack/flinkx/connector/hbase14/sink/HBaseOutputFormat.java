@@ -108,7 +108,9 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
     public void openInternal(int taskNumber, int numTasks) throws IOException {
         boolean openKerberos = HBaseConfigUtils.isEnableKerberos(hbaseConfig);
         if (openKerberos) {
-            UserGroupInformation ugi = HBaseHelper.getUgi(hbaseConfig);
+            UserGroupInformation ugi =
+                    HBaseHelper.getUgi(
+                            hbaseConfig, getRuntimeContext().getDistributedCache(), jobId);
             ugi.doAs(
                     (PrivilegedAction<Object>)
                             () -> {
