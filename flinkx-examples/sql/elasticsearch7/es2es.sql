@@ -20,8 +20,10 @@ CREATE TABLE es7_source(
   , timecurrent time )
 WITH(
     'connector' ='elasticsearch7-x',
-    'hosts' ='localhost:9200',
-    'index' ='mowen_target');
+    'hosts' ='127.0.0.1:9200',
+    'index' ='mowen_target',
+    'client.connect-timeout' = '10000'
+    );
 
 
 CREATE TABLE es7_sink(
@@ -35,8 +37,9 @@ CREATE TABLE es7_sink(
   , timecurrent time )
 WITH(
    'connector' ='elasticsearch7-x'
-   ,'hosts' ='localhost:9200',
-    'index' ='students_4'
+   ,'hosts' ='127.0.0.1:9200',
+    'index' ='students_4',
+    'client.connect-timeout' = '10000'
     );
 
 
