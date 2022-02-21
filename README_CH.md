@@ -1,4 +1,4 @@
-FlinkX
+Chunjun
 ============
 
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
@@ -9,7 +9,7 @@ FlinkX
 
 - 招聘**Flink研发工程师**，如果有兴趣可以联系思枢（微信号：ysqwhiletrue）<BR>
   Flink开发工程师JD要求：<BR>
-  1.负责袋鼠云基于Flink的衍生框架数据同步flinkx和实时计算flinkstreamsql框架的开发；<BR>
+  1.负责袋鼠云基于Flink的衍生框架数据同步chunjun和实时计算flinkstreamsql框架的开发；<BR>
   2.调研和把握当前最新大数据实时计算技术，将其中的合适技术引入到平台中，改善产品，提升竞争力；<BR>
   职位要求：<BR>
   1、本科及以上学历，3年及以上的Flink开发经验，精通Java，熟悉Scala、Python优先考虑；<BR>
@@ -28,9 +28,9 @@ FlinkX
 
 # 介绍
 
-*[FlinkX 1.12 新特性](docs/changeLog.md)*
+*[Chunjun 1.12 新特性](docs/changeLog.md)*
 
-FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。**同时，FlinkX也是支持原生FlinkSql所有语法和特性的计算框架**，<big>**并且提供了大量[案例](flinkx-examples)**</big>。FlinkX目前包含下面这些特性：
+Chunjun是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。**同时，Chunjun也是支持原生FlinkSql所有语法和特性的计算框架**，<big>**并且提供了大量[案例](Chunjun-examples)**</big>。Chunjun目前包含下面这些特性：
 
 - 大部分插件支持并发读写数据，可以大幅度提高读写速度；
 
@@ -52,7 +52,7 @@ FlinkX是一个基于Flink的批流统一的数据同步工具，既可以采集
 
 - **sql任务支持和flinkSql自带connectors[共用](docs/conectorShare.md)；**
 
-FlinkX目前支持下面这些数据库：
+Chunjun目前支持下面这些数据库：
 
 |                        | Database Type  | Source                                                    | Sink                                                      | Lookup
 |:----------------------:|:--------------:|:---------------------------------------------------------:|:---------------------------------------------------------:|:---------------------------------------------------------:|
@@ -105,11 +105,11 @@ FlinkX目前支持下面这些数据库：
 
 请点击[Questions](docs/questions.md)
 
-# 如何贡献FlinkX
+# 如何贡献Chunjun
 
-请点击[如何贡献FlinkX](docs/contribution.md)
+请点击[如何贡献Chunjun](docs/contribution.md)
 
 # License
 
-FlinkX is under the Apache 2.0 license. See
+Chunjun is under the Apache 2.0 license. See
 the [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) file for details.
