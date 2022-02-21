@@ -15,3 +15,5 @@
 
 com.dtstack.flinkx.connector.kafka.table.KafkaDynamicTableFactory
 com.dtstack.flinkx.connector.upsertkafka.table.UpsertKafkaDynamicTableFactory
+org.apache.flink.formats.avro.registry.confluent.RegistryAvroFormatFactory
+org.apache.flink.formats.avro.registry.confluent.debezium.DebeziumAvroFormatFactory
