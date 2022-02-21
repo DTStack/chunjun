@@ -289,8 +289,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     String[] strings = sql.split(";");
                     for (String s : strings) {
                         if (StringUtils.isNotBlank(s)) {
-                            LOG.info("add sql to batch, sql = {}", sql);
-                            stmt.addBatch(sql);
+                            LOG.info("add sql to batch, sql = {}", s);
+                            stmt.addBatch(s);
                         }
                     }
                 }
