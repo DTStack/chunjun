@@ -37,6 +37,7 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     protected List<String> fullColumn;
     /** for postgresql */
     protected String insertSqlMode;
+
     protected String fieldDelim;
     protected String nullDelim;
 

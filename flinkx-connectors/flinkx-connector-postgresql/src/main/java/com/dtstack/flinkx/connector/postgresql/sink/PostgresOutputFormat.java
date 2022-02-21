@@ -29,11 +29,9 @@ import com.dtstack.flinkx.throwable.WriteRecordException;
 
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
-
-import org.apache.commons.lang3.math.NumberUtils;
-
 import org.apache.flink.util.StringUtils;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
 
@@ -85,7 +83,6 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                                 StringUtils.isNullOrWhitespaceOnly(jdbcConf.getNullDelim().trim())
                                         ? DEFAULT_NULL_VALUE
                                         : jdbcConf.getNullDelim());
-
 
                 LOG.info("write sql:{}", copySql);
             }

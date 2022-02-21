@@ -150,7 +150,6 @@ public class KuduInputFormat extends BaseRichInputFormat {
         }
     }
 
-
     public void setSourceConf(KuduSourceConf sourceConf) {
         this.sourceConf = sourceConf;
     }
