@@ -37,13 +37,13 @@ import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.StringUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
-import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
+
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
 import java.math.BigInteger;
 import java.sql.Connection;
@@ -334,8 +334,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             customReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
             customReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
         }
-        getRuntimeContext().addAccumulator(start, startLocationAccumulator);
-        getRuntimeContext().addAccumulator(end, endLocationAccumulator);
+        if (getRuntimeContext().getAccumulator(Metrics.START_LOCATION) == null) {
+            getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
+        }
+        if (getRuntimeContext().getAccumulator(Metrics.END_LOCATION) == null) {
+            getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
+        }
     }
 
     /**
