@@ -140,19 +140,16 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
     @Override
     public boolean reachedEnd() throws IOException {
-        if (iterator == null || !iterator.hasNext()) {
-
-            // The kudu scanner re-acquires the row iterator. If iterator is null or
-            // iterator.hasNext is false, then the data has been reached end.
-            if (scanner.hasMoreRows()) {
-                iterator = scanner.nextRows();
-            }
-
-            return iterator == null || !iterator.hasNext();
+        if (iterator != null && iterator.hasNext()) {
+            return false;
+        } else if (scanner.hasMoreRows()) {
+            iterator = scanner.nextRows();
+            return reachedEnd();
+        } else {
+            return true;
         }
-
-        return false;
     }
+
 
     public void setSourceConf(KuduSourceConf sourceConf) {
         this.sourceConf = sourceConf;
