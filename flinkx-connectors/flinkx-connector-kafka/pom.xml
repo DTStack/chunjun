@@ -61,7 +61,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.4</version>
+				<version>3.2.1</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -75,18 +75,9 @@
                                     <pattern>com.alibaba.fastjson</pattern>
                                     <shadedPattern>com.shade.alibaba.fastjson</shadedPattern>
                                 </relocation>
-								<!--Solution conflicts with flink-sql-avro.all shades are shaded in the way of flink-sql-avro-->
 								<relocation>
 									<pattern>org.apache.avro</pattern>
-									<shadedPattern>org.apache.flink.avro.shaded.org.apache.avro</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>com.fasterxml.jackson</pattern>
-									<shadedPattern>org.apache.flink.avro.shaded.com.fasterxml.jackson</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>org.apache.commons.compress</pattern>
-									<shadedPattern>org.apache.flink.avro.shaded.org.apache.commons.compress</shadedPattern>
+									<shadedPattern>com.dtstack.flinkx.connector.kafka.org.apache.avro</shadedPattern>
 								</relocation>
                             </relocations>
 							<artifactSet>
