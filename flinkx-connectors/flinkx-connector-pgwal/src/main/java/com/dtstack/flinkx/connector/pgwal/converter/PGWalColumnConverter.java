@@ -33,6 +33,7 @@ import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
+import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.ValidationException;
@@ -62,6 +63,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -468,7 +470,18 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
     static class DataTypeFactory {
 
         public static DataType getDataType(String type) {
-            return null;
+            switch (type.toLowerCase(Locale.ROOT)) {
+                case "char":
+                case "varchar":
+                case "text":
+                    return DataTypes.STRING();
+                case "bytea":
+                    return DataTypes.BYTES();
+                case "numeric":
+                    return DataTypes.DECIMAL(1, 0);
+                default:
+                    throw new UnsupportedTypeException(type);
+            }
         }
     }
 }
