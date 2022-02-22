@@ -105,7 +105,8 @@ public class SqlservercdcDynamicTableFactory implements DynamicTableSourceFactor
         sqlServerCdcConf.setDatabaseName(config.get(SqlServerCdcOptions.DATABASE));
         sqlServerCdcConf.setTableList(Arrays.asList(config.get(SqlServerCdcOptions.TABLE)));
         sqlServerCdcConf.setAutoCommit(config.get(SqlServerCdcOptions.AUTO_COMMIT));
-        sqlServerCdcConf.setAutoResetConnection(config.get(SqlServerCdcOptions.AUTO_RESET_CONNECTION));
+        sqlServerCdcConf.setAutoResetConnection(
+                config.get(SqlServerCdcOptions.AUTO_RESET_CONNECTION));
 
         return sqlServerCdcConf;
     }

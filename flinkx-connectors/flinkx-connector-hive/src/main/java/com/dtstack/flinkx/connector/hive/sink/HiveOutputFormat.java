@@ -37,6 +37,7 @@ import com.dtstack.flinkx.enums.Semantic;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.NoRestartException;
 import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.JsonUtil;
 
@@ -182,6 +183,10 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
 
             hdfsOutputFormat.writeRecord(forwardRowData);
         } catch (Exception e) {
+            // 如果捕获到NoRestartException异常(脏数据管理抛出的异常) 直接抛出 而不是ignore
+            if (e instanceof NoRestartException) {
+                throw e;
+            }
             // 写入产生的脏数据已经由hdfsOutputFormat处理了，这里不用再处理了，只打印日志
             if (numWriteCounter.getLocalValue() % LOG_PRINT_INTERNAL == 0) {
                 LOG.warn("write hdfs exception:", e);

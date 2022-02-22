@@ -138,7 +138,10 @@ public class SolrInputFormat extends BaseRichInputFormat {
         if (CollectionUtils.isEmpty(solrDocumentList)) {
             return true;
         }
-        List<SolrDocument> solrDocuments = solrDocumentList.stream().filter(solrDocument -> solrDocument.size() > 0).collect(Collectors.toList());
+        List<SolrDocument> solrDocuments =
+                solrDocumentList.stream()
+                        .filter(solrDocument -> solrDocument.size() > 0)
+                        .collect(Collectors.toList());
         startRows += batchSize;
         if (solrDocuments.size() == 0) {
             return true;
