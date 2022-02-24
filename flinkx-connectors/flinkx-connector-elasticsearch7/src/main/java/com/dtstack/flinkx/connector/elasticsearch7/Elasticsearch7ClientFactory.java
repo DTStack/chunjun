@@ -24,6 +24,7 @@ import com.dtstack.flinkx.util.MapUtil;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.table.api.ValidationException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -166,7 +167,10 @@ public class Elasticsearch7ClientFactory {
 
     private static SSLContext getSslContext(SslConf sslConf, DistributedCache distributedCache) {
         try {
-            String path = sslConf.getFilePath() + File.separator + sslConf.getFileName();
+            String path = sslConf.getFileName();
+            if (StringUtils.isNotBlank(sslConf.getFilePath())) {
+                path = sslConf.getFilePath() + File.separator + sslConf.getFileName();
+            }
             String file = SSLUtil.loadFile(MapUtil.objectToMap(sslConf), path, distributedCache);
             Path trustStorePath = Paths.get(file);
             // use the certificate to obtain KeyStore
