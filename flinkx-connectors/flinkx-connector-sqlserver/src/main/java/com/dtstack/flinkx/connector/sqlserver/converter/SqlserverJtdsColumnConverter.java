@@ -98,20 +98,17 @@ public class SqlserverJtdsColumnConverter extends JdbcColumnConverter {
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
-                return val -> new BigDecimalColumn(((Integer) val).byteValue());
+                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).byteValue());
             case SMALLINT:
             case INTEGER:
             case FLOAT:
-                return val -> new BigDecimalColumn((Float) val);
             case DOUBLE:
-                return val -> new BigDecimalColumn((Double) val);
             case BIGINT:
-                return val -> new BigDecimalColumn((Long) val);
             case DECIMAL:
-                return val -> new BigDecimalColumn((BigDecimal) val);
+                return val -> new BigDecimalColumn(val.toString());
             case CHAR:
             case VARCHAR:
-                return val -> new StringColumn((String) val);
+                return val -> new StringColumn(val.toString());
             case DATE:
                 return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:
