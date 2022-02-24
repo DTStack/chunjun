@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.elasticsearch7.table;
 
 import com.dtstack.flinkx.connector.elasticsearch.table.ElasticsearchDynamicTableFactoryBase;
 import com.dtstack.flinkx.connector.elasticsearch7.ElasticsearchConf;
+import com.dtstack.flinkx.connector.elasticsearch7.SslConf;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
@@ -28,6 +29,8 @@ import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.utils.TableSchemaUtils;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -48,6 +51,9 @@ import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
+import static com.dtstack.flinkx.security.SslOptions.KEYSTOREFILENAME;
+import static com.dtstack.flinkx.security.SslOptions.KEYSTOREPASS;
+import static com.dtstack.flinkx.security.SslOptions.TYPE;
 import static com.dtstack.flinkx.table.options.SinkOptions.SINK_PARALLELISM;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLASH_MAX_SIZE_OPTION;
 import static org.apache.flink.streaming.connectors.elasticsearch.table.ElasticsearchOptions.BULK_FLUSH_BACKOFF_DELAY_OPTION;
@@ -95,8 +101,8 @@ public class Elasticsearch7DynamicTableFactory extends ElasticsearchDynamicTable
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
-        return new ElasticsearchDynamicTableSink(
-                physicalSchema, getElasticsearchConf(config, physicalSchema));
+        ElasticsearchConf elasticsearchConf = getElasticsearchConf(config, physicalSchema);
+        return new ElasticsearchDynamicTableSink(physicalSchema, elasticsearchConf);
     }
 
     @Override
@@ -113,9 +119,10 @@ public class Elasticsearch7DynamicTableFactory extends ElasticsearchDynamicTable
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
 
+        ElasticsearchConf elasticsearchConf = getElasticsearchConf(config, physicalSchema);
         return new ElasticsearchDynamicTableSource(
                 physicalSchema,
-                getElasticsearchConf(config, physicalSchema),
+                elasticsearchConf,
                 getElasticsearchLookupConf(config, context.getObjectIdentifier().getObjectName()));
     }
 
@@ -142,6 +149,25 @@ public class Elasticsearch7DynamicTableFactory extends ElasticsearchDynamicTable
 
         List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
         elasticsearchConf.setIds(keyFields);
+
+        String filename = readableConfig.get(KEYSTOREFILENAME);
+        if (StringUtils.isNotBlank(filename)) {
+            SslConf sslConf = new SslConf();
+            sslConf.setUseLocalFile(true);
+            sslConf.setFileName(filename);
+
+            String pass = readableConfig.get(KEYSTOREPASS);
+            if (StringUtils.isNotBlank(pass)) {
+                sslConf.setKeyStorePass(pass);
+            }
+            String type = readableConfig.get(TYPE);
+            if (StringUtils.isNotBlank(type)) {
+                sslConf.setType(type);
+            }
+
+            elasticsearchConf.setSslConfig(sslConf);
+        }
+
         return elasticsearchConf;
     }
 
@@ -176,7 +202,10 @@ public class Elasticsearch7DynamicTableFactory extends ElasticsearchDynamicTable
                         LOOKUP_ERROR_LIMIT,
                         LOOKUP_FETCH_SIZE,
                         LOOKUP_ASYNC_TIMEOUT,
-                        LOOKUP_PARALLELISM)
+                        LOOKUP_PARALLELISM,
+                        KEYSTOREFILENAME,
+                        KEYSTOREPASS,
+                        TYPE)
                 .collect(Collectors.toSet());
     }
 }
