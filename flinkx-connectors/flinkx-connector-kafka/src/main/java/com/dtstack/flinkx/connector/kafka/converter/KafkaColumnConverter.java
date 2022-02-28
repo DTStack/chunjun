@@ -158,8 +158,13 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
             if (Objects.nonNull(headers) && headers.length >= 1) {
                 // cdc
                 map = new HashMap<>(headers.length >> 1);
-                for (int i = 0; i < headers.length; i++) {
-                    map.put(headers[i], row.getField(headers[i]).getData());
+                for (String header : headers) {
+                    AbstractBaseColumn val = row.getField(header);
+                    if (null == val) {
+                        map.put(header, null);
+                    } else {
+                        map.put(header, val.getData());
+                    }
                 }
                 if (Arrays.stream(headers)
                                 .filter(
