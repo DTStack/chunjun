@@ -122,7 +122,7 @@ public class DirtyManager implements Serializable {
         return consumer.getFailedConsumed();
     }
 
-    public void collect(Object data, Throwable cause, String field, RuntimeContext runtimeContext) {
+    public void collect(Object data, Throwable cause, String field) {
         if (executor == null) {
             execute();
         }
