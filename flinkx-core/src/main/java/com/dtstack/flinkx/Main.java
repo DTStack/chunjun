@@ -98,7 +98,9 @@ public class Main {
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
                 EnvFactory.createStreamTableEnvironment(env, confProperties, options.getJobName());
-
+        LOG.info(
+                "Register to table configuration:{}",
+                tEnv.getConfig().getConfiguration().toString());
         switch (EJobType.getByName(options.getJobType())) {
             case SQL:
                 exeSqlJob(env, tEnv, job, options);
