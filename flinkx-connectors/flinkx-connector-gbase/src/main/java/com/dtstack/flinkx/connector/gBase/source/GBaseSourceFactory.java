@@ -16,19 +16,29 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.gbase.sink;
+package com.dtstack.flinkx.connector.gBase.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.gbase.dialect.GBaseDialect;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
+import com.dtstack.flinkx.connector.gBase.dialect.GBaseDialect;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author tiezhu
- * @since 2021/5/10 5:16 下午
+ * @since 2021/5/10 5:27 下午
  */
-public class GBaseSinkFactory extends JdbcSinkFactory {
+public class GBaseSourceFactory extends JdbcSourceFactory {
 
-    public GBaseSinkFactory(SyncConf syncConf) {
-        super(syncConf, new GBaseDialect());
+    public GBaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+        super(syncConf, env, new GBaseDialect());
+        // 避免result.next阻塞
+        if (jdbcConf.isPolling()
+                && StringUtils.isEmpty(jdbcConf.getStartLocation())
+                && jdbcConf.getFetchSize() == 0) {
+            jdbcConf.setFetchSize(1000);
+        }
     }
 }
