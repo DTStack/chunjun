@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-com.dtstack.flinkx.connector.gbase.table.GBaseDynamicTableFactory
+com.dtstack.flinkx.connector.gBase.table.GBaseDynamicTableFactory
