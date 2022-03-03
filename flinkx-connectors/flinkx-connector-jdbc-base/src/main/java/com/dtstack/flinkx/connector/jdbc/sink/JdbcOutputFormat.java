@@ -217,6 +217,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
             if (Semantic.EXACTLY_ONCE == semantic) {
                 rowsOfCurrentTransaction += rows.size();
+                JdbcUtil.commit(dbConn);
             }
         } catch (Exception e) {
             LOG.warn(
