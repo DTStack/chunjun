@@ -332,7 +332,6 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
             BaseHdfsOutputFormat outputFormat = (BaseHdfsOutputFormat) builder.finish();
             outputFormat.setFormatId(hiveTablePath);
             outputFormat.setDirtyDataManager(dirtyDataManager);
-            outputFormat.setErrorLimiter(errorLimiter);
             outputFormat.setRuntimeContext(getRuntimeContext());
             outputFormat.setRestoreState(formatStateMap.get(hiveTablePath));
             outputFormat.configure(parameters);
