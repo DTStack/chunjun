@@ -89,8 +89,6 @@ public class PropertiesUtil {
      */
     public static void initFlinkxCommonConf(FlinkxCommonConf flinkxCommonConf, SyncConf syncConf) {
         flinkxCommonConf.setSpeedBytes(syncConf.getSpeed().getBytes());
-        flinkxCommonConf.setErrorRecord(syncConf.getErrorLimit().getRecord());
-        flinkxCommonConf.setErrorPercentage(syncConf.getErrorLimit().getPercentage());
         flinkxCommonConf.setSavePointPath(syncConf.getSavePointPath());
         if (syncConf.getMetricPluginConf() != null) {
             flinkxCommonConf.setMetricPluginRoot(
