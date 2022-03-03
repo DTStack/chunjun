@@ -79,8 +79,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         executeBatch(jdbcConf.getPostSql());
     }
 
-    @Override
-    protected void openInternal(int taskNumber, int numTasks) {
+    public void init() {
         try {
             dbConn = getConnection();
             // 默认关闭事务自动提交，手动控制事务
@@ -98,14 +97,18 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     LOG.info("updateKey = {}", JsonUtil.toJson(tableIndex));
                 }
             }
-
             buildStmtProxy();
-            LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("open() failed.", sqe);
         } finally {
             JdbcUtil.commit(dbConn);
         }
+    }
+
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) {
+        this.init();
+        LOG.info("subTask[{}}] wait finished", taskNumber);
     }
 
     public void buildStmtProxy() throws SQLException {
@@ -208,6 +211,12 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
+            // valid connection is valid
+            if (!stmtProxy.connection.isValid(5)) {
+                this.closeInternal();
+                this.init();
+            }
+
             for (RowData row : rows) {
                 stmtProxy.convertToExternal(row);
                 stmtProxy.addBatch();
