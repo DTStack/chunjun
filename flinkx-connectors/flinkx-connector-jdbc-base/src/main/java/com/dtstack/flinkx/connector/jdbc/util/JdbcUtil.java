@@ -33,6 +33,7 @@ import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.flink.table.types.logical.LogicalType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -439,6 +440,32 @@ public class JdbcUtil {
                     "after reset table info,schema: {},table: {}",
                     jdbcConf.getSchema(),
                     jdbcConf.getTable());
+        }
+    }
+
+    public static boolean validConnection(Connection connection, int validationQueryTimeout) {
+        Statement stmt = null;
+        try {
+            if (connection.isClosed()) {
+                return false;
+            }
+            stmt = connection.createStatement();
+            if (validationQueryTimeout > 0) {
+                stmt.setQueryTimeout(validationQueryTimeout);
+            }
+            stmt.execute("SELECT 1");
+            return true;
+        } catch (SQLException e) {
+            LOG.error("valid Connection failed: {}", ExceptionUtils.getStackTrace(e));
+            return false;
+        } finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (SQLException e) {
+                LOG.error("close valid statement failed: {}", ExceptionUtils.getStackTrace(e));
+            }
         }
     }
 }

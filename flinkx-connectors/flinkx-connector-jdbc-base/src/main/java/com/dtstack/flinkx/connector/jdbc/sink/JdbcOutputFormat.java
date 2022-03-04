@@ -212,7 +212,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
             // valid connection is valid
-            if (!stmtProxy.connection.isValid(5)) {
+            if (!JdbcUtil.validConnection(stmtProxy.connection, 5)) {
                 this.closeInternal();
                 this.init();
             }
