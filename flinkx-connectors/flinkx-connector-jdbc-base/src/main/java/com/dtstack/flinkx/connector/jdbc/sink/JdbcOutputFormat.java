@@ -212,11 +212,12 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
             // valid connection is valid
-            if (!JdbcUtil.validConnection(stmtProxy.connection, 5)) {
-                this.closeInternal();
-                this.init();
+            if (Semantic.EXACTLY_ONCE != semantic) {
+                if (!JdbcUtil.validConnection(dbConn, 5)) {
+                    this.closeInternal();
+                    this.init();
+                }
             }
-
             for (RowData row : rows) {
                 stmtProxy.convertToExternal(row);
                 stmtProxy.addBatch();
@@ -274,14 +275,25 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             rowsOfCurrentTransaction = 0;
             stmtProxy.clearBatch();
         } catch (Exception e) {
-            dbConn.rollback();
+            // this time make failed, rollback to before commit
+            if (!JdbcUtil.validConnection(dbConn, 5)) {
+                this.closeInternal();
+                this.init();
+            } else {
+                dbConn.rollback();
+            }
             throw e;
         }
     }
 
     @Override
     public void rollback(long checkpointId) throws Exception {
-        dbConn.rollback();
+        if (!JdbcUtil.validConnection(dbConn, 5)) {
+            this.closeInternal();
+            this.init();
+        } else {
+            dbConn.rollback();
+        }
     }
 
     /**
