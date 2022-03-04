@@ -70,7 +70,7 @@ public class FunctionManager {
                     Class.forName(classPath, false, classLoader)
                             .asSubclass(ScalarFunction.class)
                             .newInstance();
-            tableEnv.registerFunction(funcName, udfFunc);
+            tableEnv.createTemporaryFunction(funcName, udfFunc);
             logger.info("register scalar function:{} success.", funcName);
         } catch (Exception e) {
             logger.error("", e);
@@ -94,7 +94,7 @@ public class FunctionManager {
                             .asSubclass(TableFunction.class)
                             .newInstance();
 
-            ((StreamTableEnvironment) tableEnv).registerFunction(funcName, udtf);
+            tableEnv.createTemporaryFunction(funcName, udtf);
             logger.info("register table function:{} success.", funcName);
         } catch (Exception e) {
             logger.error("", e);
@@ -125,7 +125,7 @@ public class FunctionManager {
                     Class.forName(classPath, false, classLoader)
                             .asSubclass(AggregateFunction.class)
                             .newInstance();
-            ((StreamTableEnvironment) tableEnv).registerFunction(funcName, udaf);
+            tableEnv.createTemporaryFunction(funcName, udaf);
             logger.info("register Aggregate function:{} success.", funcName);
         } catch (Exception e) {
             logger.error("", e);
