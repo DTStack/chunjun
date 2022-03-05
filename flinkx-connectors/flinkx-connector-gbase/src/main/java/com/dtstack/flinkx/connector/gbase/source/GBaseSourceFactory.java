@@ -16,27 +16,29 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.gBase.table;
+package com.dtstack.flinkx.connector.gbase.source;
 
-import com.dtstack.flinkx.connector.gBase.dialect.GBaseDialect;
-import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
-import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
+import com.dtstack.flinkx.conf.SyncConf;
+import com.dtstack.flinkx.connector.gbase.dialect.GBaseDialect;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author tiezhu
- * @since 2021/5/8 4:12 下午
+ * @since 2021/5/10 5:27 下午
  */
-public class GBaseDynamicTableFactory extends JdbcDynamicTableFactory {
+public class GBaseSourceFactory extends JdbcSourceFactory {
 
-    private static final String IDENTIFIER = "gbase-x";
-
-    @Override
-    public String factoryIdentifier() {
-        return IDENTIFIER;
-    }
-
-    @Override
-    protected JdbcDialect getDialect() {
-        return new GBaseDialect();
+    public GBaseSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+        super(syncConf, env, new GBaseDialect());
+        // 避免result.next阻塞
+        if (jdbcConf.isPolling()
+                && StringUtils.isEmpty(jdbcConf.getStartLocation())
+                && jdbcConf.getFetchSize() == 0) {
+            jdbcConf.setFetchSize(1000);
+        }
     }
 }

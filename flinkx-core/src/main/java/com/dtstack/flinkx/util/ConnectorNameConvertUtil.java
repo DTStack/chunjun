@@ -39,7 +39,7 @@ public class ConnectorNameConvertUtil {
         connectorNameMap.put("restapi", new Tuple2<>("http", "http"));
         connectorNameMap.put("adbpostgresql", new Tuple2<>("postgresql", "postgresql"));
         connectorNameMap.put("dorisbatch", new Tuple2<>("doris", "doris"));
-        connectorNameMap.put("gbase", new Tuple2<>("gBase", "gBase"));
+        connectorNameMap.put("gbase", new Tuple2<>("gbase", "gBase"));
     }
 
     public static String convertClassPrefix(String originName) {
