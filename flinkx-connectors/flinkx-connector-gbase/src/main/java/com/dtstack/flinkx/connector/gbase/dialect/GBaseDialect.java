@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.gBase.dialect;
+package com.dtstack.flinkx.connector.gbase.dialect;
 
-import com.dtstack.flinkx.connector.gBase.converter.GBaseRawTypeConverter;
+import com.dtstack.flinkx.connector.gbase.converter.GBaseRawTypeConverter;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 
