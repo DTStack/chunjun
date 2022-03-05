@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.gBase.converter;
+package com.dtstack.flinkx.connector.gbase.converter;
 
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
