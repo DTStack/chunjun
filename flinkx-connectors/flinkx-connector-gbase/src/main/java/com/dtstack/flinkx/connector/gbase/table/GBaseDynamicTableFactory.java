@@ -16,19 +16,27 @@
  * limitations under the License.
  */
 
-package com.dtstack.flinkx.connector.gBase.sink;
+package com.dtstack.flinkx.connector.gbase.table;
 
-import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.gBase.dialect.GBaseDialect;
-import com.dtstack.flinkx.connector.jdbc.sink.JdbcSinkFactory;
+import com.dtstack.flinkx.connector.gbase.dialect.GBaseDialect;
+import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 
 /**
  * @author tiezhu
- * @since 2021/5/10 5:16 下午
+ * @since 2021/5/8 4:12 下午
  */
-public class GBaseSinkFactory extends JdbcSinkFactory {
+public class GBaseDynamicTableFactory extends JdbcDynamicTableFactory {
 
-    public GBaseSinkFactory(SyncConf syncConf) {
-        super(syncConf, new GBaseDialect());
+    private static final String IDENTIFIER = "gbase-x";
+
+    @Override
+    public String factoryIdentifier() {
+        return IDENTIFIER;
+    }
+
+    @Override
+    protected JdbcDialect getDialect() {
+        return new GBaseDialect();
     }
 }
