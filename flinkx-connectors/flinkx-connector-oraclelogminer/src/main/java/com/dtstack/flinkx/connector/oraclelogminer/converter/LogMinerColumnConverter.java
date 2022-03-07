@@ -120,31 +120,31 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         List<AbstractBaseColumn> afterFieldList = new ArrayList<>(afterList.size());
         List<String> afterHeaderList = new ArrayList<>(afterList.size());
 
-        if (pavingData) {
-            parseColumnList(
-                    converters,
-                    metadata.getFieldList(),
-                    beforeList,
-                    beforeFieldList,
-                    beforeHeaderList,
-                    CDCConstantValue.BEFORE_);
-            parseColumnList(
-                    converters,
-                    metadata.getFieldList(),
-                    afterList,
-                    afterFieldList,
-                    afterHeaderList,
-                    CDCConstantValue.AFTER_);
-        } else {
-            beforeFieldList.add(new MapColumn(processColumnList(beforeList)));
-            beforeHeaderList.add(CDCConstantValue.BEFORE);
-            afterFieldList.add(new MapColumn(processColumnList(afterList)));
-            afterHeaderList.add(CDCConstantValue.AFTER);
-        }
-
         if (split) {
             dealEventRowSplit(columnRowData, metadata, eventRow, result);
         } else{
+            if (pavingData) {
+                parseColumnList(
+                        converters,
+                        metadata.getFieldList(),
+                        beforeList,
+                        beforeFieldList,
+                        beforeHeaderList,
+                        CDCConstantValue.BEFORE_);
+                parseColumnList(
+                        converters,
+                        metadata.getFieldList(),
+                        afterList,
+                        afterFieldList,
+                        afterHeaderList,
+                        CDCConstantValue.AFTER_);
+            } else {
+                beforeFieldList.add(new MapColumn(processColumnList(beforeList)));
+                beforeHeaderList.add(CDCConstantValue.BEFORE);
+                afterFieldList.add(new MapColumn(processColumnList(afterList)));
+                afterHeaderList.add(CDCConstantValue.AFTER);
+            }
+
             columnRowData.setRowKind(getRowKindByType(eventType));
             columnRowData.addField(new StringColumn(eventType));
             columnRowData.addHeader(CDCConstantValue.TYPE);
