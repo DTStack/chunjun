@@ -35,6 +35,8 @@ import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
@@ -88,7 +90,14 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         List<EventRowData> beforeColumnList = eventRow.getBeforeColumnList();
 
         // 如果缓存为空 或者 长度变了 或者名字变了  重新更新缓存
-        updateCache(schema, table, key, tableMetaDataCacheMap, beforeColumnList);
+        if(CollectionUtils.isEmpty(converters)){
+            updateCache(schema, table, key, tableMetaDataCacheMap, beforeColumnList, converters);
+            converters = super.cdcConverterCacheMap.get(key);
+            if(CollectionUtils.isEmpty(converters)){
+                throw new RuntimeException("get converters is null key is " + key);
+            }
+        }
+
         TableMetaData metadata = tableMetaDataCacheMap.get(key);
 
         int size;
@@ -111,28 +120,31 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         List<AbstractBaseColumn> afterFieldList = new ArrayList<>(afterList.size());
         List<String> afterHeaderList = new ArrayList<>(afterList.size());
 
-        if (pavingData) {
-            parseColumnList(
-                    converters,
-                    metadata.getFieldList(),
-                    beforeList,
-                    beforeFieldList,
-                    beforeHeaderList,
-                    CDCConstantValue.BEFORE_);
-            parseColumnList(
-                    converters,
-                    metadata.getFieldList(),
-                    afterList,
-                    afterFieldList,
-                    afterHeaderList,
-                    CDCConstantValue.AFTER_);
-        } else if (split) {
+        if (split) {
             dealEventRowSplit(columnRowData, metadata, eventRow, result);
-        } else {
-            beforeFieldList.add(new MapColumn(processColumnList(beforeList)));
-            beforeHeaderList.add(CDCConstantValue.BEFORE);
-            afterFieldList.add(new MapColumn(processColumnList(afterList)));
-            afterHeaderList.add(CDCConstantValue.AFTER);
+        } else{
+            if (pavingData) {
+                parseColumnList(
+                        converters,
+                        metadata.getFieldList(),
+                        beforeList,
+                        beforeFieldList,
+                        beforeHeaderList,
+                        CDCConstantValue.BEFORE_);
+                parseColumnList(
+                        converters,
+                        metadata.getFieldList(),
+                        afterList,
+                        afterFieldList,
+                        afterHeaderList,
+                        CDCConstantValue.AFTER_);
+            } else {
+                beforeFieldList.add(new MapColumn(processColumnList(beforeList)));
+                beforeHeaderList.add(CDCConstantValue.BEFORE);
+                afterFieldList.add(new MapColumn(processColumnList(afterList)));
+                afterHeaderList.add(CDCConstantValue.AFTER);
+            }
+
             columnRowData.setRowKind(getRowKindByType(eventType));
             columnRowData.addField(new StringColumn(eventType));
             columnRowData.addHeader(CDCConstantValue.TYPE);
@@ -140,8 +152,10 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
             columnRowData.addAllHeader(beforeHeaderList);
             columnRowData.addAllField(afterFieldList);
             columnRowData.addAllHeader(afterHeaderList);
+
             result.add(columnRowData);
         }
+
 
         return result;
     }
@@ -151,7 +165,8 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
             String table,
             String key,
             Map<String, TableMetaData> tableMetaDataCacheMap,
-            List<EventRowData> beforeColumnList) {
+            List<EventRowData> beforeColumnList,
+            List<IDeserializationConverter> converters) {
         TableMetaData metadata = tableMetaDataCacheMap.get(key);
         if (Objects.isNull(converters)
                 || Objects.isNull(metadata)
@@ -162,7 +177,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                         .containsAll(metadata.getFieldList())) {
             Pair<List<String>, List<String>> latestMetaData =
                     JdbcUtil.getTableMetaData(schema, table, connection);
-            converters =
+            this.converters =
                     Arrays.asList(
                             latestMetaData.getRight().stream()
                                     .map(
@@ -173,7 +188,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
             metadata =
                     new TableMetaData(
                             schema, table, latestMetaData.getLeft(), latestMetaData.getRight());
-            super.cdcConverterCacheMap.put(key, converters);
+            super.cdcConverterCacheMap.put(key, this.converters);
             tableMetaDataCacheMap.put(key, metadata);
         }
     }
