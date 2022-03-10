@@ -313,6 +313,7 @@ public class Main {
             factoryHelper.setRemotePluginPath(options.getRemoteFlinkxDistDir());
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
+            factoryHelper.setOptions(options);
 
             DirtyConf dirtyConf = DirtyConfUtil.parse(options);
             factoryHelper.registerCachedFile(
