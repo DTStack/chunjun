@@ -115,17 +115,11 @@ public class DataSyncFactoryUtil {
         try {
             String pluginName = conf.getType();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.dirty);
-            Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(pluginName, conf.getLocalPluginPath(), null, "");
 
-            final DirtyDataCollector consumer =
-                    ClassLoaderManager.newInstance(
-                            urlList,
-                            cl -> {
-                                Class<?> clazz = cl.loadClass(pluginClassName);
-                                Constructor<?> constructor = clazz.getConstructor();
-                                return (DirtyDataCollector) constructor.newInstance();
-                            });
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            Class<?> clazz = classLoader.loadClass(pluginClassName);
+            Constructor<?> constructor = clazz.getConstructor();
+            final DirtyDataCollector consumer = (DirtyDataCollector) constructor.newInstance();
             consumer.initializeConsumer(conf);
             return consumer;
         } catch (Exception e) {
