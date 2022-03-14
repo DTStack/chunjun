@@ -24,6 +24,7 @@ import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
@@ -68,6 +69,8 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                 new GsonBuilder()
                         .registerTypeAdapter(
                                 ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf"))
+                        .addDeserializationExclusionStrategy(
+                                new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), getConfClass());
