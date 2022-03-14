@@ -132,6 +132,12 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     }
 
     @Override
+    // todo the deviation needs to be calculated accurately
+    protected long getCurrentFileSize() {
+        return (long) (bytesWriteCounter.getLocalValue() * getDeviation());
+    }
+
+    @Override
     protected void nextBlock() {
         super.nextBlock();
 

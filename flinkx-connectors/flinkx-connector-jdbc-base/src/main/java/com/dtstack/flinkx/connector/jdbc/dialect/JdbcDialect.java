@@ -370,12 +370,4 @@ public interface JdbcDialect extends Serializable {
                 " mod(%s, %s) = %s",
                 quoteIdentifier(splitPkName), split.getTotalNumberOfSplits(), split.getMod());
     }
-
-    default String getDialectColumnName(String columnName) {
-        return columnName;
-    }
-
-    default String getDialectTableName(String tableName) {
-        return tableName;
-    }
 }
