@@ -24,7 +24,6 @@ import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.RawTypeConvertible;
-import com.dtstack.flinkx.util.JsonUtil;
 import com.dtstack.flinkx.util.PropertiesUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
@@ -41,7 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Abstract specification of Reader Plugin
@@ -69,14 +67,6 @@ public abstract class SourceFactory implements RawTypeConvertible {
             fieldList = syncConf.getReader().getFieldList();
             useAbstractBaseColumn = false;
         }
-
-        Map<String, Object> parameter = syncConf.getJob().getReader().getParameter();
-        FlinkxCommonConf commonConf = buildFinkCommonConf(parameter);
-        initFlinkxCommonConf(commonConf);
-    }
-
-    private FlinkxCommonConf buildFinkCommonConf(Map<String, Object> parameter) {
-        return JsonUtil.toObject(JsonUtil.toJson(parameter), FlinkxCommonConf.class);
     }
 
     /**
