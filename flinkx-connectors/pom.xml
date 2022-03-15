@@ -39,6 +39,7 @@
 		<module>flinkx-connector-clickhouse</module>
 		<module>flinkx-connector-saphana</module>
 		<module>flinkx-connector-doris</module>
+		<module>flinkx-connector-influxdb</module>
 
 
 		<!--File-->
