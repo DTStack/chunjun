@@ -23,21 +23,18 @@
 package com.dtstack.flinkx.connector.influxdb.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
-import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbConfig;
-import com.dtstack.flinkx.connector.influxdb.converter.InfluxdbColumnConverter;
+import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbSourceConfig;
 import com.dtstack.flinkx.connector.influxdb.converter.InfluxdbRowTypeConverter;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
-
-import com.dtstack.flinkx.util.JsonUtil;
-
-import com.dtstack.flinkx.util.TableUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.Map;
 
@@ -49,11 +46,17 @@ import java.util.Map;
  */
 public class InfluxdbSourceFactory extends SourceFactory {
 
-    private InfluxdbConfig config;
+    private InfluxdbSourceConfig config;
+
     public InfluxdbSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         Map<String, Object> parameter = syncConf.getJob().getReader().getParameter();
-        this.config = JsonUtil.toObject(JsonUtil.toJson(parameter), InfluxdbConfig.class);
+        Gson gson =
+                new GsonBuilder()
+                        .create();
+        GsonUtil.setTypeAdapter(gson);
+        this.config = gson.fromJson(gson.toJson(parameter), InfluxdbSourceConfig.class);
+        config.setColumn(syncConf.getReader().getFieldList());
         super.initFlinkxCommonConf(config);
     }
 
@@ -62,19 +65,10 @@ public class InfluxdbSourceFactory extends SourceFactory {
         return InfluxdbRowTypeConverter::apply;
     }
 
-  @Override
-  public DataStream<RowData> createSource() {
-    InfluxdbInputFormatBuilder builder = new InfluxdbInputFormatBuilder();
-    builder.setInfluxdbConfig(config);
-    final RowType rowType = TableUtil.createRowType(config.getColumn(), getRawTypeConverter());
-    AbstractRowConverter rowConverter;
-    if (useAbstractBaseColumn) {
-      rowConverter = new InfluxdbColumnConverter(rowType);
-      // } else {
-      // TODO add InfluxdbRowConverter.
-      // }
-      builder.setRowConverter(rowConverter);
+    @Override
+    public DataStream<RowData> createSource() {
+        InfluxdbInputFormatBuilder builder = new InfluxdbInputFormatBuilder();
+        builder.setInfluxdbConfig(config);
+        return createInput(builder.finish());
     }
-    return createInput(builder.finish());
-  }
 }

@@ -43,4 +43,6 @@ public class InfluxdbCons {
     public static final String KEY_QUERY_TIME_OUT = "queryTimeOut";
     public static final String KEY_FETCH_SIZE = "fetchSize";
 
+    public static final String QUERY_FIELD = "show field keys from ${measurement}";
+    public static final String QUERY_TAG = "show tag keys from ${measurement}";
 }

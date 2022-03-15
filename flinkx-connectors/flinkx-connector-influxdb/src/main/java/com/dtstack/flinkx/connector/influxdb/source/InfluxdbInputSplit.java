@@ -22,31 +22,44 @@
 
 package com.dtstack.flinkx.connector.influxdb.source;
 
-import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbSourceConfig;
-import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+import org.apache.flink.core.io.GenericInputSplit;
 
 /**
  * Company：www.dtstack.com.
  *
  * @author shitou
- * @date 2022/3/8
+ * @date 2022/3/10
  */
-public class InfluxdbInputFormatBuilder extends BaseRichInputFormatBuilder<InfluxdbInputFormat> {
+public class InfluxdbInputSplit extends GenericInputSplit {
 
-    protected InfluxdbInputFormat format;
+    private int mod;
 
-    public InfluxdbInputFormatBuilder() {
-        super.format = this.format = new InfluxdbInputFormat();
+    public InfluxdbInputSplit(int partitionNumber, int totalNumberOfPartitions) {
+        super(partitionNumber, totalNumberOfPartitions);
+    }
+    /**
+     * Creates a generic input split with the given split number.
+     *
+     * @param partitionNumber         The number of the split's partition.
+     * @param totalNumberOfPartitions The total number of the splits (partitions).
+     */
+    public InfluxdbInputSplit(int partitionNumber, int totalNumberOfPartitions, int mod) {
+        super(partitionNumber, totalNumberOfPartitions);
+        this.mod = mod;
     }
 
-    public void setInfluxdbConfig(InfluxdbSourceConfig config) {
-        super.setConfig(config);
-        this.format.setConfig(config);
+    public int getMod() {
+        return mod;
+    }
+
+    public void setMod(int mod) {
+        this.mod = mod;
     }
 
     @Override
-    protected void checkFormat() {
-        //TODO
+    public String toString() {
+        return "InfluxDBInputSplit{" +
+                "mod=" + mod +
+                '}';
     }
-
 }
