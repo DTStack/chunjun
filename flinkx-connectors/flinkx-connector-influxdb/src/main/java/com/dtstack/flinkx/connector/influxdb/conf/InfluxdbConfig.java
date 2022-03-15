@@ -24,6 +24,7 @@ package com.dtstack.flinkx.connector.influxdb.conf;
 
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -38,13 +39,6 @@ public class InfluxdbConfig extends FlinkxCommonConf {
 
     private String username;
     private String password;
-    private String format;
-    private String where;
-    private String customSql;
-    private String splitPk;
-    private int fetchSize;
-    private int queryTimeOut;
-    private String epoch;
     private List<Connection> connection;
 
     public String getUsername() {
@@ -63,7 +57,7 @@ public class InfluxdbConfig extends FlinkxCommonConf {
         this.password = password;
     }
 
-    public String getUrl() {
+    public List<String> getUrl() {
         return connection.get(0).getUrl();
     }
 
@@ -75,76 +69,21 @@ public class InfluxdbConfig extends FlinkxCommonConf {
         return connection.get(0).getDatabase();
     }
 
-    public String getFormat() {
-        return format;
-    }
-
-    public void setFormat(String format) {
-        this.format = format;
-    }
-
-    public String getWhere() {
-        return where;
-    }
-
-    public void setWhere(String where) {
-        this.where = where;
-    }
-
-    public String getCustomSql() {
-        return customSql;
-    }
-
-    public void setCustomSql(String customSql) {
-        this.customSql = customSql;
-    }
-
-    public String getSplitPk() {
-        return splitPk;
-    }
-
-    public void setSplitPk(String splitPk) {
-        this.splitPk = splitPk;
-    }
-
-    public int getFetchSize() {
-        return fetchSize;
-    }
-
-    public void setFetchSize(int fetchSize) {
-        this.fetchSize = fetchSize;
-    }
-
-    public int getQueryTimeOut() {
-        return queryTimeOut;
-    }
-
-    public void setQueryTimeOut(int queryTimeOut) {
-        this.queryTimeOut = queryTimeOut;
-    }
-
-    public String getEpoch() {
-        return epoch;
-    }
-
-    public void setEpoch(String epoch) {
-        this.epoch = epoch;
-    }
-
     public void setConnection(List<Connection> connection) {
         this.connection = connection;
     }
 
-    public static class Connection {
-        private String url;
+    public static class Connection implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private List<String> url;
         private List<String> measurement;
         private String database;
 
-        public String getUrl() {
+        public List<String> getUrl() {
             return url;
         }
 
-        public void setUrl(String url) {
+        public void setUrl(List<String> url) {
             this.url = url;
         }
 

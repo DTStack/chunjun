@@ -46,10 +46,17 @@ public class InfluxdbRowTypeConverter {
                 return DataTypes.FLOAT();
             case "DOUBLE":
                 return DataTypes.DOUBLE();
+            case "BOOL":
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
             case "STRING":
                 return DataTypes.STRING();
+            case "NULL":
+                return DataTypes.NULL();
+            case "TIME":
+                return DataTypes.BIGINT();
+            case "BYTES":
+                return DataTypes.BYTES();
             default:
                 throw new UnsupportedTypeException(type);
         }

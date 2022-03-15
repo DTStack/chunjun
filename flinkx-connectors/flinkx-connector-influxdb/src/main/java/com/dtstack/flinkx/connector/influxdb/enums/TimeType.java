@@ -20,33 +20,30 @@
  *
  */
 
-package com.dtstack.flinkx.connector.influxdb.source;
+package com.dtstack.flinkx.connector.influxdb.enums;
 
-import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbSourceConfig;
-import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
+
+import com.google.common.base.Preconditions;
+
+import java.util.Locale;
+import java.util.Optional;
 
 /**
- * Company：www.dtstack.com.
- *
  * @author shitou
- * @date 2022/3/8
  */
-public class InfluxdbInputFormatBuilder extends BaseRichInputFormatBuilder<InfluxdbInputFormat> {
+public enum TimeType {
 
-    protected InfluxdbInputFormat format;
+    /**
+     * string type
+     */
+    N, U, MS, S, M, H;
 
-    public InfluxdbInputFormatBuilder() {
-        super.format = this.format = new InfluxdbInputFormat();
+    public static TimeType getType(String type) {
+        Preconditions.checkNotNull(type);
+        try {
+            return Optional.of(Enum.valueOf(TimeType.class, type.toUpperCase(Locale.ROOT))).get();
+        } catch (IllegalArgumentException var3) {
+            return N;
+        }
     }
-
-    public void setInfluxdbConfig(InfluxdbSourceConfig config) {
-        super.setConfig(config);
-        this.format.setConfig(config);
-    }
-
-    @Override
-    protected void checkFormat() {
-        //TODO
-    }
-
 }
