@@ -177,10 +177,6 @@ public class SyncConf implements Serializable {
         return job.getSetting().getSpeed();
     }
 
-    public ErrorLimitConf getErrorLimit() {
-        return job.getSetting().getErrorLimit();
-    }
-
     public LogConf getLog() {
         return job.getSetting().getLog();
     }

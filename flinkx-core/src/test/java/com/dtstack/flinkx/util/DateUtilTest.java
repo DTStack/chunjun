@@ -93,7 +93,7 @@ public class DateUtilTest {
         try {
             DateUtil.columnToTimestamp(true, null);
         } catch (Exception e) {
-            Assert.assertTrue(e instanceof IllegalArgumentException);
+            Assert.assertTrue(e instanceof UnsupportedOperationException);
         }
     }
 
