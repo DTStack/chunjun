@@ -49,7 +49,7 @@ public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     protected void checkFormat() {
         RedisConf redisConf = format.getRedisConf();
         StringBuilder sb = new StringBuilder(1024);
-        if (redisConf.getHostPort() == null) {
+        if (StringUtils.isBlank(redisConf.getHostPort())) {
             sb.append("No host and port supplied").append("\n");
         }
         if (redisConf.getType() == null) {
