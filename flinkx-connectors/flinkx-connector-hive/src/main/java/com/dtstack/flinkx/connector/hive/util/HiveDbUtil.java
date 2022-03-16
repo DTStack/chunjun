@@ -277,7 +277,8 @@ public class HiveDbUtil {
             return connection;
         }
 
-        throw new RuntimeException("jdbcUrl is irregular");
+        throw new RuntimeException(
+                "jdbcUrl is irregular，the correct format is jdbc:hive2://ip:port/db");
     }
 
     public static String parseIpAndPort(String url) {
@@ -287,7 +288,7 @@ public class HiveDbUtil {
             addr = matcher.group(HOST_KEY) + ":" + matcher.group(PORT_KEY);
         } else {
             addr = url.substring(url.indexOf("//") + 2);
-            addr = addr.substring(0, addr.indexOf("/"));
+            addr = addr.substring(0, addr.contains("/") ? addr.indexOf("/") : addr.length());
         }
         return addr;
     }
