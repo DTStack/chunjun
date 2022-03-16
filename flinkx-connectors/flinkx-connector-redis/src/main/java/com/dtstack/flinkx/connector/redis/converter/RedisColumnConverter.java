@@ -67,12 +67,13 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
                 && CollectionUtils.isNotEmpty(redisConf.getColumn())) {
             fieldIndex = new ArrayList<>(redisConf.getColumn().size());
             for (int i = 0; i < redisConf.getColumn().size(); i++) {
-                fieldIndex.add(i);
-            }
-            if (!redisConf.isIndexFillHash()
-                    && CollectionUtils.isNotEmpty(redisConf.getKeyIndexes())) {
-                for (int index : redisConf.getKeyIndexes()) {
-                    fieldIndex.remove(index);
+                if (!redisConf.isIndexFillHash()
+                        && CollectionUtils.isNotEmpty(redisConf.getKeyIndexes())) {
+                    if (!redisConf.getKeyIndexes().contains(i)) {
+                        fieldIndex.add(i);
+                    }
+                } else {
+                    fieldIndex.add(i);
                 }
             }
         }
