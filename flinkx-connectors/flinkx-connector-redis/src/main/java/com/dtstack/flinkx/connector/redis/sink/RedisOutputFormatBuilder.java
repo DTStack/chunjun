@@ -21,6 +21,12 @@ package com.dtstack.flinkx.connector.redis.sink;
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * @author chuixue
  * @create 2021-06-16 15:14
@@ -42,12 +48,38 @@ public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     @Override
     protected void checkFormat() {
         RedisConf redisConf = format.getRedisConf();
+        StringBuilder sb = new StringBuilder(1024);
         if (redisConf.getHostPort() == null) {
-            throw new IllegalArgumentException("No host and port supplied");
+            sb.append("No host and port supplied").append("\n");
+        }
+        if (redisConf.getType() == null) {
+            sb.append("No type supplied").append("\n");
+        }
+
+        if (redisConf.getMode() == null) {
+            sb.append("No mode supplied").append("\n");
         }
 
         if (redisConf.getKeyIndexes() == null || redisConf.getKeyIndexes().size() == 0) {
-            throw new IllegalArgumentException("Field keyIndexes cannot be empty");
+            sb.append("Field keyIndexes cannot be empty").append("\n");
+        } else {
+            if (CollectionUtils.isNotEmpty(redisConf.getColumn())) {
+                List<Integer> collect =
+                        redisConf.getKeyIndexes().stream()
+                                .filter(i -> i < 0 || i >= redisConf.getColumn().size())
+                                .collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(collect)) {
+                    sb.append(
+                                    "keyIndexes range cannot be less than 0 or greater than the size of the column, error index is [")
+                            .append(StringUtils.join(collect, ","))
+                            .append("]")
+                            .append("\n");
+                }
+            }
+
+            if (sb.length() > 0) {
+                throw new IllegalArgumentException("\n" + sb.toString());
+            }
         }
     }
 }
