@@ -28,7 +28,6 @@ import com.dtstack.flinkx.constants.ConstantValue;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,24 +41,22 @@ public class InfluxdbQuerySqlBuilder {
     protected static final String CUSTOM_INFLUXQL_TEMPLATE = "select * from (%s)";
 
     protected String measurement;
-    protected List<FieldConf> metaColumns;
+    protected List<FieldConf> fieldConfList;
     protected String splitKey;
     protected String customFilter;
     protected String customInfluxql;
     protected boolean isSplitByKey;
     protected List<String> fieldList;
 
-    public InfluxdbQuerySqlBuilder(InfluxdbSourceConfig influxDBConfig, List<String> fieldList, int channel) {
-        if (influxDBConfig != null) {
-            this.measurement = influxDBConfig.getMeasurement();
-            this.splitKey = influxDBConfig.getSplitPk();
-            this.customFilter = influxDBConfig.getWhere();
-            this.isSplitByKey = channel > 1 && StringUtils.isNotBlank(influxDBConfig.getSplitPk());
-            this.metaColumns = influxDBConfig.getColumn();
-            this.fieldList = fieldList;
-        } else {
-            throw new RuntimeException();
-        }
+    public InfluxdbQuerySqlBuilder(InfluxdbSourceConfig influxDBConfig, List<String> fieldList) {
+        this.measurement = influxDBConfig.getMeasurement();
+        this.splitKey = influxDBConfig.getSplitPk();
+        this.customFilter = influxDBConfig.getWhere();
+        this.isSplitByKey =
+                influxDBConfig.getParallelism() > 1
+                        && StringUtils.isNotBlank(influxDBConfig.getSplitPk());
+        this.fieldConfList = influxDBConfig.getColumn();
+        this.fieldList = fieldList;
     }
 
     public String buildSql() {
@@ -75,13 +72,15 @@ public class InfluxdbQuerySqlBuilder {
 
     protected String buildQueryInfluxql() {
         List<String> selectColumns;
-        if(!ConstantValue.STAR_SYMBOL.equals(metaColumns.get(0).getName())){
-            selectColumns = metaColumns.stream()
-                    .filter(e-> fieldList.contains(e.getName()))
-                    .map(e -> quota(e.getName()))
-                    .collect(Collectors.toList());
-        }else {
-            selectColumns = Collections.singletonList(ConstantValue.STAR_SYMBOL);
+        if (!(fieldConfList.size() == 1
+                && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldConfList.get(0).getName()))) {
+            selectColumns =
+                    fieldConfList.stream()
+                            .filter(e -> fieldList.contains(e.getName()))
+                            .map(e -> quota(e.getName()))
+                            .collect(Collectors.toList());
+        } else {
+            selectColumns = fieldList;
         }
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT ").append(StringUtils.join(selectColumns, ",")).append(" FROM ");
@@ -111,7 +110,6 @@ public class InfluxdbQuerySqlBuilder {
             querySql.append(" AND ").append(String.format("%s%%${N} = ${M}", quota(splitKey)));
         }
 
-
         if (customFilter != null) {
             customFilter = customFilter.trim();
             if (customFilter.length() > 0) {
@@ -125,5 +123,4 @@ public class InfluxdbQuerySqlBuilder {
     public static String quota(String col) {
         return "\"" + col + "\"";
     }
-
 }

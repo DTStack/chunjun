@@ -22,9 +22,9 @@
 
 package com.dtstack.flinkx.connector.influxdb.converter;
 
-
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.converter.ISerializationConverter;
@@ -34,7 +34,6 @@ import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.NullColumn;
-
 import com.dtstack.flinkx.element.column.StringColumn;
 
 import org.apache.flink.table.data.RowData;
@@ -52,15 +51,22 @@ import java.util.Map;
  * @author shitou
  * @date 2022/3/8
  */
-public class InfluxdbColumnConverter extends AbstractRowConverter<Map<String, Object>, RowData, Object, LogicalType> {
+public class InfluxdbColumnConverter
+        extends AbstractRowConverter<Map<String, Object>, RowData, Object, LogicalType> {
 
-    private String format;
+    private String format = "MSGPACK";
+    private List<String> fieldNameList;
+    private List<FieldConf> fieldConfList;
 
     public InfluxdbColumnConverter(RowType rowType) {
         super(rowType);
     }
 
-    public InfluxdbColumnConverter(RowType rowType, FlinkxCommonConf commonConf, String format) {
+    public InfluxdbColumnConverter(
+            RowType rowType,
+            FlinkxCommonConf commonConf,
+            List<String> fieldNameList,
+            String format) {
         super(rowType, commonConf);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
@@ -71,12 +77,25 @@ public class InfluxdbColumnConverter extends AbstractRowConverter<Map<String, Ob
                             createExternalConverter(fieldTypes[i]), fieldTypes[i]));
         }
         this.format = format;
+        this.fieldConfList = commonConf.getColumn();
+        this.fieldNameList = fieldNameList;
     }
-
 
     @Override
     public RowData toInternal(Map<String, Object> input) throws Exception {
-        List<FieldConf> fieldConfList = commonConf.getColumn();
+
+        if (fieldConfList.size() == 1
+                && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldConfList.get(0).getName())) {
+            ColumnRowData result = new ColumnRowData(fieldNameList.size());
+            for (int i = 0; i < fieldNameList.size(); i++) {
+                Object field = input.get(fieldNameList.get(i));
+                AbstractBaseColumn baseColumn =
+                        (AbstractBaseColumn) toInternalConverters.get(i).deserialize(field);
+                result.addField(baseColumn);
+            }
+            return result;
+        }
+
         ColumnRowData result = new ColumnRowData(fieldConfList.size());
         int converterIndex = 0;
         for (FieldConf fieldConf : fieldConfList) {
@@ -93,38 +112,42 @@ public class InfluxdbColumnConverter extends AbstractRowConverter<Map<String, Ob
         return result;
     }
 
-
     @Override
     public Object toExternal(RowData rowData, Object output) throws Exception {
-        //TODO writer
+        // TODO writer
         return null;
     }
 
     @Override
     protected IDeserializationConverter createInternalConverter(LogicalType type) {
         switch (type.getTypeRoot()) {
-            case BOOLEAN: return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
-            case INTEGER: return val ->
-            {
-                if ("JSON".equals(format)) {
-                    return new BigDecimalColumn(((Double) val).intValue());
-                }
-                return new BigDecimalColumn((Integer) val);
-            };
-            case FLOAT: return val -> new BigDecimalColumn(((Double) val).floatValue());
-            case DOUBLE: return val-> new BigDecimalColumn((Double) val);
-            case VARBINARY: return val -> new BytesColumn((byte[]) val);
-            case BIGINT: return val ->
-            {
-                if ("JSON".equals(format)) {
-                   return new BigDecimalColumn(((Double) val).longValue());
-                }
-                return new BigDecimalColumn((Long) val);
+            case BOOLEAN:
+                return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
+            case INTEGER:
+                return val -> {
+                    if ("JSON".equals(format)) {
+                        return new BigDecimalColumn(((Double) val).intValue());
+                    }
+                    return new BigDecimalColumn((Integer) val);
+                };
+            case FLOAT:
+                return val -> new BigDecimalColumn(((Double) val).floatValue());
+            case DOUBLE:
+                return val -> new BigDecimalColumn((Double) val);
+            case VARBINARY:
+                return val -> new BytesColumn((byte[]) val);
+            case BIGINT:
+                return val -> {
+                    if ("JSON".equals(format)) {
+                        return new BigDecimalColumn(((Double) val).longValue());
+                    }
+                    return new BigDecimalColumn((Long) val);
+                };
 
-            };
-
-            case VARCHAR: return  val -> new StringColumn((String) val);
-            case NULL: return val -> new NullColumn();
+            case VARCHAR:
+                return val -> new StringColumn((String) val);
+            case NULL:
+                return val -> new NullColumn();
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
@@ -132,7 +155,7 @@ public class InfluxdbColumnConverter extends AbstractRowConverter<Map<String, Ob
 
     @Override
     protected ISerializationConverter createExternalConverter(LogicalType type) {
-        //TODO writer
+        // TODO writer
         return super.createExternalConverter(type);
     }
 }
