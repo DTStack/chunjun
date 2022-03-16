@@ -49,7 +49,7 @@ public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     protected void checkFormat() {
         RedisConf redisConf = format.getRedisConf();
         StringBuilder sb = new StringBuilder(1024);
-        if (StringUtils.isBlank(redisConf.getHostPort())) {
+        if (redisConf.getHostPort() == null) {
             sb.append("No host and port supplied").append("\n");
         }
         if (redisConf.getType() == null) {
@@ -76,10 +76,10 @@ public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
                             .append("\n");
                 }
             }
-        }
 
-        if (sb.length() > 0) {
-            throw new IllegalArgumentException("\n" + sb);
+            if (sb.length() > 0) {
+                throw new IllegalArgumentException("\n" + sb.toString());
+            }
         }
     }
 }
