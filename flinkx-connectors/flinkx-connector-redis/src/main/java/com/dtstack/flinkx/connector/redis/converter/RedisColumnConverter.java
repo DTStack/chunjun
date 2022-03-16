@@ -23,6 +23,7 @@ import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.connector.redis.enums.RedisDataMode;
 import com.dtstack.flinkx.connector.redis.enums.RedisDataType;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
@@ -102,8 +103,8 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
         } else if (type == RedisDataType.SET) {
             jedis.sadd(key, values);
         } else if (type == RedisDataType.Z_SET) {
-            List<Object> scoreValue = getFieldAndValue(row);
-            jedis.zadd(key, (Integer) scoreValue.get(0), String.valueOf(scoreValue.get(1)));
+            List<AbstractBaseColumn> scoreValue = getFieldAndValue(row);
+            jedis.zadd(key, scoreValue.get(0).asInt(), String.valueOf(scoreValue.get(1)));
         } else if (type == RedisDataType.HASH) {
             key = concatHashKey(row);
             hashWrite(row, key, jedis);
@@ -135,14 +136,14 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
         }
     }
 
-    private List<Object> getFieldAndValue(ColumnRowData row) {
+    private List<AbstractBaseColumn> getFieldAndValue(ColumnRowData row) {
         if (row.getArity() - redisConf.getKeyIndexes().size()
                 != REDIS_KEY_VALUE_SIZE.defaultValue()) {
             throw new IllegalArgumentException(
                     "Each row record can have only one pair of attributes and values except key");
         }
 
-        List<Object> values = new ArrayList<>(row.getArity());
+        List<AbstractBaseColumn> values = new ArrayList<>(row.getArity());
         for (int i = 0; i < row.getArity(); i++) {
             values.add(row.getField(i));
         }
@@ -203,8 +204,10 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
                 }
             }
         } else {
-            List<Object> fieldValue = getFieldAndValue(row);
-            jedis.hset(key, String.valueOf(fieldValue.get(0)), String.valueOf(fieldValue.get(1)));
+            List<AbstractBaseColumn> fieldValue = getFieldAndValue(row);
+            if (fieldValue.get(0) != null && fieldValue.get(1) != null) {
+                jedis.hset(key, fieldValue.get(0).asString(), fieldValue.get(1).asString());
+            }
         }
     }
 }
