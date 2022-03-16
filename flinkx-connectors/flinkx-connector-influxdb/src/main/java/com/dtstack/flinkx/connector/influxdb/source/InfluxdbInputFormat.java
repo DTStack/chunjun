@@ -24,8 +24,7 @@ package com.dtstack.flinkx.connector.influxdb.source;
 
 import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbSourceConfig;
 import com.dtstack.flinkx.connector.influxdb.converter.InfluxdbColumnConverter;
-import com.dtstack.flinkx.connector.influxdb.converter.InfluxdbRowTypeConverter;
-import com.dtstack.flinkx.connector.influxdb.enums.TimeType;
+import com.dtstack.flinkx.connector.influxdb.converter.InfluxdbRawTypeConverter;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
 import com.dtstack.flinkx.throwable.ReadRecordException;
 import com.dtstack.flinkx.util.ColumnBuildUtil;
@@ -73,12 +72,11 @@ import static com.dtstack.flinkx.connector.influxdb.constants.InfluxdbCons.QUERY
 public class InfluxdbInputFormat extends BaseRichInputFormat {
 
     private InfluxdbSourceConfig config;
-    private InfluxDB influxDB;
     private String queryTemplate;
     private String querySql;
+    private transient InfluxDB influxDB;
     private transient AtomicBoolean hasNext;
-    private transient BlockingQueue<Map<String,Object>> queue;
-    private transient TimeType timeType;
+    private transient BlockingQueue<Map<String, Object>> queue;
     private transient InfluxdbQuerySqlBuilder queryInfluxQLBuilder;
 
     @Override
@@ -92,7 +90,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
 
     @Override
     protected void openInternal(InputSplit inputSplit) throws IOException {
-        this.timeType = TimeType.getType(config.getEpoch());
+        LOG.info("subTask[{}] inputSplit = {}.", indexOfSubTask, inputSplit);
         this.queue = new LinkedBlockingQueue<>(config.getFetchSize() * 3);
         this.hasNext = new AtomicBoolean(true);
         connect();
@@ -105,63 +103,29 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
         columnTypeList = columnPair.getRight();
         RowType rowType =
                 TableUtil.createRowType(
-                        columnNameList, columnTypeList, InfluxdbRowTypeConverter::apply);
+                        columnNameList, columnTypeList, InfluxdbRawTypeConverter::apply);
 
-        setRowConverter(new InfluxdbColumnConverter(rowType, config, config.getFormat()));
+        // TODO add InfluxdbRawConverter
+        setRowConverter(
+                new InfluxdbColumnConverter(rowType, config, columnNameList, config.getFormat()));
 
-        this.queryInfluxQLBuilder = new InfluxdbQuerySqlBuilder(config, columnNameList, config.getParallelism());
+        this.queryInfluxQLBuilder = new InfluxdbQuerySqlBuilder(config, columnNameList);
         this.queryTemplate = queryInfluxQLBuilder.buildSql();
-        LOG.info("subTask[{}] inputSplit = {}.", indexOfSubTask, inputSplit);
         this.querySql = buildQuerySql(inputSplit);
         LOG.info("subTask[{}] querySql = {}.", indexOfSubTask, this.querySql);
 
-        this.influxDB.query(new Query(
-                        querySql, config.getDatabase()),
-               config.getFetchSize(),
-                new BiConsumer<InfluxDB.Cancellable, QueryResult>() {
-                    @Override
-                    public void accept(InfluxDB.Cancellable cancellable, QueryResult queryResult) {
-                        try {
-                            if (CollectionUtils.isEmpty(queryResult.getResults())
-                                    || "DONE".equalsIgnoreCase(queryResult.getError())) {
-                                LOG.info("results is empty and this query is done.");
-                            } else {
-                                for (QueryResult.Result result : queryResult.getResults()) {
-                                    List<QueryResult.Series> serieList = result.getSeries();
-                                    if (CollectionUtils.isNotEmpty(serieList)) {
-                                        for (QueryResult.Series series : serieList) {
-                                            List<String> columnList = series.getColumns();
-                                            for (List<Object> values : series.getValues()) {
-                                                Map<String, Object> data = new HashMap<>();
-                                                for (int i = 0; i < columnList.size(); i++) {
-                                                    data.put(columnList.get(i), values.get(i));
-                                                }
-                                                queue.put(data);
-                                            }
-                                        }
-                                    } else {
-                                        //没有数据
-                                        LOG.debug("subTask[{}] reader influxDB series is empty.", indexOfSubTask);
-                                        hasNext.set(false);
-                                    }
-                                }
-                            }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                },
+        this.influxDB.query(
+                new Query(querySql, config.getDatabase()),
+                config.getFetchSize(),
+                getConsumer(),
                 () -> {
-                            LOG.debug("subTask[{}] reader influxDB data is over.", indexOfSubTask);
-                            hasNext.set(false);
+                    LOG.debug("subTask[{}] reader influxDB data is over.", indexOfSubTask);
+                    hasNext.set(false);
                 },
-                throwable ->
-                {
+                throwable -> {
                     hasNext.set(false);
                     throwable.printStackTrace();
-                }
-                );
-
+                });
     }
 
     @Override
@@ -189,7 +153,6 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
         return !hasNext.get() && queue.isEmpty();
     }
 
-
     private String buildQuerySql(InputSplit inputSplit) {
         String querySql = queryTemplate;
 
@@ -201,47 +164,50 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
         InfluxdbInputSplit influxDBInputSplit = (InfluxdbInputSplit) inputSplit;
 
         if (StringUtils.isNotBlank(config.getSplitPk())) {
-          querySql =
-            queryTemplate
-               .replace("${N}", String.valueOf(influxDBInputSplit.getTotalNumberOfSplits()))
-               .replace("${M}", String.valueOf(influxDBInputSplit.getMod()));
+            querySql =
+                    queryTemplate
+                            .replace(
+                                    "${N}",
+                                    String.valueOf(influxDBInputSplit.getTotalNumberOfSplits()))
+                            .replace("${M}", String.valueOf(influxDBInputSplit.getMod()));
         }
         return querySql;
     }
 
     public void connect() {
         if (influxDB == null) {
-            OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
-                    .connectTimeout(15000, TimeUnit.MILLISECONDS)
-                    .readTimeout(config.getQueryTimeOut(), TimeUnit.SECONDS);
-            InfluxDB.ResponseFormat format = InfluxDB.ResponseFormat.valueOf(config.getFormat().toUpperCase(Locale.ROOT));
-            clientBuilder.addInterceptor(new Interceptor() {
-                @NotNull
-                @Override
-                public Response intercept(@NotNull Chain chain) throws IOException {
-                    Request request = chain.request();
-                    HttpUrl httpUrl = request.url()
-                            .newBuilder()
-                            // add common parameter
-                            .addQueryParameter("epoch",
-                                    config.getEpoch().toLowerCase(Locale.ENGLISH))
-                            .build();
-                    Request build = request.newBuilder()
-                            .url(httpUrl)
-                            .build();
-                    Response response = chain.proceed(build);
-                    return response;
-                }
-            });
-            influxDB = new InfluxDBImpl(
-                    config.getUrl().get(0),
-                    config.getUsername(),
-                    config.getPassword(),
-                    clientBuilder,
-                    format);
+            OkHttpClient.Builder clientBuilder =
+                    new OkHttpClient.Builder()
+                            .connectTimeout(15000, TimeUnit.MILLISECONDS)
+                            .readTimeout(config.getQueryTimeOut(), TimeUnit.SECONDS);
+            InfluxDB.ResponseFormat format = InfluxDB.ResponseFormat.valueOf(config.getFormat());
+            clientBuilder.addInterceptor(
+                    new Interceptor() {
+                        @NotNull
+                        @Override
+                        public Response intercept(@NotNull Chain chain) throws IOException {
+                            Request request = chain.request();
+                            HttpUrl httpUrl =
+                                    request.url()
+                                            .newBuilder()
+                                            // add common parameter
+                                            .addQueryParameter(
+                                                    "epoch",
+                                                    config.getEpoch().toLowerCase(Locale.ENGLISH))
+                                            .build();
+                            Request build = request.newBuilder().url(httpUrl).build();
+                            Response response = chain.proceed(build);
+                            return response;
+                        }
+                    });
+            influxDB =
+                    new InfluxDBImpl(
+                            config.getUrl().get(0),
+                            StringUtils.isEmpty(config.getUsername()) ? null : config.getUsername(),
+                            StringUtils.isEmpty(config.getPassword()) ? null : config.getPassword(),
+                            clientBuilder,
+                            format);
             String version = influxDB.version();
-            //Pong ping = influxDB.ping();
-            //ping.isGood();
             LOG.info("connect influxdb successful. sever version :{}.", version);
         }
     }
@@ -250,13 +216,19 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
         this.config = config;
     }
 
-
+    /**
+     * get all measurement keys, include tags and fields.
+     *
+     * @return fields list
+     */
     private Pair<List<String>, List<String>> getTableMetadata() {
         List<String> columnNames = new ArrayList<>();
         List<String> columnTypes = new ArrayList<>();
-        QueryResult queryResult = influxDB.query(new Query(
-                QUERY_FIELD.replace("${measurement}", config.getMeasurement()),
-                config.getDatabase()));
+        QueryResult queryResult =
+                influxDB.query(
+                        new Query(
+                                QUERY_FIELD.replace("${measurement}", config.getMeasurement()),
+                                config.getDatabase()));
         List<QueryResult.Series> serieList = queryResult.getResults().get(0).getSeries();
         if (!CollectionUtils.isEmpty(serieList)) {
             for (List<Object> value : serieList.get(0).getValues()) {
@@ -265,19 +237,61 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
             }
         }
 
-        queryResult = influxDB.query(new Query(
-                QUERY_TAG.replace("${measurement}", config.getMeasurement()),
-                config.getDatabase()));
+        queryResult =
+                influxDB.query(
+                        new Query(
+                                QUERY_TAG.replace("${measurement}", config.getMeasurement()),
+                                config.getDatabase()));
         serieList = queryResult.getResults().get(0).getSeries();
         if (!CollectionUtils.isEmpty(serieList)) {
             for (List<Object> value : serieList.get(0).getValues()) {
                 columnNames.add(String.valueOf(value.get(0)));
+                // Tag keys and tag values are both strings.
                 columnTypes.add("string");
             }
         }
-
+        // add time field.
         columnNames.add("time");
         columnTypes.add("time");
         return Pair.of(columnNames, columnTypes);
+    }
+
+    /**
+     * get the consumer to invoke for each received QueryResult.
+     *
+     * @return consumer
+     */
+    private BiConsumer<InfluxDB.Cancellable, QueryResult> getConsumer() {
+        return (cancellable, queryResult) -> {
+            try {
+                if (CollectionUtils.isEmpty(queryResult.getResults())
+                        || "DONE".equalsIgnoreCase(queryResult.getError())) {
+                    LOG.info("results is empty and this query is done.");
+                } else {
+                    for (QueryResult.Result result : queryResult.getResults()) {
+                        List<QueryResult.Series> serieList = result.getSeries();
+                        if (CollectionUtils.isNotEmpty(serieList)) {
+                            for (QueryResult.Series series : serieList) {
+                                List<String> columnList = series.getColumns();
+                                for (List<Object> values : series.getValues()) {
+                                    Map<String, Object> data = new HashMap<>();
+                                    for (int i = 0; i < columnList.size(); i++) {
+                                        data.put(columnList.get(i), values.get(i));
+                                    }
+                                    queue.put(data);
+                                }
+                            }
+                        } else {
+                            // 没有数据
+                            LOG.debug(
+                                    "subTask[{}] reader influxDB series is empty.", indexOfSubTask);
+                            hasNext.set(false);
+                        }
+                    }
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
     }
 }

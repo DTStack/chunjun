@@ -24,7 +24,7 @@ package com.dtstack.flinkx.connector.influxdb.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbSourceConfig;
-import com.dtstack.flinkx.connector.influxdb.converter.InfluxdbRowTypeConverter;
+import com.dtstack.flinkx.connector.influxdb.converter.InfluxdbRawTypeConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.GsonUtil;
@@ -46,7 +46,7 @@ import java.util.Map;
  */
 public class InfluxdbSourceFactory extends SourceFactory {
 
-    private InfluxdbSourceConfig config;
+    private final InfluxdbSourceConfig config;
 
     public InfluxdbSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
@@ -62,7 +62,7 @@ public class InfluxdbSourceFactory extends SourceFactory {
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return InfluxdbRowTypeConverter::apply;
+        return InfluxdbRawTypeConverter::apply;
     }
 
     @Override

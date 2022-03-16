@@ -40,7 +40,7 @@ public class InfluxdbInputSplit extends GenericInputSplit {
     /**
      * Creates a generic input split with the given split number.
      *
-     * @param partitionNumber         The number of the split's partition.
+     * @param partitionNumber The number of the split's partition.
      * @param totalNumberOfPartitions The total number of the splits (partitions).
      */
     public InfluxdbInputSplit(int partitionNumber, int totalNumberOfPartitions, int mod) {
@@ -58,8 +58,6 @@ public class InfluxdbInputSplit extends GenericInputSplit {
 
     @Override
     public String toString() {
-        return "InfluxDBInputSplit{" +
-                "mod=" + mod +
-                '}';
+        return "InfluxDBInputSplit{" + "mod=" + mod + '}';
     }
 }

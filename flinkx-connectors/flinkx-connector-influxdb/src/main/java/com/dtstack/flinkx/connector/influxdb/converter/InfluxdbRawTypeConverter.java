@@ -35,7 +35,7 @@ import java.util.Locale;
  * @author shitou
  * @date 2022/3/9
  */
-public class InfluxdbRowTypeConverter {
+public class InfluxdbRawTypeConverter {
 
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ROOT)) {

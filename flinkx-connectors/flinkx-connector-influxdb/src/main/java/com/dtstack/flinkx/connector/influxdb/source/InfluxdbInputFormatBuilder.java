@@ -46,7 +46,6 @@ public class InfluxdbInputFormatBuilder extends BaseRichInputFormatBuilder<Influ
 
     @Override
     protected void checkFormat() {
-        //TODO
+        // TODO
     }
-
 }

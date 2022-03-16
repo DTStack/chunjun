@@ -22,6 +22,8 @@
 
 package com.dtstack.flinkx.connector.influxdb.conf;
 
+import java.util.Locale;
+
 /**
  * Company：www.dtstack.com.
  *
@@ -40,7 +42,7 @@ public class InfluxdbSourceConfig extends InfluxdbConfig {
     private String format = "MSGPACK";
 
     public String getFormat() {
-        return format;
+        return format.toUpperCase(Locale.ROOT);
     }
 
     public void setFormat(String format) {
@@ -93,5 +95,30 @@ public class InfluxdbSourceConfig extends InfluxdbConfig {
 
     public void setEpoch(String epoch) {
         this.epoch = epoch;
+    }
+
+    @Override
+    public String toString() {
+        return "InfluxdbSourceConfig{"
+                + "where='"
+                + where
+                + '\''
+                + ", customSql='"
+                + customSql
+                + '\''
+                + ", splitPk='"
+                + splitPk
+                + '\''
+                + ", queryTimeOut="
+                + queryTimeOut
+                + ", fetchSize="
+                + fetchSize
+                + ", epoch='"
+                + epoch
+                + '\''
+                + ", format='"
+                + format
+                + '\''
+                + '}';
     }
 }
