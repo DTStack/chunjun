@@ -76,10 +76,10 @@ public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
                             .append("\n");
                 }
             }
+        }
 
-            if (sb.length() > 0) {
-                throw new IllegalArgumentException("\n" + sb.toString());
-            }
+        if (sb.length() > 0) {
+            throw new IllegalArgumentException("\n" + sb);
         }
     }
 }
