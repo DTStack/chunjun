@@ -141,7 +141,11 @@ public class InfluxdbColumnConverter
                     if ("JSON".equals(format)) {
                         return new BigDecimalColumn(((Double) val).longValue());
                     }
-                    return new BigDecimalColumn((Long) val);
+                    if (val instanceof Long) {
+                        return new BigDecimalColumn((Long) val);
+                    } else {
+                        return new BigDecimalColumn((Integer) val);
+                    }
                 };
 
             case VARCHAR:

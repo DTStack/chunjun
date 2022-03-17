@@ -42,7 +42,7 @@ public class InfluxdbSourceConfig extends InfluxdbConfig {
     private String format = "MSGPACK";
 
     public String getFormat() {
-        return format.toUpperCase(Locale.ROOT);
+        return format.toUpperCase(Locale.ENGLISH);
     }
 
     public void setFormat(String format) {
@@ -90,7 +90,7 @@ public class InfluxdbSourceConfig extends InfluxdbConfig {
     }
 
     public String getEpoch() {
-        return epoch;
+        return epoch.toLowerCase(Locale.ENGLISH);
     }
 
     public void setEpoch(String epoch) {
