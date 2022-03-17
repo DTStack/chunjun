@@ -51,9 +51,7 @@ public class InfluxdbSourceFactory extends SourceFactory {
     public InfluxdbSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         Map<String, Object> parameter = syncConf.getJob().getReader().getParameter();
-        Gson gson =
-                new GsonBuilder()
-                        .create();
+        Gson gson = new GsonBuilder().create();
         GsonUtil.setTypeAdapter(gson);
         this.config = gson.fromJson(gson.toJson(parameter), InfluxdbSourceConfig.class);
         config.setColumn(syncConf.getReader().getFieldList());
