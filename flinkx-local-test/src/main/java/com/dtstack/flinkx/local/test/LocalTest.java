@@ -67,7 +67,7 @@ public class LocalTest {
             argsList.add("-jobType");
             argsList.add("sync");
             argsList.add("-job");
-            argsList.add(content);
+            argsList.add(URLEncoder.encode(content, StandardCharsets.UTF_8.name()));
 //            argsList.add("-flinkConfDir");
 //            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
 //            argsList.add("-confProp");
@@ -101,7 +101,7 @@ public class LocalTest {
             argsList.add("-jobType");
             argsList.add("sql");
             argsList.add("-job");
-            argsList.add(content);
+            argsList.add(URLEncoder.encode(content, StandardCharsets.UTF_8.name()));
 //            argsList.add("-flinkConfDir");
 //            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
             argsList.add("-jobName");
