@@ -18,7 +18,6 @@
 package com.dtstack.flinkx.util;
 
 import com.dtstack.flinkx.constants.ConstantValue;
-import com.dtstack.flinkx.options.Options;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
@@ -61,8 +60,8 @@ public class FactoryHelper {
     protected List<URL> classPathSet = new ArrayList<>();
     /** shipfile需要的jar的classPath index */
     protected int classFileNameIndex = 0;
-    /** 任务启动参数 */
-    protected Options options;
+    /** 任务执行模式 */
+    protected String executionMode;
 
     public FactoryHelper() {}
 
@@ -94,7 +93,7 @@ public class FactoryHelper {
                     this.classFileNameIndex++;
                 }
             }
-            PluginUtil.setPipelineOptionsToEnvConfig(this.env, urlList, options);
+            PluginUtil.setPipelineOptionsToEnvConfig(this.env, urlList, executionMode);
         } catch (Exception e) {
             LOG.warn("can't add jar in {} to cachedFile, e = {}", urlSet, e.getMessage());
         }
@@ -116,11 +115,11 @@ public class FactoryHelper {
         this.env = env;
     }
 
-    public Options getOptions() {
-        return options;
+    public String getExecutionMode() {
+        return executionMode;
     }
 
-    public void setOptions(Options options) {
-        this.options = options;
+    public void setExecutionMode(String executionMode) {
+        this.executionMode = executionMode;
     }
 }
