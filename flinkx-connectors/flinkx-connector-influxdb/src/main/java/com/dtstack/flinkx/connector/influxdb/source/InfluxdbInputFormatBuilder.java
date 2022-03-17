@@ -25,6 +25,9 @@ package com.dtstack.flinkx.connector.influxdb.source;
 import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbSourceConfig;
 import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Company：www.dtstack.com.
  *
@@ -46,6 +49,18 @@ public class InfluxdbInputFormatBuilder extends BaseRichInputFormatBuilder<Influ
 
     @Override
     protected void checkFormat() {
-        // TODO
+        StringBuilder sb = new StringBuilder();
+        InfluxdbSourceConfig config = (InfluxdbSourceConfig) format.getConfig();
+        if (config.getParallelism() > 1 && StringUtils.isBlank(config.getSplitPk())) {
+            sb.append("splitPk can not be null when speed bigger than 1.");
+        }
+
+        if (CollectionUtils.isEmpty(config.getColumn())) {
+            sb.append("query column can't be empty.");
+        }
+
+        if (sb.length() > 0) {
+            throw new IllegalArgumentException(sb.toString());
+        }
     }
 }

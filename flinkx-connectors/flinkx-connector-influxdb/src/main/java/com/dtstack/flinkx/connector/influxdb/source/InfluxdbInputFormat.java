@@ -49,11 +49,12 @@ import org.influxdb.impl.InfluxDBImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -73,7 +74,6 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
 
     private InfluxdbSourceConfig config;
     private String queryTemplate;
-    private String querySql;
     private transient InfluxDB influxDB;
     private transient AtomicBoolean hasNext;
     private transient BlockingQueue<Map<String, Object>> queue;
@@ -111,8 +111,8 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
 
         this.queryInfluxQLBuilder = new InfluxdbQuerySqlBuilder(config, columnNameList);
         this.queryTemplate = queryInfluxQLBuilder.buildSql();
-        this.querySql = buildQuerySql(inputSplit);
-        LOG.info("subTask[{}] querySql = {}.", indexOfSubTask, this.querySql);
+        String querySql = buildQuerySql(inputSplit);
+        LOG.info("subTask[{}] querySql = {}.", indexOfSubTask, querySql);
 
         this.influxDB.query(
                 new Query(querySql, config.getDatabase()),
@@ -174,7 +174,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
         return querySql;
     }
 
-    public void connect() {
+    public void connect() throws ConnectException {
         if (influxDB == null) {
             OkHttpClient.Builder clientBuilder =
                     new OkHttpClient.Builder()
@@ -191,9 +191,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
                                     request.url()
                                             .newBuilder()
                                             // add common parameter
-                                            .addQueryParameter(
-                                                    "epoch",
-                                                    config.getEpoch().toLowerCase(Locale.ENGLISH))
+                                            .addQueryParameter("epoch", config.getEpoch())
                                             .build();
                             Request build = request.newBuilder().url(httpUrl).build();
                             Response response = chain.proceed(build);
@@ -208,6 +206,13 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
                             clientBuilder,
                             format);
             String version = influxDB.version();
+            if (!influxDB.ping().isGood()) {
+                String errorMessage =
+                        String.format(
+                                "connect influxdb failed, due to influxdb version info is unknown, the url is: {%s}",
+                                config.getUrl().get(0));
+                throw new ConnectException(errorMessage);
+            }
             LOG.info("connect influxdb successful. sever version :{}.", version);
         }
     }
@@ -237,6 +242,11 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
             }
         }
 
+        // Check if spillPk is compliant
+        if (config.getParallelism() > 1) {
+            judgeSplitPkCompliant(columnNames, columnTypes, config.getSplitPk());
+        }
+
         queryResult =
                 influxDB.query(
                         new Query(
@@ -252,7 +262,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
         }
         // add time field.
         columnNames.add("time");
-        columnTypes.add("time");
+        columnTypes.add("long");
         return Pair.of(columnNames, columnTypes);
     }
 
@@ -293,5 +303,36 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
                 e.printStackTrace();
             }
         };
+    }
+
+    /**
+     * Check if spiltPk complies with the requirements, 1.splitPk is a field key; 2. splitPk is
+     * integer.
+     *
+     * @param columnNames field keys
+     * @param columnTypes field types
+     * @param splitPk splitPk
+     */
+    private void judgeSplitPkCompliant(
+            List<String> columnNames, List<String> columnTypes, String splitPk) {
+        Optional<String> key =
+                columnNames.stream().filter(name -> StringUtils.equals(splitPk, name)).findFirst();
+        if (key.isPresent()) {
+            int index = columnNames.indexOf(key.get());
+            if (!StringUtils.equalsIgnoreCase("integer", columnTypes.get(index))) {
+                String errorMessage =
+                        "splitPk must spiltPk must be of type integer, but is actually "
+                                + columnTypes.get(index);
+                throw new IllegalArgumentException(errorMessage);
+            }
+
+        } else {
+            String errorMessage =
+                    "splitPk must be field, field keys is: "
+                            + columnNames
+                            + ", splitPk is: "
+                            + splitPk;
+            throw new IllegalArgumentException(errorMessage);
+        }
     }
 }

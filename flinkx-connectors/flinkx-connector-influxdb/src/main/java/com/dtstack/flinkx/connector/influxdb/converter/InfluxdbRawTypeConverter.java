@@ -53,7 +53,7 @@ public class InfluxdbRawTypeConverter {
                 return DataTypes.STRING();
             case "NULL":
                 return DataTypes.NULL();
-            case "TIME":
+            case "LONG":
                 return DataTypes.BIGINT();
             case "BYTES":
                 return DataTypes.BYTES();
