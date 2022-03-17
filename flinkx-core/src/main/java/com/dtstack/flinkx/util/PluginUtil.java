@@ -346,7 +346,7 @@ public class PluginUtil {
                     e);
         }
 
-        config.setSyncJarList(setPipelineOptionsToEnvConfig(env, urlList, options));
+        config.setSyncJarList(setPipelineOptionsToEnvConfig(env, urlList, options.getMode()));
     }
 
     /**
@@ -358,7 +358,7 @@ public class PluginUtil {
      */
     @SuppressWarnings("all")
     public static List<String> setPipelineOptionsToEnvConfig(
-            StreamExecutionEnvironment env, List<String> urlList, Options options) {
+            StreamExecutionEnvironment env, List<String> urlList, String executionMode) {
         try {
             Configuration configuration =
                     (Configuration)
@@ -370,7 +370,6 @@ public class PluginUtil {
             jarList.addAll(urlList);
 
             List<String> pipelineJars = new ArrayList();
-            String executionMode = options.getMode();
             LOG.info("Flinkx executionMode: " + executionMode);
             if (ClusterMode.getByName(executionMode) == ClusterMode.kubernetesApplication) {
                 for (String jarUrl : jarList) {
