@@ -71,6 +71,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -93,7 +95,7 @@ public class Main {
         LOG.info("-------------------------------------------");
 
         Options options = new OptionParser(args).getOptions();
-        String job = options.getJob();
+        String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
@@ -313,6 +315,7 @@ public class Main {
             factoryHelper.setRemotePluginPath(options.getRemoteFlinkxDistDir());
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
+            factoryHelper.setExecutionMode(options.getMode());
 
             DirtyConf dirtyConf = DirtyConfUtil.parse(options);
             factoryHelper.registerCachedFile(
