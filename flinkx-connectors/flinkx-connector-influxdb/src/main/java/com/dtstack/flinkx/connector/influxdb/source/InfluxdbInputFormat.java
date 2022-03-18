@@ -321,7 +321,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
             int index = columnNames.indexOf(key.get());
             if (!StringUtils.equalsIgnoreCase("integer", columnTypes.get(index))) {
                 String errorMessage =
-                        "splitPk must spiltPk must be of type integer, but is actually "
+                        "spiltPk must be of type integer, but is actually "
                                 + columnTypes.get(index);
                 throw new IllegalArgumentException(errorMessage);
             }
