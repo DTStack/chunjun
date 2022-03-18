@@ -23,7 +23,6 @@ public class InfluxdbSinkFactory extends SinkFactory {
                         JsonUtil.toJson(syncConf.getWriter().getParameter()), InfluxdbConfig.class);
         influxdbConfig.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(influxdbConfig);
-
     }
 
     @Override
