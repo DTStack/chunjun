@@ -16,9 +16,9 @@ import org.apache.flink.util.StringUtils;
 import okhttp3.OkHttpClient;
 import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
+import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;
-import org.influxdb.impl.InfluxDBImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +88,13 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
                         columnNameList, columnTypeList, InfluxdbRawTypeConverter::apply);
         setRowConverter(
                 new InfluxdbColumnConverter(
-                        rowType, sinkConfig, columnNameList, tags, timestamp, precision));
+                        rowType,
+                        sinkConfig,
+                        measurement,
+                        columnNameList,
+                        tags,
+                        timestamp,
+                        precision));
     }
 
     @Override
@@ -105,7 +111,7 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
                         .connectTimeout(15000, TimeUnit.MILLISECONDS)
                         .readTimeout(sinkConfig.getWriteTimeout(), TimeUnit.SECONDS);
         influxDB =
-                new InfluxDBImpl(
+                InfluxDBFactory.connect(
                         sinkConfig.getUrl().get(0),
                         StringUtils.isNullOrWhitespaceOnly(sinkConfig.getUsername())
                                 ? null
@@ -119,7 +125,7 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
         if (enableBatch) {
             BatchOptions options = BatchOptions.DEFAULTS;
             options.precision(precision);
-            options.bufferLimit(sinkConfig.getBufferLimit());
+            options.bufferLimit(sinkConfig.getBatchSize());
             options.flushDuration(sinkConfig.getFlushDuration());
             influxDB.enableBatch(options);
         }
