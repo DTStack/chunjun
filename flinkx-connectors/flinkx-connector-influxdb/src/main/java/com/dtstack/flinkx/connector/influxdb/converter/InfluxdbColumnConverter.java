@@ -36,14 +36,18 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.influxdb.dto.Point;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Company：www.dtstack.com.
@@ -52,11 +56,15 @@ import java.util.Map;
  * @date 2022/3/8
  */
 public class InfluxdbColumnConverter
-        extends AbstractRowConverter<Map<String, Object>, RowData, Object, LogicalType> {
+        extends AbstractRowConverter<Map<String, Object>, RowData, Point.Builder, LogicalType> {
 
     private String format = "MSGPACK";
     private List<String> fieldNameList;
     private List<FieldConf> fieldConfList;
+    private List<String> tags;
+    private String timestamp;
+    private TimeUnit precision;
+    private String measurement;
 
     public InfluxdbColumnConverter(RowType rowType) {
         super(rowType);
@@ -80,6 +88,32 @@ public class InfluxdbColumnConverter
         this.fieldConfList = commonConf.getColumn();
         this.fieldNameList = fieldNameList;
     }
+
+    public InfluxdbColumnConverter(
+            RowType rowType,
+            FlinkxCommonConf commonConf,
+            String measurement,
+            List<String> fieldNameList,
+            List<String> tags,
+            String timestamp,
+            TimeUnit precision){
+        super(rowType,commonConf);
+        this.measurement = measurement;
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
+            toInternalConverters.add(
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i))));
+            toExternalConverters.add(
+                    wrapIntoNullableExternalConverter(
+                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
+        }
+        this.fieldConfList = commonConf.getColumn();
+        this.fieldNameList = fieldNameList;
+        this.tags = tags;
+        this.timestamp = timestamp;
+        this.precision = precision;
+    }
+
 
     @Override
     public RowData toInternal(Map<String, Object> input) throws Exception {
@@ -113,8 +147,11 @@ public class InfluxdbColumnConverter
     }
 
     @Override
-    public Object toExternal(RowData rowData, Object output) throws Exception {
-        // TODO writer
+    public Point.Builder toExternal(RowData rowData, Point.Builder output) throws Exception {
+        Point.Builder builder = Point.measurement(measurement);
+        for (FieldConf fieldConf:fieldConfList){
+            
+        }
         return null;
     }
 
@@ -158,8 +195,39 @@ public class InfluxdbColumnConverter
     }
 
     @Override
-    protected ISerializationConverter createExternalConverter(LogicalType type) {
-        // TODO writer
-        return super.createExternalConverter(type);
+    protected ISerializationConverter<Point.Builder> createExternalConverter(LogicalType type) {
+        switch (type.getTypeRoot()){
+            case VARCHAR:
+                return (val,index,builder)-> {
+                    builder.addField(fieldNameList.get(index),val.getString(index).toString());
+                };
+            case FLOAT:
+                return (val,index,builder)->{
+                    builder.addField(fieldNameList.get(index),val.getFloat(index));
+                };
+            case INTEGER:
+                return (val,index,builder)->{
+                    builder.addField(fieldNameList.get(index),val.getInt(index));
+                };
+            case BOOLEAN:
+                return (val,index,builder)->{
+                    builder.addField(fieldNameList.get(index),val.getBoolean(index));
+                };
+            default:
+                throw new UnsupportedOperationException("Unsupported type:" + type);
+        }
+    }
+
+    private boolean specicalField(String fieldName,RowData value,int index,Point.Builder builder){
+        if (StringUtils.isNotBlank(fieldName)){
+            if(fieldName.equals(timestamp)){
+                builder.time(value.getLong(index),precision);
+                return true;
+            }else if (CollectionUtils.isNotEmpty(tags) && tags.contains(fieldName)){
+                builder.tag(fieldName,value.getRawValue(index).toString());
+                return true;
+            }
+        }
+        return false;
     }
 }
