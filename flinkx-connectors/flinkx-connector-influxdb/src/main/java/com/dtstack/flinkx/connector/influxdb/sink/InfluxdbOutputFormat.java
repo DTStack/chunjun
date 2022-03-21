@@ -42,13 +42,10 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
     private TimeUnit precision;
 
     @Override
-    protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
-    }
+    protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {}
 
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception {
-
-    }
+    protected void writeMultipleRecordsInternal() throws Exception {}
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
@@ -96,5 +93,4 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
     public void setMeasurement(String measurement) {
         this.measurement = measurement;
     }
-
 }

@@ -2,7 +2,6 @@ package com.dtstack.flinkx.connector.influxdb.sink;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbConfig;
-import com.dtstack.flinkx.connector.influxdb.converter.InfluxdbColumnConverter;
 import com.dtstack.flinkx.connector.influxdb.converter.InfluxdbRawTypeConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.sink.SinkFactory;
@@ -38,7 +37,7 @@ public class InfluxdbSinkFactory extends SinkFactory {
         builder.setColumnMetaInfos(influxdbConfig.getColumn());
         builder.setDatabase(influxdbConfig.getDatabase());
         builder.setMeasurement(influxdbConfig.getMeasurement());
-//        new InfluxdbColumnConverter()
+        //        new InfluxdbColumnConverter()
         return createOutput(dataSet, builder.finish());
     }
 }

@@ -34,17 +34,18 @@ public class InfluxdbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
             sb.append("No username supplied;\n");
         if (StringUtils.isNullOrWhitespaceOnly(sinkConfig.getPassword()))
             sb.append("No password supplied;\n");
-        if (!"insert".equalsIgnoreCase(sinkConfig.getWriteMode().getMode())) sb.append("Only support insert write mode;\n");
+        if (!"insert".equalsIgnoreCase(sinkConfig.getWriteMode().getMode()))
+            sb.append("Only support insert write mode;\n");
         if (sb.length() > 0) {
             throw new IllegalArgumentException(sb.toString());
         }
     }
 
-    public void setDatabase(String database){
+    public void setDatabase(String database) {
         format.setDatabase(database);
     }
 
-    public void setMeasurement(String measurement){
+    public void setMeasurement(String measurement) {
         format.setMeasurement(measurement);
     }
 

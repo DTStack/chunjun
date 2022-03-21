@@ -36,12 +36,11 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 
-import org.apache.commons.collections.CollectionUtils;
-
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.influxdb.dto.Point;
 
@@ -96,8 +95,8 @@ public class InfluxdbColumnConverter
             List<String> fieldNameList,
             List<String> tags,
             String timestamp,
-            TimeUnit precision){
-        super(rowType,commonConf);
+            TimeUnit precision) {
+        super(rowType, commonConf);
         this.measurement = measurement;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
@@ -113,7 +112,6 @@ public class InfluxdbColumnConverter
         this.timestamp = timestamp;
         this.precision = precision;
     }
-
 
     @Override
     public RowData toInternal(Map<String, Object> input) throws Exception {
@@ -149,9 +147,8 @@ public class InfluxdbColumnConverter
     @Override
     public Point.Builder toExternal(RowData rowData, Point.Builder output) throws Exception {
         Point.Builder builder = Point.measurement(measurement);
-        for (FieldConf fieldConf:fieldConfList){
-            
-        }
+        for (FieldConf fieldConf : fieldConfList) {}
+
         return null;
     }
 
@@ -196,35 +193,36 @@ public class InfluxdbColumnConverter
 
     @Override
     protected ISerializationConverter<Point.Builder> createExternalConverter(LogicalType type) {
-        switch (type.getTypeRoot()){
+        switch (type.getTypeRoot()) {
             case VARCHAR:
-                return (val,index,builder)-> {
-                    builder.addField(fieldNameList.get(index),val.getString(index).toString());
+                return (val, index, builder) -> {
+                    builder.addField(fieldNameList.get(index), val.getString(index).toString());
                 };
             case FLOAT:
-                return (val,index,builder)->{
-                    builder.addField(fieldNameList.get(index),val.getFloat(index));
+                return (val, index, builder) -> {
+                    builder.addField(fieldNameList.get(index), val.getFloat(index));
                 };
             case INTEGER:
-                return (val,index,builder)->{
-                    builder.addField(fieldNameList.get(index),val.getInt(index));
+                return (val, index, builder) -> {
+                    builder.addField(fieldNameList.get(index), val.getInt(index));
                 };
             case BOOLEAN:
-                return (val,index,builder)->{
-                    builder.addField(fieldNameList.get(index),val.getBoolean(index));
+                return (val, index, builder) -> {
+                    builder.addField(fieldNameList.get(index), val.getBoolean(index));
                 };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
     }
 
-    private boolean specicalField(String fieldName,RowData value,int index,Point.Builder builder){
-        if (StringUtils.isNotBlank(fieldName)){
-            if(fieldName.equals(timestamp)){
-                builder.time(value.getLong(index),precision);
+    private boolean specicalField(
+            String fieldName, RowData value, int index, Point.Builder builder) {
+        if (StringUtils.isNotBlank(fieldName)) {
+            if (fieldName.equals(timestamp)) {
+                builder.time(value.getLong(index), precision);
                 return true;
-            }else if (CollectionUtils.isNotEmpty(tags) && tags.contains(fieldName)){
-                builder.tag(fieldName,value.getRawValue(index).toString());
+            } else if (CollectionUtils.isNotEmpty(tags) && tags.contains(fieldName)) {
+                builder.tag(fieldName, value.getRawValue(index).toString());
                 return true;
             }
         }
