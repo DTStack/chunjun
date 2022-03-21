@@ -4,6 +4,7 @@ import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbSinkConfig;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
 import org.apache.flink.util.CollectionUtil;
+import org.apache.flink.util.StringUtils;
 
 /** @Author xirang @Company Dtstack @Date: 2022/3/14 2:57 PM */
 public class InfluxdbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
@@ -24,6 +25,10 @@ public class InfluxdbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         InfluxdbSinkConfig sinkConfig = format.getSinkConfig();
         StringBuilder sb = new StringBuilder(256);
         if (CollectionUtil.isNullOrEmpty(sinkConfig.getUrl())) sb.append("No url supplied;\n");
+        if (StringUtils.isNullOrWhitespaceOnly(sinkConfig.getUsername()))
+            sb.append("No username supplied;\n");
+        if (StringUtils.isNullOrWhitespaceOnly(sinkConfig.getPassword()))
+            sb.append("No password supplied;\n");
         if (!"insert".equalsIgnoreCase(sinkConfig.getWriteMode().getMode()))
             sb.append("Only support insert write mode;\n");
         if (sb.length() > 0) {
