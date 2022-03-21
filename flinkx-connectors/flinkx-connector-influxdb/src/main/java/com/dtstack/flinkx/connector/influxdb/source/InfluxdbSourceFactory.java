@@ -33,6 +33,8 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -51,7 +53,23 @@ public class InfluxdbSourceFactory extends SourceFactory {
     public InfluxdbSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         Map<String, Object> parameter = syncConf.getJob().getReader().getParameter();
-        Gson gson = new GsonBuilder().create();
+        Gson gson =
+                new GsonBuilder()
+                        .addDeserializationExclusionStrategy(
+                                new ExclusionStrategy() {
+                                    @Override
+                                    public boolean shouldSkipField(FieldAttributes f) {
+                                        // support column["id", "name"...] and  ["*"],
+                                        // column do not deserialize.
+                                        return "column".equals(f.getName());
+                                    }
+
+                                    @Override
+                                    public boolean shouldSkipClass(Class<?> clazz) {
+                                        return false;
+                                    }
+                                })
+                        .create();
         GsonUtil.setTypeAdapter(gson);
         this.config = gson.fromJson(gson.toJson(parameter), InfluxdbSourceConfig.class);
         config.setColumn(syncConf.getReader().getFieldList());
