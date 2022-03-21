@@ -63,7 +63,6 @@ public class InfluxdbColumnConverter
     private List<String> tags;
     private String timestamp;
     private TimeUnit precision;
-    private String measurement;
 
     public InfluxdbColumnConverter(RowType rowType) {
         super(rowType);
@@ -91,13 +90,11 @@ public class InfluxdbColumnConverter
     public InfluxdbColumnConverter(
             RowType rowType,
             FlinkxCommonConf commonConf,
-            String measurement,
             List<String> fieldNameList,
             List<String> tags,
             String timestamp,
             TimeUnit precision) {
         super(rowType, commonConf);
-        this.measurement = measurement;
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
                     wrapIntoNullableInternalConverter(
@@ -111,6 +108,18 @@ public class InfluxdbColumnConverter
         this.tags = tags;
         this.timestamp = timestamp;
         this.precision = precision;
+    }
+
+    @Override
+    protected ISerializationConverter<Point.Builder> wrapIntoNullableExternalConverter(
+            ISerializationConverter<Point.Builder> converter, LogicalType type) {
+        return (val, index, builder) -> {
+            if (val == null) {
+                return;
+            } else {
+                converter.serialize(val, index, builder);
+            }
+        };
     }
 
     @Override
@@ -227,7 +236,7 @@ public class InfluxdbColumnConverter
                 builder.time(value.getLong(index), precision);
                 return true;
             } else if (CollectionUtils.isNotEmpty(tags) && tags.contains(fieldName)) {
-                builder.tag(fieldName, value.getRawValue(index).toString());
+                builder.tag(fieldName, ((ColumnRowData) value).getField(index).asString());
                 return true;
             }
         }

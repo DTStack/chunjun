@@ -3,6 +3,7 @@ package com.dtstack.flinkx.connector.influxdb.conf;
 import com.dtstack.flinkx.sink.WriteMode;
 
 import java.util.List;
+import java.util.Locale;
 
 /** @Author xirang @Company Dtstack @Date: 2022/3/14 6:00 PM */
 public class InfluxdbSinkConfig extends InfluxdbConfig {
@@ -16,7 +17,7 @@ public class InfluxdbSinkConfig extends InfluxdbConfig {
     /** tags of the measurement */
     private List<String> tags;
 
-    private int batchSize = 10000;
+    private int bufferLimit = 10000;
 
     /** flush duration (ms) */
     private int flushDuration = 1000;
@@ -75,8 +76,20 @@ public class InfluxdbSinkConfig extends InfluxdbConfig {
         return writeMode;
     }
 
-    public void setWriteMode(WriteMode writeMode) {
-        this.writeMode = writeMode;
+    public void setWriteMode(String writeMode) {
+        switch (writeMode.toLowerCase(Locale.ENGLISH)) {
+            case "insert":
+                this.writeMode = WriteMode.INSERT;
+                break;
+            case "update":
+                this.writeMode = WriteMode.UPDATE;
+                break;
+            case "upsert":
+                this.writeMode = WriteMode.UPSERT;
+                break;
+            default:
+                this.writeMode = WriteMode.APPEND;
+        }
     }
 
     public List<String> getTags() {
@@ -87,14 +100,12 @@ public class InfluxdbSinkConfig extends InfluxdbConfig {
         this.tags = tags;
     }
 
-    @Override
-    public int getBatchSize() {
-        return batchSize;
+    public int getBufferLimit() {
+        return bufferLimit;
     }
 
-    @Override
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
+    public void setBufferLimit(int bufferLimit) {
+        this.bufferLimit = bufferLimit;
     }
 
     public String getPrecision() {
