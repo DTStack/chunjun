@@ -16,7 +16,28 @@ public class InfluxdbSinkConfig extends InfluxdbConfig {
     /** tags of the measurement */
     private List<String> tags;
 
-    private int batchSize = 5000;
+    private int batchSize = 10000;
+
+    /** flush duration (ms) */
+    private int flushDuration = 1000;
+
+    private boolean enableBatch = true;
+
+    public boolean isEnableBatch() {
+        return enableBatch;
+    }
+
+    public void setEnableBatch(boolean enableBatch) {
+        this.enableBatch = enableBatch;
+    }
+
+    public int getFlushDuration() {
+        return flushDuration;
+    }
+
+    public void setFlushDuration(int flushDuration) {
+        this.flushDuration = flushDuration;
+    }
 
     /** the name of timestamp field */
     private String timestamp;
@@ -27,6 +48,16 @@ public class InfluxdbSinkConfig extends InfluxdbConfig {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    private int writeTimeout = 5;
+
+    public int getWriteTimeout() {
+        return writeTimeout;
+    }
+
+    public void setWriteTimeout(int writeTimeout) {
+        this.writeTimeout = writeTimeout;
     }
 
     /** precision of Unix time */

@@ -1,15 +1,10 @@
 package com.dtstack.flinkx.connector.influxdb.sink;
 
-import com.dtstack.flinkx.conf.FieldConf;
-import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbConfig;
 import com.dtstack.flinkx.connector.influxdb.conf.InfluxdbSinkConfig;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormatBuilder;
 
 import org.apache.flink.util.CollectionUtil;
 import org.apache.flink.util.StringUtils;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /** @Author xirang @Company Dtstack @Date: 2022/3/14 2:57 PM */
 public class InfluxdbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
@@ -20,7 +15,7 @@ public class InfluxdbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         super.format = this.format = new InfluxdbOutputFormat();
     }
 
-    public void setInfluxdbConfig(InfluxdbConfig config) {
+    public void setInfluxdbConfig(InfluxdbSinkConfig config) {
         super.setConfig(config);
         format.setConfig(config);
     }
@@ -49,22 +44,7 @@ public class InfluxdbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         format.setMeasurement(measurement);
     }
 
-    public void setColumnMetaInfos(List<FieldConf> columnMetaInfos) {
-        if (columnMetaInfos != null && !columnMetaInfos.isEmpty()) {
-            List<String> names =
-                    columnMetaInfos.stream().map(FieldConf::getName).collect(Collectors.toList());
-            setColumnNames(names);
-            List<String> values =
-                    columnMetaInfos.stream().map(FieldConf::getType).collect(Collectors.toList());
-            setColumnTypes(values);
-        }
-    }
-
-    public void setColumnTypes(List<String> columnTypes) {
-        format.setColumnTypes(columnTypes);
-    }
-
-    public void setColumnNames(List<String> columnNames) {
-        format.setColumnNames(columnNames);
+    public void setEnableBatch(boolean enableBatch) {
+        format.setEnableBatch(enableBatch);
     }
 }
