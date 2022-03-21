@@ -18,17 +18,21 @@
 
 package com.dtstack.flinkx.connector.redis.converter;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.connector.redis.enums.RedisDataMode;
 import com.dtstack.flinkx.connector.redis.enums.RedisDataType;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
+import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import redis.clients.jedis.Jedis;
 
@@ -51,10 +55,27 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
     /** SimpleDateFormat */
     private SimpleDateFormat sdf;
 
+    /** The index of column can be used as a field when mode is hash and Column is not empty */
+    private List<Integer> fieldIndex = new ArrayList<>(2);
+
     public RedisColumnConverter(RedisConf redisConf) {
         this.redisConf = redisConf;
         if (StringUtils.isNotBlank(redisConf.getDateFormat())) {
             sdf = new SimpleDateFormat(redisConf.getDateFormat());
+        }
+        if (redisConf.getType() == RedisDataType.HASH
+                && CollectionUtils.isNotEmpty(redisConf.getColumn())) {
+            fieldIndex = new ArrayList<>(redisConf.getColumn().size());
+            for (int i = 0; i < redisConf.getColumn().size(); i++) {
+                if (!redisConf.isIndexFillHash()
+                        && CollectionUtils.isNotEmpty(redisConf.getKeyIndexes())) {
+                    if (!redisConf.getKeyIndexes().contains(i)) {
+                        fieldIndex.add(i);
+                    }
+                } else {
+                    fieldIndex.add(i);
+                }
+            }
         }
     }
 
@@ -83,11 +104,11 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
         } else if (type == RedisDataType.SET) {
             jedis.sadd(key, values);
         } else if (type == RedisDataType.Z_SET) {
-            List<Object> scoreValue = getFieldAndValue(row);
-            jedis.zadd(key, (Integer) scoreValue.get(0), String.valueOf(scoreValue.get(1)));
+            List<AbstractBaseColumn> scoreValue = getFieldAndValue(row);
+            jedis.zadd(key, scoreValue.get(0).asInt(), String.valueOf(scoreValue.get(1)));
         } else if (type == RedisDataType.HASH) {
-            List<Object> fieldValue = getFieldAndValue(row);
-            jedis.hset(key, String.valueOf(fieldValue.get(0)), String.valueOf(fieldValue.get(1)));
+            key = concatHashKey(row);
+            hashWrite(row, key, jedis);
         }
 
         if (redisConf.getExpireTime() > 0) {
@@ -102,22 +123,28 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
 
     private void processTimeFormat(ColumnRowData row) {
         for (int i = 0; i < row.getArity(); i++) {
-            if (row.getField(i) instanceof TimestampColumn) {
+            if (row.getField(i) instanceof TimestampColumn
+                    || row.getField(i) instanceof SqlDateColumn) {
                 if (StringUtils.isNotBlank(redisConf.getDateFormat())) {
                     row.setField(i, new StringColumn(sdf.format(row.getField(i).asDate())));
+                } else {
+                    row.setField(
+                            i,
+                            new StringColumn(
+                                    String.valueOf(row.getField(i).asTimestamp().getTime())));
                 }
             }
         }
     }
 
-    private List<Object> getFieldAndValue(ColumnRowData row) {
+    private List<AbstractBaseColumn> getFieldAndValue(ColumnRowData row) {
         if (row.getArity() - redisConf.getKeyIndexes().size()
                 != REDIS_KEY_VALUE_SIZE.defaultValue()) {
             throw new IllegalArgumentException(
                     "Each row record can have only one pair of attributes and values except key");
         }
 
-        List<Object> values = new ArrayList<>(row.getArity());
+        List<AbstractBaseColumn> values = new ArrayList<>(row.getArity());
         for (int i = 0; i < row.getArity(); i++) {
             values.add(row.getField(i));
         }
@@ -150,9 +177,38 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
         } else {
             List<String> keys = new ArrayList<>(redisConf.getKeyIndexes().size());
             for (Integer index : redisConf.getKeyIndexes()) {
-                keys.add(String.valueOf(row.getField(redisConf.getKeyIndexes().get(index))));
+                keys.add(String.valueOf(row.getField(index)));
             }
             return StringUtils.join(keys, redisConf.getKeyFieldDelimiter());
+        }
+    }
+
+    private String concatHashKey(ColumnRowData row) {
+        StringBuilder keyBuilder = new StringBuilder();
+        if (CollectionUtils.isNotEmpty(redisConf.getColumn())) {
+            if (StringUtils.isNotBlank(redisConf.getKeyPrefix())) {
+                keyBuilder
+                        .append(redisConf.getKeyPrefix())
+                        .append(redisConf.getKeyFieldDelimiter());
+            }
+        }
+        return keyBuilder.append(concatKey(row)).toString();
+    }
+
+    private void hashWrite(ColumnRowData row, String key, Jedis jedis) {
+        if (CollectionUtils.isNotEmpty(redisConf.getColumn())) {
+            for (int index : fieldIndex) {
+                FieldConf fieldConf = redisConf.getColumn().get(index);
+                String field = fieldConf.getName();
+                if (row.getField(index) != null) {
+                    jedis.hset(key, field, row.getField(index).asString());
+                }
+            }
+        } else {
+            List<AbstractBaseColumn> fieldValue = getFieldAndValue(row);
+            if (fieldValue.get(0) != null && fieldValue.get(1) != null) {
+                jedis.hset(key, fieldValue.get(0).asString(), fieldValue.get(1).asString());
+            }
         }
     }
 }

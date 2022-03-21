@@ -140,11 +140,7 @@ public class TicdcDeserializationSchema extends DynamicKafkaDeserializationSchem
             }
 
         } catch (Exception e) {
-            dirtyManager.collect(
-                    new String(record.value(), StandardCharsets.UTF_8),
-                    e,
-                    null,
-                    getRuntimeContext());
+            dirtyManager.collect(new String(record.value(), StandardCharsets.UTF_8), e, null);
         }
     }
 

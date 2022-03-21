@@ -57,14 +57,19 @@ public class GBaseDialect implements JdbcDialect {
         return Optional.of("com.gbase.jdbc.Driver");
     }
 
-    /** build select sql , such as (SELECT ? "A",? "B" FROM DUAL) */
+    /** build select sql , such as (SELECT :A "A",? "B" FROM DUAL) */
     public String buildDualQueryStatement(String[] column) {
-        StringBuilder sb = new StringBuilder("SELECT ");
-        String collect =
+        StringBuilder sb = new StringBuilder("SELECT count(1),");
+        String placeholders =
                 Arrays.stream(column)
-                        .map(col -> " ? " + quoteIdentifier(col))
+                        .map(f -> ":" + f + " as " + quoteIdentifier(f))
                         .collect(Collectors.joining(", "));
-        sb.append(collect);
+        //        String collect =
+        //                Arrays.stream(column)
+        //                        .map(col -> " ? " + quoteIdentifier(col))
+        //                        .collect(Collectors.joining(", "));
+        sb.append(placeholders);
+
         return sb.toString();
     }
 
@@ -82,6 +87,9 @@ public class GBaseDialect implements JdbcDialect {
                 .append(tableName)
                 .append(" T1 USING (")
                 .append(buildDualQueryStatement(fieldNames))
+                .append(" FROM ")
+                .append(tableName)
+                .append(" limit 1 ")
                 .append(") T2 ON (")
                 .append(buildEqualConditions(uniqueKeyFields))
                 .append(") ");
