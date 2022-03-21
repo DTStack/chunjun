@@ -27,17 +27,28 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
 
     private InfluxDB influxDB;
 
+    private List<String> columnNames;
+
+    private List<String> columnTypes;
+
     private List<String> tags;
 
     private String timestamp;
 
+    private String database;
+
+    private String measurement;
+
     private TimeUnit precision;
 
     @Override
-    protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {}
+    protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
+    }
 
     @Override
-    protected void writeMultipleRecordsInternal() throws Exception {}
+    protected void writeMultipleRecordsInternal() throws Exception {
+
+    }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) throws IOException {
@@ -70,7 +81,20 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
         return sinkConfig;
     }
 
-    public void setSinkConfig(InfluxdbSinkConfig sinkConfig) {
-        this.sinkConfig = sinkConfig;
+    public void setColumnNames(List<String> columnNames) {
+        this.columnNames = columnNames;
     }
+
+    public void setColumnTypes(List<String> columnTypes) {
+        this.columnTypes = columnTypes;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    public void setMeasurement(String measurement) {
+        this.measurement = measurement;
+    }
+
 }
