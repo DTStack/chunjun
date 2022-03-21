@@ -215,8 +215,7 @@ public class DynamicKafkaDeserializationSchema implements KafkaDeserializationSc
             }
             keyCollector.buffer.clear();
         } catch (Exception e) {
-            dirtyManager.collect(
-                    new String(record.value(), StandardCharsets.UTF_8), e, null, runtimeContext);
+            dirtyManager.collect(new String(record.value(), StandardCharsets.UTF_8), e, null);
         }
     }
 

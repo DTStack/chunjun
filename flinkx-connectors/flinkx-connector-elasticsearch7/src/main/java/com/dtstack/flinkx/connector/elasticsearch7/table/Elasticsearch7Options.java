@@ -32,8 +32,8 @@ public class Elasticsearch7Options {
     public static final ConfigOption<Integer> CLIENT_CONNECT_TIMEOUT_OPTION =
             ConfigOptions.key("client.connect-timeout")
                     .intType()
-                    .defaultValue(1000)
-                    .withDescription("Elasticsearch client max connect timeout. default: 1000 ms");
+                    .defaultValue(5000)
+                    .withDescription("Elasticsearch client max connect timeout. default: 5000 ms");
 
     public static final ConfigOption<Integer> CLIENT_SOCKET_TIMEOUT_OPTION =
             ConfigOptions.key("client.socket-timeout")
@@ -45,9 +45,9 @@ public class Elasticsearch7Options {
     public static final ConfigOption<Integer> CLIENT_KEEPALIVE_TIME_OPTION =
             ConfigOptions.key("client.keep-alive-time")
                     .intType()
-                    .defaultValue(1000)
+                    .defaultValue(5000)
                     .withDescription(
-                            "Elasticsearch client connection max keepAlive time. default: 1000 ms");
+                            "Elasticsearch client connection max keepAlive time. default: 5000 ms");
 
     public static final ConfigOption<Integer> CLIENT_REQUEST_TIMEOUT_OPTION =
             ConfigOptions.key("client.request-timeout")
@@ -61,5 +61,5 @@ public class Elasticsearch7Options {
                     .intType()
                     .defaultValue(10)
                     .withDescription(
-                            "Elasticsearch client connection assigns maximum connection per route value. default:10 ");
+                            "Elasticsearch client connection assigns maximum connection per route value. default:10");
 }

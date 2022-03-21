@@ -272,7 +272,7 @@ public class HiveUtil {
                 for (Map<String, Object> column : tableColumns) {
                     tableInfo.addColumnAndType(
                             MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY),
-                            MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE));
+                            convertType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE)));
                 }
                 String createTableSql = HiveUtil.getCreateTableHql(tableInfo);
                 tableInfo.setCreateTableSql(createTableSql);
@@ -281,6 +281,77 @@ public class HiveUtil {
             }
         }
         return tableInfos;
+    }
+
+    private static String convertType(String type) {
+        switch (type.toUpperCase()) {
+            case "BIT":
+            case "TINYINT":
+                type = "TINYINT";
+                break;
+            case "SMALLINT":
+                type = "SMALLINT";
+                break;
+            case "INT":
+            case "MEDIUMINT":
+            case "INTEGER":
+            case "YEAR":
+            case "INT2":
+            case "INT4":
+            case "INT8":
+                type = "INT";
+                break;
+            case "NUMERIC":
+            case "NUMBER":
+            case "BIGINT":
+                type = "BIGINT";
+                break;
+            case "REAL":
+            case "FLOAT":
+            case "FLOAT2":
+            case "FLOAT4":
+                type = "FLOAT";
+                break;
+            case "FLOAT8":
+            case "DOUBLE":
+            case "BINARY_DOUBLE":
+                type = "DOUBLE";
+                break;
+            case "DECIMAL":
+                type = "DECIMAL";
+                break;
+            case "STRING":
+            case "VARCHAR":
+            case "VARCHAR2":
+            case "CHAR":
+            case "CHARACTER":
+            case "NCHAR":
+            case "TINYTEXT":
+            case "TEXT":
+            case "MEDIUMTEXT":
+            case "LONGTEXT":
+            case "LONGVARCHAR":
+            case "LONGNVARCHAR":
+            case "NVARCHAR":
+            case "NVARCHAR2":
+                type = "STRING";
+                break;
+            case "BINARY":
+                type = "BINARY";
+                break;
+            case "BOOLEAN":
+                type = "BOOLEAN";
+                break;
+            case "DATE":
+                type = "DATE";
+                break;
+            case "TIMESTAMP":
+                type = "TIMESTAMP";
+                break;
+            default:
+                type = "STRING";
+        }
+        return type;
     }
 
     public static AbstractBaseColumn parseDataFromMap(Object data) {

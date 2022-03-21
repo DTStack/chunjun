@@ -88,8 +88,7 @@ public class RowSerializationSchema extends DynamicKafkaSerializationSchema {
                     null,
                     valueSerialized);
         } catch (Exception e) {
-            // todo kafka比较特殊，这里直接记录脏数据。
-            LOG.error(e.getMessage());
+            dirtyManager.collect(element, e, null);
         }
         return null;
     }
