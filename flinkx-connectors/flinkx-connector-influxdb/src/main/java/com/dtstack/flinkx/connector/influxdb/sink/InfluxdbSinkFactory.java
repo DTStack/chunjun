@@ -27,6 +27,8 @@ public class InfluxdbSinkFactory extends SinkFactory {
         Gson gson = new GsonBuilder().create();
         GsonUtil.setTypeAdapter(gson);
         this.influxdbConfig = gson.fromJson(gson.toJson(parameter), InfluxdbSinkConfig.class);
+        Object writeMode = parameter.get("writeMode");
+        influxdbConfig.setWriteMode(writeMode == null ? null : writeMode.toString());
         influxdbConfig.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(influxdbConfig);
     }

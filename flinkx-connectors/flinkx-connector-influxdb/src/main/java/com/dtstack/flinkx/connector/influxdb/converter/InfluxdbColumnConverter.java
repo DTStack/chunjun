@@ -114,7 +114,7 @@ public class InfluxdbColumnConverter
     protected ISerializationConverter<Point.Builder> wrapIntoNullableExternalConverter(
             ISerializationConverter<Point.Builder> converter, LogicalType type) {
         return (val, index, builder) -> {
-            if (val == null) {
+            if (val == null || val.isNullAt(index)) {
                 return;
             } else {
                 converter.serialize(val, index, builder);
