@@ -146,10 +146,11 @@ public class InfluxdbColumnConverter
 
     @Override
     public Point.Builder toExternal(RowData rowData, Point.Builder output) throws Exception {
-        Point.Builder builder = Point.measurement(measurement);
-        for (FieldConf fieldConf : fieldConfList) {}
-
-        return null;
+        for (int index = 0; index < rowData.getArity(); index++) {
+            if (!specicalField(fieldNameList.get(index), rowData, index, output))
+                toExternalConverters.get(index).serialize(rowData, index, output);
+        }
+        return output;
     }
 
     @Override
@@ -209,6 +210,10 @@ public class InfluxdbColumnConverter
             case BOOLEAN:
                 return (val, index, builder) -> {
                     builder.addField(fieldNameList.get(index), val.getBoolean(index));
+                };
+            case BIGINT:
+                return (val, index, builder) -> {
+                    // Only timstamp support be bigint,however it is processed in specicalField
                 };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
