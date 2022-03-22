@@ -80,7 +80,10 @@ public class InfluxdbQuerySqlBuilder {
                             .map(e -> quota(e.getName()))
                             .collect(Collectors.toList());
         } else {
-            selectColumns = fieldList;
+            selectColumns =
+                    fieldList.stream()
+                            .map(InfluxdbQuerySqlBuilder::quota)
+                            .collect(Collectors.toList());
         }
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT ").append(StringUtils.join(selectColumns, ",")).append(" FROM ");
