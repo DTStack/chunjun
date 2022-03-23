@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.lang.reflect.Field;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,7 +90,10 @@ public class OptionParser {
                 try (FileInputStream in = new FileInputStream(file)) {
                     byte[] fileContent = new byte[(int) file.length()];
                     in.read(fileContent);
-                    value = new String(fileContent, StandardCharsets.UTF_8);
+                    value =
+                            URLEncoder.encode(
+                                    new String(fileContent, StandardCharsets.UTF_8),
+                                    StandardCharsets.UTF_8.name());
                 }
             }
             args.add("-" + key);
