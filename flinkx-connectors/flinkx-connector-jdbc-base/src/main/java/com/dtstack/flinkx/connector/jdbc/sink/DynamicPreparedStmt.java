@@ -173,7 +173,7 @@ public class DynamicPreparedStmt {
 
     public void getColumnMeta(String schema, String table, Connection dbConn) {
         Pair<List<String>, List<String>> listListPair =
-                JdbcUtil.getTableMetaData(schema, table, dbConn);
+                JdbcUtil.getTableMetaData(null, schema, table, dbConn);
         List<String> nameList = listListPair.getLeft();
         List<String> typeList = listListPair.getRight();
         for (String columnName : columnNameList) {

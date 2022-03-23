@@ -15,30 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.flinkx.connector.db2.source;
+
+package com.dtstack.flinkx.connector.mysql.source;
 
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
-/**
- * Company: www.dtstack.com
- *
- * @author xuchao
- * @date 2021-06-15
- */
-public class Db2InputFormat extends JdbcInputFormat {
+public class MysqlInputFormat extends JdbcInputFormat {
 
-    @Override
+    /**
+     * for override. because some databases have case-sensitive metadata。
+     *
+     * @return
+     */
     protected Pair<List<String>, List<String>> getTableMetaData() {
-        return JdbcUtil.getTableMetaData(
-                null,
-                StringUtils.upperCase(jdbcConf.getSchema()),
-                StringUtils.upperCase(jdbcConf.getTable()),
-                dbConn);
+        return JdbcUtil.getTableMetaData(jdbcConf.getSchema(), null, jdbcConf.getTable(), dbConn);
     }
 }
