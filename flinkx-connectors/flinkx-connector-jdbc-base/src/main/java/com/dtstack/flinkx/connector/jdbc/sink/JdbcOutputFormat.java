@@ -150,7 +150,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
      * @return
      */
     protected Pair<List<String>, List<String>> getTableMetaData() {
-        return JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
+        return JdbcUtil.getTableMetaData(null, jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
     }
 
     /**
