@@ -57,12 +57,15 @@ public abstract class DistributedJdbcSourceFactory extends JdbcSourceFactory {
                     (StringUtils.isNotBlank(connectionConf.getPassword()))
                             ? connectionConf.getPassword()
                             : jdbcConf.getPassword();
+
+            String schema = connectionConf.getSchema();
             for (String table : connectionConf.getTable()) {
                 DataSourceConf dataSourceConf = new DataSourceConf();
                 dataSourceConf.setUserName(currentUsername);
                 dataSourceConf.setPassword(currentPassword);
                 dataSourceConf.setJdbcUrl(connectionConf.obtainJdbcUrl());
                 dataSourceConf.setTable(table);
+                dataSourceConf.setSchema(schema);
 
                 dataSourceConfList.add(dataSourceConf);
             }
