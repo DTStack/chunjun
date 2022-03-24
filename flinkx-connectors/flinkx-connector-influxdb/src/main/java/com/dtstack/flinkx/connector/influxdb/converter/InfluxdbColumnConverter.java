@@ -210,11 +210,11 @@ public class InfluxdbColumnConverter
                 };
             case FLOAT:
                 return (val, index, builder) -> {
-                    builder.addField(fieldNameList.get(index), val.getFloat(index));
+                    builder.addField(fieldNameList.get(index), val.getDouble(index));
                 };
             case INTEGER:
                 return (val, index, builder) -> {
-                    builder.addField(fieldNameList.get(index), val.getInt(index));
+                    builder.addField(fieldNameList.get(index), val.getLong(index));
                 };
             case BOOLEAN:
                 return (val, index, builder) -> {
@@ -236,7 +236,8 @@ public class InfluxdbColumnConverter
                 builder.time(value.getLong(index), precision);
                 return true;
             } else if (CollectionUtils.isNotEmpty(tags) && tags.contains(fieldName)) {
-                builder.tag(fieldName, ((ColumnRowData) value).getField(index).asString());
+                if (!value.isNullAt(index))
+                    builder.tag(fieldName, ((ColumnRowData) value).getField(index).asString());
                 return true;
             }
         }

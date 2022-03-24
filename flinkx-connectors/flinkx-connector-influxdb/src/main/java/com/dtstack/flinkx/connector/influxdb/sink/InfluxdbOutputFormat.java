@@ -7,6 +7,7 @@ import com.dtstack.flinkx.connector.influxdb.converter.InfluxdbRawTypeConverter;
 import com.dtstack.flinkx.connector.influxdb.enums.TimePrecisionEnums;
 import com.dtstack.flinkx.sink.format.BaseRichOutputFormat;
 import com.dtstack.flinkx.throwable.WriteRecordException;
+import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.TableUtil;
 
 import org.apache.flink.table.data.RowData;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -70,7 +72,7 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
             pointList.add(builder.build());
         }
         batchPoints.points(pointList);
-        influxDB.writeWithRetry(batchPoints.build());
+        influxDB.write(batchPoints.build());
     }
 
     @Override
@@ -118,9 +120,22 @@ public class InfluxdbOutputFormat extends BaseRichOutputFormat {
         if (!StringUtils.isNullOrWhitespaceOnly(rp)) influxDB.setRetentionPolicy(rp);
         if (enableBatch) {
             BatchOptions options = BatchOptions.DEFAULTS;
-            options.precision(precision);
-            options.bufferLimit(sinkConfig.getBufferLimit());
-            options.flushDuration(sinkConfig.getFlushDuration());
+            options =
+                    options.exceptionHandler(
+                                    (iterable, e) -> {
+                                        Iterator<Point> iterator = iterable.iterator();
+                                        while (iterator.hasNext()) {
+                                            dirtyManager.collect(iterator.next(), e, null);
+                                        }
+                                        if (LOG.isTraceEnabled()) {
+                                            LOG.trace(
+                                                    "write data error, e = {}",
+                                                    ExceptionUtil.getErrorMessage(e));
+                                        }
+                                    })
+                            .precision(precision)
+                            .bufferLimit(sinkConfig.getBufferLimit())
+                            .flushDuration(sinkConfig.getFlushDuration());
             influxDB.enableBatch(options);
         }
     }
