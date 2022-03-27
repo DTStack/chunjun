@@ -171,11 +171,8 @@ public class DynamicKafkaDeserializationSchema implements KafkaDeserializationSc
     }
 
     protected void beforeDeserialize(ConsumerRecord<byte[], byte[]> record) {
-        if (numReadCounter.getLocalValue() % dataPrintFrequency == 0) {
-            LOG.info("receive source data:" + new String(record.value(), StandardCharsets.UTF_8));
-        }
-
         if (record != null) {
+            LOG.info("receive source data:" + new String(record.value(), StandardCharsets.UTF_8));
             updateDuration();
             if (numReadCounter != null) {
                 numReadCounter.add(1);
