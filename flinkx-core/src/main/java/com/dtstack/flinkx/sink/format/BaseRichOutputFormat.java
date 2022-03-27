@@ -501,8 +501,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     protected synchronized void writeRecordInternal() {
         if (flushEnable.get()) {
             try {
+                LOG.info(
+                        "write rows count {} total records {}",
+                        rows.size(),
+                        numWriteCounter.getLocalValue());
                 writeMultipleRecordsInternal();
             } catch (Exception e) {
+                LOG.warn("write multi row fail, turn to single row write");
                 // 批量写异常转为单条写
                 rows.forEach(this::writeSingleRecord);
             } finally {
