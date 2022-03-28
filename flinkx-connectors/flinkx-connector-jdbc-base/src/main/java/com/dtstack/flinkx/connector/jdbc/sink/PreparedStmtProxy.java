@@ -164,7 +164,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             }
         } else {
             String key =
-                    getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), row.getRowKind());
+                    getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.INSERT);
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
                             key,
