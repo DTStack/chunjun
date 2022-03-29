@@ -42,6 +42,14 @@ public class SqlserverMicroSoftRawTypeConverter {
      * @throws UnsupportedTypeException
      */
     public static DataType apply(String type) throws UnsupportedTypeException {
+        // like numeric() identity, decimal() identity
+        if (type.contains("identity")) {
+            type = type.replace("identity", "").trim();
+            if (type.endsWith("()")) {
+                type = type.replace("()", "").trim();
+            }
+        }
+
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
                 return DataTypes.BOOLEAN();
