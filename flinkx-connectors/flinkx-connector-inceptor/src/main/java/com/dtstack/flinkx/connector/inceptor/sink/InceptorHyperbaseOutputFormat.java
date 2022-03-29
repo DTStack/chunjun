@@ -28,7 +28,6 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.PluginUtil;
 
 import org.apache.flink.api.common.cache.DistributedCache;
-import org.apache.flink.api.common.functions.RuntimeContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
