@@ -19,7 +19,13 @@
 package com.dtstack.flinkx.connector.inceptor.util;
 
 import com.dtstack.flinkx.connector.inceptor.conf.InceptorConf;
+import com.dtstack.flinkx.connector.inceptor.dialect.InceptorDialect;
+import com.dtstack.flinkx.connector.inceptor.dialect.InceptorHdfsDialect;
+import com.dtstack.flinkx.connector.inceptor.dialect.InceptorHyperbaseDialect;
+import com.dtstack.flinkx.connector.inceptor.dialect.InceptorSearchDialect;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.security.KerberosUtil;
+import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.FileSystemUtil;
 import com.dtstack.flinkx.util.RetryUtil;
@@ -35,7 +41,10 @@ import org.slf4j.LoggerFactory;
 import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -61,6 +70,19 @@ public final class InceptorDbUtil {
     public static final String INCEPTOR_TRANSACTION_BEGIN = "BEGIN TRANSACTION";
     public static final String INCEPTOR_TRANSACTION_COMMIT = "COMMIT";
     public static final String INCEPTOR_TRANSACTION_ROLLBACK = "ROLLBACK";
+
+    public static final String INCEPTOR_HYPERBASE_STORAGE_HANDLER = "HyperdriveStorageHandler";
+    public static final String INCEPTOR_HBASE_STORAGE_HANDLER = "HBaseStorageHandler";
+    public static final String INCEPTOR_SEARCH_STORAGE_HANDLER = "ElasticSearchStorageHandler";
+
+    public static final String INCEPROE_SHOW_DESCRIBE_FORMAT = "describe formatted %s";
+
+    public static final ThreadLocal<TimeZone> LOCAL_TIMEZONE =
+            new ThreadLocal<TimeZone>() {
+                protected TimeZone initialValue() {
+                    return Calendar.getInstance().getTimeZone();
+                }
+            };
 
     private InceptorDbUtil() {}
 
@@ -92,7 +114,7 @@ public final class InceptorDbUtil {
 
         String principal =
                 KerberosUtil.getPrincipal(connectionInfo.getHadoopConfig(), keytabFileName);
-        KerberosUtil.loadKrb5Conf(connectionInfo.getHadoopConfig(), distributedCache, jobId);
+        KerberosUtil.loadKrb5Conf(connectionInfo.getHadoopConfig(), distributedCache);
 
         Configuration conf =
                 FileSystemUtil.getConfiguration(connectionInfo.getHadoopConfig(), null);
@@ -160,6 +182,53 @@ public final class InceptorDbUtil {
                             + ExceptionUtil.getErrorMessage(e1));
         } finally {
             lock.unlock();
+        }
+    }
+
+    public static InceptorDialect getDialectWithDriverType(JdbcConf jdbcConf) {
+        String storageHandler = getTableStorageHandler(jdbcConf);
+        storageHandler = storageHandler.substring(storageHandler.lastIndexOf(".") + 1);
+        switch (storageHandler) {
+            case INCEPTOR_HYPERBASE_STORAGE_HANDLER:
+            case INCEPTOR_HBASE_STORAGE_HANDLER:
+                return new InceptorHyperbaseDialect();
+            case INCEPTOR_SEARCH_STORAGE_HANDLER:
+                return new InceptorSearchDialect();
+            default:
+                return new InceptorHdfsDialect();
+        }
+    }
+
+    public static String getTableStorageHandler(JdbcConf jdbcConf) {
+        Connection connection = getConnection((InceptorConf) jdbcConf, null, null);
+        String schema = jdbcConf.getSchema();
+        String table = jdbcConf.getTable();
+
+        String storageHandler = "";
+        try {
+            connection.createStatement().execute(String.format("use %s", schema));
+            String sql = String.format(INCEPROE_SHOW_DESCRIBE_FORMAT, table);
+            ResultSet resultSet = connection.createStatement().executeQuery(sql);
+            while (resultSet.next()) {
+                if (resultSet.getString(1).trim().equalsIgnoreCase("storage_handler")) {
+                    storageHandler = resultSet.getString(2);
+                    break;
+                }
+            }
+            return storageHandler;
+        } catch (SQLException e) {
+            throw new FlinkxRuntimeException(
+                    String.format("failed to get table[%s] storage handler", table), e);
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                if (connection != null) {
+                    connection = null;
+                }
+            }
         }
     }
 }
