@@ -35,12 +35,11 @@ import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.GsonUtil;
 
-import org.apache.commons.collections.CollectionUtils;
-
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Connection;
@@ -90,10 +89,10 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         List<EventRowData> beforeColumnList = eventRow.getBeforeColumnList();
 
         // 如果缓存为空 或者 长度变了 或者名字变了  重新更新缓存
-        if(CollectionUtils.isEmpty(converters)){
+        if (CollectionUtils.isEmpty(converters)) {
             updateCache(schema, table, key, tableMetaDataCacheMap, beforeColumnList, converters);
             converters = super.cdcConverterCacheMap.get(key);
-            if(CollectionUtils.isEmpty(converters)){
+            if (CollectionUtils.isEmpty(converters)) {
                 throw new RuntimeException("get converters is null key is " + key);
             }
         }
@@ -144,7 +143,7 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
 
         if (split) {
             dealEventRowSplit(columnRowData, metadata, eventRow, result);
-        } else{
+        } else {
             columnRowData.setRowKind(getRowKindByType(eventType));
             columnRowData.addField(new StringColumn(eventType));
             columnRowData.addHeader(CDCConstantValue.TYPE);
@@ -155,7 +154,6 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
 
             result.add(columnRowData);
         }
-
 
         return result;
     }
