@@ -73,10 +73,13 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
     private CloudSolrClient cloudSolrClient;
     private Subject subject;
     private DistributedCache distributedCache;
+    private String jobId;
 
-    public CloudSolrClientKerberosWrapper(SolrConf solrConf, DistributedCache distributedCache) {
+    public CloudSolrClientKerberosWrapper(
+            SolrConf solrConf, DistributedCache distributedCache, String jobId) {
         this.solrConf = solrConf;
         this.distributedCache = distributedCache;
+        this.jobId = jobId;
     }
 
     public void init() {
@@ -190,7 +193,7 @@ public class CloudSolrClientKerberosWrapper extends SolrClient {
             KerberosUtil.checkFileExists(filePath);
             return filePath;
         } catch (Exception e) {
-            return KerberosUtil.loadFile(kerberosConfigMap, filePath, distributedCache);
+            return KerberosUtil.loadFile(kerberosConfigMap, filePath, distributedCache, jobId);
         }
     }
 

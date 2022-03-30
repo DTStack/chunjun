@@ -59,6 +59,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import static com.dtstack.flinkx.enums.ColumnType.TIMESTAMPTZ;
+
 /**
  * InputFormat for reading data from a database and generate Rows.
  *
@@ -244,6 +246,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 Object obj;
                 switch (type) {
                     case TIMESTAMP:
+                    case DATETIME:
+                    case TIMESTAMPTZ:
                     case DATE:
                         obj = resultSet.getTimestamp(jdbcConf.getIncreColumn()).getTime();
                         break;
@@ -333,8 +337,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             customReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
             customReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
         }
-        getRuntimeContext().addAccumulator(start, startLocationAccumulator);
-        getRuntimeContext().addAccumulator(end, endLocationAccumulator);
+        if (getRuntimeContext().getAccumulator(Metrics.START_LOCATION) == null) {
+            getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
+        }
+        if (getRuntimeContext().getAccumulator(Metrics.END_LOCATION) == null) {
+            getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
+        }
     }
 
     /**
@@ -561,7 +569,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             String incrementColType, String incrementCol, String location, String operator) {
         String endTimeStr;
         String endLocationSql;
-
+        ColumnType type = ColumnType.fromString(incrementColType);
+        if (type == TIMESTAMPTZ) {
+            return String.valueOf(Timestamp.valueOf(location).getTime());
+        }
         if (ColumnType.isTimeType(incrementColType)) {
             endTimeStr = getTimeStr(Long.parseLong(location));
             endLocationSql = incrementCol + operator + endTimeStr;
@@ -609,6 +620,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         boolean isNumber = StringUtils.isNumeric(startLocation);
         switch (type) {
             case TIMESTAMP:
+            case TIMESTAMPTZ:
+            case DATETIME:
                 Timestamp ts =
                         isNumber
                                 ? new Timestamp(Long.parseLong(startLocation))
@@ -787,7 +800,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      *
      * @throws SQLException
      */
-    private void queryStartLocation() throws SQLException {
+    protected void queryStartLocation() throws SQLException {
         ps = dbConn.prepareStatement(jdbcConf.getQuerySql(), resultSetType, resultSetConcurrency);
         ps.setFetchSize(jdbcConf.getFetchSize());
         ps.setQueryTimeout(jdbcConf.getQueryTimeOut());

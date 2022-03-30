@@ -19,14 +19,20 @@ package com.dtstack.flinkx.connector.pgwal.source;
 
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.pgwal.conf.PGWalConf;
+import com.dtstack.flinkx.connector.pgwal.converter.PGWalColumnConverter;
+import com.dtstack.flinkx.connector.pgwal.converter.PGWalRowConverter;
 import com.dtstack.flinkx.connector.pgwal.inputformat.PGWalInputFormatBuilder;
+import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.TableUtil;
 
+import org.apache.flink.formats.json.TimestampFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
 /** */
 public class PgwalSourceFactory extends SourceFactory {
@@ -45,16 +51,16 @@ public class PgwalSourceFactory extends SourceFactory {
     @Override
     public DataStream<RowData> createSource() {
         PGWalInputFormatBuilder builder = new PGWalInputFormatBuilder();
-        //        builder.setConf(conf);
-        //        AbstractCDCRowConverter rowConverter;
-        //        if (useAbstractBaseColumn) {
-        //            rowConverter = new PGWalColumnConverter(conf.isPavingData(), false);
-        //        } else {
-        //            final RowType rowType = (RowType)
-        // TableUtil.getDataType(conf.getColumn()).getLogicalType();
-        //            rowConverter = new PGWalRowConverter(rowType, TimestampFormat.SQL);
-        //        }
-        //        builder.setRowConverter(rowConverter);
+        builder.setConf(conf);
+        AbstractCDCRowConverter rowConverter;
+        if (useAbstractBaseColumn) {
+            rowConverter = new PGWalColumnConverter(conf.isPavingData(), false);
+        } else {
+            final RowType rowType =
+                    TableUtil.createRowType(conf.getColumn(), getRawTypeConverter());
+            rowConverter = new PGWalRowConverter(rowType, TimestampFormat.SQL);
+        }
+        builder.setRowConverter(rowConverter);
         return createInput(builder.finish());
     }
 

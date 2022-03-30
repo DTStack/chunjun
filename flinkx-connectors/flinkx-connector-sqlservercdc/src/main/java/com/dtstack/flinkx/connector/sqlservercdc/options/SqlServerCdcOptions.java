@@ -74,4 +74,15 @@ public class SqlServerCdcOptions {
                     .longType()
                     .defaultValue(1000L)
                     .withDescription("SqlServer pollInterval.");
+    public static final ConfigOption<Boolean> AUTO_COMMIT =
+            ConfigOptions.key("auto-commit")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("auto-commit.");
+
+    public static final ConfigOption<Boolean> AUTO_RESET_CONNECTION =
+            ConfigOptions.key("auto_reset_connection")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("auto_reset_connection.");
 }

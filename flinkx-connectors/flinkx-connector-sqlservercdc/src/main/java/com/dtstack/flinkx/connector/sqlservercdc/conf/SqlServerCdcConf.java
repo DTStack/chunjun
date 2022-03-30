@@ -42,6 +42,24 @@ public class SqlServerCdcConf extends FlinkxCommonConf {
     private boolean splitUpdate;
     private String timestampFormat = "sql";
     private List<FieldConf> column;
+    private boolean autoCommit = false;
+    private boolean autoResetConnection = false;
+
+    public boolean isAutoCommit() {
+        return autoCommit;
+    }
+
+    public void setAutoCommit(boolean autoCommit) {
+        this.autoCommit = autoCommit;
+    }
+
+    public boolean isAutoResetConnection() {
+        return autoResetConnection;
+    }
+
+    public void setAutoResetConnection(boolean autoResetConnection) {
+        this.autoResetConnection = autoResetConnection;
+    }
 
     public String getTimestampFormat() {
         return timestampFormat;

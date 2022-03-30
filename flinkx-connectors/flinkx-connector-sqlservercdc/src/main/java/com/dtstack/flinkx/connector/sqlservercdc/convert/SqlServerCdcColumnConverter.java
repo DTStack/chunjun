@@ -29,6 +29,7 @@ import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
+import com.dtstack.flinkx.element.column.NullColumn;
 import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimeColumn;
@@ -250,7 +251,7 @@ public class SqlServerCdcColumnConverter
                         (AbstractBaseColumn) converters.get(i).deserialize(data[i]);
                 columnList.add(column);
             } else {
-                columnList.add(null);
+                columnList.add(new NullColumn());
             }
         }
     }

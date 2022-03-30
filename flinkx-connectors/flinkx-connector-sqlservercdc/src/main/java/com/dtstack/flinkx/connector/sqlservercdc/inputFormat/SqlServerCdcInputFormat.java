@@ -95,7 +95,7 @@ public class SqlServerCdcInputFormat extends BaseRichInputFormat {
                             sqlserverCdcConf.getUrl(),
                             sqlserverCdcConf.getUsername(),
                             sqlserverCdcConf.getPassword());
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(sqlserverCdcConf.isAutoCommit());
             SqlServerCdcUtil.changeDatabase(conn, sqlserverCdcConf.getDatabaseName());
 
             if (StringUtils.isNotBlank(sqlserverCdcConf.getLsn())) {

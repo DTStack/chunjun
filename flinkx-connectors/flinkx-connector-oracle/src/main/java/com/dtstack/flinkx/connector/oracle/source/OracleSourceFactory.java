@@ -21,9 +21,12 @@ package com.dtstack.flinkx.connector.oracle.source;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcSourceFactory;
+import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.oracle.dialect.OracleDialect;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import java.util.Properties;
 
 /**
  * company www.dtstack.com
@@ -39,5 +42,20 @@ public class OracleSourceFactory extends JdbcSourceFactory {
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
         return new JdbcInputFormatBuilder(new OracleInputFormat());
+    }
+
+    @Override
+    protected void rebuildJdbcConf() {
+        super.rebuildJdbcConf();
+
+        Properties properties = new Properties();
+        if (jdbcConf.getConnectTimeOut() != 0) {
+            properties.put(
+                    "oracle.jdbc.ReadTimeout", String.valueOf(jdbcConf.getConnectTimeOut() * 1000));
+            properties.put(
+                    "oracle.net.CONNECT_TIMEOUT",
+                    String.valueOf((jdbcConf.getConnectTimeOut()) * 1000));
+        }
+        JdbcUtil.putExtParam(jdbcConf, properties);
     }
 }

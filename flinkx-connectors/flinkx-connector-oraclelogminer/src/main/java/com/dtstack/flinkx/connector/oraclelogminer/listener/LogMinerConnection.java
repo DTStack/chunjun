@@ -749,6 +749,18 @@ public class LogMinerConnection {
                 String redo = sqlRedo.toString();
                 String hexStr = new String(Hex.encodeHex(redo.getBytes("GBK")));
                 boolean hasChange = false;
+
+                // delete 条件不以'结尾 如 where id = '1 以?结尾的需要加上'
+                if (operationCode == 2 && hexStr.endsWith("3f")) {
+                    LOG.info(
+                            "current scn is: {},\noriginal redo sql is: {},\nhex redo string is: {}",
+                            scn,
+                            redo,
+                            hexStr);
+                    hexStr = hexStr + "27";
+                    hasChange = true;
+                }
+
                 if (operationCode == 1 && hexStr.contains("3f2c")) {
                     LOG.info(
                             "current scn is: {},\noriginal redo sql is: {},\nhex redo string is: {}",

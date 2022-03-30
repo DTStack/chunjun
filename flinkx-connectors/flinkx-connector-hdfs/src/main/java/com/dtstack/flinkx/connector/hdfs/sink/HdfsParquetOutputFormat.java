@@ -33,6 +33,7 @@ import com.dtstack.flinkx.util.FileSystemUtil;
 
 import org.apache.flink.table.data.RowData;
 
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.parquet.column.ParquetProperties;
@@ -50,6 +51,7 @@ import org.apache.parquet.schema.Types;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +70,9 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
     private SimpleGroupFactory groupFactory;
     private ParquetWriter<Group> writer;
     private MessageType schema;
+
+    public static final byte[] MAGIC = "PAR1".getBytes(Charset.forName("ASCII"));
+    public static int PARQUET_FOOTER_LENGTH_SIZE = 4;
 
     @Override
     protected void openSource() {
@@ -130,7 +135,8 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                         FileSystemUtil.getUGI(
                                 hdfsConf.getHadoopConfig(),
                                 hdfsConf.getDefaultFS(),
-                                getRuntimeContext().getDistributedCache());
+                                getRuntimeContext().getDistributedCache(),
+                                jobId);
                 ugi.doAs(
                         (PrivilegedAction<Object>)
                                 () -> {
@@ -290,5 +296,19 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
         }
 
         return typeBuilder.named("Pair");
+    }
+
+    @Override
+    protected boolean filterFile(FileStatus fileStatus) {
+        if (fileStatus.getLen()
+                < (long) (MAGIC.length + PARQUET_FOOTER_LENGTH_SIZE + MAGIC.length)) {
+            LOG.warn(
+                    "file {} has filter,because file len [{}] less than [{}] ",
+                    fileStatus.getPath(),
+                    fileStatus.getLen(),
+                    (long) (MAGIC.length + PARQUET_FOOTER_LENGTH_SIZE + MAGIC.length));
+            return true;
+        }
+        return false;
     }
 }

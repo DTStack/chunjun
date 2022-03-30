@@ -44,6 +44,13 @@ public class SinkOptions {
                             "the flush interval mills, over this time, asynchronous threads will flush data. The "
                                     + "default value is 1s.");
 
+    public static final ConfigOption<Integer> SINK_CONNECTION_QUERY_TIMEOUT =
+            ConfigOptions.key("sink.connection-timeout")
+                    .intType()
+                    .defaultValue(0)
+                    .withDescription(
+                            "The new connection timeout limit in seconds; zero means there is no limit; Default value 0s");
+
     public static final ConfigOption<Integer> SINK_MAX_RETRIES =
             ConfigOptions.key("sink.max-retries")
                     .intType()

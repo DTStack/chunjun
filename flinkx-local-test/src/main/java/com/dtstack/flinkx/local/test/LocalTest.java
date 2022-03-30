@@ -25,11 +25,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +68,7 @@ public class LocalTest {
             argsList.add("-jobType");
             argsList.add("sync");
             argsList.add("-job");
-            argsList.add(content);
+            argsList.add(URLEncoder.encode(content, StandardCharsets.UTF_8.name()));
 //            argsList.add("-flinkConfDir");
 //            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
 //            argsList.add("-confProp");
@@ -97,7 +102,7 @@ public class LocalTest {
             argsList.add("-jobType");
             argsList.add("sql");
             argsList.add("-job");
-            argsList.add(content);
+            argsList.add(URLEncoder.encode(content, StandardCharsets.UTF_8.name()));
 //            argsList.add("-flinkConfDir");
 //            argsList.add("/opt/dtstack/flink-1.12.2/conf/");
             argsList.add("-jobName");
@@ -158,8 +163,21 @@ public class LocalTest {
             argsList.add(configJsonString);
             /* ---------------------------------------- pyFlink 测试 end --------------------------------------- */
         }
-
-        Main.main(argsList.toArray(new String[0]));
+        // 防止加载flinkx-connector-kafka/target/classes/META-INF/services/下的spi文件
+        URLClassLoader contextClassLoader =
+                (URLClassLoader) Thread.currentThread().getContextClassLoader();
+        URL[] urls =
+                Arrays.stream(contextClassLoader.getURLs())
+                        .filter(URL -> !URL.getPath().contains("flinkx-connector-kafka"))
+                        .toArray(URL[]::new);
+        URLClassLoader urlClassLoader = new URLClassLoader(urls, contextClassLoader.getParent());
+        Thread.currentThread().setContextClassLoader(urlClassLoader);
+        Class<Main> mainClass =
+                (Class<Main>) Class.forName(Main.class.getName(), false, urlClassLoader);
+        Constructor<?> constructor = mainClass.getConstructor();
+        Object mainObject = constructor.newInstance();
+        Method mainMethod = mainClass.getMethod("main", String[].class);
+        mainMethod.invoke(mainObject, (Object) argsList.toArray(new String[0]));
     }
 
     private static String readFile(String sqlPath) {

@@ -39,6 +39,7 @@
 		<module>flinkx-connector-clickhouse</module>
 		<module>flinkx-connector-saphana</module>
 		<module>flinkx-connector-doris</module>
+		<module>flinkx-connector-influxdb</module>
 
 
 		<!--File-->
@@ -47,7 +48,7 @@
         <module>flinkx-connector-ftp</module>
         <module>flinkx-connector-hdfs</module>
         <module>flinkx-connector-hive</module>
-<!--        <module>flinkx-connector-inceptor</module>-->
+        <module>flinkx-connector-inceptor</module>
 
 		<!--NoSql-->
 		<module>flinkx-connector-hbase-base</module>

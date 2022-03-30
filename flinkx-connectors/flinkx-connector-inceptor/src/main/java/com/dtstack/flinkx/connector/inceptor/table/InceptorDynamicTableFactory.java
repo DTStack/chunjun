@@ -177,7 +177,7 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
         List<String> keyFields =
                 schema.getPrimaryKey().map(UniqueConstraint::getColumns).orElse(null);
         inceptorConf.setUniqueKey(keyFields);
-        resetTableInfo(inceptorConf);
+        rebuildJdbcConf(inceptorConf);
         JdbcUtil.putExtParam(inceptorConf);
         return inceptorConf;
     }
@@ -228,7 +228,7 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
                             : readableConfig.get(SCAN_FETCH_SIZE));
         }
 
-        resetTableInfo(jdbcConf);
+        rebuildJdbcConf(jdbcConf);
         return jdbcConf;
     }
 

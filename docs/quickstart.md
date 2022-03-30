@@ -3,12 +3,12 @@
 1.使用git工具把项目clone到本地
 
 ```
-git clone https://github.com/DTStack/flinkx.git
-cd flinkx
+git clone https://github.com/DTStack/chunjun.git
+cd chunjun
 ```
 
 ## 编译插件
-在flinkx home目录下执行
+在chunjun home目录下执行
 
 ```bash
 mvn clean package -DskipTests 

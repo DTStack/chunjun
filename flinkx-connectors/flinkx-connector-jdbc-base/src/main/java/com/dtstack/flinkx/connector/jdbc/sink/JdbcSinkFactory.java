@@ -23,6 +23,7 @@ import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
@@ -53,6 +54,8 @@ import java.util.Properties;
  */
 public abstract class JdbcSinkFactory extends SinkFactory {
 
+    private static final int DEFAULT_CONNECTION_TIMEOUT = 600;
+
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
@@ -63,6 +66,8 @@ public abstract class JdbcSinkFactory extends SinkFactory {
                 new GsonBuilder()
                         .registerTypeAdapter(
                                 ConnectionConf.class, new ConnectionAdapter("SinkConnectionConf"))
+                        .addDeserializationExclusionStrategy(
+                                new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), JdbcConf.class);
@@ -91,6 +96,11 @@ public abstract class JdbcSinkFactory extends SinkFactory {
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         JdbcOutputFormatBuilder builder = getBuilder();
+
+        int connectTimeOut = jdbcConf.getConnectTimeOut();
+        jdbcConf.setConnectTimeOut(
+                connectTimeOut == 0 ? DEFAULT_CONNECTION_TIMEOUT : connectTimeOut);
+
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
 

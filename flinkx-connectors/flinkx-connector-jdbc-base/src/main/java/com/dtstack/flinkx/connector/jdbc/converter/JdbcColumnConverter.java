@@ -140,16 +140,16 @@ public class JdbcColumnConverter
                             }
                         };
             case FLOAT:
-                return val -> new BigDecimalColumn((Float) val);
+                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).floatValue());
             case DOUBLE:
-                return val -> new BigDecimalColumn((Double) val);
+                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).doubleValue());
             case BIGINT:
-                return val -> new BigDecimalColumn((Long) val);
+                return val -> new BigDecimalColumn((new BigDecimal(val.toString()).longValue()));
             case DECIMAL:
-                return val -> new BigDecimalColumn((BigDecimal) val);
+                return val -> new BigDecimalColumn(new BigDecimal(val.toString()));
             case CHAR:
             case VARCHAR:
-                return val -> new StringColumn((String) val);
+                return val -> new StringColumn(val.toString());
             case DATE:
                 return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:

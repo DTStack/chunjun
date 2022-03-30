@@ -22,20 +22,32 @@ import com.dtstack.flinkx.connector.inceptor.dialect.InceptorDialect;
 import com.dtstack.flinkx.connector.inceptor.util.InceptorDbUtil;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
+import com.dtstack.flinkx.element.ColumnRowData;
+import com.dtstack.flinkx.enums.Semantic;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.GsonUtil;
 
+import org.apache.flink.streaming.api.CheckpointingMode;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 /**
@@ -58,11 +70,55 @@ public class InceptorOutputFormat extends JdbcOutputFormat {
     // 当前分区
     private String currentPartition;
 
+    // 是否是事务表
+    private boolean isTransactionTable;
+
+    // 当前事务是否已开启
+    private volatile boolean transactionStart;
+
+    protected Statement statement;
+
+    @Override
+    public void open(int taskNumber, int numTasks) throws IOException {
+        super.open(taskNumber, numTasks);
+        if (isTransactionTable) {
+            super.checkpointMode = CheckpointingMode.EXACTLY_ONCE;
+            super.semantic = Semantic.EXACTLY_ONCE;
+        }
+    }
+
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) {
+        try {
+            partitionFormat = getPartitionFormat();
+            dbConn = getConnection();
+            statement = dbConn.createStatement();
+            // use database
+            if (StringUtils.isNotBlank(jdbcConf.getSchema())) {
+                statement.execute(
+                        String.format("USE %s", jdbcDialect.quoteTable(jdbcConf.getSchema())));
+            }
+            initColumnList();
+            switchNextPartiiton(new Date());
+            isTransactionTable = isTransactionTable();
+            LOG.info("subTask[{}}] wait finished", taskNumber);
+        } catch (SQLException throwables) {
+            throw new IllegalArgumentException("open() failed.", throwables);
+        } finally {
+            JdbcUtil.commit(dbConn);
+        }
+    }
+
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         int index = 0;
         try {
             switchNextPartiiton(new Date());
+            if (!transactionStart) {
+                statement.execute(InceptorDbUtil.INCEPTOR_TRANSACTION_TYPE);
+                statement.execute(InceptorDbUtil.INCEPTOR_TRANSACTION_BEGIN);
+                transactionStart = true;
+            }
             stmtProxy.writeSingleRecordInternal(rowData);
         } catch (Exception e) {
             processWriteException(e, index, rowData);
@@ -70,15 +126,53 @@ public class InceptorOutputFormat extends JdbcOutputFormat {
     }
 
     @Override
+    public void preCommit() throws Exception {
+        if (jdbcConf.getRestoreColumnIndex() > -1) {
+            Object state;
+            if (lastRow instanceof GenericRowData) {
+                state = ((GenericRowData) lastRow).getField(jdbcConf.getRestoreColumnIndex());
+            } else if (lastRow instanceof ColumnRowData) {
+                state =
+                        ((ColumnRowData) lastRow)
+                                .getField(jdbcConf.getRestoreColumnIndex())
+                                .asString();
+            } else {
+                LOG.warn("can't get [{}] from lastRow:{}", jdbcConf.getRestoreColumn(), lastRow);
+                state = null;
+            }
+            formatState.setState(state);
+        }
+
+        if (rows != null && rows.size() > 0) {
+            int size = rows.size();
+            super.writeRecordInternal();
+            numWriteCounter.add(size);
+        } else {
+            stmtProxy.executeBatch();
+        }
+    }
+
+    @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         try {
             switchNextPartiiton(new Date());
+            if (!transactionStart) {
+                Statement statement = dbConn.createStatement();
+                statement.execute(InceptorDbUtil.INCEPTOR_TRANSACTION_TYPE);
+                statement.execute(InceptorDbUtil.INCEPTOR_TRANSACTION_BEGIN);
+                transactionStart = true;
+            }
             for (RowData row : rows) {
                 stmtProxy.convertToExternal(row);
                 stmtProxy.addBatch();
                 lastRow = row;
             }
             stmtProxy.executeBatch();
+
+            // 开启了cp，但是并没有使用2pc方式让下游数据可见
+            if (Semantic.EXACTLY_ONCE == semantic) {
+                rowsOfCurrentTransaction += rows.size();
+            }
         } catch (Exception e) {
             LOG.warn(
                     "write Multiple Records error, start to rollback connection, first row = {}",
@@ -92,20 +186,33 @@ public class InceptorOutputFormat extends JdbcOutputFormat {
     }
 
     @Override
-    protected void openInternal(int taskNumber, int numTasks) {
+    public void commit(long checkpointId) throws Exception {
         try {
-            partitionFormat = getPartitionFormat();
-            dbConn = getConnection();
-            // 默认关闭事务自动提交，手动控制事务
-            // dbConn.setAutoCommit(false);
+            if (transactionStart) {
+                Statement statement = dbConn.createStatement();
+                statement.execute(InceptorDbUtil.INCEPTOR_TRANSACTION_COMMIT);
+            }
 
-            initColumnList();
-            switchNextPartiiton(new Date());
-            LOG.info("subTask[{}}] wait finished", taskNumber);
-        } catch (SQLException throwables) {
-            throw new IllegalArgumentException("open() failed.", throwables);
+            snapshotWriteCounter.add(rowsOfCurrentTransaction);
+            rowsOfCurrentTransaction = 0;
+            stmtProxy.clearBatch();
+        } catch (Exception e) {
+            dbConn.rollback();
+            throw e;
         } finally {
-            JdbcUtil.commit(dbConn);
+            transactionStart = false;
+        }
+    }
+
+    @Override
+    public void rollback(long checkpointId) throws Exception {
+        try {
+            if (transactionStart) {
+                Statement statement = dbConn.createStatement();
+                statement.execute(InceptorDbUtil.INCEPTOR_TRANSACTION_ROLLBACK);
+            }
+        } finally {
+            transactionStart = false;
         }
     }
 
@@ -171,5 +278,32 @@ public class InceptorOutputFormat extends JdbcOutputFormat {
 
     public void setInceptorConf(InceptorConf inceptorConf) {
         this.inceptorConf = inceptorConf;
+    }
+
+    // 判断是否是事务表
+    private boolean isTransactionTable() throws SQLException {
+        Statement statement = dbConn.createStatement();
+        ResultSet rs =
+                statement.executeQuery(
+                        "desc formatted " + jdbcDialect.quoteTable(jdbcConf.getTable()));
+        ResultSetMetaData metaData = rs.getMetaData();
+        int columnCount = metaData.getColumnCount();
+        List<String> columnNames = new ArrayList<>(columnCount);
+        for (int i = 0; i < columnCount; i++) {
+            columnNames.add(metaData.getColumnName(i + 1));
+        }
+
+        List<Map<String, String>> data = new ArrayList<>();
+        while (rs.next()) {
+            Map<String, String> lineData =
+                    new HashMap<>(Math.max((int) (columnCount / .75f) + 1, 16));
+            for (String columnName : columnNames) {
+                lineData.put(columnName, rs.getString(columnName));
+            }
+            data.add(lineData);
+        }
+        return data.stream()
+                .filter(i -> i.values().stream().anyMatch(i1 -> i1.startsWith("transactional")))
+                .anyMatch(i -> i.values().stream().anyMatch(i1 -> i1.startsWith("true")));
     }
 }

@@ -30,8 +30,10 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 
+import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.utils.TypeConversions;
 
 import oracle.sql.TIMESTAMP;
 
@@ -98,6 +100,27 @@ public class OracleColumnConverter extends JdbcColumnConverter {
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
+    }
+
+    @Override
+    protected ISerializationConverter<FieldNamedPreparedStatement>
+            wrapIntoNullableExternalConverter(
+                    ISerializationConverter serializationConverter, LogicalType type) {
+        return (val, index, statement) -> {
+            if (((ColumnRowData) val).getField(index) == null) {
+                try {
+                    final int sqlType =
+                            JdbcTypeUtil.typeInformationToSqlType(
+                                    TypeConversions.fromDataTypeToLegacyInfo(
+                                            TypeConversions.fromLogicalToDataType(type)));
+                    statement.setNull(index, sqlType);
+                } catch (Exception e) {
+                    statement.setObject(index, null);
+                }
+            } else {
+                serializationConverter.serialize(val, index, statement);
+            }
+        };
     }
 
     @Override

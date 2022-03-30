@@ -427,7 +427,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
             writeSingleRecordInternal(rowData);
             numWriteCounter.add(1L);
         } catch (WriteRecordException e) {
-            dirtyManager.collect(e.getRowData(), e, null, getRuntimeContext());
+            dirtyManager.collect(e.getRowData(), e, null);
             if (LOG.isTraceEnabled()) {
                 LOG.trace(
                         "write error rowData, rowData = {}, e = {}",

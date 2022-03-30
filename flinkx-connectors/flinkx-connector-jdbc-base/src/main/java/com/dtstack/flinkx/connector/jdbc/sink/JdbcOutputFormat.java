@@ -289,14 +289,15 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     String[] strings = sql.split(";");
                     for (String s : strings) {
                         if (StringUtils.isNotBlank(s)) {
-                            LOG.info("add sql to batch, sql = {}", sql);
-                            stmt.addBatch(sql);
+                            LOG.info("add sql to batch, sql = {}", s);
+                            stmt.addBatch(s);
                         }
                     }
                 }
                 stmt.executeBatch();
             } catch (SQLException e) {
-                LOG.error("execute sql failed, sqlList = {}, e = {}", sqlList, e);
+                throw new RuntimeException(
+                        "execute sql failed, sqlList = " + GsonUtil.GSON.toJson(sqlList), e);
             }
         }
     }

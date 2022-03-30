@@ -51,6 +51,13 @@ public class RedisConf extends FlinkxCommonConf {
      * string, the value is The separator between the two, such as value1\u0001value2\u0001value3.
      */
     private String keyFieldDelimiter = "\\u0001";
+
+    /** key prefix */
+    private String keyPrefix;
+
+    /** In hash type, whether to write the key field into the hash */
+    private boolean indexFillHash = true;
+
     /**
      * When writing to Redis, the time format of Date: "yyyy-MM-dd HH:mm:ss".Write the date as long
      */
@@ -232,6 +239,22 @@ public class RedisConf extends FlinkxCommonConf {
         this.updateKey = updateKey;
     }
 
+    public String getKeyPrefix() {
+        return keyPrefix;
+    }
+
+    public void setKeyPrefix(String keyPrefix) {
+        this.keyPrefix = keyPrefix;
+    }
+
+    public boolean isIndexFillHash() {
+        return indexFillHash;
+    }
+
+    public void setIndexFillHash(boolean indexFillHash) {
+        this.indexFillHash = indexFillHash;
+    }
+
     @Override
     public String toString() {
         return "RedisConf{"
@@ -245,6 +268,10 @@ public class RedisConf extends FlinkxCommonConf {
                 + database
                 + ", keyIndexes="
                 + keyIndexes
+                + ", keyPrefix="
+                + keyPrefix
+                + ", indexFillHash="
+                + indexFillHash
                 + ", keyFieldDelimiter='"
                 + keyFieldDelimiter
                 + '\''
