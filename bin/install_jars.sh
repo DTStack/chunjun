@@ -20,3 +20,6 @@ mvn install:install-file -DgroupId=fakepath -DartifactId=vertica-jdbc -Dversion=
 
 ## greenplum driver
 mvn install:install-file -DgroupId=com.pivotal -DartifactId=greenplum-jdbc -Dversion=5.1.4.000275 -Dpackaging=jar -Dfile=../jars/greenplum_5.1.4.000275.jar
+
+## ticdc decoder
+mvn install:install-file -DgroupId=com.pingcap.ticdc.cdc -DartifactId=ticdc-decoder -Dversion=5.2.0-SNAPSHOT -Dpackaging=jar -Dfile=../jars/ticdc-decoder-5.2.0-SNAPSHOT.jar
