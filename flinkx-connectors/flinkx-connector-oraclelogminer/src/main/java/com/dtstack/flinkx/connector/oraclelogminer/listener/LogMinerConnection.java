@@ -37,6 +37,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -510,7 +511,7 @@ public class LogMinerConnection {
     }
 
     /** 根据leftScn 以及加载的日志大小限制 获取可加载的scn范围 以及此范围对应的日志文件 */
-    protected BigInteger getEndScn(BigInteger startScn, List<LogFile> logFiles)
+    protected Pair<BigInteger, Boolean> getEndScn(BigInteger startScn, List<LogFile> logFiles)
             throws SQLException {
 
         List<LogFile> logFileLists = new ArrayList<>();
@@ -557,6 +558,7 @@ public class LogMinerConnection {
                                         .collect(Collectors.toList())));
 
         BigInteger endScn = startScn;
+        Boolean loadRedoLog = false;
 
         long fileSize = 0L;
         Collection<List<LogFile>> values = map.values();
@@ -598,10 +600,16 @@ public class LogMinerConnection {
             // 解决logminer偶尔丢失数据问题，读取online日志的时候，需要将rightScn置为当前SCN
             endScn = getCurrentScn();
             logFiles = logFileLists;
+            // 如果加载了online日志  则loadRedoLog为true
+            loadRedoLog = true;
         }
 
-        LOG.info("getEndScn success,startScn:{},endScn:{}", startScn, endScn);
-        return endScn;
+        LOG.info(
+                "getEndScn success,startScn:{},endScn:{}, loadRedoLog:{}",
+                startScn,
+                endScn,
+                loadRedoLog);
+        return Pair.of(endScn, loadRedoLog);
     }
 
     /** 获取logminer加载的日志文件 */
