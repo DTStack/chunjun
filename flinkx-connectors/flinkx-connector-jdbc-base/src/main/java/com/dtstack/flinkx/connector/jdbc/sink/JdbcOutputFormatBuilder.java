@@ -54,9 +54,7 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         if (StringUtils.isBlank(jdbcConf.getUsername())) {
             sb.append("No username supplied;\n");
         }
-        if (StringUtils.isBlank(jdbcConf.getPassword())) {
-            sb.append("No password supplied;\n");
-        }
+
         if (StringUtils.isBlank(jdbcConf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
