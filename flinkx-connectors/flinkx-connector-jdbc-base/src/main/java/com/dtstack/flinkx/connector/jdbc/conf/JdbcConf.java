@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.jdbc.conf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -122,6 +123,9 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     }
 
     public String getTable() {
+        if (StringUtils.isNotBlank(getCustomSql())) {
+            return null;
+        }
         return connection.get(0).getTable().get(0);
     }
 
