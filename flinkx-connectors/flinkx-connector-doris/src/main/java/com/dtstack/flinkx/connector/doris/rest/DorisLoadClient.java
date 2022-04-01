@@ -269,9 +269,8 @@ public class DorisLoadClient implements Serializable {
                     if (headers[i].startsWith(KEY_BEFORE)) {
                         String trueCol = headers[i].substring(7);
                         if (column.equalsIgnoreCase(trueCol)) {
-                            insertV.add(convert(value, i));
                             deleteV.add(convert(value, i));
-                            break;
+                            continue;
                         }
                     }
                     // case 2, need to insert.
@@ -279,7 +278,7 @@ public class DorisLoadClient implements Serializable {
                         String trueCol = headers[i].substring(6);
                         if (column.equalsIgnoreCase(trueCol)) {
                             insertV.add(convert(value, i));
-                            break;
+                            continue;
                         }
                     }
                     // case 3. column name is obvious.
@@ -288,7 +287,7 @@ public class DorisLoadClient implements Serializable {
                         if (delete) {
                             deleteV.add(convert(value, i));
                         }
-                        break;
+                        continue;
                     }
                 }
             }
