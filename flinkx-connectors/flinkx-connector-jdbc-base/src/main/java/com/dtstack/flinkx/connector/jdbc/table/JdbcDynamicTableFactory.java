@@ -301,9 +301,9 @@ public abstract class JdbcDynamicTableFactory
     protected void validateConfigOptions(ReadableConfig config) {
         String jdbcUrl = config.get(URL);
         final Optional<JdbcDialect> dialect = Optional.of(getDialect());
-        checkState(true, "Cannot handle such jdbc url: " + jdbcUrl);
+        checkState(dialect.get().canHandle(jdbcUrl), "Cannot handle such jdbc url: " + jdbcUrl);
 
-        checkAllOrNone(config, new ConfigOption[] {USERNAME, PASSWORD});
+        checkAllOrNone(config, new ConfigOption[] {USERNAME});
 
         if (config.getOptional(SCAN_POLLING_INTERVAL).isPresent()
                 && config.getOptional(SCAN_POLLING_INTERVAL).get() > 0) {
@@ -342,7 +342,7 @@ public abstract class JdbcDynamicTableFactory
 
     protected void checkAllOrNone(ReadableConfig config, ConfigOption<?>[] configOptions) {
         int presentCount = 0;
-        for (ConfigOption configOption : configOptions) {
+        for (ConfigOption<?> configOption : configOptions) {
             if (config.getOptional(configOption).isPresent()) {
                 presentCount++;
             }

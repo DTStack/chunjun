@@ -61,9 +61,7 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (StringUtils.isBlank(conf.getUsername())) {
             sb.append("No username supplied;\n");
         }
-        if (StringUtils.isBlank(conf.getPassword())) {
-            sb.append("No password supplied;\n");
-        }
+
         if (StringUtils.isBlank(conf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
