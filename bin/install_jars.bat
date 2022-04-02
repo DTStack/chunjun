@@ -14,3 +14,4 @@ call mvn install:install-file -DgroupId=com.pivotal -DartifactId=greenplum-jdbc 
 
 call mvn install:install-file -DgroupId=com.pingcap.ticdc.cdc -DartifactId=ticdc-decoder -Dversion=5.2.0-SNAPSHOT -Dpackaging=jar -Dfile=../jars/ticdc-decoder-5.2.0-SNAPSHOT.jar
 
+call mvn install:install-file -DgroupId=io.transwarp -DartifactId=inceptor-driver -Dversion=6.0.2 -Dpackaging=jar -Dfile=../jars/inceptor-driver-6.0.2.jar
