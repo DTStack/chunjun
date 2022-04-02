@@ -22,7 +22,6 @@ import com.dtstack.flinkx.constants.ConstantValue;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.factories.TableFactoryService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public class FactoryHelper {
                     .defaultValue("class_path_%d")
                     .withDescription("");
 
-    private static final Logger LOG = LoggerFactory.getLogger(TableFactoryService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FactoryHelper.class);
     /** 插件路径 */
     protected String localPluginPath = null;
     /** 远端插件路径 */
