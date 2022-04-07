@@ -61,7 +61,7 @@ RUN chown -R flink:flink $FLINKX_HOME
 # Did not download flink.tgz
 RUN set -ex; \
   cd $FLINK_HOME; \
-  wget -nv -O flink.tgz https://archive.apache.org/dist/flink/flink-1.12.2/flink-1.12.2-bin-scala_2.12.tgz; \
+  wget -nv -O flink.tgz https://archive.apache.org/dist/flink/flink-1.12.7/flink-1.12.7-bin-scala_2.12.tgz; \
   tar -xf flink.tgz --strip-components=1; \
   rm flink.tgz; \
   chown -R flink:flink .;
