@@ -93,7 +93,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         }
         initIncrementConfig(jdbcConf);
         super.initFlinkxCommonConf(jdbcConf);
-        if(StringUtils.isBlank(jdbcConf.getCustomSql())){
+        if (StringUtils.isBlank(jdbcConf.getCustomSql())) {
             rebuildJdbcConf();
         }
     }
