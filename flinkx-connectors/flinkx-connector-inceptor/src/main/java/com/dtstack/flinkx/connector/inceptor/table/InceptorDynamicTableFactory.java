@@ -21,15 +21,12 @@ import com.dtstack.flinkx.connector.inceptor.conf.InceptorConf;
 import com.dtstack.flinkx.connector.inceptor.dialect.InceptorDialect;
 import com.dtstack.flinkx.connector.inceptor.options.InceptorOptions;
 import com.dtstack.flinkx.connector.inceptor.sink.InceptorDynamicTableSink;
-import com.dtstack.flinkx.connector.inceptor.sink.InceptorOutputFormat;
-import com.dtstack.flinkx.connector.inceptor.sink.InceptorOutputFormatBuilder;
 import com.dtstack.flinkx.connector.inceptor.source.InceptorDynamicTableSource;
-import com.dtstack.flinkx.connector.inceptor.source.InceptorInputFormatBuilder;
+import com.dtstack.flinkx.connector.inceptor.util.InceptorDbUtil;
 import com.dtstack.flinkx.connector.jdbc.conf.SinkConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.SourceConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
@@ -53,13 +50,33 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.*;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.*;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.PASSWORD;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.SCHEMA;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.TABLE_NAME;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.URL;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcCommonOptions.USERNAME;
 import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.DRUID_PREFIX;
-import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.*;
-import static com.dtstack.flinkx.source.options.SourceOptions.*;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.LOOKUP_CACHE_MAX_ROWS;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.LOOKUP_CACHE_TTL;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.LOOKUP_MAX_RETRIES;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.VERTX_PREFIX;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcLookupOptions.getLibConfMap;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_ALL_REPLACE;
+import static com.dtstack.flinkx.connector.jdbc.options.JdbcSinkOptions.SINK_SEMANTIC;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_DEFAULT_FETCH_SIZE;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_FETCH_SIZE;
-import static com.dtstack.flinkx.table.options.SinkOptions.*;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN_TYPE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARALLELISM;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_COLUMN;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_PARTITION_STRATEGY;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_POLLING_INTERVAL;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_QUERY_TIMEOUT;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNNAME;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNTYPE;
+import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_START_LOCATION;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
 import static com.dtstack.flinkx.table.options.SinkOptions.SINK_MAX_RETRIES;
 import static com.dtstack.flinkx.table.options.SinkOptions.SINK_PARALLELISM;
 import static org.apache.flink.util.Preconditions.checkState;
@@ -79,7 +96,7 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
 
     @Override
     protected JdbcDialect getDialect() {
-        return new InceptorDialect();
+        return null;
     }
 
     @Override
@@ -104,7 +121,6 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
         // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-        JdbcDialect jdbcDialect = getDialect();
 
         final Map<String, Object> druidConf =
                 getLibConfMap(context.getCatalogTable().getOptions(), DRUID_PREFIX);
@@ -113,6 +129,9 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
 
         addKerberosConfig(sourceConnectionConf, context.getCatalogTable().getOptions());
 
+        InceptorDialect inceptorDialect =
+                InceptorDbUtil.getDialectWithDriverType(sourceConnectionConf);
+
         return new InceptorDynamicTableSource(
                 sourceConnectionConf,
                 getJdbcLookupConf(
@@ -120,8 +139,8 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
                         context.getObjectIdentifier().getObjectName(),
                         druidConf),
                 physicalSchema,
-                jdbcDialect,
-                getInputFormatBuilder());
+                inceptorDialect,
+                inceptorDialect.getInputFormatBuilder());
     }
 
     @Override
@@ -133,7 +152,6 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
 
         // 2.参数校验
         helper.validateExcept("properties.", "security.kerberos");
-        JdbcDialect jdbcDialect = getDialect();
 
         // 3.封装参数
         TableSchema physicalSchema =
@@ -143,8 +161,13 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
 
         addKerberosConfig(inceptorConf, context.getCatalogTable().getOptions());
 
+        InceptorDialect inceptorDialect = InceptorDbUtil.getDialectWithDriverType(inceptorConf);
+
         return new InceptorDynamicTableSink(
-                jdbcDialect, physicalSchema, getOutputFormatBuilder(), inceptorConf);
+                inceptorDialect,
+                physicalSchema,
+                inceptorDialect.getOutputFormatBuilder(),
+                inceptorConf);
     }
 
     @Override
@@ -177,7 +200,7 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
         List<String> keyFields =
                 schema.getPrimaryKey().map(UniqueConstraint::getColumns).orElse(null);
         inceptorConf.setUniqueKey(keyFields);
-        rebuildJdbcConf(inceptorConf);
+        resetTableInfo(inceptorConf);
         JdbcUtil.putExtParam(inceptorConf);
         return inceptorConf;
     }
@@ -228,24 +251,23 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
                             : readableConfig.get(SCAN_FETCH_SIZE));
         }
 
-        rebuildJdbcConf(jdbcConf);
+        resetTableInfo(jdbcConf);
         return jdbcConf;
     }
 
     @Override
     protected JdbcOutputFormatBuilder getOutputFormatBuilder() {
-        return new InceptorOutputFormatBuilder(new InceptorOutputFormat());
+        return null;
     }
 
     @Override
     protected JdbcInputFormatBuilder getInputFormatBuilder() {
-        return new InceptorInputFormatBuilder(new JdbcInputFormat());
+        return null;
     }
 
     @Override
     protected void validateConfigOptions(ReadableConfig config) {
         String jdbcUrl = config.get(URL);
-        final Optional<JdbcDialect> dialect = Optional.of(getDialect());
         checkState(true, "Cannot handle such jdbc url: " + jdbcUrl);
 
         if (config.getOptional(SCAN_POLLING_INTERVAL).isPresent()

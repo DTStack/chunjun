@@ -18,8 +18,9 @@
 package com.dtstack.flinkx.connector.inceptor.sink;
 
 import com.dtstack.flinkx.connector.inceptor.conf.InceptorConf;
-import com.dtstack.flinkx.connector.inceptor.dialect.InceptorDialect;
+import com.dtstack.flinkx.connector.inceptor.dialect.InceptorHdfsDialect;
 import com.dtstack.flinkx.connector.inceptor.util.InceptorDbUtil;
+import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.element.ColumnRowData;
@@ -57,9 +58,9 @@ import java.util.TimeZone;
  *
  * @author dujie
  */
-public class InceptorOutputFormat extends JdbcOutputFormat {
+public class InceptorHdfsOutputFormat extends JdbcOutputFormat {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(InceptorOutputFormat.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(InceptorHdfsOutputFormat.class);
 
     protected static final long serialVersionUID = 1L;
 
@@ -226,7 +227,7 @@ public class InceptorOutputFormat extends JdbcOutputFormat {
     @Override
     protected String prepareTemplates() {
         String singleSql =
-                ((InceptorDialect) jdbcDialect)
+                ((InceptorHdfsDialect) jdbcDialect)
                         .getInsertPartitionIntoStatement(
                                 inceptorConf.getSchema(),
                                 inceptorConf.getTable(),
@@ -276,8 +277,9 @@ public class InceptorOutputFormat extends JdbcOutputFormat {
         }
     }
 
-    public void setInceptorConf(InceptorConf inceptorConf) {
-        this.inceptorConf = inceptorConf;
+    public void setJdbcConf(JdbcConf jdbcConf) {
+        super.setJdbcConf(jdbcConf);
+        this.inceptorConf = (InceptorConf) jdbcConf;
     }
 
     // 判断是否是事务表
@@ -303,7 +305,27 @@ public class InceptorOutputFormat extends JdbcOutputFormat {
             data.add(lineData);
         }
         return data.stream()
-                .filter(i -> i.values().stream().anyMatch(i1 -> i1.startsWith("transactional")))
-                .anyMatch(i -> i.values().stream().anyMatch(i1 -> i1.startsWith("true")));
+                .filter(
+                        i ->
+                                i.values().stream()
+                                        .anyMatch(
+                                                i1 -> {
+                                                    if (i1 != null) {
+                                                        return i1.startsWith("transactional");
+                                                    } else {
+                                                        return false;
+                                                    }
+                                                }))
+                .anyMatch(
+                        i ->
+                                i.values().stream()
+                                        .anyMatch(
+                                                i1 -> {
+                                                    if (i1 != null) {
+                                                        return i1.startsWith("true");
+                                                    } else {
+                                                        return false;
+                                                    }
+                                                }));
     }
 }

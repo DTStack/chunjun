@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.connector.inceptor.converter;
 
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -25,7 +26,8 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-public class InceptorRawTypeConverter {
+/** @author liuliu 2022/2/25 */
+public class InceptorHyberbaseRawTypeConvert {
 
     public static DataType apply(String type) {
         type = type.toUpperCase(Locale.ENGLISH);
@@ -37,21 +39,23 @@ public class InceptorRawTypeConverter {
             leftStr = type.substring(0, left);
             rightStr = type.substring(left + 1, type.length() - 1);
         }
-
         switch (leftStr) {
+            case "VARCHAR":
+            case "STRING":
+                return DataTypes.STRING();
+            case "INT":
+                return DataTypes.INT();
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
             case "TINYINT":
                 return DataTypes.TINYINT();
             case "SMALLINT":
                 return DataTypes.SMALLINT();
-            case "INT":
-            case "INTEGER":
-                return DataTypes.INT();
             case "BIGINT":
                 return DataTypes.BIGINT();
             case "FLOAT":
-                return DataTypes.FLOAT();
+            case "DOUBLE":
+                return DataTypes.DOUBLE();
             case "DECIMAL":
                 if (rightStr != null) {
                     String[] split = rightStr.split(ConstantValue.COMMA_SYMBOL);
@@ -61,24 +65,11 @@ public class InceptorRawTypeConverter {
                                 Integer.parseInt(split[1].trim()));
                     }
                 }
-            case "DOUBLE":
-                return DataTypes.DOUBLE();
-            case "CHAR":
-            case "VARCHAR":
-            case "STRING":
-                return DataTypes.STRING();
+                return DataTypes.DECIMAL(10, 2);
             case "DATE":
                 return DataTypes.DATE();
-            case "TIME":
-                return DataTypes.TIME();
             case "TIMESTAMP":
-                if (rightStr != null) {
-                    String[] split = rightStr.split(ConstantValue.COMMA_SYMBOL);
-                    if (split.length == 1) {
-                        return DataTypes.TIMESTAMP(Integer.parseInt(split[0].trim()));
-                    }
-                }
-                return DataTypes.TIMESTAMP(6);
+                return DataTypes.TIMESTAMP(9);
             default:
                 throw new UnsupportedTypeException(type);
         }

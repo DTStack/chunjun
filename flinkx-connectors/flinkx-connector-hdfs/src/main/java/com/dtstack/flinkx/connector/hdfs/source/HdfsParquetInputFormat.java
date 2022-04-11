@@ -104,8 +104,7 @@ public class HdfsParquetInputFormat extends BaseHdfsInputFormat {
                 FileSystemUtil.getFileSystem(
                         hdfsConf.getHadoopConfig(),
                         hdfsConf.getDefaultFS(),
-                        PluginUtil.createDistributedCacheFromContextClassLoader(),
-                        jobId)) {
+                        PluginUtil.createDistributedCacheFromContextClassLoader())) {
             allFilePaths = getAllPartitionPath(hdfsConf.getPath(), fs, pathFilter);
         } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
