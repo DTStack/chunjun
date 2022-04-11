@@ -20,11 +20,8 @@ package com.dtstack.flinkx.connector.hbase14.source;
 
 import com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils;
 import com.dtstack.flinkx.connector.hbase14.util.HBaseHelper;
-import com.dtstack.flinkx.security.KerberosUtil;
 import com.dtstack.flinkx.source.format.BaseRichInputFormat;
-import com.dtstack.flinkx.util.PluginUtil;
 
-import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -54,8 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import static org.apache.zookeeper.client.ZooKeeperSaslClient.LOGIN_CONTEXT_NAME_KEY;
 
 /**
  * The InputFormat Implementation used for HbaseReader
@@ -96,31 +91,17 @@ public class HBaseInputFormat extends BaseRichInputFormat {
 
         LOG.info("HbaseOutputFormat openInputFormat start");
         nameMaps = Maps.newConcurrentMap();
-        // tdh环境中 hbase关联的zk开启kerberos 需要添加zk的jaas文件配置
-        if (HBaseHelper.openKerberosForZk(hbaseConfig)) {
-            setZkJaasConfiguration(getRuntimeContext().getDistributedCache());
-        }
-        connection =
-                HBaseHelper.getHbaseConnection(
-                        hbaseConfig, getRuntimeContext().getDistributedCache(), jobId);
+
+        connection = HBaseHelper.getHbaseConnection(hbaseConfig);
 
         LOG.info("HbaseOutputFormat openInputFormat end");
     }
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
-        DistributedCache distributedCache =
-                PluginUtil.createDistributedCacheFromContextClassLoader();
-        // tdh环境中 hbase关联的zk开启kerberos 需要添加zk的jaas文件配置
-        if (HBaseHelper.openKerberosForZk(hbaseConfig)) {
-            setZkJaasConfiguration(getRuntimeContext().getDistributedCache());
-        }
-        try (Connection connection =
-                HBaseHelper.getHbaseConnection(hbaseConfig, distributedCache, jobId)) {
+        try (Connection connection = HBaseHelper.getHbaseConnection(hbaseConfig)) {
             if (HBaseConfigUtils.isEnableKerberos(hbaseConfig)) {
-                UserGroupInformation ugi =
-                        HBaseHelper.getUgi(
-                                hbaseConfig, getRuntimeContext().getDistributedCache(), jobId);
+                UserGroupInformation ugi = HBaseHelper.getUgi(hbaseConfig);
                 return ugi.doAs(
                         (PrivilegedAction<HBaseInputSplit[]>)
                                 () ->
@@ -261,16 +242,10 @@ public class HBaseInputFormat extends BaseRichInputFormat {
         byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
 
         if (null == connection || connection.isClosed()) {
-            connection =
-                    HBaseHelper.getHbaseConnection(
-                            hbaseConfig, getRuntimeContext().getDistributedCache(), jobId);
+            connection = HBaseHelper.getHbaseConnection(hbaseConfig);
         }
 
         openKerberos = HBaseConfigUtils.isEnableKerberos(hbaseConfig);
-        // tdh环境中 hbase关联的zk开启kerberos 需要添加zk的jaas文件配置
-        if (HBaseHelper.openKerberosForZk(hbaseConfig)) {
-            setZkJaasConfiguration(getRuntimeContext().getDistributedCache());
-        }
 
         table = connection.getTable(TableName.valueOf(tableName));
         scan = new Scan();
@@ -404,13 +379,5 @@ public class HBaseInputFormat extends BaseRichInputFormat {
                 throw new IllegalArgumentException("Unsupported column type: " + columnType);
         }
         return column;
-    }
-
-    // 设置zk的jaas配置
-    private void setZkJaasConfiguration(DistributedCache distributedCache) {
-        String keytabFile = HBaseHelper.getKeyTabFileName(hbaseConfig, distributedCache, jobId);
-        String principal = KerberosUtil.getPrincipal(hbaseConfig, keytabFile);
-        String client = System.getProperty(LOGIN_CONTEXT_NAME_KEY, "Client");
-        KerberosUtil.appendOrUpdateJaasConf(client, keytabFile, principal);
     }
 }

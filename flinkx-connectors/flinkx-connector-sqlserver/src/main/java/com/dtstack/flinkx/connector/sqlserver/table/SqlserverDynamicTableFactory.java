@@ -75,7 +75,7 @@ public class SqlserverDynamicTableFactory extends JdbcDynamicTableFactory {
 
     /** table字段有可能是[schema].[table]格式 需要转换为对应的schema 和 table 字段* */
     @Override
-    protected void rebuildJdbcConf(JdbcConf jdbcConf) {
+    protected void resetTableInfo(JdbcConf jdbcConf) {
         if (jdbcConf.getTable().startsWith("[")
                 && jdbcConf.getTable().endsWith("]")
                 && StringUtils.isBlank(jdbcConf.getSchema())) {

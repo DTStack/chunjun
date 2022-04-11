@@ -15,33 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.flinkx.connector.inceptor.sink;
 
-import com.dtstack.flinkx.connector.inceptor.conf.InceptorConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
-import com.dtstack.flinkx.converter.AbstractRowConverter;
 
 import org.apache.commons.lang.StringUtils;
 
-/** @author dujie */
-public class InceptorOutputFormatBuilder extends JdbcOutputFormatBuilder {
-
-    protected InceptorOutputFormat format;
-
-    public InceptorOutputFormatBuilder(InceptorOutputFormat format) {
-        super(format);
-        this.format = format;
-    }
-
-    public void setInceptorConf(InceptorConf inceptorConf) {
-        super.setJdbcConf(inceptorConf);
-        format.setInceptorConf(inceptorConf);
-    }
-
-    @Override
-    public void setRowConverter(AbstractRowConverter rowConverter) {
-        format.setRowConverter(rowConverter);
+/** @author liuliu 2022/3/7 */
+public class InceptorHyperbaseOutputFormatBuilder extends JdbcOutputFormatBuilder {
+    public InceptorHyperbaseOutputFormatBuilder() {
+        super(new InceptorHyperbaseOutputFormat());
     }
 
     @Override
