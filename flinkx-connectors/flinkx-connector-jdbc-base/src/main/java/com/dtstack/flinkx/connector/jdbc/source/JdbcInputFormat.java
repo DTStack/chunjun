@@ -253,6 +253,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (isUpdateLocation) {
                 Object obj;
                 switch (type) {
+                    case DATETIME:
                     case TIMESTAMP:
                     case DATETIME:
                     case TIMESTAMPTZ:
