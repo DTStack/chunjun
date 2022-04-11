@@ -128,7 +128,7 @@ public class DirtyDataManager {
 
     public void open() {
         try {
-            FileSystem fs = FileSystemUtil.getFileSystem(config, null, distributedCache, jobId);
+            FileSystem fs = FileSystemUtil.getFileSystem(config, null, distributedCache);
             Path path = new Path(location);
             stream = fs.create(path, true);
         } catch (Exception e) {

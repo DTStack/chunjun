@@ -80,9 +80,9 @@ public class HiveDbUtil {
     private HiveDbUtil() {}
 
     public static Connection getConnection(
-            ConnectionInfo connectionInfo, DistributedCache distributedCache, String jobId) {
+            ConnectionInfo connectionInfo, DistributedCache distributedCache) {
         if (openKerberos(connectionInfo.getJdbcUrl())) {
-            return getConnectionWithKerberos(connectionInfo, distributedCache, jobId);
+            return getConnectionWithKerberos(connectionInfo, distributedCache);
         } else {
             return getConnectionWithRetry(connectionInfo);
         }
@@ -109,7 +109,7 @@ public class HiveDbUtil {
     }
 
     private static Connection getConnectionWithKerberos(
-            ConnectionInfo connectionInfo, DistributedCache distributedCache, String jobId) {
+            ConnectionInfo connectionInfo, DistributedCache distributedCache) {
         if (connectionInfo.getHiveConf() == null || connectionInfo.getHiveConf().isEmpty()) {
             throw new IllegalArgumentException("hiveConf can not be null or empty");
         }
@@ -118,9 +118,9 @@ public class HiveDbUtil {
 
         keytabFileName =
                 KerberosUtil.loadFile(
-                        connectionInfo.getHiveConf(), keytabFileName, distributedCache, jobId);
+                        connectionInfo.getHiveConf(), keytabFileName, distributedCache);
         String principal = KerberosUtil.getPrincipal(connectionInfo.getHiveConf(), keytabFileName);
-        KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf(), distributedCache, jobId);
+        KerberosUtil.loadKrb5Conf(connectionInfo.getHiveConf(), distributedCache);
         KerberosUtil.refreshConfig();
 
         Configuration conf = FileSystemUtil.getConfiguration(connectionInfo.getHiveConf(), null);

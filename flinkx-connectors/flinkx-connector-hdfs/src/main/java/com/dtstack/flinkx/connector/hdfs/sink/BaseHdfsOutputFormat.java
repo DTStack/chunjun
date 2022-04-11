@@ -145,10 +145,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         try {
             fs =
                     FileSystemUtil.getFileSystem(
-                            hdfsConf.getHadoopConfig(),
-                            hdfsConf.getDefaultFS(),
-                            distributedCache,
-                            jobId);
+                            hdfsConf.getHadoopConfig(), hdfsConf.getDefaultFS(), distributedCache);
         } catch (Exception e) {
             throw new FlinkxRuntimeException("can't init fileSystem", e);
         }
@@ -184,12 +181,10 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
         try {
             FileStatus[] dataFiles = fs.listStatus(tmpDir, pathFilter);
             for (FileStatus dataFile : dataFiles) {
-                if (!filterFile(dataFile)) {
-                    currentFilePath = dataFile.getPath().getName();
-                    FileUtil.copy(fs, dataFile.getPath(), fs, dir, false, conf);
-                    copyList.add(currentFilePath);
-                    LOG.info("copy temp file:{} to dir:{}", currentFilePath, dir);
-                }
+                currentFilePath = dataFile.getPath().getName();
+                FileUtil.copy(fs, dataFile.getPath(), fs, dir, false, conf);
+                copyList.add(currentFilePath);
+                LOG.info("copy temp file:{} to dir:{}", currentFilePath, dir);
             }
         } catch (Exception e) {
             throw new FlinkxRuntimeException(
@@ -229,11 +224,9 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
             FileStatus[] dataFiles = fs.listStatus(tmpDir);
             for (FileStatus dataFile : dataFiles) {
-                if (!filterFile(dataFile)) {
-                    currentFilePath = dataFile.getPath().getName();
-                    fs.rename(dataFile.getPath(), dir);
-                    LOG.info("move temp file:{} to dir:{}", dataFile.getPath(), dir);
-                }
+                currentFilePath = dataFile.getPath().getName();
+                fs.rename(dataFile.getPath(), dir);
+                LOG.info("move temp file:{} to dir:{}", dataFile.getPath(), dir);
             }
             fs.delete(tmpDir, true);
         } catch (IOException e) {
@@ -293,17 +286,5 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
 
     public void setHdfsConf(HdfsConf hdfsConf) {
         this.hdfsConf = hdfsConf;
-    }
-
-    /** filter file when move file to dataPath* */
-    protected boolean filterFile(FileStatus fileStatus) {
-        if (fileStatus.getLen() == 0) {
-            LOG.warn(
-                    "file {} has filter,because file len [{}] is 0 ",
-                    fileStatus.getPath(),
-                    fileStatus.getLen());
-            return true;
-        }
-        return false;
     }
 }

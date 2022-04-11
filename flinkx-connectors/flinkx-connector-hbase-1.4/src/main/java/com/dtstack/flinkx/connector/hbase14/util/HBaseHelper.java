@@ -19,9 +19,6 @@
 package com.dtstack.flinkx.connector.hbase14.util;
 
 import com.dtstack.flinkx.security.KerberosUtil;
-import com.dtstack.flinkx.util.FileSystemUtil;
-
-import org.apache.flink.api.common.cache.DistributedCache;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +41,7 @@ import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.Map;
 
+import static com.dtstack.flinkx.connector.hbase14.util.HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF;
 import static com.dtstack.flinkx.security.KerberosUtil.KRB_STR;
 
 /**
@@ -60,12 +58,11 @@ public class HBaseHelper {
     private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
 
-    public static Connection getHbaseConnection(
-            Map<String, Object> hbaseConfigMap, DistributedCache distributedCache, String jobId) {
+    public static Connection getHbaseConnection(Map<String, Object> hbaseConfigMap) {
         Validate.isTrue(MapUtils.isNotEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
 
         if (HBaseConfigUtils.isEnableKerberos(hbaseConfigMap)) {
-            return getConnectionWithKerberos(hbaseConfigMap, distributedCache, jobId);
+            return getConnectionWithKerberos(hbaseConfigMap);
         }
 
         try {
@@ -77,11 +74,10 @@ public class HBaseHelper {
         }
     }
 
-    private static Connection getConnectionWithKerberos(
-            Map<String, Object> hbaseConfigMap, DistributedCache distributedCache, String jobId) {
+    private static Connection getConnectionWithKerberos(Map<String, Object> hbaseConfigMap) {
         try {
             setKerberosConf(hbaseConfigMap);
-            UserGroupInformation ugi = getUgi(hbaseConfigMap, distributedCache, jobId);
+            UserGroupInformation ugi = getUgi(hbaseConfigMap);
             return ugi.doAs(
                     (PrivilegedAction<Connection>)
                             () -> {
@@ -98,19 +94,17 @@ public class HBaseHelper {
         }
     }
 
-    public static UserGroupInformation getUgi(
-            Map<String, Object> hbaseConfigMap, DistributedCache distributedCache, String jobId)
+    public static UserGroupInformation getUgi(Map<String, Object> hbaseConfigMap)
             throws IOException {
         String keytabFileName = KerberosUtil.getPrincipalFileName(hbaseConfigMap);
 
-        keytabFileName =
-                KerberosUtil.loadFile(hbaseConfigMap, keytabFileName, distributedCache, jobId);
+        keytabFileName = KerberosUtil.loadFile(hbaseConfigMap, keytabFileName);
         String principal = KerberosUtil.getPrincipal(hbaseConfigMap, keytabFileName);
-        KerberosUtil.loadKrb5Conf(hbaseConfigMap, distributedCache, jobId);
+        KerberosUtil.loadKrb5Conf(hbaseConfigMap);
         KerberosUtil.refreshConfig();
-        Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
 
-        return KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
+        return KerberosUtil.loginAndReturnUgi(
+                principal, keytabFileName, System.getProperty(KEY_JAVA_SECURITY_KRB5_CONF));
     }
 
     public static Configuration getConfig(Map<String, Object> hbaseConfigMap) {
@@ -133,33 +127,6 @@ public class HBaseHelper {
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHORIZATION, KRB_STR);
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTHENTICATION, KRB_STR);
         hbaseConfigMap.put(KEY_HBASE_SECURITY_AUTH_ENABLE, true);
-    }
-
-    /**
-     * 获取hbase关联的zk是否也开启了kerberos
-     *
-     * @param hbaseConfigMap
-     * @return
-     */
-    public static boolean openKerberosForZk(Map<String, Object> hbaseConfigMap) {
-        String openKerberos =
-                MapUtils.getString(hbaseConfigMap, "zookeeper.security.authentication", "default");
-        return "kerberos".equalsIgnoreCase(openKerberos);
-    }
-
-    /**
-     * 获取keyTab文件的本地路径
-     *
-     * @param hbaseConfigMap
-     * @param distributedCache
-     * @param jobId
-     * @return
-     */
-    public static String getKeyTabFileName(
-            Map<String, Object> hbaseConfigMap, DistributedCache distributedCache, String jobId) {
-        String keytabFileName = KerberosUtil.getPrincipalFileName(hbaseConfigMap);
-        return KerberosUtil.getLocalFileName(
-                hbaseConfigMap, keytabFileName, distributedCache, jobId);
     }
 
     public static RegionLocator getRegionLocator(Connection hConnection, String userTable) {

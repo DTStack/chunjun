@@ -76,7 +76,6 @@ import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
-import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_CONNECTION_QUERY_TIMEOUT;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_DEFAULT_FETCH_SIZE;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_FETCH_SIZE;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN;
@@ -91,7 +90,6 @@ import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUM
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_START_LOCATION;
 import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
 import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
-import static com.dtstack.flinkx.table.options.SinkOptions.SINK_CONNECTION_QUERY_TIMEOUT;
 import static com.dtstack.flinkx.table.options.SinkOptions.SINK_MAX_RETRIES;
 import static org.apache.flink.util.Preconditions.checkState;
 
@@ -174,12 +172,10 @@ public abstract class JdbcDynamicTableFactory
         jdbcConf.setParallelism(readableConfig.get(SINK_PARALLELISM));
         jdbcConf.setSemantic(readableConfig.get(SINK_SEMANTIC));
 
-        jdbcConf.setConnectTimeOut(readableConfig.get(SINK_CONNECTION_QUERY_TIMEOUT));
-
         List<String> keyFields =
                 schema.getPrimaryKey().map(UniqueConstraint::getColumns).orElse(null);
         jdbcConf.setUniqueKey(keyFields);
-        rebuildJdbcConf(jdbcConf);
+        resetTableInfo(jdbcConf);
         return jdbcConf;
     }
 
@@ -219,7 +215,6 @@ public abstract class JdbcDynamicTableFactory
                         ? getDefaultFetchSize()
                         : readableConfig.get(SCAN_FETCH_SIZE));
         jdbcConf.setQueryTimeOut(readableConfig.get(SCAN_QUERY_TIMEOUT));
-        jdbcConf.setConnectTimeOut(readableConfig.get(SCAN_CONNECTION_QUERY_TIMEOUT));
 
         jdbcConf.setSplitPk(readableConfig.get(SCAN_PARTITION_COLUMN));
         jdbcConf.setSplitStrategy(readableConfig.get(SCAN_PARTITION_STRATEGY));
@@ -246,7 +241,7 @@ public abstract class JdbcDynamicTableFactory
                             : readableConfig.get(SCAN_FETCH_SIZE));
         }
 
-        rebuildJdbcConf(jdbcConf);
+        resetTableInfo(jdbcConf);
         return jdbcConf;
     }
 
@@ -273,7 +268,6 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(SCAN_START_LOCATION);
         optionalOptions.add(SCAN_PARALLELISM);
         optionalOptions.add(SCAN_QUERY_TIMEOUT);
-        optionalOptions.add(SCAN_CONNECTION_QUERY_TIMEOUT);
         optionalOptions.add(SCAN_FETCH_SIZE);
         optionalOptions.add(SCAN_RESTORE_COLUMNNAME);
         optionalOptions.add(SCAN_RESTORE_COLUMNTYPE);
@@ -294,7 +288,6 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(SINK_ALL_REPLACE);
         optionalOptions.add(SINK_PARALLELISM);
         optionalOptions.add(SINK_SEMANTIC);
-        optionalOptions.add(SINK_CONNECTION_QUERY_TIMEOUT);
         return optionalOptions;
     }
 
@@ -397,9 +390,8 @@ public abstract class JdbcDynamicTableFactory
         return new JdbcOutputFormatBuilder(new JdbcOutputFormat());
     }
 
-    /** rebuild jdbcConf,add custom configuration */
-    protected void rebuildJdbcConf(JdbcConf jdbcConf) {
-        // table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段
+    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段* */
+    protected void resetTableInfo(JdbcConf jdbcConf) {
         if (StringUtils.isBlank(jdbcConf.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
         }

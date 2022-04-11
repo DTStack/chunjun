@@ -69,8 +69,6 @@ public class InceptorDynamicTableSink extends JdbcDynamicTableSink {
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
-        InceptorOutputFormatBuilder builder = (InceptorOutputFormatBuilder) this.builder;
-
         String[] fieldNames = tableSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
         for (int i = 0; i < fieldNames.length; i++) {
@@ -83,7 +81,7 @@ public class InceptorDynamicTableSink extends JdbcDynamicTableSink {
         inceptorConf.setColumn(columnList);
 
         builder.setJdbcDialect(jdbcDialect);
-        builder.setInceptorConf(inceptorConf);
+        builder.setJdbcConf(inceptorConf);
         builder.setRowConverter(jdbcDialect.getRowConverter(rowType));
 
         return SinkFunctionProvider.of(

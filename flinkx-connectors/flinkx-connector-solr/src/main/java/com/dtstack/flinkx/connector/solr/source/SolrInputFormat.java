@@ -36,7 +36,6 @@ import org.apache.solr.common.SolrDocumentList;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Ada Wong
@@ -73,7 +72,7 @@ public class SolrInputFormat extends BaseRichInputFormat {
     protected void openInternal(InputSplit inputSplit) {
         solrClientWrapper =
                 new CloudSolrClientKerberosWrapper(
-                        solrConf, getRuntimeContext().getDistributedCache(), jobId);
+                        solrConf, getRuntimeContext().getDistributedCache());
         solrClientWrapper.init();
 
         GenericInputSplit genericInputSplit = (GenericInputSplit) inputSplit;
@@ -138,16 +137,8 @@ public class SolrInputFormat extends BaseRichInputFormat {
         if (CollectionUtils.isEmpty(solrDocumentList)) {
             return true;
         }
-        List<SolrDocument> solrDocuments =
-                solrDocumentList.stream()
-                        .filter(solrDocument -> solrDocument.size() > 0)
-                        .collect(Collectors.toList());
+        this.iterator = solrDocumentList.iterator();
         startRows += batchSize;
-        if (solrDocuments.size() == 0) {
-            return true;
-        } else {
-            this.iterator = solrDocuments.iterator();
-            return false;
-        }
+        return false;
     }
 }
