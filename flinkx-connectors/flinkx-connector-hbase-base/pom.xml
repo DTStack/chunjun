@@ -33,7 +33,7 @@
 
 	<properties>
 		<hbase.version>1.4.3</hbase.version>
-		<hadoop.version>2.4.1</hadoop.version>
+		<hadoop.version>3.2.3</hadoop.version>
 		<log4j.version>2.12.1</log4j.version>
 	</properties>
 	<dependencies>
