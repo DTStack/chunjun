@@ -65,6 +65,7 @@ The following databases are currently supported:
 |                        | Hive           |                                                  | [doc](docs/connectors/hive/hive-sink.md)       |
 |                        | Solr          | [doc](docs/connectors/solr/solr-source.md)        | [doc](docs/connectors/solr/solr-sink.md)       |
 |                        | File           |  [doc](docs/connectors/file/file-source.md)
+|                        | StarRocks      |                                                  | [doc](docs/connectors/starrocks/starrocks-sink.md) |
 | Stream Synchronization | Kafka          | [doc](docs/connectors/kafka/kafka-source.md)       | [doc](docs/connectors/kafka/kafka-sink.md)     |
 |                        | EMQX           | [doc](docs/connectors/emqx/emqx-source.md)        | [doc](docs/connectors/emqx/emqx-sink.md)      |
 |                        | MySQL Binlog   | [doc](docs/connectors/binlog/binlog-source.md)      |                                                |
