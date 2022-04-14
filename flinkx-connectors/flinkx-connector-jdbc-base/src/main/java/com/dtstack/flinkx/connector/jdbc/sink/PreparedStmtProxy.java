@@ -17,6 +17,7 @@
  */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -24,7 +25,17 @@ import com.dtstack.flinkx.constants.CDCConstantValue;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.element.ColumnRowData;
 
+import com.dtstack.flinkx.element.column.BigDecimalColumn;
+import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.NullColumn;
+import com.dtstack.flinkx.element.column.StringColumn;
+
+import org.apache.flink.table.data.DecimalData;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.StringData;
+import org.apache.flink.table.data.binary.BinaryRowData;
+import org.apache.flink.table.data.binary.BinaryStringData;
 import org.apache.flink.types.RowKind;
 
 import com.esotericsoftware.minlog.Log;
@@ -45,12 +56,16 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * build prepare proxy, proxy implements FieldNamedPreparedStatement. it support to build
@@ -110,6 +125,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         this.pstmtCache.put(
                 getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.INSERT),
                 DynamicPreparedStmt.buildStmt(
+                        jdbcConf,
                         jdbcDialect,
                         jdbcConf.getColumn(),
                         currentRowConverter,
@@ -117,13 +133,150 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
     }
 
     public void convertToExternal(RowData row) throws Exception {
-        getOrCreateFieldNamedPstmt(row);
-        currentFieldNamedPstmt =
-                (FieldNamedPreparedStatement)
-                        currentRowConverter.toExternal(row, this.currentFieldNamedPstmt);
+        RowKind rowKind = row.getRowKind();
+        switch (rowKind) {
+            case DELETE:
+                ColumnRowData columnRowData = convertColumnRowData(row);
+                currentFieldNamedPstmt =
+                        (FieldNamedPreparedStatement)
+                                currentRowConverter.toExternal(
+                                        columnRowData, this.currentFieldNamedPstmt);
+                break;
+            default:
+                currentFieldNamedPstmt =
+                        (FieldNamedPreparedStatement)
+                                currentRowConverter.toExternal(row, this.currentFieldNamedPstmt);
+                break;
+        }
+    }
+
+    private ColumnRowData convertColumnRowData(RowData row) {
+        List<String> uniqueKeys = jdbcConf.getUniqueKey();
+        List<FieldConf> fullColumn = jdbcConf.getColumn();
+        HashMap<String, FieldConf> map = new HashMap<>();
+        HashMap<Integer, String> indexType = new HashMap<>();
+        HashMap<Integer, FieldConf> indexMap = new HashMap<>();
+        fullColumn.forEach(
+                fieldConf -> {
+                    String name = fieldConf.getName();
+                    Integer index = fieldConf.getIndex();
+                    String type = fieldConf.getType();
+                    map.put(name, fieldConf);
+                    indexMap.put(index, fieldConf);
+                    indexType.put(index, type);
+                });
+        Set<Integer> indexs = new HashSet<>();
+        uniqueKeys.forEach(
+                (uniqueKey) -> {
+                    FieldConf fieldConf = map.getOrDefault(uniqueKey, null);
+                    if (null != fieldConf) {
+                        indexs.add(fieldConf.getIndex());
+                    }
+                });
+        // TODO 初始化 ColumnRowData
+        ColumnRowData columnRowData = new ColumnRowData(row.getRowKind(), uniqueKeys.size());
+        if (row instanceof GenericRowData) {
+            GenericRowData genericRowData = (GenericRowData) row;
+            indexs.forEach(
+                    (index) -> {
+                        Object field = genericRowData.getField(index);
+                        FieldConf fieldConf = indexMap.get(index);
+                        String column = fieldConf.getName();
+                        if (field instanceof BinaryStringData) {
+                            BinaryStringData binaryStringData = (BinaryStringData) field;
+                            columnRowData.addField(
+                                    new StringColumn(binaryStringData.getJavaObject()));
+                        } else if (field instanceof DecimalData) {
+                            DecimalData decimalData = (DecimalData) field;
+                            columnRowData.addField(
+                                    new BigDecimalColumn(decimalData.toBigDecimal()));
+                        } else if (field instanceof Integer) {
+                            Integer integer = (Integer) field;
+                            columnRowData.addField(new BigDecimalColumn(integer));
+                        } else if (field instanceof Float) {
+                            Float aFloat = (Float) field;
+                            columnRowData.addField(new BigDecimalColumn(aFloat));
+                        } else {
+                            columnRowData.addField(new NullColumn());
+                        }
+                        columnRowData.addHeader(column);
+                        columnRowData.addExtHeader(column);
+                    });
+        } else if (row instanceof BinaryRowData) {
+            BinaryRowData binaryRowData = (BinaryRowData) row;
+            indexs.forEach(
+                    (index) -> {
+                        FieldConf fieldConf = indexMap.get(index);
+                        String column = fieldConf.getName();
+                        String type = indexType.get(index);
+                        String temp = null;
+                        if (type.contains("NOT NULL")) {
+                            temp = type.substring(0, type.indexOf("NOT NULL"));
+                        } else {
+                            temp = type;
+                        }
+
+                        switch (temp) {
+                            case "FLOAT":
+                                float aFloat = binaryRowData.getFloat(index);
+                                columnRowData.addField(new BigDecimalColumn(aFloat));
+                                break;
+                            case "STRING":
+                                StringData string = binaryRowData.getString(index);
+                                columnRowData.addField(new StringColumn(string.toString()));
+                                break;
+                            case "INTERGER":
+                                int rowDataInt = binaryRowData.getInt(index);
+                                columnRowData.addField(new BigDecimalColumn(rowDataInt));
+                                break;
+                            case "DOUBLE":
+                                double aDouble = binaryRowData.getDouble(index);
+                                columnRowData.addField(new BigDecimalColumn(aDouble));
+                            case "BOOLEAN":
+                                boolean aBoolean = binaryRowData.getBoolean(index);
+                                columnRowData.addField(new BooleanColumn(aBoolean));
+                            case "LONG":
+                                long aLong = binaryRowData.getLong(index);
+                                columnRowData.addField(new BigDecimalColumn(aLong));
+                            default:
+                                if (temp.startsWith("DECIMAL")) {
+                                    String[] bracketContent = getBracketContent(temp.trim());
+                                    if (bracketContent.length > 0) {
+                                        String str = bracketContent[0];
+                                        String[] split = str.split(",");
+                                        int precision = Integer.valueOf(split[0].trim());
+                                        int scale = Integer.valueOf(split[1].trim());
+                                        DecimalData decimal =
+                                                binaryRowData.getDecimal(index, precision, scale);
+                                        columnRowData.addField(
+                                                new BigDecimalColumn(decimal.toBigDecimal()));
+                                    }
+                                } else {
+                                    columnRowData.addField(new NullColumn());
+                                }
+                                break;
+                        }
+
+                        columnRowData.addHeader(column);
+                        columnRowData.addExtHeader(column);
+                    });
+        }
+        return columnRowData;
+    }
+
+    private static String[] getBracketContent(String content) {
+        String[] arr = new String[0];
+        Pattern p = Pattern.compile("(?<=\\()[^\\)]+");
+        Matcher m = p.matcher(content);
+        while (m.find()) {
+            arr = Arrays.copyOf(arr, arr.length + 1);
+            arr[arr.length - 1] = m.group();
+        }
+        return arr;
     }
 
     public void getOrCreateFieldNamedPstmt(RowData row) throws ExecutionException {
+        RowKind rowKind = row.getRowKind();
         if (row instanceof ColumnRowData) {
             ColumnRowData columnRowData = (ColumnRowData) row;
             Map<String, Integer> head = columnRowData.getHeaderInfo();
@@ -135,7 +288,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
             String database = row.getString(dataBaseIndex).toString();
             String tableName = row.getString(tableIndex).toString();
-            String key = getPstmtCacheKey(database, tableName, row.getRowKind());
+            String key = getPstmtCacheKey(database, tableName, rowKind);
 
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
@@ -143,6 +296,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                             () -> {
                                 try {
                                     return DynamicPreparedStmt.buildStmt(
+                                            jdbcConf,
                                             columnRowData.getHeaderInfo(),
                                             columnRowData.getExtHeader(),
                                             database,
@@ -163,17 +317,29 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                 columnRowData.removeExtHeaderInfo();
             }
         } else {
-            String key =
-                    getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.INSERT);
+            String key = null;
+            switch (rowKind) {
+                case DELETE:
+                    key =
+                            getPstmtCacheKey(
+                                    jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.DELETE);
+                    break;
+                default:
+                    key =
+                            getPstmtCacheKey(
+                                    jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.INSERT);
+                    break;
+            }
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
                             key,
                             () -> {
                                 try {
                                     return DynamicPreparedStmt.buildStmt(
+                                            jdbcConf,
                                             jdbcConf.getSchema(),
                                             jdbcConf.getTable(),
-                                            row.getRowKind(),
+                                            rowKind,
                                             connection,
                                             jdbcDialect,
                                             jdbcConf.getColumn(),
@@ -189,9 +355,21 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     public void writeSingleRecordInternal(RowData row) throws Exception {
         getOrCreateFieldNamedPstmt(row);
-        currentFieldNamedPstmt =
-                (FieldNamedPreparedStatement)
-                        currentRowConverter.toExternal(row, this.currentFieldNamedPstmt);
+        RowKind rowKind = row.getRowKind();
+        switch (rowKind) {
+            case DELETE:
+                ColumnRowData columnRowData = convertColumnRowData(row);
+                currentFieldNamedPstmt =
+                        (FieldNamedPreparedStatement)
+                                currentRowConverter.toExternal(
+                                        columnRowData, this.currentFieldNamedPstmt);
+                break;
+            default:
+                currentFieldNamedPstmt =
+                        (FieldNamedPreparedStatement)
+                                currentRowConverter.toExternal(row, this.currentFieldNamedPstmt);
+                break;
+        }
         currentFieldNamedPstmt.execute();
     }
 
