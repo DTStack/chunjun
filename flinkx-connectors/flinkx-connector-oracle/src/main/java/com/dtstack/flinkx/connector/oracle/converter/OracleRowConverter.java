@@ -235,9 +235,7 @@ public class OracleRowConverter extends JdbcRowConverter {
                 return (val, index, statement) ->
                         statement.setDate(
                                 index,
-                                new Date(
-                                        new Timestamp(Long.valueOf(val.getInt(index)) * 1000L)
-                                                .getTime()));
+                                new Date(new Timestamp(val.getInt(index) * 1000L).getTime()));
             case TIME_WITHOUT_TIME_ZONE:
                 return (val, index, statement) ->
                         statement.setTime(

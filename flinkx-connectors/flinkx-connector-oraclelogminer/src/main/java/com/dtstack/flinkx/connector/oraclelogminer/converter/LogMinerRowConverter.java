@@ -132,15 +132,11 @@ public class LogMinerRowConverter extends AbstractCDCRowConverter<EventRow, Logi
                 return (IDeserializationConverter<String, Integer>)
                         val -> {
                             val = LogParser.parseTime(val);
-                            TemporalAccessor parse = SQL_TIMESTAMP_FORMAT.parse(val);
-                            LocalDate localDate = parse.query(TemporalQueries.localDate());
-                            LocalTime localTime = parse.query(TemporalQueries.localTime());
-                            long time =
-                                    TimestampData.fromLocalDateTime(
-                                                    LocalDateTime.of(localDate, localTime))
-                                            .toTimestamp()
-                                            .getTime();
-                            return (int) (time / 1000);
+                            LocalDate date =
+                                    SQL_TIMESTAMP_FORMAT
+                                            .parse(val)
+                                            .query(TemporalQueries.localDate());
+                            return (int) date.toEpochDay();
                         };
             case TIME_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<String, Integer>)
