@@ -50,7 +50,7 @@ public class RedisOptions {
             ConfigOptions.key("redis.default.port")
                     .stringType()
                     .defaultValue("6379")
-                    .withDescription("edis.default.port");
+                    .withDescription("redis.default.port");
 
     public static final ConfigOption<String> URL =
             ConfigOptions.key("url").stringType().noDefaultValue().withDescription("url");
@@ -93,4 +93,10 @@ public class RedisOptions {
                     .intType()
                     .defaultValue(0)
                     .withDescription("keyExpiredTime");
+
+    public static final ConfigOption<String> REDIS_DATA_TYPE =
+            ConfigOptions.key("type").stringType().noDefaultValue().withDescription("type");
+
+    public static final ConfigOption<String> REDIS_DATA_MODE =
+            ConfigOptions.key("mode").stringType().noDefaultValue().withDescription("mode");
 }
