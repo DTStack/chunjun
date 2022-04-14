@@ -20,6 +20,8 @@ package com.dtstack.flinkx.connector.redis.table;
 
 import com.dtstack.flinkx.connector.redis.conf.RedisConf;
 import com.dtstack.flinkx.connector.redis.enums.RedisConnectType;
+import com.dtstack.flinkx.connector.redis.enums.RedisDataMode;
+import com.dtstack.flinkx.connector.redis.enums.RedisDataType;
 import com.dtstack.flinkx.connector.redis.sink.RedisDynamicTableSink;
 import com.dtstack.flinkx.connector.redis.source.RedisDynamicTableSource;
 import com.dtstack.flinkx.lookup.conf.LookupConf;
@@ -50,6 +52,8 @@ import static com.dtstack.flinkx.connector.redis.options.RedisOptions.MAXTOTAL;
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.MINIDLE;
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.PASSWORD;
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.REDISTYPE;
+import static com.dtstack.flinkx.connector.redis.options.RedisOptions.REDIS_DATA_MODE;
+import static com.dtstack.flinkx.connector.redis.options.RedisOptions.REDIS_DATA_TYPE;
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.TABLENAME;
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.TIMEOUT;
 import static com.dtstack.flinkx.connector.redis.options.RedisOptions.URL;
@@ -119,6 +123,8 @@ public class RedisDynamicTableFactory
         Set<ConfigOption<?>> requiredOptions = new HashSet<>();
         requiredOptions.add(URL);
         requiredOptions.add(TABLENAME);
+        requiredOptions.add(REDIS_DATA_TYPE);
+        requiredOptions.add(REDIS_DATA_MODE);
         return requiredOptions;
     }
 
@@ -162,6 +168,8 @@ public class RedisDynamicTableFactory
         redisConf.setMaxIdle(config.get(MAXIDLE));
         redisConf.setMinIdle(config.get(MINIDLE));
         redisConf.setExpireTime(config.get(KEYEXPIREDTIME));
+        redisConf.setType(RedisDataType.getDataType(config.get(REDIS_DATA_TYPE)));
+        redisConf.setMode(RedisDataMode.getDataMode(config.get(REDIS_DATA_MODE)));
 
         List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
         redisConf.setUpdateKey(keyFields);
