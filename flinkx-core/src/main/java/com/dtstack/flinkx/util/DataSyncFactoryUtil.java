@@ -91,21 +91,17 @@ public class DataSyncFactoryUtil {
         try {
             String pluginName = flinkxCommonConf.getMetricPluginName();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.metric);
-            Set<URL> urlList =
-                    PluginUtil.getJarFileDirPath(
-                            pluginName, flinkxCommonConf.getMetricPluginRoot(), null, "");
             MetricParam metricParam =
                     new MetricParam(
                             context,
                             makeTaskFailedWhenReportFailed,
                             flinkxCommonConf.getMetricProps());
-            return ClassLoaderManager.newInstance(
-                    urlList,
-                    cl -> {
-                        Class<?> clazz = cl.loadClass(pluginClassName);
-                        Constructor constructor = clazz.getConstructor(MetricParam.class);
-                        return (CustomReporter) constructor.newInstance(metricParam);
-                    });
+
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            Class<?> clazz = classLoader.loadClass(pluginClassName);
+            Constructor<?> constructor = clazz.getConstructor(MetricParam.class);
+
+            return (CustomReporter) constructor.newInstance(metricParam);
         } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
         }
