@@ -23,7 +23,8 @@ import com.dtstack.flinkx.connector.oraclelogminer.source.OraclelogminerDynamicT
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.formats.json.JsonOptions;
+import org.apache.flink.formats.json.JsonFormatOptions;
+import org.apache.flink.formats.json.JsonFormatOptionsUtil;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
@@ -70,7 +71,7 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
         options.add(LogminerOptions.MAX_LOAD_FILE_SIZE);
         options.add(LogminerOptions.TRANSACTION_CACHE_NUM_SIZE);
         options.add(LogminerOptions.TRANSACTION_EXPIRE_TIME);
-        options.add(JsonOptions.TIMESTAMP_FORMAT);
+        options.add(JsonFormatOptions.TIMESTAMP_FORMAT);
         return options;
     }
 
@@ -89,7 +90,7 @@ public class OraclelogminerDynamicTableFactory implements DynamicTableSourceFact
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
         LogMinerConf logMinerConf = getLogMinerConf(config);
         return new OraclelogminerDynamicTableSource(
-                physicalSchema, logMinerConf, JsonOptions.getTimestampFormat(config));
+                physicalSchema, logMinerConf, JsonFormatOptionsUtil.getTimestampFormat(config));
     }
 
     /**

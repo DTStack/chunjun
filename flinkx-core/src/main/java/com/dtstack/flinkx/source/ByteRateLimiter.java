@@ -21,7 +21,7 @@ package com.dtstack.flinkx.source;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 
-import org.apache.flink.shaded.guava18.com.google.common.util.concurrent.RateLimiter;
+import org.apache.flink.shaded.guava30.com.google.common.util.concurrent.RateLimiter;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 

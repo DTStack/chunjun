@@ -28,9 +28,9 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.config.StartupMode;
-import org.apache.flink.streaming.connectors.kafka.table.KafkaOptions;
-import org.apache.flink.streaming.connectors.kafka.table.KafkaSinkSemantic;
+import org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.catalog.CatalogTable;
@@ -56,15 +56,15 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
-import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.KEY_FIELDS;
-import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.KEY_FIELDS_PREFIX;
-import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.KEY_FORMAT;
-import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.PROPS_BOOTSTRAP_SERVERS;
-import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.TOPIC;
-import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.VALUE_FIELDS_INCLUDE;
-import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.VALUE_FORMAT;
-import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.createKeyFormatProjection;
-import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.createValueFormatProjection;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.KEY_FIELDS;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.KEY_FIELDS_PREFIX;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.KEY_FORMAT;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.PROPS_BOOTSTRAP_SERVERS;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.TOPIC;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.VALUE_FIELDS_INCLUDE;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.VALUE_FORMAT;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptionsUtil.createKeyFormatProjection;
+import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptionsUtil.createValueFormatProjection;
 
 /** Upsert-Kafka factory. */
 public class UpsertKafkaDynamicTableFactory
@@ -156,7 +156,7 @@ public class UpsertKafkaDynamicTableFactory
                 helper.discoverDecodingFormat(DeserializationFormatFactory.class, VALUE_FORMAT);
 
         // Validate the option data type.
-        helper.validateExcept(KafkaOptions.PROPERTIES_PREFIX);
+        helper.validateExcept(KafkaConnectorOptions.PROPERTIES_PREFIX);
         TableSchema schema = context.getCatalogTable().getSchema();
         validateTableOptions(tableOptions, keyDecodingFormat, valueDecodingFormat, schema);
 
@@ -175,8 +175,8 @@ public class UpsertKafkaDynamicTableFactory
                 keyValueProjections.f0,
                 keyValueProjections.f1,
                 keyPrefix,
-                KafkaOptions.getSourceTopics(tableOptions),
-                KafkaOptions.getSourceTopicPattern(tableOptions),
+                KafkaConnectorOptions.getSourceTopics(tableOptions),
+                KafkaConnectorOptions.getSourceTopicPattern(tableOptions),
                 properties,
                 earliest,
                 Collections.emptyMap(),
@@ -197,7 +197,7 @@ public class UpsertKafkaDynamicTableFactory
                 helper.discoverEncodingFormat(SerializationFormatFactory.class, VALUE_FORMAT);
 
         // Validate the option data type.
-        helper.validateExcept(KafkaOptions.PROPERTIES_PREFIX);
+        helper.validateExcept(KafkaConnectorOptions.PROPERTIES_PREFIX);
         TableSchema schema = context.getCatalogTable().getSchema();
         validateTableOptions(tableOptions, keyEncodingFormat, valueEncodingFormat, schema);
 
@@ -221,7 +221,7 @@ public class UpsertKafkaDynamicTableFactory
                 tableOptions.get(TOPIC).get(0),
                 properties,
                 null,
-                KafkaSinkSemantic.AT_LEAST_ONCE,
+                FlinkKafkaProducer.Semantic.AT_LEAST_ONCE,
                 true,
                 parallelism);
     }

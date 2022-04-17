@@ -1,5 +1,3 @@
-package com.dtstack.flinkx.table.filesystem.stream;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,6 +15,8 @@ package com.dtstack.flinkx.table.filesystem.stream;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.dtstack.flinkx.table.filesystem.stream;
 
 import com.dtstack.flinkx.streaming.api.functions.sink.filesystem.StreamingFileSink;
 
@@ -53,11 +53,11 @@ public abstract class AbstractStreamingWriter<IN, OUT> extends AbstractStreamOpe
 
     // --------------------------- runtime fields -----------------------------
 
-    private transient Buckets<IN, String> buckets;
+    protected transient Buckets<IN, String> buckets;
 
     private transient StreamingFileSinkHelper<IN> helper;
 
-    private transient long currentWatermark;
+    protected transient long currentWatermark;
 
     public AbstractStreamingWriter(
             long bucketCheckInterval,
@@ -160,8 +160,8 @@ public abstract class AbstractStreamingWriter<IN, OUT> extends AbstractStreamOpe
     }
 
     @Override
-    public void dispose() throws Exception {
-        super.dispose();
+    public void close() throws Exception {
+        super.close();
         if (helper != null) {
             helper.close();
         }

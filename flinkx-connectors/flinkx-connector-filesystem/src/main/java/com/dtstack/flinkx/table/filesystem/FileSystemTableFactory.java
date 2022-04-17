@@ -37,7 +37,7 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.factories.FileSystemFormatFactory;
 import org.apache.flink.table.factories.SerializationFormatFactory;
 import org.apache.flink.table.factories.TableFactory;
-import org.apache.flink.table.filesystem.FileSystemOptions;
+import org.apache.flink.table.filesystem.FileSystemConnectorOptions;
 import org.apache.flink.table.filesystem.FileSystemTableSource;
 
 import java.util.HashSet;
@@ -90,7 +90,7 @@ public class FileSystemTableFactory implements DynamicTableSourceFactory, Dynami
     @Override
     public Set<ConfigOption<?>> requiredOptions() {
         Set<ConfigOption<?>> options = new HashSet<>();
-        options.add(FileSystemOptions.PATH);
+        options.add(FileSystemConnectorOptions.PATH);
         options.add(FactoryUtil.FORMAT);
         return options;
     }
@@ -98,21 +98,21 @@ public class FileSystemTableFactory implements DynamicTableSourceFactory, Dynami
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> options = new HashSet<>();
-        options.add(FileSystemOptions.PARTITION_DEFAULT_NAME);
-        options.add(FileSystemOptions.SINK_ROLLING_POLICY_FILE_SIZE);
-        options.add(FileSystemOptions.SINK_ROLLING_POLICY_ROLLOVER_INTERVAL);
-        options.add(FileSystemOptions.SINK_ROLLING_POLICY_CHECK_INTERVAL);
-        options.add(FileSystemOptions.SINK_SHUFFLE_BY_PARTITION);
-        options.add(FileSystemOptions.PARTITION_TIME_EXTRACTOR_KIND);
-        options.add(FileSystemOptions.PARTITION_TIME_EXTRACTOR_CLASS);
-        options.add(FileSystemOptions.PARTITION_TIME_EXTRACTOR_TIMESTAMP_PATTERN);
-        options.add(FileSystemOptions.SINK_PARTITION_COMMIT_TRIGGER);
-        options.add(FileSystemOptions.SINK_PARTITION_COMMIT_DELAY);
-        options.add(FileSystemOptions.SINK_PARTITION_COMMIT_POLICY_KIND);
-        options.add(FileSystemOptions.SINK_PARTITION_COMMIT_POLICY_CLASS);
-        options.add(FileSystemOptions.SINK_PARTITION_COMMIT_SUCCESS_FILE_NAME);
-        options.add(FileSystemOptions.AUTO_COMPACTION);
-        options.add(FileSystemOptions.COMPACTION_FILE_SIZE);
+        options.add(FileSystemConnectorOptions.PARTITION_DEFAULT_NAME);
+        options.add(FileSystemConnectorOptions.SINK_ROLLING_POLICY_FILE_SIZE);
+        options.add(FileSystemConnectorOptions.SINK_ROLLING_POLICY_ROLLOVER_INTERVAL);
+        options.add(FileSystemConnectorOptions.SINK_ROLLING_POLICY_CHECK_INTERVAL);
+        options.add(FileSystemConnectorOptions.SINK_SHUFFLE_BY_PARTITION);
+        options.add(FileSystemConnectorOptions.PARTITION_TIME_EXTRACTOR_KIND);
+        options.add(FileSystemConnectorOptions.PARTITION_TIME_EXTRACTOR_CLASS);
+        options.add(FileSystemConnectorOptions.PARTITION_TIME_EXTRACTOR_TIMESTAMP_PATTERN);
+        options.add(FileSystemConnectorOptions.SINK_PARTITION_COMMIT_TRIGGER);
+        options.add(FileSystemConnectorOptions.SINK_PARTITION_COMMIT_DELAY);
+        options.add(FileSystemConnectorOptions.SINK_PARTITION_COMMIT_POLICY_KIND);
+        options.add(FileSystemConnectorOptions.SINK_PARTITION_COMMIT_POLICY_CLASS);
+        options.add(FileSystemConnectorOptions.SINK_PARTITION_COMMIT_SUCCESS_FILE_NAME);
+        options.add(FileSystemConnectorOptions.AUTO_COMPACTION);
+        options.add(FileSystemConnectorOptions.COMPACTION_FILE_SIZE);
         return options;
     }
 

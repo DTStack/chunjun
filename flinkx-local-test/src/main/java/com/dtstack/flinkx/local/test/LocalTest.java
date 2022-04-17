@@ -54,7 +54,7 @@ public class LocalTest {
         //        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = "/Users/wtz/work_place/job_place/json/1.12/binlog-stream.json";
+        String jobPath = userDir + "/flinkx-examples/json/stream/stream.json";
         //                userDir + "/flinkx-examples/json/stream/stream.json";
         String flinkxDistDir = userDir + "/flinkx-dist";
         String s = "";

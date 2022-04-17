@@ -21,12 +21,12 @@ package org.apache.flink.table.factories;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.util.FactoryHelper;
 
+import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.table.api.AmbiguousTableFactoryException;
 import org.apache.flink.table.api.NoMatchingTableFactoryException;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.descriptors.Descriptor;
-import org.apache.flink.table.descriptors.FormatDescriptorValidator;
 import org.apache.flink.table.descriptors.Schema;
 import org.apache.flink.util.Preconditions;
 
@@ -46,15 +46,29 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.apache.flink.table.descriptors.CatalogDescriptorValidator.CATALOG_PROPERTY_VERSION;
 import static org.apache.flink.table.descriptors.ConnectorDescriptorValidator.CONNECTOR_PROPERTY_VERSION;
-import static org.apache.flink.table.descriptors.FormatDescriptorValidator.FORMAT_PROPERTY_VERSION;
 
+/** Unified class to search for a {@link TableFactory} of provided type and properties. */
 /**
- * Unified class to search for a {@link TableFactory} of provided type and properties.
  * 改动内容：增加方法loadFactories，增加变量pluginPath、env、classPathSet 改动原因：在查找catalogFactory前需要把jar包加载进classpath
  */
+@Internal
 public class TableFactoryService {
+
+    /** Prefix for format-related properties. */
+    public static final String FORMAT = "format";
+
+    /** Key for describing the type of the format. Usually used for factory discovery. */
+    public static final String FORMAT_TYPE = "format.type";
+
+    /**
+     * Key for describing the property version. This property can be used for backwards
+     * compatibility in case the property format changes.
+     */
+    public static final String FORMAT_PROPERTY_VERSION = "format.property-version";
+
+    /** Key for deriving the schema of the format from the table's schema. */
+    public static final String FORMAT_DERIVE_SCHEMA = "format.derive-schema";
 
     private static final Logger LOG = LoggerFactory.getLogger(TableFactoryService.class);
 
@@ -267,7 +281,7 @@ public class TableFactoryService {
             // with the version we can provide mappings in case the format changes
             plainContext.remove(CONNECTOR_PROPERTY_VERSION);
             plainContext.remove(FORMAT_PROPERTY_VERSION);
-            plainContext.remove(CATALOG_PROPERTY_VERSION);
+            plainContext.remove(FactoryUtil.PROPERTY_VERSION.key());
 
             // check if required context is met
             Map<String, Tuple2<String, String>> mismatchedProperties = new HashMap<>();
@@ -334,6 +348,30 @@ public class TableFactoryService {
         }
 
         return matchingFactories;
+    }
+
+    private static class ContextBestMatched<T extends TableFactory> {
+
+        private final T factory;
+
+        private final int matchedSize;
+
+        /** Key -> (value in factory, value in properties). */
+        private final Map<String, Tuple2<String, String>> mismatchedProperties;
+
+        /** Key -> value in factory. */
+        private final Map<String, String> missingProperties;
+
+        private ContextBestMatched(
+                T factory,
+                int matchedSize,
+                Map<String, Tuple2<String, String>> mismatchedProperties,
+                Map<String, String> missingProperties) {
+            this.factory = factory;
+            this.matchedSize = matchedSize;
+            this.mismatchedProperties = mismatchedProperties;
+            this.missingProperties = missingProperties;
+        }
     }
 
     /** Prepares the properties of a context to be used for match operations. */
@@ -460,38 +498,14 @@ public class TableFactoryService {
                             k -> {
                                 if (includeSchema) {
                                     return k.startsWith(Schema.SCHEMA + ".")
-                                            || k.startsWith(FormatDescriptorValidator.FORMAT + ".");
+                                            || k.startsWith(FORMAT + ".");
                                 } else {
-                                    return k.startsWith(FormatDescriptorValidator.FORMAT + ".");
+                                    return k.startsWith(FORMAT + ".");
                                 }
                             })
                     .collect(Collectors.toList());
         } else {
             return keys;
-        }
-    }
-
-    private static class ContextBestMatched<T extends TableFactory> {
-
-        private final T factory;
-
-        private final int matchedSize;
-
-        /** Key -> (value in factory, value in properties). */
-        private final Map<String, Tuple2<String, String>> mismatchedProperties;
-
-        /** Key -> value in factory. */
-        private final Map<String, String> missingProperties;
-
-        private ContextBestMatched(
-                T factory,
-                int matchedSize,
-                Map<String, Tuple2<String, String>> mismatchedProperties,
-                Map<String, String> missingProperties) {
-            this.factory = factory;
-            this.matchedSize = matchedSize;
-            this.mismatchedProperties = mismatchedProperties;
-            this.missingProperties = missingProperties;
         }
     }
 }

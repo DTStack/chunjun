@@ -26,7 +26,17 @@ public class NoOPPlanner implements Planner {
     }
 
     @Override
-    public String[] getCompletionHints(String statement, int position) {
-        return new String[0];
+    public String getJsonPlan(List<ModifyOperation> list) {
+        return null;
+    }
+
+    @Override
+    public String explainJsonPlan(String s, ExplainDetail... explainDetails) {
+        return null;
+    }
+
+    @Override
+    public List<Transformation<?>> translateJsonPlan(String s) {
+        return null;
     }
 }

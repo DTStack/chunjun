@@ -24,7 +24,6 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkKafkaPartitioner;
-import org.apache.flink.streaming.connectors.kafka.table.KafkaSinkSemantic;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.format.EncodingFormat;
@@ -88,7 +87,7 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
     /** Partitioner to select Kafka partition for each item. */
     protected final @Nullable FlinkKafkaPartitioner<RowData> partitioner;
     /** Sink commit semantic. */
-    protected final KafkaSinkSemantic semantic;
+    protected final FlinkKafkaProducer.Semantic semantic;
     /**
      * Flag to determine sink mode. In upsert mode sink transforms the delete/update-before message
      * to tombstone message.
@@ -109,7 +108,7 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
             String topic,
             Properties properties,
             @Nullable FlinkKafkaPartitioner<RowData> partitioner,
-            KafkaSinkSemantic semantic,
+            FlinkKafkaProducer.Semantic semantic,
             boolean upsertMode,
             @Nullable Integer parallelism) {
         // Format attributes

@@ -21,7 +21,7 @@ import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 
-import org.apache.flink.formats.json.TimestampFormat;
+import org.apache.flink.formats.common.TimestampFormat;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.RowData;

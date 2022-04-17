@@ -23,7 +23,7 @@ import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.throwable.NoRestartException;
 import com.dtstack.flinkx.util.PropertiesUtil;
 
-import org.apache.flink.shaded.guava18.com.google.common.collect.Maps;
+import org.apache.flink.shaded.guava30.com.google.common.collect.Maps;
 
 import org.apache.commons.collections.MapUtils;
 

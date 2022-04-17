@@ -35,6 +35,7 @@ import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.catalog.UnresolvedIdentifier;
@@ -462,8 +463,18 @@ public class PGWalColumnConverter extends AbstractCDCRowConverter<ChangeLog, Log
         }
 
         @Override
+        public <T> DataType createDataType(TypeInformation<T> typeInformation) {
+            return null;
+        }
+
+        @Override
         public <T> DataType createRawDataType(Class<T> clazz) {
             return dataType.orElseThrow(IllegalStateException::new);
+        }
+
+        @Override
+        public <T> DataType createRawDataType(TypeInformation<T> typeInformation) {
+            return null;
         }
     }
 

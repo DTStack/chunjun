@@ -25,7 +25,7 @@ import com.dtstack.flinkx.source.DtInputFormatSourceFunction;
 import com.dtstack.flinkx.table.connector.source.ParallelSourceFunctionProvider;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.formats.json.TimestampFormat;
+import org.apache.flink.formats.common.TimestampFormat;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
