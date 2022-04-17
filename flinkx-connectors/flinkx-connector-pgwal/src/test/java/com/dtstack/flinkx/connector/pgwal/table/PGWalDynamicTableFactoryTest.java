@@ -4,9 +4,9 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.jdbc.catalog.AbstractJdbcCatalog;
 import org.apache.flink.connector.jdbc.catalog.JdbcCatalogUtils;
-import org.apache.flink.table.catalog.CatalogTable;
 import org.apache.flink.table.catalog.ObjectIdentifier;
 import org.apache.flink.table.catalog.ObjectPath;
+import org.apache.flink.table.catalog.ResolvedCatalogTable;
 import org.apache.flink.table.catalog.exceptions.TableNotExistException;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.FactoryUtil;
@@ -38,7 +38,8 @@ public class PGWalDynamicTableFactoryTest {
                 FactoryUtil.createTableSource(
                         catalog,
                         ObjectIdentifier.of(catalogName, defaultDatabase, ""),
-                        (CatalogTable) catalog.getTable(new ObjectPath(defaultDatabase, "")),
+                        (ResolvedCatalogTable)
+                                catalog.getTable(new ObjectPath(defaultDatabase, "")),
                         new Configuration(),
                         ClassLoader.getSystemClassLoader(),
                         isTempTable);

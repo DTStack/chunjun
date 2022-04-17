@@ -24,7 +24,8 @@ import com.dtstack.flinkx.constants.ConstantValue;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.formats.json.JsonOptions;
+import org.apache.flink.formats.json.JsonFormatOptions;
+import org.apache.flink.formats.json.JsonFormatOptionsUtil;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.factories.DynamicTableSourceFactory;
@@ -80,7 +81,7 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
         options.add(BinlogOptions.IS_GTID_MODE);
         options.add(BinlogOptions.QUERY_TIME_OUT);
         options.add(BinlogOptions.CONNECT_TIME_OUT);
-        options.add(JsonOptions.TIMESTAMP_FORMAT);
+        options.add(JsonFormatOptions.TIMESTAMP_FORMAT);
         return options;
     }
 
@@ -100,7 +101,7 @@ public class BinlogDynamicTableFactory implements DynamicTableSourceFactory {
         BinlogConf binlogConf = getBinlogConf(config);
 
         return new BinlogDynamicTableSource(
-                physicalSchema, binlogConf, JsonOptions.getTimestampFormat(config));
+                physicalSchema, binlogConf, JsonFormatOptionsUtil.getTimestampFormat(config));
     }
 
     /**

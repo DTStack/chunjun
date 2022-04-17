@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,10 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.flink.streaming.api.functions.async;
 
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.ExecutionConfig;
+import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.accumulators.Accumulator;
 import org.apache.flink.api.common.accumulators.DoubleCounter;
 import org.apache.flink.api.common.accumulators.Histogram;
@@ -42,7 +44,7 @@ import org.apache.flink.api.common.state.ReducingState;
 import org.apache.flink.api.common.state.ReducingStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
-import org.apache.flink.metrics.MetricGroup;
+import org.apache.flink.metrics.groups.OperatorMetricGroup;
 import org.apache.flink.types.Value;
 import org.apache.flink.util.Preconditions;
 
@@ -104,12 +106,17 @@ public abstract class RichAsyncFunction<IN, OUT> extends AbstractRichFunction
         }
 
         @Override
+        public JobID getJobId() {
+            return runtimeContext.getJobId();
+        }
+
+        @Override
         public String getTaskName() {
             return runtimeContext.getTaskName();
         }
 
         @Override
-        public MetricGroup getMetricGroup() {
+        public OperatorMetricGroup getMetricGroup() {
             return runtimeContext.getMetricGroup();
         }
 
@@ -229,7 +236,7 @@ public abstract class RichAsyncFunction<IN, OUT> extends AbstractRichFunction
         @Override
         public DoubleCounter getDoubleCounter(String name) {
             throw new UnsupportedOperationException(
-                    "Long counters are not supported in rich async functions.");
+                    "Double counters are not supported in rich async functions.");
         }
 
         @Override
@@ -288,6 +295,11 @@ public abstract class RichAsyncFunction<IN, OUT> extends AbstractRichFunction
         public <T extends Value> T getPreviousIterationAggregate(String name) {
             throw new UnsupportedOperationException(
                     "Iteration aggregators are not supported in rich async functions.");
+        }
+
+        @Override
+        public JobID getJobId() {
+            return iterationRuntimeContext.getJobId();
         }
     }
 }

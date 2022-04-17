@@ -22,7 +22,7 @@
 		<module>flinkx-connector-stream</module>
 
 		<!--MQ-->
-		<module>flinkx-connector-kafka</module>
+<!--		<module>flinkx-connector-kafka</module>-->
 		<module>flinkx-connector-emqx</module>
 
 		<!--RDB-->

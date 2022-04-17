@@ -13,7 +13,7 @@
 	<modules>
 		<module>flinkx-core</module>
 		<module>flinkx-connectors</module>
-		<module>flinkx-clients</module>
+<!--		<module>flinkx-clients</module>-->
 <!--		<module>flinkx-local-test</module>-->
 		<module>flinkx-formats</module>
 		<module>flinkx-docker</module>
@@ -25,7 +25,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<target.java.version>1.8</target.java.version>
-		<flink.version>1.12.7</flink.version>
+		<flink.version>1.14.4</flink.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<prometheus.version>0.8.1</prometheus.version>
 		<hadoop.version>2.7.5</hadoop.version>

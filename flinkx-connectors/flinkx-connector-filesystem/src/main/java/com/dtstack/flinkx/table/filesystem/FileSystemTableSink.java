@@ -63,7 +63,7 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.factories.FileSystemFormatFactory;
 import org.apache.flink.table.filesystem.DeserializationSchemaAdapter;
 import org.apache.flink.table.filesystem.EmptyMetaStoreFactory;
-import org.apache.flink.table.filesystem.FileSystemOptions;
+import org.apache.flink.table.filesystem.FileSystemConnectorOptions;
 import org.apache.flink.table.filesystem.FileSystemOutputFormat;
 import org.apache.flink.table.filesystem.OutputFormatFactory;
 import org.apache.flink.table.filesystem.PartitionComputer;
@@ -91,9 +91,9 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.apache.flink.table.filesystem.FileSystemOptions.SINK_ROLLING_POLICY_CHECK_INTERVAL;
-import static org.apache.flink.table.filesystem.FileSystemOptions.SINK_ROLLING_POLICY_FILE_SIZE;
-import static org.apache.flink.table.filesystem.FileSystemOptions.SINK_ROLLING_POLICY_ROLLOVER_INTERVAL;
+import static org.apache.flink.table.filesystem.FileSystemConnectorOptions.SINK_ROLLING_POLICY_CHECK_INTERVAL;
+import static org.apache.flink.table.filesystem.FileSystemConnectorOptions.SINK_ROLLING_POLICY_FILE_SIZE;
+import static org.apache.flink.table.filesystem.FileSystemConnectorOptions.SINK_ROLLING_POLICY_ROLLOVER_INTERVAL;
 import static org.apache.flink.table.filesystem.stream.compact.CompactOperator.convertToUncompacted;
 
 /** File system {@link DynamicTableSink}. */
@@ -188,7 +188,8 @@ public class FileSystemTableSink extends AbstractFileSystemTable
         FileSystemFactory fsFactory = FileSystem::getCustomUnguardedFileSystem;
         RowDataPartitionComputer computer = partitionComputer();
 
-        boolean autoCompaction = tableOptions.getBoolean(FileSystemOptions.AUTO_COMPACTION);
+        boolean autoCompaction =
+                tableOptions.getBoolean(FileSystemConnectorOptions.AUTO_COMPACTION);
         Object writer = createWriter(sinkContext);
         boolean isEncoder = writer instanceof Encoder;
         FileSystemTableSink.TableBucketAssigner assigner =
@@ -240,7 +241,7 @@ public class FileSystemTableSink extends AbstractFileSystemTable
         if (autoCompaction) {
             long compactionSize =
                     tableOptions
-                            .getOptional(FileSystemOptions.COMPACTION_FILE_SIZE)
+                            .getOptional(FileSystemConnectorOptions.COMPACTION_FILE_SIZE)
                             .orElse(tableOptions.get(SINK_ROLLING_POLICY_FILE_SIZE))
                             .getBytes();
 

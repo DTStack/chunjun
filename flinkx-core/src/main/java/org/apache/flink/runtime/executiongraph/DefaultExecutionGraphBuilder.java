@@ -18,11 +18,9 @@
 
 package org.apache.flink.runtime.executiongraph;
 
-import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.configuration.CheckpointingOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.IllegalConfigurationException;
 import org.apache.flink.configuration.JobManagerOptions;
@@ -33,30 +31,29 @@ import org.apache.flink.runtime.blob.BlobServer;
 import org.apache.flink.runtime.blob.BlobWriter;
 import org.apache.flink.runtime.blob.PermanentBlobKey;
 import org.apache.flink.runtime.checkpoint.CheckpointIDCounter;
-import org.apache.flink.runtime.checkpoint.CheckpointRecoveryFactory;
 import org.apache.flink.runtime.checkpoint.CheckpointStatsTracker;
+import org.apache.flink.runtime.checkpoint.CheckpointsCleaner;
 import org.apache.flink.runtime.checkpoint.CompletedCheckpointStore;
 import org.apache.flink.runtime.checkpoint.MasterTriggerRestoreHook;
 import org.apache.flink.runtime.checkpoint.hooks.MasterHooks;
 import org.apache.flink.runtime.client.JobExecutionException;
 import org.apache.flink.runtime.client.JobSubmissionException;
-import org.apache.flink.runtime.executiongraph.failover.FailoverStrategy;
-import org.apache.flink.runtime.executiongraph.failover.FailoverStrategyLoader;
-import org.apache.flink.runtime.executiongraph.failover.flip1.partitionrelease.PartitionReleaseStrategy;
-import org.apache.flink.runtime.executiongraph.failover.flip1.partitionrelease.PartitionReleaseStrategyFactoryLoader;
+import org.apache.flink.runtime.deployment.TaskDeploymentDescriptorFactory;
+import org.apache.flink.runtime.executiongraph.failover.flip1.partitionrelease.PartitionGroupReleaseStrategy;
+import org.apache.flink.runtime.executiongraph.failover.flip1.partitionrelease.PartitionGroupReleaseStrategyFactoryLoader;
 import org.apache.flink.runtime.executiongraph.metrics.DownTimeGauge;
 import org.apache.flink.runtime.executiongraph.metrics.RestartTimeGauge;
 import org.apache.flink.runtime.executiongraph.metrics.UpTimeGauge;
-import org.apache.flink.runtime.executiongraph.restart.RestartStrategy;
 import org.apache.flink.runtime.io.network.partition.JobMasterPartitionTracker;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.JobVertex;
-import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.jobgraph.jsonplan.JsonPlanGenerator;
 import org.apache.flink.runtime.jobgraph.tasks.CheckpointCoordinatorConfiguration;
 import org.apache.flink.runtime.jobgraph.tasks.JobCheckpointingSettings;
-import org.apache.flink.runtime.jobmaster.slotpool.SlotProvider;
+import org.apache.flink.runtime.scheduler.VertexParallelismStore;
 import org.apache.flink.runtime.shuffle.ShuffleMaster;
+import org.apache.flink.runtime.state.CheckpointStorage;
+import org.apache.flink.runtime.state.CheckpointStorageLoader;
 import org.apache.flink.runtime.state.StateBackend;
 import org.apache.flink.runtime.state.StateBackendLoader;
 import org.apache.flink.util.DynamicCodeLoadingException;
@@ -65,8 +62,6 @@ import org.apache.flink.util.SerializedValue;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
-
-import javax.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,88 +79,33 @@ import java.util.concurrent.ScheduledExecutorService;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
- * Utility class to encapsulate the logic of building an {@link ExecutionGraph} from a {@link
- * JobGraph}. 改动内容：jobManager中支持获取上传的文件#240 改动原因：flink
+ * Utility class to encapsulate the logic of building an {@link DefaultExecutionGraph} from a {@link
+ * JobGraph}.改动内容：jobManager中支持获取上传的文件#240 改动原因：flink
  * 1.12中改为异步提交导致上传的文件异步提交后立即被删除，jobManager初始化时无法获取这些文件
  */
-public class ExecutionGraphBuilder {
+public class DefaultExecutionGraphBuilder {
 
-    /** This class is not supposed to be instantiated. */
-    private ExecutionGraphBuilder() {}
-
-    /**
-     * Builds the ExecutionGraph from the JobGraph. If a prior execution graph exists, the JobGraph
-     * will be attached. If no prior execution graph exists, then the JobGraph will become attach to
-     * a new empty execution graph.
-     */
-    @VisibleForTesting
-    public static ExecutionGraph buildGraph(
-            @Nullable ExecutionGraph prior,
+    public static DefaultExecutionGraph buildGraph(
             JobGraph jobGraph,
             Configuration jobManagerConfig,
             ScheduledExecutorService futureExecutor,
             Executor ioExecutor,
-            SlotProvider slotProvider,
             ClassLoader classLoader,
-            CheckpointRecoveryFactory recoveryFactory,
+            CompletedCheckpointStore completedCheckpointStore,
+            CheckpointsCleaner checkpointsCleaner,
+            CheckpointIDCounter checkpointIdCounter,
             Time rpcTimeout,
-            RestartStrategy restartStrategy,
             MetricGroup metrics,
             BlobWriter blobWriter,
-            Time allocationTimeout,
             Logger log,
             ShuffleMaster<?> shuffleMaster,
             JobMasterPartitionTracker partitionTracker,
-            long initializationTimestamp)
-            throws JobExecutionException, JobException {
-
-        final FailoverStrategy.Factory failoverStrategy =
-                FailoverStrategyLoader.loadFailoverStrategy(jobManagerConfig, log);
-
-        return buildGraph(
-                prior,
-                jobGraph,
-                jobManagerConfig,
-                futureExecutor,
-                ioExecutor,
-                slotProvider,
-                classLoader,
-                recoveryFactory,
-                rpcTimeout,
-                restartStrategy,
-                metrics,
-                blobWriter,
-                allocationTimeout,
-                log,
-                shuffleMaster,
-                partitionTracker,
-                failoverStrategy,
-                NoOpExecutionDeploymentListener.get(),
-                (execution, newState) -> {},
-                initializationTimestamp);
-    }
-
-    public static ExecutionGraph buildGraph(
-            @Nullable ExecutionGraph prior,
-            JobGraph jobGraph,
-            Configuration jobManagerConfig,
-            ScheduledExecutorService futureExecutor,
-            Executor ioExecutor,
-            SlotProvider slotProvider,
-            ClassLoader classLoader,
-            CheckpointRecoveryFactory recoveryFactory,
-            Time rpcTimeout,
-            RestartStrategy restartStrategy,
-            MetricGroup metrics,
-            BlobWriter blobWriter,
-            Time allocationTimeout,
-            Logger log,
-            ShuffleMaster<?> shuffleMaster,
-            JobMasterPartitionTracker partitionTracker,
-            FailoverStrategy.Factory failoverStrategyFactory,
+            TaskDeploymentDescriptorFactory.PartitionLocationConstraint partitionLocationConstraint,
             ExecutionDeploymentListener executionDeploymentListener,
             ExecutionStateUpdateListener executionStateUpdateListener,
-            long initializationTimestamp)
+            long initializationTimestamp,
+            VertexAttemptNumberStore vertexAttemptNumberStore,
+            VertexParallelismStore vertexParallelismStore)
             throws JobExecutionException, JobException {
 
         checkNotNull(jobGraph, "job graph cannot be null");
@@ -187,35 +127,31 @@ public class ExecutionGraphBuilder {
         final int maxPriorAttemptsHistoryLength =
                 jobManagerConfig.getInteger(JobManagerOptions.MAX_ATTEMPTS_HISTORY_SIZE);
 
-        final PartitionReleaseStrategy.Factory partitionReleaseStrategyFactory =
-                PartitionReleaseStrategyFactoryLoader.loadPartitionReleaseStrategyFactory(
+        final PartitionGroupReleaseStrategy.Factory partitionGroupReleaseStrategyFactory =
+                PartitionGroupReleaseStrategyFactoryLoader.loadPartitionGroupReleaseStrategyFactory(
                         jobManagerConfig);
 
         // create a new execution graph, if none exists so far
-        final ExecutionGraph executionGraph;
+        final DefaultExecutionGraph executionGraph;
         try {
             executionGraph =
-                    (prior != null)
-                            ? prior
-                            : new ExecutionGraph(
-                                    jobInformation,
-                                    futureExecutor,
-                                    ioExecutor,
-                                    rpcTimeout,
-                                    restartStrategy,
-                                    maxPriorAttemptsHistoryLength,
-                                    failoverStrategyFactory,
-                                    slotProvider,
-                                    classLoader,
-                                    blobWriter,
-                                    allocationTimeout,
-                                    partitionReleaseStrategyFactory,
-                                    shuffleMaster,
-                                    partitionTracker,
-                                    jobGraph.getScheduleMode(),
-                                    executionDeploymentListener,
-                                    executionStateUpdateListener,
-                                    initializationTimestamp);
+                    new DefaultExecutionGraph(
+                            jobInformation,
+                            futureExecutor,
+                            ioExecutor,
+                            rpcTimeout,
+                            maxPriorAttemptsHistoryLength,
+                            classLoader,
+                            blobWriter,
+                            partitionGroupReleaseStrategyFactory,
+                            shuffleMaster,
+                            partitionTracker,
+                            partitionLocationConstraint,
+                            executionDeploymentListener,
+                            executionStateUpdateListener,
+                            initializationTimestamp,
+                            vertexAttemptNumberStore,
+                            vertexParallelismStore);
         } catch (IOException e) {
             throw new JobException("Could not create the ExecutionGraph.", e);
         }
@@ -316,44 +252,8 @@ public class ExecutionGraphBuilder {
         }
 
         // configure the state checkpointing
-        JobCheckpointingSettings snapshotSettings = jobGraph.getCheckpointingSettings();
-        if (snapshotSettings != null) {
-            List<ExecutionJobVertex> triggerVertices =
-                    idToVertex(snapshotSettings.getVerticesToTrigger(), executionGraph);
-
-            List<ExecutionJobVertex> ackVertices =
-                    idToVertex(snapshotSettings.getVerticesToAcknowledge(), executionGraph);
-
-            List<ExecutionJobVertex> confirmVertices =
-                    idToVertex(snapshotSettings.getVerticesToConfirm(), executionGraph);
-
-            CompletedCheckpointStore completedCheckpoints;
-            CheckpointIDCounter checkpointIdCounter;
-            try {
-                int maxNumberOfCheckpointsToRetain =
-                        jobManagerConfig.getInteger(CheckpointingOptions.MAX_RETAINED_CHECKPOINTS);
-
-                if (maxNumberOfCheckpointsToRetain <= 0) {
-                    // warning and use 1 as the default value if the setting in
-                    // state.checkpoints.max-retained-checkpoints is not greater than 0.
-                    log.warn(
-                            "The setting for '{} : {}' is invalid. Using default value of {}",
-                            CheckpointingOptions.MAX_RETAINED_CHECKPOINTS.key(),
-                            maxNumberOfCheckpointsToRetain,
-                            CheckpointingOptions.MAX_RETAINED_CHECKPOINTS.defaultValue());
-
-                    maxNumberOfCheckpointsToRetain =
-                            CheckpointingOptions.MAX_RETAINED_CHECKPOINTS.defaultValue();
-                }
-
-                completedCheckpoints =
-                        recoveryFactory.createCheckpointStore(
-                                jobId, maxNumberOfCheckpointsToRetain, classLoader);
-                checkpointIdCounter = recoveryFactory.createCheckpointIDCounter(jobId);
-            } catch (Exception e) {
-                throw new JobExecutionException(
-                        jobId, "Failed to initialize high-availability checkpoint handler", e);
-            }
+        if (isCheckpointingEnabled(jobGraph)) {
+            JobCheckpointingSettings snapshotSettings = jobGraph.getCheckpointingSettings();
 
             // Maximum number of remembered checkpoints
             int historySize = jobManagerConfig.getInteger(WebOptions.CHECKPOINTS_HISTORY_SIZE);
@@ -361,7 +261,6 @@ public class ExecutionGraphBuilder {
             CheckpointStatsTracker checkpointStatsTracker =
                     new CheckpointStatsTracker(
                             historySize,
-                            ackVertices,
                             snapshotSettings.getCheckpointCoordinatorConfiguration(),
                             metrics);
 
@@ -386,10 +285,48 @@ public class ExecutionGraphBuilder {
             try {
                 rootBackend =
                         StateBackendLoader.fromApplicationOrConfigOrDefault(
-                                applicationConfiguredBackend, jobManagerConfig, classLoader, log);
+                                applicationConfiguredBackend,
+                                snapshotSettings.isChangelogStateBackendEnabled(),
+                                jobManagerConfig,
+                                classLoader,
+                                log);
             } catch (IllegalConfigurationException | IOException | DynamicCodeLoadingException e) {
                 throw new JobExecutionException(
                         jobId, "Could not instantiate configured state backend", e);
+            }
+
+            // load the checkpoint storage from the application settings
+            final CheckpointStorage applicationConfiguredStorage;
+            final SerializedValue<CheckpointStorage> serializedAppConfiguredStorage =
+                    snapshotSettings.getDefaultCheckpointStorage();
+
+            if (serializedAppConfiguredStorage == null) {
+                applicationConfiguredStorage = null;
+            } else {
+                try {
+                    applicationConfiguredStorage =
+                            serializedAppConfiguredStorage.deserializeValue(classLoader);
+                } catch (IOException | ClassNotFoundException e) {
+                    throw new JobExecutionException(
+                            jobId,
+                            "Could not deserialize application-defined checkpoint storage.",
+                            e);
+                }
+            }
+
+            final CheckpointStorage rootStorage;
+            try {
+                rootStorage =
+                        CheckpointStorageLoader.load(
+                                applicationConfiguredStorage,
+                                null,
+                                rootBackend,
+                                jobManagerConfig,
+                                classLoader,
+                                log);
+            } catch (IllegalConfigurationException | DynamicCodeLoadingException e) {
+                throw new JobExecutionException(
+                        jobId, "Could not instantiate configured checkpoint storage", e);
             }
 
             // instantiate the user-defined checkpoint hooks
@@ -428,14 +365,13 @@ public class ExecutionGraphBuilder {
 
             executionGraph.enableCheckpointing(
                     chkConfig,
-                    triggerVertices,
-                    ackVertices,
-                    confirmVertices,
                     hooks,
                     checkpointIdCounter,
-                    completedCheckpoints,
+                    completedCheckpointStore,
                     rootBackend,
-                    checkpointStatsTracker);
+                    rootStorage,
+                    checkpointStatsTracker,
+                    checkpointsCleaner);
         }
 
         // create all the metrics for the Execution Graph
@@ -444,29 +380,15 @@ public class ExecutionGraphBuilder {
         metrics.gauge(DownTimeGauge.METRIC_NAME, new DownTimeGauge(executionGraph));
         metrics.gauge(UpTimeGauge.METRIC_NAME, new UpTimeGauge(executionGraph));
 
-        executionGraph.getFailoverStrategy().registerMetrics(metrics);
-
         return executionGraph;
+    }
+
+    public static boolean isCheckpointingEnabled(JobGraph jobGraph) {
+        return jobGraph.getCheckpointingSettings() != null;
     }
 
     // ------------------------------------------------------------------------
 
-    private static List<ExecutionJobVertex> idToVertex(
-            List<JobVertexID> jobVertices, ExecutionGraph executionGraph)
-            throws IllegalArgumentException {
-
-        List<ExecutionJobVertex> result = new ArrayList<>(jobVertices.size());
-
-        for (JobVertexID id : jobVertices) {
-            ExecutionJobVertex vertex = executionGraph.getJobVertex(id);
-            if (vertex != null) {
-                result.add(vertex);
-            } else {
-                throw new IllegalArgumentException(
-                        "The snapshot checkpointing settings refer to non-existent vertex " + id);
-            }
-        }
-
-        return result;
-    }
+    /** This class is not supposed to be instantiated. */
+    private DefaultExecutionGraphBuilder() {}
 }

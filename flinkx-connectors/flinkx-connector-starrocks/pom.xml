@@ -17,7 +17,7 @@
 			<groupId>com.starrocks</groupId>
 			<artifactId>flink-connector-starrocks</artifactId>
 			<version>1.1.13_flink-1.12</version>
-			<scope>provided</scope>
+<!--			<scope>provided</scope>-->
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.flink</groupId>
@@ -70,7 +70,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.2.1</version>
 				<executions>
 					<execution>
 						<phase>package</phase>

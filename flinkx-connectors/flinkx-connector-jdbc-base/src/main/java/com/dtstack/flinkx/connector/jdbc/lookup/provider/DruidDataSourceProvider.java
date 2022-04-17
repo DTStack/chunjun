@@ -18,7 +18,7 @@
 
 package com.dtstack.flinkx.connector.jdbc.lookup.provider;
 
-import org.apache.flink.shaded.guava18.com.google.common.base.CaseFormat;
+import org.apache.flink.shaded.guava30.com.google.common.base.CaseFormat;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import io.vertx.core.json.JsonObject;

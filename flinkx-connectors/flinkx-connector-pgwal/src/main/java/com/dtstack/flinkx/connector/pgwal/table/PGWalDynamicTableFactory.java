@@ -29,12 +29,12 @@ import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.connector.jdbc.dialect.JdbcDialect;
 import org.apache.flink.connector.jdbc.dialect.JdbcDialects;
+import org.apache.flink.connector.jdbc.internal.options.JdbcConnectorOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcLookupOptions;
-import org.apache.flink.connector.jdbc.internal.options.JdbcOptions;
 import org.apache.flink.connector.jdbc.internal.options.JdbcReadOptions;
 import org.apache.flink.connector.jdbc.table.JdbcDynamicTableFactory;
 import org.apache.flink.connector.jdbc.table.JdbcDynamicTableSource;
-import org.apache.flink.formats.json.JsonOptions;
+import org.apache.flink.formats.json.JsonFormatOptions;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.data.RowData;
@@ -53,6 +53,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.apache.flink.connector.jdbc.table.JdbcConnectorOptions.PASSWORD;
+import static org.apache.flink.connector.jdbc.table.JdbcConnectorOptions.TABLE_NAME;
+import static org.apache.flink.connector.jdbc.table.JdbcConnectorOptions.URL;
+import static org.apache.flink.connector.jdbc.table.JdbcConnectorOptions.USERNAME;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /** */
@@ -171,7 +175,7 @@ public class PGWalDynamicTableFactory extends JdbcDynamicTableFactory {
         options.add(PGWalOptions.STATUS_INTERVAL_CONFIG_OPTION);
         options.add(PGWalOptions.TABLES_CONFIG_OPTION);
         options.add(PGWalOptions.TEMPORARY_CONFIG_OPTION);
-        options.add(JsonOptions.TIMESTAMP_FORMAT);
+        options.add(JsonFormatOptions.TIMESTAMP_FORMAT);
         return options;
     }
 
@@ -293,10 +297,10 @@ public class PGWalDynamicTableFactory extends JdbcDynamicTableFactory {
         }
     }
 
-    private JdbcOptions getJdbcOptions(ReadableConfig readableConfig) {
+    private JdbcConnectorOptions getJdbcOptions(ReadableConfig readableConfig) {
         final String url = readableConfig.get(URL);
-        final JdbcOptions.Builder builder =
-                JdbcOptions.builder()
+        final JdbcConnectorOptions.Builder builder =
+                JdbcConnectorOptions.builder()
                         .setDBUrl(url)
                         .setTableName(readableConfig.get(TABLE_NAME))
                         .setDialect(JdbcDialects.get(url).get());
