@@ -45,6 +45,11 @@ public class InceptorSearchDialect extends InceptorDialect {
     }
 
     @Override
+    public String quoteIdentifier(String identifier) {
+        return identifier;
+    }
+
+    @Override
     public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
             getRowConverter(RowType rowType) {
         return new InceptorSearchRowConverter(rowType);
