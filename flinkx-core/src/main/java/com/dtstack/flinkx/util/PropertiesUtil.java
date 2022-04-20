@@ -97,6 +97,8 @@ public class PropertiesUtil {
                             : syncConf.getRemotePluginPath());
             flinkxCommonConf.setMetricPluginName(syncConf.getMetricPluginConf().getPluginName());
             flinkxCommonConf.setMetricProps(syncConf.getMetricPluginConf().getPluginProp());
+            flinkxCommonConf.setRowSizeCalculatorType(
+                    syncConf.getMetricPluginConf().getRowSizeCalculatorType());
         }
     }
 }

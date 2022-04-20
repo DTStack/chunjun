@@ -24,6 +24,7 @@ import com.dtstack.flinkx.connector.hdfs.enums.FileType;
 import com.dtstack.flinkx.connector.hdfs.util.HdfsUtil;
 import com.dtstack.flinkx.enums.ColumnType;
 import com.dtstack.flinkx.enums.SizeUnitType;
+import com.dtstack.flinkx.metrics.RowSizeCalculator;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
@@ -73,6 +74,11 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     private StructObjectInspector inspector;
     private FileOutputFormat outputFormat;
     private JobConf jobConf;
+
+    /** 初始化对象大小计算器 */
+    protected void initRowSizeCalculator() {
+        rowSizeCalculator = RowSizeCalculator.getRowSizeCalculator();
+    }
 
     @Override
     @SuppressWarnings("unchecked")
