@@ -61,6 +61,9 @@ public class FlinkxCommonConf implements Serializable {
     /** metrics plugin name */
     private String metricPluginName;
 
+    /** calculate rowData size */
+    private String rowSizeCalculatorType;
+
     /** two phase mode */
     private String semantic = "at-least-once";
 
@@ -89,6 +92,14 @@ public class FlinkxCommonConf implements Serializable {
 
     public void setMetricPluginName(String metricPluginName) {
         this.metricPluginName = metricPluginName;
+    }
+
+    public String getRowSizeCalculatorType() {
+        return rowSizeCalculatorType == null ? "objectSizeCalculator" : rowSizeCalculatorType;
+    }
+
+    public void setRowSizeCalculatorType(String rowSizeCalculatorType) {
+        this.rowSizeCalculatorType = rowSizeCalculatorType;
     }
 
     public Map<String, Object> getMetricProps() {
