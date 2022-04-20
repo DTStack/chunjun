@@ -255,7 +255,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 switch (type) {
                     case DATETIME:
                     case TIMESTAMP:
-                    case DATETIME:
                     case TIMESTAMPTZ:
                     case DATE:
                         obj = resultSet.getTimestamp(jdbcConf.getIncreColumn()).getTime();
