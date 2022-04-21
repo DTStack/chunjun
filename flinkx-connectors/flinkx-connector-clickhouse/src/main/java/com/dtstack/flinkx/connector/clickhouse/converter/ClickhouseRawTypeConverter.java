@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.connector.clickhouse.converter;
 
+import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.api.DataTypes;
@@ -42,7 +43,16 @@ public class ClickhouseRawTypeConverter {
      * @throws SQLException
      */
     public static DataType apply(String type) {
-        switch (type.toUpperCase(Locale.ENGLISH)) {
+        type = type.toUpperCase(Locale.ENGLISH);
+        int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
+        int right = type.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
+        String leftStr = type;
+        String rightStr = null;
+        if (left > 0 && right > 0) {
+            leftStr = type.substring(0, left);
+            rightStr = type.substring(left + 1, type.length() - 1);
+        }
+        switch (leftStr) {
             case "BOOLEAN":
                 return DataTypes.BOOLEAN();
             case "TINYINT":
@@ -78,6 +88,14 @@ public class ClickhouseRawTypeConverter {
             case "DECIMAL64":
             case "DECIMAL128":
             case "DEC":
+                if (rightStr != null) {
+                    String[] split = rightStr.split(ConstantValue.COMMA_SYMBOL);
+                    if (split.length == 2) {
+                        return DataTypes.DECIMAL(
+                                Integer.parseInt(split[0].trim()),
+                                Integer.parseInt(split[1].trim()));
+                    }
+                }
                 return DataTypes.DECIMAL(38, 18);
             case "DOUBLE":
             case "FLOAT64":
