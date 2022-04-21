@@ -38,6 +38,10 @@ public abstract class BaseRichInputFormatBuilder<T extends BaseRichInputFormat> 
 
     protected T format;
 
+    public BaseRichInputFormatBuilder(T format) {
+        this.format = format;
+    }
+
     public void setConfig(FlinkxCommonConf config) {
         format.setConfig(config);
     }

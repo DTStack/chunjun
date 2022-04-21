@@ -36,12 +36,10 @@ import java.util.stream.Collectors;
  *
  * @author huyifan.zju@163.com
  */
-public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    private final HBaseInputFormat format;
+public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder<HBaseInputFormat> {
 
     public HBaseInputFormatBuilder() {
-        super.format = format = new HBaseInputFormat();
+        super(new HBaseInputFormat());
     }
 
     public void setHbaseConfig(Map<String, Object> hbaseConfig) {

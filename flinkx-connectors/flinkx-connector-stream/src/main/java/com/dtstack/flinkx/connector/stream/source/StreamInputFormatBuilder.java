@@ -28,12 +28,10 @@ import org.apache.commons.collections.CollectionUtils;
  *
  * @author jiangbo
  */
-public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    private final StreamInputFormat format;
+public class StreamInputFormatBuilder extends BaseRichInputFormatBuilder<StreamInputFormat> {
 
     public StreamInputFormatBuilder() {
-        super.format = format = new StreamInputFormat();
+        super(new StreamInputFormat());
     }
 
     public void setStreamConf(StreamConf streamConf) {

@@ -37,12 +37,10 @@ import java.util.Arrays;
  *
  * @author huyifan.zju@163.com
  */
-public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    protected JdbcInputFormat format;
+public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInputFormat> {
 
     public JdbcInputFormatBuilder(JdbcInputFormat format) {
-        super.format = this.format = format;
+        super(format);
     }
 
     public void setJdbcConf(JdbcConf jdbcConf) {

@@ -28,13 +28,10 @@ import org.apache.commons.lang3.StringUtils;
  * @author: xiuzhu
  * @create: 2021/06/24
  */
-public class FileInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    private FileInputFormat format;
+public class FileInputFormatBuilder extends BaseRichInputFormatBuilder<FileInputFormat> {
 
     public FileInputFormatBuilder() {
-        format = new FileInputFormat();
-        super.format = format;
+        super(new FileInputFormat());
     }
 
     public void setFileConf(BaseFileConf fileConf) {

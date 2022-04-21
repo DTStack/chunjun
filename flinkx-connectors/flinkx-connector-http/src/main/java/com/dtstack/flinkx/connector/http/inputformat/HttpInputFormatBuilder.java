@@ -51,11 +51,10 @@ import static java.util.stream.Collectors.toCollection;
  * @author : shifang
  * @date : 2020/3/12
  */
-public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder {
-    protected HttpInputFormat format;
+public class HttpInputFormatBuilder extends BaseRichInputFormatBuilder<HttpInputFormat> {
 
     public HttpInputFormatBuilder() {
-        super.format = format = new HttpInputFormat();
+        super(new HttpInputFormat());
     }
 
     public void setHttpRestConfig(HttpRestConfig httpRestConfig) {

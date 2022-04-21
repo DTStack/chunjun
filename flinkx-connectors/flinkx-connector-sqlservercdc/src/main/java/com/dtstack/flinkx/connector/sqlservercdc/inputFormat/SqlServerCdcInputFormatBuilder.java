@@ -50,14 +50,15 @@ import static com.dtstack.flinkx.connector.sqlservercdc.util.SqlServerCdcUtil.DR
  *
  * @author tudou
  */
-public class SqlServerCdcInputFormatBuilder extends BaseRichInputFormatBuilder {
+public class SqlServerCdcInputFormatBuilder
+        extends BaseRichInputFormatBuilder<SqlServerCdcInputFormat> {
 
     protected String tableFormat = "%s.%s";
 
     protected SqlServerCdcInputFormat format;
 
     public SqlServerCdcInputFormatBuilder() {
-        super.format = this.format = new SqlServerCdcInputFormat();
+        super(new SqlServerCdcInputFormat());
     }
 
     public void setSqlServerCdcConf(SqlServerCdcConf sqlServerCdcConf) {
