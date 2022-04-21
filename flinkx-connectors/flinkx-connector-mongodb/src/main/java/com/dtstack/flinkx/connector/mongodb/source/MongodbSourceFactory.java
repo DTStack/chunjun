@@ -60,7 +60,7 @@ public class MongodbSourceFactory extends SourceFactory {
 
     @Override
     public DataStream<RowData> createSource() {
-        MongodbInputFormatBuilder builder = new MongodbInputFormatBuilder(mongodbDataSyncConf);
+        MongodbInputFormatBuilder builder = MongodbInputFormatBuilder.newBuild(mongodbDataSyncConf);
         MongoConverterFactory mongoConverterFactory =
                 new MongoConverterFactory(mongodbDataSyncConf);
         AbstractRowConverter converter;

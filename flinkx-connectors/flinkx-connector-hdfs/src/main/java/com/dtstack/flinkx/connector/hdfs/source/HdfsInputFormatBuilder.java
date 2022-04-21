@@ -26,11 +26,10 @@ import com.dtstack.flinkx.source.format.BaseRichInputFormatBuilder;
  *
  * @author tudou
  */
-public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
+public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder<BaseHdfsInputFormat> {
 
-    private final BaseHdfsInputFormat format;
-
-    public HdfsInputFormatBuilder(String type) {
+    public static HdfsInputFormatBuilder newBuild(String type) {
+        BaseHdfsInputFormat format;
         switch (FileType.getByName(type)) {
             case ORC:
                 format = new HdfsOrcInputFormat();
@@ -41,7 +40,11 @@ public class HdfsInputFormatBuilder extends BaseRichInputFormatBuilder {
             default:
                 format = new HdfsTextInputFormat();
         }
-        super.format = format;
+        return new HdfsInputFormatBuilder(format);
+    }
+
+    private HdfsInputFormatBuilder(BaseHdfsInputFormat format) {
+        super(format);
     }
 
     public void setHdfsConf(HdfsConf hdfsConf) {

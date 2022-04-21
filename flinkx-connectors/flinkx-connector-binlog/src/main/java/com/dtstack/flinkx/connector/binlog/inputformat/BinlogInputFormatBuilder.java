@@ -48,12 +48,10 @@ import java.util.Properties;
  *
  * @author dujie
  */
-public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    protected BinlogInputFormat format;
+public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogInputFormat> {
 
     public BinlogInputFormatBuilder() {
-        super.format = this.format = new BinlogInputFormat();
+        super(new BinlogInputFormat());
     }
 
     public void setBinlogConf(BinlogConf binlogConf) {

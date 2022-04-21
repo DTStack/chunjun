@@ -49,7 +49,7 @@ public class HdfsSourceFactory extends SourceFactory {
 
     @Override
     public DataStream<RowData> createSource() {
-        HdfsInputFormatBuilder builder = new HdfsInputFormatBuilder(hdfsConf.getFileType());
+        HdfsInputFormatBuilder builder = HdfsInputFormatBuilder.newBuild(hdfsConf.getFileType());
         builder.setHdfsConf(hdfsConf);
         AbstractRowConverter rowConverter =
                 HdfsUtil.createRowConverter(

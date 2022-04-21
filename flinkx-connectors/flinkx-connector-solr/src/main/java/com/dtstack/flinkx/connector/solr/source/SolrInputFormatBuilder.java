@@ -29,18 +29,20 @@ import java.util.List;
  * @program flinkx
  * @create 2021/06/28
  */
-public class SolrInputFormatBuilder extends BaseRichInputFormatBuilder {
+public class SolrInputFormatBuilder extends BaseRichInputFormatBuilder<SolrInputFormat> {
 
-    private final SolrConf solrConf;
-
-    public SolrInputFormatBuilder(SolrConf solrConf) {
-        this.solrConf = solrConf;
+    public static SolrInputFormatBuilder newBuild(SolrConf solrConf) {
         List<FieldConf> fields = solrConf.getColumn();
         String[] fieldNames = new String[fields.size()];
         for (int i = 0; i < fields.size(); i++) {
             fieldNames[i] = fields.get(i).getName();
         }
-        this.format = new SolrInputFormat(solrConf, fieldNames);
+        SolrInputFormat format = new SolrInputFormat(solrConf, fieldNames);
+        return new SolrInputFormatBuilder(format, solrConf);
+    }
+
+    private SolrInputFormatBuilder(SolrInputFormat solrInputFormat, SolrConf solrConf) {
+        super(solrInputFormat);
         setConfig(solrConf);
     }
 
