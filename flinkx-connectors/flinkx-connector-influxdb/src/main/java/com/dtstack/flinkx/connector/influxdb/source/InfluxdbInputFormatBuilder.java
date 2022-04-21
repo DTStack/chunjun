@@ -36,10 +36,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class InfluxdbInputFormatBuilder extends BaseRichInputFormatBuilder<InfluxdbInputFormat> {
 
-    protected InfluxdbInputFormat format;
-
     public InfluxdbInputFormatBuilder() {
-        super.format = this.format = new InfluxdbInputFormat();
+        super(new InfluxdbInputFormat());
     }
 
     public void setInfluxdbConfig(InfluxdbSourceConfig config) {

@@ -25,13 +25,10 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import org.apache.commons.lang.StringUtils;
 
 /** @author jiangbo */
-public class FtpInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    private FtpInputFormat format;
+public class FtpInputFormatBuilder extends BaseRichInputFormatBuilder<FtpInputFormat> {
 
     public FtpInputFormatBuilder() {
-        this.format = new FtpInputFormat();
-        super.format = format;
+        super(new FtpInputFormat());
     }
 
     public void setFtpConfig(FtpConfig ftpConfig) {

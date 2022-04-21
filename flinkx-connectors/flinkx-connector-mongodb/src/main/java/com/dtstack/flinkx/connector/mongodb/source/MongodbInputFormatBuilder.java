@@ -32,25 +32,29 @@ import org.bson.conversions.Bson;
  * @program flinkx
  * @create 2021/06/24
  */
-public class MongodbInputFormatBuilder extends BaseRichInputFormatBuilder {
+public class MongodbInputFormatBuilder extends BaseRichInputFormatBuilder<MongodbInputFormat> {
 
-    private MongoClientConf mongoClientConf;
-
-    public MongodbInputFormatBuilder(MongodbDataSyncConf mongodbDataSyncConf) {
-        mongoClientConf = MongoClientConfFactory.createMongoClientConf(mongodbDataSyncConf);
+    public static MongodbInputFormatBuilder newBuild(MongodbDataSyncConf mongodbDataSyncConf) {
+        MongoClientConf clientConf =
+                MongoClientConfFactory.createMongoClientConf(mongodbDataSyncConf);
         Bson filter = parseFilter(mongodbDataSyncConf.getFilter());
-        this.format =
-                new MongodbInputFormat(mongoClientConf, filter, mongodbDataSyncConf.getFetchSize());
+        return newBuild(clientConf, filter, mongodbDataSyncConf.getFetchSize());
     }
 
-    public MongodbInputFormatBuilder(MongoClientConf mongoClientConf, Bson filter, int fetchSize) {
-        this.format = new MongodbInputFormat(mongoClientConf, filter, fetchSize);
+    public static MongodbInputFormatBuilder newBuild(
+            MongoClientConf mongoClientConf, Bson filter, int fetchSize) {
+        MongodbInputFormat format = new MongodbInputFormat(mongoClientConf, filter, fetchSize);
+        return new MongodbInputFormatBuilder(format);
+    }
+
+    private MongodbInputFormatBuilder(MongodbInputFormat format) {
+        super(format);
     }
 
     @Override
     protected void checkFormat() {}
 
-    private Bson parseFilter(String str) {
+    private static Bson parseFilter(String str) {
         if (StringUtils.isNotEmpty(str)) {
             return BasicDBObject.parse(str);
         }
