@@ -271,6 +271,7 @@ public class SqlServerCdcColumnConverter
                 return (IDeserializationConverter<Short, AbstractBaseColumn>) BigDecimalColumn::new;
             case "INT":
             case "INTEGER":
+            case "SMALLINT":
                 return (IDeserializationConverter<Integer, AbstractBaseColumn>)
                         BigDecimalColumn::new;
             case "FLOAT":
