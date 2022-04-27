@@ -44,7 +44,8 @@ public class DruidDataSourceProvider implements DataSourceProvider {
             String key = entry.getKey();
             if (!"provider_class".equals(key)) {
                 String formattedName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
-                props.setProperty(formattedName, entry.getValue().toString());
+                props.setProperty(
+                        formattedName, entry.getValue() == null ? "" : entry.getValue().toString());
             }
         }
         dataSource.configFromPropety(props);
