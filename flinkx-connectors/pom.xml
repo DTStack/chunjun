@@ -41,6 +41,7 @@
 		<module>flinkx-connector-doris</module>
 		<module>flinkx-connector-influxdb</module>
 		<module>flinkx-connector-starrocks</module>
+		<module>flinkx-connector-oceanbase</module>
 
 		<!--File-->
         <module>flinkx-connector-file</module>
