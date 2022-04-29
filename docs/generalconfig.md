@@ -3,7 +3,9 @@
 ## 一、Sync
 
 ### 配置文件
+
 一个完整的Flinkx任务脚本配置包含 content，setting两个部分。content用于配置任务的输入源、输出源以及数据转换规则，其中包含reader，writer，transformer。setting则配置任务整体的环境设定，其中包含speed，errorLimit，dirty。具体如下所示：
+
 ```json
 {
   "job": {
@@ -23,7 +25,6 @@
 }
 ```
 
-
 | 名称 |  | 说明 | 是否必填 |
 | --- | --- | --- | --- |
 | content | reader | reader插件详细配置 | 是 |
@@ -33,10 +34,10 @@
 |  | errorLimit | 出错控制 | 否 |
 |  | dirty | 脏数据保存 | 否 |
 
-
 ### content配置
 
 #### reader
+
 reader用于配置数据的输入源，即数据从何而来。具体配置如下所示：
 
 ```json
@@ -57,9 +58,8 @@ reader用于配置数据的输入源，即数据从何而来。具体配置如�
 | parameter | 数据源配置参数，具体配置参考各数据源配置文档 | 是 |
 | table | SQL源表名称 | 开启transformer后必填 |
 
-
-
 ### writer
+
 writer用于配置数据的输出源，即数据写往何处。具体配置如下所示：
 
 ```json
@@ -73,6 +73,7 @@ writer用于配置数据的输出源，即数据写往何处。具体配置如�
   }
 }
 ```
+
 | 名称 | 说明 | 是否必填 |
 | --- | --- | --- |
 | name | writer插件名称，具体名称参考各数据源配置文档 | 是 |
@@ -80,6 +81,7 @@ writer用于配置数据的输出源，即数据写往何处。具体配置如�
 | table | SQL结果表名称 | 开启transformer后必填 |
 
 ### transformer配置
+
 transformer用于配置数据转换SQL，支持所有Flink原生语法及Function
 
 ```json
@@ -90,10 +92,10 @@ transformer用于配置数据转换SQL，支持所有Flink原生语法及Functio
 }
 ```
 
-
 ### setting配置
 
 #### speed
+
 speed用于配置任务并发数及速率限制。具体配置如下所示：
 
 ```json
@@ -106,6 +108,7 @@ speed用于配置任务并发数及速率限制。具体配置如下所示：
 }
 }
 ```
+
 | 名称 | 说明 | 是否必填 | 默认值 | 参数类型 |
 | --- | --- | --- | --- | --- |
 | channel | 整体任务并行度 | 否 | 1 | int |
@@ -113,8 +116,8 @@ speed用于配置任务并发数及速率限制。具体配置如下所示：
 | writerChannel | sink并行度 | 否 | -1 | int |
 | bytes | bytes >0则表示开启任务限速 | 否 | 0 | Long |
 
-
 #### errorLimit
+
 errorLimit用于配置任务运行时数据读取写入的出错控制。具体配置如下所示：
 
 ```json
@@ -125,12 +128,14 @@ errorLimit用于配置任务运行时数据读取写入的出错控制。具体�
 }
 }
 ```
+
 | 名称 | 说明 | 是否必填 | 默认值 | 参数类型 |
 | --- | --- | --- | --- | --- |
 | record | 错误阈值，当错误记录数超过此阈值时任务失败 | 否 | 0 | int |
 | percentage | 错误比例阈值，当错误记录比例超过此阈值时任务失败 | 否 | 0.0 | Double |
 
-#### 
+####  
+
 metricPluginConf用于配置任务运行时自定义指标持久化的方式。具体配置如下所示：
 
 ```json
@@ -147,13 +152,14 @@ metricPluginConf用于配置任务运行时自定义指标持久化的方式。�
 }
 }
 ```
+
 | 名称 | 说明 | 是否必填 | 默认值 | 参数类型 |
 | --- | --- | --- | --- | --- |
 | pluginName | 持久化插件的名称 | 否 | prometheus | String |
 | pluginProp | 连接插件需要用到的参数配置 | 否 | 无 | Map |
 
-
 #### dirty
+
 dirty用于配置脏数据的保存，通常与上文出错控制联合使用。具体配置如下所示：
 
 ```json
@@ -165,11 +171,11 @@ dirty用于配置脏数据的保存，通常与上文出错控制联合使用。
  }
 }
 ```
+
 | 名称 | 说明 | 是否必填 | 默认值 | 参数类型 |
 | --- | --- | --- | --- | --- |
 | path | 脏数据保存路径 | 是 | 无 | Sring |
 | hadoopConfig | Hadoop相关配置 | 是 | 无 | K-V键值对 |
-
 
 参考模板如下：
 
@@ -188,6 +194,8 @@ dirty用于配置脏数据的保存，通常与上文出错控制联合使用。
   }
 }
 ```
+
 ## 二、SQL
+
 [参考Flink官方文档](https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/table/sql/)
 

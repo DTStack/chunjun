@@ -11,6 +11,7 @@
 1. 配置文件的规范；
 
 <a name="29c80db5"></a>
+
 ## 开发环境
 
 - Flink集群: 1.4及以上(单机模式不需要安装Flink集群）
@@ -20,16 +21,19 @@
 开发之前，需要理解以下概念：
 
 <a name="f1105542"></a>
+
 ## 逻辑执行概念
+
 插件开发者不需要关心太多整个框架的具体运行，只需要关注数据源的读写，以及代码在逻辑上是怎么被执行的，方法什么时候被调用的。以下概念的理解对你快速开发会有帮助：
 
-- **Job**：** Job**是FlinkX用以描述从一个源头到一个目的端的同步作业，是FlinkX数据同步的最小业务单元。
-- **Internal**： 把**Job**拆分得到的最小执行单元。
+- **Job**：** Job**是FlinkX用以描述从一个源头到一个目的端的同步作业，是FlinkX数据同步的最小业务单元。
+- **Internal**： 把**Job**拆分得到的最小执行单元。
 - **InputSplit**：数据切片，是进入Internal的最小数据流单位。里面包含了基本数据信息和统计信息。
 - **InputFormat**：读插件的执行单位。
 - **OutputFormat**：写插件的执行单位。
 
 <a name="209c6aed"></a>
+
 ## 任务执行模式
 
 - 单机模式：对应Flink集群的单机模式
@@ -40,10 +44,13 @@
 在实际开发中，上述几种模式对插件的编写没有过多的影响，一般在本地LocalTest通过，将任务上传到Flink集群测试没有什么大问题。
 
 <a name="92411f2e"></a>
+
 ## 插件入口类
+
 插件的入口类需继承**DataReader**和**DataWriter**，在内部获取任务json传来的参数，通过相应的**Builder**构建对应**InputFormat**和**OutputFormat**实例
 
 <a name="DataReader"></a>
+
 ### DataReader
 
 ```java
@@ -89,6 +96,7 @@ public DataStream<Record> readData() {
 ```
 
 <a name="DataWriter"></a>
+
 ### DataWriter
 
 ```java
@@ -134,6 +142,7 @@ public DataStreamSink<?> writeData(DataStream<Record> dataSet) {
 ```
 
 <a name="e3fa8e04"></a>
+
 ### InputFormatBuilder的设计
 
 需继承**RichInputFormatBuilder**
@@ -159,6 +168,7 @@ public class SomeInputFormatBuilder extends RichInputFormatBuilder {
 ```
 
 <a name="debbb760"></a>
+
 ### InputFormat的设计
 
 需继承**RichInputFormat**，根据任务逻辑分别实现
@@ -203,51 +213,58 @@ public class SomeInputFormat extends RichInputFormat {
 }
 ```
 
-
 方法功能如下：
 <a name="qxRB6"></a>
+
 #### configure
 
 - 调用位置：configure方法会在JobManager里构建执行计划的时候和在TaskManager里初始化并发实例后各调用一次；
 - 作用：用于配置task的实例；
 - 注意事项：不要在这个方法里写耗时的逻辑，比如获取连接，运行sql等，否则可能会导致akka超
-<a name="P6eAb"></a>
+  <a name="P6eAb"></a>
+
 #### createInputSplits
 
 - 调用位置：在构建执行计划时调用；
 - 作用：调用子类的逻辑生成数据分片；
 - 注意事项：分片的数量和并发数没有严格对应关系，不要在这个方法里做耗时的操作，否则会导致akka超时异常；
-<a name="Oas9f"></a>
+  <a name="Oas9f"></a>
+
 #### getInputSplitAssigner
 
 - 调用位置：创建分片后调用；
 - 作用：获取分片分配器，同步插件里使用的是DefaultInputSplitAssigner，按顺序返回分配给各个并发实例；
 - 注意事项：无；
-<a name="TTNYz"></a>
+  <a name="TTNYz"></a>
+
 #### openInternal
 
 - 调用位置：开始读取分片时调用；
 - 作用：用于打开需要读取的数据源，并做一些初始化；
 - 注意事项：这个方法必须是可以重复调用的，因为同一个并发实例可能会处理多个分片；
-<a name="hxlFZ"></a>
+  <a name="hxlFZ"></a>
+
 #### reachEnd和nextRecordInternal
 
 - 调用位置：任务运行时，读取每条数据时调用；
 - 作用：返回结束标识和下一条记录；
 - 注意事项：无
-<a name="bMWCr"></a>
+  <a name="bMWCr"></a>
+
 #### closeInternal
 
 - 调用位置：读取完一个分片后调用，至少调用一次；
 - 作用：关闭资源；
 - 注意事项：可重复调用，关闭资源做非null检查，因为程序遇到异常情况可能直接跳转到closeInternal；
-<a name="FcsIE"></a>
+  <a name="FcsIE"></a>
+
 #### openInputFormat
 
 - 调用位置：创建分片之后调用；
 - 作用：对整个InpurFormat资源做初始化；
 - 注意事项：无；
-<a name="1CyCJ"></a>
+  <a name="1CyCJ"></a>
+
 #### closeInputFormat
 
 - 调用位置：当所有切片都执行完之后调用；
@@ -255,7 +272,9 @@ public class SomeInputFormat extends RichInputFormat {
 - 注意事项：无；
 
 <a name="OutputFormatBuilder"></a>
+
 ### OutputFormatBuilder
+
 需继承**RichOutputFormatBuilder**，和**InputFormatBuilder**相似
 
 ```java
@@ -281,7 +300,9 @@ public class SomeOutputFormatBuilder extends RichOutputFormatBuilder {
 ```
 
 <a name="OutputFormat"></a>
+
 ### OutputFormat
+
 需继承**RichOutputFormat**
 
 ```java
@@ -307,18 +328,21 @@ openInternal -> writeSingleRecordInternal / writeMultipleRecordsInternal
 
 方法功能如下：
 <a name="vaLIS"></a>
+
 #### openInternal
 
 - 调用位置：开始写入使用
 - 作用：用于打开需要读取的数据源，并做一些初始化；
 - 注意事项：无；
-<a name="Zbwct"></a>
+  <a name="Zbwct"></a>
+
 #### writerSingleRecordInternal
 
 - 调用位置：openInernal之后调用，开始写入数据
 - 作用：向数据源写入一条数据
 - 注意事项：无；
-<a name="biBzT"></a>
+  <a name="biBzT"></a>
+
 #### writerMultipleRecordsInternal
 
 - 调用位置：openInternal之后调用，开始写入多条数据
@@ -326,7 +350,9 @@ openInternal -> writeSingleRecordInternal / writeMultipleRecordsInternal
 - 注意事项：无；
 
 <a name="36baff55"></a>
+
 ## FlinkX数据结构
+
 FlinkX延续了Flink原生的数据类型Row
 
 ```java
@@ -349,7 +375,9 @@ public class Row implements Serializable{
 ```
 
 <a name="c79d2697"></a>
+
 ## 任务json配置
+
 配置中尽量减少不必要的参数，有些参数框架中已有默认值，配置文件中的值优先，模板如下
 
 ```json
@@ -396,15 +424,18 @@ public class Row implements Serializable{
 ```
 
 <a name="dd7607d3"></a>
+
 ## 如何设计配置参数
+
 任务配置中`reader`和`writer`下`parameter`部分是插件的配置参数，插件的配置参数应当遵循以下原则：
 
 - 驼峰命名：所有配置项采用驼峰命名法，首字母小写，单词首字母大写。
 - 正交原则：配置项必须正交，功能没有重复，没有潜规则。
 - 富类型：合理使用json的类型，减少无谓的处理逻辑，减少出错的可能。
-  - 使用正确的数据类型。比如，bool类型的值使用`true`/`false`，而非`"yes"`/`"true"`/`0`等。
-  - 合理使用集合类型，比如，用数组替代有分隔符的字符串。
+    - 使用正确的数据类型。比如，bool类型的值使用`true`/`false`，而非`"yes"`/`"true"`/`0`等。
+    - 合理使用集合类型，比如，用数组替代有分隔符的字符串。
 - 类似通用：遵守同一类型的插件的习惯，比如关系型数据库的`connection`参数都是如下结构：
+
 ```
 {
   "connection": [
@@ -433,8 +464,11 @@ public class Row implements Serializable{
 ```
 
 <a name="cfd8aa31"></a>
+
 ## 如何处理脏数据
+
 <a name="d6acc342"></a>
+
 ### 脏数据定义
 
 1. Reader读到不支持的类型、不合法的值。
@@ -442,13 +476,16 @@ public class Row implements Serializable{
 1. 写入目标端失败，比如：写mysql整型长度超长。
 
 <a name="cfd8aa31-1"></a>
+
 ### 如何处理脏数据
+
 框架会将脏数据临时存放起来。由DirtyDataManager实例写入临时存放脏数据文件中。
 
 - path: 脏数据存放路径
 - hadoopConfig: 脏数据存放路径对应hdfs的配置信息(hdfs高可用配置)
 
 <a name="605265ae"></a>
+
 ## 加载原理
 
 1. 框架扫描`plugin/reader`和`plugin/writer`目录，加载每个插件的`plugin.json`文件。
@@ -457,37 +494,26 @@ public class Row implements Serializable{
 1. 根据插件配置中定义的入口类，框架通过反射实例化对应的`Job`对象。
 
 <a name="8e3d16c4"></a>
+
 ## 统一的目录结构
+
 <a name="sdEM2"></a>
+
 #### 项目目录层级
+
 注意，插件Reader/Writer类需放在符合插件包名命名规则的reader下，如MysqlReader类需放在com.dtstack.flinkx.mysql.reader包下，具体命名规则参照 **项目命名规则** 内容
+
 ```xml
 ```
-${Flinkx_HOME}
-|-- bin       
-|   -- flink
-|   -- flinkx.sh 
-|
-|-- flinkx-somePlugin
-    |-- flinkx-somePlugin-core
-		|-- common 一些插件共用的类
-		|-- exception 异常处理类
-		|-- pom.xml 插件公用依赖
-    |-- flinkx-somePlugin-reader
-		|-- InputFormat
-			|-- SomePluginInputFormat
-			|-- SomePluginInputFormatBuiler
-		|-- reader
-			|-- SomePluginReader
-	|-- flinkx-somePlugin-writer
-		|-- OutputFormat
-			|-- SomePluginOutputFormat
-			|-- SomePluginOutputFormatBuiler
-		|-- reader
-			|-- SomePluginWriter
+
+${Flinkx_HOME} |-- bin       
+| -- flink | -- flinkx.sh | |-- flinkx-somePlugin |-- flinkx-somePlugin-core |-- common 一些插件共用的类 |-- exception 异常处理类 |-- pom.xml 插件公用依赖 |-- flinkx-somePlugin-reader |-- InputFormat |-- SomePluginInputFormat |-- SomePluginInputFormatBuiler |-- reader |-- SomePluginReader |-- flinkx-somePlugin-writer |-- OutputFormat |-- SomePluginOutputFormat |-- SomePluginOutputFormatBuiler |-- reader |-- SomePluginWriter
+
 ```
 ```
+
 <a name="NMw2H"></a>
+
 #### 项目命名规则
 
 - 插件命名模板 [flinkx]-[dataSourceName]，例如flinkx-mysql
@@ -496,7 +522,9 @@ ${Flinkx_HOME}
 - 插件Reader/Writer类命名模板 [dataSource][Reader/Writer]，例如MysqlReader，RedisWriter，需注意，类似RestAPIWriter，MetaDataHive2Reader这样的命名是错误的，需改为RestapiWriter，Metadatahive2Reader
 
 <a name="dd96ac2a"></a>
+
 ## 插件打包
+
 进入项目根目录，使用maven打包：
 
 windows平台

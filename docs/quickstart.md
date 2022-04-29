@@ -8,12 +8,15 @@ cd chunjun
 ```
 
 ## 编译插件
+
 在chunjun home目录下执行
 
 ```bash
 mvn clean package -DskipTests 
 ```
+
 或者执行
+
 ```bash
 sh build/build.sh
 ```
@@ -33,6 +36,7 @@ sh build/build.sh
 ```
 
 ## 运行任务
+
 **NOTE:项目中的flinkx-examples模块下提供了大量 [数据同步案例](flinkx-examples/json) 和 [SQL案例](flinkx-examples/sql)**
 
 #### 数据同步任务
@@ -110,6 +114,7 @@ sh build/build.sh
   }
 }
 ```
+
 #### flinksql任务
 
 ***NOTE：flinkX和flinkSql connector[共用](docs/conectorShare.md)***<br /><br />
@@ -192,6 +197,7 @@ bin/flinkx \
 </div>
 
 ### Standalone模式运行
+
 NOTE:将flinkx-dist目录拷贝到$FLINK_HOME/lib下，并修改$FLINK_HOME/conf/flink-conf.yml中的classloader为classloader.resolve-order: parent-first
 
 命令模板：
@@ -237,6 +243,7 @@ $FLINK_HOME/bin/start-cluster.sh
 </div>
 
 ### 以Yarn Session模式运行任务
+
 NOTE:可以先在现在flinkx-clients模块YarnSessionClientUtil类中启动一个session，然后修改$FLINK_HOME/conf/flink-conf.yml中的classloader为classloader.resolve-order: parent-first
 
 命令示例：
@@ -322,7 +329,6 @@ bin/flinkx \
   <img src="images/quick_1.png" />
 </div>
 
-
 ### Kubernetes Session模式运行任务
 
 命令示例：
@@ -341,15 +347,18 @@ bin/flinkx \
 ```
 
 需要提前手动在kubernetes上启动kubernetes session
+
 ```
 $FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink-session-test -Dclassloader.resolve-order=parent-first -Dkubernetes.container.image=${image_name}
 ```
+
 注意：需要提前构建flinkx镜像
 [flinkx镜像构建说明](flinkx-docker/docker/README.md)
 
 ### Kubernetes Application模式运行任务
 
 命令示例：
+
 ```
 bin/flinkx \
     -mode kubernetes-application \
@@ -364,6 +373,7 @@ bin/flinkx \
     -flinkConfDir $FLINK_HOME/conf \
     -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.container.image\":\"${image_name}\",\"kubernetes.namespace\":\"${namespace}\"}"
 ```
+
 注意：需要提前构建flinkx镜像
 [flinkx镜像构建说明](flinkx-docker/docker/README.md)
 

@@ -210,14 +210,12 @@ Cassandra主流版本
     - 参数类型：int
     - 默认值：60 * 1000
       <br />
-      
 
 ## 五、数据类型
 
 | 支持 | BYTE、INT、FLOAT、DOUBLE、BOOLEAN、TEXT、VARCHAR、DECIMAL、TIMESTAMP |
 | --- | --- |
 | 暂不支持 | ARRAY、MAP、STRUCT、UNION
-
 
 ## 六、脚本示例
 

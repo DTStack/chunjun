@@ -15,9 +15,10 @@ KingBase v8
 | Sync | kingbasesink、kingbasewriter |
 | SQL | kingbase-x |
 
-
 ## 四、参数说明
+
 ### 1、Sync
+
 - **connection**
     - 描述：数据库连接参数，包含jdbcUrl、schema、table等参数
     - 必选：是
@@ -30,6 +31,7 @@ KingBase v8
        "schema":"public"
       }]
       ```
+
  <br />
 
 - **jdbcUrl**
@@ -68,8 +70,7 @@ KingBase v8
       <br />
 
 - **fetchSize**
-    - 描述：一次性从数据库中读取多少条数据，默认一次将所有结果都读取到内存中，在数据量很大时可能会造成OOM，设置这个参数可以控制每次读取fetchSize条数据，而不是默认的把所有数据一次读取出来；开启fetchSize需要满足：数据库版本要高于5.0.2、连接参数useCursorFetch=true。
-      注意：此参数的值不可设置过大，否则会读取超时，导致任务失败。
+    - 描述：一次性从数据库中读取多少条数据，默认一次将所有结果都读取到内存中，在数据量很大时可能会造成OOM，设置这个参数可以控制每次读取fetchSize条数据，而不是默认的把所有数据一次读取出来；开启fetchSize需要满足：数据库版本要高于5.0.2、连接参数useCursorFetch=true。 注意：此参数的值不可设置过大，否则会读取超时，导致任务失败。
     - 必选：否
     - 参数类型：int
     - 默认值：1024
@@ -186,6 +187,7 @@ KingBase v8
       <br />
 
 ### 2、SQL
+
 - **connector**
     - 描述：postgresql-x
     - 必选：是
@@ -305,6 +307,6 @@ KingBase v8
 | 支持 | SMALLINT、SMALLSERIAL、INT2、INT、INTEGER、SERIAL、INT4、BIGINT、BIGSERIAL、OID、INT8、REAL、FLOAT4、FLOAT、DOUBLE PRECISION、FLOAT8、DECIMAL、NUMERIC、 CHARACTER VARYING、VARCHAR、CHARACTER、CHAR、TEXT、NAME、BPCHAR、BYTEA、TIMESTAMP、TIMESTAMPTZ、DATE、TIME、TIMETZ、 BOOLEAN、BOOL |
 | 暂不支持 | ARRAY等 |
 
-
 ## 六、脚本示例
+
 见项目内`flinkx-examples`文件夹。

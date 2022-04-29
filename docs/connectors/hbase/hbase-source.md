@@ -1,25 +1,29 @@
 # HBase Source
 
 ## 一、介绍
+
 支持从HBase离线读取，支持HBase实时间隔轮询读取
 
 ## 二、支持版本
+
 HBase 1.4 +
 
-
 ## 三、插件名称
+
 | Sync | hbasesource、hbasereader |
 | --- | --- |
 | SQL | hbase1.4-x |
 
-
 ## 四、参数说明
+
 ### 1、Sync
+
 - **table**
     - 描述：hbase表名
     - 必选：是
     - 默认值：无
     ```
+
  <br />
 
 - **hbaseConfig**
@@ -35,8 +39,8 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
         - startRowkey：指定开始rowkey；
         - endRowkey：指定结束rowkey；
 
-
     - isBinaryRowkey：指定配置的startRowkey和endRowkey转换为byte[]时的方式，默认值为false,若为true，则调用Bytes.toBytesBinary(rowkey)方法进行转换;若为false：则调用Bytes.toBytes(rowkey)，配置格式如下：
+
 ```
 "range": {
  "startRowkey": "aaa",
@@ -48,7 +52,6 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
 - 注意：如果用户配置了 startRowkey 和 endRowkey，需要确保：startRowkey <= endRowkey
 - 必选：否
 - 默认值：无
-
 
 
 - **encoding**
@@ -78,11 +81,12 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
     - 必选：是
     - 默认值：无
 
-
 <br />
 
 <a name="kQbcJ"></a>
+
 ## 四、配置示例
+
 ```json
 {
   "job": {
@@ -152,10 +156,11 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
 ```
 
 ## 五、数据类型
+
 | 支持 | BOOLEAN、TINYINT、SMALLINT、INT、BIGINT、FLOAT、DOUBLE、DECIMAL、STRING、VARCHAR、CHAR、TIMESTAMP、DATE、BINARY |
 | --- | --- |
 | 暂不支持 | ARRAY、MAP、STRUCT、UNION |
 
-
 ## 六、脚本示例
+
 见项目内`flinkx-examples`文件夹。

@@ -1,18 +1,19 @@
 ## 一、介绍
+
 向MongoDB中写入数据
 
 ## 二、支持版本
+
 MongoDB 3.4及以上
 
-
 ## 三、插件名称
+
 | Sync | mongodbsink、mongodbwriter |
 | --- | --- |
 | SQL | mongodb-x |
 
-
-
 ## 四、参数说明
+
 ### 1、数据同步
 
 - **url**
@@ -22,13 +23,11 @@ MongoDB 3.4及以上
     - 默认值：无
 
 
-
 - **hostPorts**
     - 描述：MongoDB的地址和端口，格式为 IP1:port，可填写多个地址，以英文逗号分隔
     - 必选：是
     - 字段类型：String
     - 默认值：无
-
 
 
 - **username**
@@ -38,13 +37,11 @@ MongoDB 3.4及以上
     - 默认值：无
 
 
-
 - **password**
     - 描述：数据源指定用户名的密码
     - 必选：否
     - 字段类型：String
     - 默认值：无
-
 
 
 - **database**
@@ -54,13 +51,11 @@ MongoDB 3.4及以上
     - 默认值：无
 
 
-
 - **collectionName**
     - 描述：集合名称
     - 必选：是
     - 字段类型：String
     - 默认值：无
-
 
 
 - **replaceKey**
@@ -70,14 +65,12 @@ MongoDB 3.4及以上
     - 默认值：无
 
 
-
 - **writeMode**
     - 描述：写入模式，当 batchSize > 1 时不支持 replace 和 update 模式
     - 必选：是
     - 所有选项：insert/replace/update
     - 字段类型：String
     - 默认值：insert
-
 
 
 - **batchSize**
@@ -90,7 +83,9 @@ MongoDB 3.4及以上
     - 必选：否
     - 字段类型：int
     - 默认值：10000
+
 ### 2、SQL计算
+
 SQL计算暂时只支持INSERT模式，后续可加入如果配置主键则使用UPSERT模式。
 
 - **url**
@@ -115,7 +110,6 @@ SQL计算暂时只支持INSERT模式，后续可加入如果配置主键则使�
     - 默认值：无
 
 
-
 - **sink.parallelism**
     - 描述：sink并行度
     - 必选：是
@@ -128,7 +122,9 @@ SQL计算暂时只支持INSERT模式，后续可加入如果配置主键则使�
     - 描述：批量写入时间间隔：单位毫秒。
     - 必选：否
     - 默认值：无
+
 ## 五、数据类型
+
 | 支持 | int |
 | --- | --- |
 |  | long |
@@ -142,6 +138,6 @@ SQL计算暂时只支持INSERT模式，后续可加入如果配置主键则使�
 |  | bool |
 | 暂不支持 | array |
 
-
 ## 六、脚本示例
+
 见项目内`flinkx-examples`文件夹。

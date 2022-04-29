@@ -1,4 +1,5 @@
 ## 使用 prometheus pushgateway 需要设置的 confProp 参数
+
 * metrics.reporter.promgateway.class: org.apache.flink.metrics.prometheus.PrometheusPushGatewayReporter
 * metrics.reporter.promgateway.host: prometheus pushgateway的地址
 * metrics.reporter.promgateway.port：prometheus pushgateway的端口

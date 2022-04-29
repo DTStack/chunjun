@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>chunjun</artifactId>
+		<groupId>com.dtstack</groupId>
+		<version>1.12-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>chunjun-connectors</artifactId>
+	<name>ChunJun : Connectors :</name>
+	<packaging>pom</packaging>
+
+	<properties>
+		<connector.base.dir>connector</connector.base.dir>
+
+	</properties>
+
+	<modules>
+		<!--mock & print-->
+		<module>chunjun-connector-stream</module>
+
+		<!--MQ-->
+		<module>chunjun-connector-kafka</module>
+		<module>chunjun-connector-emqx</module>
+
+		<!--RDB-->
+		<module>chunjun-connector-jdbc-base</module>
+		<module>chunjun-connector-mysql</module>
+		<module>chunjun-connector-oracle</module>
+		<module>chunjun-connector-sqlserver</module>
+		<module>chunjun-connector-db2</module>
+		<module>chunjun-connector-postgresql</module>
+		<module>chunjun-connector-gbase</module>
+		<module>chunjun-connector-kingbase</module>
+		<module>chunjun-connector-greenplum</module>
+		<module>chunjun-connector-dm</module>
+		<module>chunjun-connector-clickhouse</module>
+		<module>chunjun-connector-saphana</module>
+		<module>chunjun-connector-doris</module>
+		<module>chunjun-connector-influxdb</module>
+		<module>chunjun-connector-starrocks</module>
+		<module>chunjun-connector-cassandra</module>
+
+		<!--File-->
+		<module>chunjun-connector-file</module>
+		<module>chunjun-connector-filesystem</module>
+		<module>chunjun-connector-ftp</module>
+		<module>chunjun-connector-hdfs</module>
+		<module>chunjun-connector-hive</module>
+		<module>chunjun-connector-inceptor</module>
+
+		<!--NoSql-->
+		<module>chunjun-connector-hbase-base</module>
+		<module>chunjun-connector-hbase-1.4</module>
+		<module>chunjun-connector-elasticsearch7</module>
+		<module>chunjun-connector-elasticsearch-base</module>
+		<module>chunjun-connector-redis</module>
+		<module>chunjun-connector-mongodb</module>
+		<module>chunjun-connector-solr</module>
+		<module>chunjun-connector-kudu</module>
+
+		<!--CDC-->
+		<module>chunjun-connector-binlog</module>
+		<module>chunjun-connector-oraclelogminer</module>
+		<module>chunjun-connector-sqlservercdc</module>
+		<module>chunjun-connector-pgwal</module>
+
+		<!--Network-->
+		<module>chunjun-connector-http</module>
+		<module>chunjun-connector-socket</module>
+
+		<!--Distribute plugin, just for SYNC-->
+		<module>chunjun-connector-mysqld</module>
+
+		<!-- 暂时被注释掉 -->
+<!--		<module>chunjun-connector-elasticsearch5</module>-->
+<!--		<module>chunjun-connector-elasticsearch6</module>-->
+	</modules>
+
+
+	<dependencies>
+		<dependency>
+			<groupId>com.dtstack</groupId>
+			<artifactId>chunjun-core</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-classic</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>copy-resources</id>
+							<!-- here the phase you need -->
+							<phase>package</phase>
+							<goals>
+								<goal>run</goal>
+							</goals>
+							<configuration>
+								<tasks>
+									<copy todir="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/"
+										  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+									<move file="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/${project.artifactId}-${project.version}.jar"
+										  tofile="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/${project.artifactId}-${git.branch}.jar"/>
+									<delete>
+										<fileset dir="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/"
+												 includes="${project.artifactId}-*.jar"
+												 excludes="${project.artifactId}-${git.branch}.jar"/>
+									</delete>
+								</tasks>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

@@ -1,6 +1,5 @@
 # MySQL Binlog Source
 
-
 <!-- TOC -->
 
 - [一、介绍](#一介绍)
@@ -18,22 +17,26 @@
 
 <!-- /TOC -->
 
-##  一、介绍
+## 一、介绍
+
 MySQL Binlog插件使用Canal组件实时地从MySQL中捕获变更数据。目前sink插件暂不支持数据还原，只能写入变更的日志数据。
 
-##  二、支持版本
+## 二、支持版本
+
 MySQL 5.1.5及以上、TiDB 3.0.10之后
 
 ## 三、插件名称
+
 | Sync | binlogsource、binlogreader |
 | --- | --- |
 | SQL | binlog-x |
 
+## 四、数据库配置
 
+### 1、修改配置文件
 
-##  四、数据库配置
-###  1、修改配置文件
 binlog_format需要修改为 ROW 格式，在/etc/my.cnf文件里[mysqld]下添加下列配置
+
 ```sql
 server_id=109
 log_bin = /var/lib/mysql/mysql-bin
@@ -41,32 +44,34 @@ binlog_format = ROW
 expire_logs_days = 30
 ```
 
+### 2、添加权限
 
-###  2、添加权限
 MySQL Binlog权限需要三个权限 SELECT, REPLICATION SLAVE, REPLICATION CLIENT
+
 ```sql
 GRANT SELECT, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'canal'@'%' IDENTIFIED BY 'canal';
 ```
 
-
 - 缺乏SELECT权限时，报错为
+
 ```text
 com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException:
 Access denied for user 'canal'@'%' to database 'binlog'
 ```
 
 - 缺乏REPLICATION SLAVE权限时，报错为
+
 ```text
 java.io.IOException: 
 Error When doing Register slave:ErrorPacket [errorNumber=1045, fieldCount=-1, message=Access denied for user 'canal'@'%'
 ```
 
 - 缺乏REPLICATION CLIENT权限时，报错为
+
 ```text
 com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: 
 Access denied; you need (at least one of) the SUPER, REPLICATION CLIENT privilege(s) for this operation
 ```
-
 
 Binlog为什么需要这些权限：
 
@@ -74,10 +79,9 @@ Binlog为什么需要这些权限：
 - Replication client权限代表允许执行show master status,show slave status,show binary logs命令
 - Replication slave权限代表允许slave主机通过此用户连接master以便建立主从 复制关系
 
+## 五、参数说明
 
-
-##  五、参数说明
-###  1、Sync
+### 1、Sync
 
 - **jdbcUrl**
     - 描述：MySQL数据库的jdbc连接字符串，参考文档：[Mysql官方文档](http://dev.mysql.com/doc/connector-j/en/connector-j-reference-configuration-properties.html)
@@ -261,7 +265,8 @@ Binlog为什么需要这些权限：
     - 默认值：60000
       <br />
 
-###  2、SQL
+### 2、SQL
+
 - **url**
     - 描述：MySQL数据库的jdbc连接字符串，参考文档：[Mysql官方文档](http://dev.mysql.com/doc/connector-j/en/connector-j-reference-configuration-properties.html)
     - 必选：是
@@ -420,37 +425,46 @@ Binlog为什么需要这些权限：
     - 字段类型：string
     - 默认值：SQL
 
-##  六、数据结构
+## 六、数据结构
+
 在2020-01-01 12:30:00(时间戳：1577853000000)执行：
+
 ```sql
 INSERT INTO `tudou`.`kudu`(`id`, `user_id`, `name`) VALUES (1, 1, 'a');
 ```
+
 在2020-01-01 12:31:00(时间戳：1577853060000)执行：
+
 ```sql
 DELETE FROM `tudou`.`kudu` WHERE `id` = 1 AND `user_id` = 1 AND `name` = 'a';
 ```
+
 在2020-01-01 12:32:00(时间戳：1577853180000)执行：
+
 ```sql
 UPDATE `tudou`.`kudu` SET `id` = 2, `user_id` = 2, `name` = 'b' WHERE `id` = 1 AND `user_id` = 1 AND `name` = 'a';
 ```
-1、pavingData = true, splitUpdate = false
-RowData中的数据依次为：
+
+1、pavingData = true, splitUpdate = false RowData中的数据依次为：
+
 ```
 //schema, table, ts, opTime, type, before_id, before_user_id, before_name, after_id, after_user_id, after_name
 ["tudou", "kudu", 6760525407742726144, 1577853000000, "INSERT", null, null, null, 1, 1, "a"]
 ["tudou", "kudu", 6760525407742726144, 1577853060000, "DELETE", 1, 1, "a", null, null, null]
 ["tudou", "kudu", 6760525407742726144, 1577853180000, "UPDATE", 1, 1, "a", 2, 2, "b"]
 ```
-2、pavingData = false, splitUpdate = false
-RowData中的数据依次为：
+
+2、pavingData = false, splitUpdate = false RowData中的数据依次为：
+
 ```
 //schema, table, ts, opTime, type, before, after
 ["tudou", "kudu", 6760525407742726144, 1577853000000, "INSERT", null, {"id":1, "user_id":1, "name":"a"}]
 ["tudou", "kudu", 6760525407742726144, 1577853060000, "DELETE", {"id":1, "user_id":1, "name":"a"}, null]
 ["tudou", "kudu", 6760525407742726144, 1577853180000, "UPDATE", {"id":1, "user_id":1, "name":"a"}, {"id":2, "user_id":2, "name":"b"}]
 ```
-3、pavingData = true, splitUpdate = true
-RowData中的数据依次为：
+
+3、pavingData = true, splitUpdate = true RowData中的数据依次为：
+
 ```
 //schema, table, ts, opTime, type, before_id, before_user_id, before_name, after_id, after_user_id, after_name
 ["tudou", "kudu", 6760525407742726144, 1577853000000, "INSERT", null, null, null, 1, 1, "a"]
@@ -462,8 +476,9 @@ RowData中的数据依次为：
 //schema, table, ts, opTime, type, after_id, after_user_id, after_name
 ["tudou", "kudu", 6760525407742726144, 1577853180000, "UPDATE_AFTER", 2, 2, "b"]
 ```
-4、pavingData = false, splitUpdate = true
-RowData中的数据依次为：
+
+4、pavingData = false, splitUpdate = true RowData中的数据依次为：
+
 ```
 //schema, table, ts, opTime, type, before, after
 ["tudou", "kudu", 6760525407742726144, 1577853000000, "INSERT", null, {"id":1, "user_id":1, "name":"a"}]
@@ -477,6 +492,7 @@ RowData中的数据依次为：
 - type：变更类型，INSERT，UPDATE、DELETE
 - opTime：数据库中SQL的执行时间
 - ts：自增ID，不重复，可用于排序，解码后为FlinkX的事件时间，解码规则如下:
+
 ```java
 long id = Long.parseLong("6760525407742726144");
 long res = id >> 22;
@@ -484,7 +500,8 @@ DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 System.out.println(sdf.format(res));		//2021-01-28 19:54:21
 ```
 
-##  七、数据类型
+## 七、数据类型
+
 | 支持 | BIT |
 | --- | --- |
 |  | TINYINT、SMALLINT、MEDIUMINT、INT、INT24、INTEGER、FLOAT、DOUBLE、REAL、LONG、BIGINT、DECIMAL、NUMERIC |
@@ -493,6 +510,6 @@ System.out.println(sdf.format(res));		//2021-01-28 19:54:21
 |  | TINYBLOB、BLOB、MEDIUMBLOB、LONGBLOB、GEOMETRY、BINARY、VARBINARY |
 | 暂不支持 | 无 |
 
+## 八、脚本示例
 
-##  八、脚本示例
 见项目内`flinkx-examples`文件夹。

@@ -1,25 +1,27 @@
 # HBase Sink
 
 ## 一、介绍
+
 HBase sink
 
 ## 二、支持版本
+
 HBase 1.4 +
 
-
 ## 三、插件名称
+
 | Sync | hbasesink、hbasewriter |
 | --- | --- |
 | SQL | hbase14-x |
 
-
 ## 四、参数说明
+
 ### 1、Sync
+
 - **tablename**
     - 描述：hbase表名
     - 必选：是
     - 默认值：无
-
 
 
 - **hbaseConfig**
@@ -31,14 +33,12 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
 - 默认值：无
 
 
-
 - **nullMode**
     - 描述：读取的null值时，如何处理。支持两种方式：
         - skip：表示不向hbase写这列；
         - empty：写入HConstants.EMPTY_BYTE_ARRAY，即new byte [0]
     - 必选：否
     - 默认值：skip
-
 
 
 - **encoding**
@@ -54,12 +54,10 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
     - 默认值：false
 
 
-
 - **writeBufferSize**
     - 描述：设置HBae client的写buffer大小，单位字节。配合autoflush使用。autoflush，开启（true）表示Hbase client在写的时候有一条put就执行一次更新；关闭（false），表示Hbase client在写的时候只有当put填满客户端写缓存时，才实际向HBase服务端发起写请求
     - 必选：否
     - 默认值：8388608（8M）
-
 
 
 - **scanCacheSize**
@@ -68,12 +66,10 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
     - 默认值：256
 
 
-
 - **scanBatchSize**
     - 描述：每一个result中的列的数量
     - 必选：无
     - 默认值：100
-
 
 
 - **column**
@@ -84,7 +80,6 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
     - 默认值：无
 
 
-
 - **rowkeyColumn**
     - 描述：用于构造rowkey的描述信息，支持两种格式，每列形式如下
         - 字符串格式
@@ -92,6 +87,7 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
           <br />可以使用md5函数：md5($(cf:col))
         - 数组格式
             - 普通列
+
 ```
 {
   "index": 0,  // 该列在column属性中的序号，从0开始
@@ -100,6 +96,7 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
 ```
 
       - 常数列
+
 ```
 {
   "value": "ffff", // 常数值
@@ -112,9 +109,9 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
 - 默认值：无
 
 
-
 - **versionColumn**
     - 描述：指定写入hbase的时间戳。支持：当前时间、指定时间列，指定时间，三者选一。若不配置表示用当前时间。index：指定对应reader端column的索引，从0开始，需保证能转换为long,若是Date类型，会尝试用yyyy-MM-dd HH:mm:ss和yyyy-MM-dd HH:mm:ss SSS去解析；若不指定index；value：指定时间的值,类型为字符串。配置格式如下：
+
 ```
 "versionColumn":{
 "index":1
@@ -122,6 +119,7 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
 ```
 
 - <br />或者
+
 ```
 "versionColumn":{
 "value":"123456789"
@@ -133,6 +131,7 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
 <a name="ks2VQ"></a>
 
 ### 2、SQL
+
 - **connector**
     - 描述：hbase14-x
     - 必选：是
@@ -206,10 +205,11 @@ Kerberos；<br />hbase.security.authentication；<br />hbase.security.authorizat
     - 默认值：无
 
 ## 五、数据类型
+
 | 支持 | BOOLEAN、TINYINT、SMALLINT、INT、BIGINT、FLOAT、DOUBLE、DECIMAL、STRING、VARCHAR、CHAR、TIMESTAMP、DATE、BINARY |
 | --- | --- |
 | 暂不支持 | ARRAY、MAP、STRUCT、UNION |
 
-
 ## 六、脚本示例
+
 见项目内`flinkx-examples`文件夹。

@@ -6,14 +6,14 @@
 - [I. Fundamentals](# a foundation)
 - [II. Configuration](# II configuration)
 - [III. Principle](# III principle)
-  - [1. SQL Server Agent](#1sql-server-agent)
-  - [2. Database CDC before and after opening](#2 database cdc before and after opening)
-  - [3. business table CDC before and after opening](#3business table CDC before and after opening)
-  - [4. collection principle](#4 collection principle)
-  - [1. insert/delete](#1insertdelete)
-  - [2. update](#2update)
-  - [3. Flowchart](#3flowchart)
-  - [4. data format](#4data format)
+    - [1. SQL Server Agent](#1sql-server-agent)
+    - [2. Database CDC before and after opening](#2 database cdc before and after opening)
+    - [3. business table CDC before and after opening](#3business table CDC before and after opening)
+    - [4. collection principle](#4 collection principle)
+    - [1. insert/delete](#1insertdelete)
+    - [2. update](#2update)
+    - [3. Flowchart](#3flowchart)
+    - [4. data format](#4data format)
 
 <!-- /TOC -->
 
@@ -31,8 +31,7 @@ The configuration document link is as follows.
 
 ### 1. SQL Server Agent
 
-SQL Server Agent agent service, a standard service of sql server, serves as an agent to perform all sql automation tasks, as well as unattended tasks such as database transactional replication. This service is stopped in the default installation, you need to start it manually or change it to automatic movement, otherwise the automation tasks of sql will not be executed, also pay attention to the service startup account.
-Simply put, this service is started before the capture process will process the transaction log and write entries to the CDC table.
+SQL Server Agent agent service, a standard service of sql server, serves as an agent to perform all sql automation tasks, as well as unattended tasks such as database transactional replication. This service is stopped in the default installation, you need to start it manually or change it to automatic movement, otherwise the automation tasks of sql will not be executed, also pay attention to the service startup account. Simply put, this service is started before the capture process will process the transaction log and write entries to the CDC table.
 [https://docs.microsoft.com/zh-cn/sql/ssms/agent/sql-server-agent?view=sql-server-ver15](https://docs.microsoft.com/zh-cn/sql/ssms/agent/sql-server-agent?view=sql-server-ver15)
 
 ### 2. Comparison of database CDC before and after turning it on
@@ -53,7 +52,6 @@ EXEC sys.sp_cdc_enable_db;
 
 We first observe that a new **systranschemas** table has been added under dbo. The **systranschemas** table is used to track architectural changes in projects published in transaction releases and snapshot releases.
 
-
 | Column Name | Data Type | Description                                                 |
 | ------------- | ----------- | ------------------------------------------------------------- |
 | tabid       | int       | Identifies the table item where the schema change occurred. |
@@ -64,9 +62,7 @@ We first observe that a new **systranschemas** table has been added under dbo. T
 A new schema named cdc has been added under the database, and in fact a new cdc user has been added. cdc has the following four new tables.
 <br/>
 **1. captured_columns**
-Returns a row for each column tracked in the captured instance. By default, all columns in the source table will be captured. However, if the source table is enabled for change data capture, columns can be included in or excluded from the capture by specifying a list of columns.
-When there is no business table with CDC enabled, the table is empty.
-
+Returns a row for each column tracked in the captured instance. By default, all columns in the source table will be captured. However, if the source table is enabled for change data capture, columns can be included in or excluded from the capture by specifying a list of columns. When there is no business table with CDC enabled, the table is empty.
 
 | Column Name    | Data Type | Description                                                                                                                                                                                |
 | ---------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -78,9 +74,7 @@ When there is no business table with CDC enabled, the table is empty.
 | is_computed    | bit       | Indicates that the captured column is a computed column from the source table.                                                                                                             |
 
 **2. change_tables**
-Returns one row for each changed table in the database. When change data capture is enabled for a source table, a change table is created.
-When no business table has CDC enabled, the table is empty.
-
+Returns one row for each changed table in the database. When change data capture is enabled for a source table, a change table is created. When no business table has CDC enabled, the table is empty.
 
 | Column Name          | Data Type  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ---------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -99,9 +93,7 @@ When no business table has CDC enabled, the table is empty.
 | partition_switch     | bit        | Indicates whether the SWITCH PARTITION command of ALTER TABLE can be executed on a table with change data capture enabled. 0 indicates that partition switching is blocked. Unpartitioned tables always return 1.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 **3. ddl_history**
-Returns one row for each Data Definition Language (DDL) change made to a table with change data capture enabled. You can use this table to determine when DDL changes occurred to the source table and what was changed. This table does not contain any entries for the source table where no DDL changes occurred.
-This table is empty when there are no changes to the table structure of any business table with CDC turned on.
-
+Returns one row for each Data Definition Language (DDL) change made to a table with change data capture enabled. You can use this table to determine when DDL changes occurred to the source table and what was changed. This table does not contain any entries for the source table where no DDL changes occurred. This table is empty when there are no changes to the table structure of any business table with CDC turned on.
 
 | Column Name            | Data Type     | Description                                                                                                                                     |
 | ------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -113,9 +105,7 @@ This table is empty when there are no changes to the table structure of any busi
 | ddl_time               | datetime      | The date and time of the DDL changes made to the source table.                                                                                  |
 
 **4. index_columns**
-Returns one row for each index column associated with the changed table. Change data capture uses these index columns to uniquely identify the rows in the source table. By default, the primary key columns of the source table will be included. However, if the source table's unique index is specified when change data capture is enabled for the source table, the columns in that index will be used instead. If net change tracking is enabled, the primary key or unique index is required for that source table.
-When no index column exists for any business table with CDC enabled, the table is empty.
-
+Returns one row for each index column associated with the changed table. Change data capture uses these index columns to uniquely identify the rows in the source table. By default, the primary key columns of the source table will be included. However, if the source table's unique index is specified when change data capture is enabled for the source table, the columns in that index will be used instead. If net change tracking is enabled, the primary key or unique index is required for that source table. When no index column exists for any business table with CDC enabled, the table is empty.
 
 | Column Name   | Data Type | Description                                              |
 | --------------- | ----------- | ---------------------------------------------------------- |
@@ -126,7 +116,6 @@ When no index column exists for any business table with CDC enabled, the table i
 
 **5. lsn_time_mapping**
 Returns a row for each transaction that has a row in the change table. This table is used to create a mapping between the log sequence number (LSN) commit value and the time of the committed transaction. Items that do not have corresponding change table entries can also be logged so that the table records the completion of LSN processing during periods of little or no change activity.
-
 
 | Column Name     | Data Type      | Description                                                    |
 | ----------------- | ---------------- | ---------------------------------------------------------------- |
@@ -139,8 +128,8 @@ The following functions have been added under cdc.
 <br/>
 
 **1. fn_cdc_get_all_changes_**
-Returns one row for each change applied to the source table within the specified log sequence number (LSN) range. If the source row has multiple changes within that interval, each change is represented in the returned result set. In addition to returning change data, the four metadata columns provide the information needed to apply changes to another data source. The row filter option controls the content of the metadata columns and the rows returned in the result set. When the "all" row filter option is specified, there will be only one row for each change to identify that change. When the "all update old" option is specified, the update operation is represented as two rows: one containing the values of the captured columns before the update and the other containing the values of the captured columns after the update. This enumerated function is created when change data capture is enabled for the source table. The function name is derived and uses the **cdc.fn_cdc_get_all_changes_**_capture_instance_ format, where _capture_instance_ is the value specified for the capture instance when change data capture is enabled for the source table.
-
+Returns one row for each change applied to the source table within the specified log sequence number (LSN) range. If the source row has multiple changes within that interval, each change is represented in the returned result set. In addition to returning change data, the four metadata columns provide the information needed to apply changes to another data source. The row filter option controls the content of the metadata columns and the rows returned in the result set. When the "all" row filter option is specified, there will be only one row for each change to identify that change. When the "all update old" option is specified, the update operation is represented as two rows: one containing the values of the captured columns before the update and the other containing the values of the captured columns after the update. This enumerated function is created when change data capture is enabled for the source table. The function name is derived and uses the **cdc.fn_cdc_get_all_changes_**_
+capture_instance_ format, where _capture_instance_ is the value specified for the capture instance when change data capture is enabled for the source table.
 
 | column_name                      | data_type      | description                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ---------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -202,7 +191,6 @@ At this point, a new table named dbo_kudu_CT is added under cdc, and for any bus
 **1. dbo_kudu_CT:**
 The change table created when change data capture is enabled for the source table. This table returns one row for each insert and delete operation performed on the source table and two rows for each update operation performed on the source table. If the name of the change table is not specified when the source table is enabled, a derived name is used. The format of the name is cdc. capture_instance _CT where capture_instance is the name of the source table's schema and the name of the source table in the format schema_table. For example, if change data capture is enabled for the table Person in the AdventureWorks sample database, the derived change table name will be cdc.Person_Address_CT.
 
-
 | Column Name                      | Data Type       | Description                                                                                                                                                                                                                                                                                                                                                              |
 | ---------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | __$start_lsn                     | binary(10)      | The log sequence number (LSN) associated with the commit transaction for the corresponding change. All changes committed in the same transaction will share the same commit LSN. For example, if a delete operation on a source table deletes two rows, the changes table will contain two rows, each with the same __ $ start_lsn value.                                |
@@ -242,10 +230,7 @@ For insert and delete type of data changes, for each row change will add a row i
 
 #### 2. update
 
-a. Primary key updated
-At this time, the SqlServer database practice is within the same thing, the original record is deleted first, and then re-inserted.
-Execute the following SQL, log table as shown in the figure.
-UPDATE [dbo]. [kudu] SET [id] = 2, [user_id] = '2', [name] = 'b' WHERE [id] = 1;
+a. Primary key updated At this time, the SqlServer database practice is within the same thing, the original record is deleted first, and then re-inserted. Execute the following SQL, log table as shown in the figure. UPDATE [dbo]. [kudu] SET [id] = 2, [user_id] = '2', [name] = 'b' WHERE [id] = 1;
 
 <div align=center>
 <img src="../../images/SqlserverCDC/Sqlserver13.png" />
