@@ -26,3 +26,6 @@ mvn install:install-file -DgroupId=com.pingcap.ticdc.cdc -DartifactId=ticdc-deco
 
 ## inceptor driver
 mvn install:install-file -DgroupId=io.transwarp -DartifactId=inceptor-driver -Dversion=6.0.2 -Dpackaging=jar -Dfile=../jars/inceptor-driver-6.0.2.jar
+
+## oceanbase driver
+mvn install:install-file -DgroupId=com.alipay.oceanbase -DartifactId=oceanbase-client -Dversion=1.1.5 -Dpackaging=jar -Dfile=../jars/oceanbase-client-1.1.5.jar
