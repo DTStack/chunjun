@@ -809,7 +809,16 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void queryStartLocation() throws SQLException {
-        ps = dbConn.prepareStatement(jdbcConf.getQuerySql(), resultSetType, resultSetConcurrency);
+        // 在首次查询时需要增加一下，排序
+        StringBuilder updateSqlBuilder = new StringBuilder(128);
+        updateSqlBuilder.append(jdbcConf.getQuerySql());
+        updateSqlBuilder
+                .append(" ORDER BY ")
+                .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+                .append(" ASC");
+        ps =
+                dbConn.prepareStatement(
+                        updateSqlBuilder.toString(), resultSetType, resultSetConcurrency);
         ps.setFetchSize(jdbcConf.getFetchSize());
         ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
         resultSet = ps.executeQuery();
