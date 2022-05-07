@@ -131,8 +131,14 @@ public class SyncConf implements Serializable {
             }
 
             FieldConf fieldColumn;
-
-            if (fieldColumnByName == null && fieldColumnByIndex == null) {
+            boolean columnWithoutName =
+                    readerFieldList.stream().noneMatch(i -> StringUtils.isNotBlank(i.getName()));
+            // 如果column没有name 且restoreColumnIndex为-1 则不需要校验
+            if (fieldColumnByName == null
+                    && columnWithoutName
+                    && restore.getRestoreColumnIndex() == -1) {
+                return;
+            } else if (fieldColumnByName == null && fieldColumnByIndex == null) {
                 throw new IllegalArgumentException(
                         "Can not find restore column from json with column name:"
                                 + restore.getRestoreColumnName());
@@ -169,10 +175,6 @@ public class SyncConf implements Serializable {
 
     public SpeedConf getSpeed() {
         return job.getSetting().getSpeed();
-    }
-
-    public ErrorLimitConf getErrorLimit() {
-        return job.getSetting().getErrorLimit();
     }
 
     public LogConf getLog() {

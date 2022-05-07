@@ -37,7 +37,7 @@ import java.util.Locale;
 public class PGWalInputFormatBuilder extends BaseRichInputFormatBuilder<PGWalInputFormat> {
 
     public PGWalInputFormatBuilder() {
-        format = new PGWalInputFormat();
+        super(new PGWalInputFormat());
     }
 
     public void setConf(PGWalConf conf) {

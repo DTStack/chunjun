@@ -19,6 +19,7 @@ package com.dtstack.flinkx.element;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -69,6 +70,15 @@ public abstract class AbstractBaseColumn implements Serializable {
      * @return
      */
     public abstract Timestamp asTimestamp();
+
+    /** Convert data to Time type */
+    public abstract Time asTime();
+
+    /** Convert data to java.sql.Date type */
+    public abstract java.sql.Date asSqlDate();
+
+    /** Convert data to timestamp string */
+    public abstract String asTimestampStr();
 
     /**
      * Convert data to short type
@@ -140,6 +150,18 @@ public abstract class AbstractBaseColumn implements Serializable {
             return null;
         }
         return new Date(this.asTimestamp().getTime());
+    }
+
+    /**
+     * Convert data to Year Integer
+     *
+     * @return
+     */
+    public Integer asYearInt() {
+        if (null == data) {
+            return null;
+        }
+        return this.asInt();
     }
 
     /**

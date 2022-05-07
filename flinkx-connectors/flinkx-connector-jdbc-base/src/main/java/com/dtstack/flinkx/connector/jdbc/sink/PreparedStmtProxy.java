@@ -133,13 +133,9 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             int dataBaseIndex = head.get(CDCConstantValue.SCHEMA);
             int tableIndex = head.get(CDCConstantValue.TABLE);
 
-            // jdbcDialect 提供统一的处理 比如pg 表都是小写的
-            String dataBase =
-                    jdbcDialect.getDialectTableName(row.getString(dataBaseIndex).toString());
-            String tableName =
-                    jdbcDialect.getDialectTableName(
-                            row.getString(tableIndex).toString().toLowerCase());
-            String key = getPstmtCacheKey(dataBase, tableName, row.getRowKind());
+            String database = row.getString(dataBaseIndex).toString();
+            String tableName = row.getString(tableIndex).toString();
+            String key = getPstmtCacheKey(database, tableName, row.getRowKind());
 
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
@@ -149,7 +145,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                                     return DynamicPreparedStmt.buildStmt(
                                             columnRowData.getHeaderInfo(),
                                             columnRowData.getExtHeader(),
-                                            dataBase,
+                                            database,
                                             tableName,
                                             columnRowData.getRowKind(),
                                             connection,
@@ -168,7 +164,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             }
         } else {
             String key =
-                    getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), row.getRowKind());
+                    getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.INSERT);
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
                             key,
@@ -191,7 +187,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         }
     }
 
-    protected void writeSingleRecordInternal(RowData row) throws Exception {
+    public void writeSingleRecordInternal(RowData row) throws Exception {
         getOrCreateFieldNamedPstmt(row);
         currentFieldNamedPstmt =
                 (FieldNamedPreparedStatement)

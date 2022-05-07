@@ -58,6 +58,11 @@ public class ColumnBuildUtil {
             if (fieldConf.getValue() == null) {
                 boolean find = false;
                 String name = fieldConf.getName();
+                if (fullColumnList.size() == 0) {
+                    columnNameList.add(name);
+                    columnTypeList.add(fieldConf.getType());
+                    find = true;
+                }
                 for (int i = 0; i < fullColumnList.size(); i++) {
                     if (name.equalsIgnoreCase(fullColumnList.get(i))) {
                         columnNameList.add(name);

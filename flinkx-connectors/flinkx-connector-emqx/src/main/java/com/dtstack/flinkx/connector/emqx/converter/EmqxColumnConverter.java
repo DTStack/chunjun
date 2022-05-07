@@ -26,6 +26,7 @@ import com.dtstack.flinkx.decoder.TextDecoder;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.MapColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.MapUtil;
 
 import org.apache.flink.table.data.RowData;
@@ -82,9 +83,14 @@ public class EmqxColumnConverter
                 && !(row.getField(0) instanceof MapColumn)) {
             map = new LinkedHashMap<>((arity << 2) / 3);
             for (int i = 0; i < arity; i++) {
-                map.put(
-                        emqxConf.getTableFields().get(i),
-                        org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
+                Object obj = row.getField(i);
+                Object value;
+                if (obj instanceof TimestampColumn) {
+                    value = ((TimestampColumn) obj).asTimestampStr();
+                } else {
+                    value = org.apache.flink.util.StringUtils.arrayAwareToString(obj);
+                }
+                map.put(emqxConf.getTableFields().get(i), value);
             }
         } else if (arity == 1) {
             Object obj = row.getField(0);

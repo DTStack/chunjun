@@ -39,8 +39,10 @@ public class MongoConverterFactory {
     RowType rowType;
     List<String> fieldNames;
     List<String> fieldTypes;
+    MongodbDataSyncConf mongodbDataSyncConf;
 
     public MongoConverterFactory(MongodbDataSyncConf mongodbDataSyncConf) {
+        this.mongodbDataSyncConf = mongodbDataSyncConf;
         fieldNames = new ArrayList<>();
         fieldTypes = new ArrayList<>();
         List<FieldConf> fields = mongodbDataSyncConf.getColumn();
@@ -48,7 +50,6 @@ public class MongoConverterFactory {
             fieldNames.add(field.getName());
             fieldTypes.add(field.getType());
         }
-
         rowType = TableUtil.createRowType(fieldNames, fieldTypes, MongodbRawTypeConverter::apply);
     }
 
@@ -57,6 +58,6 @@ public class MongoConverterFactory {
     }
 
     public MongodbColumnConverter createColumnConverter() {
-        return new MongodbColumnConverter(rowType, fieldNames.toArray(new String[] {}));
+        return new MongodbColumnConverter(rowType, mongodbDataSyncConf);
     }
 }

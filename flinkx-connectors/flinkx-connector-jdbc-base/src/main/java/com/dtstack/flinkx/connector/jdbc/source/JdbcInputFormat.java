@@ -55,9 +55,12 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import static com.dtstack.flinkx.enums.ColumnType.TIMESTAMPTZ;
 
 /**
  * InputFormat for reading data from a database and generate Rows.
@@ -110,10 +113,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             dbConn = getConnection();
             dbConn.setAutoCommit(false);
 
-            Pair<List<String>, List<String>> pair = getTableMetaData();
+            Pair<List<String>, List<String>> pair = null;
+            List<String> fullColumnList = new LinkedList<>();
+            List<String> fullColumnTypeList = new LinkedList<>();
+            if (StringUtils.isBlank(jdbcConf.getCustomSql())) {
+                pair = getTableMetaData();
+                fullColumnList = pair.getLeft();
+                fullColumnTypeList = pair.getRight();
+            }
             Pair<List<String>, List<String>> columnPair =
                     ColumnBuildUtil.handleColumnList(
-                            jdbcConf.getColumn(), pair.getLeft(), pair.getRight());
+                            jdbcConf.getColumn(), fullColumnList, fullColumnTypeList);
             columnNameList = columnPair.getLeft();
             columnTypeList = columnPair.getRight();
 
@@ -243,7 +253,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (isUpdateLocation) {
                 Object obj;
                 switch (type) {
+                    case DATETIME:
                     case TIMESTAMP:
+                    case TIMESTAMPTZ:
                     case DATE:
                         obj = resultSet.getTimestamp(jdbcConf.getIncreColumn()).getTime();
                         break;
@@ -333,8 +345,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             customReporter.registerMetric(startLocationAccumulator, Metrics.START_LOCATION);
             customReporter.registerMetric(endLocationAccumulator, Metrics.END_LOCATION);
         }
-        getRuntimeContext().addAccumulator(start, startLocationAccumulator);
-        getRuntimeContext().addAccumulator(end, endLocationAccumulator);
+        if (getRuntimeContext().getAccumulator(Metrics.START_LOCATION) == null) {
+            getRuntimeContext().addAccumulator(Metrics.START_LOCATION, startLocationAccumulator);
+        }
+        if (getRuntimeContext().getAccumulator(Metrics.END_LOCATION) == null) {
+            getRuntimeContext().addAccumulator(Metrics.END_LOCATION, endLocationAccumulator);
+        }
     }
 
     /**
@@ -561,7 +577,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             String incrementColType, String incrementCol, String location, String operator) {
         String endTimeStr;
         String endLocationSql;
-
+        ColumnType type = ColumnType.fromString(incrementColType);
+        if (type == TIMESTAMPTZ) {
+            return String.valueOf(Timestamp.valueOf(location).getTime());
+        }
         if (ColumnType.isTimeType(incrementColType)) {
             endTimeStr = getTimeStr(Long.parseLong(location));
             endLocationSql = incrementCol + operator + endTimeStr;
@@ -609,6 +628,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         boolean isNumber = StringUtils.isNumeric(startLocation);
         switch (type) {
             case TIMESTAMP:
+            case TIMESTAMPTZ:
+            case DATETIME:
                 Timestamp ts =
                         isNumber
                                 ? new Timestamp(Long.parseLong(startLocation))
@@ -779,7 +800,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @return
      */
     protected Pair<List<String>, List<String>> getTableMetaData() {
-        return JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
+        return JdbcUtil.getTableMetaData(null, jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
     }
 
     /**
@@ -787,7 +808,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      *
      * @throws SQLException
      */
-    private void queryStartLocation() throws SQLException {
+    protected void queryStartLocation() throws SQLException {
         ps = dbConn.prepareStatement(jdbcConf.getQuerySql(), resultSetType, resultSetConcurrency);
         ps.setFetchSize(jdbcConf.getFetchSize());
         ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
@@ -820,9 +841,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         // 查询到数据，更新querySql
         StringBuilder builder = new StringBuilder(128);
-        builder.append(jdbcConf.getQuerySql())
-                .append(" AND ")
-                .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+        builder.append(jdbcConf.getQuerySql());
+        if (jdbcConf.getQuerySql().contains("WHERE")) {
+            builder.append(" AND ");
+        } else {
+            builder.append(" WHERE ");
+        }
+        builder.append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
                 .append(" > ? ORDER BY ")
                 .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
                 .append(" ASC");

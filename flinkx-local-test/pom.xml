@@ -41,7 +41,16 @@
 			<artifactId>flink-parquet_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-python_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-clients_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
 		<!--prometheus-->
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
@@ -124,6 +133,10 @@
 					<artifactId>snappy-java</artifactId>
 					<groupId>org.xerial.snappy</groupId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.flink</groupId>
+					<artifactId>flink-avro-confluent-registry</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -136,6 +149,11 @@
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-mysql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-mysqld</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -187,6 +205,16 @@
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-saphana</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-inceptor</artifactId>
+			<version>1.12-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-oceanbase</artifactId>
+			<version>1.12-SNAPSHOT</version>
 		</dependency>
 
 		<!--File-->
@@ -255,6 +283,11 @@
 		<dependency>
 			<groupId>com.dtstack.flinkx</groupId>
 			<artifactId>flinkx-connector-doris</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-starrocks</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

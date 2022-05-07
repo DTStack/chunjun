@@ -27,6 +27,7 @@ import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.ByteColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
@@ -40,7 +41,6 @@ import org.apache.kudu.client.RowResult;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 
@@ -132,9 +132,7 @@ public class KuduColumnConverter
             case "STRING":
                 return val -> new StringColumn((String) val);
             case "DATE":
-                return val ->
-                        new BigDecimalColumn(
-                                Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay());
+                return val -> new SqlDateColumn(Date.valueOf(String.valueOf(val)));
             case "TIMESTAMP":
                 return val -> new TimestampColumn((Timestamp) val);
             case "BINARY":
@@ -196,11 +194,7 @@ public class KuduColumnConverter
                                 .getRow()
                                 .addDate(
                                         columnName.get(index),
-                                        Date.valueOf(
-                                                LocalDate.ofEpochDay(
-                                                        ((ColumnRowData) val)
-                                                                .getField(index)
-                                                                .asInt())));
+                                        ((ColumnRowData) val).getField(index).asSqlDate());
 
             case "TIMESTAMP":
                 return (val, index, operation) ->

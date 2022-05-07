@@ -41,6 +41,7 @@ public class KingbaseOutputFormat extends JdbcOutputFormat {
     @Override
     protected Pair<List<String>, List<String>> getTableMetaData() {
         return JdbcUtil.getTableMetaData(
+                null,
                 StringUtils.upperCase(jdbcConf.getSchema()),
                 StringUtils.upperCase(jdbcConf.getTable()),
                 dbConn);

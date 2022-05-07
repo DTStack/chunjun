@@ -21,7 +21,7 @@ Elasticsearch 7.x
 ## 1、SQL
 
 - hosts
-   - Description：One or more Elasticsearch hosts to connect to。eg: ["localhost:9200"]
+   - Description：One or more Elasticsearch hosts to connect to。eg: "localhost:9200", Multiple addresses are delimited by semicolons.
    - Required：required
    - Type：List<String>
    - Default：none
@@ -40,6 +40,31 @@ Elasticsearch 7.x
    - Required：optional
    - Type：String
    - Default：none
+- client.connect-timeout
+    - Description：Elasticsearch client max connect timeout.
+    - Required：optional
+    - Type：Integer
+    - Default：5000
+- client.socket-timeout
+    - Description：Elasticsearch client max socket timeout.
+    - Required：optional
+    - Type：Integer
+    - Default：1800000
+- client.keep-alive-time
+    - Description：Elasticsearch client connection max keepAlive time.
+    - Required：optional
+    - Type：Integer
+    - Default：5000
+- client.request-timeout
+    - Description：Elasticsearch client connection max request timeout.
+    - Required：optional
+    - Type：Integer
+    - Default：2000
+- client.max-connection-per-route
+    - Description：Elasticsearch client connection assigns maximum connection per route value.
+    - Required：optional
+    - Type：Integer
+    - Default：10
 - lookup.cache-type
    - Description：Dimension table type. Eg: ALL or LRU
    - Required：optional
@@ -75,7 +100,6 @@ Elasticsearch 7.x
    - Required：optional
    - Type：Integer
    - Default：1
-
 
 # 五、Data type
 

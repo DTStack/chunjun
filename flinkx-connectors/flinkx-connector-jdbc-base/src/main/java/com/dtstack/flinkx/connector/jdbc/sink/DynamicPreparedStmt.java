@@ -156,18 +156,11 @@ public class DynamicPreparedStmt {
 
     public void getColumnNameList(Map<String, Integer> header, Set<String> extHeader) {
         if (writeExtInfo) {
-            header.keySet()
-                    .forEach(
-                            fieldName ->
-                                    columnNameList.add(
-                                            jdbcDialect.getDialectColumnName(fieldName)));
+            columnNameList.addAll(header.keySet());
         } else {
             header.keySet().stream()
                     .filter(fieldName -> !extHeader.contains(fieldName))
-                    .forEach(
-                            fieldName ->
-                                    columnNameList.add(
-                                            jdbcDialect.getDialectColumnName(fieldName)));
+                    .forEach(fieldName -> columnNameList.add(fieldName));
         }
     }
 
@@ -180,7 +173,7 @@ public class DynamicPreparedStmt {
 
     public void getColumnMeta(String schema, String table, Connection dbConn) {
         Pair<List<String>, List<String>> listListPair =
-                JdbcUtil.getTableMetaData(schema, table, dbConn);
+                JdbcUtil.getTableMetaData(null, schema, table, dbConn);
         List<String> nameList = listListPair.getLeft();
         List<String> typeList = listListPair.getRight();
         for (String columnName : columnNameList) {

@@ -72,6 +72,7 @@ public class EnvFactory {
         configuration.setBoolean(
                 TableConfigOptions.TABLE_DYNAMIC_TABLE_OPTIONS_ENABLED.key(), true);
         setTableConfig(tEnv, properties, jobName);
+        setTableConfigForPython(tEnv, properties);
         return tEnv;
     }
 
@@ -87,5 +88,16 @@ public class EnvFactory {
                                         e.getValue().toString().toLowerCase()));
 
         configuration.setString(PipelineOptions.NAME, jobName);
+    }
+
+    private static void setTableConfigForPython(
+            StreamTableEnvironment tEnv, Properties properties) {
+        Configuration configuration = tEnv.getConfig().getConfiguration();
+        properties.entrySet().stream()
+                .filter(e -> e.getKey().toString().toLowerCase().startsWith("python."))
+                .forEach(
+                        e ->
+                                configuration.setString(
+                                        e.getKey().toString(), e.getValue().toString()));
     }
 }

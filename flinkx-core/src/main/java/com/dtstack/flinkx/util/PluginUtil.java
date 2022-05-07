@@ -22,6 +22,7 @@ import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.dirty.DirtyConf;
 import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
+import com.dtstack.flinkx.enums.ClusterMode;
 import com.dtstack.flinkx.enums.OperatorType;
 import com.dtstack.flinkx.options.Options;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
@@ -56,6 +57,7 @@ import java.util.concurrent.Future;
 import static com.dtstack.flinkx.constants.ConstantValue.CONNECTOR_DIR_NAME;
 import static com.dtstack.flinkx.constants.ConstantValue.DIRTY_DATA_DIR_NAME;
 import static com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
+import static com.dtstack.flinkx.constants.ConstantValue.RESTORE_DIR_NAME;
 
 /**
  * Reason: Date: 2018/6/27 Company: www.dtstack.com
@@ -306,6 +308,16 @@ public class PluginUtil {
                         config.getRemotePluginPath(),
                         DIRTY_DATA_DIR_NAME);
 
+        if (null != config.getCdcConf().getMonitor()) {
+            Set<URL> restoreUrlSet =
+                    getJarFileDirPath(
+                            config.getCdcConf().getMonitor().getType(),
+                            config.getPluginRoot(),
+                            config.getRemotePluginPath(),
+                            RESTORE_DIR_NAME);
+            urlSet.addAll(restoreUrlSet);
+        }
+
         urlSet.addAll(coreUrlSet);
         urlSet.addAll(formatsUrlSet);
         urlSet.addAll(sourceUrlSet);
@@ -334,7 +346,7 @@ public class PluginUtil {
                     e);
         }
 
-        config.setSyncJarList(setPipelineOptionsToEnvConfig(env, urlList));
+        config.setSyncJarList(setPipelineOptionsToEnvConfig(env, urlList, options.getMode()));
     }
 
     /**
@@ -346,7 +358,7 @@ public class PluginUtil {
      */
     @SuppressWarnings("all")
     public static List<String> setPipelineOptionsToEnvConfig(
-            StreamExecutionEnvironment env, List<String> urlList) {
+            StreamExecutionEnvironment env, List<String> urlList, String executionMode) {
         try {
             Configuration configuration =
                     (Configuration)
@@ -356,15 +368,34 @@ public class PluginUtil {
                 jarList = new ArrayList<>(urlList.size());
             }
             jarList.addAll(urlList);
-            configuration.set(PipelineOptions.JARS, jarList);
+
+            List<String> pipelineJars = new ArrayList();
+            LOG.info("Flinkx executionMode: " + executionMode);
+            if (ClusterMode.getByName(executionMode) == ClusterMode.kubernetesApplication) {
+                for (String jarUrl : jarList) {
+                    String newJarUrl = jarUrl;
+                    if (StringUtils.startsWith(jarUrl, File.separator)) {
+                        newJarUrl = "file:" + jarUrl;
+                    }
+                    if (pipelineJars.contains(newJarUrl)) {
+                        continue;
+                    }
+                    pipelineJars.add(newJarUrl);
+                }
+            } else {
+                pipelineJars.addAll(jarList);
+            }
+
+            LOG.info("Flinkx reset pipeline.jars: " + pipelineJars);
+            configuration.set(PipelineOptions.JARS, pipelineJars);
 
             List<String> classpathList = configuration.get(PipelineOptions.CLASSPATHS);
             if (classpathList == null) {
                 classpathList = new ArrayList<>(urlList.size());
             }
-            classpathList.addAll(urlList);
+            classpathList.addAll(pipelineJars);
             configuration.set(PipelineOptions.CLASSPATHS, classpathList);
-            return jarList;
+            return pipelineJars;
         } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
         }

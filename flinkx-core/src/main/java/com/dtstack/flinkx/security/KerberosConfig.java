@@ -23,6 +23,7 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.google.common.base.Strings;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * Kerberos of certain connectors could be enabled, it should use or extends this class. e.g.
@@ -40,6 +41,8 @@ public class KerberosConfig implements Serializable {
     protected String principal;
     protected String keytab;
     protected String krb5conf;
+    protected String remoteDir;
+    Map<String, String> sftpConf;
 
     // do not delete. Preserving empty parameter construction method for JsonUtil.toObject()
     public KerberosConfig() {}
@@ -73,6 +76,22 @@ public class KerberosConfig implements Serializable {
 
     public void setKrb5conf(String krb5conf) {
         this.krb5conf = krb5conf;
+    }
+
+    public String getRemoteDir() {
+        return remoteDir;
+    }
+
+    public void setRemoteDir(String remoteDir) {
+        this.remoteDir = remoteDir;
+    }
+
+    public Map<String, String> getSftpConf() {
+        return sftpConf;
+    }
+
+    public void setSftpConf(Map<String, String> sftpConf) {
+        this.sftpConf = sftpConf;
     }
 
     public boolean isEnableKrb() {

@@ -37,12 +37,10 @@ import java.util.Arrays;
  *
  * @author huyifan.zju@163.com
  */
-public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    protected JdbcInputFormat format;
+public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInputFormat> {
 
     public JdbcInputFormatBuilder(JdbcInputFormat format) {
-        super.format = this.format = format;
+        super(format);
     }
 
     public void setJdbcConf(JdbcConf jdbcConf) {
@@ -61,9 +59,7 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder {
         if (StringUtils.isBlank(conf.getUsername())) {
             sb.append("No username supplied;\n");
         }
-        if (StringUtils.isBlank(conf.getPassword())) {
-            sb.append("No password supplied;\n");
-        }
+
         if (StringUtils.isBlank(conf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }

@@ -27,7 +27,9 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
@@ -35,10 +37,15 @@ import com.dtstack.flinkx.util.DateUtil;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
 
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @program: flinkx
@@ -49,14 +56,14 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
 
     private final FtpConfig ftpConfig;
 
-    public FtpColumnConverter(FtpConfig ftpConfig) {
-        super(ftpConfig.getColumn().size());
+    public FtpColumnConverter(RowType rowType, FtpConfig ftpConfig) {
+        super(rowType);
         this.ftpConfig = ftpConfig;
-
-        for (int i = 0; i < ftpConfig.getColumn().size(); i++) {
+        for (int i = 0; i < rowType.getFieldCount(); i++) {
             FieldConf fieldConf = ftpConfig.getColumn().get(i);
             toInternalConverters.add(
-                    wrapIntoNullableInternalConverter(createInternalConverter(fieldConf)));
+                    wrapIntoNullableInternalConverter(
+                            createInternalConverter(rowType.getTypeAt(i))));
             toExternalConverters.add(
                     wrapIntoNullableExternalConverter(
                             createExternalConverter(fieldConf), fieldConf));
@@ -112,35 +119,40 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
         };
     }
 
-    @Override
-    protected IDeserializationConverter createInternalConverter(FieldConf fieldConf) {
-        String type = fieldConf.getType();
-        switch (type.toUpperCase(Locale.ENGLISH)) {
-            case "BOOLEAN":
+    protected IDeserializationConverter createInternalConverter(LogicalType type) {
+        switch (type.getTypeRoot()) {
+            case BOOLEAN:
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
                         val -> new BooleanColumn(Boolean.parseBoolean(val));
-            case "TINYINT":
-            case "SMALLINT":
-            case "INT":
-            case "BIGINT":
-            case "FLOAT":
-            case "DOUBLE":
-            case "DECIMAL":
+            case TINYINT:
+            case SMALLINT:
+            case INTEGER:
+            case BIGINT:
+            case FLOAT:
+            case DOUBLE:
+            case DECIMAL:
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
                         BigDecimalColumn::new;
-            case "STRING":
-            case "VARCHAR":
-            case "CHAR":
+            case VARCHAR:
+            case CHAR:
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
-            case "TIMESTAMP":
-            case "DATE":
+            case TIME_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
-                        val -> new TimestampColumn(DateUtil.getTimestampFromStr(val));
-            case "BINARY":
-            case "ARRAY":
-            case "MAP":
-            case "STRUCT":
-            case "UNION":
+                        val -> new TimeColumn(Time.valueOf(val));
+            case DATE:
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new SqlDateColumn(Date.valueOf(val));
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+                return (IDeserializationConverter<Object, AbstractBaseColumn>)
+                        val -> {
+                            int precision = ((TimestampType) (type)).getPrecision();
+                            Timestamp timestamp = DateUtil.convertToTimestamp(val.toString());
+                            if (timestamp != null) {
+                                return new TimestampColumn(timestamp, precision);
+                            }
+                            return new TimestampColumn(
+                                    DateUtil.getTimestampFromStr(val.toString()), precision);
+                        };
             default:
                 throw new UnsupportedTypeException("Unsupported type:" + type);
         }
@@ -149,6 +161,6 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
     @Override
     protected ISerializationConverter<List<String>> createExternalConverter(FieldConf fieldConf) {
         return (rowData, index, list) ->
-                list.add(index, ((ColumnRowData) rowData).getField(index).toString());
+                list.add(index, ((ColumnRowData) rowData).getField(index).asString());
     }
 }

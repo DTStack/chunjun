@@ -74,10 +74,16 @@ public class HiveUtil {
                     "TableAlreadyExistsException");
 
     public static void createHiveTableWithTableInfo(
-            TableInfo tableInfo, ConnectionInfo connectionInfo, DistributedCache distributedCache) {
+            TableInfo tableInfo,
+            String schema,
+            ConnectionInfo connectionInfo,
+            DistributedCache distributedCache) {
         Connection connection = null;
         try {
             connection = HiveDbUtil.getConnection(connectionInfo, distributedCache);
+            if (StringUtils.isNotBlank(schema)) {
+                HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, "use " + schema);
+            }
             createTable(connection, tableInfo, connectionInfo);
             fillTableInfo(connection, tableInfo);
         } catch (Exception e) {
@@ -91,12 +97,16 @@ public class HiveUtil {
     /** 创建hive的分区 */
     public static void createPartition(
             TableInfo tableInfo,
+            String schema,
             String partition,
             ConnectionInfo connectionInfo,
             DistributedCache distributedCache) {
         Connection connection = null;
         try {
             connection = HiveDbUtil.getConnection(connectionInfo, distributedCache);
+            if (StringUtils.isNotBlank(schema)) {
+                HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, "use " + schema);
+            }
             String sql =
                     String.format(CREATE_PARTITION_TEMPLATE, tableInfo.getTablePath(), partition);
             HiveDbUtil.executeSqlWithoutResultSet(connectionInfo, connection, sql);
@@ -272,7 +282,7 @@ public class HiveUtil {
                 for (Map<String, Object> column : tableColumns) {
                     tableInfo.addColumnAndType(
                             MapUtils.getString(column, HiveUtil.TABLE_COLUMN_KEY),
-                            MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE));
+                            convertType(MapUtils.getString(column, HiveUtil.TABLE_COLUMN_TYPE)));
                 }
                 String createTableSql = HiveUtil.getCreateTableHql(tableInfo);
                 tableInfo.setCreateTableSql(createTableSql);
@@ -281,6 +291,77 @@ public class HiveUtil {
             }
         }
         return tableInfos;
+    }
+
+    private static String convertType(String type) {
+        switch (type.toUpperCase()) {
+            case "BIT":
+            case "TINYINT":
+                type = "TINYINT";
+                break;
+            case "SMALLINT":
+                type = "SMALLINT";
+                break;
+            case "INT":
+            case "MEDIUMINT":
+            case "INTEGER":
+            case "YEAR":
+            case "INT2":
+            case "INT4":
+            case "INT8":
+                type = "INT";
+                break;
+            case "NUMERIC":
+            case "NUMBER":
+            case "BIGINT":
+                type = "BIGINT";
+                break;
+            case "REAL":
+            case "FLOAT":
+            case "FLOAT2":
+            case "FLOAT4":
+                type = "FLOAT";
+                break;
+            case "FLOAT8":
+            case "DOUBLE":
+            case "BINARY_DOUBLE":
+                type = "DOUBLE";
+                break;
+            case "DECIMAL":
+                type = "DECIMAL";
+                break;
+            case "STRING":
+            case "VARCHAR":
+            case "VARCHAR2":
+            case "CHAR":
+            case "CHARACTER":
+            case "NCHAR":
+            case "TINYTEXT":
+            case "TEXT":
+            case "MEDIUMTEXT":
+            case "LONGTEXT":
+            case "LONGVARCHAR":
+            case "LONGNVARCHAR":
+            case "NVARCHAR":
+            case "NVARCHAR2":
+                type = "STRING";
+                break;
+            case "BINARY":
+                type = "BINARY";
+                break;
+            case "BOOLEAN":
+                type = "BOOLEAN";
+                break;
+            case "DATE":
+                type = "DATE";
+                break;
+            case "TIMESTAMP":
+                type = "TIMESTAMP";
+                break;
+            default:
+                type = "STRING";
+        }
+        return type;
     }
 
     public static AbstractBaseColumn parseDataFromMap(Object data) {

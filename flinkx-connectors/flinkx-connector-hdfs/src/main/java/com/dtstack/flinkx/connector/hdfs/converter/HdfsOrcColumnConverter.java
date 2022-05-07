@@ -33,6 +33,7 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.UnsupportedTypeException;
 import com.dtstack.flinkx.throwable.WriteRecordException;
 import com.dtstack.flinkx.util.ColumnTypeUtil;
+import com.dtstack.flinkx.util.DateUtil;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
@@ -155,7 +156,9 @@ public class HdfsOrcColumnConverter
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "TIMESTAMP":
                 return (IDeserializationConverter<Timestamp, AbstractBaseColumn>)
-                        TimestampColumn::new;
+                        val ->
+                                new TimestampColumn(
+                                        val, DateUtil.getPrecisionFromTimestampStr(val.toString()));
             case "DATE":
                 return (IDeserializationConverter<Date, AbstractBaseColumn>)
                         val -> new TimestampColumn(val.getTime());

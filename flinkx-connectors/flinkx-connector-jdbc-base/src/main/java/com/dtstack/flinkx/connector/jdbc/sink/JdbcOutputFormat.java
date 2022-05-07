@@ -150,7 +150,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
      * @return
      */
     protected Pair<List<String>, List<String>> getTableMetaData() {
-        return JdbcUtil.getTableMetaData(jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
+        return JdbcUtil.getTableMetaData(null, jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
     }
 
     /**
@@ -188,9 +188,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         int index = 0;
         try {
             stmtProxy.writeSingleRecordInternal(row);
-            if (Semantic.EXACTLY_ONCE == semantic) {
-                JdbcUtil.commit(dbConn);
-            }
         } catch (Exception e) {
             JdbcUtil.rollBack(dbConn);
             processWriteException(e, index, row);
@@ -292,17 +289,15 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                     String[] strings = sql.split(";");
                     for (String s : strings) {
                         if (StringUtils.isNotBlank(s)) {
-                            LOG.info("add sql to batch, sql = {}", sql);
-                            stmt.addBatch(sql);
+                            LOG.info("add sql to batch, sql = {}", s);
+                            stmt.addBatch(s);
                         }
                     }
                 }
                 stmt.executeBatch();
             } catch (SQLException e) {
-                LOG.error(
-                        "execute sql failed, sqlList = {}, e = {}",
-                        JsonUtil.toPrintJson(sqlList),
-                        e);
+                throw new RuntimeException(
+                        "execute sql failed, sqlList = " + GsonUtil.GSON.toJson(sqlList), e);
             }
         }
     }
@@ -351,7 +346,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
         if (index < row.getArity()) {
             String message = recordConvertDetailErrorMessage(index, row);
-            LOG.error(message, e);
             throw new WriteRecordException(message, e, index, row);
         }
         throw new WriteRecordException(e.getMessage(), e);

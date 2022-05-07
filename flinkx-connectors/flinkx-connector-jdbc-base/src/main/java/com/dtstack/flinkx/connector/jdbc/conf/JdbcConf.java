@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.jdbc.conf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -37,6 +38,10 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     protected List<String> fullColumn;
     /** for postgresql */
     protected String insertSqlMode;
+
+    protected String fieldDelim;
+    protected String nullDelim;
+
     /** for sqlserver */
     private boolean withNoLock;
     // common
@@ -53,6 +58,8 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
     private String splitStrategy = "range";
     private int fetchSize = 0;
     private int queryTimeOut = 0;
+    // 连接超时时间
+    private int connectTimeOut = 0;
     /** 是否为增量任务 */
     private boolean increment = false;
     /** 是否为增量轮询 */
@@ -99,7 +106,26 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
         this.initReporter = initReporter;
     }
 
+    public String getFieldDelim() {
+        return fieldDelim;
+    }
+
+    public void setFieldDelim(String fieldDelim) {
+        this.fieldDelim = fieldDelim;
+    }
+
+    public String getNullDelim() {
+        return nullDelim;
+    }
+
+    public void setNullDelim(String nullDelim) {
+        this.nullDelim = nullDelim;
+    }
+
     public String getTable() {
+        if (StringUtils.isNotBlank(getCustomSql())) {
+            return null;
+        }
         return connection.get(0).getTable().get(0);
     }
 
@@ -235,6 +261,14 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
 
     public void setQueryTimeOut(int queryTimeOut) {
         this.queryTimeOut = queryTimeOut;
+    }
+
+    public int getConnectTimeOut() {
+        return connectTimeOut;
+    }
+
+    public void setConnectTimeOut(int connectTimeOut) {
+        this.connectTimeOut = connectTimeOut;
     }
 
     public boolean isIncrement() {
@@ -385,6 +419,12 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
                 + ", insertSqlMode='"
                 + insertSqlMode
                 + '\''
+                + ", fieldDelim='"
+                + fieldDelim
+                + '\''
+                + ", nullDelim='"
+                + nullDelim
+                + '\''
                 + ", withNoLock="
                 + withNoLock
                 + ", properties="
@@ -419,6 +459,8 @@ public class JdbcConf extends FlinkxCommonConf implements Serializable {
                 + fetchSize
                 + ", queryTimeOut="
                 + queryTimeOut
+                + ", connectTimeOut="
+                + connectTimeOut
                 + ", increment="
                 + increment
                 + ", polling="

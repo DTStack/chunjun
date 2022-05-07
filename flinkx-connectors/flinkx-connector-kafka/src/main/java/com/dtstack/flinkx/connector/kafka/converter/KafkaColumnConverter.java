@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.kafka.converter;
 
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.kafka.conf.KafkaConf;
+import com.dtstack.flinkx.constants.CDCConstantValue;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
 import com.dtstack.flinkx.decoder.IDecode;
@@ -30,7 +31,9 @@ import com.dtstack.flinkx.element.ColumnRowData;
 import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.DateUtil;
 import com.dtstack.flinkx.util.MapUtil;
@@ -42,12 +45,18 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.dtstack.flinkx.connector.kafka.option.KafkaOptions.DEFAULT_CODEC;
@@ -135,22 +144,48 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
                 && !(row.getField(0) instanceof MapColumn)) {
             map = new LinkedHashMap<>((arity << 2) / 3);
             for (int i = 0; i < arity; i++) {
-                map.put(
-                        kafkaConf.getTableFields().get(i),
-                        org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i)));
+                Object object = row.getField(i);
+                Object value;
+                if (object instanceof TimestampColumn) {
+                    value = ((TimestampColumn) object).asTimestampStr();
+                } else {
+                    value = org.apache.flink.util.StringUtils.arrayAwareToString(row.getField(i));
+                }
+                map.put(kafkaConf.getTableFields().get(i), value);
             }
         } else {
-            if (arity == 1) {
-                Object obj = row.getField(0);
-                if (obj instanceof MapColumn) {
-                    map = (Map<String, Object>) ((MapColumn) obj).getData();
-                } else if (obj instanceof StringColumn) {
-                    map = jsonDecoder.decode(obj.toString());
-                } else {
-                    map = Collections.singletonMap("message", row.toString());
+            String[] headers = row.getHeaders();
+            if (Objects.nonNull(headers) && headers.length >= 1) {
+                // cdc
+                map = new HashMap<>(headers.length >> 1);
+                for (String header : headers) {
+                    AbstractBaseColumn val = row.getField(header);
+                    if (null == val) {
+                        map.put(header, null);
+                    } else {
+                        map.put(header, val.getData());
+                    }
                 }
+                if (Arrays.stream(headers)
+                                .filter(
+                                        i ->
+                                                i.equals(CDCConstantValue.BEFORE)
+                                                        || i.equals(CDCConstantValue.AFTER)
+                                                        || i.equals(CDCConstantValue.TABLE))
+                                .collect(Collectors.toSet())
+                                .size()
+                        == 3) {
+                    map = Collections.singletonMap("message", map);
+                }
+            } else if (row.getArity() == 1 && row.getField(0) instanceof MapColumn) {
+                // from kafka source
+                map = (Map<String, Object>) row.getField(0).getData();
             } else {
-                map = Collections.singletonMap("message", row.toString());
+                List<String> values = new ArrayList<>(row.getArity());
+                for (int i = 0; i < row.getArity(); i++) {
+                    values.add(row.getField(i).asString());
+                }
+                map = decode.decode(String.join(",", values));
             }
         }
 
@@ -196,10 +231,22 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
             case "DECIMAL":
                 return val -> new BigDecimalColumn(new BigDecimal(val.toString()));
             case "DATE":
+                return val -> new SqlDateColumn(Date.valueOf(val.toString()));
             case "TIME":
+                return val -> new TimeColumn(Time.valueOf(val.toString()));
             case "DATETIME":
+                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()), 0);
             case "TIMESTAMP":
-                return val -> new TimestampColumn(DateUtil.getTimestampFromStr(val.toString()));
+                return val -> {
+                    String valStr = val.toString();
+                    try {
+                        return new TimestampColumn(
+                                Timestamp.valueOf(valStr),
+                                DateUtil.getPrecisionFromTimestampStr(valStr));
+                    } catch (Exception e) {
+                        return new TimestampColumn(DateUtil.getTimestampFromStr(valStr), 0);
+                    }
+                };
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }

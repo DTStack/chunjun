@@ -48,6 +48,8 @@ public class FieldConf implements Serializable {
     private String value;
     /** 如果字段是时间字符串，可以指定时间的格式，将字段类型转为日期格式返回 */
     private String format;
+    /** 与format字段组合使用，用于时间字符串格式转换 parseFormat->时间戳->format */
+    private String parseFormat;
     /** 字段分隔符 */
     private String splitter;
     /** 是否为分区字段 */
@@ -125,6 +127,11 @@ public class FieldConf implements Serializable {
         Object format = map.get("format");
         if (format != null && String.valueOf(format).trim().length() > 0) {
             field.setFormat(String.valueOf(format));
+        }
+
+        Object parseFormat = map.get("parseFormat");
+        if (parseFormat != null && String.valueOf(parseFormat).trim().length() > 0) {
+            field.setParseFormat(String.valueOf(parseFormat));
         }
 
         Object splitter = map.get("splitter");
@@ -230,6 +237,14 @@ public class FieldConf implements Serializable {
         this.length = length;
     }
 
+    public String getParseFormat() {
+        return parseFormat;
+    }
+
+    public void setParseFormat(String parseFormat) {
+        this.parseFormat = parseFormat;
+    }
+
     @Override
     public String toString() {
         return "FieldConf{"
@@ -244,8 +259,12 @@ public class FieldConf implements Serializable {
                 + ", value='"
                 + value
                 + '\''
-                + ", format="
+                + ", format='"
                 + format
+                + '\''
+                + ", parseFormat='"
+                + parseFormat
+                + '\''
                 + ", splitter='"
                 + splitter
                 + '\''

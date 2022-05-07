@@ -41,6 +41,13 @@ public class SqlserverJtdsRawTypeConverter {
      * @throws UnsupportedTypeException
      */
     public static DataType apply(String type) throws UnsupportedTypeException {
+        // like numeric() identity, decimal() identity
+        if (type.contains("identity")) {
+            type = type.replace("identity", "").trim();
+            if (type.endsWith("()")) {
+                type = type.replace("()", "").trim();
+            }
+        }
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
                 return DataTypes.BOOLEAN();
@@ -71,16 +78,19 @@ public class SqlserverJtdsRawTypeConverter {
             case "NTEXT":
                 return DataTypes.STRING();
             case "TIME":
+                return DataTypes.TIME();
             case "DATETIME2":
+                return DataTypes.TIMESTAMP(7);
             case "DATETIMEOFFSET":
-                return DataTypes.STRING();
+                return DataTypes.TIMESTAMP_WITH_TIME_ZONE(7);
             case "UNIQUEIDENTIFIER":
                 return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();
             case "DATETIME":
+                return DataTypes.TIMESTAMP(3);
             case "SMALLDATETIME":
-                return DataTypes.TIMESTAMP();
+                return DataTypes.TIMESTAMP(0);
             case "BINARY":
             case "VARBINARY":
             case "IMAGE":

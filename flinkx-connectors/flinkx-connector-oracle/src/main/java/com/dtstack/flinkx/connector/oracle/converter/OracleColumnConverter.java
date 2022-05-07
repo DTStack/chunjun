@@ -30,9 +30,10 @@ import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 
-import org.apache.flink.table.data.StringData;
+import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.utils.TypeConversions;
 
 import oracle.sql.TIMESTAMP;
 
@@ -40,9 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.LocalTime;
 
 /**
  * company www.dtstack.com
@@ -78,17 +77,12 @@ public class OracleColumnConverter extends JdbcColumnConverter {
                 if (type instanceof ClobType) {
                     return val -> {
                         oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
-                        return StringData.fromString(ConvertUtil.convertClob(clob));
+                        return new StringColumn(ConvertUtil.convertClob(clob));
                     };
                 }
                 return val -> new StringColumn((String) val);
             case DATE:
-                return val -> new TimestampColumn((Timestamp) val);
-            case TIME_WITHOUT_TIME_ZONE:
-                return val ->
-                        new BigDecimalColumn(
-                                Time.valueOf(String.valueOf(val)).toLocalTime().toNanoOfDay()
-                                        / 1_000_000L);
+                return val -> new TimestampColumn((Timestamp) val, 0);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return val -> new TimestampColumn(((TIMESTAMP) val).timestampValue());
@@ -106,6 +100,27 @@ public class OracleColumnConverter extends JdbcColumnConverter {
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
+    }
+
+    @Override
+    protected ISerializationConverter<FieldNamedPreparedStatement>
+            wrapIntoNullableExternalConverter(
+                    ISerializationConverter serializationConverter, LogicalType type) {
+        return (val, index, statement) -> {
+            if (((ColumnRowData) val).getField(index) == null) {
+                try {
+                    final int sqlType =
+                            JdbcTypeUtil.typeInformationToSqlType(
+                                    TypeConversions.fromDataTypeToLegacyInfo(
+                                            TypeConversions.fromLogicalToDataType(type)));
+                    statement.setNull(index, sqlType);
+                } catch (Exception e) {
+                    statement.setObject(index, null);
+                }
+            } else {
+                serializationConverter.serialize(val, index, statement);
+            }
+        };
     }
 
     @Override
@@ -151,14 +166,6 @@ public class OracleColumnConverter extends JdbcColumnConverter {
                                 index, ((ColumnRowData) val).getField(index).asString());
                     }
                 };
-            case TIME_WITHOUT_TIME_ZONE:
-                return (val, index, statement) ->
-                        statement.setTime(
-                                index,
-                                Time.valueOf(
-                                        LocalTime.ofNanoOfDay(
-                                                ((ColumnRowData) val).getField(index).asInt()
-                                                        * 1_000_000L)));
             case DATE:
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:

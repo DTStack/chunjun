@@ -25,6 +25,7 @@ import com.dtstack.flinkx.connector.oraclelogminer.util.SqlUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,11 @@ public class LogMinerHelper {
     private final BigInteger step = new BigInteger("3000");
     private BigInteger startScn;
     private BigInteger endScn;
+    // 是否加载了online实时日志
+    private Boolean loadRedo = false;
+
+    // 最后一条数据的位点
+    private BigInteger currentSinkPosition;
     /** 当前正在读取的connection索引 * */
     private int currentIndex;
     /** 当前正在读取的connection * */
@@ -151,14 +157,25 @@ public class LogMinerHelper {
                 // 按照加载日志文件大小限制，根据endScn作为起点找到对应的一组加载范围
                 BigInteger currentStartScn = Objects.nonNull(this.endScn) ? this.endScn : startScn;
 
-                BigInteger endScn =
+                // 如果加载了redo日志，则起点不能是上一次记载的日志的结束位点，而是上次消费的最后一条数据的位点
+                if (loadRedo) {
+                    // 需要加1  因为logminer查找数据是左闭右开，如果不加1  会导致最后一条数据重新消费
+                    currentStartScn = currentSinkPosition.add(BigInteger.ONE);
+                }
+
+                Pair<BigInteger, Boolean> endScn =
                         logMinerConnection.getEndScn(currentStartScn, new ArrayList<>(32));
-                logMinerConnection.startOrUpdateLogMiner(currentStartScn, endScn);
+                logMinerConnection.startOrUpdateLogMiner(currentStartScn, endScn.getLeft());
                 // 读取v$logmnr_contents 数据由线程池加载
                 loadData(logMinerConnection, logMinerSelectSql);
-                this.endScn = endScn;
+                this.endScn = endScn.getLeft();
+                this.loadRedo = endScn.getRight();
                 if (Objects.isNull(currentConnection)) {
                     updateCurrentConnection(logMinerConnection);
+                }
+                // 如果已经加载了redoLog就不需要多线程加载了
+                if (endScn.getRight()) {
+                    break;
                 }
             } else {
                 break;
@@ -327,10 +344,15 @@ public class LogMinerHelper {
     }
 
     public QueueData getQueueData() {
-        return activeConnectionList.get(currentIndex).next();
+        QueueData next = activeConnectionList.get(currentIndex).next();
+        if (BigInteger.ZERO.compareTo(next.getScn()) != 0) {
+            this.currentSinkPosition = next.getScn();
+        }
+        return next;
     }
 
     public void setStartScn(BigInteger startScn) {
         this.startScn = startScn;
+        this.currentSinkPosition = this.startScn;
     }
 }

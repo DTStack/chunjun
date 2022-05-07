@@ -20,9 +20,13 @@ package com.dtstack.flinkx.connector.mysql.table;
 
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormatBuilder;
+import com.dtstack.flinkx.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.flinkx.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.connector.mysql.dialect.MysqlDialect;
+import com.dtstack.flinkx.connector.mysql.sink.MysqlOutputFormat;
+import com.dtstack.flinkx.connector.mysql.source.MysqlInputFormat;
 
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -67,5 +71,25 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
         JdbcConf jdbcConf = super.getSinkConnectionConf(readableConfig, schema);
         JdbcUtil.putExtParam(jdbcConf);
         return jdbcConf;
+    }
+
+    /**
+     * 获取JDBC插件的具体inputFormatBuilder
+     *
+     * @return JdbcInputFormatBuilder
+     */
+    @Override
+    protected JdbcInputFormatBuilder getInputFormatBuilder() {
+        return new JdbcInputFormatBuilder(new MysqlInputFormat());
+    }
+
+    /**
+     * 获取JDBC插件的具体outputFormatBuilder
+     *
+     * @return JdbcOutputFormatBuilder
+     */
+    @Override
+    protected JdbcOutputFormatBuilder getOutputFormatBuilder() {
+        return new JdbcOutputFormatBuilder(new MysqlOutputFormat());
     }
 }

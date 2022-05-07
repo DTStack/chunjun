@@ -61,6 +61,10 @@
 									<pattern>org.apache.http</pattern>
 									<shadedPattern>com.dtstack.flinkx.connector.elasticsearch7.org.apache.http</shadedPattern>
 								</relocation>
+								<relocation>
+									<pattern>org.elasticsearch</pattern>
+									<shadedPattern>com.dtstack.flinkx.connector.elasticsearch7.org.elasticsearch</shadedPattern>
+								</relocation>
 							</relocations>
 							<artifactSet>
 								<excludes>

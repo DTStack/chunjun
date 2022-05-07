@@ -57,7 +57,7 @@ public class SolrSourceFactory extends SourceFactory {
 
     @Override
     public DataStream<RowData> createSource() {
-        SolrInputFormatBuilder builder = new SolrInputFormatBuilder(solrConf);
+        SolrInputFormatBuilder builder = SolrInputFormatBuilder.newBuild(solrConf);
         SolrConverterFactory converterFactory = new SolrConverterFactory(solrConf);
         AbstractRowConverter converter;
         if (useAbstractBaseColumn) {

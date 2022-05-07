@@ -50,12 +50,11 @@ import java.util.Locale;
  * @author jiangbo
  * @date 2019/12/16
  */
-public class OracleLogMinerInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    private final OracleLogMinerInputFormat format;
+public class OracleLogMinerInputFormatBuilder
+        extends BaseRichInputFormatBuilder<OracleLogMinerInputFormat> {
 
     public OracleLogMinerInputFormatBuilder() {
-        super.format = format = new OracleLogMinerInputFormat();
+        super(new OracleLogMinerInputFormat());
     }
 
     public void setLogMinerConfig(LogMinerConf logMinerConf) {

@@ -55,6 +55,7 @@ public class RedisSinkFactory extends SinkFactory {
         GsonUtil.setTypeAdapter(gson);
         redisConf =
                 gson.fromJson(gson.toJson(syncConf.getWriter().getParameter()), RedisConf.class);
+        redisConf.setColumn(syncConf.getWriter().getFieldList());
         super.initFlinkxCommonConf(redisConf);
     }
 

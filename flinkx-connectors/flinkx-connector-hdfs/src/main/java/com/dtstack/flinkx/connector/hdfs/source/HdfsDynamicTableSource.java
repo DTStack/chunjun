@@ -68,7 +68,7 @@ public class HdfsDynamicTableSource implements ScanTableSource {
             columnList.add(field);
         }
         hdfsConf.setColumn(columnList);
-        HdfsInputFormatBuilder builder = new HdfsInputFormatBuilder(hdfsConf.getFileType());
+        HdfsInputFormatBuilder builder = HdfsInputFormatBuilder.newBuild(hdfsConf.getFileType());
         builder.setHdfsConf(hdfsConf);
         AbstractRowConverter rowConverter;
         switch (FileType.getByName(hdfsConf.getFileType())) {

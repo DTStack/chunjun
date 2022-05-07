@@ -48,12 +48,10 @@ import java.util.Properties;
  *
  * @author dujie
  */
-public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    protected BinlogInputFormat format;
+public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogInputFormat> {
 
     public BinlogInputFormatBuilder() {
-        super.format = this.format = new BinlogInputFormat();
+        super(new BinlogInputFormat());
     }
 
     public void setBinlogConf(BinlogConf binlogConf) {
@@ -199,20 +197,6 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder {
             //     throw new IllegalArgumentException(
             //             "can't use pavingData and split at the same time");
             // }
-
-            // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
-            try {
-                BinlogUtil.getUpdrdbMessage(conn, binlogConf);
-            } catch (FlinkxException e) {
-                sb.append(e.getMessage());
-            }
-
-            // updrdb支持多并发
-            if (binlogConf.getParallelism() > 1 && !binlogConf.isUpdrdb()) {
-                sb.append("binLog can not support channel bigger than 1, current channel is [")
-                        .append(binlogConf.getParallelism())
-                        .append("];\n");
-            }
 
             // 判断是否是updrdb，如果是则获取updrdb数据节点连接信息和表engine信息
             try {

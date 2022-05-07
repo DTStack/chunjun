@@ -24,6 +24,7 @@ import com.dtstack.flinkx.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.flinkx.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.flinkx.connector.jdbc.exclusion.FieldNameExclusionStrategy;
 import com.dtstack.flinkx.connector.jdbc.util.JdbcUtil;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
 import com.dtstack.flinkx.converter.RawTypeConverter;
@@ -57,6 +58,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
     private static final int DEFAULT_FETCH_SIZE = 1024;
     private static final int DEFAULT_QUERY_TIMEOUT = 300;
+    private static final int DEFAULT_CONNECTION_TIMEOUT = 600;
     protected JdbcConf jdbcConf;
     protected JdbcDialect jdbcDialect;
 
@@ -68,9 +70,12 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                 new GsonBuilder()
                         .registerTypeAdapter(
                                 ConnectionConf.class, new ConnectionAdapter("SourceConnectionConf"))
+                        .addDeserializationExclusionStrategy(
+                                new FieldNameExclusionStrategy("column"))
                         .create();
         GsonUtil.setTypeAdapter(gson);
         jdbcConf = gson.fromJson(gson.toJson(syncConf.getReader().getParameter()), getConfClass());
+        if (StringUtils.isBlank(jdbcConf.getIncreColumn())) jdbcConf.setPolling(false);
         jdbcConf.setColumn(syncConf.getReader().getFieldList());
 
         Properties properties = syncConf.getWriter().getProperties("properties", null);
@@ -88,7 +93,9 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         }
         initIncrementConfig(jdbcConf);
         super.initFlinkxCommonConf(jdbcConf);
-        resetTableInfo();
+        if (StringUtils.isBlank(jdbcConf.getCustomSql())) {
+            rebuildJdbcConf();
+        }
     }
 
     protected Class<? extends JdbcConf> getConfClass() {
@@ -104,6 +111,10 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
         int queryTimeOut = jdbcConf.getQueryTimeOut();
         jdbcConf.setQueryTimeOut(queryTimeOut == 0 ? DEFAULT_QUERY_TIMEOUT : queryTimeOut);
+
+        int connectTimeOut = jdbcConf.getConnectTimeOut();
+        jdbcConf.setConnectTimeOut(
+                connectTimeOut == 0 ? DEFAULT_CONNECTION_TIMEOUT : connectTimeOut);
 
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
@@ -196,8 +207,8 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         return jdbcDialect.getRawTypeConverter();
     }
 
-    /** table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段* */
-    protected void resetTableInfo() {
+    protected void rebuildJdbcConf() {
+        // table字段有可能是schema.table格式 需要转换为对应的schema 和 table 字段
         if (StringUtils.isBlank(jdbcConf.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConf, "\\\"", "\\\"");
         }

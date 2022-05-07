@@ -29,7 +29,10 @@ import com.dtstack.flinkx.element.column.BigDecimalColumn;
 import com.dtstack.flinkx.element.column.BooleanColumn;
 import com.dtstack.flinkx.element.column.BytesColumn;
 import com.dtstack.flinkx.element.column.MapColumn;
+import com.dtstack.flinkx.element.column.NullColumn;
+import com.dtstack.flinkx.element.column.SqlDateColumn;
 import com.dtstack.flinkx.element.column.StringColumn;
+import com.dtstack.flinkx.element.column.TimeColumn;
 import com.dtstack.flinkx.element.column.TimestampColumn;
 import com.dtstack.flinkx.util.StringUtil;
 
@@ -40,10 +43,11 @@ import org.apache.flink.types.RowKind;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -247,7 +251,7 @@ public class SqlServerCdcColumnConverter
                         (AbstractBaseColumn) converters.get(i).deserialize(data[i]);
                 columnList.add(column);
             } else {
-                columnList.add(null);
+                columnList.add(new NullColumn());
             }
         }
     }
@@ -267,6 +271,7 @@ public class SqlServerCdcColumnConverter
                 return (IDeserializationConverter<Short, AbstractBaseColumn>) BigDecimalColumn::new;
             case "INT":
             case "INTEGER":
+            case "SMALLINT":
                 return (IDeserializationConverter<Integer, AbstractBaseColumn>)
                         BigDecimalColumn::new;
             case "FLOAT":
@@ -286,17 +291,19 @@ public class SqlServerCdcColumnConverter
             case "TEXT":
                 return (IDeserializationConverter<String, AbstractBaseColumn>) StringColumn::new;
             case "DATE":
+                return (IDeserializationConverter<Date, AbstractBaseColumn>) SqlDateColumn::new;
             case "TIME":
-                return (IDeserializationConverter<? extends Date, AbstractBaseColumn>)
-                        val -> {
-                            Timestamp timestamp = new Timestamp(val.getTime());
-                            return new TimestampColumn(timestamp);
-                        };
+                return (IDeserializationConverter<? extends Time, AbstractBaseColumn>)
+                        TimeColumn::new;
             case "DATETIME":
+                return (IDeserializationConverter<Timestamp, AbstractBaseColumn>)
+                        val -> new TimestampColumn(val, 3);
             case "DATETIME2":
+                return (IDeserializationConverter<Timestamp, AbstractBaseColumn>)
+                        val -> new TimestampColumn(val, 7);
             case "SMALLDATETIME":
                 return (IDeserializationConverter<Timestamp, AbstractBaseColumn>)
-                        TimestampColumn::new;
+                        val -> new TimestampColumn(val, 0);
             case "BINARY":
             case "VARBINARY":
                 return (IDeserializationConverter<String, AbstractBaseColumn>)

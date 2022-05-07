@@ -66,6 +66,7 @@ import org.apache.flink.table.types.DataType;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +100,9 @@ public class Main {
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
                 EnvFactory.createStreamTableEnvironment(env, confProperties, options.getJobName());
-
+        LOG.info(
+                "Register to table configuration:{}",
+                tEnv.getConfig().getConfiguration().toString());
         switch (EJobType.getByName(options.getJobType())) {
             case SQL:
                 exeSqlJob(env, tEnv, job, options);
@@ -173,10 +176,12 @@ public class Main {
 
         if (!config.getCdcConf().isSkipDDL()) {
             CdcConf cdcConf = config.getCdcConf();
-            FetcherBase fetcher = DataSyncFactoryUtil.discoverFetcher(cdcConf.getMonitor(), config);
-            StoreBase store = DataSyncFactoryUtil.discoverStore(cdcConf.getMonitor(), config);
+            Pair<FetcherBase, StoreBase> monitorPair =
+                    DataSyncFactoryUtil.discoverMonitor(cdcConf.getMonitor(), config);
             dataStreamSource =
-                    dataStreamSource.flatMap(new RestorationFlatMap(fetcher, store, cdcConf));
+                    dataStreamSource.flatMap(
+                            new RestorationFlatMap(
+                                    monitorPair.getLeft(), monitorPair.getRight(), cdcConf));
         }
 
         if (config.getNameMappingConf() != null) {
@@ -310,12 +315,14 @@ public class Main {
             factoryHelper.setRemotePluginPath(options.getRemoteFlinkxDistDir());
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
+            factoryHelper.setExecutionMode(options.getMode());
 
             DirtyConf dirtyConf = DirtyConfUtil.parse(options);
             factoryHelper.registerCachedFile(
                     dirtyConf.getType(),
                     Thread.currentThread().getContextClassLoader(),
                     ConstantValue.DIRTY_DATA_DIR_NAME);
+            // TODO sql 支持restore.
 
             FactoryUtil.setFactoryUtilHelp(factoryHelper);
             TableFactoryService.setFactoryUtilHelp(factoryHelper);

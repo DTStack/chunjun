@@ -22,6 +22,8 @@ import com.dtstack.flinkx.element.AbstractBaseColumn;
 import com.dtstack.flinkx.throwable.CastException;
 
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 
 /**
@@ -59,6 +61,27 @@ public class ByteColumn extends AbstractBaseColumn {
 
     @Override
     public Timestamp asTimestamp() {
+        throw new CastException("Byte", "Timestamp", String.valueOf(data));
+    }
+
+    @Override
+    public Time asTime() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Byte", "java.sql.Time", String.valueOf(data));
+    }
+
+    @Override
+    public Date asSqlDate() {
+        if (null == data) {
+            return null;
+        }
+        throw new CastException("Byte", "java.sql.Date", String.valueOf(data));
+    }
+
+    @Override
+    public String asTimestampStr() {
         throw new CastException("Byte", "Timestamp", String.valueOf(data));
     }
 }

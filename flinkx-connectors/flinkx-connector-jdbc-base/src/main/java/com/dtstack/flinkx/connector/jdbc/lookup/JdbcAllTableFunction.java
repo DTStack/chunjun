@@ -80,7 +80,7 @@ public class JdbcAllTableFunction extends AbstractAllTableFunction {
      * @param connection
      * @throws SQLException
      */
-    private void queryAndFillData(
+    protected void queryAndFillData(
             Map<String, List<Map<String, Object>>> tmpCache, Connection connection)
             throws SQLException {
         // load data from table

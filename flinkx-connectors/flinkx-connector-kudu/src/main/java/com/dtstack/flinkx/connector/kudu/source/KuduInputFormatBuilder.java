@@ -30,12 +30,10 @@ import java.util.List;
  * @author tiezhu
  * @since 2021/6/9 星期三
  */
-public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    private final KuduInputFormat format;
+public class KuduInputFormatBuilder extends BaseRichInputFormatBuilder<KuduInputFormat> {
 
     public KuduInputFormatBuilder() {
-        super.format = format = new KuduInputFormat();
+        super(new KuduInputFormat());
     }
 
     public void setKuduSourceConf(KuduSourceConf conf) {

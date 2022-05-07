@@ -51,11 +51,13 @@ public class SqlserverSourceFactory extends JdbcSourceFactory {
 
     /** table字段有可能是[schema].[table]格式 需要转换为对应的schema 和 table 字段* */
     @Override
-    protected void resetTableInfo() {
+    protected void rebuildJdbcConf() {
         if (jdbcConf.getTable().startsWith("[")
                 && jdbcConf.getTable().endsWith("]")
                 && StringUtils.isBlank(jdbcConf.getSchema())) {
             JdbcUtil.resetSchemaAndTable(jdbcConf, "\\[", "\\]");
+        } else {
+            super.rebuildJdbcConf();
         }
     }
 }

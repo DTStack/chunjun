@@ -48,6 +48,10 @@ public enum ColumnType {
 
     /** number type */
     INT,
+    // for pg INT2,INT4,INT8
+    INT2,
+    INT4,
+    INT8,
     INT32,
     MEDIUMINT,
     TINYINT,
@@ -59,6 +63,7 @@ public enum ColumnType {
     SHORT,
     INTEGER,
     NUMBER,
+    NUMERIC,
 
     /** double type */
     DOUBLE,
@@ -72,7 +77,9 @@ public enum ColumnType {
     DECIMAL,
     YEAR,
     BIT,
-    OBJECT;
+    OBJECT,
+    /** for postgresql */
+    TIMESTAMPTZ;
 
     public static List<ColumnType> TIME_TYPE = Arrays.asList(DATE, DATETIME, TIME, TIMESTAMP);
 

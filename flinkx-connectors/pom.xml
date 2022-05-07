@@ -39,7 +39,9 @@
 		<module>flinkx-connector-clickhouse</module>
 		<module>flinkx-connector-saphana</module>
 		<module>flinkx-connector-doris</module>
-
+		<module>flinkx-connector-influxdb</module>
+		<module>flinkx-connector-starrocks</module>
+		<module>flinkx-connector-oceanbase</module>
 
 		<!--File-->
         <module>flinkx-connector-file</module>
@@ -47,13 +49,14 @@
         <module>flinkx-connector-ftp</module>
         <module>flinkx-connector-hdfs</module>
         <module>flinkx-connector-hive</module>
+        <module>flinkx-connector-inceptor</module>
 
 		<!--NoSql-->
 		<module>flinkx-connector-hbase-base</module>
 		<module>flinkx-connector-hbase-1.4</module>
-		<!--        <module>flinkx-connector-phoenix5</module>-->
-		<!--		<module>flinkx-connector-elasticsearch5</module>-->
-		<!--		<module>flinkx-connector-elasticsearch6</module>-->
+<!--		<module>flinkx-connector-phoenix5</module>-->
+<!--		<module>flinkx-connector-elasticsearch5</module>-->
+<!--		<module>flinkx-connector-elasticsearch6</module>-->
 		<module>flinkx-connector-elasticsearch7</module>
 		<module>flinkx-connector-elasticsearch-base</module>
 		<module>flinkx-connector-redis</module>
@@ -70,6 +73,9 @@
 		<!--Network-->
 		<module>flinkx-connector-http</module>
 		<module>flinkx-connector-socket</module>
+
+		<!--Distribute plugin, just for SYNC-->
+		<module>flinkx-connector-mysqld</module>
 	</modules>
 
 

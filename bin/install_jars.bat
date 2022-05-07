@@ -11,3 +11,7 @@ call mvn install:install-file -DgroupId=com.kingbase8 -DartifactId=kingbase8 -Dv
 call mvn install:install-file -DgroupId=fakepath -DartifactId=vertica-jdbc -Dversion=9.1.1-0 -Dpackaging=jar -Dfile=../jars/vertica-jdbc-9.1.1-0.jar
 
 call mvn install:install-file -DgroupId=com.pivotal -DartifactId=greenplum-jdbc -Dversion=5.1.4.000275 -Dpackaging=jar -Dfile=../jars/greenplum_5.1.4.000275.jar
+
+call mvn install:install-file -DgroupId=com.pingcap.ticdc.cdc -DartifactId=ticdc-decoder -Dversion=5.2.0-SNAPSHOT -Dpackaging=jar -Dfile=../jars/ticdc-decoder-5.2.0-SNAPSHOT.jar
+
+call mvn install:install-file -DgroupId=io.transwarp -DartifactId=inceptor-driver -Dversion=6.0.2 -Dpackaging=jar -Dfile=../jars/inceptor-driver-6.0.2.jar

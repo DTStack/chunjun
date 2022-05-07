@@ -15,6 +15,10 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
+
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.INSERT;
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.INSERT_CHECK;
 
 /**
  * @author tiezhu@dtstack.com
@@ -27,11 +31,6 @@ public class MysqlStore extends StoreBase {
     private static final String DATABASE_KEY = "database";
 
     private static final String TABLE_KEY = "table";
-
-    private static final String INSERT =
-            "INSERT INTO `$database`.`$table` "
-                    + "(database_name, table_name, operation_type, lsn, content, update_time, status)"
-                    + " VALUE ($database_name, $table_name, '$operation_type', '$lsn', '$content', $update_time, 0)";
 
     private static final String DRIVER = "com.mysql.jdbc.Driver";
 
@@ -91,11 +90,20 @@ public class MysqlStore extends StoreBase {
         this.ddlDatabase = (String) conf.getProperties().get(DATABASE_KEY);
         this.ddlTable = (String) conf.getProperties().get(TABLE_KEY);
         String insert = INSERT.replace("$database", ddlDatabase).replace("$table", ddlTable);
+
+        // 校验下用户权限
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(
+                    INSERT_CHECK.replace("$database", ddlDatabase).replace("$table", ddlTable));
+        }
+
         preparedStatement = connection.prepareStatement(insert);
+        logger.info("Open mysql store success!");
     }
 
     @Override
     public void closeSubclass() {
         DataSourceUtil.close(conf.getProperties(), dataSource, connection, preparedStatement);
+        logger.info("Close mysql store success!");
     }
 }

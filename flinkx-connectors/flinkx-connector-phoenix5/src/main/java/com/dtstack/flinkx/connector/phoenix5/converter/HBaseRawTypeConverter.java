@@ -91,8 +91,9 @@ public class HBaseRawTypeConverter {
             case "YEAR":
                 return DataTypes.INTERVAL(DataTypes.YEAR());
             case "TIMESTAMP":
-            case "DATETIME":
                 return DataTypes.TIMESTAMP();
+            case "DATETIME":
+                return DataTypes.TIMESTAMP(0);
             case "TINYBLOB":
             case "BLOB":
             case "MEDIUMBLOB":

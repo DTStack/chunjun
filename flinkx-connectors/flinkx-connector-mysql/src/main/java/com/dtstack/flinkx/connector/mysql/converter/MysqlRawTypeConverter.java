@@ -25,21 +25,29 @@ public class MysqlRawTypeConverter {
                 return DataTypes.BOOLEAN();
             case "TINYINT":
                 return DataTypes.TINYINT();
+            case "TINYINT UNSIGNED":
             case "SMALLINT":
+                return DataTypes.SMALLINT();
+            case "SMALLINT UNSIGNED":
             case "MEDIUMINT":
+            case "MEDIUMINT UNSIGNED":
             case "INT":
             case "INTEGER":
             case "INT24":
                 return DataTypes.INT();
+            case "INT UNSIGNED":
             case "BIGINT":
                 return DataTypes.BIGINT();
             case "REAL":
             case "FLOAT":
+            case "FLOAT UNSIGNED":
                 return DataTypes.FLOAT();
             case "DECIMAL":
+            case "DECIMAL UNSIGNED":
             case "NUMERIC":
                 return DataTypes.DECIMAL(38, 18);
             case "DOUBLE":
+            case "DOUBLE UNSIGNED":
                 return DataTypes.DOUBLE();
             case "CHAR":
             case "VARCHAR":
@@ -53,7 +61,7 @@ public class MysqlRawTypeConverter {
                 return DataTypes.INTERVAL(DataTypes.YEAR());
             case "TIMESTAMP":
             case "DATETIME":
-                return DataTypes.TIMESTAMP();
+                return DataTypes.TIMESTAMP(0);
             case "TINYBLOB":
             case "BLOB":
             case "MEDIUMBLOB":

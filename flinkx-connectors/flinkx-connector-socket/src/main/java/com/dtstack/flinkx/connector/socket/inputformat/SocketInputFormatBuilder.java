@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author by kunni@dtstack.com
  */
-public class SocketInputFormatBuilder extends BaseRichInputFormatBuilder {
+public class SocketInputFormatBuilder extends BaseRichInputFormatBuilder<SocketInputFormat> {
 
     protected SocketInputFormat format;
 
@@ -40,7 +40,7 @@ public class SocketInputFormatBuilder extends BaseRichInputFormatBuilder {
     private static final int ADDRESS_SPLITS = 2;
 
     public SocketInputFormatBuilder() {
-        super.format = format = new SocketInputFormat();
+        super(new SocketInputFormat());
     }
 
     public void setSocketConfig(SocketConfig socketConfig) {

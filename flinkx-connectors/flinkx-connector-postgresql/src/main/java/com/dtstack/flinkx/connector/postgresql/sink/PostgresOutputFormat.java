@@ -29,6 +29,7 @@ import com.dtstack.flinkx.throwable.WriteRecordException;
 
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.StringUtils;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.postgresql.copy.CopyManager;
@@ -76,8 +77,12 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                         pgDialect.getCopyStatement(
                                 jdbcConf.getTable(),
                                 columnNameList.toArray(new String[0]),
-                                DEFAULT_FIELD_DELIMITER,
-                                DEFAULT_NULL_VALUE);
+                                StringUtils.isNullOrWhitespaceOnly(jdbcConf.getFieldDelim().trim())
+                                        ? DEFAULT_FIELD_DELIMITER
+                                        : jdbcConf.getFieldDelim(),
+                                StringUtils.isNullOrWhitespaceOnly(jdbcConf.getNullDelim().trim())
+                                        ? DEFAULT_NULL_VALUE
+                                        : jdbcConf.getNullDelim());
 
                 LOG.info("write sql:{}", copySql);
             }
@@ -150,12 +155,19 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
             ColumnRowData colRowData, int pos, StringBuilder rowStr, boolean isLast) {
         Object col = colRowData.getField(pos);
         if (col == null) {
-            rowStr.append(DEFAULT_NULL_VALUE);
+            rowStr.append(
+                    StringUtils.isNullOrWhitespaceOnly(jdbcConf.getNullDelim().trim())
+                            ? DEFAULT_NULL_VALUE
+                            : jdbcConf.getNullDelim());
+
         } else {
             rowStr.append(col);
         }
         if (!isLast) {
-            rowStr.append(DEFAULT_FIELD_DELIMITER);
+            rowStr.append(
+                    StringUtils.isNullOrWhitespaceOnly(jdbcConf.getFieldDelim().trim())
+                            ? DEFAULT_FIELD_DELIMITER
+                            : jdbcConf.getFieldDelim());
         }
     }
 

@@ -46,6 +46,6 @@ public class ClickhouseSourceFactory extends JdbcSourceFactory {
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new ClickhouseInputFormat());
+        return new ClickhouseInputFormatBuilder(new ClickhouseInputFormat());
     }
 }

@@ -64,7 +64,14 @@ public class HdfsOrcInputFormat extends BaseHdfsInputFormat {
     @Override
     public HdfsOrcInputSplit[] createHdfsSplit(int minNumSplits) throws IOException {
         super.initHadoopJobConf();
-        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(hadoopJobConf, hdfsConf.getPath());
+        String path;
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(hdfsConf.getFileName())) {
+            // 兼容平台逻辑
+            path = hdfsConf.getPath() + ConstantValue.SINGLE_SLASH_SYMBOL + hdfsConf.getFileName();
+        } else {
+            path = hdfsConf.getPath();
+        }
+        org.apache.hadoop.mapred.FileInputFormat.setInputPaths(hadoopJobConf, path);
         org.apache.hadoop.mapred.FileInputFormat.setInputPathFilter(
                 hadoopJobConf, HdfsPathFilter.class);
         org.apache.hadoop.mapred.InputSplit[] splits =

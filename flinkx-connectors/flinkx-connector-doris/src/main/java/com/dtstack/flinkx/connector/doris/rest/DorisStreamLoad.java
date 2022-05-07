@@ -28,6 +28,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.config.ConnectionConfig;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.ConnectException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -56,11 +58,13 @@ import java.util.UUID;
 public class DorisStreamLoad implements Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DorisStreamLoad.class);
-
+    private static final ObjectMapper OM = new ObjectMapper();
     private static final List<String> DORIS_SUCCESS_STATUS =
             new ArrayList<>(Arrays.asList("Success", "Publish Timeout"));
     private final String authEncoding;
     private final Properties streamLoadProp;
+    private final String fieldDelimiter;
+    private final String lineDelimiter;
 
     public DorisStreamLoad(DorisConf options) {
         this.authEncoding =
@@ -69,9 +73,20 @@ public class DorisStreamLoad implements Serializable {
                                 String.format("%s:%s", options.getUsername(), options.getPassword())
                                         .getBytes(StandardCharsets.UTF_8));
         this.streamLoadProp = options.getLoadProperties();
+        this.fieldDelimiter = options.getFieldDelimiter();
+        this.lineDelimiter = options.getLineDelimiter();
     }
 
-    private HttpPut getConnection(
+    /**
+     * Generate Http Put request.
+     *
+     * @param columnNames doris table column names.
+     * @param urlStr doris put url.
+     * @param label the label of doris stream load.
+     * @param mergeConditions the merge conditions of doris stream load.
+     * @return http put request of doris stream load.
+     */
+    private HttpPut generatePut(
             List<String> columnNames, String urlStr, String label, String mergeConditions) {
 
         HttpPut httpPut = new HttpPut(urlStr);
@@ -85,6 +100,10 @@ public class DorisStreamLoad implements Serializable {
             httpPut.setHeader("delete", mergeConditions);
         } else {
             httpPut.setHeader("merge_type", "APPEND");
+        }
+        httpPut.setHeader("column_separator", fieldDelimiter);
+        if (!"\n".equals(lineDelimiter)) {
+            httpPut.setHeader("line_delimiter", lineDelimiter);
         }
         for (Map.Entry<Object, Object> entry : streamLoadProp.entrySet()) {
             httpPut.setHeader(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
@@ -113,20 +132,20 @@ public class DorisStreamLoad implements Serializable {
     /**
      * Doris load data via stream.
      *
-     * @param columnNames column name.
-     * @param value the data load to doris.
+     * @param carrier data carrier.
+     * @param loadUrlStr doris load url.
      * @throws IOException io exception.
      */
-    public void load(
-            List<String> columnNames, String value, String mergeConditions, String loadUrlStr)
-            throws IOException {
+    public void load(Carrier carrier, String loadUrlStr) throws IOException {
+        List<String> columnNames = carrier.getColumns();
+        String value = carrier.getInsertContent();
+        String mergeConditions = carrier.getDeleteContent();
         LoadResponse loadResponse = loadBatch(columnNames, value, mergeConditions, loadUrlStr);
         LOG.debug("StreamLoad Response:{}", loadResponse);
         if (loadResponse.status != 200) {
             throw new ConnectException("stream load error, detail : " + loadResponse);
         } else {
-            ObjectMapper obj = new ObjectMapper();
-            RespContent respContent = obj.readValue(loadResponse.respContent, RespContent.class);
+            RespContent respContent = OM.readValue(loadResponse.respContent, RespContent.class);
             if (!DORIS_SUCCESS_STATUS.contains(respContent.getStatus())) {
                 throw new IOException("stream load error: " + getDetailErrorLog(respContent));
             }
@@ -135,32 +154,43 @@ public class DorisStreamLoad implements Serializable {
 
     private LoadResponse loadBatch(
             List<String> columnNames, String value, String mergeConditions, String loadUrlStr) {
-        String label = streamLoadProp.getProperty("label");
-        if (StringUtils.isBlank(label)) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-            String formatDate = sdf.format(new Date());
-            label =
-                    String.format(
-                            "flink_connector_%s_%s",
-                            formatDate, UUID.randomUUID().toString().replaceAll("-", ""));
-        }
+        String label = generateLabel();
 
-        HttpPut httpPut;
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().build()) {
+        final ConnectionConfig connectionConfig =
+                ConnectionConfig.custom().setCharset(Charset.defaultCharset()).build();
+        try (CloseableHttpClient httpclient =
+                HttpClientBuilder.create().setDefaultConnectionConfig(connectionConfig).build()) {
             // build request and send to new be location
-            httpPut = getConnection(columnNames, loadUrlStr, label, mergeConditions);
+            HttpPut httpPut = generatePut(columnNames, loadUrlStr, label, mergeConditions);
             httpPut.setEntity(new ByteArrayEntity(value.getBytes()));
 
             HttpResponse response = httpclient.execute(httpPut);
             int status = response.getStatusLine().getStatusCode();
             HttpEntity entity = response.getEntity();
             return new LoadResponse(status, entity != null ? EntityUtils.toString(entity) : "");
-
         } catch (Exception e) {
             String err = "failed to load audit via AuditLoader plugin with label: " + label;
             LOG.warn(err, e);
             return new LoadResponse(-1, err);
         }
+    }
+
+    /**
+     * Generate the label of Doris Stream Load
+     *
+     * @return doris label
+     */
+    private String generateLabel() {
+        String label = streamLoadProp.getProperty("label");
+        if (StringUtils.isBlank(label)) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            String formatDate = sdf.format(new Date());
+            label =
+                    String.format(
+                            "flinkx_connector_%s_%s",
+                            formatDate, UUID.randomUUID().toString().replaceAll("-", ""));
+        }
+        return label;
     }
 
     /**

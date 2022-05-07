@@ -28,12 +28,10 @@ import org.apache.commons.lang3.StringUtils;
  * @create 2021-06-02 10:16
  * @description
  */
-public class EmqxInputFormatBuilder extends BaseRichInputFormatBuilder {
-
-    protected EmqxInputFormat format;
+public class EmqxInputFormatBuilder extends BaseRichInputFormatBuilder<EmqxInputFormat> {
 
     public EmqxInputFormatBuilder() {
-        super.format = this.format = new EmqxInputFormat();
+        super(new EmqxInputFormat());
     }
 
     public void setEmqxConf(EmqxConf emqxConf) {

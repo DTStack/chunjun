@@ -19,7 +19,6 @@
 package com.dtstack.flinkx.connector.hbase14.util;
 
 import com.dtstack.flinkx.security.KerberosUtil;
-import com.dtstack.flinkx.util.FileSystemUtil;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -104,7 +103,6 @@ public class HBaseHelper {
         KerberosUtil.loadKrb5Conf(hbaseConfigMap);
         KerberosUtil.refreshConfig();
 
-        Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
         return KerberosUtil.loginAndReturnUgi(
                 principal, keytabFileName, System.getProperty(KEY_JAVA_SECURITY_KRB5_CONF));
     }

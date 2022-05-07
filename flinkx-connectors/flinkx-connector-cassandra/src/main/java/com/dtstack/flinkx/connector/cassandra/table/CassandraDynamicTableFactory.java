@@ -64,9 +64,6 @@ import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_ERROR_LIMIT
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_FETCH_SIZE;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_MAX_RETRIES;
 import static com.dtstack.flinkx.lookup.options.LookupOptions.LOOKUP_PARALLELISM;
-import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
-import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
-import static com.dtstack.flinkx.sink.options.SinkOptions.SINK_MAX_RETRIES;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_FETCH_SIZE;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_INCREMENT_COLUMN_TYPE;
@@ -77,6 +74,9 @@ import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_QUERY_TIMEOUT
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNNAME;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_RESTORE_COLUMNTYPE;
 import static com.dtstack.flinkx.source.options.SourceOptions.SCAN_START_LOCATION;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_INTERVAL;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_BUFFER_FLUSH_MAX_ROWS;
+import static com.dtstack.flinkx.table.options.SinkOptions.SINK_MAX_RETRIES;
 
 /**
  * @author tiezhu

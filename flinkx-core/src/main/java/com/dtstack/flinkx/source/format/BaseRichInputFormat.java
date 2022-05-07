@@ -54,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -140,7 +139,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         ExecutionConfig.GlobalJobParameters params =
                 context.getExecutionConfig().getGlobalJobParameters();
         DirtyConf dc = DirtyConfUtil.parseFromMap(params.toMap());
-        this.dirtyManager = new DirtyManager(dc);
+        this.dirtyManager = new DirtyManager(dc, this.context);
 
         if (inputSplit instanceof ErrorInputSplit) {
             throw new RuntimeException(((ErrorInputSplit) inputSplit).getErrorMessage());
@@ -192,11 +191,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
         try {
             internalRow = nextRecordInternal(rowData);
         } catch (ReadRecordException e) {
-            dirtyManager.collect(
-                    Objects.nonNull(e.getRowData()) ? e.getRowData().toString() : "",
-                    e,
-                    null,
-                    getRuntimeContext());
+            dirtyManager.collect(e.getRowData(), e, null);
         }
         if (internalRow != null) {
             updateDuration();
