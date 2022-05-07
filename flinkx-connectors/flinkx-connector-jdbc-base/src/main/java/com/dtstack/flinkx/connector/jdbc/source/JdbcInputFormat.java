@@ -809,7 +809,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @throws SQLException
      */
     protected void queryStartLocation() throws SQLException {
-        // 在首次查询时需要增加一下，排序
+        // add order by to query SQL avoid duplicate data
         StringBuilder updateSqlBuilder = new StringBuilder(128);
         updateSqlBuilder.append(jdbcConf.getQuerySql());
         updateSqlBuilder
