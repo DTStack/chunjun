@@ -14,7 +14,7 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>flinkx-metrics-rdb</module>
-		<module>flinkx-metrics-prometheus</module>
+<!--		<module>flinkx-metrics-prometheus</module>-->
         <module>flinkx-metrics-mysql</module>
     </modules>
 
