@@ -119,7 +119,7 @@ public class Launcher {
         clusterClientHelper.submit(jobDeployer);
     }
 
-    private static void findDefaultConfigDir(Options launcherOptions) {
+    private static void findDefaultConfigDir(Options launcherOptions) throws ClusterDeploymentException {
         findDefaultFlinkxDistDir(launcherOptions);
 
         if (ClusterMode.local.name().equalsIgnoreCase(launcherOptions.getMode())) {
@@ -165,7 +165,7 @@ public class Launcher {
         }
     }
 
-    private static void findDefaultFlinkxDistDir(Options launcherOptions) {
+    private static void findDefaultFlinkxDistDir(Options launcherOptions) throws ClusterDeploymentException {
         String distDir = launcherOptions.getFlinkxDistDir();
         if (StringUtils.isEmpty(distDir)) {
             String flinkxHome = getSystemProperty(KEY_FLINKX_HOME);
@@ -180,6 +180,9 @@ public class Launcher {
                 launcherOptions.setFlinkxDistDir(distDir);
             }
         }
+        if (StringUtils.isEmpty(distDir)) {
+            notConfiguredException(KEY_FLINKX_HOME);
+        }
         System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, distDir);
     }
 
@@ -190,5 +193,9 @@ public class Launcher {
         }
 
         return property;
+    }
+
+    private static void notConfiguredException(String propertyKey) throws ClusterDeploymentException {
+        throw new ClusterDeploymentException(propertyKey + " is not configured.");
     }
 }
