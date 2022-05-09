@@ -35,9 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 /** @author jiangbo */
@@ -54,8 +52,7 @@ public class LocalTest {
         //        confProperties.setProperty("state.checkpoints.dir", "file:///ck");
         String userDir = System.getProperty("user.dir");
 
-        String jobPath = "/Users/wtz/work_place/job_place/json/1.12/binlog-stream.json";
-        //                userDir + "/flinkx-examples/json/stream/stream.json";
+        String jobPath = userDir + "/flinkx-examples/json/stream/stream.json";
         String flinkxDistDir = userDir + "/flinkx-dist";
         String s = "";
 
@@ -63,6 +60,9 @@ public class LocalTest {
         List<String> argsList = new ArrayList<>();
         argsList.add("-mode");
         argsList.add("local");
+        // 替换脚本中的值
+        // argsList.add("-p");
+        // argsList.add("$aa=aaa, $bb=bbb");
         String content = readFile(jobPath);
         if (StringUtils.endsWith(jobPath, "json")) {
             argsList.add("-jobType");
@@ -159,18 +159,20 @@ public class LocalTest {
                python.requirements                     -pyreq
             */
             /* ---------------------------------------- pyFlink 测试 start --------------------------------------- */
-            Map<String, String> config = new HashMap<>();
-            config.put(
-                    "python.files",
-                    "/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/test1.py");
-            config.put("python.client.executable", "python3");
-            config.put("python.executable", "python3");
-            config.put(
-                    "python.requirements",
-                    "/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/requirements3.txt#/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/cached_dir_binary3");
-            String configJsonString = GsonUtil.GSON.toJson(config);
-            argsList.add("-confProp");
-            argsList.add(configJsonString);
+            // Map<String, String> config = new HashMap<>();
+            // config.put(
+            //         "python.files",
+            //
+            // "/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/test1.py");
+            // config.put("python.client.executable", "python3");
+            // config.put("python.executable", "python3");
+            // config.put(
+            //         "python.requirements",
+            //
+            // "/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/requirements3.txt#/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/cached_dir_binary3");
+            // String configJsonString = GsonUtil.GSON.toJson(config);
+            // argsList.add("-confProp");
+            // argsList.add(configJsonString);
             /* ---------------------------------------- pyFlink 测试 end --------------------------------------- */
         }
         // 防止加载flinkx-connector-kafka/target/classes/META-INF/services/下的spi文件
