@@ -40,6 +40,7 @@ import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
 import com.dtstack.flinkx.util.ExecuteProcessHelper;
 import com.dtstack.flinkx.util.FactoryHelper;
+import com.dtstack.flinkx.util.JobUtil;
 import com.dtstack.flinkx.util.PluginUtil;
 import com.dtstack.flinkx.util.PrintUtil;
 import com.dtstack.flinkx.util.PropertiesUtil;
@@ -96,6 +97,7 @@ public class Main {
 
         Options options = new OptionParser(args).getOptions();
         String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
+        String replacedJob = JobUtil.replaceJobParameter(options.getP(), job);
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
@@ -105,10 +107,10 @@ public class Main {
                 tEnv.getConfig().getConfiguration().toString());
         switch (EJobType.getByName(options.getJobType())) {
             case SQL:
-                exeSqlJob(env, tEnv, job, options);
+                exeSqlJob(env, tEnv, replacedJob, options);
                 break;
             case SYNC:
-                exeSyncJob(env, tEnv, job, options);
+                exeSyncJob(env, tEnv, replacedJob, options);
                 break;
             default:
                 throw new FlinkxRuntimeException(
