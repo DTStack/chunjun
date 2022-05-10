@@ -96,6 +96,7 @@ Chunjun目前支持下面这些数据库：
 请点击[统计指标](docs/statistics.md)
 
 # Iceberg
+
 请点击 [Iceberg](docs/iceberg.md)
 
 # Kerberos
@@ -112,5 +113,4 @@ Chunjun目前支持下面这些数据库：
 
 # License
 
-Chunjun is under the Apache 2.0 license. See
-the [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) file for details.
+Chunjun is under the Apache 2.0 license. See the [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) file for details.

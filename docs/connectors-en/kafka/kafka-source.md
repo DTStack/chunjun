@@ -63,8 +63,7 @@ Kafka mainstream version
 
 - **codec**
     - Description: type of message format. Valid values are 'json', 'text'.
-        - text：It will put kafka record to a map, which map's key is 'message'. For example message in kafka is {"key":"key","message":"value"}
-          the data format sent to the downstream is:
+        - text：It will put kafka record to a map, which map's key is 'message'. For example message in kafka is {"key":"key","message":"value"} the data format sent to the downstream is:
           ```json
           [
               {
@@ -73,15 +72,15 @@ Kafka mainstream version
           ]
           ```
     - json：Treat message as JSON format
-         - If record include message key, the data format sent to the downstream is:
-              ```json
-              [
-                  {
-                      "key1":"value1",
-                      "message":"value"
-                  }
-              ]
-              ```
+        - If record include message key, the data format sent to the downstream is:
+             ```json
+             [
+                 {
+                     "key1":"value1",
+                     "message":"value"
+                 }
+             ]
+             ```
         - When the message field isn't included, it will add a key and value. The data format sent to the downstream is:
           ```json
           [
@@ -113,7 +112,7 @@ Kafka mainstream version
     ```
 
 - **column**
-    - Description: Field type mapping for writer 
+    - Description: Field type mapping for writer
     - Requested: optional
     - Type: List
     - Default：(none)
@@ -257,4 +256,4 @@ The details are in [kafka-connector](https://ci.apache.org/projects/flink/flink-
 
 ## 6. Example
 
-The details are in `flinkx-examples` dir.
+The details are in `chunjun-examples` dir.

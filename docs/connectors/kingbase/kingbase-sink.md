@@ -8,7 +8,6 @@ KingBase Sink支持将数据写入到Kingbase指定的数据库中。
 
 KingBase v8
 
-
 ## 三、插件名称
 
 | 类型 | 名称 |
@@ -16,9 +15,10 @@ KingBase v8
 | Sync | kingbasesink、kingbasewriter |
 | SQL | kingbase-x |
 
-
 ## 四、参数说明
+
 ### 1、Sync
+
 - **connection**
     - 描述：数据库连接参数，包含jdbcUrl、schema、table等参数
     - 必选：是
@@ -36,6 +36,7 @@ KingBase v8
               }
             ]
       ```
+
  <br />
 
 - **jdbcUrl**
@@ -126,19 +127,20 @@ KingBase v8
         - 示例："updateKey": {"key": ["id"]}
     - 默认值：无
       <br />
-      
+
 - **semantic**
-  - 描述：sink端是否支持二阶段提交
-  - 注意：
-    - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
-    - 当前只支持exactly-once 和at-least-once 
-  - 必选：否
-  - 参数类型：String
-    - 示例："semantic": "exactly-once"
-  - 默认值：at-least-once
-<br />
+    - 描述：sink端是否支持二阶段提交
+    - 注意：
+        - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
+        - 当前只支持exactly-once 和at-least-once
+    - 必选：否
+    - 参数类型：String
+        - 示例："semantic": "exactly-once"
+    - 默认值：at-least-once
+      <br />
 
 ### 2、SQL
+
 - **connector**
     - 描述：kingbase-x
     - 必选：是
@@ -201,17 +203,17 @@ KingBase v8
     - 参数类型：String
     - 默认值：无
       <br />
-      
+
 - **sink.semantic**
-  - 描述：sink端是否支持二阶段提交
-  - 注意：
-    - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
-    - 当前只支持exactly-once 和at-least-once 
-  - 必选：否
-  - 参数类型：String
-    - 示例："semantic": "exactly-once"
-  - 默认值：at-least-once
-<br />
+    - 描述：sink端是否支持二阶段提交
+    - 注意：
+        - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
+        - 当前只支持exactly-once 和at-least-once
+    - 必选：否
+    - 参数类型：String
+        - 示例："semantic": "exactly-once"
+    - 默认值：at-least-once
+      <br />
 
 ## 五、数据类型
 
@@ -221,4 +223,5 @@ KingBase v8
 | 暂不支持 | ARRAY等 |
 
 ## 六、脚本示例
-见项目内`flinkx-examples`文件夹。
+
+见项目内`chunjun-examples`文件夹。

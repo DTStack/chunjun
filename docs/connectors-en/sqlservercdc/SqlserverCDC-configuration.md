@@ -3,13 +3,13 @@
 <!-- TOC -->
 
 - [SqlServer configuration CDC](#sqlserver configuration cdc)
-  - [1. query SqlServer database version](#1 query sqlserver database version)
-  - [2. query the current user rights, must be a member of the sysadmin fixed server role to allow the database to enable the CDC (change data capture) function](#2 query the current user rights must be a member of the sysadmin fixed server role to allow the database to enable the cdc change data capture function)
-  - [3. query whether the database has been enabled CDC (change data capture) function](#3 query whether the database has been enabled cdc change data capture function)
-  - [4. Enable CDC(change data capture) function for database database](#4Enable CDC change data capture function for database database)
-  - [5. query whether the table has enabled CDC (change data capture) function](#5 query whether the table has enabled cdc change data capture function)
-  - [6. Enable CDC(change data capture) function for table](#6 enable CDC change data capture function for table)
-  - [7. confirm whether CDC agent is started normally](#7 confirm whether cdc-agent-is started normally)
+    - [1. query SqlServer database version](#1 query sqlserver database version)
+    - [2. query the current user rights, must be a member of the sysadmin fixed server role to allow the database to enable the CDC (change data capture) function](#2 query the current user rights must be a member of the sysadmin fixed server role to allow the database to enable the cdc change data capture function)
+    - [3. query whether the database has been enabled CDC (change data capture) function](#3 query whether the database has been enabled cdc change data capture function)
+    - [4. Enable CDC(change data capture) function for database database](#4Enable CDC change data capture function for database database)
+    - [5. query whether the table has enabled CDC (change data capture) function](#5 query whether the table has enabled cdc change data capture function)
+    - [6. Enable CDC(change data capture) function for table](#6 enable CDC change data capture function for table)
+    - [7. confirm whether CDC agent is started normally](#7 confirm whether cdc-agent-is started normally)
 
 Note: SqlServer has supported CDC (Change Data Capture) since version 2008, this article is based on SqlServer 2017.
 
@@ -83,10 +83,7 @@ EXEC sys.sp_cdc_enable_table
 @supports_net_changes = 0;
 ```
 
-source_schema: the name of the schema where the table is located
-source_name: the name of the table
-role_name: the name of the access control role, where null does not set access control
-supports_net_changes: whether to generate a net change function for the capture instance, 0: no; 1: yes
+source_schema: the name of the schema where the table is located source_name: the name of the table role_name: the name of the access control role, where null does not set access control supports_net_changes: whether to generate a net change function for the capture instance, 0: no; 1: yes
 
 Repeat step 5 to confirm that the table has CDC (Change Data Capture) enabled.
 

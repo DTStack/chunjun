@@ -1,19 +1,23 @@
 # SAP HANA Source
 
 ## 一、介绍
+
 支持从SAP HANA离线读取，支持 SAP HANA 实时间隔轮询读取
 
 ## 二、支持版本
+
 SAP HANA 2.0及以上
 
 ## 三、插件名称
+
 | Sync | saphanasource、saphanareader |
 | --- | --- |
 | SQL | saphana-x |
 
-
 ## 四、参数说明
+
 ### 1、Sync
+
 - **connection**
     - 描述：数据库连接参数，包含jdbcUrl、schema、table等参数
     - 必选：是
@@ -26,6 +30,7 @@ SAP HANA 2.0及以上
        "schema":"public"
       }]
       ```
+
  <br />
 
 - **jdbcUrl**
@@ -64,8 +69,7 @@ SAP HANA 2.0及以上
       <br />
 
 - **fetchSize**
-    - 描述：一次性从数据库中读取多少条数据，默认一次将所有结果都读取到内存中，在数据量很大时可能会造成OOM，设置这个参数可以控制每次读取fetchSize条数据，而不是默认的把所有数据一次读取出来
-      注意：此参数的值不可设置过大，否则会读取超时，导致任务失败。
+    - 描述：一次性从数据库中读取多少条数据，默认一次将所有结果都读取到内存中，在数据量很大时可能会造成OOM，设置这个参数可以控制每次读取fetchSize条数据，而不是默认的把所有数据一次读取出来 注意：此参数的值不可设置过大，否则会读取超时，导致任务失败。
     - 必选：否
     - 参数类型：int
     - 默认值：1024
@@ -182,6 +186,7 @@ SAP HANA 2.0及以上
       <br />
 
 ### 2、SQL
+
 - **connector**
     - 描述：saphana-x
     - 必选：是
@@ -295,12 +300,12 @@ SAP HANA 2.0及以上
       <br />
 
 ## 五、数据类型
+
 | 支持 | DATE、TIME、SECONDDATE、TIMESTAMP、TINYINT、SMALLINT、INTEGER、BIGINT、DECIMAL、SMALLDECIMAL、REAL、DOUBLE、VARCHAR、NVARCHAR、ALPHANUM、SHORTTEXT、VARBINARY、BOOLEAN |
 | :---: | :---: |
 | 暂不支持 | ARRAY、ST_CircularString、ST_GeometryCollection、ST_LineString、ST_MultiLineString、ST_MultiPoint、ST_MultiPolygon、ST_Point、ST_Polygon等 |
 | 仅在 Sync 中支持 | CLOB、NCLOB、TEXT、BINTEXT |
 
-
-
 ## 六、脚本示例
+
 见项目内`flinkx-examples`文件夹。

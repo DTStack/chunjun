@@ -1,37 +1,41 @@
 # SqlServer CDC实时采集原理
+
 <!-- TOC -->
 
 - [SqlServer CDC实时采集原理](#sqlserver-cdc实时采集原理)
 - [一、基础](#一基础)
 - [二、配置](#二配置)
 - [三、原理](#三原理)
-  - [1、SQL Server Agent](#1sql-server-agent)
-  - [2、数据库CDC开启前后对比](#2数据库cdc开启前后对比)
-  - [3、业务表CDC开启前后对比](#3业务表cdc开启前后对比)
-  - [4、采集原理](#4采集原理)
-  - [1、insert/delete](#1insertdelete)
-  - [2、update](#2update)
-  - [3、流程图](#3流程图)
-  - [4、数据格式](#4数据格式)
+    - [1、SQL Server Agent](#1sql-server-agent)
+    - [2、数据库CDC开启前后对比](#2数据库cdc开启前后对比)
+    - [3、业务表CDC开启前后对比](#3业务表cdc开启前后对比)
+    - [4、采集原理](#4采集原理)
+    - [1、insert/delete](#1insertdelete)
+    - [2、update](#2update)
+    - [3、流程图](#3流程图)
+    - [4、数据格式](#4数据格式)
 
 <!-- /TOC -->
+
 # 一、基础
+
 SqlServer官方从SqlServer 2008版本开始支持CDC，文档连接如下：
 [https://docs.microsoft.com/zh-cn/sql/relational-databases/track-changes/about-change-data-capture-sql-server?view=sql-server-ver15](https://docs.microsoft.com/zh-cn/sql/relational-databases/track-changes/about-change-data-capture-sql-server?view=sql-server-ver15)
 
-
 # 二、配置
+
 配置文档链接如下：
 [SqlServer配置CDC](../other/SqlserverCDC配置.md)
 
 # 三、原理
+
 ### 1、SQL Server Agent
-SQL Server Agent代理服务，是sql server的一个标准服务，作用是代理执行所有sql的自动化任务，以及数据库事务性复制等无人值守任务。这个服务在默认安装情况下是停止状态，需要手动启动，或改为自动运动，否则sql的自动化任务都不会执行的，还要注意服务的启动帐户。
-简单的说就是启动了这个服务，捕获进程才会处理事务日志并将条目写入CDC表。
+
+SQL Server Agent代理服务，是sql server的一个标准服务，作用是代理执行所有sql的自动化任务，以及数据库事务性复制等无人值守任务。这个服务在默认安装情况下是停止状态，需要手动启动，或改为自动运动，否则sql的自动化任务都不会执行的，还要注意服务的启动帐户。 简单的说就是启动了这个服务，捕获进程才会处理事务日志并将条目写入CDC表。
 [https://docs.microsoft.com/zh-cn/sql/ssms/agent/sql-server-agent?view=sql-server-ver15](https://docs.microsoft.com/zh-cn/sql/ssms/agent/sql-server-agent?view=sql-server-ver15)
 
-
 ### 2、数据库CDC开启前后对比
+
 开启前：
 <div align=center>
 <img src="../../images/SqlserverCDC/Sqlserver7.png" />
@@ -53,13 +57,10 @@ EXEC sys.sp_cdc_enable_db;
 | endlsn | binary | 架构更改结束时的 LSN 值。 |
 | typeid | int | 架构更改的类型。 |
 
-
-
 数据库下新增了名为cdc的schema，其实也新增了cdc用户。cdc下新增了以下四张表：
 <br/>
 **1、captured_columns**
-为在捕获实例中跟踪的每一列返回一行。 默认情况下，将捕获源表中的所有列。 但是，如果为变更数据捕获启用了源表，则可以通过指定列列表将列包括在捕获范围内或排除在捕获范围之外。
-当没有任何业务表开启了CDC时，该表为空。
+为在捕获实例中跟踪的每一列返回一行。 默认情况下，将捕获源表中的所有列。 但是，如果为变更数据捕获启用了源表，则可以通过指定列列表将列包括在捕获范围内或排除在捕获范围之外。 当没有任何业务表开启了CDC时，该表为空。
 
 | 列名称 | 数据类型 | 说明 |
 | --- | --- | --- |
@@ -70,11 +71,8 @@ EXEC sys.sp_cdc_enable_db;
 | column_ordinal | int | 更改表中的列序号（从 1 开始）。 将排除更改表中的元数据列。 序号 1 将分配给捕获到的第一个列。 |
 | is_computed | bit | 表示捕获到的列是源表中计算所得的列。 |
 
-
-
 **2、change_tables**
-为数据库中的每个更改表返回一行。 对源表启用变更数据捕获时，将创建一个更改表。
-当没有任何业务表开启了CDC时，该表为空。
+为数据库中的每个更改表返回一行。 对源表启用变更数据捕获时，将创建一个更改表。 当没有任何业务表开启了CDC时，该表为空。
 
 | 列名称 | 数据类型 | 说明 |
 | --- | --- | --- |
@@ -92,11 +90,8 @@ EXEC sys.sp_cdc_enable_db;
 | create_date | datetime | 启用源表的日期。 |
 | partition_switch | bit | 指示是否可以对启用了变更数据捕获的表执行 ALTER TABLE 的 SWITCH PARTITION 命令。 0 指示分区切换被阻止。 未分区表始终返回 1。 |
 
-
-
 **3、ddl_history**
-为对启用了变更数据捕获的表所做的每一项数据定义语言 (DDL) 更改返回一行。 可以使用此表来确定源表发生 DDL 更改的时间以及更改的内容。 此表中不包含未发生 DDL 更改的源表的任何条目。
-当没有任何开启了CDC的业务表的表结构发生变更时，该表为空。
+为对启用了变更数据捕获的表所做的每一项数据定义语言 (DDL) 更改返回一行。 可以使用此表来确定源表发生 DDL 更改的时间以及更改的内容。 此表中不包含未发生 DDL 更改的源表的任何条目。 当没有任何开启了CDC的业务表的表结构发生变更时，该表为空。
 
 | 列名称 | 数据类型 | 说明 |
 | --- | --- | --- |
@@ -107,11 +102,8 @@ EXEC sys.sp_cdc_enable_db;
 | ddl_lsn | binary(10) | 与 DDL 修改的提交相关联的日志序列号 (LSN)。 |
 | ddl_time | datetime | 对源表所做的 DDL 更改的日期和时间。 |
 
-
-
 **4、index_columns**
-为与更改表关联的每个索引列返回一行。 变更数据捕获使用这些索引列来唯一标识源表中的行。 默认情况下，将包括源表的主键列。 但是，如果在对源表启用变更数据捕获时指定了源表的唯一索引，则将改用该索引中的列。 如果启用净更改跟踪，则该源表需要主键或唯一索引。
-当没有任何开启了CDC的业务表存在存在索引列时，该表为空。
+为与更改表关联的每个索引列返回一行。 变更数据捕获使用这些索引列来唯一标识源表中的行。 默认情况下，将包括源表的主键列。 但是，如果在对源表启用变更数据捕获时指定了源表的唯一索引，则将改用该索引中的列。 如果启用净更改跟踪，则该源表需要主键或唯一索引。 当没有任何开启了CDC的业务表存在存在索引列时，该表为空。
 
 | 列名称 | 数据类型 | 说明 |
 | --- | --- | --- |
@@ -120,10 +112,8 @@ EXEC sys.sp_cdc_enable_db;
 | index_ordinal | tinyint | 索引中的列序号（从 1 开始）。 |
 | column_id | int | 源表中的列 ID。 |
 
-
-
 **5、lsn_time_mapping**
-为每个在更改表中存在行的事务返回一行。 该表用于在日志序列号 (LSN) 提交值和提交事务的时间之间建立映射。 没有对应的更改表项的项也可以记录下来， 以便表在变更活动少或者无变更活动期间将 LSN 处理的完成过程记录下来。
+为每个在更改表中存在行的事务返回一行。 该表用于在日志序列号 (LSN) 提交值和提交事务的时间之间建立映射。 没有对应的更改表项的项也可以记录下来， 以便表在变更活动少或者无变更活动期间将 LSN 处理的完成过程记录下来。
 
 | 列名称 | 数据类型 | 说明 |
 | --- | --- | --- |
@@ -131,8 +121,6 @@ EXEC sys.sp_cdc_enable_db;
 | tran_begin_time | datetime | 与 LSN 关联的事务开始的时间。 |
 | tran_end_time | datetime | 事务结束的时间。 |
 | tran_id | varbinary (10) | 事务的 ID。 |
-
-
 
 cdc下新增以下函数：
 <br/>
@@ -148,16 +136,15 @@ cdc下新增以下函数：
 | __$update_mask | varbinary(128) | 位掩码，为捕获实例标识的每个已捕获列均对应于一个位。 当 __ $ operation = 1 或2时，该值将所有已定义的位设置为1。 当 __ $ operation = 3 或4时，只有与更改的列相对应的位设置为1。 |
 | \<captured source table columns> | 多种多样 | 函数返回的其余列是在创建捕获实例时标识的已捕获列。 如果已捕获列的列表中未指定任何列，则将返回源表中的所有列。 |
 
-
-
 **2、fn_cdc_get_net_changes_**
 为 (LSN) 范围内的指定日志序列号内的每个源行返回一个净更改行，返回格式跟上面一样。
 
 ### 3、业务表CDC开启前后对比
+
 开启前跟上一张图一致
 
-
 开启SQL：
+
 ```sql
 sys.sp_cdc_enable_table 
 -- 表所属的架构名
@@ -189,6 +176,7 @@ sys.sp_cdc_enable_table
 -- allow_partition_switch 为 bit，默认值为 1。
 [,[ @partition_switch = ] 'partition_switch' ]
 ```
+
 开启后：
 
 <div align=center>
@@ -198,7 +186,7 @@ sys.sp_cdc_enable_table
 此时，cdc下新增了一张名为dbo_kudu_CT的表，对于任意开启CDC的业务表而言，都会在其对应的cdc schema下创建一张格式为${schema}_${table}_CT的表。
 
 **1、dbo_kudu_CT：**
-对源表启用变更数据捕获时创建的更改表。 该表为对源表执行的每个插入和删除操作返回一行，为对源表执行的每个更新操作返回两行。 如果在启用源表时未指定更改表的名称，则会使用一个派生的名称。 名称的格式为 cdc。capture_instance _CT 其中 capture_instance 是源表的架构名称和格式 schema_table 的源表名称。 例如，如果对 AdventureWorks 示例数据库中的表 Person 启用了变更数据捕获，则派生的更改表名称将 cdc.Person_Address_CT。
+对源表启用变更数据捕获时创建的更改表。 该表为对源表执行的每个插入和删除操作返回一行，为对源表执行的每个更新操作返回两行。 如果在启用源表时未指定更改表的名称，则会使用一个派生的名称。 名称的格式为 cdc。capture_instance _CT 其中 capture_instance 是源表的架构名称和格式 schema_table 的源表名称。 例如，如果对 AdventureWorks 示例数据库中的表 Person 启用了变更数据捕获，则派生的更改表名称将 cdc.Person_Address_CT。
 
 | 列名称 | 数据类型 | 说明 |
 | --- | --- | --- |
@@ -209,8 +197,6 @@ sys.sp_cdc_enable_table
 | __$update_mask | varbinary(128) | 基于更改表的列序号的位掩码，用于标识那些发生更改的列。 |
 | \<captured source table columns> | 多种多样 | 更改表中的其余列是在创建捕获实例时源表中标识为已捕获列的那些列。 如果已捕获列的列表中未指定任何列，则源表中的所有列将包括在此表中。 |
 | __ $ command_id | int | 跟踪事务中的操作顺序。 |
-
-
 
 **2、captured_columns：**
 <div align=center>
@@ -225,9 +211,10 @@ sys.sp_cdc_enable_table
 </div>
 <br/>
 
-
 ### 4、采集原理
+
 #### 1、insert/delete
+
 对于insert和delete类型的数据变更，对于每一行变更都会在对应的${schema}_${table}_CT表中增加一行记录。对于insert，id，user_id，name记录的是insert之后的value值；对于delete，id，user_id，name记录的是delete之前的value值；
 <div align=center>
 <img src="../../images/SqlserverCDC/Sqlserver12.png" />
@@ -235,10 +222,8 @@ sys.sp_cdc_enable_table
 <br/>
 
 #### 2、update
-a、更新了主键
-此时，SqlServer数据库的做法是在同一事物内，先将原来的记录删除，然后再重新插入。
-执行如下SQL，日志表如图所示：
-UPDATE [dbo].[kudu] SET [id] = 2, [user_id] = '2', [name] = 'b' WHERE [id] = 1;
+
+a、更新了主键 此时，SqlServer数据库的做法是在同一事物内，先将原来的记录删除，然后再重新插入。 执行如下SQL，日志表如图所示： UPDATE [dbo].[kudu] SET [id] = 2, [user_id] = '2', [name] = 'b' WHERE [id] = 1;
 <div align=center>
 <img src="../../images/SqlserverCDC/Sqlserver13.png" />
 </div>
@@ -253,9 +238,7 @@ UPDATE [dbo].[kudu] SET [user_id] = '3', [name] = 'c' WHERE [id] = 2;
 </div>
 <br/>
 
-
 #### 3、流程图
-
 
 <div align=center>
 <img src="../../images/SqlserverCDC/Sqlserver15.png" />
@@ -264,6 +247,7 @@ UPDATE [dbo].[kudu] SET [user_id] = '3', [name] = 'c' WHERE [id] = 2;
 对于FlinkX SqlServer CDC实时采集插件，其基本原理便是以轮询的方式，循环调用fn_cdc_get_all_changes_函数，获取上次结束时的lsn与当前数据库最大lsn值之间的数据。对于insert/delete类型的数据获取并解析一行，对于update类型获取并解析两行。解析完成后把数据传递到下游并记录当前解析到的数据的lsn，为下次轮询做准备。
 
 #### 4、数据格式
+
 ```json
 {
     "type":"update",

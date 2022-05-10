@@ -1,20 +1,23 @@
 # Greenplum Sink
 
 ## 一、介绍
+
 Greenplum sink
 
 ## 二、支持版本
+
 Greenplum 5及以上
 
-
 ## 三、插件名称
+
 | Sync | greenplumsink、greenplumwriter |
 | --- | --- |
 | SQL | greenplum-x |
 
-
 ## 四、参数说明
+
 ### 1、Sync
+
 - **connection**
     - 描述：数据库连接参数，包含jdbcUrl、schema、table等参数
     - 必选：是
@@ -27,6 +30,7 @@ Greenplum 5及以上
        "schema":"public"
       }]
       ```
+
  <br />
 
 - **jdbcUrl**
@@ -117,19 +121,20 @@ Greenplum 5及以上
         - 示例："updateKey": {"key": ["id"]}
     - 默认值：无
       <br />
-      
+
 - **semantic**
-  - 描述：sink端是否支持二阶段提交
-  - 注意：
-    - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
-    - 当前只支持exactly-once 和at-least-once 
-  - 必选：否
-  - 参数类型：String
-    - 示例："semantic": "exactly-once"
-  - 默认值：at-least-once
-<br />
+    - 描述：sink端是否支持二阶段提交
+    - 注意：
+        - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
+        - 当前只支持exactly-once 和at-least-once
+    - 必选：否
+    - 参数类型：String
+        - 示例："semantic": "exactly-once"
+    - 默认值：at-least-once
+      <br />
 
 ### 2、SQL
+
 - **connector**
     - 描述：greenplum-x
     - 必选：是
@@ -192,22 +197,24 @@ Greenplum 5及以上
     - 参数类型：String
     - 默认值：无
       <br />
-      
+
 - **sink.semantic**
-  - 描述：sink端是否支持二阶段提交
-  - 注意：
-    - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
-    - 当前只支持exactly-once 和at-least-once 
-  - 必选：否
-  - 参数类型：String
-    - 示例："semantic": "exactly-once"
-  - 默认值：at-least-once
-<br />
+    - 描述：sink端是否支持二阶段提交
+    - 注意：
+        - 如果此参数为空，默认不开启二阶段提交，即sink端不支持exactly_once语义；
+        - 当前只支持exactly-once 和at-least-once
+    - 必选：否
+    - 参数类型：String
+        - 示例："semantic": "exactly-once"
+    - 默认值：at-least-once
+      <br />
 
 ## 五、数据类型
+
 | 支持 | SMALLINT、SMALLSERIAL、INT2、INT、INTEGER、SERIAL、INT4、BIGINT、BIGSERIAL、OID、INT8、REAL、FLOAT4、FLOAT、DOUBLE PRECISION、FLOAT8、DECIMAL、NUMERIC、 CHARACTER VARYING、VARCHAR、CHARACTER、CHAR、TEXT、NAME、BPCHAR、BYTEA、TIMESTAMP、TIMESTAMPTZ、DATE、TIME、TIMETZ、 BOOLEAN、BOOL |
 | --- | --- |
 | 暂不支持 | ARRAY等 |
 
 ## 六、脚本示例
+
 见项目内`flinkx-examples`文件夹。

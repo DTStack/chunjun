@@ -5,6 +5,7 @@
 kafka sink
 
 ## 2. Version Support
+
 Kafka mainstream version
 
 ## 3. Connector Name
@@ -147,8 +148,7 @@ The details are in [kafka-connector](https://ci.apache.org/projects/flink/flink-
       <br />
 
 - **sink.semantic**
-    - Description：Defines the delivery semantic for the Kafka sink. Valid enumerationns are 'at-least-once', 'exactly-once' and 'none'.
-      See [Consistency guarantees](https://ci.apache.org/projects/flink/flink-docs-release-1.12/zh/dev/table/connectors/kafka.html#consistency-guarantees) for more details.
+    - Description：Defines the delivery semantic for the Kafka sink. Valid enumerationns are 'at-least-once', 'exactly-once' and 'none'. See [Consistency guarantees](https://ci.apache.org/projects/flink/flink-docs-release-1.12/zh/dev/table/connectors/kafka.html#consistency-guarantees) for more details.
     - Required：optional
     - Type：String
     - Default：at-least-once
@@ -169,4 +169,4 @@ The details are in [kafka-connector](https://ci.apache.org/projects/flink/flink-
 
 ## 6. Example
 
-The details are in `flinkx-examples` dir.
+The details are in `chunjun-examples` dir.

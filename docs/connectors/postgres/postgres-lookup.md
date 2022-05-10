@@ -1,19 +1,22 @@
 # PostgreSQL Lookup
 
 ## 一、介绍
+
 PostgreSQL维表，支持全量和异步方式<br />
 全量缓存:将维表数据全部加载到内存中，建议数据量不大使用。<br />
 异步缓存:使用异步方式查询数据，并将查询到的数据使用lru缓存到内存中，建议数据量大使用。
 
 ## 二、支持版本
+
 PostgreSql 9.4及以上
 
-
 ## 三、插件名称
+
 | SQL | postgresql-x |
 | --- | --- |
 
 ## 四、参数说明
+
 - **connector**
     - 描述：postgresql-x
     - 必选：是
@@ -92,10 +95,11 @@ PostgreSql 9.4及以上
       <br />
 
 ## 五、数据类型
+
 | 支持 | SMALLINT、SMALLSERIAL、INT2、INT、INTEGER、SERIAL、INT4、BIGINT、BIGSERIAL、OID、INT8、REAL、FLOAT4、FLOAT、DOUBLE PRECISION、FLOAT8、DECIMAL、NUMERIC、 CHARACTER VARYING、VARCHAR、CHARACTER、CHAR、TEXT、NAME、BPCHAR、BYTEA、TIMESTAMP、TIMESTAMPTZ、DATE、TIME、TIMETZ、 BOOLEAN、BOOL |
 | --- | --- |
 | 暂不支持 | ARRAY等 |
 
-
 ## 六、脚本示例
-见项目内`flinkx-examples`文件夹。
+
+见项目内`chunjun-examples`文件夹。

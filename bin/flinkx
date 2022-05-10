@@ -34,7 +34,7 @@ else
 fi
 
 JAR_DIR=$FLINKX_HOME/lib/*
-CLASS_NAME=com.dtstack.flinkx.client.Launcher
+CLASS_NAME=com.dtstack.chunjun.client.Launcher
 
-echo "flinkx starting ..."
+echo "ChunJun starting ..."
 nohup $JAVA_RUN -cp $JAR_DIR $CLASS_NAME $@ &
