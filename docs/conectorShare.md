@@ -5,8 +5,8 @@
 ## 在flinkX中使用flinkSql的connector
 
 - **本地调试**
-    - 在`flinkx-local-test`模块下将对应的flink connector的GAV拷贝到pom.xml文件中
-    - 将flinkX中的connector的GAV拷贝到pom.xml文件中(部分flink connector已经通过flinkx connector引入,如果是则上一步省略)
+    - 在`chunjun-local-test`模块下将对应的flink connector的GAV拷贝到pom.xml文件中
+    - 将chunjun中的connector的GAV拷贝到pom.xml文件中(部分flink connector已经通过chunjun connector引入,如果是则上一步省略)
     - 在LocalTest类中指定参数运行即可 sql:
       ```sql
         -- {"id":100,"name":"lb james阿道夫","money":293.899778,"dateone":"2020-07-30 10:08:22","age":"33","datethree":"2020-07-30 10:08:22.123","datesix":"2020-07-30 10:08:22.123456","datenigth":"2020-07-30 10:08:22.123456789","dtdate":"2020-07-30","dttime":"10:08:22"}
@@ -79,7 +79,7 @@
     - 3.在在flinkx/lib下目录下执行命令：
         - local模式
       ```shell
-      java -cp  "./*" com.dtstack.flinkx.client.Launcher \
+      java -cp  "./*" com.dtstack.chunjun.client.Launcher \
       -mode local \
       -jobType sql \
       -jobName flink1.12_SPI \

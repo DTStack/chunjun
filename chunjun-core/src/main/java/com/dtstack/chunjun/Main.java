@@ -40,6 +40,7 @@ import com.dtstack.chunjun.throwable.FlinkxRuntimeException;
 import com.dtstack.chunjun.util.DataSyncFactoryUtil;
 import com.dtstack.chunjun.util.ExecuteProcessHelper;
 import com.dtstack.chunjun.util.FactoryHelper;
+import com.dtstack.chunjun.util.JobUtil;
 import com.dtstack.chunjun.util.PluginUtil;
 import com.dtstack.chunjun.util.PrintUtil;
 import com.dtstack.chunjun.util.PropertiesUtil;
@@ -96,6 +97,7 @@ public class Main {
 
         Options options = new OptionParser(args).getOptions();
         String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
+        String replacedJob = JobUtil.replaceJobParameter(options.getP(), job);
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
@@ -105,10 +107,10 @@ public class Main {
                 tEnv.getConfig().getConfiguration().toString());
         switch (EJobType.getByName(options.getJobType())) {
             case SQL:
-                exeSqlJob(env, tEnv, job, options);
+                exeSqlJob(env, tEnv, replacedJob, options);
                 break;
             case SYNC:
-                exeSyncJob(env, tEnv, job, options);
+                exeSyncJob(env, tEnv, replacedJob, options);
                 break;
             default:
                 throw new FlinkxRuntimeException(
@@ -168,7 +170,7 @@ public class Main {
             String job,
             Options options)
             throws Exception {
-        SyncConf config = parseFlinkxConf(job, options);
+        SyncConf config = parsechunjunConf(job, options);
         configStreamExecutionEnvironment(env, options, config);
 
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
@@ -264,13 +266,13 @@ public class Main {
      * @param options
      * @return
      */
-    public static SyncConf parseFlinkxConf(String job, Options options) {
+    public static SyncConf parsechunjunConf(String job, Options options) {
         SyncConf config;
         try {
             config = SyncConf.parseJob(job);
 
-            if (StringUtils.isNotBlank(options.getFlinkxDistDir())) {
-                config.setPluginRoot(options.getFlinkxDistDir());
+            if (StringUtils.isNotBlank(options.getChunjunDistDir())) {
+                config.setPluginRoot(options.getChunjunDistDir());
             }
 
             Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
@@ -281,8 +283,8 @@ public class Main {
                 config.setSavePointPath(savePointPath);
             }
 
-            if (StringUtils.isNotBlank(options.getRemoteFlinkxDistDir())) {
-                config.setRemotePluginPath(options.getRemoteFlinkxDistDir());
+            if (StringUtils.isNotBlank(options.getRemoteChunjunDistDir())) {
+                config.setRemotePluginPath(options.getRemoteChunjunDistDir());
             }
         } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
@@ -295,7 +297,7 @@ public class Main {
      *
      * @param env StreamExecutionEnvironment
      * @param options options
-     * @param config FlinkxConf
+     * @param config chunjunConf
      */
     private static void configStreamExecutionEnvironment(
             StreamExecutionEnvironment env, Options options, SyncConf config) {
@@ -306,13 +308,13 @@ public class Main {
         } else {
             Preconditions.checkArgument(
                     ExecuteProcessHelper.checkRemoteSqlPluginPath(
-                            options.getRemoteFlinkxDistDir(),
+                            options.getRemoteChunjunDistDir(),
                             options.getMode(),
                             options.getPluginLoadMode()),
                     "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
             FactoryHelper factoryHelper = new FactoryHelper();
-            factoryHelper.setLocalPluginPath(options.getFlinkxDistDir());
-            factoryHelper.setRemotePluginPath(options.getRemoteFlinkxDistDir());
+            factoryHelper.setLocalPluginPath(options.getChunjunDistDir());
+            factoryHelper.setRemotePluginPath(options.getRemoteChunjunDistDir());
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
             factoryHelper.setExecutionMode(options.getMode());

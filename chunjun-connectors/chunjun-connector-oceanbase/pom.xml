@@ -9,30 +9,39 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>chunjun-connector-oracle</artifactId>
-	<name>ChunJun : Connectors : Oracle</name>
+	<artifactId>chunjun-connector-oceanbase</artifactId>
+	<name>ChunJun : Connectors : OceanBase</name>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.alipay.oceanbase</groupId>
+			<artifactId>oceanbase-client</artifactId>
+			<version>1.1.5</version>
+		</dependency>
 		<dependency>
 			<groupId>com.dtstack</groupId>
 			<artifactId>chunjun-connector-jdbc-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>com.github.noraui</groupId>
-			<artifactId>ojdbc8</artifactId>
-			<version>12.2.0.1</version>
-		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
-
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
@@ -45,12 +54,14 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/oracle/"
+								<copy todir="${basedir}/../../${dist.dir}/connector/oceanbase/"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/oracle/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/oracle/${project.artifactId}-${git.branch}.jar"/>
+								<!--suppress UnresolvedMavenProperty -->
+								<move file="${basedir}/../../${dist.dir}/connector/oceanbase/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/connector/oceanbase/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../${dist.dir}/connector/oracle/"
+									<!--suppress UnresolvedMavenProperty -->
+									<fileset dir="${basedir}/../../${dist.dir}/connector/oceanbase/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>
@@ -58,10 +69,6 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>com.diffplug.spotless</groupId>
-				<artifactId>spotless-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

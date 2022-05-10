@@ -15,8 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.dtstack.chunjun.connector.sqlservercdc.convert;
+package com.dtstack.chunjun.connector.oceanbase.converter;
 
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
@@ -25,55 +24,53 @@ import org.apache.flink.table.types.DataType;
 
 import java.util.Locale;
 
-/**
- * @author shifang
- * @program chunjun
- * @create 2021/05/24
- */
-public class SqlServerCdcRawTypeConverter {
-
-    /**
-     * 将MySQL数据库中的类型，转换成flink的DataType类型。 转换关系参考 com.mysql.jdbc.MysqlDefs 类里面的信息。
-     * com.mysql.jdbc.ResultSetImpl.getObject(int)
-     */
+public class OceanbaseRawTypeConverter {
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
-            case "BIT":
+            case "BOOLEAN":
                 return DataTypes.BOOLEAN();
             case "TINYINT":
                 return DataTypes.TINYINT();
             case "SMALLINT":
+                return DataTypes.SMALLINT();
+            case "MEDIUMINT":
             case "INT":
+            case "INTEGER":
                 return DataTypes.INT();
             case "BIGINT":
                 return DataTypes.BIGINT();
-            case "REAL":
-                return DataTypes.FLOAT();
             case "FLOAT":
-                return DataTypes.DOUBLE();
+                return DataTypes.FLOAT();
             case "DECIMAL":
             case "NUMERIC":
-                return DataTypes.DECIMAL(1, 0);
-            case "CHAR":
-            case "NCHAR":
-            case "VARCHAR":
-            case "NVARCHAR":
-            case "TEXT":
-                return DataTypes.STRING();
+                return DataTypes.DECIMAL(38, 18);
+            case "DOUBLE":
+                return DataTypes.DOUBLE();
             case "DATE":
                 return DataTypes.DATE();
             case "TIME":
                 return DataTypes.TIME();
+            case "TIMESTAMP":
             case "DATETIME":
-                return DataTypes.TIMESTAMP(3);
-            case "DATETIME2":
-                return DataTypes.TIMESTAMP(7);
-            case "SMALLDATETIME":
                 return DataTypes.TIMESTAMP(0);
+            case "BIT":
+            case "TINYBLOB":
+            case "BLOB":
+            case "MEDIUMBLOB":
+            case "LONGBLOB":
             case "BINARY":
             case "VARBINARY":
                 // BYTES 底层调用的是VARBINARY最大长度
                 return DataTypes.BYTES();
+            case "CHAR":
+            case "VARCHAR":
+            case "TINYTEXT":
+            case "TEXT":
+            case "MEDIUMTEXT":
+            case "LONGTEXT":
+            case "ENUM":
+            case "SET":
+                return DataTypes.STRING();
             default:
                 throw new UnsupportedTypeException(type);
         }

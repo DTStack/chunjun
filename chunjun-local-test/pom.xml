@@ -206,6 +206,16 @@
 			<artifactId>flinkx-connector-saphana</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-inceptor</artifactId>
+			<version>1.12-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-oceanbase</artifactId>
+			<version>1.12-SNAPSHOT</version>
+		</dependency>
 
 		<!--File-->
 		<dependency>

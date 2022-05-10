@@ -97,7 +97,7 @@ public class DirtyConfUtil {
         try {
             Properties properties = PropertiesUtil.parseConf(options.getConfProp());
             properties.put(
-                    DIRTY_DIR, options.getFlinkxDistDir() + File.separator + DIRTY_DIR_SUFFIX);
+                    DIRTY_DIR, options.getChunjunDistDir() + File.separator + DIRTY_DIR_SUFFIX);
             return parse(properties);
         } catch (Exception e) {
             throw new NoRestartException(

@@ -340,7 +340,7 @@ public interface JdbcDialect extends Serializable {
 
     /** get splitKey aliasName */
     default String getRowNumColumnAlias() {
-        return "FLINKX_ROWNUM";
+        return "chunjun_ROWNUM";
     }
 
     /** build split filter by range, like 'id >=0 and id < 100' */

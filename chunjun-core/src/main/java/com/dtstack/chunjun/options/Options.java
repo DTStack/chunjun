@@ -52,7 +52,7 @@ public class Options {
     private String flinkConfDir;
 
     @OptionRequired(description = "FlinkX dist dir")
-    private String flinkxDistDir;
+    private String chunjunDistDir;
 
     @OptionRequired(description = "Yarn and Hadoop configuration directory")
     private String hadoopConfDir;
@@ -70,7 +70,7 @@ public class Options {
     private String pluginLoadMode = "shipfile";
 
     @OptionRequired(description = "remote FlinkX dist dir")
-    private String remoteFlinkxDistDir;
+    private String remoteChunjunDistDir;
 
     @OptionRequired(description = "sql ext jar,eg udf jar")
     private String addjar;
@@ -129,12 +129,12 @@ public class Options {
         this.flinkConfDir = flinkConfDir;
     }
 
-    public String getFlinkxDistDir() {
-        return flinkxDistDir;
+    public String getChunjunDistDir() {
+        return chunjunDistDir;
     }
 
-    public void setFlinkxDistDir(String flinkxDistDir) {
-        this.flinkxDistDir = flinkxDistDir;
+    public void setChunjunDistDir(String chunjunDistDir) {
+        this.chunjunDistDir = chunjunDistDir;
     }
 
     public String getHadoopConfDir() {
@@ -177,12 +177,12 @@ public class Options {
         this.pluginLoadMode = pluginLoadMode;
     }
 
-    public String getRemoteFlinkxDistDir() {
-        return remoteFlinkxDistDir;
+    public String getRemoteChunjunDistDir() {
+        return remoteChunjunDistDir;
     }
 
-    public void setRemoteFlinkxDistDir(String remoteFlinkxDistDir) {
-        this.remoteFlinkxDistDir = remoteFlinkxDistDir;
+    public void setRemoteChunjunDistDir(String remoteChunjunDistDir) {
+        this.remoteChunjunDistDir = remoteChunjunDistDir;
     }
 
     public String getAddjar() {
@@ -236,7 +236,7 @@ public class Options {
                 + flinkConfDir
                 + '\''
                 + ", flinkxDistDir='"
-                + flinkxDistDir
+                + chunjunDistDir
                 + '\''
                 + ", hadoopConfDir='"
                 + hadoopConfDir
@@ -254,7 +254,7 @@ public class Options {
                 + pluginLoadMode
                 + '\''
                 + ", remotePluginPath='"
-                + remoteFlinkxDistDir
+                + remoteChunjunDistDir
                 + '\''
                 + ", addjar='"
                 + addjar

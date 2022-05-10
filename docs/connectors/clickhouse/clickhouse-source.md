@@ -345,4 +345,4 @@ ClickHouse 19.x及以上
 
 ## 六、配置示例
 
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。

@@ -55,7 +55,7 @@ import java.util.List;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
- * @program: flinkx
+ * @program: chunjun
  * @author: xiuzhu
  * @create: 2021/05/31
  */
@@ -155,10 +155,10 @@ public class KubernetesApplicationClusterClientHelper implements ClusterClientHe
             throws FileNotFoundException {
         configuration.set(DeploymentOptionsInternal.CONF_DIR, launcherOptions.getFlinkConfDir());
 
-        String coreJarFileName = PluginInfoUtil.getCoreJarName(launcherOptions.getFlinkxDistDir());
+        String coreJarFileName = PluginInfoUtil.getCoreJarName(launcherOptions.getChunjunDistDir());
         String remoteCoreJarPath =
                 "local://"
-                        + launcherOptions.getRemoteFlinkxDistDir()
+                        + launcherOptions.getRemoteChunjunDistDir()
                         + File.separator
                         + coreJarFileName;
         configuration.set(PipelineOptions.JARS, Collections.singletonList(remoteCoreJarPath));

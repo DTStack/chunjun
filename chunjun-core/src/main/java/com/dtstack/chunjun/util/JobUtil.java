@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,24 @@ import com.dtstack.chunjun.constants.ConstantValue;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
-/** @author tiezhu */
-public class JsonModifyUtil {
+public class JobUtil {
+
+    private JobUtil() throws IllegalAccessException {
+        throw new IllegalAccessException(getClass().getName() + " can not be instantiated");
+    }
+
+    public static String replaceJobParameter(String p, String job) {
+        if (StringUtils.isNotBlank(p)) {
+            HashMap<String, String> parameters = CommandTransform(p);
+            for (Map.Entry<String, String> entry : parameters.entrySet()) {
+                job = job.replaceAll(Pattern.quote(entry.getKey()), entry.getValue());
+            }
+        }
+        return job;
+    }
 
     public static String JsonValueReplace(String json, HashMap<String, String> parameter) {
         for (String item : parameter.keySet()) {
@@ -42,7 +57,7 @@ public class JsonModifyUtil {
         String[] split = StringUtils.split(command, ConstantValue.COMMA_SYMBOL);
         for (String item : split) {
             String[] temp = item.split(ConstantValue.EQUAL_SYMBOL);
-            parameter.put(temp[0], temp[1]);
+            parameter.put(temp[0].trim(), temp[1].trim());
         }
         return parameter;
     }

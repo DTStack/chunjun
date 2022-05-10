@@ -218,7 +218,7 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
 
         clusterSpecification.setCreateProgramDelay(true);
 
-        String pluginRoot = launcherOptions.getFlinkxDistDir();
+        String pluginRoot = launcherOptions.getChunjunDistDir();
         String coreJarPath = PluginInfoUtil.getCoreJarPath(pluginRoot);
         File jarFile = new File(coreJarPath);
         clusterSpecification.setConfiguration(launcherOptions.loadFlinkConfiguration());

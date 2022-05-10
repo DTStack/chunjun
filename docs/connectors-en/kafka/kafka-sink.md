@@ -169,4 +169,4 @@ The details are in [kafka-connector](https://ci.apache.org/projects/flink/flink-
 
 ## 6. Example
 
-The details are in `flinkx-examples` dir.
+The details are in `chunjun-examples` dir.

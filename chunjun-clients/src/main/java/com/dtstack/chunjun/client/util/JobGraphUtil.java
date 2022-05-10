@@ -47,7 +47,7 @@ public class JobGraphUtil {
 
     public static JobGraph buildJobGraph(Options launcherOptions, String[] programArgs)
             throws Exception {
-        String pluginRoot = launcherOptions.getFlinkxDistDir();
+        String pluginRoot = launcherOptions.getChunjunDistDir();
         String coreJarPath = PluginInfoUtil.getCoreJarPath(pluginRoot);
         File jarFile = new File(coreJarPath);
         Configuration flinkConf = launcherOptions.loadFlinkConfiguration();

@@ -12,6 +12,14 @@
 	<artifactId>chunjun-connector-stream</artifactId>
 	<name>ChunJun : Connectors : Stream</name>
 
+	<dependencies>
+		<dependency>
+			<groupId>com.github.jsonzou</groupId>
+			<artifactId>jmockdata</artifactId>
+			<version>4.2.0</version>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -61,9 +69,11 @@
 							<tasks>
 								<copy todir="${basedir}/../../${dist.dir}/connector/stream"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+								<!--suppress UnresolvedMavenProperty -->
 								<move file="${basedir}/../../${dist.dir}/connector/stream/${project.artifactId}-${project.version}.jar"
 									  tofile="${basedir}/../../${dist.dir}/connector/stream/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
+									<!--suppress UnresolvedMavenProperty -->
 									<fileset dir="${basedir}/../../${dist.dir}/connector/stream/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>

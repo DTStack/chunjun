@@ -10,12 +10,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-connectors</artifactId>
-	<name>ChunJun : Connectors :</name>
+	<name>ChunJun : Connectors</name>
 	<packaging>pom</packaging>
 
 	<properties>
 		<connector.base.dir>connector</connector.base.dir>
-
 	</properties>
 
 	<modules>
@@ -43,6 +42,7 @@
 		<module>chunjun-connector-influxdb</module>
 		<module>chunjun-connector-starrocks</module>
 		<module>chunjun-connector-cassandra</module>
+		<module>chunjun-connector-oceanbase</module>
 
 		<!--File-->
 		<module>chunjun-connector-file</module>
@@ -114,11 +114,14 @@
 							</goals>
 							<configuration>
 								<tasks>
+									<!--suppress UnresolvedMavenProperty -->
 									<copy todir="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/"
 										  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+									<!--suppress UnresolvedMavenProperty -->
 									<move file="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/${project.artifactId}-${project.version}.jar"
 										  tofile="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/${project.artifactId}-${git.branch}.jar"/>
 									<delete>
+										<!--suppress UnresolvedMavenProperty -->
 										<fileset dir="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/"
 												 includes="${project.artifactId}-*.jar"
 												 excludes="${project.artifactId}-${git.branch}.jar"/>

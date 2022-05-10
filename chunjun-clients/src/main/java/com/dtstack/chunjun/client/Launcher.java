@@ -28,7 +28,6 @@ import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.options.OptionParser;
 import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.util.ExecuteProcessHelper;
-import com.dtstack.chunjun.util.JsonModifyUtil;
 
 import org.apache.flink.client.deployment.ClusterDeploymentException;
 import org.apache.flink.configuration.ConfigConstants;
@@ -44,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * FlinkX commandline Launcher
+ * ChunJun commandline Launcher
  *
  * <p>Company: www.dtstack.com
  *
@@ -57,7 +56,7 @@ public class Launcher {
     public static final String KEY_FLINK_HOME = "FLINK_HOME";
     public static final String KEY_HADOOP_HOME = "HADOOP_HOME";
 
-    public static final String PLUGINS_DIR_NAME = "flinkx-dist";
+    public static final String PLUGINS_DIR_NAME = "chunjun-dist";
 
     public static void main(String[] args) throws Exception {
         OptionParser optionParser = new OptionParser(args);
@@ -72,12 +71,6 @@ public class Launcher {
         for (int i = 0; i < argList.size(); i += 2) {
             temp.put(argList.get(i), argList.get(i + 1));
         }
-        // 对json中的值进行修改
-        String s = temp.get("-p");
-        if (StringUtils.isNotBlank(s)) {
-            HashMap<String, String> parameter = JsonModifyUtil.CommandTransform(s);
-            temp.put("-job", JsonModifyUtil.JsonValueReplace(temp.get("-job"), parameter));
-        }
 
         // 清空list，填充修改后的参数值
         argList.clear();
@@ -88,7 +81,7 @@ public class Launcher {
 
         JobDeployer jobDeployer = new JobDeployer(launcherOptions, argList);
 
-        ClusterClientHelper clusterClientHelper = null;
+        ClusterClientHelper clusterClientHelper;
         switch (ClusterMode.getByName(launcherOptions.getMode())) {
             case local:
                 clusterClientHelper = new LocalClusterClientHelper();
@@ -173,7 +166,7 @@ public class Launcher {
     }
 
     private static void findDefaultFlinkxDistDir(Options launcherOptions) {
-        String distDir = launcherOptions.getFlinkxDistDir();
+        String distDir = launcherOptions.getChunjunDistDir();
         if (StringUtils.isEmpty(distDir)) {
             String flinkxHome = getSystemProperty(KEY_FLINKX_HOME);
             if (StringUtils.isNotEmpty(flinkxHome)) {
@@ -184,7 +177,7 @@ public class Launcher {
                     distDir = flinkxHome + File.separator + PLUGINS_DIR_NAME;
                 }
 
-                launcherOptions.setFlinkxDistDir(distDir);
+                launcherOptions.setChunjunDistDir(distDir);
             }
         }
         System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, distDir);

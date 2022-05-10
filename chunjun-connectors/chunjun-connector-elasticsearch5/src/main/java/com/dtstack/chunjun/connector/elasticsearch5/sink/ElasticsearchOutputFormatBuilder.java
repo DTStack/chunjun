@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
 
 /**
  * @description:
- * @program: flinkx-all
+ * @program: chunjun-all
  * @author: lany
  * @create: 2021/06/27 23:51
  */

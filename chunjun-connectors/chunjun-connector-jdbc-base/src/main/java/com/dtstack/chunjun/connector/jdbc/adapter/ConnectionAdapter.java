@@ -50,7 +50,7 @@ public class ConnectionAdapter
             JsonElement json, Type typeOfT, JsonDeserializationContext context)
             throws JsonParseException {
         // 指定包名+类名
-        String thePackage = "com.dtstack.flinkx.connector.jdbc.conf." + className;
+        String thePackage = "com.dtstack.chunjun.connector.jdbc.conf." + className;
         try {
             return context.deserialize(json, Class.forName(thePackage));
         } catch (ClassNotFoundException e) {
