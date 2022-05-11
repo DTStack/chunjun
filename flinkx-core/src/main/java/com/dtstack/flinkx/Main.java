@@ -21,7 +21,6 @@ import com.dtstack.flinkx.cdc.CdcConf;
 import com.dtstack.flinkx.cdc.RestorationFlatMap;
 import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
 import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
-import com.dtstack.flinkx.conf.OperatorConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -38,11 +37,9 @@ import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.sql.parser.SqlParser;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
-import com.dtstack.flinkx.throwable.JobConfigException;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
 import com.dtstack.flinkx.util.ExecuteProcessHelper;
 import com.dtstack.flinkx.util.FactoryHelper;
-import com.dtstack.flinkx.util.JobUtil;
 import com.dtstack.flinkx.util.PluginUtil;
 import com.dtstack.flinkx.util.PrintUtil;
 import com.dtstack.flinkx.util.PropertiesUtil;
@@ -51,6 +48,8 @@ import com.dtstack.flinkx.util.TableUtil;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.core.execution.JobClient;
+import org.apache.flink.factories.FactoryUtil;
+import org.apache.flink.factories.TableFactoryService;
 import org.apache.flink.runtime.jobgraph.SavepointConfigOptions;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
@@ -61,10 +60,6 @@ import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.expressions.Expression;
-import org.apache.flink.table.expressions.ExpressionParser;
-import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.factories.TableFactoryService;
 import org.apache.flink.table.types.DataType;
 
 import com.google.common.base.Preconditions;
@@ -332,9 +327,9 @@ public class Main {
                     Thread.currentThread().getContextClassLoader(),
                     ConstantValue.DIRTY_DATA_DIR_NAME);
             // TODO sql 支持restore.
-            // TODO
-            // FactoryUtil.setFactoryUtilHelp(factoryHelper);
-            // TableFactoryService.setFactoryUtilHelp(factoryHelper);
+            // TODO   @wujuan
+            FactoryUtil.setFactoryUtilHelp(factoryHelper);
+            TableFactoryService.setFactoryUtilHelp(factoryHelper);
         }
         PluginUtil.registerShipfileToCachedFile(options.getAddShipfile(), env);
     }
@@ -344,12 +339,12 @@ public class Main {
      *
      * @param operatorConf
      */
-    private static void checkTableConf(OperatorConf operatorConf) {
-        if (operatorConf.getTable() == null) {
-            //throw new JobConfigException(operatorConf.getName(), "table", "is missing");
-        }
-        if (StringUtils.isEmpty(operatorConf.getTable().getTableName())) {
-            //throw new JobConfigException(operatorConf.getName(), "table.tableName", "is missing");
-        }
-    }
+    //private static void checkTableConf(OperatorConf operatorConf) {
+    //    if (operatorConf.getTable() == null) {
+    //        //throw new JobConfigException(operatorConf.getName(), "table", "is missing");
+    //    }
+    //    if (StringUtils.isEmpty(operatorConf.getTable().getTableName())) {
+    //        //throw new JobConfigException(operatorConf.getName(), "table.tableName", "is missing");
+    //    }
+    //}
 }
