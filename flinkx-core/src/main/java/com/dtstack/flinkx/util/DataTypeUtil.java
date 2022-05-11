@@ -26,8 +26,6 @@ import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.utils.TypeConversions;
 
-import org.apache.flink.shaded.guava18.com.google.common.base.Splitter;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -254,11 +252,15 @@ public class DataTypeUtil {
     }
 
     private static Iterable<String> splitTypeInfo(String string) {
-        return Splitter.on(TYPE_DELIMITER).trimResults().omitEmptyStrings().split(string);
+        // TODO
+        // return Splitter.on(TYPE_DELIMITER).trimResults().omitEmptyStrings().split(string);
+        return null;
     }
 
     private static Iterable<String> splitCompositeTypeField(String string) {
-        return Splitter.on(FIELD_DELIMITER).trimResults().split(string);
+        // TODO
+        // return Splitter.on(FIELD_DELIMITER).trimResults().split(string);
+        return null;
     }
 
     private static String replaceBlank(String s) {

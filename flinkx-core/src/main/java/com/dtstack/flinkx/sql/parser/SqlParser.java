@@ -25,7 +25,7 @@ import com.dtstack.flinkx.util.Splitter;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
-import org.apache.flink.shaded.guava18.com.google.common.base.Strings;
+import org.apache.flink.shaded.guava30.com.google.common.base.Strings;
 
 import org.apache.commons.lang3.StringUtils;
 

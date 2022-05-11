@@ -241,12 +241,13 @@ public class Main {
             DataStream<RowData> sourceDataStream) {
         String fieldNames =
                 String.join(ConstantValue.COMMA_SYMBOL, config.getReader().getFieldNameList());
-        List<Expression> expressionList = ExpressionParser.parseExpressionList(fieldNames);
-        Table sourceTable =
-                tableEnv.fromDataStream(
-                        sourceDataStream, expressionList.toArray(new Expression[0]));
-
-        checkTableConf(config.getReader());
+        // TODO
+        // List<Expression> expressionList = ExpressionParser.parseExpressionList(fieldNames);
+        // Table sourceTable =
+        //        tableEnv.fromDataStream(
+        //                sourceDataStream, expressionList.toArray(new Expression[0]));
+        //checkTableConf(config.getReader());
+        Table sourceTable = tableEnv.fromDataStream(sourceDataStream);
         tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
 
         String transformSql = config.getJob().getTransformer().getTransformSql();
@@ -259,7 +260,7 @@ public class Main {
         DataStream<RowData> dataStream =
                 tableEnv.toRetractStream(adaptTable, typeInformation).map(f -> f.f1);
 
-        checkTableConf(config.getWriter());
+        //checkTableConf(config.getWriter());
         tableEnv.createTemporaryView(config.getWriter().getTable().getTableName(), dataStream);
 
         return dataStream;
@@ -331,9 +332,9 @@ public class Main {
                     Thread.currentThread().getContextClassLoader(),
                     ConstantValue.DIRTY_DATA_DIR_NAME);
             // TODO sql 支持restore.
-
-            FactoryUtil.setFactoryUtilHelp(factoryHelper);
-            TableFactoryService.setFactoryUtilHelp(factoryHelper);
+            // TODO
+            // FactoryUtil.setFactoryUtilHelp(factoryHelper);
+            // TableFactoryService.setFactoryUtilHelp(factoryHelper);
         }
         PluginUtil.registerShipfileToCachedFile(options.getAddShipfile(), env);
     }
@@ -345,10 +346,10 @@ public class Main {
      */
     private static void checkTableConf(OperatorConf operatorConf) {
         if (operatorConf.getTable() == null) {
-            throw new JobConfigException(operatorConf.getName(), "table", "is missing");
+            //throw new JobConfigException(operatorConf.getName(), "table", "is missing");
         }
         if (StringUtils.isEmpty(operatorConf.getTable().getTableName())) {
-            throw new JobConfigException(operatorConf.getName(), "table.tableName", "is missing");
+            //throw new JobConfigException(operatorConf.getName(), "table.tableName", "is missing");
         }
     }
 }
