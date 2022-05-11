@@ -23,8 +23,8 @@ import com.dtstack.flinkx.util.ReflectionUtils;
 
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.accumulators.StringifiedAccumulatorResult;
-import org.apache.flink.runtime.executiongraph.ArchivedExecutionGraph;
 import org.apache.flink.runtime.jobmaster.JobMasterGateway;
+import org.apache.flink.runtime.scheduler.ExecutionGraphInfo;
 import org.apache.flink.runtime.taskexecutor.TaskManagerConfiguration;
 import org.apache.flink.runtime.taskexecutor.rpc.RpcGlobalAggregateManager;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
@@ -77,7 +77,8 @@ public class AccumulatorCollector {
         // 比task manager心跳间隔多1秒
         this.period =
                 ((TaskManagerConfiguration) context.getTaskManagerRuntimeInfo())
-                                .getTimeout()
+                                .getRpcTimeout()
+                                // .getTimeout() TODO
                                 .toMilliseconds()
                         + 1000;
         RpcGlobalAggregateManager globalAggregateManager =
@@ -111,9 +112,13 @@ public class AccumulatorCollector {
 
     /** 收集累加器信息 */
     public void collectAccumulator() {
-        CompletableFuture<ArchivedExecutionGraph> archivedExecutionGraphFuture =
+        // CompletableFuture<ArchivedExecutionGraph> archivedExecutionGraphFuture =
+        //        gateway.requestJob(Time.seconds(10));
+        //
+        CompletableFuture<ExecutionGraphInfo> archivedExecutionGraphFuture =
                 gateway.requestJob(Time.seconds(10));
-        ArchivedExecutionGraph archivedExecutionGraph;
+
+        ExecutionGraphInfo archivedExecutionGraph;
         try {
             archivedExecutionGraph = archivedExecutionGraphFuture.get();
         } catch (Exception e) {
@@ -128,7 +133,10 @@ public class AccumulatorCollector {
             return;
         }
         StringifiedAccumulatorResult[] accumulatorResult =
-                archivedExecutionGraph.getAccumulatorResultsStringified();
+                // archivedExecutionGraph.getAccumulatorResultsStringified();
+                archivedExecutionGraph
+                        .getArchivedExecutionGraph()
+                        .getAccumulatorResultsStringified();
         for (StringifiedAccumulatorResult result : accumulatorResult) {
             ValueAccumulator valueAccumulator = valueAccumulatorMap.get(result.getName());
             if (valueAccumulator != null) {

@@ -112,9 +112,9 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
         effectiveConfiguration.set(DeploymentOptions.ATTACHED, true);
         return effectiveConfiguration;
     }
-
+    // TODO
     @Override
-    protected Configuration getConfiguration() {
+    public Configuration getConfiguration() {
         return configuration;
     }
 

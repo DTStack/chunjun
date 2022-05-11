@@ -628,7 +628,8 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
                         ? ClusterEntrypoint.ExecutionMode.DETACHED
                         : ClusterEntrypoint.ExecutionMode.NORMAL;
 
-        flinkConfiguration.setString(ClusterEntrypoint.EXECUTION_MODE, executionMode.toString());
+        flinkConfiguration.setString(
+                ClusterEntrypoint.INTERNAL_CLUSTER_EXECUTION_MODE, executionMode.toString());
 
         ApplicationReport report =
                 startAppMaster(
@@ -1134,10 +1135,12 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
             List<Path> yarnAccessList =
                     ConfigUtils.decodeListFromConfig(
                             configuration, YarnConfigOptions.YARN_ACCESS, Path::new);
+            // TODO
             Utils.setTokensFor(
                     amContainer,
                     ListUtils.union(yarnAccessList, fileUploader.getRemotePaths()),
-                    yarnConfiguration);
+                    yarnConfiguration,
+                    true);
         }
 
         amContainer.setLocalResources(fileUploader.getRegisteredLocalResources());
@@ -1778,9 +1781,11 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 
     private static YarnConfigOptions.UserJarInclusion getUserJarInclusionMode(
             org.apache.flink.configuration.Configuration config) {
-        return config.getEnum(
-                YarnConfigOptions.UserJarInclusion.class,
-                YarnConfigOptions.CLASSPATH_INCLUDE_USER_JAR);
+        // TODO
+        //return config.getEnum(
+        //        YarnConfigOptions.UserJarInclusion.class,
+        //        YarnConfigOptions.CLASSPATH_INCLUDE_USER_JAR);
+        return null;
     }
 
     private static boolean isUsrLibDirIncludedInShipFiles(List<File> shipFiles) {

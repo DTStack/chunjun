@@ -20,7 +20,6 @@ package com.dtstack.flinkx.table.filesystem;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.core.fs.FileSystem;
 
 import java.io.IOException;
 import java.io.Serializable;

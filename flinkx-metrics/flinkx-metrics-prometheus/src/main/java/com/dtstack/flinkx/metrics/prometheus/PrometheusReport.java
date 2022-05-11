@@ -142,8 +142,10 @@ public class PrometheusReport extends CustomReporter {
     @Override
     public void registerMetric(Accumulator accumulator, String name) {
         name = Metrics.METRIC_GROUP_KEY_FLINKX + "_" + name;
+        // TODO  ReporterScopedSettings
         ReporterScopedSettings reporterScopedSettings =
-                new ReporterScopedSettings(0, ',', Collections.emptySet());
+                new ReporterScopedSettings(0, ',', Collections.emptySet(), null);
+
         FrontMetricGroup front =
                 new FrontMetricGroup<AbstractMetricGroup<?>>(
                         reporterScopedSettings, (AbstractMetricGroup) context.getMetricGroup());

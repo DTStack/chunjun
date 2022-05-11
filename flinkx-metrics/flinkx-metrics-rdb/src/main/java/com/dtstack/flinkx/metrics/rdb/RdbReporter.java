@@ -80,7 +80,7 @@ public abstract class RdbReporter extends CustomReporter {
         }
         accumulatorMap.put(name, accumulator);
         ReporterScopedSettings reporterScopedSettings =
-                new ReporterScopedSettings(0, ',', Collections.emptySet());
+                new ReporterScopedSettings(0, ',', Collections.emptySet(), null);
         FrontMetricGroup front =
                 new FrontMetricGroup<AbstractMetricGroup<?>>(
                         reporterScopedSettings, (AbstractMetricGroup) context.getMetricGroup());

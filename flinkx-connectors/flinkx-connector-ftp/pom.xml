@@ -24,7 +24,7 @@ under the License.
 	<parent>
 		<artifactId>flinkx-connectors</artifactId>
 		<groupId>com.dtstack.flinkx</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>1.15-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 

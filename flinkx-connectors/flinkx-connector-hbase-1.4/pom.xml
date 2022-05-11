@@ -22,7 +22,7 @@
 	<parent>
 		<artifactId>flinkx-connectors</artifactId>
 		<groupId>com.dtstack.flinkx</groupId>
-		<version>1.12-SNAPSHOT</version>
+		<version>1.15-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -138,7 +138,7 @@
 					<dependency>
 						<groupId>org.apache.flink</groupId>
 						<artifactId>flink-connector-hbase-1.4_2.12</artifactId>
-						<version>1.12.2</version>
+						<version>${flink.version}</version>
 					</dependency>
 				</dependencies>
 			</plugin>
