@@ -27,6 +27,7 @@ import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.metrics.AccumulatorCollector;
 import com.dtstack.flinkx.metrics.BaseMetric;
 import com.dtstack.flinkx.metrics.CustomReporter;
+import com.dtstack.flinkx.metrics.RowSizeCalculator;
 import com.dtstack.flinkx.restore.FormatState;
 import com.dtstack.flinkx.source.ByteRateLimiter;
 import com.dtstack.flinkx.throwable.ReadRecordException;
@@ -45,7 +46,6 @@ import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
 
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,6 +91,8 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     protected transient CustomReporter customReporter;
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
+    /** 对象大小计算器 */
+    protected RowSizeCalculator rowSizeCalculator;
     /** checkpoint状态缓存map */
     protected FormatState formatState;
 
@@ -147,6 +149,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
         if (!initialized) {
             initAccumulatorCollector();
+            initRowSizeCalculator();
             initStatisticsAccumulator();
             initByteRateLimiter();
             initRestoreInfo();
@@ -199,7 +202,7 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
                 numReadCounter.add(1);
             }
             if (bytesReadCounter != null) {
-                bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(internalRow));
+                bytesReadCounter.add(rowSizeCalculator.getObjectSize(internalRow));
             }
         }
 
@@ -274,6 +277,12 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
                                 lastWriteLocation,
                                 lastWriteNum));
         accumulatorCollector.start();
+    }
+
+    /** 初始化对象大小计算器 */
+    private void initRowSizeCalculator() {
+        rowSizeCalculator =
+                RowSizeCalculator.getRowSizeCalculator(config.getRowSizeCalculatorType());
     }
 
     /** 初始化速率限制器 */

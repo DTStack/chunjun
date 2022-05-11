@@ -32,6 +32,8 @@ public class MetricPluginConf implements Serializable {
 
     private String pluginName = "prometheus";
 
+    private String rowSizeCalculatorType = "objectSizeCalculator";
+
     private Map<String, Object> pluginProp;
 
     public String getPluginName() {
@@ -40,6 +42,14 @@ public class MetricPluginConf implements Serializable {
 
     public void setPluginName(String pluginName) {
         this.pluginName = pluginName;
+    }
+
+    public String getRowSizeCalculatorType() {
+        return rowSizeCalculatorType;
+    }
+
+    public void setRowSizeCalculatorType(String rowSizeCalculatorType) {
+        this.rowSizeCalculatorType = rowSizeCalculatorType;
     }
 
     public Map<String, Object> getPluginProp() {
