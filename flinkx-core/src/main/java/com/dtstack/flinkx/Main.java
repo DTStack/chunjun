@@ -21,6 +21,7 @@ import com.dtstack.flinkx.cdc.CdcConf;
 import com.dtstack.flinkx.cdc.RestorationFlatMap;
 import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
 import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
+import com.dtstack.flinkx.conf.OperatorConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
 import com.dtstack.flinkx.constants.ConstantValue;
@@ -37,6 +38,7 @@ import com.dtstack.flinkx.sink.SinkFactory;
 import com.dtstack.flinkx.source.SourceFactory;
 import com.dtstack.flinkx.sql.parser.SqlParser;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
+import com.dtstack.flinkx.throwable.JobConfigException;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
 import com.dtstack.flinkx.util.ExecuteProcessHelper;
 import com.dtstack.flinkx.util.FactoryHelper;
@@ -243,6 +245,8 @@ public class Main {
         Table sourceTable =
                 tableEnv.fromDataStream(
                         sourceDataStream, expressionList.toArray(new Expression[0]));
+
+        checkTableConf(config.getReader());
         tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
 
         String transformSql = config.getJob().getTransformer().getTransformSql();
@@ -254,6 +258,8 @@ public class Main {
                 TableUtil.getTypeInformation(tableDataTypes, tableFieldNames);
         DataStream<RowData> dataStream =
                 tableEnv.toRetractStream(adaptTable, typeInformation).map(f -> f.f1);
+
+        checkTableConf(config.getWriter());
         tableEnv.createTemporaryView(config.getWriter().getTable().getTableName(), dataStream);
 
         return dataStream;
@@ -330,5 +336,19 @@ public class Main {
             TableFactoryService.setFactoryUtilHelp(factoryHelper);
         }
         PluginUtil.registerShipfileToCachedFile(options.getAddShipfile(), env);
+    }
+
+    /**
+     * Check required config item.
+     *
+     * @param operatorConf
+     */
+    private static void checkTableConf(OperatorConf operatorConf) {
+        if (operatorConf.getTable() == null) {
+            throw new JobConfigException(operatorConf.getName(), "table", "is missing");
+        }
+        if (StringUtils.isEmpty(operatorConf.getTable().getTableName())) {
+            throw new JobConfigException(operatorConf.getName(), "table.tableName", "is missing");
+        }
     }
 }
