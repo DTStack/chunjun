@@ -43,6 +43,7 @@ public class MysqlRawTypeConverter {
             case "FLOAT UNSIGNED":
                 return DataTypes.FLOAT();
             case "DECIMAL":
+            case "DECIMAL128":
             case "DECIMAL UNSIGNED":
             case "NUMERIC":
                 return DataTypes.DECIMAL(38, 18);
