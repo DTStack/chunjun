@@ -24,7 +24,9 @@ import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.ReadRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
+
 import org.apache.flink.table.data.RowData;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigInteger;
@@ -50,9 +52,9 @@ public class SqlserverInputFormat extends JdbcInputFormat {
      * 构建边界位置sql
      *
      * @param incrementColType 增量字段类型
-     * @param incrementCol     增量字段名称
-     * @param location         边界位置(起始/结束)
-     * @param operator         判断符( >, >=, <)
+     * @param incrementCol 增量字段名称
+     * @param location 边界位置(起始/结束)
+     * @param operator 判断符( >, >=, <)
      * @return
      */
     @Override
@@ -210,7 +212,7 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                                                                 (byte[])
                                                                         resultSet.getObject(
                                                                                 jdbcConf
-                                                                                        .getRestoreColumnIndex()
+                                                                                                .getRestoreColumnIndex()
                                                                                         + 1))
                                                         .getLong()));
                         break;
@@ -231,7 +233,7 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                                                             (byte[])
                                                                     resultSet.getObject(
                                                                             jdbcConf
-                                                                                    .getRestoreColumnIndex()
+                                                                                            .getRestoreColumnIndex()
                                                                                     + 1))
                                                     .getLong()));
                 }
@@ -253,7 +255,7 @@ public class SqlserverInputFormat extends JdbcInputFormat {
      * Returns true if the connection has not been closed and is still valid.
      *
      * @param connection jdbc connection
-     * @param timeOut    The time in seconds to wait for the database operation.
+     * @param timeOut The time in seconds to wait for the database operation.
      */
     public boolean isValid(Connection connection, int timeOut) {
         try {

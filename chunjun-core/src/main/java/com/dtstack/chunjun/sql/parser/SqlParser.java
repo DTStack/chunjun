@@ -20,6 +20,7 @@ package com.dtstack.chunjun.sql.parser;
 
 import com.dtstack.chunjun.throwable.ChunJunSqlParseException;
 import com.dtstack.chunjun.util.DtStringUtil;
+import com.dtstack.chunjun.util.PwdUtil;
 import com.dtstack.chunjun.util.Splitter;
 
 import org.apache.flink.table.api.StatementSet;
@@ -67,7 +68,8 @@ public class SqlParser {
                             try {
                                 stmtParser.handleStmt(stmt, tableEnvironment, statement, urlList);
                             } catch (Exception e) {
-                                throw new ChunJunSqlParseException(stmt, e.getMessage(), e);
+                                throw new ChunJunSqlParseException(
+                                        PwdUtil.desensitization(stmt), e.getMessage(), e);
                             }
                         });
 

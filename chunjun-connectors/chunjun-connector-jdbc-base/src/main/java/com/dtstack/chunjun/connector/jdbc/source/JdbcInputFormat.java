@@ -37,12 +37,12 @@ import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.StringUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -530,7 +530,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * 判断增量任务是否还能继续读取数据 增量任务，startLocation = endLocation且两者都不为null，返回false，其余情况返回true
      *
      * @param jdbcInputSplit 数据分片
-     *
      * @return
      */
     protected boolean canReadData(JdbcInputSplit jdbcInputSplit) {
@@ -551,7 +550,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * 构造查询sql
      *
      * @param inputSplit 数据切片
-     *
      * @return 构建的sql字符串
      */
     protected String buildQuerySql(InputSplit inputSplit) {
@@ -581,7 +579,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @param incrementCol 增量字段名称
      * @param startLocation 开始位置
      * @param useMaxFunc 是否保存结束位置数据
-     *
      * @return
      */
     public String buildStartLocationSql(
@@ -612,7 +609,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @param incrementCol 增量字段名称
      * @param location 边界位置(起始/结束)
      * @param operator 判断符( >, >=, <)
-     *
      * @return
      */
     protected String getLocationSql(
@@ -640,7 +636,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * 构建时间边界字符串
      *
      * @param location 边界位置(起始/结束)
-     *
      * @return
      */
     protected String getTimeStr(Long location) {
@@ -658,7 +653,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * 增量轮询查询
      *
      * @param startLocation
-     *
      * @throws SQLException
      */
     protected void queryForPolling(String startLocation) throws SQLException {
@@ -842,7 +836,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * 执行查询
      *
      * @param startLocation
-     *
      * @throws SQLException
      */
     protected void executeQuery(String startLocation) throws SQLException {

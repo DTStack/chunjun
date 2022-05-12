@@ -22,6 +22,7 @@ import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -55,12 +56,13 @@ public class SqlUtil {
         } else {
             // rowNum字段作为splitKey
             if (isRowNumSplitKey(jdbcConf.getSplitPk())) {
-                String customTableBuilder = "SELECT " +
-                        getRowNumColumn(jdbcConf.getSplitPk(), jdbcDialect) +
-                        " FROM " +
-                        jdbcDialect.buildTableInfoWithSchema(
-                                jdbcConf.getSchema(), jdbcConf.getTable()) +
-                        whereFilter;
+                String customTableBuilder =
+                        "SELECT "
+                                + getRowNumColumn(jdbcConf.getSplitPk(), jdbcDialect)
+                                + " FROM "
+                                + jdbcDialect.buildTableInfoWithSchema(
+                                        jdbcConf.getSchema(), jdbcConf.getTable())
+                                + whereFilter;
 
                 querySplitRangeSql =
                         String.format(
@@ -82,9 +84,7 @@ public class SqlUtil {
         return querySplitRangeSql;
     }
 
-    /**
-     * create querySql for inputSplit *
-     */
+    /** create querySql for inputSplit * */
     public static String buildQuerySqlBySplit(
             JdbcConf jdbcConf,
             JdbcDialect jdbcDialect,
@@ -180,9 +180,7 @@ public class SqlUtil {
                 && splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
     }
 
-    /**
-     * 获取分片key rownum *
-     */
+    /** 获取分片key rownum * */
     public static String getRowNumColumn(String splitKey, JdbcDialect jdbcDialect) {
         String orderBy =
                 splitKey.substring(
