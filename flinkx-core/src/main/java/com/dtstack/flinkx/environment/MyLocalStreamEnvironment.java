@@ -112,11 +112,6 @@ public class MyLocalStreamEnvironment extends StreamExecutionEnvironment {
         effectiveConfiguration.set(DeploymentOptions.ATTACHED, true);
         return effectiveConfiguration;
     }
-    // TODO
-    // @Override
-    // public Configuration getConfiguration() {
-    //    return configuration;
-    // }
 
     /**
      * Executes the JobGraph of the on a mini cluster of CLusterUtil with a user specified name.

@@ -25,6 +25,7 @@ import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.table.api.TableColumn;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -76,9 +77,14 @@ public class TableUtil {
      */
     public static TypeInformation<RowData> getTypeInformation(
             DataType[] dataTypes, String[] fieldNames) {
-        // return InternalTypeInfo.of(getRowType(dataTypes, fieldNames));
-        // TODO
-        return null;
+        RowType type =
+                RowType.of(
+                        Arrays.stream(dataTypes)
+                                .map(DataType::getLogicalType)
+                                .toArray(LogicalType[]::new),
+                        fieldNames);
+        // TODO 1.15 包的位置改变了 @wujuan
+        return InternalTypeInfo.of(getRowType(dataTypes, fieldNames));
     }
 
     /**

@@ -1135,7 +1135,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
             List<Path> yarnAccessList =
                     ConfigUtils.decodeListFromConfig(
                             configuration, YarnConfigOptions.YARN_ACCESS, Path::new);
-            // TODO
+            // TODO Token 开启委派 @wujuan
             Utils.setTokensFor(
                     amContainer,
                     ListUtils.union(yarnAccessList, fileUploader.getRemotePaths()),
@@ -1781,11 +1781,9 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 
     private static YarnConfigOptions.UserJarInclusion getUserJarInclusionMode(
             org.apache.flink.configuration.Configuration config) {
-        // TODO
-        // return config.getEnum(
-        //        YarnConfigOptions.UserJarInclusion.class,
-        //        YarnConfigOptions.CLASSPATH_INCLUDE_USER_JAR);
-        return null;
+        //  TODO   flink 1.12 --> flink 1.15  @wujuan
+        //  yarn.per-job-cluster.include-user-jar  -->  yarn.classpath.include-user-jar
+        return config.get(YarnConfigOptions.CLASSPATH_INCLUDE_USER_JAR);
     }
 
     private static boolean isUsrLibDirIncludedInShipFiles(List<File> shipFiles) {

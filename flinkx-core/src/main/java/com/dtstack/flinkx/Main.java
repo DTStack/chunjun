@@ -85,29 +85,28 @@ import java.util.Properties;
  */
 public class Main {
 
-    public static Logger LOG = LoggerFactory.getLogger(Main.class);
+    public static Logger log = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
-        LOG.info("------------program params-------------------------");
-        Arrays.stream(args).forEach(arg -> LOG.info("{}", arg));
-        LOG.info("-------------------------------------------");
+        log.info("------------program params-------------------------");
+        Arrays.stream(args).forEach(arg -> log.info("{}", arg));
+        log.info("-------------------------------------------");
 
         Options options = new OptionParser(args).getOptions();
         String job = URLDecoder.decode(options.getJob(), StandardCharsets.UTF_8.name());
-        String replacedJob = JobUtil.replaceJobParameter(options.getP(), job);
         Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
         StreamExecutionEnvironment env = EnvFactory.createStreamExecutionEnvironment(options);
         StreamTableEnvironment tEnv =
                 EnvFactory.createStreamTableEnvironment(env, confProperties, options.getJobName());
-        LOG.info(
+        log.info(
                 "Register to table configuration:{}",
                 tEnv.getConfig().getConfiguration().toString());
         switch (EJobType.getByName(options.getJobType())) {
             case SQL:
-                exeSqlJob(env, tEnv, replacedJob, options);
+                exeSqlJob(env, tEnv, job, options);
                 break;
             case SYNC:
-                exeSyncJob(env, tEnv, replacedJob, options);
+                exeSyncJob(env, tEnv, job, options);
                 break;
             default:
                 throw new FlinkxRuntimeException(
@@ -116,7 +115,7 @@ public class Main {
                                 + "], jobType must in [SQL, SYNC].");
         }
 
-        LOG.info("program {} execution success", options.getJobName());
+        log.info("program {} execution success", options.getJobName());
     }
 
     /**
@@ -147,6 +146,7 @@ public class Main {
         } catch (Exception e) {
             throw new FlinkxRuntimeException(e);
         } finally {
+            // TODO
             FactoryUtil.getFactoryHelperThreadLocal().remove();
             TableFactoryService.getFactoryHelperThreadLocal().remove();
         }

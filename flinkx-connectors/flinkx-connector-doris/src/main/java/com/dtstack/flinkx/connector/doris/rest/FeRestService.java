@@ -28,7 +28,7 @@ import com.dtstack.flinkx.connector.doris.rest.module.QueryPlan;
 import com.dtstack.flinkx.connector.doris.rest.module.Schema;
 import com.dtstack.flinkx.connector.doris.rest.module.Tablet;
 
-import org.apache.flink.shaded.guava18.com.google.common.annotations.VisibleForTesting;
+import org.apache.flink.shaded.guava30.com.google.common.annotations.VisibleForTesting;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
