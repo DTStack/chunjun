@@ -78,7 +78,8 @@ public class AccumulatorCollector {
         this.period =
                 ((TaskManagerConfiguration) context.getTaskManagerRuntimeInfo())
                                 .getRpcTimeout()
-                                // .getTimeout() TODO
+                                // .getTimeout() TODO  1.15 超时时间分离 slot timeout 和 rpc timeout
+                                // @wujuan
                                 .toMilliseconds()
                         + 1000;
         RpcGlobalAggregateManager globalAggregateManager =
