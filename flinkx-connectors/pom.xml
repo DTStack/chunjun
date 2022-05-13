@@ -18,16 +18,16 @@
 	</properties>
 
 	<modules>
-<!--		&lt;!&ndash;mock & print&ndash;&gt;-->
-<!--		<module>flinkx-connector-stream</module>-->
+		<!--mock & print-->
+		<module>flinkx-connector-stream</module>
 
 <!--		&lt;!&ndash;MQ&ndash;&gt;-->
 <!--		<module>flinkx-connector-kafka</module>-->
 <!--		<module>flinkx-connector-emqx</module>-->
 
-<!--		&lt;!&ndash;RDB&ndash;&gt;-->
-<!--		<module>flinkx-connector-jdbc-base</module>-->
-<!--		<module>flinkx-connector-mysql</module>-->
+		<!--RDB-->
+		<module>flinkx-connector-jdbc-base</module>
+		<module>flinkx-connector-mysql</module>
 <!--		<module>flinkx-connector-oracle</module>-->
 <!--		<module>flinkx-connector-sqlserver</module>-->
 <!--		<module>flinkx-connector-db2</module>-->

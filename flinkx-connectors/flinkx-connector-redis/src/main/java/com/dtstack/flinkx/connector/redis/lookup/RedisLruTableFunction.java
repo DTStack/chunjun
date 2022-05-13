@@ -30,7 +30,7 @@ import com.dtstack.flinkx.lookup.conf.LookupConf;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.functions.FunctionContext;
 
-import org.apache.flink.shaded.curator4.com.google.common.collect.Lists;
+import org.apache.flink.shaded.curator5.com.google.common.collect.Lists;
 
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisHashAsyncCommands;
