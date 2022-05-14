@@ -698,7 +698,7 @@ public final class FactoryUtil {
         }
     }
 
-    private static class DefaultDynamicTableContext implements DynamicTableFactory.Context {
+    public static class DefaultDynamicTableContext implements DynamicTableFactory.Context {
 
         private final ObjectIdentifier objectIdentifier;
         private final ResolvedCatalogTable catalogTable;
@@ -706,7 +706,7 @@ public final class FactoryUtil {
         private final ClassLoader classLoader;
         private final boolean isTemporary;
 
-        DefaultDynamicTableContext(
+        public DefaultDynamicTableContext(
                 ObjectIdentifier objectIdentifier,
                 ResolvedCatalogTable catalogTable,
                 ReadableConfig configuration,

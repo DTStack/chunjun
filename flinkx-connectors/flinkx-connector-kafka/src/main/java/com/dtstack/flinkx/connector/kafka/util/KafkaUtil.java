@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.kafka.util;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.util.ReflectionUtils;
-
 import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.streaming.connectors.kafka.internals.AbstractFetcher;
@@ -28,10 +27,13 @@ import org.apache.flink.streaming.connectors.kafka.internals.KafkaConsumerThread
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartitionState;
 import org.apache.flink.streaming.connectors.kafka.internals.metrics.KafkaConsumerMetricConstants;
-import org.apache.flink.streaming.connectors.kafka.table.KafkaOptions;
+//import org.apache.flink.streaming.connectors.kafka.table.KafkaOptions;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptionsUtil;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+
+
 import org.apache.kafka.clients.consumer.internals.SubscriptionState;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.requests.IsolationLevel;
@@ -101,15 +103,17 @@ public class KafkaUtil {
         final Properties kafkaProperties = new Properties();
         boolean hasKafkaClientProperties =
                 tableOptions.keySet().stream()
-                        .anyMatch(k -> k.startsWith(KafkaOptions.PROPERTIES_PREFIX));
+                        //.anyMatch(k -> k.startsWith(KafkaOptions.PROPERTIES_PREFIX));
+                         .anyMatch(k -> k.startsWith(KafkaConnectorOptionsUtil.PROPERTIES_PREFIX));
+
         if (hasKafkaClientProperties) {
             tableOptions.keySet().stream()
-                    .filter(key -> key.startsWith(KafkaOptions.PROPERTIES_PREFIX))
+                    .filter(key -> key.startsWith(KafkaConnectorOptionsUtil.PROPERTIES_PREFIX))
                     .forEach(
                             key -> {
                                 final String value = tableOptions.get(key);
                                 final String subKey =
-                                        key.substring((KafkaOptions.PROPERTIES_PREFIX).length());
+                                        key.substring((KafkaConnectorOptionsUtil.PROPERTIES_PREFIX).length());
                                 kafkaProperties.put(subKey, value);
                             });
             String keyDeserializer = tableOptions.get("key.deserializer");

@@ -335,7 +335,8 @@ public class KafkaDynamicSource
                                         Stream.of(KafkaDynamicSource.ReadableMetadata.values())
                                                 .filter(rm -> rm.key.equals(k))
                                                 .findFirst()
-                                                .orElseThrow(IllegalStateException::new))
+                                                //.orElseThrow(IllegalStateException::new))
+                                                .<IllegalStateException>orElseThrow(()->new IllegalStateException()))
                         .map(m -> m.converter)
                         .toArray(DynamicKafkaDeserializationSchema.MetadataConverter[]::new);
 
@@ -356,8 +357,7 @@ public class KafkaDynamicSource
                         .toArray();
 
         final KafkaConsumerWrapper kafkaConsumerWrapper =
-                new KafkaConsumerFactory()
-                        .createKafkaConsumer(
+                new KafkaConsumerFactory().createKafkaConsumer(
                                 topics,
                                 adjustedPhysicalArity,
                                 keyDeserialization,
@@ -370,6 +370,7 @@ public class KafkaDynamicSource
                                 upsertMode,
                                 properties,
                                 topicPattern);
+
 
         switch (startupMode) {
             case EARLIEST:
@@ -565,4 +566,5 @@ public class KafkaDynamicSource
             return kafkaConsumerWrapper;
         }
     }
+
 }

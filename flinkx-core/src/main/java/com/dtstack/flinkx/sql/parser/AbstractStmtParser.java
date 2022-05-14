@@ -19,6 +19,7 @@
 package com.dtstack.flinkx.sql.parser;
 
 import org.apache.flink.table.api.StatementSet;
+import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import java.net.URL;
@@ -48,11 +49,14 @@ public abstract class AbstractStmtParser {
             List<URL> jarUrlList) {
         if (canHandle(stmt)) {
             execStmt(stmt, tEnv, statementSet, jarUrlList);
+            //UploadFileStmtParser       Nothing to  do
+            //CreateFunctionStmtParser   register scalar function:{udf} success.
+            //InsertStmtParser          statementSet.addInsertSql(sql);
         } else if (nextStmtParser != null) {
             nextStmtParser.handleStmt(stmt, tEnv, statementSet, jarUrlList);
         } else {
             // Iff all StmtParser can not handle.
-            tEnv.executeSql(stmt);
+            tEnv.executeSql(stmt);  //执行create table source/sink/view
         }
     }
 
