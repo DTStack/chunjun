@@ -241,7 +241,7 @@ public class Main {
         // Table sourceTable =
         //        tableEnv.fromDataStream(
         //                sourceDataStream, expressionList.toArray(new Expression[0]));
-        //checkTableConf(config.getReader());
+        // checkTableConf(config.getReader());
         Table sourceTable = tableEnv.fromDataStream(sourceDataStream);
         tableEnv.createTemporaryView(config.getReader().getTable().getTableName(), sourceTable);
 
@@ -255,7 +255,7 @@ public class Main {
         DataStream<RowData> dataStream =
                 tableEnv.toRetractStream(adaptTable, typeInformation).map(f -> f.f1);
 
-        //checkTableConf(config.getWriter());
+        // checkTableConf(config.getWriter());
         tableEnv.createTemporaryView(config.getWriter().getTable().getTableName(), dataStream);
 
         return dataStream;
@@ -339,12 +339,13 @@ public class Main {
      *
      * @param operatorConf
      */
-    //private static void checkTableConf(OperatorConf operatorConf) {
+    // private static void checkTableConf(OperatorConf operatorConf) {
     //    if (operatorConf.getTable() == null) {
     //        //throw new JobConfigException(operatorConf.getName(), "table", "is missing");
     //    }
     //    if (StringUtils.isEmpty(operatorConf.getTable().getTableName())) {
-    //        //throw new JobConfigException(operatorConf.getName(), "table.tableName", "is missing");
+    //        //throw new JobConfigException(operatorConf.getName(), "table.tableName", "is
+    // missing");
     //    }
-    //}
+    // }
 }
