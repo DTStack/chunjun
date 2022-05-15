@@ -101,7 +101,7 @@ Oracle 9 and above
     <br />
 
 - **batchSize**
-  - Description:The number of records submitted in batch at one time. This value can greatly reduce the number of network interactions between flinkx and the database and improve the overall throughput,Setting this value too large may cause the flinkx process to run oom
+  - Description:The number of records submitted in batch at one time. This value can greatly reduce the number of network interactions between chunjun and the database and improve the overall throughput,Setting this value too large may cause the chunjun process to run oom
   - Required:optional
   - Type:int
   - Default:1024
@@ -214,4 +214,4 @@ Attention:Oracle numeric data may lose precision during conversion due to the li
 
 
 ## 6、Demo
-see details in `flinkx-examples` dir of project flinkx.
+see details in `chunjun-examples` dir of project chunjun.

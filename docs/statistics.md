@@ -1,4 +1,4 @@
-FlinkX使用了flink内置Accumulator和Metric来记录任务的一些统计指标：
+ChunJun使用了flink内置Accumulator和Metric来记录任务的一些统计指标：
 
 | 指标名称             | 含义          |
 | ---------------- | ----------- |
@@ -145,17 +145,17 @@ metrics.reporter.promgateway.deleteOnShutdown: false
 
 通过prometheus获取数据时的名称为：
 
-| FlinkX中指标名称      | prometheus中指标名称                                             |
+| ChunJun中指标名称      | prometheus中指标名称                                             |
 | ---------------- | ----------------------------------------------------------- |
-| numRead          | flink_taskmanager_job_task_operator_flinkx_byteRead         |
-| byteRead         | flink_taskmanager_job_task_operator_flinkx_byteRead         |
-| readDuration     | flink_taskmanager_job_task_operator_flinkx_readDuration     |
+| numRead          | flink_taskmanager_job_task_operator_chunjun_byteRead         |
+| byteRead         | flink_taskmanager_job_task_operator_chunjun_byteRead         |
+| readDuration     | flink_taskmanager_job_task_operator_chunjun_readDuration     |
 |                  |                                                             |
-| numWrite         | flink_taskmanager_job_task_operator_flinkx_numWrite         |
-| byteWrite        | flink_taskmanager_job_task_operator_flinkx_byteWrite        |
-| writeDuration    | flink_taskmanager_job_task_operator_flinkx_writeDuration    |
-| nErrors          | flink_taskmanager_job_task_operator_flinkx_nErrors          |
-| nullErrors       | flink_taskmanager_job_task_operator_flinkx_nullErrors       |
-| duplicateErrors  | flink_taskmanager_job_task_operator_flinkx_duplicateErrors  |
-| conversionErrors | flink_taskmanager_job_task_operator_flinkx_conversionErrors |
-| otherErrors      | flink_taskmanager_job_task_operator_flinkx_otherErrors      |
+| numWrite         | flink_taskmanager_job_task_operator_chunjun_numWrite         |
+| byteWrite        | flink_taskmanager_job_task_operator_chunjun_byteWrite        |
+| writeDuration    | flink_taskmanager_job_task_operator_chunjun_writeDuration    |
+| nErrors          | flink_taskmanager_job_task_operator_chunjun_nErrors          |
+| nullErrors       | flink_taskmanager_job_task_operator_chunjun_nullErrors       |
+| duplicateErrors  | flink_taskmanager_job_task_operator_chunjun_duplicateErrors  |
+| conversionErrors | flink_taskmanager_job_task_operator_chunjun_conversionErrors |
+| otherErrors      | flink_taskmanager_job_task_operator_chunjun_otherErrors      |

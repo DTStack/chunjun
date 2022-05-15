@@ -267,7 +267,7 @@ UPDATE [dbo]. [kudu] SET [user_id] = '3', [name] = 'c' WHERE [id] = 2;
 <img src="../../images/SqlserverCDC/Sqlserver15.png" />
 </div>
 <br/>
-For FlinkX SqlServer CDC real-time collection plug-in, the basic principle is to call the fn_cdc_get_all_changes_ function in a polling manner, cyclically, to get the data between the last ending lsn and the current maximum lsn value of the database. For insert/delete types, it gets and parses one row, and for update types, it gets and parses two rows. After parsing, pass the data to the downstream and record the lsn of the current parsed data to prepare for the next polling.
+For ChunJun SqlServer CDC real-time collection plug-in, the basic principle is to call the fn_cdc_get_all_changes_ function in a polling manner, cyclically, to get the data between the last ending lsn and the current maximum lsn value of the database. For insert/delete types, it gets and parses one row, and for update types, it gets and parses two rows. After parsing, pass the data to the downstream and record the lsn of the current parsed data to prepare for the next polling.
 
 #### 4. Data format
 

@@ -109,4 +109,4 @@ Elasticsearch 5.x
 
 # 六、Sample demo
 
-See the 'demo' folder in the 'FlinkX: Local: Test' module of the project.
+See the 'demo' folder in the 'ChunJun: Local: Test' module of the project.

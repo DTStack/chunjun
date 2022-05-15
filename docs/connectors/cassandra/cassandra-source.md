@@ -48,7 +48,7 @@ Cassandra主流版本
     - 描述：Cassandra cluster name
     - 必选：否
     - 参数类型：string
-    - 默认值：flinkx-cluster
+    - 默认值：chunjun-cluster
       <br />
 
 - **consistency**
@@ -151,7 +151,7 @@ Cassandra主流版本
     - 描述：Cassandra cluster name
     - 必选：否
     - 参数类型：string
-    - 默认值：flinkx-cluster
+    - 默认值：chunjun-cluster
       <br />
 
 - **consistency**
@@ -221,4 +221,4 @@ Cassandra主流版本
 
 ## 六、脚本示例
 
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。

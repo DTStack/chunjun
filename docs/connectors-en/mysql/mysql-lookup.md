@@ -98,4 +98,4 @@ mysql5.x
 
 
 ## 6. Profile Demo
-see`flinkx-examples`directory.
+see`chunjun-examples`directory.

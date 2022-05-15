@@ -137,5 +137,5 @@ Postgres 10.0+
 
 
 ## Ⅶ、Script example
-See the `flinkx-examples` folder in the project.
+See the `chunjun-examples` folder in the project.
 

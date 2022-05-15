@@ -146,4 +146,4 @@ Elasticsearch 7.x
 | 不支持 | IP，binary, nested, object|
 
 # 六、脚本示例
-见项目内FlinkX：Local：Test模块中的demo文件夹。
+见项目内ChunJun：Local：Test模块中的demo文件夹。

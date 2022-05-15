@@ -111,4 +111,4 @@ Elasticsearch 7.x
 |  | VARCHAR |
 
 # 六、脚本示例
-见项目内FlinkX：Local：Test模块中的demo文件夹。
+见项目内ChunJun：Local：Test模块中的demo文件夹。

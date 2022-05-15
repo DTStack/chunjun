@@ -196,4 +196,4 @@ Hadoop 2.x、Hadoop 3.x
 
 
 ## Ⅵ、Script example
-See the `flinkx-examples` folder in the project.
+See the `chunjun-examples` folder in the project.
