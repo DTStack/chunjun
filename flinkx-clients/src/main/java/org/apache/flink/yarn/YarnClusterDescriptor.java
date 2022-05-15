@@ -1782,8 +1782,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 //        return config.getEnum(
 //                YarnConfigOptions.UserJarInclusion.class,
 //                YarnConfigOptions.CLASSPATH_INCLUDE_USER_JAR);
-        return config.getEnum( null,
-               null);
+        return config.get(YarnConfigOptions.CLASSPATH_INCLUDE_USER_JAR);
     }
 
     private static boolean isUsrLibDirIncludedInShipFiles(List<File> shipFiles) {
