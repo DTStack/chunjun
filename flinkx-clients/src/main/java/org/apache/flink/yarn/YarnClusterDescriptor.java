@@ -1779,9 +1779,6 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
 
     private static YarnConfigOptions.UserJarInclusion getUserJarInclusionMode(
             org.apache.flink.configuration.Configuration config) {
-//        return config.getEnum(
-//                YarnConfigOptions.UserJarInclusion.class,
-//                YarnConfigOptions.CLASSPATH_INCLUDE_USER_JAR);
         return config.get(YarnConfigOptions.CLASSPATH_INCLUDE_USER_JAR);
     }
 
