@@ -8,7 +8,7 @@
 	<artifactId>flinkx-parent</artifactId>
 	<name>FlinkX</name>
 	<packaging>pom</packaging>
-	<version>1.12-SNAPSHOT</version>
+	<version>1.14-SNAPSHOT</version>
 
 	<modules>
 		<module>flinkx-core</module>
