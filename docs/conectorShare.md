@@ -1,11 +1,11 @@
 # connector 共用
 
-**NOTE:新版flinkX支持connector和flinkSql自带的connector共用。**
+**NOTE:新版chunjun支持connector和flinkSql自带的connector共用。**
 
-## 在flinkX中使用flinkSql的connector
+## 在chunjun中使用flinkSql的connector
 - **本地调试**
-    - 在`flinkx-local-test`模块下将对应的flink connector的GAV拷贝到pom.xml文件中
-    - 将flinkX中的connector的GAV拷贝到pom.xml文件中(部分flink connector已经通过flinkx connector引入,如果是则上一步省略)
+    - 在`chunjun-local-test`模块下将对应的flink connector的GAV拷贝到pom.xml文件中
+    - 将chunjun中的connector的GAV拷贝到pom.xml文件中(部分flink connector已经通过chunjun connector引入,如果是则上一步省略)
     - 在LocalTest类中指定参数运行即可
       sql:
       ```sql
@@ -65,36 +65,36 @@
           </exclusions>
       </dependency>
       <dependency>
-          <groupId>com.dtstack.flinkx</groupId>
-          <artifactId>flinkx-connector-stream</artifactId>
+          <groupId>com.dtstack.chunjun</groupId>
+          <artifactId>chunjun-connector-stream</artifactId>
           <version>1.12-SNAPSHOT</version>
       </dependency>
       ```
 <br />  
       
 - **服务器上运行:**
-    - 1.将需要的connector的jar包，和其他(包括flinkx-core-feat_1.12_pluginMerge.jar，如果kafka中用到了json也需要将json的format jar包)拷贝到flinkx/lib目录下,构建jobGraph使用
-    - 2.将需要的connector的jar包，和其他(包括flinkx-core-feat_1.12_pluginMerge.jar，如果kafka中用到了json也需要将json的format jar包)拷贝到flink/lib下
-    - 3.在在flinkx/lib下目录下执行命令：
+    - 1.将需要的connector的jar包，和其他(包括chunjun-core-feat_1.12_pluginMerge.jar，如果kafka中用到了json也需要将json的format jar包)拷贝到chunjun/lib目录下,构建jobGraph使用
+    - 2.将需要的connector的jar包，和其他(包括chunjun-core-feat_1.12_pluginMerge.jar，如果kafka中用到了json也需要将json的format jar包)拷贝到flink/lib下
+    - 3.在在chunjun/lib下目录下执行命令：
       - local模式
       ```shell
-      java -cp  "./*" com.dtstack.flinkx.client.Launcher \
+      java -cp  "./*" com.dtstack.chunjun.client.Launcher \
       -mode local \
       -jobType sql \
       -jobName flink1.12_SPI \
       -job /yourjobpath/sqlFile.sql \
-      -flinkxDistDir /flinkx/flinkx-dist
+      -chunjunDistDir /chunjun/chunjun-dist
       ```
       ![conectorShare_local.png](images/conectorShare_local.png)
         
       - yarnPer模式
       ```shell
-      java -cp  "./*" com.dtstack.flinkx.client.Launcher \
+      java -cp  "./*" com.dtstack.chunjun.client.Launcher \
       -mode yarnPer \
       -jobType sql \
       -jobName flink1.12_SPI \
       -job /yourjobpath/sqlFile.sql \
-      -flinkxDistDir /flinkx/flinkx-dist \
+      -chunjunDistDir /chunjun/chunjun-dist \
       -flinkConfDir /flink/conf \
       -hadoopConfDir /hadoop/etc \
       -flinkLibDir /flink/lib \
@@ -102,10 +102,10 @@
       ```
       ![conectorShare_yarnPer.png](images/conectorShare_yarnPer.png)
       ![conectorShare_yarn.png](images/conectorShare_yarn.png)
-## 在flinkSql中使用flinkX的connector
+## 在flinkSql中使用chunjun的connector
 - **本地调试**
     - 在自己项目中将对应的flink connector的GAV拷贝到pom.xml文件中
-    - 将flinkX中的core和connector的GAV拷贝到pom.xml文件中(需要先deploy项目)
+    - 将chunjun中的core和connector的GAV拷贝到pom.xml文件中(需要先deploy项目)
     - 运行自己的任务
     sql:
     ```sql
@@ -159,17 +159,17 @@
             <version>1.12.2</version>
         </dependency>
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-core</artifactId>
+            <groupId>com.dtstack.chunjun</groupId>
+            <artifactId>chunjun-core</artifactId>
             <version>1.12-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-connector-stream</artifactId>
+            <groupId>com.dtstack.chunjun</groupId>
+            <artifactId>chunjun-connector-stream</artifactId>
             <version>1.12-SNAPSHOT</version>
         </dependency>
     ```
 <br />
       
 - **服务器上运行:**
-    - 将flink需要的connector和flinkX的flinkx-core-feat_1.12_pluginMerge.jar包和对应connector的jar引入到自己项目的pom中，将项目打成fat包，提交任务即可。
+    - 将flink需要的connector和chunjun的chunjun-core-feat_1.12_pluginMerge.jar包和对应connector的jar引入到自己项目的pom中，将项目打成fat包，提交任务即可。

@@ -98,4 +98,4 @@ db2维表，支持全量和异步方式<br />
 
 
 ## 六、脚本示例
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。

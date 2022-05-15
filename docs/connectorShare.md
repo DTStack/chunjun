@@ -1,11 +1,11 @@
 # connector 共用
 
-**NOTE:新版flinkX支持connector和flinkSql自带的connector共用。**
+**NOTE:新版ChunJun支持connector和flinkSql自带的connector共用。**
 
-## 在flinkX中使用flinkSql的connector
+## 在ChunJun中使用flinkSql的connector
 - **本地调试**
-    - 在`flinkx-local-test`模块下将对应的flink connector的GAV拷贝到pom.xml文件中
-    - 将flinkX中的connector的GAV拷贝到pom.xml文件中(部分flink connector已经通过flinkx connector引入,如果是则上一步省略)
+    - 在`chunjun-local-test`模块下将对应的flink connector的GAV拷贝到pom.xml文件中
+    - 将ChunJun中的connector的GAV拷贝到pom.xml文件中(部分flink connector已经通过chunjun connector引入,如果是则上一步省略)
     - 在LocalTest类中指定参数运行即可
       sql:
       ```sql
@@ -65,8 +65,8 @@
           </exclusions>
       </dependency>
       <dependency>
-          <groupId>com.dtstack.flinkx</groupId>
-          <artifactId>flinkx-connector-stream</artifactId>
+          <groupId>com.dtstack.chunjun</groupId>
+          <artifactId>chunjun-connector-stream</artifactId>
           <version>1.12-SNAPSHOT</version>
       </dependency>
       ```
@@ -76,10 +76,10 @@
     - 将对应connector的jar放到flinkLib目录下 
     - sql任务中建表时，with属性使用原生connector属性即可。
 
-## 在flinkSql中使用flinkX的connector
+## 在flinkSql中使用ChunJun的connector
 - **本地调试**
     - 在自己项目中将对应的flink connector的GAV拷贝到pom.xml文件中
-    - 将flinkX中的core和connector的GAV拷贝到pom.xml文件中(需要先deploy项目)
+    - 将ChunJun中的core和connector的GAV拷贝到pom.xml文件中(需要先deploy项目)
     - 运行自己的任务
     sql:
     ```sql
@@ -133,18 +133,18 @@
             <version>1.12.2</version>
         </dependency>
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-core</artifactId>
+            <groupId>com.dtstack.chunjun</groupId>
+            <artifactId>chunjun-core</artifactId>
             <version>1.12-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.dtstack.flinkx</groupId>
-            <artifactId>flinkx-connector-stream</artifactId>
+            <groupId>com.dtstack.chunjun</groupId>
+            <artifactId>chunjun-connector-stream</artifactId>
             <version>1.12-SNAPSHOT</version>
         </dependency>
     ```
 <br />
       
 - **服务器上运行:**
-    - 将flinkX的flinkx-core-feat_1.12_pluginMerge.jar包和对应connector的jar放到flinkLib目录下
-    - sql任务中建表时，with属性使用flinkX connector属性文档中描述的即可。
+    - 将ChunJun的chunjun-core-feat_1.12_pluginMerge.jar包和对应connector的jar放到flinkLib目录下
+    - sql任务中建表时，with属性使用ChunJun connector属性文档中描述的即可。

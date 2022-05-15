@@ -84,7 +84,7 @@ mysql5.x
   - definition：Specifying this parameter when channell in the speed configuration is greater than 1, the Reader plug-in stitches the sql based on the number of concurrings and the fields specified by this parameter, allowing each concurrent to read different data and increasing the read rate.
   - Attention：
       - SplitPk is recommended to use the table primary key, because the table primary key is usually more uniform, so the sliced out is not easy to appear data hot spots；
-      - Currently splitPk only supports integer data segmentation, and does not support other types such as floating point, string, and date. If the user specifies other non-supported types, FlinkX will report an error；
+      - Currently splitPk only supports integer data segmentation, and does not support other types such as floating point, string, and date. If the user specifies other non-supported types, ChunJun will report an error；
       - If the channel is greater than 1 but this parameter is not configured, the task will be set as failed.
   - necessary：false
   - data type：String 
@@ -305,5 +305,5 @@ mysql5.x
 
 
 ## 6. Profile Demo
-see`flinkx-examples`directory.
+see`chunjun-examples`directory.
 

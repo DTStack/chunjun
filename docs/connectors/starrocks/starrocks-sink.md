@@ -196,7 +196,7 @@ StarRocks 1.19 +
 
 
 ## 六、脚本示例
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。
 
 ## 七、写入相关统计指标为空
 当调用flink-connector-starrocks写入数据时，默认情况是不会更新chunjun里写入统计指标数据，需要修改flink-connector-starrocks的相关源码， 

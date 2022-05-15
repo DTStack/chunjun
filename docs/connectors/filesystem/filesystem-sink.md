@@ -102,5 +102,5 @@ filesystem sink 是文件写入系统的公共插件。 具体的的插件需要
 和原生flink数据类型保持一致<br />每种format所支持的数据类型请参考[flink官方文档](https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/table/connectors/formats/)<br />
 
 ## 五、脚本示例
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。
 
