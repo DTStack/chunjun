@@ -176,5 +176,5 @@ SQL only support INSERT mode. in the future, we will support upsert mode if you 
 
 
 ## 6. Example
-The details are in flinkx-examples dir.
+The details are in chunjun-examples dir.
 

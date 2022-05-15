@@ -101,7 +101,7 @@ mysql5.x
   <br />
 
 - **batchSize**
-  - definition：The size of the number of records submitted in batches at one time. This value can greatly reduce the number of network interactions between FlinkX and the database and improve the overall throughput. However, setting this value too large may cause the OOM situation of FlinkX running process.
+  - definition：The size of the number of records submitted in batches at one time. This value can greatly reduce the number of network interactions between ChunJun and the database and improve the overall throughput. However, setting this value too large may cause the OOM situation of ChunJun running process.
   - necessary：false
   - data type：int
   - default：1024
@@ -211,4 +211,4 @@ mysql5.x
 
 
 ## 6. Profile Demo
-see`flinkx-examples`directory.
+see`chunjun-examples`directory.

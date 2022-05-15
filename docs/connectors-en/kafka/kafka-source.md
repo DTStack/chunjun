@@ -119,7 +119,7 @@ Kafka mainstream version
     - Default：(none)
     - Note：each column options description:
         - name：field name
-        - type：field type. It could be different from writer field type, FlinkX can auto convert.
+        - type：field type. It could be different from writer field type, ChunJun can auto convert.
         - format： If field type is time attribute, It could be set time format, and auto convert from string type to timestamp type.
         - for example：
           ```json
@@ -257,4 +257,4 @@ The details are in [kafka-connector](https://ci.apache.org/projects/flink/flink-
 
 ## 6. Example
 
-The details are in `flinkx-examples` dir.
+The details are in `chunjun-examples` dir.

@@ -3,7 +3,7 @@
 ## 一、Sync
 
 ### 配置文件
-一个完整的Flinkx任务脚本配置包含 content，setting两个部分。content用于配置任务的输入源、输出源以及数据转换规则，其中包含reader，writer，transformer。setting则配置任务整体的环境设定，其中包含speed，errorLimit，dirty。具体如下所示：
+一个完整的ChunJun任务脚本配置包含 content，setting两个部分。content用于配置任务的输入源、输出源以及数据转换规则，其中包含reader，writer，transformer。setting则配置任务整体的环境设定，其中包含speed，errorLimit，dirty。具体如下所示：
 ```json
 {
   "job": {
@@ -140,7 +140,7 @@ metricPluginConf用于配置任务运行时自定义指标持久化的方式。�
           "pluginProp": {
             "jdbcUrl": "jdbc:mysql://localhost:3306/ide?useUnicode=true&characterEncoding=utf-8",
             "schema": "ide",
-            "table": "flinkx_metrics",
+            "table": "chunjun_metrics",
             "username": "drpeco",
             "password": "DT@Stack#123"
           }

@@ -246,4 +246,4 @@ FTP服务搭建<br />windows：[地址](https://help.aliyun.com/document_detail/
 
 
 ## 六、配置示例
-见项目内`flinkx-examples`文件夹
+见项目内`chunjun-examples`文件夹

@@ -108,6 +108,6 @@ MongoDB 3.4 and above
 | no support | array |
 
 ## 6. Example
-The details are in flinkx-examples dir.
+The details are in chunjun-examples dir.
 
 

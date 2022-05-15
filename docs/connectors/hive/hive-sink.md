@@ -1,7 +1,7 @@
 # Hive Sink
 
 ## 一、介绍
-FlinkX只有Hive sink插件，没有Hive source插件，如需要读取Hive表中的数据，请使用HDFS source插件。
+ChunJun只有Hive sink插件，没有Hive source插件，如需要读取Hive表中的数据，请使用HDFS source插件。
 
 Hive sink插件支持实时地往Hive表中写数据，支持自动建表并根据当前系统时间自动创建分区，支持动态解析表名及分组映射，根据映射规则将不同的数据写入不同的Hive表。
 
@@ -378,4 +378,4 @@ table1的数据将写入hive表fenzu1里，table2和table3的数据将写入fenz
 
 
 ## 六、脚本示例
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。

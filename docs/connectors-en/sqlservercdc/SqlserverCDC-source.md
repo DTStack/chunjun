@@ -256,7 +256,7 @@ The data in RowData are, in order
 
 - type: change type, INSERT, UPDATE, DELETE
 - opTime: the execution time of SQL in the database
-- ts: self-incrementing ID, not repeated, can be used for sorting, decoded as the event time of FlinkX, decoding rules are as follows:
+- ts: self-incrementing ID, not repeated, can be used for sorting, decoded as the event time of ChunJun, decoding rules are as follows:
 
 ```java
 long id = Long.parseLong("6760525407742726144");
@@ -281,4 +281,4 @@ System.out.println(sdf.format(res)); //2021-01-28 19:54:21
 
 ## IX. Sample Scripts
 
-See the `flinkx-examples` folder in the project.
+See the `chunjun-examples` folder in the project.

@@ -35,5 +35,5 @@ file source仅支持从本地路径读取文件，支持读取原生flink所有�
 和原生flink数据类型保持一致<br />每种format所支持的数据类型请参考[flink官方文档](https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/table/connectors/formats/)<br />
 
 ## 五、脚本示例
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。
 

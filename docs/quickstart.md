@@ -22,22 +22,22 @@ sh build/build.sh
 
 ### 1.编译找不到DB2、达梦、gbase、ojdbc8等驱动包
 
-解决办法：在$FLINKX_HOME/jars目录下有这些驱动包，可以手动安装，也可以使用插件提供的脚本安装：
+解决办法：在$CHUNJUN_HOME/jars目录下有这些驱动包，可以手动安装，也可以使用插件提供的脚本安装：
 
 ```bash
 ## windows平台
-./$FLINKX_HOME/bin/install_jars.bat
+./$CHUNJUN_HOME/bin/install_jars.bat
 
 ## unix平台
-./$FLINKX_HOME/bin/install_jars.sh
+./$CHUNJUN_HOME/bin/install_jars.sh
 ```
 
 ## 运行任务
-**NOTE:项目中的flinkx-examples模块下提供了大量 [数据同步案例](flinkx-examples/json) 和 [SQL案例](flinkx-examples/sql)**
+**NOTE:项目中的chunjun-examples模块下提供了大量 [数据同步案例](chunjun-examples/json) 和 [SQL案例](chunjun-examples/sql)**
 
 #### 数据同步任务
 
-首先准备要运行的任务json，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
+首先准备要运行的任务json，这里以stream插件为例(**`chunjun-examples`文件夹下有大量案例**)：
 
 ```json
 {
@@ -112,8 +112,8 @@ sh build/build.sh
 ```
 #### flinksql任务
 
-***NOTE：flinkX和flinkSql connector[共用](docs/conectorShare.md)***<br /><br />
-或者准备要运行的flinksql任务，这里以stream插件为例(**`flinkx-examples`文件夹下有大量案例**)：
+***NOTE：ChunJun和flinkSql connector[共用](docs/conectorShare.md)***<br /><br />
+或者准备要运行的flinksql任务，这里以stream插件为例(**`chunjun-examples`文件夹下有大量案例**)：
 
 ```sql
 CREATE TABLE source
@@ -161,11 +161,11 @@ from source;
 命令模板：
 
 ```bash
-bin/flinkx \
+bin/start-chunjun \
 	-mode local \
 	-jobType sync \
-	-job flinkx-examples/json/stream/stream.json \
-	-flinkxDistDir flinkx-dist
+	-job chunjun-examples/json/stream/stream.json \
+	-chunjunDistDir chunjun-dist 
 ```
 
 可以在flink-conf.yaml配置文件里配置端口：
@@ -178,11 +178,11 @@ rest.bind-port: 8888
 使用下面的命令运行任务：
 
 ```bash
-bin/flinkx \
+bin/start-chunjun \
 	-mode local \
 	-jobType sync \
-	-job flinkx-examples/json/stream/stream.json \
-	-flinkxDistDir flinkx-dist
+	-job chunjun-examples/json/stream/stream.json \
+	-chunjunDistDir chunjun-dist 
 ```
 
 任务运行后可以通过8888端口访问flink界面查看任务运行情况：
@@ -192,16 +192,16 @@ bin/flinkx \
 </div>
 
 ### Standalone模式运行
-NOTE:将flinkx-dist目录拷贝到$FLINK_HOME/lib下，并修改$FLINK_HOME/conf/flink-conf.yml中的classloader为classloader.resolve-order: parent-first
+NOTE:将chunjun-dist目录拷贝到$FLINK_HOME/lib下，并修改$FLINK_HOME/conf/flink-conf.yml中的classloader为classloader.resolve-order: parent-first
 
 命令模板：
 
 ```bash
-bin/flinkx \
+bin/start-chunjun \
 	-mode standalone \
 	-jobType sync \
-	-job flinkx-examples/json/stream/stream.json \
-	-flinkxDistDir flinkx-dist \
+	-job chunjun-examples/json/stream/stream.json \
+	-chunjunDistDir chunjun-dist  \
 	-flinkConfDir $FLINK_HOME/conf \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
 ```
@@ -222,11 +222,11 @@ $FLINK_HOME/bin/start-cluster.sh
 把任务提交到集群上运行：
 
 ```bash
-./bin/flinkx \
+./bin/start-chunjun \
 	-mode standalone \
 	-jobType sync \
-	-flinkxDistDir flinkx-dist \
-	-job flinkx-examples/json/stream/stream.json \
+	-chunjunDistDir chunjun-dist  \
+	-job chunjun-examples/json/stream/stream.json \
 	-flinkConfDir $FLINK_HOME/conf
 ```
 
@@ -237,16 +237,16 @@ $FLINK_HOME/bin/start-cluster.sh
 </div>
 
 ### 以Yarn Session模式运行任务
-NOTE:可以先在现在flinkx-clients模块YarnSessionClientUtil类中启动一个session，然后修改$FLINK_HOME/conf/flink-conf.yml中的classloader为classloader.resolve-order: parent-first
+NOTE:可以先在现在chunjun-clients模块YarnSessionClientUtil类中启动一个session，然后修改$FLINK_HOME/conf/flink-conf.yml中的classloader为classloader.resolve-order: parent-first
 
 命令示例：
 
 ```bash
-bin/flinkx \
+bin/start-chunjun \
 	-mode yarn-session \
 	-jobType sync \
-	-job flinkx-examples/json/stream/stream.json \
-	-flinkxDistDir flinkx-dist \
+	-job chunjun-examples/json/stream/stream.json \
+	-chunjunDistDir chunjun-dist  \
 	-flinkConfDir $FLINK_HOME/conf \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
@@ -269,12 +269,12 @@ $FLINK_HOME/bin/yarn-session.sh -n 1 -s 1 -jm 1024 -tm 1024
 把任务提交到这个yarn session上：
 
 ```bash
-bin/flinkx \
+bin/start-chunjun \
 	-mode yarn-session \
 	-jobType sync \
-	-job flinkx-examples/json/stream/stream.json \
+	-job chunjun-examples/json/stream/stream.json \
 	-flinkConfDir $FLINK_HOME/conf \
-	-flinkxDistDir flinkx-dist \
+	-chunjunDistDir chunjun-dist  \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop
 ```
 
@@ -289,11 +289,11 @@ bin/flinkx \
 命令示例：
 
 ```bash
-bin/flinkx \
+bin/start-chunjun \
 	-mode yarn-per-job \
 	-jobType sync \
-	-job flinkx-examples/json/stream/stream.json \
-	-flinkxDistDir flinkx-dist \
+	-job chunjun-examples/json/stream/stream.json \
+	-chunjunDistDir chunjun-dist  \
 	-flinkConfDir $FLINK_HOME/conf \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
 	-flinkLibDir $FLINK_HOME/lib \
@@ -303,11 +303,11 @@ bin/flinkx \
 首先确保yarn集群是可用的，启动一个Yarn Application运行任务:
 
 ```bash
-bin/flinkx \
+bin/start-chunjun \
 	-mode yarn-per-job \
 	-jobType sync \
-	-job flinkx-examples/json/stream/stream.json \
-	-flinkxDistDir flinkx-dist \
+	-job chunjun-examples/json/stream/stream.json \
+	-chunjunDistDir chunjun-dist  \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
 	-flinkLibDir $FLINK_HOME/lib \
 ```
@@ -328,13 +328,13 @@ bin/flinkx \
 命令示例：
 
 ```
-bin/flinkx \
+bin/start-chunjun \
     -mode kubernetes-session \
     -jobType sync \
-    -job flinkx-examples/json/stream/stream.json \
+    -job chunjun-examples/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
-    -flinkxDistDir flinkx-dist \
+    -chunjunDistDir chunjun-dist  \
     -flinkLibDir $FLINK_HOME/lib \
     -flinkConfDir $FLINK_HOME/conf \
     -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.cluster-id\":\"${cluster_id}\",\"kubernetes.namespace\":\"${namespace}\"}"
@@ -344,28 +344,28 @@ bin/flinkx \
 ```
 $FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink-session-test -Dclassloader.resolve-order=parent-first -Dkubernetes.container.image=${image_name}
 ```
-注意：需要提前构建flinkx镜像
-[flinkx镜像构建说明](flinkx-docker/docker/README.md)
+注意：需要提前构建chunjun镜像
+[chunjun镜像构建说明](chunjun-docker/docker/README.md)
 
 ### Kubernetes Application模式运行任务
 
 命令示例：
 ```
-bin/flinkx \
+bin/start-chunjun \
     -mode kubernetes-application \
     -jobType sync \
-    -job flinkx-examples/json/stream/stream.json \
+    -job chunjun-examples/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
-    -flinkxDistDir flinkx-dist \
-    -remotePluginPath /opt/flinkx-dist \
+    -chunjunDistDir chunjun-dist  \
+    -remotePluginPath /opt/chunjun-dist \
     -pluginLoadMode classpath \
     -flinkLibDir $FLINK_HOME/lib \
     -flinkConfDir $FLINK_HOME/conf \
     -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.container.image\":\"${image_name}\",\"kubernetes.namespace\":\"${namespace}\"}"
 ```
-注意：需要提前构建flinkx镜像
-[flinkx镜像构建说明](flinkx-docker/docker/README.md)
+注意：需要提前构建chunjun镜像
+[chunjun镜像构建说明](chunjun-docker/docker/README.md)
 
 ## 参数说明
 
@@ -375,10 +375,10 @@ bin/flinkx \
 | **jobType**        | 任务类型                 | 1.**sync**:数据同步任务<br />    2.**sql**:flinksql任务                                                                                                                                                                                                                                      | 是    | 无                       |
 | **job**            | 同步、flinksql任务描述文件的存放路径；该描述文件中使用json、sql存放任务信息                  | 无                                                                                                                                                                                                                                           | 是    | 无                       |
 | **jobName**          | 任务名称                                                   | 无                                                                                                                                                                                                                                           | 否    | Flink Job               |
-| **flinkxDistDir**     | 插件根目录地址，也就是打包后产生的flinkx-dist目录。                         | 无                                                                                                                                                                                                                                           | 否    | $FLINKX_HOME/flinkx-dist    |
+| **chunjunDistDir**     | 插件根目录地址，也就是打包后产生的chunjun-dist目录。                         | 无                                                                                                                                                                                                                                           | 否    | $CHUNJUN_HOME/chunjun-dist    |
 | **flinkConfDir**      | flink配置文件所在的目录（单机模式下不需要）                               | $FLINK_HOME/conf                                                                                                                                                                                                                            | 否    | $FLINK_HOME/conf        |
 | **flinkLibDir**    | flink lib所在的目录（单机模式下不需要），如/opt/dtstack/flink-1.10.1/lib | $FLINK_HOME/lib                                                                                                                                                                                                                             | 否    | $FLINK_HOME/lib         |
 | **hadoopConfDir**       | Hadoop配置文件（包括hdfs和yarn）所在的目录                           | $HADOOP_HOME/etc/hadoop                                                                                                                                                                                                                     | 否    | $HADOOP_HOME/etc/hadoop |
-| **pluginLoadMode** | yarn session模式插件加载方式                                   | 1.**classpath**：提交任务时不上传插件包，需要在yarn-node节点flinkx-dist目录下部署插件包，但任务启动速度较快，session模式建议使用<br />2.**shipfile**：提交任务时上传flinkx-dist目录下部署插件包的插件包，yarn-node节点不需要部署插件包，任务启动速度取决于插件包的大小及网络环境，yarnPer模式建议使用                                                                           | 否    | shipfile                |
+| **pluginLoadMode** | yarn session模式插件加载方式                                   | 1.**classpath**：提交任务时不上传插件包，需要在yarn-node节点chunjun-dist目录下部署插件包，但任务启动速度较快，session模式建议使用<br />2.**shipfile**：提交任务时上传chunjun-dist目录下部署插件包的插件包，yarn-node节点不需要部署插件包，任务启动速度取决于插件包的大小及网络环境，yarnPer模式建议使用                                                                           | 否    | shipfile                |
 | **confProp**       | flink官方所有配置参数                                           |                                                                                                                                                           | 否    | 无                       |
 | **p**              | 自定义入参，用于替换脚本中的占位符，如脚本中存在占位符${pt1},${pt2}，则该参数可配置为pt1=20200101,pt2=20200102|                                                                                                                                                                                                                                             | 否    | 无                       |

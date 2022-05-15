@@ -234,7 +234,7 @@ RowData中的数据依次为：
 
 - type：变更类型，INSERT，UPDATE、DELETE
 - opTime：数据库中SQL的执行时间
-- ts：自增ID，不重复，可用于排序，解码后为FlinkX的事件时间，解码规则如下:
+- ts：自增ID，不重复，可用于排序，解码后为ChunJun的事件时间，解码规则如下:
 ```java
 long id = Long.parseLong("6760525407742726144");
 long res = id >> 22;
@@ -256,4 +256,4 @@ System.out.println(sdf.format(res));		//2021-01-28 19:54:21
 
 
 ## 九、脚本示例
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。
