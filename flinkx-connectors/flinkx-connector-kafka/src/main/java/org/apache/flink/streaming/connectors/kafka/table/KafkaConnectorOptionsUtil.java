@@ -69,6 +69,10 @@ import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOp
 import static org.apache.flink.table.factories.FactoryUtil.FORMAT;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.hasRoot;
 
+/**
+ *  当前KafkaConnectorOptionsUtil类由default改为public
+ */
+
 /** Utilities for {@link KafkaConnectorOptions}. */
 
 public class KafkaConnectorOptionsUtil {

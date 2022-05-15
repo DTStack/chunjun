@@ -13,6 +13,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ *  当前ReducingUpsertSink类由default改为public
+ */
+
 public class ReducingUpsertSink<WriterState> implements Sink<RowData, Void, WriterState, Void>  {
     private final Sink<RowData, ?, WriterState, ?> wrappedSink;
     private final DataType physicalDataType;
