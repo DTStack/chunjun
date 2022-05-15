@@ -19,7 +19,7 @@
 
 find_build=`find build -type f -maxdepth 2`
 if [[ $find_build == "" ]] ; then
-	echo "You have to call the script from the flinkx/ dir"
+	echo "You have to call the script from the chunjun/ dir"
 	exit 1
 fi
 

@@ -1,8 +1,8 @@
-# 如何贡献FlinkX
+# 如何贡献ChunJun
 
-本文面向FlinkX插件开发人员，尝试通过一个开发者的角度尽可能全面地阐述一个FlinkX插件所经历的过程，同时消除开发者的困惑，快速上手插件开发。
+本文面向ChunJun插件开发人员，尝试通过一个开发者的角度尽可能全面地阐述一个ChunJun插件所经历的过程，同时消除开发者的困惑，快速上手插件开发。
 
-从数据流的角度来看FlinkX，可以理解为不同数据源的数据流通过对应的FlinkX插件处理，变成符合FlinkX数据规范的数据流；脏数据的处理可以理解为脏水流通过污水处理厂，变成符合标准，可以使用的水流，而对不能处理的水流收集起来。
+从数据流的角度来看ChunJun，可以理解为不同数据源的数据流通过对应的ChunJun插件处理，变成符合ChunJun数据规范的数据流；脏数据的处理可以理解为脏水流通过污水处理厂，变成符合标准，可以使用的水流，而对不能处理的水流收集起来。
 
 插件开发不需要关注任务具体如何调度，只需要关注关键问题：
 
@@ -23,7 +23,7 @@
 ## 逻辑执行概念
 插件开发者不需要关心太多整个框架的具体运行，只需要关注数据源的读写，以及代码在逻辑上是怎么被执行的，方法什么时候被调用的。以下概念的理解对你快速开发会有帮助：
 
-- **Job**：** Job**是FlinkX用以描述从一个源头到一个目的端的同步作业，是FlinkX数据同步的最小业务单元。
+- **Job**：** Job**是ChunJun用以描述从一个源头到一个目的端的同步作业，是ChunJun数据同步的最小业务单元。
 - **Internal**： 把**Job**拆分得到的最小执行单元。
 - **InputSplit**：数据切片，是进入Internal的最小数据流单位。里面包含了基本数据信息和统计信息。
 - **InputFormat**：读插件的执行单位。
@@ -326,8 +326,8 @@ openInternal -> writeSingleRecordInternal / writeMultipleRecordsInternal
 - 注意事项：无；
 
 <a name="36baff55"></a>
-## FlinkX数据结构
-FlinkX延续了Flink原生的数据类型Row
+## ChunJun数据结构
+ChunJun延续了Flink原生的数据类型Row
 
 ```java
 @PublicEvolving
@@ -460,26 +460,26 @@ public class Row implements Serializable{
 ## 统一的目录结构
 <a name="sdEM2"></a>
 #### 项目目录层级
-注意，插件Reader/Writer类需放在符合插件包名命名规则的reader下，如MysqlReader类需放在com.dtstack.flinkx.mysql.reader包下，具体命名规则参照 **项目命名规则** 内容
+注意，插件Reader/Writer类需放在符合插件包名命名规则的reader下，如MysqlReader类需放在com.dtstack.chunjun.mysql.reader包下，具体命名规则参照 **项目命名规则** 内容
 ```xml
 ```
-${Flinkx_HOME}
+${CHUNJUN_HOME}
 |-- bin       
 |   -- flink
-|   -- flinkx.sh 
+|   -- chunjun.sh 
 |
-|-- flinkx-somePlugin
-    |-- flinkx-somePlugin-core
+|-- chunjun-somePlugin
+    |-- chunjun-somePlugin-core
 		|-- common 一些插件共用的类
 		|-- exception 异常处理类
 		|-- pom.xml 插件公用依赖
-    |-- flinkx-somePlugin-reader
+    |-- chunjun-somePlugin-reader
 		|-- InputFormat
 			|-- SomePluginInputFormat
 			|-- SomePluginInputFormatBuiler
 		|-- reader
 			|-- SomePluginReader
-	|-- flinkx-somePlugin-writer
+	|-- chunjun-somePlugin-writer
 		|-- OutputFormat
 			|-- SomePluginOutputFormat
 			|-- SomePluginOutputFormatBuiler
@@ -490,9 +490,9 @@ ${Flinkx_HOME}
 <a name="NMw2H"></a>
 #### 项目命名规则
 
-- 插件命名模板 [flinkx]-[dataSourceName]，例如flinkx-mysql
-- 插件模块命名模板 [flinkx]-[dataSourceName]-[reader/writer/core]，例如flinkx-mysql-reader，flinkx-redis-writer
-- 插件包名命名模板 [com.dtstack.flinkx.dataSource.xxxx]，例如com.dtstack.flinkx.mysql.reader，com.dtstack.flinkx.redis.inputformat
+- 插件命名模板 [chunjun]-[dataSourceName]，例如chunjun-mysql
+- 插件模块命名模板 [chunjun]-[dataSourceName]-[reader/writer/core]，例如chunjun-mysql-reader，chunjun-redis-writer
+- 插件包名命名模板 [com.dtstack.chunjun.dataSource.xxxx]，例如com.dtstack.chunjun.mysql.reader，com.dtstack.chunjun.redis.inputformat
 - 插件Reader/Writer类命名模板 [dataSource][Reader/Writer]，例如MysqlReader，RedisWriter，需注意，类似RestAPIWriter，MetaDataHive2Reader这样的命名是错误的，需改为RestapiWriter，Metadatahive2Reader
 
 <a name="dd96ac2a"></a>
@@ -511,4 +511,4 @@ unix平台
 mvn clean package -DskipTests -Prelease -DscriptType=sh
 ```
 
-打包结束后，项目根目录下会产生bin目录和plugins目录，其中bin目录包含FlinkX的启动脚本，plugins目录下存放编译好的数据同步插件包，之后就可以提交开发平台测试啦！
+打包结束后，项目根目录下会产生bin目录和plugins目录，其中bin目录包含ChunJun的启动脚本，plugins目录下存放编译好的数据同步插件包，之后就可以提交开发平台测试啦！

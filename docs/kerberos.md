@@ -1,6 +1,6 @@
 # 数据源开启Kerberos安全认证
 
-目前FlinkX的部分插件支持了kerberos认证，有Hive、Hbase、HDFS三个插件。
+目前ChunJun的部分插件支持了kerberos认证，有Hive、Hbase、HDFS三个插件。
 
 ### 1.Kerberos证书加载方式
 
@@ -41,7 +41,7 @@
  "hbase.master.keytab.file":"hbase.keytab",
  "hbase.regionserver.keytab.file":"hbase.keytab",
  "hbase.regionserver.kerberos.principal":"hbase/node1@TEST.COM",
- "remoteDir":"/sftp/flinkx/keytab/hbase",
+ "remoteDir":"/sftp/chunjun/keytab/hbase",
  "sftp":{
      "host":"127.0.0.1",
      "port":"22",
@@ -53,9 +53,9 @@
 
 从sftp下载时的查找顺序：
 
-1.在/sftp/flinkx/keytab/hbase目录下查找hbase.keytab文件，如果找不到则2
+1.在/sftp/chunjun/keytab/hbase目录下查找hbase.keytab文件，如果找不到则2
 
-2.假设任务运行在node1机器上，则在/sftp/flinkx/keytab/hbase/node1下找hbase.keytab文件，找不到则报错;
+2.假设任务运行在node1机器上，则在/sftp/chunjun/keytab/hbase/node1下找hbase.keytab文件，找不到则报错;
 
 ### 2.各数据源的配置
 

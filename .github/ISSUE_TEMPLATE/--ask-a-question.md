@@ -15,8 +15,8 @@ Before asking a question, make sure you have:
 
 - Searched existing Stack Overflow questions.
 - Googled your question.
-- Searched open and closed [GitHub issues](https://github.com/DTStack/flinkx/issues)
+- Searched open and closed [GitHub issues](https://github.com/DTStack/chunjun/issues)
 - Read the documentation:
-  - [flinkx Doc](https://github.com/DTStack/flinkx/tree/1.10_release/docs)
+  - [start-chunjun Doc](https://github.com/DTStack/chunjun/tree/1.10_release/docs)
 
 -->

@@ -101,4 +101,4 @@ Attention:Oracle numeric data may lose precision during conversion due to the li
 
 
 ## 六、Demo
-see details in `flinkx-examples` dir of project flinkx.
+see details in `chunjun-examples` dir of project chunjun.

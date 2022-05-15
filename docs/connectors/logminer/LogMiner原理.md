@@ -1,11 +1,11 @@
-# FlinkX Oracle LogMiner实时采集基本原理
+# ChunJun Oracle LogMiner实时采集基本原理
 
-本文主要对Logminer基本原理以及如何使用和Flinkx与Logminer的集成进行介绍
+本文主要对Logminer基本原理以及如何使用和ChunJun与Logminer的集成进行介绍
 通过本文你可以了解到：
 
 - Logminer是什么
 - Logminer的使用
-- Flinkx如何和Logminer的集成
+- ChunJun如何和Logminer的集成
 
 # Logminer是什么？
 LogMiner 是Oracle公司从产品8i以后提供的一个实际非常有用的分析工具，使用该工具可以轻松获得Oracle 重做日志文件（归档日志文件）中的具体内容，LogMiner分析工具实际上是由一组PL/SQL包和一些动态视图组成，它作为Oracle数据库的一部分来发布，是oracle公司提供的一个完全免费的工具。
@@ -204,7 +204,7 @@ WHERE
   <img src="../../images/LogMiner/LogMiner23.png" />
 </div>
 
-# Flinkx如何使用Logminer
+# ChunJun如何使用Logminer
 
 
 使用Logminer在于关键2步骤：
@@ -212,7 +212,7 @@ WHERE
 - 找到需要分析的Redolog日志，加载到Logminer
 - 开启Logminer,在  v$LOGMNR_CONTENTS 查询感兴趣数据
 ### 1. 查找RedoLog文件
-从上面介绍中 我们可以知道 Redolog来源于日志组和归档日志里，所以flinkx 根据SCN号查询日志组以及归档日志获取到对应的文件
+从上面介绍中 我们可以知道 Redolog来源于日志组和归档日志里，所以chunjun 根据SCN号查询日志组以及归档日志获取到对应的文件
 ```sql
 SELECT
     MIN(name) name,
@@ -252,7 +252,7 @@ ORDER BY
   <img src="../../images/LogMiner/LogMiner21.png" />
 </div>
 注意：
-如果Logminer的处理速度比Oracle产生数据速度快，那么理论上Flinkx只需要加载日志组文件不需要加载归档日志文件，而Logminer加载文件会比较消耗资源，所以会先进行RedoLog文件的查找，如果本次查找的文件和上次的没有区别，说明Logminer不需要加载新的日志文件，只需要重新再从视图里查询数据即可
+如果Logminer的处理速度比Oracle产生数据速度快，那么理论上ChunJun只需要加载日志组文件不需要加载归档日志文件，而Logminer加载文件会比较消耗资源，所以会先进行RedoLog文件的查找，如果本次查找的文件和上次的没有区别，说明Logminer不需要加载新的日志文件，只需要重新再从视图里查询数据即可
 
 
 ### 2. 加载文件到Logminer
@@ -325,14 +325,14 @@ WHERE
 ```
 
 
-Flinkx就是在一个循环里 执行上述sql语句查询数据。 查询日志文件，加载到logminer，开启logminer，读取数据，更新当前最新SCN号，当数据读取完毕，代表本次加载的日志文件加载完了，通过SCN号寻找后续日志文件，重复上述操作
+ChunJun就是在一个循环里 执行上述sql语句查询数据。 查询日志文件，加载到logminer，开启logminer，读取数据，更新当前最新SCN号，当数据读取完毕，代表本次加载的日志文件加载完了，通过SCN号寻找后续日志文件，重复上述操作
 
 <div align=center>
   <img src="../../images/LogMiner/LogMiner22.png" />
 </div>
 
 
-从 v$logmnr_contents获取到数据之后，Flinkx 使用 net.sf.jsqlparser.parser.CCJSqlParserUtil 来解析 sql_redo 值
+从 v$logmnr_contents获取到数据之后，ChunJun 使用 net.sf.jsqlparser.parser.CCJSqlParserUtil 来解析 sql_redo 值
 获取到的sql_redo语句格式示例：
 ```json
 insert into "TUDOU"."CDC"("ID","USER_ID","NAME","date1") values ('19','1','b',TO_DATE('2021-01-29 11:25:50', 'YYYY-MM-DD HH24:MI:SS'))
@@ -344,7 +344,7 @@ insert into "TUDOU"."CDC"("ID","USER_ID","NAME","date1") values ('19','1','b',TO
 
 1. v$LOGMNR_CONTENTS 里Oracle10 比 Oracle11 少了 commit_scn字段
 1. 日志组字段里没有next_change#字段
-1. 如果Sql里含有ToDate函数，Logminer10的sql_redo加载的是ToDate函数日期格式默认是DD-MON-RR格式，而Logminer11则是Todate函数执行后的值，所以Logminer10会在获取连接的时候，执行下列SQL,设置日期格式，FLinkx再对其进行正则匹配，替换得到最终的值。
+1. 如果Sql里含有ToDate函数，Logminer10的sql_redo加载的是ToDate函数日期格式默认是DD-MON-RR格式，而Logminer11则是Todate函数执行后的值，所以Logminer10会在获取连接的时候，执行下列SQL,设置日期格式，ChunJun再对其进行正则匹配，替换得到最终的值。
 ```sql
     //修改当前会话的date日期格式
    public final static String SQL_ALTER_DATE_FORMAT ="ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'";

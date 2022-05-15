@@ -7,4 +7,4 @@ Hive维表，使用原生Flink实现<br />
 
 ## 二、脚本示例
 
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。

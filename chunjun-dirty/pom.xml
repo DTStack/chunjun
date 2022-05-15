@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>chunjun</artifactId>
+        <groupId>com.dtstack.chunjun</groupId>
+        <version>1.12-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>chunjun-dirty</artifactId>
+    <packaging>pom</packaging>
+    <name>ChunJun : Dirty</name>
+    <modules>
+        <module>chunjun-dirty-log</module>
+        <module>chunjun-dirty-mysql</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+		<spotless.version>2.4.2</spotless.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.dtstack.chunjun</groupId>
+            <artifactId>chunjun-core</artifactId>
+            <version>1.12-SNAPSHOT</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>${spotless.version}</version>
+				<configuration>
+					<java>
+						<googleJavaFormat>
+							<version>1.7</version>
+							<style>AOSP</style>
+						</googleJavaFormat>
+
+						<!-- \# refers to the static imports -->
+						<importOrder>
+							<order>org.apache.flink,org.apache.flink.shaded,com.dtstack.flink.sql,,javax,java,scala,\#</order>
+						</importOrder>
+
+						<removeUnusedImports />
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<id>spotless-check</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
