@@ -18,7 +18,6 @@
 package com.dtstack.flinkx.local.test;
 
 import com.dtstack.flinkx.Main;
-import com.dtstack.flinkx.util.GsonUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -35,9 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 /** @author jiangbo */
@@ -50,7 +47,7 @@ public class LocalTest2 {
         Properties confProperties = new Properties();
         String userDir = System.getProperty("user.dir");
 
-        //String jobPath = userDir + "/flinkx-examples/sql/stream/stream.sql";
+        // String jobPath = userDir + "/flinkx-examples/sql/stream/stream.sql";
         String jobPath = userDir + "/flinkx-examples/sql/kafka/kafka_kafka_1.sql";
         String flinkxDistDir = userDir + "/flinkx-dist";
         String s = "";
@@ -59,7 +56,7 @@ public class LocalTest2 {
         argsList.add("-mode");
         argsList.add("local");
         String content = readFile(jobPath);
-       if (StringUtils.endsWith(jobPath, "sql")) {
+        if (StringUtils.endsWith(jobPath, "sql")) {
             argsList.add("-jobType");
             argsList.add("sql");
             argsList.add("-job");
@@ -119,18 +116,20 @@ public class LocalTest2 {
                python.requirements                     -pyreq
             */
             /* ---------------------------------------- pyFlink 测试 start --------------------------------------- */
-//            Map<String, String> config = new HashMap<>();
-//            config.put(
-//                    "python.files",
-//                    "/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/test1.py");
-//            config.put("python.client.executable", "python3");
-//            config.put("python.executable", "python3");
-//            config.put(
-//                    "python.requirements",
-//                    "/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/requirements3.txt#/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/cached_dir_binary3");
-//            String configJsonString = GsonUtil.GSON.toJson(config);
-//            argsList.add("-confProp");
-//            argsList.add(configJsonString);
+            //            Map<String, String> config = new HashMap<>();
+            //            config.put(
+            //                    "python.files",
+            //
+            // "/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/test1.py");
+            //            config.put("python.client.executable", "python3");
+            //            config.put("python.executable", "python3");
+            //            config.put(
+            //                    "python.requirements",
+            //
+            // "/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/requirements3.txt#/Users/lzq/Desktop/Projects/Flink/PyFlinkDemo/enjoyment.code/PythonUDFProvideToJava/cached_dir_binary3");
+            //            String configJsonString = GsonUtil.GSON.toJson(config);
+            //            argsList.add("-confProp");
+            //            argsList.add(configJsonString);
             /* ---------------------------------------- pyFlink 测试 end --------------------------------------- */
         }
         // 防止加载flinkx-connector-kafka/target/classes/META-INF/services/下的spi文件
@@ -138,7 +137,8 @@ public class LocalTest2 {
                 (URLClassLoader) Thread.currentThread().getContextClassLoader();
         URL[] urls =
                 Arrays.stream(contextClassLoader.getURLs())
-//                        .filter(URL -> !URL.getPath().contains("flinkx-connector-kafka"))
+                        //                        .filter(URL ->
+                        // !URL.getPath().contains("flinkx-connector-kafka"))
                         .toArray(URL[]::new);
         URLClassLoader urlClassLoader = new URLClassLoader(urls, contextClassLoader.getParent());
         Thread.currentThread().setContextClassLoader(urlClassLoader);

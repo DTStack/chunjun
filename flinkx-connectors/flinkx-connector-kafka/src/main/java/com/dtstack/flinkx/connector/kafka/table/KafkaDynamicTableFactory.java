@@ -58,7 +58,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +65,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.DELIVERY_GUARANTEE;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.KEY_FIELDS;
@@ -105,7 +103,10 @@ import static org.apache.flink.table.factories.FactoryUtil.SINK_PARALLELISM;
 public class KafkaDynamicTableFactory
         implements DynamicTableSourceFactory, DynamicTableSinkFactory {
 
-    private static final Logger LOG = LoggerFactory.getLogger(org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicTableFactory.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(
+                    org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicTableFactory
+                            .class);
 
     private static final ConfigOption<String> SINK_SEMANTIC =
             ConfigOptions.key("sink.semantic")
@@ -256,7 +257,8 @@ public class KafkaDynamicTableFactory
         validatePKConstraints(
                 context.getObjectIdentifier(), context.getCatalogTable(), valueDecodingFormat);
 
-        final KafkaConnectorOptionsUtil.StartupOptions startupOptions = getStartupOptions(tableOptions);
+        final KafkaConnectorOptionsUtil.StartupOptions startupOptions =
+                getStartupOptions(tableOptions);
 
         final Properties properties =
                 KafkaUtil.getKafkaProperties(context.getCatalogTable().getOptions());

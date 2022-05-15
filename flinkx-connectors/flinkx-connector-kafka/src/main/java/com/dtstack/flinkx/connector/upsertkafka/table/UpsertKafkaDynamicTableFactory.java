@@ -29,9 +29,7 @@ import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.connector.base.DeliveryGuarantee;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.config.StartupMode;
-import org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions;
 import org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptionsUtil;
 import org.apache.flink.streaming.connectors.kafka.table.SinkBufferFlushMode;
 import org.apache.flink.table.api.TableSchema;
@@ -236,21 +234,21 @@ public class UpsertKafkaDynamicTableFactory
                 tableOptions.get(TRANSACTIONAL_ID_PREFIX));
     }
 
-//    physicalDataType,
-//    physicalDataType,
-//    keyEncodingFormat,
-//    valueEncodingFormat,
-//    keyProjection,
-//    valueProjection,
-//    keyPrefix,
-//    topic,
-//    properties,
-//    partitioner,
-//    deliveryGuarantee,
-//            false,
-//    SinkBufferFlushMode.DISABLED,
-//    parallelism,
-//    transactionalIdPrefix
+    //    physicalDataType,
+    //    physicalDataType,
+    //    keyEncodingFormat,
+    //    valueEncodingFormat,
+    //    keyProjection,
+    //    valueProjection,
+    //    keyPrefix,
+    //    topic,
+    //    properties,
+    //    partitioner,
+    //    deliveryGuarantee,
+    //            false,
+    //    SinkBufferFlushMode.DISABLED,
+    //    parallelism,
+    //    transactionalIdPrefix
 
     private Tuple2<int[], int[]> createKeyValueProjections(CatalogTable catalogTable) {
         TableSchema schema = catalogTable.getSchema();

@@ -68,7 +68,6 @@ import org.apache.flink.yarn.entrypoint.YarnApplicationClusterEntryPoint;
 import org.apache.flink.yarn.entrypoint.YarnJobClusterEntrypoint;
 import org.apache.flink.yarn.entrypoint.YarnSessionClusterEntrypoint;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
@@ -628,8 +627,9 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
                         ? ClusterEntrypoint.ExecutionMode.DETACHED
                         : ClusterEntrypoint.ExecutionMode.NORMAL;
 
-       // flinkConfiguration.setString(ClusterEntrypoint.EXECUTION_MODE, executionMode.toString());
-        flinkConfiguration.setString(ClusterEntrypoint.ExecutionMode.DETACHED.name(), executionMode.toString());
+        // flinkConfiguration.setString(ClusterEntrypoint.EXECUTION_MODE, executionMode.toString());
+        flinkConfiguration.setString(
+                ClusterEntrypoint.ExecutionMode.DETACHED.name(), executionMode.toString());
         ApplicationReport report =
                 startAppMaster(
                         flinkConfiguration,
@@ -1128,18 +1128,18 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
                 setupApplicationMasterContainer(yarnClusterEntrypoint, hasKrb5, processSpec);
 
         // setup security tokens
-//        if (UserGroupInformation.isSecurityEnabled()) {
-//            // set HDFS delegation tokens when security is enabled
-//            LOG.info("Adding delegation token to the AM container.");
-//            List<Path> yarnAccessList =
-//                    ConfigUtils.decodeListFromConfig(
-//                            configuration, YarnConfigOptions.YARN_ACCESS, Path::new);
-//            Utils.setTokensFor(
-//                    amContainer,
-//                    ListUtils.union(yarnAccessList, fileUploader.getRemotePaths()),
-//                    yarnConfiguration);
-//
-//        }
+        //        if (UserGroupInformation.isSecurityEnabled()) {
+        //            // set HDFS delegation tokens when security is enabled
+        //            LOG.info("Adding delegation token to the AM container.");
+        //            List<Path> yarnAccessList =
+        //                    ConfigUtils.decodeListFromConfig(
+        //                            configuration, YarnConfigOptions.YARN_ACCESS, Path::new);
+        //            Utils.setTokensFor(
+        //                    amContainer,
+        //                    ListUtils.union(yarnAccessList, fileUploader.getRemotePaths()),
+        //                    yarnConfiguration);
+        //
+        //        }
 
         amContainer.setLocalResources(fileUploader.getRegisteredLocalResources());
         fileUploader.close();

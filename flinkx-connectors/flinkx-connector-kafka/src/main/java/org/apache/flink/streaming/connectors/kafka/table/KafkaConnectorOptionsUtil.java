@@ -31,8 +31,6 @@ import org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.S
 import org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOptions.ValueFieldsStrategy;
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.api.ValidationException;
-import org.apache.flink.table.catalog.ObjectIdentifier;
-import org.apache.flink.table.catalog.ResolvedCatalogTable;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.factories.DynamicTableFactory;
 import org.apache.flink.table.factories.FactoryUtil;
@@ -69,12 +67,9 @@ import static org.apache.flink.streaming.connectors.kafka.table.KafkaConnectorOp
 import static org.apache.flink.table.factories.FactoryUtil.FORMAT;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.hasRoot;
 
-/**
- *  当前KafkaConnectorOptionsUtil类由default改为public
- */
+/** 当前KafkaConnectorOptionsUtil类由default改为public */
 
 /** Utilities for {@link KafkaConnectorOptions}. */
-
 public class KafkaConnectorOptionsUtil {
     private static final ConfigOption<String> SCHEMA_REGISTRY_SUBJECT =
             ConfigOptions.key("schema-registry.subject").stringType().noDefaultValue();
@@ -316,7 +311,7 @@ public class KafkaConnectorOptionsUtil {
                                 case SINK_PARTITIONER_VALUE_DEFAULT:
                                 case SINK_PARTITIONER_VALUE_ROUND_ROBIN:
                                     return Optional.empty();
-                                // Default fallback to full class name of the partitioner.
+                                    // Default fallback to full class name of the partitioner.
                                 default:
                                     return Optional.of(
                                             initializePartitioner(partitioner, classLoader));
@@ -531,7 +526,6 @@ public class KafkaConnectorOptionsUtil {
             return context;
         }
     }
-
 
     private static Map<String, String> autoCompleteSchemaRegistrySubject(
             Map<String, String> options) {

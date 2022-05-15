@@ -15,12 +15,11 @@ import javax.annotation.Nullable;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
-/**
- *  当前KDynamicKafkaRecordSerializationSchema类由default改为public
- */
+/** 当前KDynamicKafkaRecordSerializationSchema类由default改为public */
 
 /** SerializationSchema used by {@link KafkaDynamicSink} to configure a {@link KafkaSink}. */
-public class DynamicKafkaRecordSerializationSchema implements KafkaRecordSerializationSchema<RowData> {
+public class DynamicKafkaRecordSerializationSchema
+        implements KafkaRecordSerializationSchema<RowData> {
 
     private final String topic;
     private final FlinkKafkaPartitioner<RowData> partitioner;
