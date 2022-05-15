@@ -299,10 +299,10 @@
 					</gitDescribe>
 				</configuration>
 			</plugin>
-<!--			<plugin>-->
-<!--				<groupId>com.diffplug.spotless</groupId>-->
-<!--				<artifactId>spotless-maven-plugin</artifactId>-->
-<!--			</plugin>-->
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+			</plugin>
 		</plugins>
 
 		<pluginManagement>
@@ -368,35 +368,35 @@
 					</configuration>
 				</plugin>
 
-<!--				<plugin>-->
-<!--					<groupId>com.diffplug.spotless</groupId>-->
-<!--					<artifactId>spotless-maven-plugin</artifactId>-->
-<!--					<version>2.4.2</version>-->
-<!--					<configuration>-->
-<!--						<java>-->
-<!--							<googleJavaFormat>-->
-<!--								<version>1.7</version>-->
-<!--								<style>AOSP</style>-->
-<!--							</googleJavaFormat>-->
+				<plugin>
+					<groupId>com.diffplug.spotless</groupId>
+					<artifactId>spotless-maven-plugin</artifactId>
+					<version>2.4.2</version>
+					<configuration>
+						<java>
+							<googleJavaFormat>
+								<version>1.7</version>
+								<style>AOSP</style>
+							</googleJavaFormat>
 
-<!--							&lt;!&ndash; \# refers to the static imports &ndash;&gt;-->
-<!--							<importOrder>-->
-<!--								<order>com.dtstack,org.apache.flink,org.apache.flink.shaded,,javax,java,scala,\#</order>-->
-<!--							</importOrder>-->
+							<!-- \# refers to the static imports -->
+							<importOrder>
+								<order>com.dtstack,org.apache.flink,org.apache.flink.shaded,,javax,java,scala,\#</order>
+							</importOrder>
 
-<!--							<removeUnusedImports/>-->
-<!--						</java>-->
-<!--					</configuration>-->
-<!--					<executions>-->
-<!--						<execution>-->
-<!--							<id>spotless-check</id>-->
-<!--							<phase>validate</phase>-->
-<!--							<goals>-->
-<!--								<goal>check</goal>-->
-<!--							</goals>-->
-<!--						</execution>-->
-<!--					</executions>-->
-<!--				</plugin>-->
+							<removeUnusedImports/>
+						</java>
+					</configuration>
+					<executions>
+						<execution>
+							<id>spotless-check</id>
+							<phase>validate</phase>
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>

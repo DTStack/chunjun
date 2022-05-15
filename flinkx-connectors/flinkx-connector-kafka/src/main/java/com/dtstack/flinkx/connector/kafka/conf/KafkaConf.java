@@ -20,7 +20,6 @@ package com.dtstack.flinkx.connector.kafka.conf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.connector.kafka.enums.StartupMode;
 
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;

@@ -99,8 +99,8 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
     protected final Properties properties;
     /** Partitioner to select Kafka partition for each item. */
     protected final @Nullable FlinkKafkaPartitioner<RowData> partitioner;
-//    /** Sink commit semantic. */
-//    protected final FlinkKafkaProducer.Semantic semantic;
+    //    /** Sink commit semantic. */
+    //    protected final FlinkKafkaProducer.Semantic semantic;
 
     /** The defined delivery guarantee. */
     private final DeliveryGuarantee deliveryGuarantee;
@@ -163,7 +163,8 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
         this.topic = Preconditions.checkNotNull(topic, "Topic must not be null.");
         this.properties = Preconditions.checkNotNull(properties, "Properties must not be null.");
         this.partitioner = partitioner;
-//        this.semantic = Preconditions.checkNotNull(semantic, "Semantic must not be null.");
+        //        this.semantic = Preconditions.checkNotNull(semantic, "Semantic must not be
+        // null.");
         this.deliveryGuarantee =
                 checkNotNull(deliveryGuarantee, "DeliveryGuarantee must not be null.");
         this.upsertMode = upsertMode;
@@ -188,8 +189,8 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
         final SerializationSchema<RowData> valueSerialization =
                 createSerialization(context, valueEncodingFormat, valueProjection, null);
 
-//        final FlinkKafkaProducer<RowData> kafkaProducer =
-//                createKafkaProducer(keySerialization, valueSerialization);
+        //        final FlinkKafkaProducer<RowData> kafkaProducer =
+        //                createKafkaProducer(keySerialization, valueSerialization);
 
         final KafkaSinkBuilder<RowData> sinkBuilder = KafkaSink.builder();
         final List<LogicalType> physicalChildren = physicalDataType.getLogicalType().getChildren();
@@ -232,9 +233,9 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
                                         flushMode,
                                         objectReuse
                                                 ? createRowDataTypeSerializer(
-                                                context,
-                                                dataStream.getExecutionConfig())
-                                                ::copy
+                                                                context,
+                                                                dataStream.getExecutionConfig())
+                                                        ::copy
                                                 : rowData -> rowData);
                         final DataStreamSink<RowData> end = dataStream.sinkTo(sink);
                         if (parallelism != null) {
@@ -244,9 +245,7 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
                     };
         }
 
-
         return SinkProvider.of(kafkaSink, parallelism);
-
     }
 
     @Override
@@ -359,63 +358,66 @@ public class KafkaDynamicSink implements DynamicTableSink, SupportsWritingMetada
                 .toArray();
     }
 
-//    protected FlinkKafkaProducer<RowData> createKafkaProducer(
-//            SerializationSchema<RowData> keySerialization,
-//            SerializationSchema<RowData> valueSerialization) {
-//        final List<LogicalType> physicalChildren = physicalDataType.getLogicalType().getChildren();
-//
-//        final RowData.FieldGetter[] keyFieldGetters =
-//                Arrays.stream(keyProjection)
-//                        .mapToObj(
-//                                targetField ->
-//                                        RowData.createFieldGetter(
-//                                                physicalChildren.get(targetField), targetField))
-//                        .toArray(RowData.FieldGetter[]::new);
-//
-//        final RowData.FieldGetter[] valueFieldGetters =
-//                Arrays.stream(valueProjection)
-//                        .mapToObj(
-//                                targetField ->
-//                                        RowData.createFieldGetter(
-//                                                physicalChildren.get(targetField), targetField))
-//                        .toArray(RowData.FieldGetter[]::new);
-//
-//        // determine the positions of metadata in the consumed row
-//        final int[] metadataPositions =
-//                Stream.of(KafkaDynamicSink.WritableMetadata.values())
-//                        .mapToInt(
-//                                m -> {
-//                                    final int pos = metadataKeys.indexOf(m.key);
-//                                    if (pos < 0) {
-//                                        return -1;
-//                                    }
-//                                    return physicalChildren.size() + pos;
-//                                })
-//                        .toArray();
-//
-//        // check if metadata is used at all
-//        final boolean hasMetadata = metadataKeys.size() > 0;
-//
-//
-//        final DynamicKafkaSerializationSchema kafkaSerializer =
-//                new DynamicKafkaSerializationSchema(
-//                        topic,
-//                        partitioner,
-//                        keySerialization,
-//                        valueSerialization,
-//                        keyFieldGetters,
-//                        valueFieldGetters,
-//                        hasMetadata,
-//                        metadataPositions,
-//                        upsertMode);
-//
-//        return new KafkaProducer(
-//                topic,
-//                kafkaSerializer,
-//                properties,
-//                FlinkKafkaProducer.Semantic.valueOf(semantic.toString()),
-//                FlinkKafkaProducer.DEFAULT_KAFKA_PRODUCERS_POOL_SIZE);
-//    }
+    //    protected FlinkKafkaProducer<RowData> createKafkaProducer(
+    //            SerializationSchema<RowData> keySerialization,
+    //            SerializationSchema<RowData> valueSerialization) {
+    //        final List<LogicalType> physicalChildren =
+    // physicalDataType.getLogicalType().getChildren();
+    //
+    //        final RowData.FieldGetter[] keyFieldGetters =
+    //                Arrays.stream(keyProjection)
+    //                        .mapToObj(
+    //                                targetField ->
+    //                                        RowData.createFieldGetter(
+    //                                                physicalChildren.get(targetField),
+    // targetField))
+    //                        .toArray(RowData.FieldGetter[]::new);
+    //
+    //        final RowData.FieldGetter[] valueFieldGetters =
+    //                Arrays.stream(valueProjection)
+    //                        .mapToObj(
+    //                                targetField ->
+    //                                        RowData.createFieldGetter(
+    //                                                physicalChildren.get(targetField),
+    // targetField))
+    //                        .toArray(RowData.FieldGetter[]::new);
+    //
+    //        // determine the positions of metadata in the consumed row
+    //        final int[] metadataPositions =
+    //                Stream.of(KafkaDynamicSink.WritableMetadata.values())
+    //                        .mapToInt(
+    //                                m -> {
+    //                                    final int pos = metadataKeys.indexOf(m.key);
+    //                                    if (pos < 0) {
+    //                                        return -1;
+    //                                    }
+    //                                    return physicalChildren.size() + pos;
+    //                                })
+    //                        .toArray();
+    //
+    //        // check if metadata is used at all
+    //        final boolean hasMetadata = metadataKeys.size() > 0;
+    //
+    //
+    //        final DynamicKafkaSerializationSchema kafkaSerializer =
+    //                new DynamicKafkaSerializationSchema(
+    //                        topic,
+    //                        partitioner,
+    //                        keySerialization,
+    //                        valueSerialization,
+    //                        keyFieldGetters,
+    //                        valueFieldGetters,
+    //                        hasMetadata,
+    //                        metadataPositions,
+    //                        upsertMode);
+    //
+    //        return new KafkaProducer(
+    //                topic,
+    //                kafkaSerializer,
+    //                properties,
+    //                FlinkKafkaProducer.Semantic.valueOf(semantic.toString()),
+    //                FlinkKafkaProducer.DEFAULT_KAFKA_PRODUCERS_POOL_SIZE);
+    //    }
 
     private boolean hasMetadata() {
         return metadataKeys.size() > 0;

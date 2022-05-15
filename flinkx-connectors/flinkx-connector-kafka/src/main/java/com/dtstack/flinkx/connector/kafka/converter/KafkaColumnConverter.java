@@ -58,8 +58,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import static com.dtstack.flinkx.connector.kafka.option.KafkaOptions.DEFAULT_CODEC;
 
+import static com.dtstack.flinkx.connector.kafka.option.KafkaOptions.DEFAULT_CODEC;
 
 /**
  * @author chuixue
