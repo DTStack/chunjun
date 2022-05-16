@@ -35,6 +35,7 @@ import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
+import com.dtstack.chunjun.element.column.TimestampColumn;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -57,6 +58,8 @@ import java.util.concurrent.TimeUnit;
 public class InfluxdbColumnConverter
         extends AbstractRowConverter<Map<String, Object>, RowData, Point.Builder, LogicalType> {
 
+    private static final String TIME_KEY = "time";
+
     private String format = "MSGPACK";
     private List<String> fieldNameList;
     private List<FieldConf> fieldConfList;
@@ -72,7 +75,8 @@ public class InfluxdbColumnConverter
             RowType rowType,
             ChunJunCommonConf commonConf,
             List<String> fieldNameList,
-            String format) {
+            String format,
+            TimeUnit precision) {
         super(rowType, commonConf);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
@@ -85,6 +89,7 @@ public class InfluxdbColumnConverter
         this.format = format;
         this.fieldConfList = commonConf.getColumn();
         this.fieldNameList = fieldNameList;
+        this.precision = precision;
     }
 
     public InfluxdbColumnConverter(
@@ -124,33 +129,49 @@ public class InfluxdbColumnConverter
 
     @Override
     public RowData toInternal(Map<String, Object> input) throws Exception {
-
+        int converterIndex = 0;
         if (fieldConfList.size() == 1
                 && StringUtils.equals(ConstantValue.STAR_SYMBOL, fieldConfList.get(0).getName())) {
             ColumnRowData result = new ColumnRowData(fieldNameList.size());
-            for (int i = 0; i < fieldNameList.size(); i++) {
-                Object field = input.get(fieldNameList.get(i));
-                AbstractBaseColumn baseColumn =
-                        (AbstractBaseColumn) toInternalConverters.get(i).deserialize(field);
+            for (String fieldName : fieldNameList) {
+                AbstractBaseColumn baseColumn = setValue(input, fieldName, converterIndex);
                 result.addField(baseColumn);
+                converterIndex++;
+            }
+            return result;
+        } else {
+            ColumnRowData result = new ColumnRowData(fieldConfList.size());
+            for (FieldConf fieldConf : fieldConfList) {
+                String fieldName = fieldConf.getName();
+                AbstractBaseColumn baseColumn = setValue(input, fieldName, converterIndex);
+                result.addField(assembleFieldProps(fieldConf, baseColumn));
+                converterIndex++;
             }
             return result;
         }
+    }
 
-        ColumnRowData result = new ColumnRowData(fieldConfList.size());
-        int converterIndex = 0;
-        for (FieldConf fieldConf : fieldConfList) {
-            AbstractBaseColumn baseColumn = null;
-            if (StringUtils.isBlank(fieldConf.getValue())) {
-                Object field = input.get(fieldConf.getName());
-                baseColumn =
-                        (AbstractBaseColumn)
-                                toInternalConverters.get(converterIndex).deserialize(field);
-                converterIndex++;
-            }
-            result.addField(assembleFieldProps(fieldConf, baseColumn));
+    /**
+     * Set the value of input into column.
+     *
+     * @param input input value.
+     * @param fieldName field name of input.
+     * @param index index of converter.
+     * @return column
+     * @throws Exception the exception from converter.
+     */
+    private AbstractBaseColumn setValue(Map<String, Object> input, String fieldName, int index)
+            throws Exception {
+        AbstractBaseColumn baseColumn;
+        if (TIME_KEY.equalsIgnoreCase(fieldName)) {
+            Long timeLong = (Long) input.get(fieldName);
+            long timeMs = TimeUnit.MILLISECONDS.convert(timeLong, precision);
+            baseColumn = new TimestampColumn(timeMs);
+        } else {
+            Object field = input.get(fieldName);
+            baseColumn = (AbstractBaseColumn) toInternalConverters.get(index).deserialize(field);
         }
-        return result;
+        return baseColumn;
     }
 
     @Override
