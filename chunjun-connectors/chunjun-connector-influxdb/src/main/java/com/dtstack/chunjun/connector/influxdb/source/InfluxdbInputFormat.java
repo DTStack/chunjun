@@ -25,6 +25,7 @@ package com.dtstack.chunjun.connector.influxdb.source;
 import com.dtstack.chunjun.connector.influxdb.conf.InfluxdbSourceConfig;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbColumnConverter;
 import com.dtstack.chunjun.connector.influxdb.converter.InfluxdbRawTypeConverter;
+import com.dtstack.chunjun.connector.influxdb.enums.TimePrecisionEnums;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
 import com.dtstack.chunjun.util.ColumnBuildUtil;
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -74,6 +76,7 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
 
     private InfluxdbSourceConfig config;
     private String queryTemplate;
+    private TimeUnit precision;
     private transient InfluxDB influxDB;
     private transient AtomicBoolean hasNext;
     private transient BlockingQueue<Map<String, Object>> queue;
@@ -93,6 +96,8 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
         LOG.info("subTask[{}] inputSplit = {}.", indexOfSubTask, inputSplit);
         this.queue = new LinkedBlockingQueue<>(config.getFetchSize() * 3);
         this.hasNext = new AtomicBoolean(true);
+        this.precision = TimePrecisionEnums.of(config.getEpoch()).getPrecision();
+
         connect();
 
         Pair<List<String>, List<String>> pair = getTableMetadata();
@@ -107,7 +112,8 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
 
         // TODO add InfluxdbRawConverter
         setRowConverter(
-                new InfluxdbColumnConverter(rowType, config, columnNameList, config.getFormat()));
+                new InfluxdbColumnConverter(
+                        rowType, config, columnNameList, config.getFormat(), precision));
 
         this.queryInfluxQLBuilder = new InfluxdbQuerySqlBuilder(config, columnNameList);
         this.queryTemplate = queryInfluxQLBuilder.buildSql();
@@ -133,6 +139,11 @@ public class InfluxdbInputFormat extends BaseRichInputFormat {
         RowData row;
         try {
             Map<String, Object> data = queue.poll(5, TimeUnit.SECONDS);
+
+            if (Objects.isNull(data)) {
+                return null;
+            }
+
             row = rowConverter.toInternal(data);
         } catch (Exception e) {
             throw new ReadRecordException("can not read next record.", e, -1, rowData);
