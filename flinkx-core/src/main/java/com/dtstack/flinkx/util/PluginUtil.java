@@ -55,6 +55,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 import static com.dtstack.flinkx.constants.ConstantValue.CONNECTOR_DIR_NAME;
+import static com.dtstack.flinkx.constants.ConstantValue.DDL_DIR_NAME;
 import static com.dtstack.flinkx.constants.ConstantValue.DIRTY_DATA_DIR_NAME;
 import static com.dtstack.flinkx.constants.ConstantValue.POINT_SYMBOL;
 import static com.dtstack.flinkx.constants.ConstantValue.RESTORE_DIR_NAME;
@@ -111,6 +112,31 @@ public class PluginUtil {
                         .replace(WRITER_SUFFIX, "")
                         .replace(SINK_SUFFIX, "");
         name = ConnectorNameConvertUtil.convertPackageName(name);
+        getJarUrlList(pluginRoot, suffix, name, urlSet);
+        getJarUrlList(remotePluginPath, suffix, name, urlSet);
+
+        return urlSet;
+    }
+
+    /**
+     * 根据插件名称查找ddl解析插件路径
+     *
+     * @param pluginName 插件名称，如: kafkareader、kafkasource等
+     * @param pluginRoot
+     * @param remotePluginPath
+     * @param suffix
+     * @return
+     */
+    public static Set<URL> getDdlJarFileDirPath(
+            String pluginName, String pluginRoot, String remotePluginPath, String suffix) {
+        Set<URL> urlSet = new HashSet<>();
+        String name =
+                pluginName
+                        .replace(READER_SUFFIX, "")
+                        .replace(SOURCE_SUFFIX, "")
+                        .replace(WRITER_SUFFIX, "")
+                        .replace(SINK_SUFFIX, "");
+        name = DdlConventNameConvertUtil.convertPackageName(name);
         getJarUrlList(pluginRoot, suffix, name, urlSet);
         getJarUrlList(remotePluginPath, suffix, name, urlSet);
 
@@ -316,6 +342,24 @@ public class PluginUtil {
                             config.getRemotePluginPath(),
                             RESTORE_DIR_NAME);
             urlSet.addAll(restoreUrlSet);
+
+            Set<URL> ddlSourceUrlSet =
+                    getDdlJarFileDirPath(
+                            config.getReader().getName(),
+                            config.getPluginRoot(),
+                            config.getRemotePluginPath(),
+                            DDL_DIR_NAME);
+
+            urlSet.addAll(ddlSourceUrlSet);
+
+            Set<URL> ddlSinkUrlSet =
+                    getDdlJarFileDirPath(
+                            config.getWriter().getName(),
+                            config.getPluginRoot(),
+                            config.getRemotePluginPath(),
+                            DDL_DIR_NAME);
+
+            urlSet.addAll(ddlSinkUrlSet);
         }
 
         urlSet.addAll(coreUrlSet);

@@ -118,6 +118,14 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     public void convertToExternal(RowData row) throws Exception {
         getOrCreateFieldNamedPstmt(row);
+        if (!writeExtInfo) {
+            if (row instanceof ColumnRowData) {
+                ColumnRowData copy = ((ColumnRowData) row).copy();
+                copy.removeExtHeaderInfo();
+                row = copy;
+            }
+        }
+
         currentFieldNamedPstmt =
                 (FieldNamedPreparedStatement)
                         currentRowConverter.toExternal(row, this.currentFieldNamedPstmt);
@@ -159,9 +167,6 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
             currentFieldNamedPstmt = fieldNamedPreparedStatement.getFieldNamedPreparedStatement();
             currentRowConverter = fieldNamedPreparedStatement.getRowConverter();
-            if (!writeExtInfo) {
-                columnRowData.removeExtHeaderInfo();
-            }
         } else {
             String key =
                     getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.INSERT);
@@ -350,5 +355,9 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
     @Override
     public void close() throws SQLException {
         currentFieldNamedPstmt.close();
+    }
+
+    public void clearStatementCache() {
+        pstmtCache.invalidateAll();
     }
 }

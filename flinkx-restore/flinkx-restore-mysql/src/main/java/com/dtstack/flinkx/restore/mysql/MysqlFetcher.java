@@ -2,6 +2,7 @@ package com.dtstack.flinkx.restore.mysql;
 
 import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.cdc.DdlRowDataBuilder;
+import com.dtstack.flinkx.cdc.DdlRowDataConvented;
 import com.dtstack.flinkx.cdc.monitor.MonitorConf;
 import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
 import com.dtstack.flinkx.restore.mysql.utils.DataSourceUtil;
@@ -29,6 +30,7 @@ import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.QUERY;
 import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.SELECT;
 import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.SELECT_CHECK;
 import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.TABLE_KEY;
+import static com.dtstack.flinkx.restore.mysql.MysqlFetcherConstant.UPDATE;
 
 /**
  * @author tiezhu@dtstack.com
@@ -49,6 +51,8 @@ public class MysqlFetcher extends FetcherBase {
     private PreparedStatement delete;
 
     private PreparedStatement query;
+
+    private PreparedStatement update;
 
     public MysqlFetcher(MonitorConf conf) {
         this.conf = conf;
@@ -99,6 +103,25 @@ public class MysqlFetcher extends FetcherBase {
     }
 
     @Override
+    public void update(RowData data, int status) {
+        if (data instanceof DdlRowData) {
+            DdlRowData ddlRowData = (DdlRowData) data;
+            String tableIdentifier = ddlRowData.getTableIdentifier();
+            String[] split = tableIdentifier.split("\\.");
+            try {
+                update.setInt(1, status);
+                update.setString(2, split[0].replace("'", ""));
+                update.setString(3, split[1].replace("'", ""));
+                update.setString(4, ddlRowData.getLsn());
+                update.execute();
+            } catch (SQLException e) {
+                throw new RuntimeException(
+                        "Delete ddl failed! tableIdentifier: " + tableIdentifier, e);
+            }
+        }
+    }
+
+    @Override
     public Map<String, DdlRowData> query() {
         final Map<String, DdlRowData> ddlRowDataMap = new HashMap<>();
         try (final ResultSet resultSet = query.executeQuery()) {
@@ -108,7 +131,7 @@ public class MysqlFetcher extends FetcherBase {
                 String operationType = resultSet.getString(3);
                 String lsn = resultSet.getString(4);
                 String content = resultSet.getString(5);
-
+                int status = resultSet.getInt(6);
                 DdlRowData ddl =
                         DdlRowDataBuilder.builder()
                                 .setDatabaseName(databaseName)
@@ -117,6 +140,10 @@ public class MysqlFetcher extends FetcherBase {
                                 .setLsn(lsn)
                                 .setContent(content)
                                 .build();
+
+                if (status != 0) {
+                    ddl = new DdlRowDataConvented(ddl, new RuntimeException());
+                }
 
                 String tableIdentity = "'" + databaseName + "'.'" + tableName + "'";
                 ddlRowDataMap.put(tableIdentity, ddl);
@@ -146,9 +173,11 @@ public class MysqlFetcher extends FetcherBase {
         String select = SELECT.replace("$database", database).replace("$table", table);
         String delete = DELETE.replace("$database", database).replace("$table", table);
         String query = QUERY.replace("$database", database).replace("$table", table);
+        String update = UPDATE.replace("$database", database).replace("$table", table);
         this.select = connection.prepareStatement(select);
         this.delete = connection.prepareStatement(delete);
         this.query = connection.prepareStatement(query);
+        this.update = connection.prepareStatement(update);
     }
 
     /**

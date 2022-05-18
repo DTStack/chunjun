@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.sink.format;
 
+import com.dtstack.flinkx.cdc.monitor.MonitorConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -39,6 +40,10 @@ public abstract class BaseRichOutputFormatBuilder {
 
     public void setConfig(FlinkxCommonConf config) {
         format.setConfig(config);
+    }
+
+    public void setMonitorConfig(MonitorConf config) {
+        format.setMonitorConf(config);
     }
 
     public void setInitAccumulatorAndDirty(boolean initAccumulatorAndDirty) {

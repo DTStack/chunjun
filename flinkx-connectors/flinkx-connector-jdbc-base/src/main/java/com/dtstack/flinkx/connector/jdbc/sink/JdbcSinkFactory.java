@@ -96,6 +96,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
         JdbcOutputFormatBuilder builder = getBuilder();
         builder.setJdbcConf(jdbcConf);
         builder.setJdbcDialect(jdbcDialect);
+        builder.setMonitorConfig(monitor);
 
         AbstractRowConverter rowConverter = null;
         // 同步任务使用transform

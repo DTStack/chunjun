@@ -52,6 +52,8 @@ public class FlinkxCommonConf implements Serializable {
     private int batchSize = 1;
     /** Time when the timer is regularly written to the database */
     private long flushIntervalMills = 10000L;
+    /** whether to execute ddlRowdata */
+    private boolean executeDdlAble;
     /** sp path */
     private String savePointPath;
 
@@ -206,6 +208,14 @@ public class FlinkxCommonConf implements Serializable {
         this.savePointPath = savePointPath;
     }
 
+    public boolean isExecuteDdlAble() {
+        return executeDdlAble;
+    }
+
+    public void setExecuteDdlAble(boolean executeDdlAble) {
+        this.executeDdlAble = executeDdlAble;
+    }
+
     @Override
     public String toString() {
         return "FlinkxCommonConf{"
@@ -230,6 +240,8 @@ public class FlinkxCommonConf implements Serializable {
                 + column
                 + ", batchSize="
                 + batchSize
+                + ", executeDdlAble="
+                + executeDdlAble
                 + ", flushIntervalMills="
                 + flushIntervalMills
                 + ", metricPluginRoot='"

@@ -22,11 +22,11 @@ package com.dtstack.flinkx.cdc.worker;
 
 import com.dtstack.flinkx.cdc.CdcConf;
 import com.dtstack.flinkx.cdc.QueuesChamberlain;
+import com.dtstack.flinkx.cdc.WrapCollector;
 import com.dtstack.flinkx.cdc.exception.LogExceptionHandler;
 import com.dtstack.flinkx.cdc.utils.ExecutorUtils;
 
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.Collector;
 
 import java.io.Serializable;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -51,7 +51,7 @@ public class WorkerManager implements Serializable {
 
     private WorkerOverseer overseer;
 
-    private Collector<RowData> collector;
+    private WrapCollector<RowData> collector;
 
     /** worker的核心线程数 */
     private final int workerNum;
@@ -100,11 +100,11 @@ public class WorkerManager implements Serializable {
         }
     }
 
-    public Collector<RowData> getCollector() {
+    public WrapCollector<RowData> getCollector() {
         return collector;
     }
 
-    public void setCollector(Collector<RowData> collector) {
+    public void setCollector(WrapCollector<RowData> collector) {
         this.collector = collector;
         // collector赋值后才能通知Overseer启动worker线程
         openOverseer();
