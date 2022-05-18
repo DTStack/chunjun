@@ -30,7 +30,7 @@ import java.io.Serializable;
  * @author shitou
  * @date 2021/12/15
  */
-public class PatternMapping implements Mapping, Serializable {
+public class PatternMapping implements Mapping<RowData>, Serializable {
 
     private static final long serialVersionUID = 1L;
 

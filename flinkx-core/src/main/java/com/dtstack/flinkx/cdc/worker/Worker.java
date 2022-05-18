@@ -21,10 +21,10 @@
 package com.dtstack.flinkx.cdc.worker;
 
 import com.dtstack.flinkx.cdc.QueuesChamberlain;
+import com.dtstack.flinkx.cdc.WrapCollector;
 import com.dtstack.flinkx.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.Collector;
 
 import java.util.Arrays;
 import java.util.Deque;
@@ -39,9 +39,8 @@ import java.util.concurrent.Callable;
  */
 public class Worker implements Callable<Integer> {
 
-    private static final Object LOCK = new Object();
     private final QueuesChamberlain queuesChamberlain;
-    private final Collector<RowData> collector;
+    private final WrapCollector<RowData> collector;
     /** 任务分片 */
     private final Chunk chunk;
     /** 队列遍历深度，避免某队列长时间占用线程 */
@@ -49,7 +48,7 @@ public class Worker implements Callable<Integer> {
 
     public Worker(
             QueuesChamberlain queuesChamberlain,
-            Collector<RowData> collector,
+            WrapCollector<RowData> collector,
             Chunk chunk,
             int size) {
         this.queuesChamberlain = queuesChamberlain;
@@ -85,9 +84,7 @@ public class Worker implements Callable<Integer> {
     private void dealDmL(Deque<RowData> queue) {
         // 队列头节点是dml, 将该dml数据发送到sink
         RowData rowData = queue.poll();
-        synchronized (LOCK) {
-            collector.collect(rowData);
-        }
+        collector.collect(rowData);
     }
 
     @Override

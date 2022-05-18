@@ -75,4 +75,6 @@ public class ConstantValue {
     public static final String DIRTY_DATA_DIR_NAME = "dirty-data-collector";
 
     public static final String RESTORE_DIR_NAME = "restore-plugins";
+
+    public static final String DDL_DIR_NAME = "ddl";
 }

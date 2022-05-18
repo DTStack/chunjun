@@ -20,6 +20,14 @@
 
 package com.dtstack.flinkx.mapping;
 
+import com.dtstack.flinkx.cdc.DdlRowData;
+import com.dtstack.flinkx.cdc.DdlRowDataConvented;
+import com.dtstack.flinkx.cdc.ddl.ConventException;
+import com.dtstack.flinkx.cdc.ddl.ConventExceptionProcessHandler;
+import com.dtstack.flinkx.cdc.ddl.DdlConvent;
+import com.dtstack.flinkx.cdc.ddl.entity.DdlData;
+import com.dtstack.flinkx.element.ColumnRowData;
+
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
@@ -33,14 +41,62 @@ import org.apache.flink.util.Collector;
 public class NameMappingFlatMap extends RichFlatMapFunction<RowData, RowData> {
 
     private final MappingClient client;
+    private final DdlConvent source;
+    private final DdlConvent sink;
+    private final ConventExceptionProcessHandler conventExceptionProcessHandler;
 
-    public NameMappingFlatMap(NameMappingConf conf) {
+    public NameMappingFlatMap(
+            NameMappingConf conf,
+            DdlConvent source,
+            DdlConvent sink,
+            ConventExceptionProcessHandler conventExceptionProcessHandler) {
         this.client = new MappingClient(conf);
+        this.source = source;
+        this.sink = sink;
+        this.conventExceptionProcessHandler = conventExceptionProcessHandler;
+        check(source, sink, conventExceptionProcessHandler);
     }
 
     @Override
-    public void flatMap(RowData value, Collector<RowData> collector) throws Exception {
+    public void flatMap(RowData value, Collector<RowData> collector) {
         RowData rowData = client.map(value);
-        collector.collect(rowData);
+        if (rowData instanceof ColumnRowData) {
+            collector.collect(rowData);
+        } else if (rowData instanceof DdlRowData) {
+            if (source != null) {
+                try {
+                    DdlData data = source.rowConventToDdlData((DdlRowData) rowData);
+                    data = client.map(data);
+                    String s = sink.ddlDataConventToSql(data);
+                    ((DdlRowData) rowData).replaceData("content", s);
+                    collector.collect(new DdlRowDataConvented((DdlRowData) rowData, null));
+                } catch (ConventException e) {
+                    conventExceptionProcessHandler.process((DdlRowData) rowData, e, collector);
+                }
+            } else {
+                // 没有转换 就直接传递下游
+                collector.collect(value);
+            }
+        }
+    }
+
+    private void check(DdlConvent source, DdlConvent sink, ConventExceptionProcessHandler handler) {
+        if (source != null || sink != null || handler != null) {
+            if (source != null && sink != null && handler != null) {
+                return;
+            }
+            StringBuilder s = new StringBuilder();
+            if (source == null) {
+                s.append("source convent not allow null");
+            }
+            if (sink == null) {
+                s.append("sink convent not allow null");
+            }
+
+            if (handler == null) {
+                s.append("handler not allow null");
+            }
+            throw new IllegalArgumentException(s.toString());
+        }
     }
 }

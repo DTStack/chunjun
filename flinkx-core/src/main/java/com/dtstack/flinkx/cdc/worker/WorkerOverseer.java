@@ -21,9 +21,9 @@
 package com.dtstack.flinkx.cdc.worker;
 
 import com.dtstack.flinkx.cdc.QueuesChamberlain;
+import com.dtstack.flinkx.cdc.WrapCollector;
 
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.util.Collector;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -48,7 +48,7 @@ public class WorkerOverseer implements Runnable, Serializable {
 
     private final QueuesChamberlain chamberlain;
 
-    private final Collector<RowData> collector;
+    private final WrapCollector<RowData> collector;
 
     /** 记录已经被worker线程获得的chunk */
     private final Set<Integer> chunkSet = new HashSet<>();
@@ -62,7 +62,7 @@ public class WorkerOverseer implements Runnable, Serializable {
     public WorkerOverseer(
             ThreadPoolExecutor workerExecutor,
             QueuesChamberlain chamberlain,
-            Collector<RowData> collector,
+            WrapCollector<RowData> collector,
             int workerSize) {
         this.workerExecutor = workerExecutor;
         this.chamberlain = chamberlain;

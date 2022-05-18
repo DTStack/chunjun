@@ -1,10 +1,13 @@
 package com.dtstack.flinkx.cdc.monitor;
 
 import com.dtstack.flinkx.cdc.QueuesChamberlain;
+import com.dtstack.flinkx.cdc.WrapCollector;
 import com.dtstack.flinkx.cdc.exception.LogExceptionHandler;
 import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
 import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
 import com.dtstack.flinkx.cdc.utils.ExecutorUtils;
+
+import org.apache.flink.table.data.RowData;
 
 import java.io.Serializable;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -69,6 +72,14 @@ public class Monitor implements Serializable {
                 ExecutorUtils.singleThreadExecutor(
                         "store-pool-%d", false, new LogExceptionHandler());
         storeExecutor.execute(store);
+    }
+
+    public WrapCollector<RowData> getCollector() {
+        return this.store.getCollector();
+    }
+
+    public void setCollector(WrapCollector<RowData> collector) {
+        this.store.setCollector(collector);
     }
 
     public void close() {
