@@ -285,11 +285,11 @@
 			<artifactId>flinkx-connector-doris</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-starrocks</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.dtstack.flinkx</groupId>-->
+<!--			<artifactId>flinkx-connector-starrocks</artifactId>-->
+<!--			<version>${project.version}</version>-->
+<!--		</dependency>-->
 
 		<!--CDC-->
 		<dependency>
@@ -332,5 +332,12 @@
 		</dependency>
 
 		<!--本地测试模块 end, 添加新的dependency请按照分组添加在对应位置，不要无脑地加在最前或最后方 -->
+
+		<!-- ddlconvent plugin -->
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-ddl-mysql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 </project>

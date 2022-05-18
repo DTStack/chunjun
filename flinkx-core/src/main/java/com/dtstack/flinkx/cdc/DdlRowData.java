@@ -181,4 +181,24 @@ public class DdlRowData implements RowData, Serializable {
     public String[] getHeaders() {
         return headers;
     }
+
+    public String[] getInfos() {
+        return ddlInfos;
+    }
+
+    public void replaceData(String original, String another) {
+        int index = getIndex(original);
+        if (index != -1) {
+            this.ddlInfos[index] = another;
+        }
+    }
+
+    public int getIndex(String header) {
+        for (int i = 0; i < headers.length; i++) {
+            if (headers[i].equals(header)) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }

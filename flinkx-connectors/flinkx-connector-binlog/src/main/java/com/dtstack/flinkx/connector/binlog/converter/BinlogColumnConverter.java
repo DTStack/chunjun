@@ -20,6 +20,7 @@ package com.dtstack.flinkx.connector.binlog.converter;
 import com.dtstack.flinkx.cdc.DdlRowData;
 import com.dtstack.flinkx.cdc.DdlRowDataBuilder;
 import com.dtstack.flinkx.connector.binlog.listener.BinlogEventRow;
+import com.dtstack.flinkx.constants.CDCConstantValue;
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.converter.AbstractCDCRowConverter;
 import com.dtstack.flinkx.converter.IDeserializationConverter;
@@ -82,9 +83,9 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
         String schema = binlogEventRow.getSchema();
         String table = binlogEventRow.getTable();
         String key = schema + ConstantValue.POINT_SYMBOL + table;
-        List<IDeserializationConverter> converters = super.cdcConverterCacheMap.get(key);
 
         if (rowChange.getIsDdl()) {
+            super.cdcConverterCacheMap.remove(key);
             // 处理 ddl rowChange
             if (rowChange.getEventType().equals(CanalEntry.EventType.ERASE)) {
                 List<DdlResult> parse =
@@ -152,6 +153,8 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             }
         }
 
+        List<IDeserializationConverter> converters = super.cdcConverterCacheMap.get(key);
+
         for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
             if (converters == null) {
                 List<CanalEntry.Column> list = rowData.getBeforeColumnsList();
@@ -181,12 +184,16 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             ColumnRowData columnRowData = new ColumnRowData(size);
             columnRowData.addField(new StringColumn(schema));
             columnRowData.addHeader(SCHEMA);
+            columnRowData.addExtHeader(CDCConstantValue.SCHEMA);
             columnRowData.addField(new StringColumn(table));
             columnRowData.addHeader(TABLE);
+            columnRowData.addExtHeader(CDCConstantValue.TABLE);
             columnRowData.addField(new BigDecimalColumn(super.idWorker.nextId()));
             columnRowData.addHeader(TS);
+            columnRowData.addExtHeader(TS);
             columnRowData.addField(new TimestampColumn(binlogEventRow.getExecuteTime()));
             columnRowData.addHeader(OP_TIME);
+            columnRowData.addExtHeader(CDCConstantValue.OP_TIME);
 
             List<CanalEntry.Column> beforeList = rowData.getBeforeColumnsList();
             List<CanalEntry.Column> afterList = rowData.getAfterColumnsList();
@@ -197,9 +204,16 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             List<String> afterHeaderList = new ArrayList<>(afterList.size());
 
             if (pavingData) {
+                String prefix_before = BEFORE_;
+                String prefix_after = AFTER_;
+                if (split) {
+                    prefix_before = "";
+                    prefix_after = "";
+                }
                 parseColumnList(
-                        converters, beforeList, beforeColumnList, beforeHeaderList, BEFORE_);
-                parseColumnList(converters, afterList, afterColumnList, afterHeaderList, AFTER_);
+                        converters, beforeList, beforeColumnList, beforeHeaderList, prefix_before);
+                parseColumnList(
+                        converters, afterList, afterColumnList, afterHeaderList, prefix_after);
             } else {
                 beforeColumnList.add(
                         new MapColumn(processColumnList(rowData.getBeforeColumnsList())));
@@ -215,6 +229,7 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
                 copy.setRowKind(RowKind.UPDATE_BEFORE);
                 copy.addField(new StringColumn(RowKind.UPDATE_BEFORE.name()));
                 copy.addHeader(TYPE);
+                copy.addExtHeader(CDCConstantValue.TYPE);
                 copy.addAllField(beforeColumnList);
                 copy.addAllHeader(beforeHeaderList);
                 result.add(copy);
@@ -222,10 +237,12 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
                 columnRowData.setRowKind(RowKind.UPDATE_AFTER);
                 columnRowData.addField(new StringColumn(RowKind.UPDATE_AFTER.name()));
                 columnRowData.addHeader(TYPE);
+                columnRowData.addExtHeader(CDCConstantValue.TYPE);
             } else {
                 columnRowData.setRowKind(getRowKindByType(eventType));
                 columnRowData.addField(new StringColumn(eventType));
                 columnRowData.addHeader(TYPE);
+                columnRowData.addExtHeader(CDCConstantValue.TYPE);
                 columnRowData.addAllField(beforeColumnList);
                 columnRowData.addAllHeader(beforeHeaderList);
             }

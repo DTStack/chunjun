@@ -182,8 +182,16 @@ public class JdbcColumnConverter
             case SMALLINT:
             case INTEGER:
             case INTERVAL_YEAR_MONTH:
-                return (val, index, statement) ->
-                        statement.setInt(index, ((ColumnRowData) val).getField(index).asYearInt());
+                return (val, index, statement) -> {
+                    int a = 0;
+                    try {
+                        a = ((ColumnRowData) val).getField(index).asYearInt();
+                    } catch (Exception e) {
+                        LOG.error("val {}, index{}", val, index, e);
+                    }
+
+                    statement.setInt(index, a);
+                };
             case FLOAT:
                 return (val, index, statement) ->
                         statement.setFloat(index, ((ColumnRowData) val).getField(index).asFloat());

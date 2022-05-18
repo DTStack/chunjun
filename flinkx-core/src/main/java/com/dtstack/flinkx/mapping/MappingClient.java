@@ -20,9 +20,13 @@
 
 package com.dtstack.flinkx.mapping;
 
+import com.dtstack.flinkx.cdc.ddl.entity.DdlData;
+
 import org.apache.flink.table.data.RowData;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 根据映射规则获取对应的目标信息
@@ -36,14 +40,30 @@ public class MappingClient implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final NameMapping nameMapping;
+    private final List<Mapping<RowData>> mappings;
+    private final List<Mapping<DdlData>> ddlMappings;
 
     public MappingClient(NameMappingConf conf) {
-        this.nameMapping = new NameMapping(conf);
+        if (conf == null) {
+            this.mappings = Collections.emptyList();
+            this.ddlMappings = Collections.emptyList();
+        } else {
+            this.mappings = Collections.singletonList(new NameMapping(conf));
+            this.ddlMappings = Collections.singletonList(new DdlDataNameMapping(conf));
+        }
     }
 
     public RowData map(RowData value) {
-        // TODO 根据配置选择匹配方式（名称匹配或正则匹配）
-        return nameMapping.map(value);
+        for (Mapping<RowData> mapping : mappings) {
+            value = mapping.map(value);
+        }
+        return value;
+    }
+
+    public DdlData map(DdlData value) {
+        for (Mapping<DdlData> mapping : ddlMappings) {
+            value = mapping.map(value);
+        }
+        return value;
     }
 }

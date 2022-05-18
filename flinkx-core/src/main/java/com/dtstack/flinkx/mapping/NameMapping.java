@@ -40,7 +40,7 @@ import static com.dtstack.flinkx.constants.CDCConstantValue.TABLE;
  * @author shitou
  * @date 2021/12/15
  */
-public class NameMapping implements Mapping, Serializable {
+public class NameMapping implements Mapping<RowData>, Serializable {
 
     private static final long serialVersionUID = 1L;
 

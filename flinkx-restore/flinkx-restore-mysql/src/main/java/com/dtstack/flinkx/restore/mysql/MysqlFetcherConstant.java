@@ -35,13 +35,17 @@ public class MysqlFetcherConstant {
                     + " where status = 2 and database_name = ? and table_name = ? and lsn <= ?";
 
     public static final String QUERY =
-            "select database_name, table_name, operation_type, lsn, content, update_time from `$database`.`$table`"
+            "select database_name, table_name, operation_type, lsn, content, update_time, status from `$database`.`$table`"
                     + " where status != 2";
+
+    public static final String UPDATE =
+            "update `$database`.`$table` set status = ?"
+                    + " where database_name = ? and table_name = ? and lsn = ? and status = 0";
 
     public static final String INSERT =
             "INSERT INTO `$database`.`$table` "
                     + "(database_name, table_name, operation_type, lsn, content, update_time, status)"
-                    + " VALUE ($database_name, $table_name, '$operation_type', '$lsn', '$content', $update_time, 0)";
+                    + " VALUE ($database_name, $table_name, '$operation_type', '$lsn', '$content', $update_time, $status)";
 
     public static final String SELECT_CHECK = "SELECT * FROM `$database`.`$table` WHERE 1 = 2";
 

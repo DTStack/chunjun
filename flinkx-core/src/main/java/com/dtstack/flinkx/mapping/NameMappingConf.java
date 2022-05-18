@@ -41,6 +41,8 @@ public class NameMappingConf implements Serializable {
     /** 用户自定义的正则 */
     private String pattern;
 
+    private Boolean sqlConevnt;
+
     public String getPattern() {
         return pattern;
     }
@@ -73,6 +75,14 @@ public class NameMappingConf implements Serializable {
         this.fieldMappings = fieldMappings;
     }
 
+    public Boolean getSqlConevnt() {
+        return sqlConevnt;
+    }
+
+    public void setSqlConevnt(Boolean sqlConevnt) {
+        this.sqlConevnt = sqlConevnt;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", NameMappingConf.class.getSimpleName() + "[", "]")
@@ -80,6 +90,7 @@ public class NameMappingConf implements Serializable {
                 .add("schemaMappings=" + schemaMappings)
                 .add("fieldMappings=" + fieldMappings)
                 .add("pattern='" + pattern + "'")
+                .add("sqlConevnt='" + sqlConevnt + "'")
                 .toString();
     }
 }
