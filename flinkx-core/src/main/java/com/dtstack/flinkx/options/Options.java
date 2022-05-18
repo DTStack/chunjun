@@ -36,6 +36,12 @@ import org.apache.commons.lang.StringUtils;
  * @author tudou
  */
 public class Options {
+    @OptionRequired(description = "Flink Job Id")
+    private String jobId;
+
+    @OptionRequired(description = "remote mode send jars to TM")
+    private String isRemote;
+
     @OptionRequired(description = "job type:sql or sync")
     private String jobType;
 
@@ -103,6 +109,14 @@ public class Options {
             flinkConfiguration.set(CoreOptions.CHECK_LEAKED_CLASSLOADER, false);
         }
         return flinkConfiguration;
+    }
+
+    public String getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(String jobId) {
+        this.jobId = jobId;
     }
 
     public String getMode() {
@@ -217,9 +231,23 @@ public class Options {
         this.jobType = jobType;
     }
 
+    public String isRemote() {
+        return isRemote;
+    }
+
+    public void setIsRemote(String isRemote) {
+        this.isRemote = isRemote;
+    }
+
     @Override
     public String toString() {
         return "Options{"
+                + "jobId='"
+                + jobId
+                + '\''
+                + "isRemote='"
+                + isRemote
+                + '\''
                 + "jobType='"
                 + jobType
                 + '\''
