@@ -19,6 +19,8 @@ package com.dtstack.flinkx;
 
 import com.dtstack.flinkx.cdc.CdcConf;
 import com.dtstack.flinkx.cdc.RestorationFlatMap;
+import com.dtstack.flinkx.cdc.ddl.DdlConvent;
+import com.dtstack.flinkx.cdc.ddl.SendProcessHandler;
 import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
 import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
 import com.dtstack.flinkx.conf.OperatorConf;
@@ -30,7 +32,6 @@ import com.dtstack.flinkx.dirty.utils.DirtyConfUtil;
 import com.dtstack.flinkx.enums.EJobType;
 import com.dtstack.flinkx.environment.EnvFactory;
 import com.dtstack.flinkx.environment.MyLocalStreamEnvironment;
-import com.dtstack.flinkx.mapping.NameMappingConf;
 import com.dtstack.flinkx.mapping.NameMappingFlatMap;
 import com.dtstack.flinkx.options.OptionParser;
 import com.dtstack.flinkx.options.Options;
@@ -40,6 +41,7 @@ import com.dtstack.flinkx.sql.parser.SqlParser;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.JobConfigException;
 import com.dtstack.flinkx.util.DataSyncFactoryUtil;
+import com.dtstack.flinkx.util.DdlConventNameConvertUtil;
 import com.dtstack.flinkx.util.ExecuteProcessHelper;
 import com.dtstack.flinkx.util.FactoryHelper;
 import com.dtstack.flinkx.util.JobUtil;
@@ -80,6 +82,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+
+import static com.dtstack.flinkx.util.PluginUtil.READER_SUFFIX;
+import static com.dtstack.flinkx.util.PluginUtil.SINK_SUFFIX;
+import static com.dtstack.flinkx.util.PluginUtil.SOURCE_SUFFIX;
+import static com.dtstack.flinkx.util.PluginUtil.WRITER_SUFFIX;
 
 /**
  * The main class entry
@@ -178,19 +185,15 @@ public class Main {
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
         DataStream<RowData> dataStreamSource = sourceFactory.createSource();
 
+        dataStreamSource = addNameMapping(config, dataStreamSource);
         if (!config.getCdcConf().isSkipDDL()) {
             CdcConf cdcConf = config.getCdcConf();
             Pair<FetcherBase, StoreBase> monitorPair =
-                    DataSyncFactoryUtil.discoverMonitor(cdcConf.getMonitor(), config);
+                    DataSyncFactoryUtil.discoverFetchBase(cdcConf.getMonitor(), config);
             dataStreamSource =
                     dataStreamSource.flatMap(
                             new RestorationFlatMap(
                                     monitorPair.getLeft(), monitorPair.getRight(), cdcConf));
-        }
-
-        if (config.getNameMappingConf() != null) {
-            NameMappingConf mappingConf = config.getNameMappingConf();
-            dataStreamSource = dataStreamSource.flatMap(new NameMappingFlatMap(mappingConf));
         }
 
         SpeedConf speed = config.getSpeed();
@@ -220,7 +223,7 @@ public class Main {
         if (speed.getWriterChannel() > 0) {
             dataStreamSink.setParallelism(speed.getWriterChannel());
         }
-
+        env.disableOperatorChaining();
         JobExecutionResult result = env.execute(options.getJobName());
         if (env instanceof MyLocalStreamEnvironment) {
             PrintUtil.printResult(result.getAllAccumulatorResults());
@@ -350,5 +353,56 @@ public class Main {
         if (StringUtils.isEmpty(operatorConf.getTable().getTableName())) {
             throw new JobConfigException(operatorConf.getName(), "table.tableName", "is missing");
         }
+    }
+
+    private static DataStream<RowData> addNameMapping(
+            SyncConf config, DataStream<RowData> dataStreamSource) {
+        boolean executeDdlAble =
+                (boolean) config.getWriter().getParameter().getOrDefault("executeDdlAble", false);
+
+        if (config.getNameMappingConf() != null || executeDdlAble) {
+            boolean needSqlConvent = executeDdlAble;
+
+            // 相同类型数据源且没有映射关系 此时不需要ddl转换
+            if (needSqlConvent
+                    && config.getWriter().getName().equals(config.getReader().getName())
+                    && config.getNameMappingConf() == null) {
+                needSqlConvent = false;
+            }
+
+            if (config.getNameMappingConf() != null
+                    && config.getNameMappingConf().getSqlConevnt() != null) {
+                needSqlConvent = config.getNameMappingConf().getSqlConevnt();
+            }
+
+            if (needSqlConvent) {
+                String readerName = config.getReader().getName();
+                String writerName = config.getWriter().getName();
+
+                readerName =
+                        DdlConventNameConvertUtil.convertPackageName(
+                                readerName.replace(READER_SUFFIX, "").replace(SOURCE_SUFFIX, ""));
+                writerName =
+                        DdlConventNameConvertUtil.convertPackageName(
+                                writerName.replace(WRITER_SUFFIX, "").replace(SINK_SUFFIX, ""));
+
+                DdlConvent sourceConvent = DataSyncFactoryUtil.discoverDdlConvent(readerName);
+                DdlConvent sinkConvent = DataSyncFactoryUtil.discoverDdlConvent(writerName);
+                dataStreamSource =
+                        dataStreamSource.flatMap(
+                                new NameMappingFlatMap(
+                                        config.getNameMappingConf(),
+                                        sourceConvent,
+                                        sinkConvent,
+                                        new SendProcessHandler()));
+            } else {
+                dataStreamSource =
+                        dataStreamSource.flatMap(
+                                new NameMappingFlatMap(
+                                        config.getNameMappingConf(), null, null, null));
+            }
+        }
+
+        return dataStreamSource;
     }
 }

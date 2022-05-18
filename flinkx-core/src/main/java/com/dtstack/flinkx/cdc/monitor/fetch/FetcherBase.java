@@ -38,7 +38,10 @@ public abstract class FetcherBase implements Runnable, Serializable {
         Map<String, DdlRowData> ddlRowDataMap = query();
         if (null != ddlRowDataMap) {
             ddlRowDataMap.forEach(
-                    (tableIdentity, ddlData) -> chamberlain.block(tableIdentity, ddlData));
+                    (tableIdentity, ddlData) -> {
+                        chamberlain.block(tableIdentity, ddlData);
+                        storedTableIdentifier.add(tableIdentity);
+                    });
         }
     }
 
@@ -75,6 +78,13 @@ public abstract class FetcherBase implements Runnable, Serializable {
      * @param data 需要删除的ddl data
      */
     public abstract void delete(RowData data);
+
+    /**
+     * 更新外部数据源对应的ddl data 状态
+     *
+     * @param data 需要更新的ddl data
+     */
+    public abstract void update(RowData data, int status);
 
     /**
      * 查询外部数据源中未被处理的ddl数据，返回map of tableIdentity, ddl-row-data。

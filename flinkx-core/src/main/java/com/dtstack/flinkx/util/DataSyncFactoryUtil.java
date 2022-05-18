@@ -18,6 +18,7 @@
 
 package com.dtstack.flinkx.util;
 
+import com.dtstack.flinkx.cdc.ddl.DdlConvent;
 import com.dtstack.flinkx.cdc.monitor.MonitorConf;
 import com.dtstack.flinkx.cdc.monitor.fetch.FetcherBase;
 import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
@@ -38,9 +39,13 @@ import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.misc.Service;
 
 import java.lang.reflect.Constructor;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -49,6 +54,8 @@ import java.util.Set;
  * @create: 2021/04/27
  */
 public class DataSyncFactoryUtil {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DataSyncFactoryUtil.class);
 
     public static SourceFactory discoverSource(SyncConf config, StreamExecutionEnvironment env) {
         try {
@@ -123,7 +130,7 @@ public class DataSyncFactoryUtil {
         }
     }
 
-    public static Pair<FetcherBase, StoreBase> discoverMonitor(
+    public static Pair<FetcherBase, StoreBase> discoverFetchBase(
             MonitorConf monitorConf, SyncConf syncConf) {
         try {
             String pluginType = monitorConf.getType();
@@ -157,5 +164,41 @@ public class DataSyncFactoryUtil {
         } catch (Exception e) {
             throw new NoRestartException("Load restore plugins failed!", e);
         }
+    }
+
+    public static FetcherBase discoverFetchBase(MonitorConf conf) {
+        try {
+            String pluginName = conf.getType();
+            String pluginClassName =
+                    PluginUtil.getPluginClassName(pluginName, OperatorType.fetcher);
+
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            Class<?> clazz = classLoader.loadClass(pluginClassName);
+            Constructor<?> constructor = clazz.getConstructor(MonitorConf.class);
+            final FetcherBase fetcherBase = (FetcherBase) constructor.newInstance(conf);
+            fetcherBase.openSubclass();
+            return fetcherBase;
+        } catch (Exception e) {
+            throw new NoRestartException("Load dirty plugins failed!", e);
+        }
+    }
+
+    public static DdlConvent discoverDdlConvent(String pluginType) {
+        try {
+            Iterator<DdlConvent> providers = Service.providers(DdlConvent.class);
+            while (providers.hasNext()) {
+                DdlConvent processor = providers.next();
+                if (processor.getDataSourceType().equals(pluginType)) {
+                    return processor;
+                } else {
+                    LOG.info(
+                            "find ddl plugin and support dataSource is {}",
+                            processor.getDataSourceType());
+                }
+            }
+        } catch (Exception e) {
+            throw new NoRestartException("Load ddl convent plugins failed!", e);
+        }
+        throw new NoRestartException("not found ddl convent plugin!,plugin type is " + pluginType);
     }
 }
