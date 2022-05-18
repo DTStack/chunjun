@@ -44,7 +44,7 @@ import org.apache.flink.table.types.logical.TimestampType;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -94,10 +94,10 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
     @Override
     public String toExternal(RowData rowData, String output) throws Exception {
         StringBuilder sb = new StringBuilder(128);
-
-        List<String> columnData = new ArrayList<>(ftpConfig.getColumn().size());
+        List<String> columnData = Arrays.asList(new String[ftpConfig.getColumn().size()]);
         for (int index = 0; index < rowData.getArity(); index++) {
-            toExternalConverters.get(index).serialize(rowData, index, columnData);
+            ISerializationConverter converter = toExternalConverters.get(index);
+            converter.serialize(rowData, index, columnData);
             if (index != 0) {
                 sb.append(ftpConfig.getFieldDelimiter());
             }
@@ -161,6 +161,6 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
     @Override
     protected ISerializationConverter<List<String>> createExternalConverter(FieldConf fieldConf) {
         return (rowData, index, list) ->
-                list.add(index, ((ColumnRowData) rowData).getField(index).asString());
+                list.set(index, ((ColumnRowData) rowData).getField(index).asString());
     }
 }
