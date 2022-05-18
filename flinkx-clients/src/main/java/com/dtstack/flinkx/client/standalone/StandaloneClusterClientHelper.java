@@ -20,7 +20,6 @@ package com.dtstack.flinkx.client.standalone;
 import com.dtstack.flinkx.client.ClusterClientHelper;
 import com.dtstack.flinkx.client.JobDeployer;
 import com.dtstack.flinkx.client.util.JobGraphUtil;
-import com.dtstack.flinkx.client.yarn.YarnSessionClusterClientHelper;
 import com.dtstack.flinkx.options.Options;
 
 import org.apache.flink.api.common.JobID;
@@ -42,7 +41,7 @@ import java.util.List;
  */
 public class StandaloneClusterClientHelper implements ClusterClientHelper {
 
-    private static final Logger LOG = LoggerFactory.getLogger(YarnSessionClusterClientHelper.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StandaloneClusterClientHelper.class);
 
     @Override
     public ClusterClient submit(JobDeployer jobDeployer) throws Exception {

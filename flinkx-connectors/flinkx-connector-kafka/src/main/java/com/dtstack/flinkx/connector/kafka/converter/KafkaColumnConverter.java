@@ -183,7 +183,7 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
             } else {
                 List<String> values = new ArrayList<>(row.getArity());
                 for (int i = 0; i < row.getArity(); i++) {
-                    values.add(row.getField(i).asString());
+                    values.add(row.getField(i) != null ? row.getField(i).asString() : "");
                 }
                 map = decode.decode(String.join(",", values));
             }
