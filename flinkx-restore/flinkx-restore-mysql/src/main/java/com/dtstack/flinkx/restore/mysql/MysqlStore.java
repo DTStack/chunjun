@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.restore.mysql;
 
 import com.dtstack.flinkx.cdc.DdlRowData;
+import com.dtstack.flinkx.cdc.DdlRowDataConvented;
 import com.dtstack.flinkx.cdc.monitor.MonitorConf;
 import com.dtstack.flinkx.cdc.monitor.store.StoreBase;
 import com.dtstack.flinkx.restore.mysql.utils.DataSourceUtil;
@@ -62,6 +63,11 @@ public class MysqlStore extends StoreBase {
             String operationType = ddlRowData.getType().getValue();
             String lsn = ddlRowData.getLsn();
             String sql = ddlRowData.getSql();
+            String status = "0";
+            if (data instanceof DdlRowDataConvented
+                    && !((DdlRowDataConvented) data).conventSuccessful()) {
+                status = "-1";
+            }
             String insert =
                     INSERT.replace("$database_name", databaseName)
                             .replace("$table_name", tableName)
@@ -70,7 +76,8 @@ public class MysqlStore extends StoreBase {
                             .replace("$content", sql)
                             .replace("$update_time", "CURRENT_TIMESTAMP")
                             .replace("$database", ddlDatabase)
-                            .replace("$table", ddlTable);
+                            .replace("$table", ddlTable)
+                            .replace("$status", status);
 
             try {
                 preparedStatement.execute(insert);

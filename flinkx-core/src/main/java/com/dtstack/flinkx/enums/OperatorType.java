@@ -32,5 +32,7 @@ public enum OperatorType {
     store,
     /** cdc fetcher plugins */
     fetcher,
+    /** cdc sql conevnt plugins */
+    ddlConevnt,
     ;
 }

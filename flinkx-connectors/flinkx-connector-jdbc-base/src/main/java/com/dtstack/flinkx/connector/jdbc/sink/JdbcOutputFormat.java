@@ -17,6 +17,8 @@
  */
 package com.dtstack.flinkx.connector.jdbc.sink;
 
+import com.dtstack.flinkx.cdc.DdlRowData;
+import com.dtstack.flinkx.cdc.DdlRowDataConvented;
 import com.dtstack.flinkx.conf.FieldConf;
 import com.dtstack.flinkx.connector.jdbc.conf.JdbcConf;
 import com.dtstack.flinkx.connector.jdbc.dialect.JdbcDialect;
@@ -66,6 +68,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected JdbcDialect jdbcDialect;
 
     protected transient Connection dbConn;
+    protected boolean autoCommit = true;
 
     protected transient PreparedStmtProxy stmtProxy;
 
@@ -85,7 +88,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             dbConn = getConnection();
             // 默认关闭事务自动提交，手动控制事务
             if (Semantic.EXACTLY_ONCE == semantic) {
-                dbConn.setAutoCommit(false);
+                autoCommit = false;
+                dbConn.setAutoCommit(autoCommit);
             }
             initColumnList();
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
@@ -259,20 +263,26 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void commit(long checkpointId) throws Exception {
-        try {
-            dbConn.commit();
-            snapshotWriteCounter.add(rowsOfCurrentTransaction);
-            rowsOfCurrentTransaction = 0;
-            stmtProxy.clearBatch();
-        } catch (Exception e) {
-            dbConn.rollback();
-            throw e;
-        }
+        doCommit();
     }
 
     @Override
     public void rollback(long checkpointId) throws Exception {
         dbConn.rollback();
+    }
+
+    public void doCommit() throws SQLException {
+        try {
+            if (!autoCommit) {
+                dbConn.commit();
+            }
+            snapshotWriteCounter.add(rowsOfCurrentTransaction);
+            rowsOfCurrentTransaction = 0;
+            stmtProxy.clearStatementCache();
+        } catch (Exception e) {
+            dbConn.rollback();
+            throw e;
+        }
     }
 
     /**
@@ -362,6 +372,30 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             LOG.error(ExceptionUtil.getErrorMessage(e));
         }
         JdbcUtil.closeDbResources(null, null, dbConn, true);
+    }
+
+    @Override
+    protected void executeDdlRwoData(DdlRowData ddlRowData) throws Exception {
+        if (ddlRowData instanceof DdlRowDataConvented
+                && !((DdlRowDataConvented) ddlRowData).conventSuccessful()) {
+            return;
+        }
+        Statement statement = dbConn.createStatement();
+        statement.execute(ddlRowData.getSql());
+    }
+
+    /**
+     * write all data and commit transaction before execute ddl sql
+     *
+     * @param ddlRowData
+     * @throws Exception
+     */
+    @Override
+    protected void preExecuteDdlRwoData(DdlRowData ddlRowData) throws Exception {
+        while (this.rows.size() > 0) {
+            this.writeRecordInternal();
+        }
+        doCommit();
     }
 
     /**

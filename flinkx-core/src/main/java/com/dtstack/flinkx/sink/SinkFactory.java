@@ -18,6 +18,8 @@
 
 package com.dtstack.flinkx.sink;
 
+import com.dtstack.flinkx.cdc.CdcConf;
+import com.dtstack.flinkx.cdc.monitor.MonitorConf;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.conf.SpeedConf;
 import com.dtstack.flinkx.conf.SyncConf;
@@ -43,6 +45,7 @@ public abstract class SinkFactory implements RawTypeConvertible {
 
     protected SyncConf syncConf;
     protected boolean useAbstractBaseColumn = true;
+    protected MonitorConf monitor;
 
     public SinkFactory(SyncConf syncConf) {
         this.syncConf = syncConf;
@@ -50,6 +53,11 @@ public abstract class SinkFactory implements RawTypeConvertible {
         if (syncConf.getTransformer() != null
                 && StringUtils.isNotBlank(syncConf.getTransformer().getTransformSql())) {
             useAbstractBaseColumn = false;
+        }
+
+        CdcConf cdcConf = syncConf.getCdcConf();
+        if (cdcConf != null) {
+            monitor = cdcConf.getMonitor();
         }
     }
 

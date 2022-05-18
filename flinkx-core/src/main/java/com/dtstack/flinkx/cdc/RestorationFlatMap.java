@@ -60,7 +60,9 @@ public class RestorationFlatMap extends RichFlatMapFunction<RowData, RowData> {
     public void flatMap(RowData value, Collector<RowData> out) throws Exception {
         put(value);
         if (workerManager.getCollector() == null) {
-            workerManager.setCollector(out);
+            WrapCollector<RowData> wrapCollector = new WrapCollector<>(out);
+            workerManager.setCollector(wrapCollector);
+            monitor.setCollector(wrapCollector);
         }
     }
 

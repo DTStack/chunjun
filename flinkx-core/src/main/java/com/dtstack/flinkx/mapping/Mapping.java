@@ -38,7 +38,7 @@ import static com.dtstack.flinkx.constants.CDCConstantValue.SCHEMA;
 import static com.dtstack.flinkx.constants.CDCConstantValue.TABLE;
 
 /** @author shitou */
-public interface Mapping {
+public interface Mapping<T> {
 
     Set<String> META_HEADER =
             Stream.of("schema", "table", "type", "opTime", "ts", "scn")
@@ -50,7 +50,7 @@ public interface Mapping {
      * @param value RowData
      * @return RowData
      */
-    RowData map(RowData value);
+    T map(T value);
 
     /**
      * 获取RowData中table、schema的index

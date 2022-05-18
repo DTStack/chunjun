@@ -1,6 +1,7 @@
 package com.dtstack.flinkx.cdc.monitor.store;
 
 import com.dtstack.flinkx.cdc.QueuesChamberlain;
+import com.dtstack.flinkx.cdc.WrapCollector;
 
 import org.apache.flink.table.data.RowData;
 
@@ -21,6 +22,8 @@ public abstract class StoreBase implements Runnable, Serializable {
 
     protected CopyOnWriteArrayList<String> storedTableIdentifier;
 
+    protected WrapCollector<RowData> collector;
+
     @Override
     public void run() {
         while (!closed.get()) {
@@ -32,7 +35,9 @@ public abstract class StoreBase implements Runnable, Serializable {
                 // 将block的ddl数据下发到外部数据源中
                 final Deque<RowData> rowDataDeque = chamberlain.fromBlock(table);
                 RowData data = rowDataDeque.peekFirst();
-                if (store(data)) {
+                if (collector != null && store(data)) {
+                    // ddl数据需要往下游发送 sink自身判断是否执行ddl语句
+                    collector.collect(data);
                     storedTableIdentifier.add(table);
                 }
             }
@@ -50,6 +55,14 @@ public abstract class StoreBase implements Runnable, Serializable {
     public void close() {
         closed.compareAndSet(false, true);
         closeSubclass();
+    }
+
+    public WrapCollector<RowData> getCollector() {
+        return collector;
+    }
+
+    public void setCollector(WrapCollector<RowData> collector) {
+        this.collector = collector;
     }
 
     /**

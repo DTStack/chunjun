@@ -18,6 +18,11 @@
 
 package com.dtstack.flinkx.sink.format;
 
+import com.dtstack.flinkx.cdc.DdlRowData;
+import com.dtstack.flinkx.cdc.DdlRowDataConvented;
+import com.dtstack.flinkx.cdc.monitor.MonitorConf;
+import com.dtstack.flinkx.cdc.monitor.fetch.DdlObserver;
+import com.dtstack.flinkx.cdc.monitor.fetch.Event;
 import com.dtstack.flinkx.conf.FlinkxCommonConf;
 import com.dtstack.flinkx.constants.Metrics;
 import com.dtstack.flinkx.converter.AbstractRowConverter;
@@ -34,8 +39,10 @@ import com.dtstack.flinkx.sink.DirtyDataManager;
 import com.dtstack.flinkx.throwable.FlinkxRuntimeException;
 import com.dtstack.flinkx.throwable.NoRestartException;
 import com.dtstack.flinkx.throwable.WriteRecordException;
+import com.dtstack.flinkx.util.DataSyncFactoryUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
 import com.dtstack.flinkx.util.JsonUtil;
+import com.dtstack.flinkx.util.event.EventCenter;
 
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.accumulators.LongCounter;
@@ -165,6 +172,10 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /** the manager of dirty data. */
     protected DirtyManager dirtyManager;
 
+    protected boolean executeDdlAble;
+    protected EventCenter eventCenter;
+    protected MonitorConf monitorConf;
+
     private transient volatile Exception timerWriteException;
 
     @Override
@@ -197,6 +208,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.checkpointEnabled = context.isCheckpointingEnabled();
         this.batchSize = config.getBatchSize();
         this.rows = new ArrayList<>(batchSize);
+        this.executeDdlAble = config.isExecuteDdlAble();
+        if (executeDdlAble) {
+            this.eventCenter = new EventCenter("ddl");
+            DdlObserver ddlObserver =
+                    new DdlObserver(DataSyncFactoryUtil.discoverFetchBase(monitorConf));
+            eventCenter.register(ddlObserver);
+        }
         this.flushIntervalMills = config.getFlushIntervalMills();
         this.flushEnable = new AtomicBoolean(true);
         this.semantic = Semantic.getByName(config.getSemantic());
@@ -243,17 +261,21 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     public synchronized void writeRecord(RowData rowData) {
         checkTimerWriteException();
         int size = 0;
-        if (batchSize <= 1) {
-            writeSingleRecord(rowData, numWriteCounter);
+        if (rowData instanceof DdlRowData) {
+            executeDdlRowDataTemplate((DdlRowData) rowData);
             size = 1;
         } else {
-            rows.add(rowData);
-            if (rows.size() >= batchSize) {
-                writeRecordInternal();
-                size = batchSize;
+            if (batchSize <= 1) {
+                writeSingleRecord(rowData, numWriteCounter);
+                size = 1;
+            } else {
+                rows.add(rowData);
+                if (rows.size() >= batchSize) {
+                    writeRecordInternal();
+                    size = batchSize;
+                }
             }
         }
-
         updateDuration();
         bytesWriteCounter.add(rowSizeCalculator.getObjectSize(rowData));
         if (checkpointEnabled) {
@@ -523,6 +545,19 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         return formatState;
     }
 
+    private void executeDdlRowDataTemplate(DdlRowData ddlRowData) {
+        try {
+            preExecuteDdlRwoData(ddlRowData);
+            if (executeDdlAble) {
+                executeDdlRwoData(ddlRowData);
+                postExecuteDdlRwoData(ddlRowData);
+            }
+        } catch (Exception e) {
+            LOG.error("execute ddl {} error", ddlRowData);
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * pre commit data
      *
@@ -577,6 +612,24 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                 flushEnable.compareAndSet(false, true);
             }
         }
+    }
+
+    protected void preExecuteDdlRwoData(DdlRowData rowData) throws Exception {}
+
+    protected void executeDdlRwoData(DdlRowData ddlRowData) throws Exception {
+        throw new UnsupportedOperationException("not support execute ddlRowData");
+    }
+
+    protected void postExecuteDdlRwoData(DdlRowData ddlRowData) throws Exception {
+        if (ddlRowData instanceof DdlRowDataConvented
+                && !((DdlRowDataConvented) ddlRowData).conventSuccessful()) {
+            return;
+        }
+
+        String tableIdentifier = ddlRowData.getTableIdentifier();
+        String[] split = tableIdentifier.split("\\.");
+        eventCenter.postMessage(
+                new Event(split[0], split[1], ddlRowData.getLsn(), ddlRowData.getSql(), 2));
     }
 
     /**
@@ -644,5 +697,13 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     public void setDirtyManager(DirtyManager dirtyManager) {
         this.dirtyManager = dirtyManager;
+    }
+
+    public void setExecuteDdlAble(boolean executeDdlAble) {
+        this.executeDdlAble = executeDdlAble;
+    }
+
+    public void setMonitorConf(MonitorConf monitorConf) {
+        this.monitorConf = monitorConf;
     }
 }
