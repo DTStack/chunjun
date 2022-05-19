@@ -29,7 +29,7 @@
 		<flink.version>1.12.7</flink.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<prometheus.version>0.8.1</prometheus.version>
-		<hadoop.version>2.7.5</hadoop.version>
+		<hadoop.version>3.2.3</hadoop.version>
 		<http.version>4.5.3</http.version>
 		<guava.version>19.0</guava.version>
 		<!-- fix CVE-2021-45105 -->
