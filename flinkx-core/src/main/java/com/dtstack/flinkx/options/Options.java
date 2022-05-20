@@ -36,6 +36,10 @@ import org.apache.commons.lang.StringUtils;
  * @author tudou
  */
 public class Options {
+
+    @OptionRequired(description = "Flink Job Id")
+    private String jobId;
+
     @OptionRequired(description = "job type:sql or sync")
     private String jobType;
 
@@ -103,6 +107,14 @@ public class Options {
             flinkConfiguration.set(CoreOptions.CHECK_LEAKED_CLASSLOADER, false);
         }
         return flinkConfiguration;
+    }
+
+    public String getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(String jobId) {
+        this.jobId = jobId;
     }
 
     public String getMode() {
@@ -220,6 +232,9 @@ public class Options {
     @Override
     public String toString() {
         return "Options{"
+                + "jobId='"
+                + jobId
+                + '\''
                 + "jobType='"
                 + jobType
                 + '\''
