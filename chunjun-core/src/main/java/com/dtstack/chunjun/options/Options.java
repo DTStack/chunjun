@@ -22,13 +22,14 @@ import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.util.PropertiesUtil;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -254,7 +255,17 @@ public class Options {
     }
 
     public String getFlinkxDistDir() {
-        return flinkxDistDir;
+        String flinkxDistDir = this.flinkxDistDir;
+        String chunjunDistDir = this.chunjunDistDir;
+        String distDir;
+
+        if (StringUtils.isNotBlank(flinkxDistDir)) {
+            LOG.warn("Option 'flinkxDistDir' is deprecated, please replace with 'chunjunDistDir'.");
+            distDir = flinkxDistDir;
+        } else {
+            distDir = chunjunDistDir;
+        }
+        return distDir;
     }
 
     public void setFlinkxDistDir(String flinkxDistDir) {
@@ -262,7 +273,18 @@ public class Options {
     }
 
     public String getRemoteFlinkxDistDir() {
-        return remoteFlinkxDistDir;
+        String remoteFlinkxDistDir = this.remoteFlinkxDistDir;
+        String remoteChunJunDistDir = this.remoteChunJunDistDir;
+        String remoteDir;
+
+        if (StringUtils.isNotBlank(remoteFlinkxDistDir)) {
+            LOG.warn(
+                    "Option 'remoteFlinkxDistDir' is deprecated, please replace with 'remoteChunJunDistDir'.");
+            remoteDir = remoteFlinkxDistDir;
+        } else {
+            remoteDir = remoteChunJunDistDir;
+        }
+        return remoteDir;
     }
 
     public void setRemoteFlinkxDistDir(String remoteFlinkxDistDir) {
