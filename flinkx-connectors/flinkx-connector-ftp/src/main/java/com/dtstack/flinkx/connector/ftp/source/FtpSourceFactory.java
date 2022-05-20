@@ -68,7 +68,16 @@ public class FtpSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         FtpInputFormatBuilder builder = new FtpInputFormatBuilder();
         builder.setFtpConfig(ftpConfig);
-        ftpConfig.setColumn(syncConf.getReader().getFieldList());
+        List<FieldConf> fieldConfList =
+                ftpConfig.getColumn().stream()
+                        .peek(
+                                fieldConf -> {
+                                    if (fieldConf.getName() == null) {
+                                        fieldConf.setName(String.valueOf(fieldConf.getIndex()));
+                                    }
+                                })
+                        .collect(Collectors.toList());
+        ftpConfig.setColumn(fieldConfList);
         final RowType rowType =
                 TableUtil.createRowType(ftpConfig.getColumn(), getRawTypeConverter());
         builder.setRowConverter(new FtpColumnConverter(rowType, ftpConfig));
