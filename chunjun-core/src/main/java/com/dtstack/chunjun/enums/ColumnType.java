@@ -52,41 +52,96 @@ public enum ColumnType {
     INT2,
     INT4,
     INT8,
+    INT16,
+    INT24,
     INT32,
+    INT64,
+    UINT16,
+    UINT32,
+    UINT64,
+    SERIAL,
+    SERIAL8,
+    SMALLSERIAL,
+    BIGSERIAL,
+    DEC,
+    REAL,
     MEDIUMINT,
     TINYINT,
     DATETIME,
     SMALLINT,
     BIGINT,
     LONG,
-    INT64,
     SHORT,
     INTEGER,
     NUMBER,
     NUMERIC,
+    MONEY,
+    OID,
+    DECIMAL,
+    BIGDECIMAL,
 
     /** double type */
     DOUBLE,
     FLOAT,
+    FLOAT4,
+    FLOAT8,
+    FLOAT32,
+    FLOAT64,
+    SMALLFLOAT,
+    DECFLOAT,
     BOOLEAN,
+    PRECISION,
+    DOUBLEPRECISION,
 
     /** date type */
     DATE,
     TIMESTAMP,
     TIME,
-    DECIMAL,
     YEAR,
     BIT,
-    OBJECT,
-    /** for postgresql */
-    TIMESTAMPTZ;
+    OBJECT;
 
     public static List<ColumnType> TIME_TYPE = Arrays.asList(DATE, DATETIME, TIME, TIMESTAMP);
 
     public static List<ColumnType> NUMBER_TYPE =
             Arrays.asList(
-                    INT, INTEGER, MEDIUMINT, TINYINT, SMALLINT, BIGINT, LONG, SHORT, DOUBLE, FLOAT,
-                    DECIMAL, NUMBER);
+                    INT,
+                    INT16,
+                    INT24,
+                    INT32,
+                    INT64,
+                    UINT16,
+                    UINT32,
+                    UINT64,
+                    SERIAL,
+                    SERIAL8,
+                    SMALLSERIAL,
+                    BIGSERIAL,
+                    DEC,
+                    REAL,
+                    MONEY,
+                    OID,
+                    DECIMAL,
+                    BIGDECIMAL,
+                    INTEGER,
+                    MEDIUMINT,
+                    TINYINT,
+                    SMALLINT,
+                    BIGINT,
+                    LONG,
+                    SHORT,
+                    DOUBLE,
+                    FLOAT,
+                    FLOAT4,
+                    FLOAT8,
+                    FLOAT32,
+                    FLOAT64,
+                    SMALLFLOAT,
+                    DECFLOAT,
+                    DECIMAL,
+                    NUMBER,
+                    PRECISION,
+                    DOUBLEPRECISION);
 
     public static List<ColumnType> STRING_TYPE =
             Arrays.asList(STRING, VARCHAR, VARCHAR2, CHAR, NVARCHAR, TEXT, KEYWORD, BINARY);
@@ -149,7 +204,7 @@ public enum ColumnType {
     }
 
     public static boolean isNumberType(String type) {
-        return NUMBER_TYPE.contains(getType(type));
+        return NUMBER_TYPE.contains(getType(type.replaceAll(" ", "")));
     }
 
     public static boolean isStringType(String type) {
