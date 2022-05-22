@@ -66,7 +66,7 @@ public class Metrics {
 
     public static final String MAX_VALUE = "maxValue";
 
-    public static final String METRIC_GROUP_KEY_FLINKX = "flinkx";
+    public static final String METRIC_GROUP_KEY_CHUNJUN = "chunjun";
 
     public static final String METRIC_GROUP_VALUE_OUTPUT = "output";
 
