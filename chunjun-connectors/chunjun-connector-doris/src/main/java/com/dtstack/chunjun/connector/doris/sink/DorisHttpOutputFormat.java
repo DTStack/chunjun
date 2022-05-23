@@ -41,14 +41,20 @@ import java.util.Set;
  * @author tiezhu@dtstack
  * @date 2021/9/16 星期四
  */
-public class DorisOutputFormat extends BaseRichOutputFormat {
+public class DorisHttpOutputFormat extends BaseRichOutputFormat {
     private DorisConf options;
     private DorisLoadClient client;
     /** cache carriers * */
     private final Map<String, Carrier> carrierMap = new HashMap<>();
 
+    private List<String> columns;
+
     public void setOptions(DorisConf options) {
         this.options = options;
+    }
+
+    public void setColumns(List<String> columns) {
+        this.columns = columns;
     }
 
     private String getBackend() throws IOException {
@@ -78,14 +84,18 @@ public class DorisOutputFormat extends BaseRichOutputFormat {
 
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
-        client.process(rowData);
+        try {
+            client.process(rowData, columns, rowConverter);
+        } catch (Exception e) {
+            throw new WriteRecordException("", e);
+        }
     }
 
     @Override
     protected void writeMultipleRecordsInternal() throws Exception {
         int size = rows.size();
         for (int i = 0; i < size; i++) {
-            client.process(rows.get(i), i, carrierMap);
+            client.process(rows.get(i), i, carrierMap, columns, rowConverter);
         }
         if (!carrierMap.isEmpty()) {
             Set<String> keys = carrierMap.keySet();

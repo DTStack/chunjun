@@ -16,30 +16,14 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.doris.sink;
+package com.dtstack.chunjun.connector.doris.converter;
 
-import com.dtstack.chunjun.connector.doris.options.DorisConf;
-import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
+import com.dtstack.chunjun.connector.jdbc.converter.JdbcRowConverter;
 
-/**
- * Company：www.dtstack.com.
- *
- * @author shitou
- * @date 2021/11/8
- */
-public class DorisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
+import org.apache.flink.table.types.logical.RowType;
 
-    private final DorisOutputFormat format;
-
-    public DorisOutputFormatBuilder() {
-        super.format = format = new DorisOutputFormat();
+public class DorisJdbcRowConverter extends JdbcRowConverter {
+    public DorisJdbcRowConverter(RowType rowType) {
+        super(rowType);
     }
-
-    public void setDorisOptions(DorisConf options) {
-        format.setOptions(options);
-        format.setConfig(options);
-    }
-
-    @Override
-    protected void checkFormat() {}
 }

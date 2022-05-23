@@ -1,55 +1,46 @@
-CREATE TABLE source_ods_fact_user_ippv (
-    id INT
-    , name STRING
-    , money decimal
-    , dateone timestamp
-    , age bigint
-    , datethree timestamp
-    , datesix timestamp(6)
-    , datenigth timestamp(9)
-    , dtdate date
-    , dttime time
-
-    , `partition` BIGINT METADATA VIRTUAL -- from Kafka connector
-    , `topic` STRING METADATA VIRTUAL -- from Kafka connector
-    , `leader-epoch` int METADATA VIRTUAL -- from Kafka connector
-    , `offset` BIGINT METADATA VIRTUAL  -- from Kafka connector
-    , ts TIMESTAMP(3) METADATA FROM 'timestamp' -- from Kafka connector
-    , `timestamp-type` STRING METADATA VIRTUAL  -- from Kafka connector
-    , partition_id BIGINT METADATA FROM 'partition' VIRTUAL   -- from Kafka connector
-
-    , WATERMARK FOR datethree AS datethree - INTERVAL '5' SECOND
-) WITH (
-      'connector' = 'kafka-x'
-      ,'topic' = 'user_behavior'
-      ,'properties.bootstrap.servers' = 'localhost:9092'
-      ,'properties.group.id' = 'luna_g'
-      ,'scan.startup.mode' = 'earliest-offset'
-      ,'format' = 'json'
-      ,'json.timestamp-format.standard' = 'SQL'
-      ,'scan.parallelism' = '1'
-      );
-
-
-CREATE TABLE result_total_pvuv_min
+CREATE TABLE mt
 (
-    id INT
-    , name STRING
-    , money decimal
-    , dateone timestamp
-    , age bigint
-    , datethree timestamp
-    , datesix timestamp(6)
+    id   int,
+    name varchar,
+    proc_time AS PROCTIME()
 ) WITH (
-     'connector' = 'doris-x',
-      'feNodes' = '172.16.83.193:8030',
-      'table.identifier' = 'shitou.expamle_user_behavior',
-      'username' = 'root',
-      'password' = ''
+      'properties.bootstrap.servers' = 'kafka01:9092',
+      'connector' = 'kafka-x',
+      'scan.parallelism' = '1',
+      'format' = 'json',
+      'scan.startup.timestamp-millis' = '1650871857000',
+      'topic' = 'chen_par',
+      'scan.startup.mode' = 'timestamp'
       );
-
-
-INSERT INTO result_total_pvuv_min
-SELECT id as id1,name,money, dateone,age,datethree,datesix
-from source_ods_fact_user_ippv;
-
+CREATE TABLE mywb
+(
+    id   INT,
+    name VARCHAR,
+    PRIMARY KEY (id) NOT ENFORCED
+) WITH (
+      'schema' = 'cx',
+      'connector' = 'doris-x',
+      'lookup.cache-type' = 'LRU',
+      'lookup.parallelism' = '1',
+      'vertx.worker-pool-size' = '5',
+      'lookup.cache.ttl' = '60000',
+      'lookup.cache.max-rows' = '10000',
+      'table-name' = 'dw1',
+      'url' = 'jdbc:mysql://doris_fe:9030/cx',
+      'username' = 'root'
+      );
+CREATE TABLE MyResult
+(
+    id   INT,
+    name VARCHAR
+) WITH (
+      'connector' = 'stream-x'
+      );
+INSERT
+into MyResult
+select m.id,
+       w1x.name
+from mt m
+         left join
+     mywb FOR SYSTEM_TIME AS OF m.proc_time AS w1x
+     on w1x.id = m.id;

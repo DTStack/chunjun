@@ -22,9 +22,11 @@ package com.dtstack.chunjun.connector.doris.rest;
 
 import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.doris.options.DorisConf;
+import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 
@@ -36,6 +38,7 @@ import javax.annotation.Nonnull;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -43,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,32 +83,41 @@ public class DorisLoadClient implements Serializable {
         this.nameMapped = conf.isNameMapped();
     }
 
-    public void setHostPort(String hostPort) {
-        this.hostPort = hostPort;
-    }
-
     /**
      * Each time a RowData is processed, a Carrier is obtained and then returned.
      *
      * @param value RowData
      * @return Carrier
      */
-    public void process(RowData value) throws WriteRecordException {
+    public void process(RowData value, List<String> columns, AbstractRowConverter converter)
+            throws Exception {
         String schema;
         String table;
-        List<String> columns = new LinkedList<>();
         List<String> insertV = new LinkedList<>();
         List<String> deleteV = new LinkedList<>();
         // sync job.
         if (value instanceof ColumnRowData) {
+            List<String> columnsFromValue = new LinkedList<>();
             Map<String, String> identityMap = new HashMap<>(2);
-            wrap((ColumnRowData) value, columns, insertV, deleteV, identityMap);
+            wrap((ColumnRowData) value, columnsFromValue, insertV, deleteV, identityMap);
             schema = MapUtils.getString(identityMap, KEY_SCHEMA, conf.getDatabase());
             table = MapUtils.getString(identityMap, KEY_TABLE, conf.getTable());
+            Carrier carrier = initCarrier(columnsFromValue, insertV, deleteV, schema, table);
+            flush(carrier);
+        }
+
+        if (value instanceof GenericRowData) {
+            schema = conf.getDatabase();
+            table = conf.getTable();
+            StringJoiner joiner = new StringJoiner(",");
+            if (RowKind.INSERT.equals(value.getRowKind())) {
+                Object toExternal = converter.toExternal(value, joiner);
+                String[] split = String.valueOf(toExternal).split(",");
+                insertV.addAll(Arrays.asList(split));
+            }
             Carrier carrier = initCarrier(columns, insertV, deleteV, schema, table);
             flush(carrier);
         }
-        // TODO sql support
     }
 
     /**
@@ -115,31 +128,88 @@ public class DorisLoadClient implements Serializable {
      * @param index RowData index
      * @param carrierMap A batch of data is cached
      */
-    public void process(RowData value, int index, Map<String, Carrier> carrierMap) {
-        String schema;
-        String table;
-        List<String> columns = new LinkedList<>();
+    public void process(
+            RowData value,
+            int index,
+            Map<String, Carrier> carrierMap,
+            List<String> columns,
+            AbstractRowConverter converter)
+            throws Exception {
         List<String> insertV = new LinkedList<>();
         List<String> deleteV = new LinkedList<>();
         if (value instanceof ColumnRowData) {
-            Map<String, String> identityMap = new HashMap<>(2);
-            wrap((ColumnRowData) value, columns, insertV, deleteV, identityMap);
-            schema = MapUtils.getString(identityMap, KEY_SCHEMA, conf.getDatabase());
-            table = MapUtils.getString(identityMap, KEY_TABLE, conf.getTable());
-            String key = schema + KEY_POINT + table;
-            if (carrierMap.containsKey(key)) {
-                Carrier carrier = carrierMap.get(key);
-                carrier.addInsertContent(insertV);
-                carrier.addDeleteContent(deleteV);
-                carrier.addRowDataIndex(index);
-                carrier.updateBatch();
-            } else {
-                Carrier carrier = initCarrier(columns, insertV, deleteV, schema, table);
-                carrier.addRowDataIndex(index);
-                carrierMap.put(key, carrier);
-            }
+            processWithColumnRowData(value, index, carrierMap, deleteV, insertV);
         }
-        // TODO sql support
+
+        if (value instanceof GenericRowData) {
+            processWithGenericRowData(
+                    value, index, carrierMap, deleteV, insertV, columns, converter);
+        }
+    }
+
+    /**
+     * process column row data.
+     *
+     * @param value row data
+     * @param index index
+     * @param carrierMap carrier map
+     * @param deleteV delete value.
+     * @param insertV insert value.
+     */
+    private void processWithColumnRowData(
+            RowData value,
+            int index,
+            Map<String, Carrier> carrierMap,
+            List<String> deleteV,
+            List<String> insertV) {
+        Map<String, String> identityMap = new HashMap<>(2);
+        List<String> columns = new LinkedList<>();
+        wrap((ColumnRowData) value, columns, insertV, deleteV, identityMap);
+        String schema = MapUtils.getString(identityMap, KEY_SCHEMA, conf.getDatabase());
+        String table = MapUtils.getString(identityMap, KEY_TABLE, conf.getTable());
+        String key = schema + KEY_POINT + table;
+        if (carrierMap.containsKey(key)) {
+            Carrier carrier = carrierMap.get(key);
+            carrier.addInsertContent(insertV);
+            carrier.addDeleteContent(deleteV);
+            carrier.addRowDataIndex(index);
+            carrier.updateBatch();
+        } else {
+            Carrier carrier = initCarrier(columns, insertV, deleteV, schema, table);
+            carrier.addRowDataIndex(index);
+            carrierMap.put(key, carrier);
+        }
+    }
+
+    private void processWithGenericRowData(
+            RowData value,
+            int index,
+            Map<String, Carrier> carrierMap,
+            List<String> deleteV,
+            List<String> insertV,
+            List<String> columns,
+            AbstractRowConverter converter)
+            throws Exception {
+        String schema = conf.getDatabase();
+        String table = conf.getTable();
+        StringJoiner joiner = new StringJoiner(",");
+        if (RowKind.INSERT.equals(value.getRowKind())) {
+            Object toExternal = converter.toExternal(value, joiner);
+            String[] split = String.valueOf(toExternal).split(",");
+            insertV.addAll(Arrays.asList(split));
+        }
+        String key = schema + KEY_POINT + table;
+        if (carrierMap.containsKey(key)) {
+            Carrier carrier = carrierMap.get(key);
+            carrier.addInsertContent(insertV);
+            carrier.addDeleteContent(deleteV);
+            carrier.addRowDataIndex(index);
+            carrier.updateBatch();
+        } else {
+            Carrier carrier = initCarrier(columns, insertV, deleteV, schema, table);
+            carrier.addRowDataIndex(index);
+            carrierMap.put(key, carrier);
+        }
     }
 
     /**
@@ -158,10 +228,6 @@ public class DorisLoadClient implements Serializable {
             String errorMessage = "write record failed.";
             throw new WriteRecordException(errorMessage, e, -1, carrier.toString());
         }
-    }
-
-    public String getHostPort() {
-        return hostPort;
     }
 
     /**

@@ -43,6 +43,24 @@ public class DorisOptions {
                     .noDefaultValue()
                     .withDescription("YOUR DORIS DATABASE NAME AND YOUR DORIS TABLE NAME");
 
+    public static final ConfigOption<String> URL =
+            ConfigOptions.key("url")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("the jdbc url of doris.");
+
+    public static final ConfigOption<String> SCHEMA =
+            ConfigOptions.key("schema")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("the jdbc schema name of doris.");
+
+    public static final ConfigOption<String> TABLE_NAME =
+            ConfigOptions.key("table-name")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("the jdbc table name of doris.");
+
     public static final ConfigOption<String> USERNAME =
             ConfigOptions.key("username")
                     .stringType()

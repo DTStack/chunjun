@@ -35,14 +35,14 @@ import java.util.StringJoiner;
  * @author xuchao
  * @date 2021-11-21
  */
-public class DorisRowConverter
+public class DorisHttpRowConverter
         extends AbstractRowConverter<RowData, RowData, StringJoiner, LogicalType> {
 
     private static final long serialVersionUID = 2L;
 
     private static final String NULL_VALUE = "\\N";
 
-    public DorisRowConverter(RowType rowType) {
+    public DorisHttpRowConverter(RowType rowType) {
         super(rowType);
         for (int i = 0; i < rowType.getFieldCount(); i++) {
             toInternalConverters.add(
