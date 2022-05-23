@@ -3,14 +3,14 @@
 		 xmlns="http://maven.apache.org/POM/4.0.0"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
-		<artifactId>chunjun-parent</artifactId>
+		<artifactId>chunjun</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
 		<version>1.12-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>chunjun-local-test</artifactId>
-	<name>FlinkX : Local : Test</name>
+	<name>ChunJun : Local : Test</name>
 
 	<dependencies>
 		<dependency>
@@ -209,12 +209,12 @@
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-inceptor</artifactId>
-			<version>${project.version</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-oceanbase</artifactId>
-			<version>${project.version</version>
+			<version>${project.version}</version>
 		</dependency>
 
 		<!--File-->
