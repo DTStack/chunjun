@@ -167,18 +167,25 @@ public class TablePrintUtil {
         }
 
         List<String[]> data = new ArrayList<>(2);
+        String[] recordStr = new String[genericRowData.getArity() + 1];
+        recordStr[0] = row.getRowKind().toString();
         boolean emptyFieldNames = false;
         if (fieldNames == null) {
-            fieldNames = new String[genericRowData.getArity()];
+            fieldNames = new String[genericRowData.getArity() + 1];
             emptyFieldNames = true;
+        } else {
+            String[] newFieldNames = new String[genericRowData.getArity() + 1];
+            System.arraycopy(fieldNames, 0, newFieldNames, 1, genericRowData.getArity());
+            fieldNames = newFieldNames;
         }
-        String[] recordStr = new String[genericRowData.getArity()];
+        fieldNames[0] = "rowKind";
         for (int i = 0; i < genericRowData.getArity(); i++) {
             if (emptyFieldNames) {
-                fieldNames[i] = "col" + i;
+                fieldNames[i + 1] = "col" + i;
             }
-            recordStr[i] = String.valueOf(genericRowData.getField(i));
+            recordStr[i + 1] = String.valueOf(genericRowData.getField(i));
         }
+
         data.add(fieldNames);
         data.add(recordStr);
         TablePrintUtil.build(data).print();
