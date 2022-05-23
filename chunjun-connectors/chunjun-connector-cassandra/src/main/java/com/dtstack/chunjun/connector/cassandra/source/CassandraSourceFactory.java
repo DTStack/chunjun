@@ -71,7 +71,8 @@ public class CassandraSourceFactory extends SourceFactory {
         fieldConfList.forEach(fieldConf -> columnNameList.add(fieldConf.getName()));
 
         final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeConverter());
-        builder.setRowConverter(new CassandraRowConverter(rowType, columnNameList));
+        builder.setRowConverter(
+                new CassandraRowConverter(rowType, columnNameList), useAbstractBaseColumn);
 
         return createInput(builder.finish());
     }

@@ -45,6 +45,7 @@ public class InfluxdbSinkFactory extends SinkFactory {
         builder.setDatabase(influxdbConfig.getDatabase());
         builder.setMeasurement(influxdbConfig.getMeasurement());
         builder.setEnableBatch(influxdbConfig.isEnableBatch());
+        builder.setRowConverter(null, useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 }

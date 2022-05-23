@@ -31,9 +31,11 @@ import java.util.Date;
 public abstract class AbstractBaseColumn implements Serializable {
     private static final long serialVersionUID = 1L;
     protected Object data;
+    protected int byteSize;
 
-    public AbstractBaseColumn(final Object data) {
+    public AbstractBaseColumn(final Object data, int byteSize) {
         this.data = data;
+        this.byteSize = byteSize;
     }
 
     /**
@@ -180,6 +182,10 @@ public abstract class AbstractBaseColumn implements Serializable {
     public void setData(Object data) {
         this.data = data;
     }
+
+    public int getByteSize() {
+        return byteSize;
+    };
 
     @Override
     public String toString() {

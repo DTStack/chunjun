@@ -58,7 +58,7 @@ public class HdfsSourceFactory extends SourceFactory {
                         hdfsConf.getColumn(),
                         getRawTypeConverter());
 
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 

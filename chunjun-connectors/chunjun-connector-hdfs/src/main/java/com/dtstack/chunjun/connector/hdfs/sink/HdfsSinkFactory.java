@@ -59,7 +59,7 @@ public class HdfsSinkFactory extends SinkFactory {
                         hdfsConf.getColumn(),
                         getRawTypeConverter());
 
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 

@@ -69,7 +69,7 @@ public class MongodbSourceFactory extends SourceFactory {
         } else {
             converter = mongoConverterFactory.createRowConverter();
         }
-        builder.setRowConverter(converter);
+        builder.setRowConverter(converter, useAbstractBaseColumn);
         builder.setConfig(mongodbDataSyncConf);
         return createInput(builder.finish());
     }

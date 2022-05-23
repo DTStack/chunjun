@@ -64,7 +64,7 @@ public class StreamSourceFactory extends SourceFactory {
                     TableUtil.createRowType(streamConf.getColumn(), getRawTypeConverter());
             rowConverter = new StreamRowConverter(rowType);
         }
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
 
         return createInput(builder.finish());
     }

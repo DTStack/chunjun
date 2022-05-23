@@ -74,7 +74,7 @@ public class SqlservercdcSourceFactory extends SourceFactory {
                             : TimestampFormat.ISO_8601;
             rowConverter = new SqlServerCdcRowConverter(rowType, format);
         }
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 

@@ -70,7 +70,8 @@ public class KuduSinkFactory extends SinkFactory {
         fieldConfList.forEach(field -> columnNames.add(field.getName()));
 
         final RowType rowType = TableUtil.createRowType(fieldConfList, getRawTypeConverter());
-        builder.setRowConverter(new KuduColumnConverter(rowType, columnNames));
+        builder.setRowConverter(
+                new KuduColumnConverter(rowType, columnNames), useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 }

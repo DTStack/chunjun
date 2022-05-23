@@ -60,7 +60,7 @@ public class EmqxSinkFactory extends SinkFactory {
         }
         EmqxOutputFormatBuilder builder = new EmqxOutputFormatBuilder();
         builder.setEmqxConf(emqxConf);
-        builder.setRowConverter(new EmqxColumnConverter(emqxConf));
+        builder.setRowConverter(new EmqxColumnConverter(emqxConf), useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 }
