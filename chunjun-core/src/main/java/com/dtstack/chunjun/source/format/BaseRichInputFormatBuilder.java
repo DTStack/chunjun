@@ -47,7 +47,12 @@ public abstract class BaseRichInputFormatBuilder<T extends BaseRichInputFormat> 
     }
 
     public void setRowConverter(AbstractRowConverter rowConverter) {
+        setRowConverter(rowConverter, false);
+    }
+
+    public void setRowConverter(AbstractRowConverter rowConverter, boolean useAbstractColumn) {
         format.setRowConverter(rowConverter);
+        format.setUseAbstractColumn(useAbstractColumn);
     }
 
     /** 检查format配置 */

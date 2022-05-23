@@ -69,7 +69,7 @@ public class MongodbSinkFactory extends SinkFactory {
         } else {
             converter = mongoConverterFactory.createRowConverter();
         }
-        builder.setRowConverter(converter);
+        builder.setRowConverter(converter, useAbstractBaseColumn);
         builder.setConfig(mongodbDataSyncConf);
         return createOutput(dataSet, builder.finish());
     }

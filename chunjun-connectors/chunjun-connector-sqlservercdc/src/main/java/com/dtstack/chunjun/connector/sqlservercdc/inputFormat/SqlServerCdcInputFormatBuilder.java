@@ -67,7 +67,13 @@ public class SqlServerCdcInputFormatBuilder
     }
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+        setRowConverter(rowConverter, false);
+    }
+
+    public void setRowConverter(
+            AbstractCDCRowConverter rowConverter, boolean useAbstractBaseColumn) {
         this.format.setRowConverter(rowConverter);
+        this.format.setUseAbstractColumn(useAbstractBaseColumn);
     }
 
     @Override

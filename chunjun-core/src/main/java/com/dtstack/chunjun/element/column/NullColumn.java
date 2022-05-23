@@ -32,7 +32,7 @@ import java.util.Date;
 public class NullColumn extends AbstractBaseColumn {
 
     public NullColumn() {
-        super(null);
+        super(null, 0);
     }
 
     @Override
