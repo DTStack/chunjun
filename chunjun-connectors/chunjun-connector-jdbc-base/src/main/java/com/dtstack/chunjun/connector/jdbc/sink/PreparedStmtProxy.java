@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.chunjun.connector.jdbc.sink;
 
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
@@ -69,7 +70,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     private final int cacheDurationMin = 10;
 
-    /** LUR cache key info: database_table_rowkind * */
+    /** LRU cache key info: database_table_rowkind * */
     protected Cache<String, DynamicPreparedStmt> pstmtCache;
 
     /** 当前的执行sql的preparestatement */
@@ -158,6 +159,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                                             columnRowData.getRowKind(),
                                             connection,
                                             jdbcDialect,
+                                            jdbcConf,
                                             writeExtInfo);
                                 } catch (SQLException e) {
                                     LOG.warn("", e);
@@ -169,7 +171,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
             currentRowConverter = fieldNamedPreparedStatement.getRowConverter();
         } else {
             String key =
-                    getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), RowKind.INSERT);
+                    getPstmtCacheKey(jdbcConf.getSchema(), jdbcConf.getTable(), row.getRowKind());
             DynamicPreparedStmt fieldNamedPreparedStatement =
                     pstmtCache.get(
                             key,
@@ -181,7 +183,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                                             row.getRowKind(),
                                             connection,
                                             jdbcDialect,
-                                            jdbcConf.getColumn(),
+                                            jdbcConf,
                                             currentRowConverter);
                                 } catch (SQLException e) {
                                     LOG.warn("", e);
