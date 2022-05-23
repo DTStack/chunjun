@@ -43,6 +43,7 @@ public class NameMappingFlatMap extends RichFlatMapFunction<RowData, RowData> {
     private final MappingClient client;
     private final DdlConvent source;
     private final DdlConvent sink;
+    private final boolean turnOff;
     private final ConventExceptionProcessHandler conventExceptionProcessHandler;
 
     public NameMappingFlatMap(
@@ -50,6 +51,7 @@ public class NameMappingFlatMap extends RichFlatMapFunction<RowData, RowData> {
             DdlConvent source,
             DdlConvent sink,
             ConventExceptionProcessHandler conventExceptionProcessHandler) {
+        this.turnOff = conf == null || conf.isEmpty();
         this.client = new MappingClient(conf);
         this.source = source;
         this.sink = sink;
@@ -59,6 +61,10 @@ public class NameMappingFlatMap extends RichFlatMapFunction<RowData, RowData> {
 
     @Override
     public void flatMap(RowData value, Collector<RowData> collector) {
+        if (turnOff) {
+            collector.collect(value);
+            return;
+        }
         RowData rowData = client.map(value);
         if (rowData instanceof ColumnRowData) {
             collector.collect(rowData);
