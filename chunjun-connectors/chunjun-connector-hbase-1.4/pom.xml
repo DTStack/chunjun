@@ -131,6 +131,10 @@
 									<pattern>org.apache.http</pattern>
 									<shadedPattern>com.dtstack.chunjun.connector.hbase14.org.apache.http</shadedPattern>
 								</relocation>
+								<relocation>
+									<pattern>com.google.protobuf</pattern>
+									<shadedPattern>com.dtstack.chunjun.connector.hbase14.com.google.protobuf</shadedPattern>
+								</relocation>
 							</relocations>
 						</configuration>
 					</execution>

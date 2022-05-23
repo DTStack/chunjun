@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
@@ -653,6 +654,14 @@ public final class FactoryUtil {
             final String identifier = allOptions.get(formatOption);
             if (identifier == null) {
                 return Optional.empty();
+            }
+            if (identifier.toLowerCase(Locale.ROOT).endsWith("-x")) {
+                String s = identifier.substring(0, identifier.length() - 2);
+                FactoryHelper factoryHelper = factoryHelperThreadLocal.get();
+                if (factoryHelper != null) {
+                    factoryHelper.registerCachedFile(
+                            s, context.getClassLoader(), ConstantValue.FORMAT_DIR_NAME);
+                }
             }
             final F factory =
                     discoverFactory(context.getClassLoader(), formatFactoryClass, identifier);
