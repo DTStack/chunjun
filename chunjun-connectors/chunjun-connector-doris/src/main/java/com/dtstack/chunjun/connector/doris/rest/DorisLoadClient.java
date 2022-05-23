@@ -61,7 +61,6 @@ public class DorisLoadClient implements Serializable {
                     .collect(Collectors.toCollection(HashSet::new));
 
     private static final String LOAD_URL_PATTERN = "http://%s/api/%s/%s/_stream_load?";
-    private static final String NULL_VALUE = "\\N";
     private static final String KEY_SCHEMA = "schema";
     private static final String KEY_TABLE = "table";
     private static final String KEY_POINT = ".";
@@ -69,8 +68,6 @@ public class DorisLoadClient implements Serializable {
     public static final String KEY_AFTER = "after_";
 
     private final DorisStreamLoad dorisStreamLoad;
-    private final String fieldDelimiter;
-    private final String lineDelimiter;
     private final boolean nameMapped;
     private String hostPort;
     private final DorisConf conf;
@@ -80,8 +77,6 @@ public class DorisLoadClient implements Serializable {
         this.hostPort = hostPort;
         this.conf = conf;
         this.nameMapped = conf.isNameMapped();
-        this.fieldDelimiter = conf.getFieldDelimiter();
-        this.lineDelimiter = conf.getLineDelimiter();
     }
 
     public void setHostPort(String hostPort) {
@@ -271,7 +266,7 @@ public class DorisLoadClient implements Serializable {
                         if (column.equalsIgnoreCase(trueCol)) {
                             insertV.add(convert(value, i));
                             deleteV.add(convert(value, i));
-                            break;
+                            continue;
                         }
                     }
                     // case 2, need to insert.
@@ -279,7 +274,7 @@ public class DorisLoadClient implements Serializable {
                         String trueCol = headers[i].substring(6);
                         if (column.equalsIgnoreCase(trueCol)) {
                             insertV.add(convert(value, i));
-                            break;
+                            continue;
                         }
                     }
                     // case 3. column name is obvious.
@@ -288,7 +283,6 @@ public class DorisLoadClient implements Serializable {
                         if (delete) {
                             deleteV.add(convert(value, i));
                         }
-                        break;
                     }
                 }
             }
@@ -301,7 +295,7 @@ public class DorisLoadClient implements Serializable {
             List<String> deleteV,
             String schema,
             String table) {
-        Carrier carrier = new Carrier(fieldDelimiter, lineDelimiter);
+        Carrier carrier = new Carrier();
         carrier.setColumns(columns);
         carrier.setDatabase(schema);
         carrier.setTable(table);
@@ -347,6 +341,6 @@ public class DorisLoadClient implements Serializable {
 
     private String convert(@Nonnull ColumnRowData rowData, int index) {
         Object value = rowData.getField(index);
-        return (value == null || "".equals(value.toString())) ? NULL_VALUE : value.toString();
+        return (value == null || "".equals(value.toString())) ? null : value.toString();
     }
 }

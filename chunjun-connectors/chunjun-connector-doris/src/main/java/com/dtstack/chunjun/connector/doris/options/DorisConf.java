@@ -33,10 +33,6 @@ import java.util.Properties;
  */
 public class DorisConf extends ChunJunCommonConf {
 
-    private String fieldDelimiter;
-
-    private String lineDelimiter;
-
     private String database;
 
     private String table;
@@ -57,22 +53,6 @@ public class DorisConf extends ChunJunCommonConf {
     private LoadConf loadConf;
 
     private Properties loadProperties;
-
-    public String getFieldDelimiter() {
-        return fieldDelimiter;
-    }
-
-    public void setFieldDelimiter(String fieldDelimiter) {
-        this.fieldDelimiter = fieldDelimiter;
-    }
-
-    public String getLineDelimiter() {
-        return lineDelimiter;
-    }
-
-    public void setLineDelimiter(String lineDelimiter) {
-        this.lineDelimiter = lineDelimiter;
-    }
 
     public String getDatabase() {
         return database;
