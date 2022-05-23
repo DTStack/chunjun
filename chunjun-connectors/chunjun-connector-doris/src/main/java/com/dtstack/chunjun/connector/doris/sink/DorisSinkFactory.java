@@ -136,7 +136,9 @@ public class DorisSinkFactory extends SinkFactory {
                         .setLoadProperties(
                                 parameter.getProperties(LOAD_PROPERTIES_KEY, new Properties()))
                         .setPassword(parameter.getStringVal(PASSWORD_KEY, ""))
-                        .setNameMapped(syncConf.getNameMappingConf() != null)
+                        .setNameMapped(
+                                syncConf.getNameMappingConf() != null
+                                        && !syncConf.getNameMappingConf().isEmpty())
                         .setWriteMode(
                                 parameter.getStringVal(WRITE_MODE_KEY, DORIS_WRITE_MODE_DEFAULT))
                         .setUsername(parameter.getStringVal(USER_NAME_KEY))

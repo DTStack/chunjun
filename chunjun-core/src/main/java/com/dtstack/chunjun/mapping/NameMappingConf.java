@@ -20,6 +20,8 @@
 
 package com.dtstack.chunjun.mapping;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,6 +83,14 @@ public class NameMappingConf implements Serializable {
 
     public void setSqlConevnt(Boolean sqlConevnt) {
         this.sqlConevnt = sqlConevnt;
+    }
+
+    public boolean isEmpty() {
+        return tableMappings.isEmpty()
+                && schemaMappings.isEmpty()
+                && fieldMappings.isEmpty()
+                && StringUtils.isEmpty(pattern)
+                && null == sqlConevnt;
     }
 
     @Override
