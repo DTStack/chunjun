@@ -46,10 +46,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author tiezhu@dtstack.com
@@ -63,8 +65,6 @@ public class DorisStreamLoad implements Serializable {
             new ArrayList<>(Arrays.asList("Success", "Publish Timeout"));
     private final String authEncoding;
     private final Properties streamLoadProp;
-    private final String fieldDelimiter;
-    private final String lineDelimiter;
 
     public DorisStreamLoad(DorisConf options) {
         this.authEncoding =
@@ -73,8 +73,6 @@ public class DorisStreamLoad implements Serializable {
                                 String.format("%s:%s", options.getUsername(), options.getPassword())
                                         .getBytes(StandardCharsets.UTF_8));
         this.streamLoadProp = options.getLoadProperties();
-        this.fieldDelimiter = options.getFieldDelimiter();
-        this.lineDelimiter = options.getLineDelimiter();
     }
 
     /**
@@ -94,21 +92,32 @@ public class DorisStreamLoad implements Serializable {
         httpPut.setHeader("Expect", "100-continue");
         httpPut.setHeader("Content-Type", "text/plain; charset=UTF-8");
         httpPut.setHeader("label", label);
-        httpPut.setHeader("columns", StringUtils.join(columnNames, ","));
+        httpPut.setHeader("format", "json");
+        // if body is list type ,strip_outer_array should be true
+        httpPut.setHeader("strip_outer_array", "true");
+        List<String> columns =
+                columnNames.stream()
+                        .map(this::quoteColumn)
+                        .collect(Collectors.toCollection(LinkedList::new));
+        httpPut.setHeader("columns", StringUtils.join(columns, ","));
         if (StringUtils.isNotBlank(mergeConditions)) {
             httpPut.setHeader("merge_type", "MERGE");
             httpPut.setHeader("delete", mergeConditions);
         } else {
             httpPut.setHeader("merge_type", "APPEND");
         }
-        httpPut.setHeader("column_separator", fieldDelimiter);
-        if (!"\n".equals(lineDelimiter)) {
-            httpPut.setHeader("line_delimiter", lineDelimiter);
-        }
+        // httpPut.setHeader("column_separator", fieldDelimiter);
+        // if (!"\n".equals(lineDelimiter)) {
+        //    httpPut.setHeader("line_delimiter", lineDelimiter);
+        // }
         for (Map.Entry<Object, Object> entry : streamLoadProp.entrySet()) {
             httpPut.setHeader(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
         }
         return httpPut;
+    }
+
+    private String quoteColumn(String column) {
+        return "`" + column + "`";
     }
 
     public static class LoadResponse {
@@ -138,9 +147,9 @@ public class DorisStreamLoad implements Serializable {
      */
     public void load(Carrier carrier, String loadUrlStr) throws IOException {
         List<String> columnNames = carrier.getColumns();
-        String value = carrier.getInsertContent();
+        String json = OM.writeValueAsString(carrier.getInsertContent());
         String mergeConditions = carrier.getDeleteContent();
-        LoadResponse loadResponse = loadBatch(columnNames, value, mergeConditions, loadUrlStr);
+        LoadResponse loadResponse = loadBatch(columnNames, json, mergeConditions, loadUrlStr);
         LOG.debug("StreamLoad Response:{}", loadResponse);
         if (loadResponse.status != 200) {
             throw new ConnectException("stream load error, detail : " + loadResponse);
@@ -187,7 +196,7 @@ public class DorisStreamLoad implements Serializable {
             String formatDate = sdf.format(new Date());
             label =
                     String.format(
-                            "chunjun_connector_%s_%s",
+                            "flinkx_connector_%s_%s",
                             formatDate, UUID.randomUUID().toString().replaceAll("-", ""));
         }
         return label;

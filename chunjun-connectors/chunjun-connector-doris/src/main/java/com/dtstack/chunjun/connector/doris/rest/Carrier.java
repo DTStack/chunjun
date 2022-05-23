@@ -4,10 +4,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.IntStream;
 
 /**
  * Company：www.dtstack.com.
@@ -17,18 +20,16 @@ import java.util.StringJoiner;
  */
 public class Carrier implements Serializable {
     private static final long serialVersionUID = 1L;
-    private final StringJoiner insertContent;
+    private final List<Map<String, Object>> insertContent;
     private final StringJoiner deleteContent;
-    private final String fieldDelimiter;
     private int batch = 0;
     private String database;
     private String table;
     private List<String> columns;
     private final Set<Integer> rowDataIndexes = new HashSet<>();
 
-    public Carrier(String fieldDelimiter, String lineDelimiter) {
-        this.fieldDelimiter = fieldDelimiter;
-        insertContent = new StringJoiner(lineDelimiter);
+    public Carrier() {
+        insertContent = new ArrayList<>();
         deleteContent = new StringJoiner(" OR ");
     }
 
@@ -48,8 +49,8 @@ public class Carrier implements Serializable {
         this.table = table;
     }
 
-    public String getInsertContent() {
-        return insertContent.toString();
+    public List<Map<String, Object>> getInsertContent() {
+        return insertContent;
     }
 
     public String getDeleteContent() {
@@ -78,14 +79,20 @@ public class Carrier implements Serializable {
                 // It is certain that in this case, the size
                 // of insertV is twice the size of column
                 List<String> forward = insertV.subList(0, columns.size());
-                String forwardV = StringUtils.join(forward, fieldDelimiter);
+                final Map<String, Object> forwardV = new HashMap<>(columns.size());
+                IntStream.range(0, columns.size())
+                        .forEach(i -> forwardV.put(columns.get(i), forward.get(i)));
                 insertContent.add(forwardV);
                 List<String> behind = insertV.subList(columns.size(), insertV.size());
-                String behindV = StringUtils.join(behind, fieldDelimiter);
+                final Map<String, Object> behindV = new HashMap<>(columns.size());
+                IntStream.range(0, columns.size())
+                        .forEach(i -> behindV.put(columns.get(i), behind.get(i)));
                 insertContent.add(behindV);
             } else {
-                String s = StringUtils.join(insertV, fieldDelimiter);
-                insertContent.add(s);
+                final Map<String, Object> values = new HashMap<>(columns.size());
+                IntStream.range(0, columns.size())
+                        .forEach(i -> values.put(columns.get(i), insertV.get(i)));
+                insertContent.add(values);
             }
         }
     }
@@ -110,7 +117,9 @@ public class Carrier implements Serializable {
         List<String> deleteOnStr = new ArrayList<>();
         for (int i = 0, size = columns.size(); i < size; i++) {
             String s =
-                    columns.get(i)
+                    "`"
+                            + columns.get(i)
+                            + "`"
                             + "<=>"
                             + "'"
                             + ((values.get(i)) == null ? "" : values.get(i))

@@ -49,11 +49,7 @@ import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_REQUES
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.DORIS_WRITE_MODE_DEFAULT;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.EXEC_MEM_LIMIT_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.FE_NODES_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.FIELD_DELIMITER;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.FIELD_DELIMITER_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.FLUSH_INTERNAL_MS_KEY;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.LINE_DELIMITER;
-import static com.dtstack.chunjun.connector.doris.options.DorisKeys.LINE_DELIMITER_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.LOAD_OPTIONS_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.LOAD_PROPERTIES_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.PASSWORD_KEY;
@@ -136,10 +132,6 @@ public class DorisSinkFactory extends SinkFactory {
                         .setDatabase(parameter.getStringVal(DATABASE_KEY))
                         .setTable(parameter.getStringVal(TABLE_KEY))
                         .setFeNodes((List<String>) parameter.getVal(FE_NODES_KEY))
-                        .setFieldDelimiter(
-                                parameter.getStringVal(FIELD_DELIMITER_KEY, FIELD_DELIMITER))
-                        .setLineDelimiter(
-                                parameter.getStringVal(LINE_DELIMITER_KEY, LINE_DELIMITER))
                         .setLoadOptions(loadConf)
                         .setLoadProperties(
                                 parameter.getProperties(LOAD_PROPERTIES_KEY, new Properties()))
