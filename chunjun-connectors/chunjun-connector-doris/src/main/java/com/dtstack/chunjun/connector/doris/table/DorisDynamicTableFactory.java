@@ -66,8 +66,6 @@ public class DorisDynamicTableFactory implements DynamicTableSinkFactory {
                             DorisOptions.EXEC_MEM_LIMIT,
                             DorisOptions.DESERIALIZE_QUEUE_SIZE,
                             DorisOptions.DESERIALIZE_ARROW_ASYNC,
-                            DorisOptions.FIELD_DELIMITER,
-                            DorisOptions.LINE_DELIMITER,
                             DorisOptions.MAX_RETRIES,
                             DorisOptions.WRITE_MODE,
                             DorisOptions.BATCH_SIZE)
@@ -112,8 +110,6 @@ public class DorisDynamicTableFactory implements DynamicTableSinkFactory {
 
         LoadConf loadConf = getLoadConf(config);
         dorisConf.setLoadConf(loadConf);
-        dorisConf.setFieldDelimiter(config.get(DorisOptions.FIELD_DELIMITER));
-        dorisConf.setLineDelimiter(config.get(DorisOptions.LINE_DELIMITER));
         dorisConf.setLoadProperties(new Properties());
         dorisConf.setMaxRetries(config.get(DorisOptions.MAX_RETRIES));
         dorisConf.setWriteMode(config.get(DorisOptions.WRITE_MODE));

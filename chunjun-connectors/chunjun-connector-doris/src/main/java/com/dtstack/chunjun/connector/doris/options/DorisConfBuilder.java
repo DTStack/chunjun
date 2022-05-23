@@ -48,16 +48,6 @@ public class DorisConfBuilder {
         return this;
     }
 
-    public DorisConfBuilder setFieldDelimiter(String fieldDelimiter) {
-        this.dorisConf.setFieldDelimiter(fieldDelimiter);
-        return this;
-    }
-
-    public DorisConfBuilder setLineDelimiter(String lineDelimiter) {
-        this.dorisConf.setLineDelimiter(lineDelimiter);
-        return this;
-    }
-
     public DorisConfBuilder setUsername(String username) {
         this.dorisConf.setUsername(username);
         return this;
