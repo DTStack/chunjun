@@ -65,7 +65,7 @@ public class SolrSourceFactory extends SourceFactory {
         } else {
             converter = converterFactory.createRowConverter();
         }
-        builder.setRowConverter(converter);
+        builder.setRowConverter(converter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 }

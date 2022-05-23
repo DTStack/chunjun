@@ -71,7 +71,7 @@ public class RedisSinkFactory extends SinkFactory {
         }
         RedisOutputFormatBuilder builder = new RedisOutputFormatBuilder();
         builder.setRedisConf(redisConf);
-        builder.setRowConverter(new RedisColumnConverter(redisConf));
+        builder.setRowConverter(new RedisColumnConverter(redisConf), useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 }

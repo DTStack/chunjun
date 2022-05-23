@@ -60,7 +60,12 @@ public class BinlogInputFormatBuilder extends BaseRichInputFormatBuilder<BinlogI
     }
 
     public void setRowConverter(AbstractCDCRowConverter rowConverter) {
+        setRowConverter(rowConverter, false);
+    }
+
+    public void setRowConverter(AbstractCDCRowConverter rowConverter, boolean useAbstractColumn) {
         this.format.setRowConverter(rowConverter);
+        format.setUseAbstractColumn(useAbstractColumn);
     }
 
     @Override

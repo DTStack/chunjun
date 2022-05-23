@@ -51,7 +51,12 @@ public abstract class BaseRichOutputFormatBuilder {
     }
 
     public void setRowConverter(AbstractRowConverter rowConverter) {
+        setRowConverter(rowConverter, false);
+    }
+
+    public void setRowConverter(AbstractRowConverter rowConverter, boolean useAbstractColumn) {
         format.setRowConverter(rowConverter);
+        format.setUseAbstractColumn(useAbstractColumn);
     }
 
     /** Check the value of parameters */

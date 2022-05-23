@@ -83,7 +83,7 @@ public class FtpSinkFactory extends SinkFactory {
         ftpConfig.setColumn(fieldConfList);
         final RowType rowType =
                 TableUtil.createRowType(ftpConfig.getColumn(), getRawTypeConverter());
-        builder.setRowConverter(new FtpColumnConverter(rowType, ftpConfig));
+        builder.setRowConverter(new FtpColumnConverter(rowType, ftpConfig), useAbstractBaseColumn);
 
         return createOutput(dataSet, builder.finish());
     }

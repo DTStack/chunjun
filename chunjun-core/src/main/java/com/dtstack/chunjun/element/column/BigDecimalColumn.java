@@ -26,6 +26,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
+import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
+
 /**
  * Date: 2021/04/26 Company: www.dtstack.com
  *
@@ -34,35 +36,43 @@ import java.util.Date;
 public class BigDecimalColumn extends AbstractBaseColumn {
 
     public BigDecimalColumn(BigDecimal data) {
-        super(data);
+        this(data, data.toString());
     }
 
     public BigDecimalColumn(int data) {
-        super(new BigDecimal(data));
+        this(new BigDecimal(data), String.valueOf(data));
     }
 
     public BigDecimalColumn(double data) {
-        super(new BigDecimal(String.valueOf(data)));
+        this(String.valueOf(data));
     }
 
     public BigDecimalColumn(float data) {
-        super(new BigDecimal(String.valueOf(data)));
+        this(String.valueOf(data));
     }
 
     public BigDecimalColumn(long data) {
-        super(new BigDecimal(data));
+        this(new BigDecimal(data), String.valueOf(data));
     }
 
     public BigDecimalColumn(String data) {
-        super(new BigDecimal(data));
+        this(new BigDecimal(data), data);
     }
 
     public BigDecimalColumn(BigInteger data) {
-        super(new BigDecimal(data));
+        this(new BigDecimal(data), data.toString());
     }
 
     public BigDecimalColumn(short data) {
-        super(new BigDecimal(data));
+        this(new BigDecimal(data), String.valueOf(data));
+    }
+
+    public BigDecimalColumn(short data, int size) {
+        super(new BigDecimal(data), size);
+    }
+
+    public BigDecimalColumn(BigDecimal bigDecimal, String data) {
+        super(bigDecimal, getStringSize(data));
     }
 
     @Override

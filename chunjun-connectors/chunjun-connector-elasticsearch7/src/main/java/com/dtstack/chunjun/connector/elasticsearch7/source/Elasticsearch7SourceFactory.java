@@ -76,7 +76,7 @@ public class Elasticsearch7SourceFactory extends SourceFactory {
         } else {
             rowConverter = new ElasticsearchRowConverter(rowType);
         }
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 

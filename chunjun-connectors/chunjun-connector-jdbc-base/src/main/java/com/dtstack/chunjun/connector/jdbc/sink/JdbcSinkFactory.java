@@ -105,7 +105,7 @@ public abstract class JdbcSinkFactory extends SinkFactory {
                     TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
             rowConverter = jdbcDialect.getRowConverter(rowType);
         }
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
 
         return createOutput(dataSet, builder.finish());
     }

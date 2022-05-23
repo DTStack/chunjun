@@ -321,7 +321,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                             useAbstractBaseColumn,
                             copyHiveConf.getFileType(),
                             fieldConfList,
-                            HdfsRawTypeConverter::apply));
+                            HdfsRawTypeConverter::apply),
+                    useAbstractBaseColumn);
             builder.setInitAccumulatorAndDirty(false);
 
             BaseHdfsOutputFormat outputFormat = (BaseHdfsOutputFormat) builder.finish();

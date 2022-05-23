@@ -109,6 +109,8 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     /** BaseRichInputFormat是否已经初始化 */
     private boolean initialized = false;
 
+    private boolean useAbstractColumn;
+
     @Override
     public final void configure(Configuration parameters) {
         // do nothing
@@ -282,7 +284,8 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
     /** 初始化对象大小计算器 */
     private void initRowSizeCalculator() {
         rowSizeCalculator =
-                RowSizeCalculator.getRowSizeCalculator(config.getRowSizeCalculatorType());
+                RowSizeCalculator.getRowSizeCalculator(
+                        config.getRowSizeCalculatorType(), useAbstractColumn);
     }
 
     /** 初始化速率限制器 */
@@ -395,5 +398,9 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
 
     public void setDirtyManager(DirtyManager dirtyManager) {
         this.dirtyManager = dirtyManager;
+    }
+
+    public void setUseAbstractColumn(boolean useAbstractColumn) {
+        this.useAbstractColumn = useAbstractColumn;
     }
 }

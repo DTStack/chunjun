@@ -70,7 +70,7 @@ public class BinlogSourceFactory extends SourceFactory {
                             : TimestampFormat.ISO_8601;
             rowConverter = new BinlogRowConverter(rowType, format);
         }
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 

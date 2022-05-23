@@ -91,7 +91,7 @@ public class Elasticsearch7SinkFactory extends SinkFactory {
         } else {
             rowConverter = new ElasticsearchRowConverter(rowType);
         }
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 

@@ -126,7 +126,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                     TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
             rowConverter = jdbcDialect.getRowConverter(rowType);
         }
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
 
         return createInput(builder.finish());
     }
