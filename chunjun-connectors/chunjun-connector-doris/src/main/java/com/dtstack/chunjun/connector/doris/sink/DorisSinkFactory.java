@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.doris.sink;
 
 import com.dtstack.chunjun.conf.OperatorConf;
 import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.connector.doris.converter.DorisRowTypeConverter;
 import com.dtstack.chunjun.connector.doris.options.DorisConf;
 import com.dtstack.chunjun.connector.doris.options.DorisConfBuilder;
 import com.dtstack.chunjun.connector.doris.options.LoadConf;
@@ -149,13 +150,13 @@ public class DorisSinkFactory extends SinkFactory {
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
-        DorisOutputFormatBuilder builder = new DorisOutputFormatBuilder();
+        DorisHttpOutputFormatBuilder builder = new DorisHttpOutputFormatBuilder();
         builder.setDorisOptions(options);
         return createOutput(dataSet, builder.finish());
     }
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return null;
+        return DorisRowTypeConverter::apply;
     }
 }
