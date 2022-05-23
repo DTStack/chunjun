@@ -30,11 +30,11 @@ import java.time.LocalDate;
 /** @author liuliu 2022/1/12 */
 public class SqlDateColumn extends AbstractBaseColumn {
     public SqlDateColumn(Date data) {
-        super(data);
+        super(data, 8);
     }
 
     public SqlDateColumn(long data) {
-        super(Date.valueOf(LocalDate.ofEpochDay(data)));
+        super(Date.valueOf(LocalDate.ofEpochDay(data)), 8);
     }
 
     @Override

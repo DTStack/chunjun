@@ -60,7 +60,7 @@ public class PgwalSourceFactory extends SourceFactory {
                     TableUtil.createRowType(conf.getColumn(), getRawTypeConverter());
             rowConverter = new PGWalRowConverter(rowType, TimestampFormat.SQL);
         }
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 

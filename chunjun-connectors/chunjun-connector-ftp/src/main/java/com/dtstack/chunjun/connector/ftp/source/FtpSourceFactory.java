@@ -80,7 +80,7 @@ public class FtpSourceFactory extends SourceFactory {
         ftpConfig.setColumn(fieldConfList);
         final RowType rowType =
                 TableUtil.createRowType(ftpConfig.getColumn(), getRawTypeConverter());
-        builder.setRowConverter(new FtpColumnConverter(rowType, ftpConfig));
+        builder.setRowConverter(new FtpColumnConverter(rowType, ftpConfig), useAbstractBaseColumn);
 
         return createInput(builder.finish());
     }

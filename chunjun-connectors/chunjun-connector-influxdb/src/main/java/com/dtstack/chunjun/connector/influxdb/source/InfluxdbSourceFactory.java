@@ -85,6 +85,7 @@ public class InfluxdbSourceFactory extends SourceFactory {
     public DataStream<RowData> createSource() {
         InfluxdbInputFormatBuilder builder = new InfluxdbInputFormatBuilder();
         builder.setInfluxdbConfig(config);
+        builder.setRowConverter(null, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 }

@@ -73,7 +73,8 @@ public class KuduSourceFactory extends SourceFactory {
         List<String> columnNameList = new ArrayList<>();
         fieldConfList.forEach(fieldConf -> columnNameList.add(fieldConf.getName()));
 
-        builder.setRowConverter(new KuduRowConverter(rowType, columnNameList));
+        builder.setRowConverter(
+                new KuduRowConverter(rowType, columnNameList), useAbstractBaseColumn);
 
         return createInput(builder.finish());
     }

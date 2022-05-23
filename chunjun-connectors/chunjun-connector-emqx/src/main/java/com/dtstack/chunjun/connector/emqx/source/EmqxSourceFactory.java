@@ -60,7 +60,7 @@ public class EmqxSourceFactory extends SourceFactory {
         }
         EmqxInputFormatBuilder builder = new EmqxInputFormatBuilder();
         builder.setEmqxConf(emqxConf);
-        builder.setRowConverter(new EmqxColumnConverter(emqxConf));
+        builder.setRowConverter(new EmqxColumnConverter(emqxConf), useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 }

@@ -32,8 +32,8 @@ import java.sql.Timestamp;
  */
 public class BooleanColumn extends AbstractBaseColumn {
 
-    public BooleanColumn(Boolean data) {
-        super(data);
+    public BooleanColumn(boolean data) {
+        super(data, 1);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class BooleanColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return (Boolean) data;
+        return (boolean) data;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class BooleanColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        throw new CastException("Boolean", "Bytes", this.asString());
+        throw new CastException("boolean", "Bytes", this.asString());
     }
 
     @Override
@@ -57,7 +57,7 @@ public class BooleanColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return (Boolean) data ? "true" : "false";
+        return (boolean) data ? "true" : "false";
     }
 
     @Override
@@ -65,7 +65,7 @@ public class BooleanColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return BigDecimal.valueOf((Boolean) data ? 1L : 0L);
+        return BigDecimal.valueOf((boolean) data ? 1L : 0L);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class BooleanColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        throw new CastException("Boolean", "Timestamp", this.asString());
+        throw new CastException("boolean", "Timestamp", this.asString());
     }
 
     @Override
@@ -81,7 +81,7 @@ public class BooleanColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        throw new CastException("Boolean", "java.sql.Time", this.asString());
+        throw new CastException("boolean", "java.sql.Time", this.asString());
     }
 
     @Override
@@ -89,11 +89,11 @@ public class BooleanColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        throw new CastException("Boolean", "java.sql.Date", this.asString());
+        throw new CastException("boolean", "java.sql.Date", this.asString());
     }
 
     @Override
     public String asTimestampStr() {
-        throw new CastException("Boolean", "Timestamp", this.asString());
+        throw new CastException("boolean", "Timestamp", this.asString());
     }
 }

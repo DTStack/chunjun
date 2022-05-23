@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
+
 /**
  * Date: 2021/04/26 Company: www.dtstack.com
  *
@@ -53,18 +55,19 @@ public final class ColumnRowData implements RowData, Serializable {
     private final List<AbstractBaseColumn> columnList;
     private Map<String, Integer> header;
     private Set<String> extHeader = new HashSet<>();
+    private int byteSize;
 
     private RowKind kind;
 
     public ColumnRowData(RowKind kind, int arity) {
         this.columnList = new ArrayList<>(arity);
         this.kind = kind;
+        // kind size
+        byteSize = 1;
     }
 
     public ColumnRowData(int arity) {
-        this.columnList = new ArrayList<>(arity);
-        // INSERT as default
-        this.kind = RowKind.INSERT;
+        this(RowKind.INSERT, arity);
     }
 
     public void addHeader(String name) {
@@ -72,6 +75,7 @@ public final class ColumnRowData implements RowData, Serializable {
             this.header = Maps.newLinkedHashMap();
         }
         this.header.put(name, this.header.size());
+        byteSize += getStringSize(name);
     }
 
     public void replaceHeader(String original, String another) {
@@ -82,10 +86,13 @@ public final class ColumnRowData implements RowData, Serializable {
         Integer value = this.header.get(original);
         this.header.remove(original);
         this.header.put(another, value);
+        byteSize -= getStringSize(original);
+        byteSize += getStringSize(another);
     }
 
     public void addExtHeader(String name) {
         this.extHeader.add(name);
+        byteSize += getStringSize(name);
     }
 
     public boolean isExtHeader(String name) {
@@ -99,6 +106,7 @@ public final class ColumnRowData implements RowData, Serializable {
     public void addAllHeader(List<String> list) {
         for (String name : list) {
             this.addHeader(name);
+            this.byteSize += getStringSize(name);
         }
     }
 
@@ -110,7 +118,9 @@ public final class ColumnRowData implements RowData, Serializable {
         List<AbstractBaseColumn> needToRemove = new ArrayList<>();
         for (String key : extHeader) {
             Integer index = header.remove(key);
-            needToRemove.add(columnList.get(index));
+            AbstractBaseColumn removeColumn = columnList.get(index);
+            needToRemove.add(removeColumn);
+            byteSize -= removeColumn.byteSize;
         }
         columnList.removeAll(needToRemove);
     }
@@ -128,14 +138,23 @@ public final class ColumnRowData implements RowData, Serializable {
 
     public void addField(AbstractBaseColumn value) {
         this.columnList.add(value);
+        if (value != null) {
+            this.byteSize += value.byteSize;
+        }
     }
 
     public void addAllField(List<AbstractBaseColumn> list) {
-        this.columnList.addAll(list);
+        for (AbstractBaseColumn column : list) {
+            addField(column);
+        }
     }
 
     public void setField(int pos, AbstractBaseColumn value) {
+        if (columnList.get(pos) != null) {
+            byteSize -= columnList.get(pos).byteSize;
+        }
         this.columnList.set(pos, value);
+        byteSize += value.byteSize;
     }
 
     public AbstractBaseColumn getField(int pos) {
@@ -253,6 +272,10 @@ public final class ColumnRowData implements RowData, Serializable {
     @Override
     public RowData getRow(int pos, int numFields) {
         return null;
+    }
+
+    public long getByteSize() {
+        return byteSize;
     }
 
     public String getString() {

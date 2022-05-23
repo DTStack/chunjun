@@ -36,11 +36,11 @@ public class BytesColumn extends AbstractBaseColumn {
     private String encoding = StandardCharsets.UTF_8.name();
 
     public BytesColumn(byte[] data) {
-        super(data);
+        super(data, data.length);
     }
 
     public BytesColumn(byte[] data, String encoding) {
-        super(data);
+        super(data, data.length);
         this.encoding = encoding;
     }
 

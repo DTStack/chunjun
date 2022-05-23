@@ -162,7 +162,7 @@ public class StarrocksSinkFactory extends JdbcSinkFactory {
             List<FieldConf> fieldList = syncConf.getWriter().getFieldList();
             typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter());
         }
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
 
         builder.finish().initializeGlobal(1);
 
