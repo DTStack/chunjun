@@ -82,6 +82,10 @@
 									<pattern>com.esotericsoftware.kryo</pattern>
 									<shadedPattern>shade.inceptor.com.esotericsoftware.kryo</shadedPattern>
 								</relocation>
+								<relocation>
+									<pattern>com.google.protobuf</pattern>
+									<shadedPattern>shade.inceptor.com.google.protobuf</shadedPattern>
+								</relocation>
 							</relocations>
 							<transformers>
 								<transformer

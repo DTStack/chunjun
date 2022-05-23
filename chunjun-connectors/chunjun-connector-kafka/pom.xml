@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>chunjun-connectors</artifactId>
-        <groupId>com.dtstack.chunjun</groupId>
-        <version>1.12-SNAPSHOT</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>chunjun-connectors</artifactId>
+		<groupId>com.dtstack.chunjun</groupId>
+		<version>1.12-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
 
-    <artifactId>chunjun-connector-kafka</artifactId>
+	<artifactId>chunjun-connector-kafka</artifactId>
 	<name>ChunJun : Connectors : Kafka</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-kafka_${scala.binary.version}</artifactId>
-            <version>${flink.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>flink-core</artifactId>
-                    <groupId>org.apache.flink</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-kafka_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>flink-core</artifactId>
+					<groupId>org.apache.flink</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
 		<dependency>
 			<groupId>com.pingcap.ticdc.cdc</groupId>
 			<artifactId>ticdc-decoder</artifactId>
 			<version>5.2.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.alibaba</groupId>
-                    <artifactId>fastjson</artifactId>
-                </exclusion>
-            </exclusions>
+			<exclusions>
+				<exclusion>
+					<groupId>com.alibaba</groupId>
+					<artifactId>fastjson</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.79</version>
-        </dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.79</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
@@ -54,13 +54,13 @@
 			<artifactId>avro</artifactId>
 			<version>1.10.0</version>
 		</dependency>
-    </dependencies>
+	</dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
 				<version>3.2.4</version>
 				<executions>
 					<execution>
@@ -70,11 +70,11 @@
 						</goals>
 						<configuration>
 							<createDependencyReducedPom>false</createDependencyReducedPom>
-                            <relocations>
-                                <relocation>
-                                    <pattern>com.alibaba.fastjson</pattern>
-                                    <shadedPattern>com.shade.alibaba.fastjson</shadedPattern>
-                                </relocation>
+							<relocations>
+								<relocation>
+									<pattern>com.alibaba.fastjson</pattern>
+									<shadedPattern>com.shade.alibaba.fastjson</shadedPattern>
+								</relocation>
 								<!--Solution conflicts with flink-sql-avro.all shades are shaded in the way of flink-sql-avro-->
 								<relocation>
 									<pattern>org.apache.avro</pattern>
@@ -88,7 +88,11 @@
 									<pattern>org.apache.commons.compress</pattern>
 									<shadedPattern>org.apache.flink.avro.shaded.org.apache.commons.compress</shadedPattern>
 								</relocation>
-                            </relocations>
+								<relocation>
+									<pattern>com.google.protobuf</pattern>
+									<shadedPattern>com.dtstack.chunjun.connector.kafka.shaded.com.google.protobuf</shadedPattern>
+								</relocation>
+							</relocations>
 							<artifactSet>
 								<excludes>
 									<exclude>org.slf4j</exclude>
@@ -116,28 +120,50 @@
 										<exclude>META-INF/*.RSA</exclude>
 									</excludes>
 								</filter>
+
+								<filter>
+									<artifact>org.apache.flink:flink-avro</artifact>
+									<excludes>
+										<exclude>META-INF/services/*</exclude>
+									</excludes>
+								</filter>
+								<filter>
+									<artifact>org.apache.flink:flink-connector-kafka</artifact>
+									<excludes>
+										<exclude>META-INF/services/*</exclude>
+									</excludes>
+								</filter>
+								<filter>
+									<artifact>org.glassfish.jersey.core:jersey-common</artifact>
+									<excludes>
+										<exclude>META-INF/services/*</exclude>
+									</excludes>
+								</filter>
 							</filters>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+							</transformers>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <!-- here the phase you need -->
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <copy todir="${basedir}/../../${dist.dir}/connector/kafka"
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<!-- here the phase you need -->
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<copy todir="${basedir}/../../${dist.dir}/connector/kafka"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-                                <move file="${basedir}/../../${dist.dir}/connector/kafka/${project.artifactId}-${project.version}.jar"
-                                      tofile="${basedir}/../../${dist.dir}/connector/kafka/${project.artifactId}-${git.branch}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/connector/kafka/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/connector/kafka/${project.artifactId}-${git.branch}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../../${dist.dir}/connector/kafka/"
 											 includes="${project.artifactId}-*.jar"
@@ -153,11 +179,11 @@
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}-${git.branch}.jar"/>
 								</delete>
-                            </tasks>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
