@@ -175,21 +175,7 @@ public class LocalTest {
             // argsList.add(configJsonString);
             /* ---------------------------------------- pyFlink 测试 end --------------------------------------- */
         }
-        // 防止加载chunjun-connector-kafka/target/classes/META-INF/services/下的spi文件
-        URLClassLoader contextClassLoader =
-                (URLClassLoader) Thread.currentThread().getContextClassLoader();
-        URL[] urls =
-                Arrays.stream(contextClassLoader.getURLs())
-                        .filter(URL -> !URL.getPath().contains("start-chunjun-connector-kafka"))
-                        .toArray(URL[]::new);
-        URLClassLoader urlClassLoader = new URLClassLoader(urls, contextClassLoader.getParent());
-        Thread.currentThread().setContextClassLoader(urlClassLoader);
-        Class<Main> mainClass =
-                (Class<Main>) Class.forName(Main.class.getName(), false, urlClassLoader);
-        Constructor<?> constructor = mainClass.getConstructor();
-        Object mainObject = constructor.newInstance();
-        Method mainMethod = mainClass.getMethod("main", String[].class);
-        mainMethod.invoke(mainObject, (Object) argsList.toArray(new String[0]));
+        Main.main(argsList.toArray(new String[0]));
     }
 
     private static String readFile(String sqlPath) {

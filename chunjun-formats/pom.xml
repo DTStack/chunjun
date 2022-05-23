@@ -13,6 +13,10 @@
 	<name>ChunJun : Formats</name>
     <packaging>pom</packaging>
 
+	<modules>
+		<module>chunjun-protobuf</module>
+	</modules>
+
     <dependencies>
         <dependency>
             <groupId>com.dtstack.chunjun</groupId>
