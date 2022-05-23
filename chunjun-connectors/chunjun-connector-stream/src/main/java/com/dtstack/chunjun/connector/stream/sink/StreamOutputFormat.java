@@ -55,7 +55,8 @@ public class StreamOutputFormat extends BaseRichOutputFormat {
             RowData row =
                     (RowData)
                             rowConverter.toExternal(
-                                    rowData, new GenericRowData(rowData.getArity()));
+                                    rowData,
+                                    new GenericRowData(rowData.getRowKind(), rowData.getArity()));
             if (streamConf.getPrint()) {
                 TablePrintUtil.printTable(row, getFieldNames(rowData));
             }
