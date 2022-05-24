@@ -63,16 +63,28 @@ public class DorisStreamLoad implements Serializable {
     private static final ObjectMapper OM = new ObjectMapper();
     private static final List<String> DORIS_SUCCESS_STATUS =
             new ArrayList<>(Arrays.asList("Success", "Publish Timeout"));
-    private final String authEncoding;
-    private final Properties streamLoadProp;
+    private static final String LOAD_URL_PATTERN = "http://%s/api/%s/%s/_stream_load?";
+    private String authEncoding;
+    private Properties streamLoadProp;
+    private String hostPort;
+    private DorisConf options;
 
     public DorisStreamLoad(DorisConf options) {
+        this.options = options;
         this.authEncoding =
                 Base64.getEncoder()
                         .encodeToString(
                                 String.format("%s:%s", options.getUsername(), options.getPassword())
                                         .getBytes(StandardCharsets.UTF_8));
         this.streamLoadProp = options.getLoadProperties();
+    }
+
+    public void setHostPort(String hostPort) {
+        this.hostPort = hostPort;
+    }
+
+    public void setOptions(DorisConf options) {
+        this.options = options;
     }
 
     /**
@@ -138,15 +150,33 @@ public class DorisStreamLoad implements Serializable {
         }
     }
 
+    public void replaceBackend() throws IOException {
+        String backend = getBackend();
+        this.setHostPort(backend);
+        LOG.info("replace backend node to {}", backend);
+    }
+
+    private String getBackend() throws IOException {
+        try {
+            // get be url from fe
+            return FeRestService.randomBackend(options);
+        } catch (IOException e) {
+            LOG.error("get backends info fail");
+            throw new IOException(e);
+        }
+    }
+
     /**
      * Doris load data via stream.
      *
      * @param carrier data carrier.
-     * @param loadUrlStr doris load url.
      * @throws IOException io exception.
      */
-    public void load(Carrier carrier, String loadUrlStr) throws IOException {
+    public void load(Carrier carrier) throws IOException {
         List<String> columnNames = carrier.getColumns();
+        String loadUrlStr =
+                String.format(
+                        LOAD_URL_PATTERN, hostPort, carrier.getDatabase(), carrier.getTable());
         String json = OM.writeValueAsString(carrier.getInsertContent());
         String mergeConditions = carrier.getDeleteContent();
         LoadResponse loadResponse = loadBatch(columnNames, json, mergeConditions, loadUrlStr);
@@ -196,7 +226,7 @@ public class DorisStreamLoad implements Serializable {
             String formatDate = sdf.format(new Date());
             label =
                     String.format(
-                            "flinkx_connector_%s_%s",
+                            "chunjun_connector_%s_%s",
                             formatDate, UUID.randomUUID().toString().replaceAll("-", ""));
         }
         return label;

@@ -52,12 +52,23 @@ public class DorisConf extends JdbcConf {
 
     /** * default value is 3 */
     private Integer maxRetries = 3;
+    /** retry load sleep timeout* */
+    private long waitRetryMills = 18000;
+
     /** 是否配置了NameMapping, true, RowData中将携带名称匹配后的数据库和表名, sink端配置的database和table失效* */
     private boolean nameMapped;
 
     private LoadConf loadConf;
 
     private Properties loadProperties;
+
+    public long getWaitRetryMills() {
+        return waitRetryMills;
+    }
+
+    public void setWaitRetryMills(long waitRetryMills) {
+        this.waitRetryMills = waitRetryMills;
+    }
 
     public String getDatabase() {
         return database;

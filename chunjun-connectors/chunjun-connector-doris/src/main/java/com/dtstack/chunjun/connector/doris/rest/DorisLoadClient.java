@@ -21,6 +21,7 @@
 package com.dtstack.chunjun.connector.doris.rest;
 
 import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.connector.doris.DorisUtil;
 import com.dtstack.chunjun.connector.doris.options.DorisConf;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -36,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -63,8 +63,6 @@ public class DorisLoadClient implements Serializable {
     private final Set<String> metaHeader =
             Stream.of("schema", "table", "type", "opTime", "ts", "scn")
                     .collect(Collectors.toCollection(HashSet::new));
-
-    private static final String LOAD_URL_PATTERN = "http://%s/api/%s/%s/_stream_load?";
     private static final String KEY_SCHEMA = "schema";
     private static final String KEY_TABLE = "table";
     private static final String KEY_POINT = ".";
@@ -73,16 +71,13 @@ public class DorisLoadClient implements Serializable {
 
     private final DorisStreamLoad dorisStreamLoad;
     private final boolean nameMapped;
-    private String hostPort;
     private final DorisConf conf;
 
-    public DorisLoadClient(DorisStreamLoad dorisStreamLoad, DorisConf conf, String hostPort) {
+    public DorisLoadClient(DorisStreamLoad dorisStreamLoad, DorisConf conf) {
         this.dorisStreamLoad = dorisStreamLoad;
-        this.hostPort = hostPort;
         this.conf = conf;
         this.nameMapped = conf.isNameMapped();
     }
-
     /**
      * Each time a RowData is processed, a Carrier is obtained and then returned.
      *
@@ -218,13 +213,15 @@ public class DorisLoadClient implements Serializable {
      * @param carrier data carrier
      * @throws WriteRecordException
      */
-    public void flush(Carrier carrier) throws WriteRecordException {
+    public void flush(final Carrier carrier) throws WriteRecordException {
         try {
-            dorisStreamLoad.load(
+            DorisUtil.doRetry(
+                    dorisStreamLoad::load,
+                    dorisStreamLoad::replaceBackend,
                     carrier,
-                    String.format(
-                            LOAD_URL_PATTERN, hostPort, carrier.getDatabase(), carrier.getTable()));
-        } catch (IOException e) {
+                    conf.getMaxRetries(),
+                    conf.getWaitRetryMills());
+        } catch (Exception e) {
             String errorMessage = "write record failed.";
             throw new WriteRecordException(errorMessage, e, -1, carrier.toString());
         }
