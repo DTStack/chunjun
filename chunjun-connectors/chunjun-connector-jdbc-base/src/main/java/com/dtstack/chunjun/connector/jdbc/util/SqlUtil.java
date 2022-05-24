@@ -253,10 +253,15 @@ public class SqlUtil {
             JdbcDialect jdbcDialect,
             JdbcInputSplit jdbcInputSplit,
             String splitColumn) {
+        String sql;
         if ("range".equalsIgnoreCase(splitStrategy)) {
-            return jdbcDialect.getSplitRangeFilter(jdbcInputSplit, splitColumn);
+            sql = jdbcDialect.getSplitRangeFilter(jdbcInputSplit, splitColumn);
         } else {
-            return jdbcDialect.getSplitModFilter(jdbcInputSplit, splitColumn);
+            sql = jdbcDialect.getSplitModFilter(jdbcInputSplit, splitColumn);
         }
+        if (jdbcInputSplit.getSplitNumber() == 0) {
+            sql += " OR " + jdbcDialect.quoteIdentifier(splitColumn) + " IS NULL";
+        }
+        return sql;
     }
 }
