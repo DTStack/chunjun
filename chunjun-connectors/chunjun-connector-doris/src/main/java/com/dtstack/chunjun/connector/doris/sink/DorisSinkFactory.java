@@ -53,6 +53,7 @@ import static com.dtstack.chunjun.connector.doris.options.DorisKeys.FE_NODES_KEY
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.FLUSH_INTERNAL_MS_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.LOAD_OPTIONS_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.LOAD_PROPERTIES_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.MAX_RETRIES_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.PASSWORD_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_BATCH_SIZE_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_CONNECT_TIMEOUT_MS_KEY;
@@ -62,6 +63,7 @@ import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_RETR
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.REQUEST_TABLET_SIZE_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.TABLE_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.USER_NAME_KEY;
+import static com.dtstack.chunjun.connector.doris.options.DorisKeys.WAITRETRIES_MS_KEY;
 import static com.dtstack.chunjun.connector.doris.options.DorisKeys.WRITE_MODE_KEY;
 
 /**
@@ -145,6 +147,8 @@ public class DorisSinkFactory extends SinkFactory {
                         .setUsername(parameter.getStringVal(USER_NAME_KEY))
                         .setBatchSize(parameter.getIntVal(BATCH_SIZE_KEY, 1000))
                         .setFlushIntervalMills(parameter.getLongVal(FLUSH_INTERNAL_MS_KEY, 10000L))
+                        .setMaxRetries(parameter.getIntVal(MAX_RETRIES_KEY, 1))
+                        .setWaitRetryMills(parameter.getLongVal(WAITRETRIES_MS_KEY, 18000L))
                         .build();
         options.setColumn(syncConf.getWriter().getFieldList());
         super.initCommonConf(options);

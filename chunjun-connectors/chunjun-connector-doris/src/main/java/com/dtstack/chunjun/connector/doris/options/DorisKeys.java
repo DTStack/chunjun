@@ -36,6 +36,8 @@ public final class DorisKeys {
 
     public static final String FLUSH_INTERNAL_MS_KEY = "flushIntervalMills";
 
+    public static final String WAITRETRIES_MS_KEY = "waitRetryMills";
+
     public static final String MAX_RETRIES_KEY = "maxRetries";
 
     public static final String DATABASE_KEY = "database";
