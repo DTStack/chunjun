@@ -40,7 +40,7 @@ import static org.apache.flink.table.types.utils.TypeConversions.fromLogicalToDa
 
 /**
  * @author wuren
- * @program chunjun
+ * @program flinkx
  * @create 2021/04/30
  */
 

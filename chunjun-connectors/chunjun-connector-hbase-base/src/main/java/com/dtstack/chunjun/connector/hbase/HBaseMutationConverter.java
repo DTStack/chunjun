@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.connector.hbase;
 
 /**
- * @program chunjun
+ * @program: flinkx
  * @author: wuren
  * @create: 2021/10/15
  */

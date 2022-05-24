@@ -17,17 +17,13 @@
  */
 package com.dtstack.chunjun.connector.hbase14.source;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hbase14.conf.HBaseConfigConstants;
+import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.conf.HBaseConfigConstants;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.flink.util.Preconditions;
 
-import org.apache.commons.lang.StringUtils;
-
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * The builder of HbaseInputFormat
@@ -36,90 +32,30 @@ import java.util.stream.Collectors;
  *
  * @author huyifan.zju@163.com
  */
-public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder<HBaseInputFormat> {
+public class HBaseInputFormatBuilder extends BaseRichInputFormatBuilder {
 
     public HBaseInputFormatBuilder() {
         super(new HBaseInputFormat());
     }
 
     public void setHbaseConfig(Map<String, Object> hbaseConfig) {
-        format.hbaseConfig = hbaseConfig;
+        ((HBaseInputFormat) format).hbaseConfig = hbaseConfig;
     }
 
-    public void setTableName(String tableName) {
-        format.tableName = tableName;
-    }
-
-    public void setStartRowKey(String startRowKey) {
-        format.startRowkey = startRowKey;
-    }
-
-    public void setEndRowKey(String endRowKey) {
-        format.endRowkey = endRowKey;
-    }
-
-    public void setColumnNames(List<String> columnNames) {
-        format.columnNames = columnNames;
-    }
-
-    public void setColumnValues(List<String> columnValues) {
-        format.columnValues = columnValues;
-    }
-
-    public void setColumnTypes(List<String> columnTypes) {
-        format.columnTypes = columnTypes;
-    }
-
-    public void setIsBinaryRowkey(boolean isBinaryRowkey) {
-        format.isBinaryRowkey = isBinaryRowkey;
-    }
-
-    public void setEncoding(String encoding) {
-        format.encoding = StringUtils.isEmpty(encoding) ? "utf-8" : encoding;
-    }
-
-    public void setColumnFormats(List<String> columnFormats) {
-        format.columnFormats = columnFormats;
-    }
-
-    public void setScanCacheSize(int scanCacheSize) {
-        format.scanCacheSize = scanCacheSize;
+    public void sethHBaseConf(HBaseConf hBaseConf) {
+        ((HBaseInputFormat) format).hBaseConf = hBaseConf;
     }
 
     @Override
     protected void checkFormat() {
         Preconditions.checkArgument(
-                format.scanCacheSize <= HBaseConfigConstants.MAX_SCAN_CACHE_SIZE
-                        && format.scanCacheSize >= HBaseConfigConstants.MIN_SCAN_CACHE_SIZE,
+                ((HBaseInputFormat) format).hBaseConf.getScanCacheSize()
+                                <= HBaseConfigConstants.MAX_SCAN_CACHE_SIZE
+                        && ((HBaseInputFormat) format).hBaseConf.getScanCacheSize()
+                                >= HBaseConfigConstants.MIN_SCAN_CACHE_SIZE,
                 "scanCacheSize should be between "
                         + HBaseConfigConstants.MIN_SCAN_CACHE_SIZE
                         + " and "
                         + HBaseConfigConstants.MAX_SCAN_CACHE_SIZE);
-
-        if (format.columnFormats != null) {
-            for (int i = 0; i < format.columnTypes.size(); ++i) {
-                Preconditions.checkArgument(StringUtils.isNotEmpty(format.columnTypes.get(i)));
-                Preconditions.checkArgument(
-                        StringUtils.isNotEmpty(format.columnNames.get(i))
-                                || StringUtils.isNotEmpty(format.columnTypes.get(i)));
-            }
-        }
-    }
-
-    public void setColumnMetaInfos(List<FieldConf> columMetaInfos) {
-        if (columMetaInfos != null && !columMetaInfos.isEmpty()) {
-            List<String> nameList =
-                    columMetaInfos.stream().map(FieldConf::getName).collect(Collectors.toList());
-            setColumnNames(nameList);
-            List<String> typeList =
-                    columMetaInfos.stream().map(FieldConf::getType).collect(Collectors.toList());
-            setColumnTypes(typeList);
-            List<String> valueList =
-                    columMetaInfos.stream().map(FieldConf::getValue).collect(Collectors.toList());
-            setColumnValues(valueList);
-            List<String> formatList =
-                    columMetaInfos.stream().map(FieldConf::getFormat).collect(Collectors.toList());
-            setColumnFormats(formatList);
-        }
     }
 }

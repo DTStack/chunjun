@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.hbase14.sink;
+package com.dtstack.chunjun.connector.hbase;
 
 import org.apache.commons.lang.StringUtils;
 

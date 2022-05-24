@@ -18,14 +18,15 @@
 
 package com.dtstack.chunjun.connector.hbase14.table.lookup;
 
-import com.dtstack.chunjun.connector.hbase.HBaseConfigurationUtil;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
+import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.table.lookup.AbstractHBaseLruTableFunction;
+import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.connector.hbase14.converter.AsyncHBaseSerde;
+import com.dtstack.chunjun.connector.hbase14.converter.HbaseRowConverter;
 import com.dtstack.chunjun.connector.hbase14.util.DtFileUtils;
-import com.dtstack.chunjun.connector.hbase14.util.HBaseConfigUtils;
 import com.dtstack.chunjun.enums.ECacheContentType;
 import com.dtstack.chunjun.factory.ChunJunThreadFactory;
-import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.cache.CacheMissVal;
 import com.dtstack.chunjun.lookup.cache.CacheObj;
 import com.dtstack.chunjun.lookup.conf.LookupConf;
@@ -51,7 +52,6 @@ import javax.security.auth.login.AppConfigurationEntry;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -59,44 +59,36 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class HBaseLruTableFunction extends AbstractLruTableFunction {
+public class HBaseLruTableFunction extends AbstractHBaseLruTableFunction {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(HBaseLruTableFunction.class);
-    private Config asyncClientConfig;
-    private Configuration conf;
-    private final byte[] serializedConfig;
-    private final String nullStringLiteral;
+
     private static final int DEFAULT_BOSS_THREADS = 1;
     private static final int DEFAULT_IO_THREADS = Runtime.getRuntime().availableProcessors() * 2;
     private static final int DEFAULT_POOL_SIZE = DEFAULT_IO_THREADS + DEFAULT_BOSS_THREADS;
+
+    private final String nullStringLiteral;
+
     private transient HBaseClient hBaseClient;
     private String tableName;
 
-    private final HBaseTableSchema hbaseTableSchema;
     private transient AsyncHBaseSerde serde;
 
     public HBaseLruTableFunction(
-            Configuration conf,
-            LookupConf lookupConf,
-            HBaseTableSchema hbaseTableSchema,
-            String nullStringLiteral) {
-        super(lookupConf, null);
-        this.serializedConfig = HBaseConfigurationUtil.serializeConfiguration(conf);
-        this.lookupConf = lookupConf;
-        this.hbaseTableSchema = hbaseTableSchema;
-        this.nullStringLiteral = nullStringLiteral;
+            LookupConf lookupConf, HBaseTableSchema hbaseTableSchema, HBaseConf hBaseConf) {
+        super(
+                lookupConf,
+                new HbaseRowConverter(hbaseTableSchema, hBaseConf.getNullStringLiteral()),
+                hbaseTableSchema,
+                hBaseConf);
+        this.nullStringLiteral = hBaseConf.getNullStringLiteral();
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
-        conf = HBaseConfigurationUtil.prepareRuntimeConfiguration(serializedConfig);
-        asyncClientConfig = new Config();
-        Iterator<Map.Entry<String, String>> iterator = conf.iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, String> entry = iterator.next();
-            asyncClientConfig.overrideConfig(entry.getKey(), entry.getValue());
-        }
+        Configuration conf = HBaseConfigUtils.getConfig(hBaseConf.getHbaseConfig());
+
         this.serde = new AsyncHBaseSerde(hbaseTableSchema, nullStringLiteral);
         tableName = hbaseTableSchema.getTableName();
         ExecutorService executorService =
@@ -107,6 +99,12 @@ public class HBaseLruTableFunction extends AbstractLruTableFunction {
                         TimeUnit.MILLISECONDS,
                         new LinkedBlockingQueue<>(),
                         new ChunJunThreadFactory("hbase-async"));
+
+        Config asyncClientConfig = new Config();
+        for (Map.Entry<String, Object> entry : hBaseConf.getHbaseConfig().entrySet()) {
+            asyncClientConfig.overrideConfig(entry.getKey(), entry.getValue().toString());
+        }
+
         if (HBaseConfigUtils.isEnableKerberos(conf)) {
             System.setProperty(
                     HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF,
