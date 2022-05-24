@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.postgresql.sink;
 
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.chunjun.connector.postgresql.converter.PostgresqlColumnConverter;
 import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.element.ColumnRowData;
@@ -87,6 +88,10 @@ public class PostgresOutputFormat extends JdbcOutputFormat {
                 LOG.info("write sql:{}", copySql);
             }
             checkUpsert();
+            if (rowConverter instanceof PostgresqlColumnConverter) {
+                ((PostgresqlColumnConverter) rowConverter).setConnection((BaseConnection) dbConn);
+                ((PostgresqlColumnConverter) rowConverter).setFieldTypeList(columnTypeList);
+            }
         } catch (SQLException sqe) {
             throw new IllegalArgumentException("checkUpsert() failed.", sqe);
         }
