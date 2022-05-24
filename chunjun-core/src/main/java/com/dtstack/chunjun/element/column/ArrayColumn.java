@@ -42,7 +42,8 @@ public class ArrayColumn extends AbstractBaseColumn {
     protected Array data;
 
     public ArrayColumn(final Array data) {
-        super(data, data.toString().length());
+        super(data);
+        this.data = data;
     }
 
     @Override
