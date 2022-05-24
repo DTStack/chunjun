@@ -70,7 +70,8 @@ public class DorisHttpOutputFormat extends BaseRichOutputFormat {
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
         DorisStreamLoad dorisStreamLoad = new DorisStreamLoad(options);
-        client = new DorisLoadClient(dorisStreamLoad, options, getBackend());
+        dorisStreamLoad.replaceBackend();
+        client = new DorisLoadClient(dorisStreamLoad, options);
         super.open(taskNumber, numTasks);
     }
 

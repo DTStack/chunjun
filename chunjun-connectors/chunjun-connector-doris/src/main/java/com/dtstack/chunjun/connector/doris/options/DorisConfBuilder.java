@@ -88,6 +88,16 @@ public class DorisConfBuilder {
         return this;
     }
 
+    public DorisConfBuilder setMaxRetries(int maxRetries) {
+        this.dorisConf.setMaxRetries(maxRetries);
+        return this;
+    }
+
+    public DorisConfBuilder setWaitRetryMills(long waitRetryMills) {
+        this.dorisConf.setWaitRetryMills(waitRetryMills);
+        return this;
+    }
+
     public DorisConf build() {
         StringJoiner errorMessage = new StringJoiner("\n");
 
