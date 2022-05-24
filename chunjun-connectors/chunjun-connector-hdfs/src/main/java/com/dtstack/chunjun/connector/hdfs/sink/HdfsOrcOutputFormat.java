@@ -24,6 +24,7 @@ import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.enums.SizeUnitType;
+import com.dtstack.chunjun.metrics.RowSizeCalculator;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ColumnTypeUtil;
@@ -75,6 +76,11 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     private JobConf jobConf;
 
     protected int[] colIndices;
+
+    /** 初始化对象大小计算器 */
+    protected void initRowSizeCalculator() {
+        rowSizeCalculator = RowSizeCalculator.getRowSizeCalculator();
+    }
 
     @Override
     @SuppressWarnings("unchecked")
