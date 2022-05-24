@@ -1,32 +1,35 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *  * Licensed to the Apache Software Foundation (ASF) under one
+ *  *  * or more contributor license agreements.  See the NOTICE file
+ *  *  * distributed with this work for additional information
+ *  *  * regarding copyright ownership.  The ASF licenses this file
+ *  *  * to you under the Apache License, Version 2.0 (the
+ *  *  * "License"); you may not use this file except in compliance
+ *  *  * with the License.  You may obtain a copy of the License at
+ *  *  *
+ *  *  *     http://www.apache.org/licenses/LICENSE-2.0
+ *  *  *
+ *  *  * Unless required by applicable law or agreed to in writing, software
+ *  *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *  * See the License for the specific language governing permissions and
+ *  *  * limitations under the License.
+ *  *
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.jdbc.converter;
+package com.dtstack.chunjun.connector.postgresql.converter;
 
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
-import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
+import com.dtstack.chunjun.element.column.ArrayColumn;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
@@ -41,87 +44,54 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.logical.YearMonthIntervalType;
 
-import io.vertx.core.json.JsonArray;
-import org.apache.commons.lang3.StringUtils;
+import org.postgresql.core.BaseConnection;
+import org.postgresql.core.Oid;
+import org.postgresql.jdbc.PgArray;
 
 import java.math.BigDecimal;
+import java.sql.Array;
 import java.sql.Date;
-import java.sql.ResultSet;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/** Base class for all converters that convert between JDBC object and Flink internal object. */
-public class JdbcColumnConverter
-        extends AbstractRowConverter<
-                ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType> {
+/**
+ * Company：www.dtstack.com.
+ *
+ * @author shitou
+ * @date 2022/4/14
+ */
+public class PostgresqlColumnConverter extends JdbcColumnConverter {
 
-    public JdbcColumnConverter(RowType rowType) {
-        this(rowType, null);
-    }
+    private List<String> fieldTypeList;
+    private transient BaseConnection connection;
+    private static final Map<String, Integer> arrayType = new HashMap<>();
 
-    public JdbcColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+    public PostgresqlColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
         super(rowType, commonConf);
-        for (int i = 0; i < rowType.getFieldCount(); i++) {
-            toInternalConverters.add(
-                    wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i))));
-            toExternalConverters.add(
-                    wrapIntoNullableExternalConverter(
-                            createExternalConverter(fieldTypes[i]), fieldTypes[i]));
-        }
     }
 
-    @Override
-    protected ISerializationConverter<FieldNamedPreparedStatement>
-            wrapIntoNullableExternalConverter(
-                    ISerializationConverter serializationConverter, LogicalType type) {
-        return (val, index, statement) -> {
-            if (((ColumnRowData) val).getField(index) == null) {
-                statement.setObject(index, null);
-            } else {
-                serializationConverter.serialize(val, index, statement);
-            }
-        };
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public RowData toInternal(ResultSet resultSet) throws Exception {
-        List<FieldConf> fieldConfList = commonConf.getColumn();
-        ColumnRowData result;
-        if (fieldConfList.size() == 1
-                && ConstantValue.STAR_SYMBOL.equals(fieldConfList.get(0).getName())) {
-            result = new ColumnRowData(fieldTypes.length);
-            for (int index = 0; index < fieldTypes.length; index++) {
-                Object field = resultSet.getObject(index + 1);
-                AbstractBaseColumn baseColumn =
-                        (AbstractBaseColumn) toInternalConverters.get(index).deserialize(field);
-                result.addField(baseColumn);
-            }
-            return result;
-        }
-        int converterIndex = 0;
-        result = new ColumnRowData(fieldConfList.size());
-        for (FieldConf fieldConf : fieldConfList) {
-            AbstractBaseColumn baseColumn = null;
-            if (StringUtils.isBlank(fieldConf.getValue())) {
-                Object field = resultSet.getObject(converterIndex + 1);
-
-                baseColumn =
-                        (AbstractBaseColumn)
-                                toInternalConverters.get(converterIndex).deserialize(field);
-                converterIndex++;
-            }
-            result.addField(assembleFieldProps(fieldConf, baseColumn));
-        }
-        return result;
+    static {
+        arrayType.put("_int4", Oid.INT4_ARRAY);
+        arrayType.put("_int8", Oid.INT8_ARRAY);
+        arrayType.put("_float4", Oid.FLOAT4_ARRAY);
+        arrayType.put("_text", Oid.TEXT_ARRAY);
     }
 
     @Override
     public FieldNamedPreparedStatement toExternal(
             RowData rowData, FieldNamedPreparedStatement statement) throws Exception {
         for (int index = 0; index < rowData.getArity(); index++) {
+            if (arrayType.containsKey(fieldTypeList.get(index))) {
+                // eg: {1000,1000,10001}、{{1000,1000,10001},{1,2,3}}
+                String field = ((ColumnRowData) rowData).getField(index).asString();
+                Array array =
+                        new PgArray(connection, arrayType.get(fieldTypeList.get(index)), field);
+                AbstractBaseColumn arrayColumn = new ArrayColumn(array);
+                ((ColumnRowData) rowData).setField(index, arrayColumn);
+            }
             toExternalConverters.get(index).serialize(rowData, index, statement);
         }
         return statement;
@@ -154,16 +124,16 @@ public class JdbcColumnConverter
                             }
                         };
             case FLOAT:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).floatValue());
+                return val -> new BigDecimalColumn((Float) val);
             case DOUBLE:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).doubleValue());
+                return val -> new BigDecimalColumn((Double) val);
             case BIGINT:
-                return val -> new BigDecimalColumn((new BigDecimal(val.toString()).longValue()));
+                return val -> new BigDecimalColumn((Long) val);
             case DECIMAL:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()));
+                return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
             case VARCHAR:
-                return val -> new StringColumn(val.toString());
+                return val -> new StringColumn((String) val);
             case DATE:
                 return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:
@@ -178,6 +148,10 @@ public class JdbcColumnConverter
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
+            case ARRAY:
+                // integer[] -> {1000,1000,10001}
+                // integer[][]-> {{1000,1000,10001},{1,2,3}}
+                return val -> new StringColumn(((Array) val).toString());
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
@@ -196,16 +170,8 @@ public class JdbcColumnConverter
             case SMALLINT:
             case INTEGER:
             case INTERVAL_YEAR_MONTH:
-                return (val, index, statement) -> {
-                    int a = 0;
-                    try {
-                        a = ((ColumnRowData) val).getField(index).asYearInt();
-                    } catch (Exception e) {
-                        LOG.error("val {}, index{}", val, index, e);
-                    }
-
-                    statement.setInt(index, a);
-                };
+                return (val, index, statement) ->
+                        statement.setInt(index, ((ColumnRowData) val).getField(index).asYearInt());
             case FLOAT:
                 return (val, index, statement) ->
                         statement.setFloat(index, ((ColumnRowData) val).getField(index).asFloat());
@@ -242,8 +208,20 @@ public class JdbcColumnConverter
             case VARBINARY:
                 return (val, index, statement) ->
                         statement.setBytes(index, ((ColumnRowData) val).getField(index).asBytes());
+            case ARRAY:
+                return (val, index, statement) ->
+                        statement.setArray(
+                                index, (Array) ((ColumnRowData) val).getField(index).getData());
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
+    }
+
+    public void setFieldTypeList(List<String> fieldTypeList) {
+        this.fieldTypeList = fieldTypeList;
+    }
+
+    public void setConnection(BaseConnection connection) {
+        this.connection = connection;
     }
 }
