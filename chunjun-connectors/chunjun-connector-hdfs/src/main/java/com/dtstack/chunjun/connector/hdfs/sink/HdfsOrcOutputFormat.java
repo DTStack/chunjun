@@ -75,6 +75,8 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     private FileOutputFormat outputFormat;
     private JobConf jobConf;
 
+    protected int[] colIndices;
+
     /** 初始化对象大小计算器 */
     protected void initRowSizeCalculator() {
         rowSizeCalculator = RowSizeCalculator.getRowSizeCalculator();
@@ -108,17 +110,16 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
         }
         FileOutputFormat.setOutputCompressorClass(jobConf, codecClass);
 
-        int size = hdfsConf.getColumn().size();
+        int size = hdfsConf.getFullColumnType().size();
         decimalColInfo = Maps.newHashMapWithExpectedSize(size);
         List<ObjectInspector> structFieldObjectInspectors = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            FieldConf fieldConf = hdfsConf.getColumn().get(i);
-            String columnType = fieldConf.getType();
+            String columnType = hdfsConf.getFullColumnType().get(i);
 
             if (ColumnTypeUtil.isDecimalType(columnType)) {
                 ColumnTypeUtil.DecimalInfo decimalInfo =
                         ColumnTypeUtil.getDecimalInfo(columnType, ORC_DEFAULT_DECIMAL_INFO);
-                decimalColInfo.put(fieldConf.getName(), decimalInfo);
+                decimalColInfo.put(hdfsConf.getFullColumnName().get(i), decimalInfo);
             }
             ColumnType type = ColumnType.getType(columnType);
             structFieldObjectInspectors.add(HdfsUtil.columnTypeToObjectInspetor(type));
@@ -135,6 +136,22 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
         this.inspector =
                 ObjectInspectorFactory.getStandardStructObjectInspector(
                         fullColumnNameList, structFieldObjectInspectors);
+
+        colIndices = new int[hdfsConf.getFullColumnName().size()];
+        for (int i = 0; i < hdfsConf.getFullColumnName().size(); ++i) {
+            int j = 0;
+            for (; j < hdfsConf.getColumn().size(); ++j) {
+                if (hdfsConf.getFullColumnName()
+                        .get(i)
+                        .equalsIgnoreCase(hdfsConf.getColumn().get(j).getName())) {
+                    colIndices[i] = j;
+                    break;
+                }
+            }
+            if (j == hdfsConf.getColumn().size()) {
+                colIndices[i] = -1;
+            }
+        }
     }
 
     @Override
@@ -204,8 +221,18 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
         }
 
         try {
+            List<Object> recordList = new ArrayList<>();
+            for (int i = 0; i < hdfsConf.getFullColumnName().size(); ++i) {
+                int colIndex = colIndices[i];
+                if (colIndex == -1) {
+                    recordList.add(null);
+                } else {
+                    recordList.add(data[colIndex]);
+                }
+            }
+
             this.recordWriter.write(
-                    NullWritable.get(), this.orcSerde.serialize(data, this.inspector));
+                    NullWritable.get(), this.orcSerde.serialize(recordList, this.inspector));
             rowsOfCurrentBlock++;
             lastRow = rowData;
         } catch (IOException e) {
