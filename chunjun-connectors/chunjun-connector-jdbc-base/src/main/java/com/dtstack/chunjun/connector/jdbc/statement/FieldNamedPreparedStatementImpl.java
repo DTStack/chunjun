@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.jdbc.statement;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -255,6 +256,13 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
     public void setClob(int fieldIndex, Reader reader) throws SQLException {
         for (int index : indexMapping[fieldIndex]) {
             statement.setClob(index, reader);
+        }
+    }
+
+    @Override
+    public void setArray(int fieldIndex, Array array) throws SQLException {
+        for (int index : indexMapping[fieldIndex]) {
+            statement.setArray(index, array);
         }
     }
 

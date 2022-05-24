@@ -18,13 +18,22 @@
 
 package com.dtstack.chunjun.connector.postgresql.dialect;
 
+import com.dtstack.chunjun.conf.ChunJunCommonConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
+import com.dtstack.chunjun.connector.postgresql.converter.PostgresqlColumnConverter;
 import com.dtstack.chunjun.connector.postgresql.converter.PostgresqlRawTypeConverter;
+import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.RowType;
+
+import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
+import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -56,6 +65,12 @@ public class PostgresqlDialect implements JdbcDialect {
     @Override
     public RawTypeConverter getRawTypeConverter() {
         return PostgresqlRawTypeConverter::apply;
+    }
+
+    @Override
+    public AbstractRowConverter<ResultSet, JsonArray, FieldNamedPreparedStatement, LogicalType>
+            getColumnConverter(RowType rowType, ChunJunCommonConf commonConf) {
+        return new PostgresqlColumnConverter(rowType, commonConf);
     }
 
     @Override
