@@ -20,6 +20,7 @@ package com.dtstack.chunjun.connector.jdbc.statement;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -250,6 +251,9 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
     void setBlob(int fieldIndex, InputStream is) throws SQLException;
 
     void setClob(int fieldIndex, Reader reader) throws SQLException;
+
+    void setArray(int fieldIndex, Array array) throws SQLException;
+
     /**
      * Releases this <code>Statement</code> object's database and JDBC resources immediately instead
      * of waiting for this to happen when it is automatically closed. It is generally good practice
