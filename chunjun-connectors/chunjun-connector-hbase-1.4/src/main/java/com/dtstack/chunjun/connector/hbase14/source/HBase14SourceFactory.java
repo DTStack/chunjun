@@ -97,7 +97,7 @@ public class HBase14SourceFactory extends SourceFactory {
             rowConverter = new HbaseRowConverter(hbaseSchema, nullStringLiteral);
         }
 
-        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
+        builder.setRowConverter(rowConverter);
         return createInput(builder.finish());
     }
 }
