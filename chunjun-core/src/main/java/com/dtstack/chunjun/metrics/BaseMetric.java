@@ -39,7 +39,7 @@ public class BaseMetric {
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private final Long delayPeriodMill = 10000L;
+    private final Long delayPeriodMill = 20000L;
 
     private final MetricGroup chunjunMetricGroup;
 

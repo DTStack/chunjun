@@ -13,18 +13,14 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.dtstack.chunjun.connector.hbase14.conf;
+package com.dtstack.chunjun.connector.hbase.conf;
 
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
-import com.dtstack.chunjun.conf.FieldConf;
 
-import java.util.List;
 import java.util.Map;
 
 public class HBaseConf extends ChunJunCommonConf {
-
-    private List<FieldConf> columnMetaInfos;
-    private String encoding;
+    private String encoding = "UTF-8";
     private Map<String, Object> hbaseConfig;
 
     // reader
@@ -36,19 +32,12 @@ public class HBaseConf extends ChunJunCommonConf {
 
     // writer
     private String nullMode;
-    private Boolean walFlag;
+    private String nullStringLiteral;
+    private Boolean walFlag = false;
     private long writeBufferSize;
     private String rowkeyExpress;
     private Integer versionColumnIndex;
     private String versionColumnValue;
-
-    public List<FieldConf> getColumnMetaInfos() {
-        return columnMetaInfos;
-    }
-
-    public void setColumnMetaInfos(List<FieldConf> columnMetaInfos) {
-        this.columnMetaInfos = columnMetaInfos;
-    }
 
     public String getEncoding() {
         return encoding;
@@ -96,14 +85,6 @@ public class HBaseConf extends ChunJunCommonConf {
 
     public void setTable(String table) {
         this.table = table;
-    }
-
-    public void setTableName(String tableName) {
-        this.table = tableName;
-    }
-
-    public String getTableName() {
-        return table;
     }
 
     public int getScanCacheSize() {
@@ -160,5 +141,13 @@ public class HBaseConf extends ChunJunCommonConf {
 
     public void setVersionColumnValue(String versionColumnValue) {
         this.versionColumnValue = versionColumnValue;
+    }
+
+    public String getNullStringLiteral() {
+        return nullStringLiteral;
+    }
+
+    public void setNullStringLiteral(String nullStringLiteral) {
+        this.nullStringLiteral = nullStringLiteral;
     }
 }

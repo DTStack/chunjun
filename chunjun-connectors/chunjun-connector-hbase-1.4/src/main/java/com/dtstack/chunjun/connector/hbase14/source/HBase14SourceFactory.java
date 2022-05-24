@@ -16,20 +16,28 @@
 package com.dtstack.chunjun.connector.hbase14.source;
 
 import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.hbase.HBaseColumnConverter;
-import com.dtstack.chunjun.connector.hbase14.conf.HBaseConf;
-import com.dtstack.chunjun.connector.hbase14.converter.HBaseRawTypeConverter;
+import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
+import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.converter.HBaseRawTypeConverter;
+import com.dtstack.chunjun.connector.hbase14.converter.HBaseColumnConverter;
+import com.dtstack.chunjun.connector.hbase14.converter.HbaseRowConverter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
+import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.RowType;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 public class HBase14SourceFactory extends SourceFactory {
 
@@ -42,30 +50,53 @@ public class HBase14SourceFactory extends SourceFactory {
         config =
                 GsonUtil.GSON.fromJson(
                         GsonUtil.GSON.toJson(syncConf.getReader().getParameter()), HBaseConf.class);
+        Map<String, Object> range =
+                (Map<String, Object>) syncConf.getReader().getParameter().get("range");
+        if (range != null) {
+            if (range.get("startRowkey") != null
+                    && StringUtils.isNotBlank(range.get("startRowkey").toString())) {
+                config.setStartRowkey(range.get("startRowkey").toString());
+            }
+            if (range.get("endRowkey") != null
+                    && StringUtils.isNotBlank(range.get("endRowkey").toString())) {
+                config.setEndRowkey(range.get("endRowkey").toString());
+            }
+            if (range.get("isBinaryRowkey") != null) {
+                config.setBinaryRowkey((Boolean) range.get("isBinaryRowkey"));
+            }
+        }
+
         super.initCommonConf(config);
-        config.setColumnMetaInfos(syncConf.getReader().getFieldList());
+        config.setColumn(syncConf.getReader().getFieldList());
     }
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return new HBaseRawTypeConverter();
+        return HBaseRawTypeConverter::apply;
     }
 
     @Override
     @SuppressWarnings("all")
     public DataStream<RowData> createSource() {
         HBaseInputFormatBuilder builder = new HBaseInputFormatBuilder();
-        builder.setColumnMetaInfos(config.getColumnMetaInfos());
         builder.setConfig(config);
-        builder.setColumnMetaInfos(config.getColumnMetaInfos());
-        builder.setEncoding(config.getEncoding());
+        builder.sethHBaseConf(config);
+
         builder.setHbaseConfig(config.getHbaseConfig());
-        builder.setTableName(config.getTable());
-        builder.setEndRowKey(config.getEndRowkey());
-        builder.setIsBinaryRowkey(config.isBinaryRowkey());
-        builder.setScanCacheSize(config.getScanCacheSize());
-        builder.setStartRowKey(config.getStartRowkey());
-        AbstractRowConverter rowConverter = new HBaseColumnConverter(config.getColumnMetaInfos());
+
+        AbstractRowConverter rowConverter;
+        if (useAbstractBaseColumn) {
+            final RowType rowType =
+                    TableUtil.createRowType(config.getColumn(), getRawTypeConverter());
+            rowConverter = new HBaseColumnConverter(config, rowType);
+        } else {
+            TableSchema tableSchema =
+                    TableUtil.createTableSchema(config.getColumn(), getRawTypeConverter());
+            HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(tableSchema);
+            String nullStringLiteral = config.getNullStringLiteral();
+            rowConverter = new HbaseRowConverter(hbaseSchema, nullStringLiteral);
+        }
+
         builder.setRowConverter(rowConverter);
         return createInput(builder.finish());
     }

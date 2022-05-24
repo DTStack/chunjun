@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.hbase14.util;
+package com.dtstack.chunjun.connector.hbase.util;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -24,7 +24,6 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.hbase.async.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,6 +135,41 @@ public class HBaseConfigUtils {
         throw new IllegalArgumentException(KEY_PRINCIPAL + " is not set!");
     }
 
+    public static void fillKerberosConfig(Map<String, Object> hbaseConfigMap) {
+        if (StringUtils.isEmpty(
+                MapUtils.getString(hbaseConfigMap, KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL))) {
+            throw new IllegalArgumentException(
+                    "Must provide region server Principal when authentication is Kerberos");
+        }
+
+        String regionServerPrincipal =
+                MapUtils.getString(hbaseConfigMap, KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL);
+
+        hbaseConfigMap.put(
+                HBaseConfigUtils.KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL, regionServerPrincipal);
+
+        hbaseConfigMap.put(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHORIZATION, "true");
+        hbaseConfigMap.put(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHENTICATION, KRB_STR);
+        hbaseConfigMap.put(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHORIZATION, KRB_STR);
+
+        if (!StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, KEY_ZOOKEEPER_SASL_CLIENT))) {
+            System.setProperty(
+                    HBaseConfigUtils.KEY_ZOOKEEPER_SASL_CLIENT,
+                    MapUtils.getString(hbaseConfigMap, KEY_ZOOKEEPER_SASL_CLIENT));
+        }
+
+        String principal = HBaseConfigUtils.getPrincipal(hbaseConfigMap);
+
+        String keytab =
+                HBaseConfigUtils.loadKeyFromConf(hbaseConfigMap, HBaseConfigUtils.KEY_KEY_TAB);
+        String krb5Conf =
+                HBaseConfigUtils.loadKeyFromConf(
+                        hbaseConfigMap, HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF);
+        hbaseConfigMap.put(HBaseConfigUtils.KEY_HBASE_CLIENT_KEYTAB_FILE, keytab);
+        hbaseConfigMap.put(HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL, principal);
+        hbaseConfigMap.put(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF, krb5Conf);
+    }
+
     public static void fillSyncKerberosConfig(
             Configuration config, Map<String, Object> hbaseConfigMap) {
         if (StringUtils.isEmpty(
@@ -152,36 +186,6 @@ public class HBaseConfigUtils {
         config.set(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHORIZATION, "true");
         config.set(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHENTICATION, KRB_STR);
         config.set(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHORIZATION, KRB_STR);
-
-        if (!StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, KEY_ZOOKEEPER_SASL_CLIENT))) {
-            System.setProperty(
-                    HBaseConfigUtils.KEY_ZOOKEEPER_SASL_CLIENT,
-                    MapUtils.getString(hbaseConfigMap, KEY_ZOOKEEPER_SASL_CLIENT));
-        }
-    }
-
-    public static void fillSyncKerberosConfig(Config config, Map<String, Object> hbaseConfigMap) {
-        if (StringUtils.isEmpty(
-                MapUtils.getString(hbaseConfigMap, KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL))) {
-            throw new IllegalArgumentException(
-                    "Must provide region server Principal when authentication is Kerberos");
-        }
-
-        String regionServerPrincipal =
-                MapUtils.getString(hbaseConfigMap, KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL);
-        config.overrideConfig(
-                HBaseConfigUtils.KEY_HBASE_MASTER_KERBEROS_PRINCIPAL, regionServerPrincipal);
-        config.overrideConfig(
-                HBaseConfigUtils.KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL, regionServerPrincipal);
-        config.overrideConfig(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHORIZATION, "true");
-        config.overrideConfig(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHENTICATION, KRB_STR);
-        config.overrideConfig(HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHORIZATION, KRB_STR);
-
-        if (!StringUtils.isEmpty(MapUtils.getString(hbaseConfigMap, KEY_ZOOKEEPER_SASL_CLIENT))) {
-            System.setProperty(
-                    HBaseConfigUtils.KEY_ZOOKEEPER_SASL_CLIENT,
-                    MapUtils.getString(hbaseConfigMap, KEY_ZOOKEEPER_SASL_CLIENT));
-        }
     }
 
     public static void loadKrb5Conf(Map<String, Object> config) {

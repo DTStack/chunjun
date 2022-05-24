@@ -18,7 +18,11 @@
 
 package com.dtstack.chunjun.connector.hbase14.util;
 
+import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.security.KerberosUtil;
+import com.dtstack.chunjun.util.FileSystemUtil;
+
+import org.apache.flink.runtime.util.ExecutorThreadFactory;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,8 +44,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import static com.dtstack.chunjun.connector.hbase14.util.HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF;
+import static com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF;
 import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 
 /**
@@ -103,6 +110,7 @@ public class HBaseHelper {
         KerberosUtil.loadKrb5Conf(hbaseConfigMap);
         KerberosUtil.refreshConfig();
 
+        Configuration conf = FileSystemUtil.getConfiguration(hbaseConfigMap, null);
         return KerberosUtil.loginAndReturnUgi(
                 principal, keytabFileName, System.getProperty(KEY_JAVA_SECURITY_KRB5_CONF));
     }
@@ -212,5 +220,27 @@ public class HBaseHelper {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void scheduleRefreshTGT(UserGroupInformation ugi) {
+        final ScheduledExecutorService executor =
+                Executors.newSingleThreadScheduledExecutor(
+                        new ExecutorThreadFactory("UserGroupInformation-Relogin"));
+
+        executor.scheduleWithFixedDelay(
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            ugi.checkTGTAndReloginFromKeytab();
+                        } catch (Exception e) {
+                            LOG.error("Refresh TGT failed", e);
+                        }
+                    }
+                },
+                0,
+                1,
+                TimeUnit.HOURS);
     }
 }

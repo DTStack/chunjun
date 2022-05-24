@@ -18,19 +18,15 @@
 
 package com.dtstack.chunjun.connector.hbase14.source;
 
-import com.dtstack.chunjun.connector.hbase14.util.HBaseConfigUtils;
+import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.connector.hbase14.util.HBaseHelper;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
+import com.dtstack.chunjun.throwable.ReadRecordException;
 
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 
-import com.google.common.collect.Maps;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
@@ -44,12 +40,9 @@ import org.apache.hadoop.hbase.util.Pair;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -61,36 +54,20 @@ import java.util.Map;
  */
 public class HBaseInputFormat extends BaseRichInputFormat {
 
-    public static final String KEY_ROW_KEY = "rowkey";
-
     protected Map<String, Object> hbaseConfig;
-    protected String tableName;
-    protected String startRowkey;
-    protected String endRowkey;
-    protected List<String> columnNames;
-    protected List<String> columnValues;
-    protected List<String> columnFormats;
-    protected List<String> columnTypes;
-    protected boolean isBinaryRowkey;
-    protected String encoding;
-    /** 客户端每次 rpc fetch 的行数 */
-    protected int scanCacheSize = 1000;
+    protected HBaseConf hBaseConf;
 
     private transient Connection connection;
     private transient Scan scan;
     private transient Table table;
     private transient ResultScanner resultScanner;
     private transient Result next;
-    private transient Map<String, byte[][]> nameMaps;
-
-    private boolean openKerberos = false;
 
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
         LOG.info("HbaseOutputFormat openInputFormat start");
-        nameMaps = Maps.newConcurrentMap();
 
         connection = HBaseHelper.getHbaseConnection(hbaseConfig);
 
@@ -107,14 +84,58 @@ public class HBaseInputFormat extends BaseRichInputFormat {
                                 () ->
                                         split(
                                                 connection,
-                                                tableName,
-                                                startRowkey,
-                                                endRowkey,
-                                                isBinaryRowkey));
+                                                hBaseConf.getTable(),
+                                                hBaseConf.getStartRowkey(),
+                                                hBaseConf.getEndRowkey(),
+                                                hBaseConf.isBinaryRowkey()));
             } else {
-                return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
+                return split(
+                        connection,
+                        hBaseConf.getTable(),
+                        hBaseConf.getStartRowkey(),
+                        hBaseConf.getEndRowkey(),
+                        hBaseConf.isBinaryRowkey());
             }
         }
+    }
+
+    @Override
+    public void openInternal(InputSplit inputSplit) throws IOException {
+        HBaseInputSplit hbaseInputSplit = (HBaseInputSplit) inputSplit;
+        byte[] startRow = Bytes.toBytesBinary(hbaseInputSplit.getStartkey());
+        byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
+
+        if (null == connection || connection.isClosed()) {
+            connection = HBaseHelper.getHbaseConnection(hbaseConfig);
+        }
+
+        table = connection.getTable(TableName.valueOf(hBaseConf.getTable()));
+        scan = new Scan();
+        scan.setStartRow(startRow);
+        scan.setStopRow(stopRow);
+        scan.setCaching(hBaseConf.getScanCacheSize());
+        resultScanner = table.getScanner(scan);
+    }
+
+    @Override
+    public boolean reachedEnd() throws IOException {
+        next = resultScanner.next();
+        return next == null;
+    }
+
+    @Override
+    public RowData nextRecordInternal(RowData rawRow) throws ReadRecordException {
+        try {
+            rawRow = rowConverter.toInternal(next);
+            return rawRow;
+        } catch (Exception se) {
+            throw new ReadRecordException("", se, 0, rawRow);
+        }
+    }
+
+    @Override
+    public void closeInternal() throws IOException {
+        HBaseHelper.closeConnection(connection);
     }
 
     public HBaseInputSplit[] split(
@@ -233,151 +254,5 @@ public class HBaseInputFormat extends BaseRichInputFormat {
             tempStartRowkeyByte = startRowkeyByte;
         }
         return Bytes.toStringBinary(tempStartRowkeyByte);
-    }
-
-    @Override
-    public void openInternal(InputSplit inputSplit) throws IOException {
-        HBaseInputSplit hbaseInputSplit = (HBaseInputSplit) inputSplit;
-        byte[] startRow = Bytes.toBytesBinary(hbaseInputSplit.getStartkey());
-        byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
-
-        if (null == connection || connection.isClosed()) {
-            connection = HBaseHelper.getHbaseConnection(hbaseConfig);
-        }
-
-        openKerberos = HBaseConfigUtils.isEnableKerberos(hbaseConfig);
-
-        table = connection.getTable(TableName.valueOf(tableName));
-        scan = new Scan();
-        scan.setStartRow(startRow);
-        scan.setStopRow(stopRow);
-        scan.setCaching(scanCacheSize);
-        resultScanner = table.getScanner(scan);
-    }
-
-    @Override
-    public boolean reachedEnd() throws IOException {
-        next = resultScanner.next();
-        return next == null;
-    }
-
-    @Override
-    public RowData nextRecordInternal(RowData rawRow) {
-        GenericRowData row = new GenericRowData(columnTypes.size());
-
-        for (int i = 0; i < columnTypes.size(); ++i) {
-            String columnType = columnTypes.get(i);
-            String columnName = columnNames.get(i);
-            String columnFormat = columnFormats.get(i);
-            String columnValue = columnValues.get(i);
-            Object col = null;
-            byte[] bytes;
-
-            try {
-                if (StringUtils.isNotEmpty(columnValue)) {
-                    // 常量
-                    col = convertValueToAssignType(columnType, columnValue, columnFormat);
-                } else {
-                    if (KEY_ROW_KEY.equals(columnName)) {
-                        bytes = next.getRow();
-                    } else {
-                        byte[][] arr = nameMaps.get(columnName);
-                        if (arr == null) {
-                            arr = new byte[2][];
-                            String[] arr1 = columnName.split(":");
-                            arr[0] = arr1[0].trim().getBytes(StandardCharsets.UTF_8);
-                            arr[1] = arr1[1].trim().getBytes(StandardCharsets.UTF_8);
-                            nameMaps.put(columnName, arr);
-                        }
-                        bytes = next.getValue(arr[0], arr[1]);
-                    }
-                    col = convertBytesToAssignType(columnType, bytes, columnFormat);
-                }
-                row.setField(i, col);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return row;
-    }
-
-    @Override
-    public void closeInternal() throws IOException {
-        HBaseHelper.closeConnection(connection);
-    }
-
-    public Object convertValueToAssignType(
-            String columnType, String constantValue, String dateformat) throws Exception {
-        Object column = null;
-        if (org.apache.commons.lang3.StringUtils.isEmpty(constantValue)) {
-            return column;
-        }
-
-        switch (columnType.toUpperCase()) {
-            case "BOOLEAN":
-                column = Boolean.valueOf(constantValue);
-                break;
-            case "SHORT":
-            case "INT":
-            case "LONG":
-                column = NumberUtils.createBigDecimal(constantValue).toBigInteger();
-                break;
-            case "FLOAT":
-            case "DOUBLE":
-                column = new BigDecimal(constantValue);
-                break;
-            case "STRING":
-                column = constantValue;
-                break;
-            case "DATE":
-                column = DateUtils.parseDate(constantValue, new String[] {dateformat});
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported columnType: " + columnType);
-        }
-
-        return column;
-    }
-
-    public Object convertBytesToAssignType(String columnType, byte[] byteArray, String dateformat)
-            throws Exception {
-        Object column = null;
-        if (ArrayUtils.isEmpty(byteArray)) {
-            return null;
-        }
-        String bytesToString = new String(byteArray, encoding);
-        switch (columnType.toUpperCase(Locale.ENGLISH)) {
-            case "BOOLEAN":
-                column = Boolean.valueOf(bytesToString);
-                break;
-            case "SHORT":
-                column = Short.valueOf(bytesToString);
-                break;
-            case "INT":
-                column = Integer.valueOf(bytesToString);
-                break;
-            case "LONG":
-                column = Long.valueOf(bytesToString);
-                break;
-            case "FLOAT":
-                column = Float.valueOf(bytesToString);
-                break;
-            case "DOUBLE":
-                column = Double.valueOf(bytesToString);
-                break;
-            case "STRING":
-                column = bytesToString;
-                break;
-            case "BINARY_STRING":
-                column = Bytes.toStringBinary(byteArray);
-                break;
-            case "DATE":
-                String dateValue = Bytes.toStringBinary(byteArray);
-                column = DateUtils.parseDate(dateValue, new String[] {dateformat});
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported column type: " + columnType);
-        }
-        return column;
     }
 }

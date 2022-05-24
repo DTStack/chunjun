@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dtstack.chunjun.connector.hbase14.conf;
+package com.dtstack.chunjun.connector.hbase.conf;
 
 /**
  * This class defines configuration keys for HbaseReader and HbaseWriter

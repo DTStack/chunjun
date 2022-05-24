@@ -18,9 +18,8 @@
 
 package com.dtstack.chunjun.connector.hbase14.sink;
 
-import com.dtstack.chunjun.connector.hbase.HBaseMutationConverter;
-import com.dtstack.chunjun.connector.hbase14.converter.DataSyncSinkConverter;
-import com.dtstack.chunjun.connector.hbase14.util.HBaseConfigUtils;
+import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.connector.hbase14.util.HBaseHelper;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
@@ -58,30 +57,12 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
     private Map<String, Object> hbaseConfig;
 
     private String tableName;
-    private String encoding;
-    private String nullMode;
-    private boolean walFlag;
     private long writeBufferSize;
-
-    private List<String> columnTypes;
-    private List<String> columnNames;
-
-    private String rowkeyExpress;
-    private Integer versionColumnIndex;
-
-    private String versionColumnValue;
 
     private transient Connection connection;
     private transient BufferedMutator bufferedMutator;
 
     private transient Table table;
-
-    private HBaseMutationConverter mutationConverter;
-    private DataSyncSinkConverter dataSyncSinkConverter;
-
-    public void setMutationConverter(HBaseMutationConverter mutationConverter) {
-        this.mutationConverter = mutationConverter;
-    }
 
     @Override
     public void configure(Configuration parameters) {}
@@ -90,11 +71,9 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData rawRecord) throws WriteRecordException {
         int i = 0;
         try {
-            if (mutationConverter != null) {
-                bufferedMutator.mutate(mutationConverter.convertToMutation(rawRecord));
-            } else {
-                bufferedMutator.mutate(dataSyncSinkConverter.generatePutCommand(rawRecord));
-            }
+
+            bufferedMutator.mutate((Mutation) rowConverter.toExternal(rawRecord, null));
+
         } catch (Exception ex) {
             if (i < rawRecord.getArity()) {
                 throw new WriteRecordException(
@@ -117,20 +96,6 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
                             });
         } else {
             openConnection();
-        }
-        if (mutationConverter != null) {
-            mutationConverter.open();
-        } else {
-            dataSyncSinkConverter =
-                    new DataSyncSinkConverter(
-                            walFlag,
-                            nullMode,
-                            encoding,
-                            columnTypes,
-                            columnNames,
-                            rowkeyExpress,
-                            versionColumnIndex,
-                            versionColumnValue);
         }
     }
 
@@ -164,11 +129,7 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
         try {
             List<Mutation> mutations = new ArrayList<>();
             for (RowData record : rows) {
-                if (mutationConverter != null) {
-                    mutations.add(mutationConverter.convertToMutation(record));
-                } else {
-                    mutations.add(dataSyncSinkConverter.generatePutCommand(record));
-                }
+                mutations.add((Mutation) rowConverter.toExternal(record, null));
             }
             results = new Object[mutations.size()];
             table.batch(mutations, results);
@@ -186,9 +147,7 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-        if (dataSyncSinkConverter != null) {
-            dataSyncSinkConverter.close();
-        }
+
         HBaseHelper.closeBufferedMutator(bufferedMutator);
         HBaseHelper.closeConnection(connection);
     }
@@ -197,59 +156,23 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
         this.tableName = tableName;
     }
 
-    public void setHbaseConfig(Map<String, Object> hbaseConfig) {
+    public void setHbaseConf(Map<String, Object> hbaseConfig) {
         this.hbaseConfig = hbaseConfig;
-    }
-
-    public void setColumnTypes(List<String> columnTypes) {
-        this.columnTypes = columnTypes;
-    }
-
-    public void setColumnNames(List<String> columnNames) {
-        this.columnNames = columnNames;
-    }
-
-    public void setRowkeyExpress(String rowkeyExpress) {
-        this.rowkeyExpress = rowkeyExpress;
-    }
-
-    public void setVersionColumnIndex(Integer versionColumnIndex) {
-        this.versionColumnIndex = versionColumnIndex;
-    }
-
-    public void setVersionColumnValue(String versionColumnValue) {
-        this.versionColumnValue = versionColumnValue;
-    }
-
-    public void setEncoding(String defaultEncoding) {
-        this.encoding = defaultEncoding;
     }
 
     public void setWriteBufferSize(Long writeBufferSize) {
         this.writeBufferSize = writeBufferSize;
     }
 
-    public void setNullMode(String nullMode) {
-        this.nullMode = nullMode;
-    }
-
-    public void setWalFlag(Boolean walFlag) {
-        this.walFlag = walFlag;
-    }
-
     public String getTableName() {
         return tableName;
     }
 
-    public List<String> getColumnNames() {
-        return columnNames;
-    }
-
-    public List<String> getColumnTypes() {
-        return columnTypes;
-    }
-
     public Map<String, Object> getHbaseConfig() {
         return hbaseConfig;
+    }
+
+    public void setHbaseConf(HBaseConf config) {
+        this.config = config;
     }
 }

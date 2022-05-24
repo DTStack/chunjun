@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.hbase;
+package com.dtstack.chunjun.connector.hbase14.converter;
+
+import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericRowData;
@@ -47,16 +49,16 @@ import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.hasFa
 import static org.apache.flink.util.Preconditions.checkArgument;
 
 /** Utilities for HBase serialization and deserialization. */
-public class HBaseSerde {
+public class HBaseSerde implements Serializable {
 
-    protected static final byte[] EMPTY_BYTES = new byte[] {};
+    private static final byte[] EMPTY_BYTES = new byte[] {};
 
-    protected static final int MIN_TIMESTAMP_PRECISION = 0;
-    protected static final int MAX_TIMESTAMP_PRECISION = 3;
-    protected static final int MIN_TIME_PRECISION = 0;
-    protected static final int MAX_TIME_PRECISION = 3;
+    private static final int MIN_TIMESTAMP_PRECISION = 0;
+    private static final int MAX_TIMESTAMP_PRECISION = 3;
+    private static final int MIN_TIME_PRECISION = 0;
+    private static final int MAX_TIME_PRECISION = 3;
 
-    protected final byte[] nullStringBytes;
+    private final byte[] nullStringBytes;
 
     // row key index in output row
     protected final int rowkeyIndex;
@@ -68,14 +70,14 @@ public class HBaseSerde {
 
     protected final int fieldLength;
 
-    protected GenericRowData reusedRow;
-    protected GenericRowData[] reusedFamilyRows;
+    private GenericRowData reusedRow;
+    private GenericRowData[] reusedFamilyRows;
 
-    protected final @Nullable FieldEncoder keyEncoder;
+    private final @Nullable FieldEncoder keyEncoder;
     protected final @Nullable FieldDecoder keyDecoder;
-    protected final FieldEncoder[][] qualifierEncoders;
+    private final FieldEncoder[][] qualifierEncoders;
     protected final FieldDecoder[][] qualifierDecoders;
-    protected final GenericRowData rowWithRowKey;
+    private final GenericRowData rowWithRowKey;
 
     public HBaseSerde(HBaseTableSchema hbaseSchema, final String nullStringLiteral) {
         this.families = hbaseSchema.getFamilyKeys();
@@ -223,62 +225,7 @@ public class HBaseSerde {
         return get;
     }
 
-    /**
-     * Converts HBase {@link Result} into a new {@link RowData} instance.
-     *
-     * <p>Note: this method is thread-safe.
-     */
-    public RowData convertToNewRow(Result result) {
-        // The output rows needs to be initialized each time
-        // to prevent the possibility of putting the output object into the cache.
-        GenericRowData resultRow = new GenericRowData(fieldLength);
-        GenericRowData[] familyRows = new GenericRowData[families.length];
-        for (int f = 0; f < families.length; f++) {
-            familyRows[f] = new GenericRowData(qualifiers[f].length);
-        }
-        return convertToRow(result, resultRow, familyRows);
-    }
-
-    /**
-     * Converts HBase {@link Result} into a reused {@link RowData} instance.
-     *
-     * <p>Note: this method is NOT thread-safe.
-     */
-    public RowData convertToReusedRow(Result result) {
-        return convertToRow(result, reusedRow, reusedFamilyRows);
-    }
-
-    protected RowData convertToRow(
-            Result result, GenericRowData resultRow, GenericRowData[] familyRows) {
-        for (int i = 0; i < fieldLength; i++) {
-            if (rowkeyIndex == i) {
-                assert keyDecoder != null;
-                Object rowkey = keyDecoder.decode(result.getRow());
-                resultRow.setField(rowkeyIndex, rowkey);
-            } else {
-                int f = (rowkeyIndex != -1 && i > rowkeyIndex) ? i - 1 : i;
-                // get family key
-                byte[] familyKey = families[f];
-                GenericRowData familyRow = familyRows[f];
-                for (int q = 0; q < this.qualifiers[f].length; q++) {
-                    // get quantifier key
-                    byte[] qualifier = qualifiers[f][q];
-                    // read value
-                    byte[] value = result.getValue(familyKey, qualifier);
-                    familyRow.setField(q, qualifierDecoders[f][q].decode(value));
-                }
-                resultRow.setField(i, familyRow);
-            }
-        }
-        return resultRow;
-    }
-
-    /**
-     * Converts HBase {@link Result} into {@link RowData}.
-     *
-     * @deprecated Use {@link #convertToReusedRow(Result)} instead.
-     */
-    @Deprecated
+    /** Converts HBase {@link Result} into {@link RowData}. */
     public RowData convertToRow(Result result) {
         for (int i = 0; i < fieldLength; i++) {
             if (rowkeyIndex == i) {
@@ -303,17 +250,43 @@ public class HBaseSerde {
         return reusedRow;
     }
 
+    /** Converts HBase {@link Result} into {@link RowData}. */
+    public RowData convertToNewRow(Result result) {
+        GenericRowData rowData = new GenericRowData(fieldLength);
+        for (int i = 0; i < fieldLength; i++) {
+            if (rowkeyIndex == i) {
+                assert keyDecoder != null;
+                Object rowkey = keyDecoder.decode(result.getRow());
+                rowData.setField(rowkeyIndex, rowkey);
+            } else {
+                int f = (rowkeyIndex != -1 && i > rowkeyIndex) ? i - 1 : i;
+                // get family key
+                byte[] familyKey = families[f];
+                GenericRowData familyRow = new GenericRowData(this.qualifiers[f].length);
+                for (int q = 0; q < this.qualifiers[f].length; q++) {
+                    // get quantifier key
+                    byte[] qualifier = qualifiers[f][q];
+                    // read value
+                    byte[] value = result.getValue(familyKey, qualifier);
+                    familyRow.setField(q, qualifierDecoders[f][q].decode(value));
+                }
+                rowData.setField(i, familyRow);
+            }
+        }
+        return rowData;
+    }
+
     // ------------------------------------------------------------------------------------
     // HBase Runtime Encoders
     // ------------------------------------------------------------------------------------
 
     /** Runtime encoder that encodes a specified field in {@link RowData} into byte[]. */
     @FunctionalInterface
-    protected interface FieldEncoder extends Serializable {
+    public interface FieldEncoder extends Serializable {
         byte[] encode(RowData row, int pos);
     }
 
-    protected static FieldEncoder createNullableFieldEncoder(
+    private static FieldEncoder createNullableFieldEncoder(
             LogicalType fieldType, final byte[] nullStringBytes) {
         final FieldEncoder encoder = createFieldEncoder(fieldType);
         if (fieldType.isNullable()) {
@@ -342,7 +315,7 @@ public class HBaseSerde {
         }
     }
 
-    protected static FieldEncoder createFieldEncoder(LogicalType fieldType) {
+    private static FieldEncoder createFieldEncoder(LogicalType fieldType) {
         // ordered by type root definition
         switch (fieldType.getTypeRoot()) {
             case CHAR:
@@ -400,7 +373,7 @@ public class HBaseSerde {
         }
     }
 
-    protected static FieldEncoder createDecimalEncoder(DecimalType decimalType) {
+    private static FieldEncoder createDecimalEncoder(DecimalType decimalType) {
         final int precision = decimalType.getPrecision();
         final int scale = decimalType.getScale();
         return (row, pos) -> {
@@ -409,7 +382,7 @@ public class HBaseSerde {
         };
     }
 
-    protected static FieldEncoder createTimestampEncoder(final int precision) {
+    private static FieldEncoder createTimestampEncoder(final int precision) {
         return (row, pos) -> {
             long millisecond = row.getTimestamp(pos, precision).getMillisecond();
             return Bytes.toBytes(millisecond);
@@ -427,7 +400,7 @@ public class HBaseSerde {
         Object decode(byte[] value);
     }
 
-    protected static FieldDecoder createNullableFieldDecoder(
+    private static FieldDecoder createNullableFieldDecoder(
             LogicalType fieldType, final byte[] nullStringBytes) {
         final FieldDecoder decoder = createFieldDecoder(fieldType);
         if (fieldType.isNullable()) {
@@ -453,7 +426,7 @@ public class HBaseSerde {
         }
     }
 
-    protected static FieldDecoder createFieldDecoder(LogicalType fieldType) {
+    private static FieldDecoder createFieldDecoder(LogicalType fieldType) {
         // ordered by type root definition
         switch (fieldType.getTypeRoot()) {
             case CHAR:
@@ -511,7 +484,7 @@ public class HBaseSerde {
         }
     }
 
-    protected static FieldDecoder createDecimalDecoder(DecimalType decimalType) {
+    private static FieldDecoder createDecimalDecoder(DecimalType decimalType) {
         final int precision = decimalType.getPrecision();
         final int scale = decimalType.getScale();
         return value -> {
@@ -520,12 +493,22 @@ public class HBaseSerde {
         };
     }
 
-    protected static FieldDecoder createTimestampDecoder() {
+    private static FieldDecoder createTimestampDecoder() {
         return value -> {
             // TODO: support higher precision
             long milliseconds = Bytes.toLong(value);
             return TimestampData.fromEpochMillis(milliseconds);
         };
+    }
+
+    @Nullable
+    public FieldEncoder getKeyEncoder() {
+        return keyEncoder;
+    }
+
+    @Nullable
+    public FieldDecoder getKeyDecoder() {
+        return keyDecoder;
     }
 
     public byte[] getRowKey(Object rowKey) {

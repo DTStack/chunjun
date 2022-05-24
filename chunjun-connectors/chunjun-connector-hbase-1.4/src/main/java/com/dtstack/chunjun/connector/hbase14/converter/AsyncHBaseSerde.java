@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.hbase14.converter;
 
-import com.dtstack.chunjun.connector.hbase.HBaseSerde;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 
 import org.apache.flink.table.data.GenericRowData;
@@ -29,7 +28,7 @@ import org.apache.hadoop.hbase.client.Result;
 import java.util.Map;
 
 /**
- * @program chunjun
+ * @program: flinkx
  * @author: wuren
  * @create: 2021/10/19
  */

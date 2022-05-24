@@ -16,30 +16,28 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.hbase14.conf;
+package com.dtstack.chunjun.connector.hbase;
 
 /**
- * The class containing Hbase configuration constants
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
+ * @author jiangbo
+ * @date 2019/7/25
  */
-public class HBaseConfigConstants {
+public class ConstantFunction implements IFunction {
 
-    public static final int DEFAULT_SCAN_CACHE_SIZE = 256;
+    private Object value;
 
-    public static final int MAX_SCAN_CACHE_SIZE = 1000;
+    public ConstantFunction() {}
 
-    public static final int MIN_SCAN_CACHE_SIZE = 1;
+    public ConstantFunction(Object value) {
+        this.value = value;
+    }
 
-    public static final String DEFAULT_ENCODING = "UTF-8";
+    @Override
+    public String evaluate(Object val) {
+        return String.valueOf(value);
+    }
 
-    public static final String DEFAULT_DATA_FORMAT = "yyyy-MM-dd HH:mm:ss";
-
-    public static final String DEFAULT_NULL_MODE = "skip";
-
-    public static final long DEFAULT_WRITE_BUFFER_SIZE = 8 * 1024 * 1024L;
-
-    public static final boolean DEFAULT_WAL_FLAG = false;
+    public void setValue(Object value) {
+        this.value = value;
+    }
 }
