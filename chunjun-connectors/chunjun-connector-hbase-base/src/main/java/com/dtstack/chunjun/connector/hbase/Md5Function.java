@@ -16,17 +16,19 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.hbase14.sink;
+package com.dtstack.chunjun.connector.hbase;
+
+import com.dtstack.chunjun.util.Md5Util;
 
 /**
  * @company: www.dtstack.com
  * @author: toutian
  * @create: 2019/7/23
  */
-public class StringFunction implements IFunction {
+public class Md5Function implements IFunction {
 
     @Override
-    public String evaluate(Object str) {
-        return str.toString();
+    public String evaluate(Object str) throws Exception {
+        return Md5Util.getMd5(str.toString());
     }
 }

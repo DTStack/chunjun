@@ -16,21 +16,19 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.hbase14.sink;
+package com.dtstack.chunjun.connector.hbase;
+
+import java.io.Serializable;
 
 /**
  * @company: www.dtstack.com
  * @author: toutian
  * @create: 2019/7/23
  */
-public interface IFunction {
+public class StringFunction implements IFunction, Serializable {
 
-    /**
-     * 具体的计算方法
-     *
-     * @param val 输入参数
-     * @return 计算结果
-     * @throws Exception 捕获的异常，异常类型不确定
-     */
-    String evaluate(Object val) throws Exception;
+    @Override
+    public String evaluate(Object str) {
+        return str.toString();
+    }
 }

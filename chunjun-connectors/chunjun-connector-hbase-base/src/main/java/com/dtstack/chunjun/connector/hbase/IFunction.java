@@ -16,19 +16,21 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.hbase14.sink;
-
-import com.dtstack.chunjun.util.Md5Util;
+package com.dtstack.chunjun.connector.hbase;
 
 /**
  * @company: www.dtstack.com
  * @author: toutian
  * @create: 2019/7/23
  */
-public class Md5Function implements IFunction {
+public interface IFunction {
 
-    @Override
-    public String evaluate(Object str) throws Exception {
-        return Md5Util.getMd5(str.toString());
-    }
+    /**
+     * 具体的计算方法
+     *
+     * @param val 输入参数
+     * @return 计算结果
+     * @throws Exception 捕获的异常，异常类型不确定
+     */
+    String evaluate(Object val) throws Exception;
 }

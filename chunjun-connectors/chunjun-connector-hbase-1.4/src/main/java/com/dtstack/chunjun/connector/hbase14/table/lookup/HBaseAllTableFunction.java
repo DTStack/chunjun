@@ -18,11 +18,13 @@
 
 package com.dtstack.chunjun.connector.hbase14.table.lookup;
 
-import com.dtstack.chunjun.connector.hbase.HBaseConfigurationUtil;
-import com.dtstack.chunjun.connector.hbase.HBaseSerde;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase14.util.HBaseConfigUtils;
-import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
+import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.table.lookup.AbstractHBaseAllTableFunction;
+import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
+import com.dtstack.chunjun.connector.hbase14.converter.HBaseSerde;
+import com.dtstack.chunjun.connector.hbase14.converter.HbaseRowConverter;
+import com.dtstack.chunjun.connector.hbase14.util.HBaseHelper;
 import com.dtstack.chunjun.lookup.conf.LookupConf;
 import com.dtstack.chunjun.security.KerberosUtil;
 
@@ -31,9 +33,7 @@ import org.apache.flink.table.functions.FunctionContext;
 
 import com.google.common.collect.Maps;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.AuthUtil;
-import org.apache.hadoop.hbase.ChoreService;
-import org.apache.hadoop.hbase.ScheduledChore;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
@@ -50,31 +50,28 @@ import java.security.PrivilegedAction;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-public class HBaseAllTableFunction extends AbstractAllTableFunction {
+public class HBaseAllTableFunction extends AbstractHBaseAllTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(HBaseAllTableFunction.class);
-    private Configuration conf;
-    private final byte[] serializedConfig;
+
     private Connection conn;
     private String tableName;
     private Table table;
     private ResultScanner resultScanner;
 
-    private final HBaseTableSchema hbaseTableSchema;
     private transient HBaseSerde serde;
-    private final String nullStringLiteral;
 
     public HBaseAllTableFunction(
-            Configuration conf,
-            LookupConf lookupConf,
-            HBaseTableSchema hbaseTableSchema,
-            String nullStringLiteral) {
-        super(null, null, lookupConf, null);
-        this.serializedConfig = HBaseConfigurationUtil.serializeConfiguration(conf);
+            LookupConf lookupConf, HBaseTableSchema hbaseTableSchema, HBaseConf hBaseConf) {
+        super(
+                null,
+                null,
+                lookupConf,
+                new HbaseRowConverter(hbaseTableSchema, hBaseConf.getNullStringLiteral()),
+                hbaseTableSchema,
+                hBaseConf);
         this.tableName = hbaseTableSchema.getTableName();
-        this.hbaseTableSchema = hbaseTableSchema;
-        this.nullStringLiteral = nullStringLiteral;
     }
 
     @Override
@@ -85,34 +82,30 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
 
     @Override
     protected void loadData(Object cacheRef) {
-        conf = HBaseConfigurationUtil.prepareRuntimeConfiguration(serializedConfig);
+        Configuration hbaseDomainConf = HBaseConfiguration.create();
+        for (Map.Entry<String, Object> entry : hBaseConf.getHbaseConfig().entrySet()) {
+            hbaseDomainConf.set(entry.getKey(), entry.getValue().toString());
+        }
+
         int loadDataCount = 0;
         try {
-            if (HBaseConfigUtils.isEnableKerberos(conf)) {
-                String principal = conf.get(HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL);
-                String keytab = conf.get(HBaseConfigUtils.KEY_HBASE_CLIENT_KEYTAB_FILE);
-                String krb5Conf = conf.get(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF);
+            if (HBaseConfigUtils.isEnableKerberos(hbaseDomainConf)) {
+                String principal =
+                        hbaseDomainConf.get(HBaseConfigUtils.KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL);
+                String keytab = hbaseDomainConf.get(HBaseConfigUtils.KEY_HBASE_CLIENT_KEYTAB_FILE);
+                String krb5Conf = hbaseDomainConf.get(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF);
                 LOG.info("kerberos principal:{}，keytab:{}", principal, keytab);
                 System.setProperty(HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF, krb5Conf);
                 UserGroupInformation userGroupInformation =
                         KerberosUtil.loginAndReturnUgi(principal, keytab, krb5Conf);
-                Configuration finalConf = conf;
+                Configuration finalConf = hbaseDomainConf;
                 conn =
                         userGroupInformation.doAs(
                                 (PrivilegedAction<Connection>)
                                         () -> {
                                             try {
-                                                ScheduledChore authChore =
-                                                        AuthUtil.getAuthChore(finalConf);
-                                                if (authChore != null) {
-                                                    ChoreService choreService =
-                                                            new ChoreService("hbaseKerberosSink");
-                                                    choreService.scheduleChore(authChore);
-                                                }
-
                                                 return ConnectionFactory.createConnection(
                                                         finalConf);
-
                                             } catch (IOException e) {
                                                 LOG.error(
                                                         "Get connection fail with config:{}",
@@ -120,16 +113,16 @@ public class HBaseAllTableFunction extends AbstractAllTableFunction {
                                                 throw new RuntimeException(e);
                                             }
                                         });
-
+                HBaseHelper.scheduleRefreshTGT(userGroupInformation);
             } else {
-                conn = ConnectionFactory.createConnection(conf);
+                conn = ConnectionFactory.createConnection(hbaseDomainConf);
             }
 
             table = conn.getTable(TableName.valueOf(tableName));
             resultScanner = table.getScanner(new Scan());
             Map<Object, RowData> tmpCache = (Map<Object, RowData>) cacheRef;
             for (Result r : resultScanner) {
-                tmpCache.put(serde.getRowKey(r.getRow()), serde.convertToReusedRow(r));
+                tmpCache.put(serde.getRowKey(r.getRow()), serde.convertToNewRow(r));
                 loadDataCount++;
             }
         } catch (IOException e) {

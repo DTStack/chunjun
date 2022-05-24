@@ -16,7 +16,7 @@
 package com.dtstack.chunjun.connector.hbase14.table;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase14.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
 import com.dtstack.chunjun.lookup.conf.LookupConf;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -31,12 +31,10 @@ import org.apache.flink.table.utils.TableSchemaUtils;
 
 import org.apache.hadoop.hbase.HConstants;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.hbase14.table.HBaseOptions.NULL_STRING_LITERAL;
 import static com.dtstack.chunjun.connector.hbase14.table.HBaseOptions.SINK_BUFFER_FLUSH_INTERVAL;
@@ -120,8 +118,7 @@ public class Hbase14DynamicTableFactory
                 getLookupConf(config, context.getObjectIdentifier().getObjectName());
         HBaseTableSchema hbaseSchema = HBaseTableSchema.fromTableSchema(physicalSchema);
         String nullStringLiteral = helper.getOptions().get(NULL_STRING_LITERAL);
-        return new HBaseDynamicTableSource(
-                conf, physicalSchema, lookupConf, hbaseSchema, nullStringLiteral);
+        return new HBaseDynamicTableSource(conf, physicalSchema, lookupConf, hbaseSchema);
     }
 
     private static void validatePrimaryKey(TableSchema schema) {
@@ -165,9 +162,9 @@ public class Hbase14DynamicTableFactory
         HBaseConf conf = new HBaseConf();
         conf.setHbaseConfig(getHBaseClientProperties(options));
         String hTableName = config.get(TABLE_NAME);
-        conf.setTableName(hTableName);
+        conf.setTable(hTableName);
         String nullStringLiteral = config.get(NULL_STRING_LITERAL);
-        conf.setNullMode(nullStringLiteral);
+        conf.setNullStringLiteral(nullStringLiteral);
         return conf;
     }
 
@@ -216,19 +213,18 @@ public class Hbase14DynamicTableFactory
         long bufferFlushMaxSizeInBytes = config.get(SINK_BUFFER_FLUSH_MAX_SIZE).getBytes();
         conf.setWriteBufferSize(bufferFlushMaxSizeInBytes);
 
-        conf.setRowkeyExpress(generateRowKey(hbaseSchema));
         return new HBaseDynamicTableSink(conf, physicalSchema, hbaseSchema);
     }
 
-    private String generateRowKey(HBaseTableSchema hbaseSchema) {
-        int rowIndex = 1;
-        if (hbaseSchema.getRowKeyIndex() > 1) {
-            rowIndex = hbaseSchema.getRowKeyIndex();
-        }
-        String familyName = hbaseSchema.getFamilyNames()[rowIndex - 1];
-        String[] qualifierNames = hbaseSchema.getQualifierNames(familyName);
-        return Arrays.stream(qualifierNames)
-                .map(key -> "${" + key + "}")
-                .collect(Collectors.joining("_"));
-    }
+    //    private String generateRowKey(HBaseTableSchema hbaseSchema) {
+    //        int rowIndex = 1;
+    //        if (hbaseSchema.getRowKeyIndex() > 1) {
+    //            rowIndex = hbaseSchema.getRowKeyIndex();
+    //        }
+    //        String familyName = hbaseSchema.getFamilyNames()[rowIndex - 1];
+    //        String[] qualifierNames = hbaseSchema.getQualifierNames(familyName);
+    //        return Arrays.stream(qualifierNames)
+    //                .map(key -> "${" + key + "}")
+    //                .collect(Collectors.joining("_"));
+    //    }
 }

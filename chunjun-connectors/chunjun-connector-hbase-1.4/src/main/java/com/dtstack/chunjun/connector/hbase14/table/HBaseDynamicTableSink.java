@@ -17,12 +17,9 @@
  */
 package com.dtstack.chunjun.connector.hbase14.table;
 
-import com.dtstack.chunjun.conf.FieldConf;
-import com.dtstack.chunjun.connector.hbase.HBaseConverter;
-import com.dtstack.chunjun.connector.hbase.HBaseMutationConverter;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
-import com.dtstack.chunjun.connector.hbase.RowDataToMutationConverter;
-import com.dtstack.chunjun.connector.hbase14.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
+import com.dtstack.chunjun.connector.hbase14.converter.HbaseRowConverter;
 import com.dtstack.chunjun.connector.hbase14.sink.HBaseOutputFormatBuilder;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
@@ -31,7 +28,10 @@ import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
+import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.utils.TypeConversions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,41 +61,36 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
 
     @Override
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
-        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
-        String[] fieldNames = tableSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        for (int i = 0; i < fieldNames.length; i++) {
-            FieldConf field = new FieldConf();
-            field.setName(fieldNames[i]);
-            field.setType(rowType.getTypeAt(i).asSummaryString());
-            field.setIndex(i);
-            columnList.add(field);
+        List<LogicalType> logicalTypes = new ArrayList<>();
+
+        String[] familyNames = hbaseSchema.getFamilyNames();
+        int rowKeyIndex = hbaseSchema.getRowKeyIndex();
+        for (int i = 0; i < familyNames.length; i++) {
+            if (i == rowKeyIndex) {
+                logicalTypes.add(
+                        TypeConversions.fromDataToLogicalType(
+                                hbaseSchema.getRowKeyDataType().get()));
+            }
+            DataType[] qualifierDataTypes = hbaseSchema.getQualifierDataTypes(familyNames[i]);
+            for (DataType dataType : qualifierDataTypes) {
+                logicalTypes.add(TypeConversions.fromDataToLogicalType(dataType));
+            }
         }
+
+        // todo 测试下顺序是否是一致的
+        RowType of = RowType.of(logicalTypes.toArray(new LogicalType[0]));
 
         HBaseOutputFormatBuilder builder = new HBaseOutputFormatBuilder();
-        if (conf.getColumn() != null) {
-            builder.setColumnMetaInfos(conf.getColumn());
-        } else if (conf.getColumnMetaInfos() != null) {
-            builder.setColumnMetaInfos(conf.getColumnMetaInfos());
-        } else if (!columnList.isEmpty()) {
-            builder.setColumnMetaInfos(columnList);
-        }
-        builder.setEncoding(conf.getEncoding());
-        builder.setHbaseConfig(conf.getHbaseConfig());
-        builder.setNullMode(conf.getNullMode());
-        builder.setTableName(conf.getTableName());
-        builder.setRowkeyExpress(conf.getRowkeyExpress());
-        builder.setVersionColumnIndex(conf.getVersionColumnIndex());
-        builder.setVersionColumnValues(conf.getVersionColumnValue());
-        builder.setWalFlag(conf.getWalFlag());
-        builder.setWriteBufferSize(conf.getWriteBufferSize());
-        AbstractRowConverter rowConverter = new HBaseConverter(rowType);
-        builder.setRowConverter(rowConverter);
         builder.setConfig(conf);
+        builder.setHbaseConf(conf);
+        builder.setHbaseConfig(conf.getHbaseConfig());
+        builder.setTableName(conf.getTable());
 
-        HBaseMutationConverter converter =
-                new RowDataToMutationConverter(hbaseSchema, conf.getNullMode());
-        builder.setHBaseMutationConverter(converter);
+        builder.setWriteBufferSize(conf.getWriteBufferSize());
+        String nullStringLiteral = conf.getNullStringLiteral();
+
+        AbstractRowConverter rowConverter = new HbaseRowConverter(hbaseSchema, nullStringLiteral);
+        builder.setRowConverter(rowConverter);
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction(builder.finish()), conf.getParallelism());
