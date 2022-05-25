@@ -72,7 +72,7 @@ public class InceptorHdfsOutputFormat extends JdbcOutputFormat {
     private String currentPartition;
 
     // 是否是事务表
-    private boolean isTransactionTable;
+    private Boolean isTransactionTable;
 
     // 当前事务是否已开启
     private volatile boolean transactionStart;
@@ -82,16 +82,21 @@ public class InceptorHdfsOutputFormat extends JdbcOutputFormat {
     @Override
     public void open(int taskNumber, int numTasks) throws IOException {
         super.open(taskNumber, numTasks);
-        if (isTransactionTable) {
-            super.checkpointMode = CheckpointingMode.EXACTLY_ONCE;
-            super.semantic = Semantic.EXACTLY_ONCE;
-        }
     }
 
     @Override
     protected void openInternal(int taskNumber, int numTasks) {
         try {
-            partitionFormat = getPartitionFormat();
+            // when isTransactionTable is null, the tash is sql
+            if (isTransactionTable == null) {
+                partitionFormat = getPartitionFormat();
+            }
+
+            // batch and transactionTable
+            if (isTransactionTable != null && isTransactionTable && this.batchSize == 1) {
+                this.batchSize = 1024;
+            }
+
             dbConn = getConnection();
             statement = dbConn.createStatement();
             // use database
@@ -101,7 +106,15 @@ public class InceptorHdfsOutputFormat extends JdbcOutputFormat {
             }
             initColumnList();
             switchNextPartiiton(new Date());
-            isTransactionTable = isTransactionTable();
+
+            // sql
+            if (isTransactionTable == null) {
+                isTransactionTable = isTransactionTable();
+                if (isTransactionTable) {
+                    super.checkpointMode = CheckpointingMode.EXACTLY_ONCE;
+                    super.semantic = Semantic.EXACTLY_ONCE;
+                }
+            }
             LOG.info("subTask[{}}] wait finished", taskNumber);
         } catch (SQLException throwables) {
             throw new IllegalArgumentException("open() failed.", throwables);
@@ -121,6 +134,11 @@ public class InceptorHdfsOutputFormat extends JdbcOutputFormat {
                 transactionStart = true;
             }
             stmtProxy.writeSingleRecordInternal(rowData);
+
+            if (Semantic.EXACTLY_ONCE != semantic) {
+                doCommit();
+            }
+
         } catch (Exception e) {
             processWriteException(e, index, rowData);
         }
@@ -173,6 +191,8 @@ public class InceptorHdfsOutputFormat extends JdbcOutputFormat {
             // 开启了cp，但是并没有使用2pc方式让下游数据可见
             if (Semantic.EXACTLY_ONCE == semantic) {
                 rowsOfCurrentTransaction += rows.size();
+            } else {
+                doCommit();
             }
         } catch (Exception e) {
             LOG.warn(
@@ -186,8 +206,7 @@ public class InceptorHdfsOutputFormat extends JdbcOutputFormat {
         }
     }
 
-    @Override
-    public void commit(long checkpointId) throws Exception {
+    public void doCommit() throws SQLException {
         try {
             if (transactionStart) {
                 Statement statement = dbConn.createStatement();
@@ -265,16 +284,20 @@ public class InceptorHdfsOutputFormat extends JdbcOutputFormat {
     }
 
     private void switchNextPartiiton(Date currentData) throws SQLException {
-        String newPartition = partitionFormat.format(currentData);
-        if (StringUtils.isBlank(currentPartition) || !currentPartition.equals(newPartition)) {
-            LOG.info(
-                    "switch old partition {}  to new partition {}", currentPartition, newPartition);
-            if (stmtProxy != null) {
-                stmtProxy.close();
+        if (partitionFormat != null) {
+            String newPartition = partitionFormat.format(currentData);
+            if (StringUtils.isBlank(currentPartition) || !currentPartition.equals(newPartition)) {
+                LOG.info(
+                        "switch old partition {}  to new partition {}",
+                        currentPartition,
+                        newPartition);
+                if (stmtProxy != null) {
+                    stmtProxy.close();
+                }
+                currentPartition = newPartition;
             }
-            currentPartition = newPartition;
-            buildStmtProxy();
         }
+        buildStmtProxy();
     }
 
     public void setJdbcConf(JdbcConf jdbcConf) {
@@ -327,5 +350,9 @@ public class InceptorHdfsOutputFormat extends JdbcOutputFormat {
                                                         return false;
                                                     }
                                                 }));
+    }
+
+    public void setTransactionTable(Boolean transactionTable) {
+        isTransactionTable = transactionTable;
     }
 }

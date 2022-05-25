@@ -423,4 +423,42 @@
 			<url>https://github.com/dtstack/maven-repository/raw/master/</url>
 		</repository>
 	</repositories>
+	<profiles>
+
+		<!-- 本地测试模块-->
+		<profile>
+			<id>local-test</id>
+			<modules>
+				<module>chunjun-local-test</module>
+			</modules>
+		</profile>
+
+		<!-- apache 相关插件, 默认开启 -->
+		<profile>
+			<id>default</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<hadoop.version>2.7.5</hadoop.version>
+			</properties>
+			<modules>
+				<!--- =========================================== 离线 =====================                                                                             ========================= -->
+				<module>chunjun-connectors/chunjun-connector-hdfs</module>
+				<module>chunjun-connectors/chunjun-connector-hive</module>
+				<!--- =========================================== 实时 ============================================== -->
+			</modules>
+		</profile>
+
+		<!-- 适配 tdh 相关插件-->
+		<profile>
+			<id>tdh</id>
+			<modules>
+				<!-- =========================================== 离线 =============================================== -->
+				<module>chunjun-connectors/chunjun-connector-inceptor</module>
+				<!-- =========================================== 实时 =============================================== -->
+				<!-- =========================================== 元数据 ============================================= -->
+			</modules>
+		</profile>
+	</profiles>
 </project>

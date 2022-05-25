@@ -32,6 +32,7 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import io.vertx.core.json.JsonArray;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.ResultSet;
 import java.util.Arrays;
@@ -62,22 +63,25 @@ public class InceptorHdfsDialect extends InceptorDialect {
                         .collect(Collectors.joining(", "));
         String placeholders =
                 Arrays.stream(fieldNames).map(f -> ":" + f).collect(Collectors.joining(", "));
-        return "INSERT INTO "
-                + buildTableInfoWithSchema(schema, tableName)
-                + " PARTITION "
-                + " ( "
-                + quoteIdentifier(partitionKey)
-                + "="
-                + "'"
-                + partiitonValue
-                + "'"
-                + " ) "
-                + "("
-                + columns
-                + ")"
-                + " SELECT "
-                + placeholders
-                + "  FROM  SYSTEM.DUAL";
+        StringBuilder stringBuilder = new StringBuilder(10024);
+        stringBuilder.append("INSERT INTO ").append(buildTableInfoWithSchema(schema, tableName));
+        if (StringUtils.isNotBlank(partitionKey)) {
+            stringBuilder
+                    .append(" PARTITION  ( ")
+                    .append(quoteIdentifier(partitionKey))
+                    .append("= '")
+                    .append(partiitonValue)
+                    .append("' )");
+        }
+        stringBuilder
+                .append(" (")
+                .append(columns)
+                .append(")")
+                .append(" SELECT ")
+                .append(placeholders)
+                .append("  FROM  SYSTEM.DUAL");
+
+        return stringBuilder.toString();
     }
 
     @Override
