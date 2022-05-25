@@ -88,7 +88,7 @@ public class DorisHttpOutputFormat extends BaseRichOutputFormat {
         try {
             client.process(rowData, columns, rowConverter);
         } catch (Exception e) {
-            throw new WriteRecordException("", e);
+            throw new WriteRecordException("", e, 0, rowData);
         }
     }
 
