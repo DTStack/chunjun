@@ -225,10 +225,12 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
             String colType = fullColumnTypeList.get(i).toLowerCase(Locale.ENGLISH);
             int left = colType.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
             int right = colType.indexOf(ConstantValue.RIGHT_PARENTHESIS_SYMBOL);
+            boolean isDecimalType = ColumnTypeUtil.isDecimalType(colType);
+            String tempType = colType;
             if (left > 0 && right > 0) {
-                colType = colType.substring(0, left);
+                tempType = colType.substring(0, left);
             }
-            switch (colType) {
+            switch (tempType) {
                 case "tinyint":
                 case "smallint":
                 case "int":
@@ -267,7 +269,7 @@ public class HdfsParquetOutputFormat extends BaseHdfsOutputFormat {
                             .named(name);
                     break;
                 default:
-                    if (ColumnTypeUtil.isDecimalType(colType)) {
+                    if (isDecimalType) {
                         ColumnTypeUtil.DecimalInfo decimalInfo =
                                 ColumnTypeUtil.getDecimalInfo(
                                         colType, PARQUET_DEFAULT_DECIMAL_INFO);
