@@ -19,34 +19,60 @@
 package com.dtstack.chunjun.connector.inceptor.source;
 
 import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.inceptor.conf.InceptorConf;
-import com.dtstack.chunjun.connector.inceptor.dialect.InceptorDialect;
-import com.dtstack.chunjun.connector.inceptor.util.InceptorDbUtil;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
-import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
-import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
+import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.source.SourceFactory;
 
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.data.RowData;
+
+import org.apache.commons.collections.MapUtils;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /** @author liuliu 2022/2/22 */
-public class InceptorSourceFactory extends JdbcSourceFactory {
-
-    InceptorDialect inceptorDialect;
+public class InceptorSourceFactory extends SourceFactory {
+    private SourceFactory sourceFactory;
 
     public InceptorSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
-        super(syncConf, env, null);
-        this.inceptorDialect = InceptorDbUtil.getDialectWithDriverType(jdbcConf);
-        jdbcConf.setJdbcUrl(inceptorDialect.appendJdbcTransactionType(jdbcConf.getJdbcUrl()));
-        super.jdbcDialect = inceptorDialect;
+        super(syncConf, env);
+        boolean useJdbc = !syncConf.getReader().getParameter().containsKey("path");
+
+        boolean transaction =
+                MapUtils.getBoolean(syncConf.getReader().getParameter(), "isTransaction", false);
+        // 事务表直接jdbc读取
+        if (useJdbc || transaction) {
+            refactorConf(syncConf);
+            this.sourceFactory = new InceptorJdbcSourceFactory(syncConf, env);
+        } else {
+            this.sourceFactory = new InceptorFileSourceFactory(syncConf, env);
+        }
     }
 
     @Override
-    protected Class<? extends JdbcConf> getConfClass() {
-        return InceptorConf.class;
+    public RawTypeConverter getRawTypeConverter() {
+        return sourceFactory.getRawTypeConverter();
     }
 
     @Override
-    protected JdbcInputFormatBuilder getBuilder() {
-        return inceptorDialect.getInputFormatBuilder();
+    public DataStream<RowData> createSource() {
+        return sourceFactory.createSource();
+    }
+
+    private void refactorConf(SyncConf syncConf) {
+        if (syncConf.getReader().getParameter().containsKey("connection")) {
+            Object connection = syncConf.getReader().getParameter().get("connection");
+            if (connection instanceof List) {
+                List<Map<String, Object>> connections = (List<Map<String, Object>>) connection;
+                connections.forEach(
+                        i -> {
+                            if (i.get("jdbcUrl") != null && i.get("jdbcUrl") instanceof String) {
+                                i.put("jdbcUrl", Collections.singletonList(i.get("jdbcUrl")));
+                            }
+                        });
+            }
+        }
     }
 }

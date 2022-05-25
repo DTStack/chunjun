@@ -19,32 +19,40 @@
 package com.dtstack.chunjun.connector.inceptor.sink;
 
 import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.inceptor.conf.InceptorConf;
-import com.dtstack.chunjun.connector.inceptor.dialect.InceptorDialect;
-import com.dtstack.chunjun.connector.inceptor.util.InceptorDbUtil;
-import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
-import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
-import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
+import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.sink.SinkFactory;
+
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
+import org.apache.flink.table.data.RowData;
+
+import org.apache.commons.collections.MapUtils;
 
 /** @author liuliu 2022/2/24 */
-public class InceptorSinkFactory extends JdbcSinkFactory {
+public class InceptorSinkFactory extends SinkFactory {
 
-    InceptorDialect inceptorDialect;
+    SinkFactory sinkFactory;
 
     public InceptorSinkFactory(SyncConf syncConf) {
-        super(syncConf, null);
-        inceptorDialect = InceptorDbUtil.getDialectWithDriverType(jdbcConf);
-        jdbcConf.setJdbcUrl(inceptorDialect.appendJdbcTransactionType(jdbcConf.getJdbcUrl()));
-        super.jdbcDialect = inceptorDialect;
+        super(syncConf);
+        boolean useJdbc = !syncConf.getWriter().getParameter().containsKey("path");
+        boolean transaction =
+                MapUtils.getBoolean(syncConf.getWriter().getParameter(), "isTransaction", false);
+
+        if (useJdbc || transaction) {
+            this.sinkFactory = new InceptorJdbcSinkFactory(syncConf);
+        } else {
+            this.sinkFactory = new InceptorFileSinkFactory(syncConf);
+        }
     }
 
     @Override
-    protected Class<? extends JdbcConf> getConfClass() {
-        return InceptorConf.class;
+    public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
+        return sinkFactory.createSink(dataSet);
     }
 
     @Override
-    protected JdbcOutputFormatBuilder getBuilder() {
-        return ((InceptorDialect) jdbcDialect).getOutputFormatBuilder();
+    public RawTypeConverter getRawTypeConverter() {
+        return sinkFactory.getRawTypeConverter();
     }
 }
