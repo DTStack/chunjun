@@ -41,6 +41,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.dtstack.chunjun.connector.jdbc.options.JdbcLookupOptions.*;
+
 /**
  * @author dujie @Description
  * @createTime 2022-01-20 04:50:00

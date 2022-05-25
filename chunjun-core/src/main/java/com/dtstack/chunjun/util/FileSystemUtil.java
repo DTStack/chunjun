@@ -128,6 +128,20 @@ public class FileSystemUtil {
                 getConfiguration(hadoopConfig, defaultFs), principal, keytabFileName);
     }
 
+    public static String getHadoopUser(Map<String, Object> hadoopConfig) throws IOException {
+        Object hadoopUserName = hadoopConfig.get("hadoop.user.name");
+        if (hadoopUserName != null && StringUtils.isNotBlank(hadoopUserName.toString())) {
+            return hadoopUserName.toString();
+        }
+
+        hadoopUserName = hadoopConfig.get("HADOOP_USER_NAME");
+        if (hadoopUserName != null && StringUtils.isNotBlank(hadoopUserName.toString())) {
+            return hadoopUserName.toString();
+        }
+
+        return UserGroupInformation.getCurrentUser().getUserName();
+    }
+
     public static Configuration getConfiguration(Map<String, Object> confMap, String defaultFs) {
         confMap = fillConfig(confMap, defaultFs);
 

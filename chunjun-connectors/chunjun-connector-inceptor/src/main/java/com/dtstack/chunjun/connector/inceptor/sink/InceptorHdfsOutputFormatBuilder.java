@@ -35,6 +35,10 @@ public class InceptorHdfsOutputFormatBuilder extends JdbcOutputFormatBuilder {
         format.setRowConverter(rowConverter);
     }
 
+    public void setTransactionTable(boolean transactionTable) {
+        ((InceptorHdfsOutputFormat) format).setTransactionTable(transactionTable);
+    }
+
     @Override
     protected void checkFormat() {
         JdbcConf jdbcConf = format.getJdbcConf();

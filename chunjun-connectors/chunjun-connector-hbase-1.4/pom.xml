@@ -41,6 +41,12 @@
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-hbase-base</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j-1.2-api</artifactId>
+					<groupId>org.apache.logging.log4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.hbase</groupId>

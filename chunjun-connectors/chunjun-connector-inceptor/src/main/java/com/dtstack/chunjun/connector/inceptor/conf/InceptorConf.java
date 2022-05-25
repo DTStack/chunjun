@@ -23,6 +23,8 @@ import java.util.Map;
 
 public class InceptorConf extends JdbcConf {
 
+    private String driverType = "HDFS";
+
     private String partition;
 
     private String partitionType;
@@ -51,5 +53,13 @@ public class InceptorConf extends JdbcConf {
 
     public void setHadoopConfig(Map<String, Object> hadoopConfig) {
         this.hadoopConfig = hadoopConfig;
+    }
+
+    public String getDriverType() {
+        return driverType;
+    }
+
+    public void setDriverType(String driverType) {
+        this.driverType = driverType;
     }
 }

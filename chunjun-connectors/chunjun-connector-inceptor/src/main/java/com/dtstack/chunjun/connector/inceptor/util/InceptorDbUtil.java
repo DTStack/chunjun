@@ -206,7 +206,9 @@ public final class InceptorDbUtil {
 
         String storageHandler = "";
         try {
-            connection.createStatement().execute(String.format("use %s", schema));
+            if (StringUtils.isNotBlank(schema)) {
+                connection.createStatement().execute(String.format("use %s", schema));
+            }
             String sql = String.format(INCEPROE_SHOW_DESCRIBE_FORMAT, table);
             ResultSet resultSet = connection.createStatement().executeQuery(sql);
             while (resultSet.next()) {
