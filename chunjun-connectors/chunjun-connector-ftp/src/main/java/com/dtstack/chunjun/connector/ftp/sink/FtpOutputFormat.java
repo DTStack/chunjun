@@ -122,7 +122,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
             rowsOfCurrentBlock++;
             lastRow = rowData;
         } catch (Exception ex) {
-            throw new WriteRecordException(ex.getMessage(), ex);
+            throw new WriteRecordException(ex.getMessage(), ex, 0, rowData);
         }
     }
 
