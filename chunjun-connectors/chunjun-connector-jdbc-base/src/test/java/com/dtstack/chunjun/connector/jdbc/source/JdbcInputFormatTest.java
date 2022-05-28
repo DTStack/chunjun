@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.util.Arrays;
 
 /** @author liuliu 2022/4/15 */
@@ -50,8 +49,6 @@ public class JdbcInputFormatTest {
         Whitebox.setInternalState(jdbcInputFormat, "LOG", LOG);
         JdbcConf jdbcConf = PowerMockito.mock(JdbcConf.class);
         Whitebox.setInternalState(jdbcInputFormat, "jdbcConf", jdbcConf);
-        PowerMockito.when(jdbcConf.isPolling()).thenReturn(true);
-        PowerMockito.when(jdbcConf.getParallelism()).thenReturn(3);
         PowerMockito.when(jdbcConf.getStartLocation()).thenReturn("10");
     }
 
@@ -64,19 +61,9 @@ public class JdbcInputFormatTest {
                 PowerMockito.method(JdbcInputFormat.class, "getSplitRangeFromDb");
         Mockito.when(getSplitRangeFromDb.invoke(jdbcInputFormat))
                 .thenReturn(Pair.of("12.123", "345534.12"));
-        Mockito.when(
-                        jdbcInputFormat.createRangeSplits(
-                                Mockito.any(BigDecimal.class),
-                                Mockito.any(BigDecimal.class),
-                                Mockito.anyInt()))
-                .thenCallRealMethod();
-        Mockito.when(
-                        jdbcInputFormat.createSplitsInternalBySplitMod(
-                                Mockito.anyInt(), Mockito.anyString()))
-                .thenCallRealMethod();
         JdbcInputSplit[] splitsInternalBySplitRange =
                 jdbcInputFormat.createSplitsInternalBySplitRange(3);
-        Arrays.stream(splitsInternalBySplitRange).forEach(System.out::println);
-        assert splitsInternalBySplitRange.length == 6;
+        Arrays.stream(splitsInternalBySplitRange).forEach(split -> System.out.println(split));
+        assert splitsInternalBySplitRange.length == 3;
     }
 }
