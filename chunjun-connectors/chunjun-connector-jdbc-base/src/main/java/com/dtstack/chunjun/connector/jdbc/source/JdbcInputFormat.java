@@ -42,9 +42,9 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.Date;
@@ -716,52 +716,53 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected JdbcInputSplit[] createSplitsInternalBySplitRange(int minNumSplits) {
         JdbcInputSplit[] splits;
         Pair<String, String> splitRangeFromDb = getSplitRangeFromDb();
-        BigInteger left = NumberUtils.createBigInteger(splitRangeFromDb.getLeft());
-        BigInteger right = NumberUtils.createBigInteger(splitRangeFromDb.getRight());
+        if (StringUtils.isBlank(splitRangeFromDb.getLeft())
+                || "null".equalsIgnoreCase(splitRangeFromDb.getLeft())) {
+            // 没有数据，返回空数组
+            return new JdbcInputSplit[minNumSplits];
+        }
+        BigDecimal left = new BigDecimal(splitRangeFromDb.getLeft());
+        BigDecimal right = new BigDecimal(splitRangeFromDb.getRight());
         LOG.info("create splitsInternal,the splitKey range is {} --> {}", left, right);
-        // 没有数据 返回空数组
-        if (left == null || right == null) {
-            splits = new JdbcInputSplit[minNumSplits];
-        } else {
-            BigInteger endAndStartGap = right.subtract(left);
+        BigDecimal endAndStartGap = right.subtract(left);
+        BigDecimal remainder = endAndStartGap.remainder(new BigDecimal(minNumSplits));
+        endAndStartGap = endAndStartGap.subtract(remainder);
+        BigDecimal step = endAndStartGap.divide(new BigDecimal(minNumSplits));
 
-            BigInteger step = endAndStartGap.divide(BigInteger.valueOf(minNumSplits));
-            BigInteger remainder = endAndStartGap.remainder(BigInteger.valueOf(minNumSplits));
-            if (step.compareTo(BigInteger.ZERO) == 0) {
-                // left = right时，step和remainder都为0
-                if (remainder.compareTo(BigInteger.ZERO) == 0) {
-                    minNumSplits = 1;
-                } else {
-                    minNumSplits = remainder.intValue();
-                }
-            }
-
-            splits = new JdbcInputSplit[minNumSplits];
-            BigInteger start;
-            BigInteger end = left;
-            for (int i = 0; i < minNumSplits; i++) {
-                start = end;
-                end = start.add(step);
-                end =
-                        end.add(
-                                (remainder.compareTo(BigInteger.valueOf(i)) > 0)
-                                        ? BigInteger.ONE
-                                        : BigInteger.ZERO);
-                // 分片范围是 splitPk >=start and splitPk < end 最后一个分片范围是splitPk >= start
-                if (i == minNumSplits - 1) {
-                    end = null;
-                }
-                splits[i] =
-                        new JdbcInputSplit(
-                                i,
-                                minNumSplits,
-                                i,
-                                jdbcConf.getStartLocation(),
-                                null,
-                                start.toString(),
-                                Objects.isNull(end) ? null : end.toString());
+        if (step.compareTo(BigDecimal.ZERO) == 0) {
+            // left = right时，step和remainder都为0
+            if (remainder.compareTo(BigDecimal.ZERO) == 0) {
+                minNumSplits = 1;
+            } else {
+                minNumSplits = remainder.intValue();
             }
         }
+
+        splits = new JdbcInputSplit[minNumSplits];
+        BigDecimal start;
+        BigDecimal end = left;
+        for (int i = 0; i < minNumSplits; i++) {
+            start = end;
+            end = start.add(step);
+            if (remainder.compareTo(BigDecimal.ZERO) > 0) {
+                end = end.add(BigDecimal.ONE);
+                remainder = remainder.subtract(BigDecimal.ONE);
+            }
+            // 分片范围是 splitPk >=start and splitPk < end 最后一个分片范围是splitPk >= start
+            if (i == minNumSplits - 1) {
+                end = null;
+            }
+            splits[i] =
+                    new JdbcInputSplit(
+                            i,
+                            minNumSplits,
+                            i,
+                            jdbcConf.getStartLocation(),
+                            null,
+                            start.toString(),
+                            Objects.isNull(end) ? null : end.toString());
+        }
+
         return splits;
     }
 
