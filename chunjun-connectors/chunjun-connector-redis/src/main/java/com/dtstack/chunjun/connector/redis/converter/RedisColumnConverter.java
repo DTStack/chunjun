@@ -184,15 +184,14 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
     }
 
     private String concatKey(ColumnRowData row) {
-        if (redisConf.getKeyIndexes().size() == 1) {
-            return String.valueOf(row.getField(redisConf.getKeyIndexes().get(0)));
-        } else {
-            List<String> keys = new ArrayList<>(redisConf.getKeyIndexes().size());
-            for (Integer index : redisConf.getKeyIndexes()) {
-                keys.add(String.valueOf(row.getField(index)));
-            }
-            return StringUtils.join(keys, redisConf.getKeyFieldDelimiter());
+        List<String> keys = new ArrayList<>(redisConf.getKeyIndexes().size() + 1);
+        if (StringUtils.isNotEmpty(redisConf.getKeyPrefix())) {
+            keys.add(redisConf.getKeyPrefix());
         }
+        for (Integer index : redisConf.getKeyIndexes()) {
+            keys.add(String.valueOf(row.getField(redisConf.getKeyIndexes().get(index))));
+        }
+        return StringUtils.join(keys, redisConf.getKeyFieldDelimiter());
     }
 
     private String concatHashKey(ColumnRowData row) {
