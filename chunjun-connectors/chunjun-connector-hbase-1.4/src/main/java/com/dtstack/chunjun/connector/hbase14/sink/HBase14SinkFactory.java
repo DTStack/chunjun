@@ -95,7 +95,7 @@ public class HBase14SinkFactory extends SinkFactory {
             rowConverter = new HbaseRowConverter(hbaseSchema, nullStringLiteral);
         }
 
-        builder.setRowConverter(rowConverter,useAbstractBaseColumn);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 

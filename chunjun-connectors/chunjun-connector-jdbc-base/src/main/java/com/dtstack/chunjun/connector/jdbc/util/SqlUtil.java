@@ -57,7 +57,7 @@ public class SqlUtil {
 
         } else {
             // rowNum字段作为splitKey
-            if (addRowNumColumn(jdbcConf.getSplitPk())) {
+            if (isRowNumSplitKey(jdbcConf.getSplitPk())) {
                 StringBuilder customTableBuilder =
                         new StringBuilder(128)
                                 .append("SELECT ")
@@ -98,7 +98,7 @@ public class SqlUtil {
         // customSql为空 且 splitPk是ROW_NUMBER()
         boolean flag =
                 StringUtils.isBlank(jdbcConf.getCustomSql())
-                        && SqlUtil.addRowNumColumn(jdbcConf.getSplitPk());
+                        && SqlUtil.isRowNumSplitKey(jdbcConf.getSplitPk());
 
         String splitFilter = null;
         if (jdbcInputSplit.getTotalNumberOfSplits() > 1) {
@@ -227,7 +227,7 @@ public class SqlUtil {
     }
 
     /* 是否添加自定义函数column 作为分片key ***/
-    public static boolean addRowNumColumn(String splitKey) {
+    public static boolean isRowNumSplitKey(String splitKey) {
         return StringUtils.isNotBlank(splitKey)
                 && splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
     }
