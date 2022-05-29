@@ -48,10 +48,17 @@ public class HdfsDynamicTableSource implements ScanTableSource {
 
     private final HdfsConf hdfsConf;
     private final TableSchema tableSchema;
+    private final List<String> partitionKeyList;
 
     public HdfsDynamicTableSource(HdfsConf hdfsConf, TableSchema tableSchema) {
+        this(hdfsConf, tableSchema, new ArrayList<>());
+    }
+
+    public HdfsDynamicTableSource(
+            HdfsConf hdfsConf, TableSchema tableSchema, List<String> partitionKeyList) {
         this.hdfsConf = hdfsConf;
         this.tableSchema = tableSchema;
+        this.partitionKeyList = partitionKeyList;
     }
 
     @Override
@@ -61,10 +68,14 @@ public class HdfsDynamicTableSource implements ScanTableSource {
         String[] fieldNames = tableSchema.getFieldNames();
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
         for (int i = 0; i < fieldNames.length; i++) {
+            String fieldName = fieldNames[i];
             FieldConf field = new FieldConf();
-            field.setName(fieldNames[i]);
+            field.setName(fieldName);
             field.setType(rowType.getTypeAt(i).asSummaryString());
             field.setIndex(i);
+            if (partitionKeyList.contains(fieldName)) {
+                field.setPart(true);
+            }
             columnList.add(field);
         }
         hdfsConf.setColumn(columnList);
