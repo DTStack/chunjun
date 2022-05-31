@@ -101,7 +101,7 @@ public class SyncConf implements Serializable {
         Preconditions.checkNotNull(
                 writerName,
                 "[name] under [writer] in the task script is empty, please check the configuration of the task script.");
-        Map<String, Object> writerParameter = reader.getParameter();
+        Map<String, Object> writerParameter = writer.getParameter();
         Preconditions.checkNotNull(
                 writerParameter,
                 "[parameter] under [writer] in the task script is empty, please check the configuration of the task script.");
