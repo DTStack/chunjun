@@ -80,6 +80,7 @@ import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_DEFAULT_FETC
 import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_FETCH_SIZE;
 import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_INCREMENT_COLUMN;
 import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_INCREMENT_COLUMN_TYPE;
+import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_ORDER_BY_COLUMN;
 import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_PARALLELISM;
 import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_PARTITION_COLUMN;
 import static com.dtstack.chunjun.source.options.SourceOptions.SCAN_PARTITION_STRATEGY;
@@ -109,11 +110,11 @@ public abstract class JdbcDynamicTableFactory
         final ReadableConfig config = helper.getOptions();
 
         // 2.参数校验
-        helper.validateExcept(VERTX_PREFIX, DRUID_PREFIX);
-        validateConfigOptions(config);
-        // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        helper.validateExcept(VERTX_PREFIX, DRUID_PREFIX);
+        validateConfigOptions(config, physicalSchema);
+        // 3.封装参数
         JdbcDialect jdbcDialect = getDialect();
 
         final Map<String, Object> druidConf =
@@ -139,13 +140,12 @@ public abstract class JdbcDynamicTableFactory
 
         // 2.参数校验
         helper.validate();
-        validateConfigOptions(config);
+        TableSchema physicalSchema =
+                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        validateConfigOptions(config, physicalSchema);
         JdbcDialect jdbcDialect = getDialect();
 
         // 3.封装参数
-        TableSchema physicalSchema =
-                TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
-
         return new JdbcDynamicTableSink(
                 getSinkConnectionConf(helper.getOptions(), physicalSchema),
                 jdbcDialect,
@@ -226,6 +226,8 @@ public abstract class JdbcDynamicTableFactory
             jdbcConf.setIncreColumnType(readableConfig.get(SCAN_INCREMENT_COLUMN_TYPE));
         }
 
+        jdbcConf.setOrderByColumn(readableConfig.get(SCAN_ORDER_BY_COLUMN));
+
         jdbcConf.setStartLocation(readableConfig.get(SCAN_START_LOCATION));
 
         jdbcConf.setRestoreColumn(readableConfig.get(SCAN_RESTORE_COLUMNNAME));
@@ -271,6 +273,7 @@ public abstract class JdbcDynamicTableFactory
         optionalOptions.add(SCAN_FETCH_SIZE);
         optionalOptions.add(SCAN_RESTORE_COLUMNNAME);
         optionalOptions.add(SCAN_RESTORE_COLUMNTYPE);
+        optionalOptions.add(SCAN_ORDER_BY_COLUMN);
 
         optionalOptions.add(LOOKUP_CACHE_PERIOD);
         optionalOptions.add(LOOKUP_CACHE_MAX_ROWS);
@@ -291,7 +294,7 @@ public abstract class JdbcDynamicTableFactory
         return optionalOptions;
     }
 
-    protected void validateConfigOptions(ReadableConfig config) {
+    protected void validateConfigOptions(ReadableConfig config, TableSchema tableSchema) {
         String jdbcUrl = config.get(URL);
         final Optional<JdbcDialect> dialect = Optional.of(getDialect());
         checkState(dialect.get().canHandle(jdbcUrl), "Cannot handle such jdbc url: " + jdbcUrl);
@@ -330,6 +333,18 @@ public abstract class JdbcDynamicTableFactory
                             Semantic.EXACTLY_ONCE.getAlisName(),
                             Semantic.AT_LEAST_ONCE.getAlisName(),
                             config.get(SINK_SEMANTIC)));
+        }
+        String orderByColumn = config.get(SCAN_ORDER_BY_COLUMN);
+        if (orderByColumn != null) {
+            boolean isExist =
+                    tableSchema.getTableColumns().stream()
+                            .anyMatch(tableColumn -> tableColumn.getName().equals(orderByColumn));
+            if (!isExist) {
+                throw new IllegalArgumentException(
+                        String.format(
+                                "The value of '%s' option must be one of the column names you defined",
+                                SCAN_ORDER_BY_COLUMN.key()));
+            }
         }
     }
 
