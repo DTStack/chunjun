@@ -25,7 +25,7 @@ import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.enums.ColumnType;
-import com.dtstack.chunjun.metrics.BigIntegerAccmulator;
+import com.dtstack.chunjun.metrics.BigIntegerAccumulator;
 import com.dtstack.chunjun.metrics.StringAccumulator;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
@@ -89,8 +89,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected Object state = null;
 
     protected StringAccumulator maxValueAccumulator;
-    protected BigIntegerAccmulator endLocationAccumulator;
-    protected BigIntegerAccmulator startLocationAccumulator;
+    protected BigIntegerAccumulator endLocationAccumulator;
+    protected BigIntegerAccumulator startLocationAccumulator;
 
     // 轮询增量标识字段类型
     protected ColumnType type;
@@ -305,8 +305,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
         // 初始化增量、轮询字段类型
         type = ColumnType.fromString(jdbcConf.getIncreColumnType());
-        startLocationAccumulator = new BigIntegerAccmulator();
-        endLocationAccumulator = new BigIntegerAccmulator();
+        startLocationAccumulator = new BigIntegerAccumulator();
+        endLocationAccumulator = new BigIntegerAccumulator();
         JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
         String startLocation =
                 StringUtil.stringToTimestampStr(jdbcInputSplit.getStartLocation(), type);
