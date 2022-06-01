@@ -113,10 +113,10 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
 
         // 2.参数校验
         helper.validateExcept(VERTX_PREFIX, DRUID_PREFIX);
-        validateConfigOptions(config);
-        // 3.封装参数
         TableSchema physicalSchema =
                 TableSchemaUtils.getPhysicalSchema(context.getCatalogTable().getSchema());
+        validateConfigOptions(config, physicalSchema);
+        // 3.封装参数
         JdbcDialect jdbcDialect = getDialect();
 
         final Map<String, Object> druidConf =
@@ -147,7 +147,7 @@ public class DorisDynamicTableFactory extends JdbcDynamicTableFactory
     }
 
     @Override
-    protected void validateConfigOptions(ReadableConfig config) {
+    protected void validateConfigOptions(ReadableConfig config, TableSchema tableSchema) {
         String url = config.get(DorisOptions.URL);
         List<String> feNodes = config.get(DorisOptions.FENODES);
 
