@@ -27,13 +27,13 @@ import java.math.BigInteger;
  *
  * @author tudou
  */
-public class BigIntegerAccmulator implements SimpleAccumulator<BigInteger> {
+public class BigIntegerAccumulator implements SimpleAccumulator<BigInteger> {
 
     private static final long serialVersionUID = 1L;
 
     private BigInteger max = BigInteger.valueOf(Integer.MIN_VALUE);
 
-    public BigIntegerAccmulator() {}
+    public BigIntegerAccumulator() {}
 
     @Override
     public void add(BigInteger value) {
@@ -60,8 +60,8 @@ public class BigIntegerAccmulator implements SimpleAccumulator<BigInteger> {
     }
 
     @Override
-    public BigIntegerAccmulator clone() {
-        BigIntegerAccmulator clone = new BigIntegerAccmulator();
+    public BigIntegerAccumulator clone() {
+        BigIntegerAccumulator clone = new BigIntegerAccumulator();
         clone.max = this.max;
         return clone;
     }
