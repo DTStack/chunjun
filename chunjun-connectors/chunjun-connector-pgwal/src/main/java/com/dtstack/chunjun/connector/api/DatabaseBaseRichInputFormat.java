@@ -5,7 +5,7 @@ import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.enums.ColumnType;
-import com.dtstack.chunjun.metrics.BigIntegerAccmulator;
+import com.dtstack.chunjun.metrics.BigIntegerAccumulator;
 import com.dtstack.chunjun.metrics.StringAccumulator;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
@@ -40,8 +40,8 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
     /** 用户脚本中填写的字段类型集合 */
     protected StringAccumulator maxValueAccumulator;
 
-    protected BigIntegerAccmulator endLocationAccumulator;
-    protected BigIntegerAccmulator startLocationAccumulator;
+    protected BigIntegerAccumulator endLocationAccumulator;
+    protected BigIntegerAccumulator startLocationAccumulator;
     // 轮询增量标识字段类型
     protected ColumnType type;
     private ServiceProcessor<T, OUT> processor;
@@ -104,8 +104,8 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
         }
         // 初始化增量、轮询字段类型
         type = ColumnType.fromString(jdbcConf.getIncreColumnType());
-        startLocationAccumulator = new BigIntegerAccmulator();
-        endLocationAccumulator = new BigIntegerAccmulator();
+        startLocationAccumulator = new BigIntegerAccumulator();
+        endLocationAccumulator = new BigIntegerAccumulator();
         String startLocation = StringUtil.stringToTimestampStr(jdbcConf.getStartLocation(), type);
 
         if (StringUtils.isNotEmpty(jdbcConf.getStartLocation())) {
