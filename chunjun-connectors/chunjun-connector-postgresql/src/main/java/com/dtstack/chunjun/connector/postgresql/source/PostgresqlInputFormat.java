@@ -1,6 +1,7 @@
 package com.dtstack.chunjun.connector.postgresql.source;
 
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
+import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
 import java.sql.ResultSet;
@@ -10,15 +11,15 @@ import java.util.concurrent.TimeUnit;
 public class PostgresqlInputFormat extends JdbcInputFormat {
 
     @Override
-    protected void queryStartLocation() throws SQLException {
+    protected void queryPollingWithOutStartLocation() throws SQLException {
         // In PostgreSQL, if resultCursorType is FORWARD_ONLY
         // , the query will report an error after the method
         // #setFetchDirection(ResultSet.FETCH_REVERSE) is called.
+        String querySql =
+                jdbcConf.getQuerySql() + SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC");
         ps =
                 dbConn.prepareStatement(
-                        jdbcConf.getQuerySql(),
-                        ResultSet.TYPE_SCROLL_INSENSITIVE,
-                        resultSetConcurrency);
+                        querySql, ResultSet.TYPE_SCROLL_INSENSITIVE, resultSetConcurrency);
         ps.setFetchSize(jdbcConf.getFetchSize());
         ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
         resultSet = ps.executeQuery();

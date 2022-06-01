@@ -216,7 +216,7 @@ public class SqlUtil {
             JdbcConf jdbcConf, JdbcDialect jdbcDialect, String sortRule) {
         String column;
         // 增量任务
-        if (jdbcConf.isIncrement() && !jdbcConf.isPolling()) {
+        if (jdbcConf.isIncrement()) {
             column = jdbcConf.getIncreColumn();
         } else {
             column = jdbcConf.getOrderByColumn();
