@@ -64,6 +64,12 @@ public class SourceOptions {
                     .noDefaultValue()
                     .withDescription("scan.increment.column-type.");
 
+    public static final ConfigOption<String> SCAN_ORDER_BY_COLUMN =
+            ConfigOptions.key("scan.order-by.column")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("scan.order-by.column");
+
     public static final ConfigOption<Integer> SCAN_POLLING_INTERVAL =
             ConfigOptions.key("scan.polling-interval")
                     .intType()
