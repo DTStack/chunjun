@@ -529,7 +529,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         querySql = buildQuerySqlBySplit(jdbcInputSplit, whereList);
 
-        querySql = querySql + SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC");
+        if (!jdbcConf.isPolling()) {
+            querySql = querySql + SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC");
+        }
         LOG.info("Executing sql is: '{}'", querySql);
         return querySql;
     }
@@ -775,14 +777,29 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected void executeQuery(String startLocation) throws SQLException {
         if (jdbcConf.isPolling()) {
             if (StringUtils.isBlank(startLocation)) {
-                // 从数据库中获取起始位置
-                queryStartLocation();
+                // Get the startLocation from the database
+                queryPollingWithOutStartLocation();
+                // Concatenated sql statement for next polling query
+                StringBuilder builder = new StringBuilder(128);
+                builder.append(jdbcConf.getQuerySql());
+                if (jdbcConf.getQuerySql().contains("WHERE")) {
+                    builder.append(" AND ");
+                } else {
+                    builder.append(" WHERE ");
+                }
+                builder.append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
+                        .append(" > ?")
+                        .append(SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC"));
+                jdbcConf.setQuerySql(builder.toString());
+                initPrepareStatement(jdbcConf.getQuerySql());
+                LOG.info("update querySql, sql = {}", jdbcConf.getQuerySql());
             } else {
-                ps =
-                        dbConn.prepareStatement(
-                                jdbcConf.getQuerySql(), resultSetType, resultSetConcurrency);
-                ps.setFetchSize(jdbcConf.getFetchSize());
-                ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
+                // if the job have startLocation
+                // sql will be like "select ... from ... where increColumn > ?"
+                jdbcConf.setQuerySql(
+                        jdbcConf.getQuerySql()
+                                + SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC"));
+                initPrepareStatement(jdbcConf.getQuerySql());
                 queryForPolling(startLocation);
                 state = startLocation;
             }
@@ -803,25 +820,21 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected Pair<List<String>, List<String>> getTableMetaData() {
         return JdbcUtil.getTableMetaData(null, jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
     }
-
+    /** init prepareStatement */
+    public void initPrepareStatement(String querySql) throws SQLException {
+        ps = dbConn.prepareStatement(querySql, resultSetType, resultSetConcurrency);
+        ps.setFetchSize(jdbcConf.getFetchSize());
+        ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
+    }
     /**
      * 间隔轮询查询起始位置
      *
      * @throws SQLException
      */
-    protected void queryStartLocation() throws SQLException {
+    protected void queryPollingWithOutStartLocation() throws SQLException {
         // add order by to query SQL avoid duplicate data
-        StringBuilder updateSqlBuilder = new StringBuilder(128);
-        updateSqlBuilder.append(jdbcConf.getQuerySql());
-        updateSqlBuilder
-                .append(" ORDER BY ")
-                .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
-                .append(" ASC");
-        ps =
-                dbConn.prepareStatement(
-                        updateSqlBuilder.toString(), resultSetType, resultSetConcurrency);
-        ps.setFetchSize(jdbcConf.getFetchSize());
-        ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
+        initPrepareStatement(
+                jdbcConf.getQuerySql() + SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC"));
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
 
@@ -848,24 +861,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     "interrupted while waiting for polling, e = {}",
                     ExceptionUtil.getErrorMessage(e));
         }
-
-        // 查询到数据，更新querySql
-        StringBuilder builder = new StringBuilder(128);
-        builder.append(jdbcConf.getQuerySql());
-        if (jdbcConf.getQuerySql().contains("WHERE")) {
-            builder.append(" AND ");
-        } else {
-            builder.append(" WHERE ");
-        }
-        builder.append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
-                .append(" > ? ORDER BY ")
-                .append(jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()))
-                .append(" ASC");
-        jdbcConf.setQuerySql(builder.toString());
-        ps = dbConn.prepareStatement(jdbcConf.getQuerySql(), resultSetType, resultSetConcurrency);
-        ps.setFetchSize(jdbcConf.getFetchSize());
-        ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
-        LOG.info("update querySql, sql = {}", jdbcConf.getQuerySql());
     }
 
     /**
