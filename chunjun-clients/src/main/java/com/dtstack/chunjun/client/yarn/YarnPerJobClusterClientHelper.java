@@ -68,8 +68,8 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
 
     private static final Logger LOG = LoggerFactory.getLogger(YarnPerJobClusterClientHelper.class);
 
-    public static final int MIN_JM_MEMORY = 1024;
-    public static final int MIN_TM_MEMORY = 1024;
+    public static final int DEFAULT_JM_MEMORY = 1024;
+    public static final int DEFAULT_TM_MEMORY = 1024;
     public static final String JOBMANAGER_MEMORY_MB = "jobmanager.memory.process.size";
     public static final String TASKMANAGER_MEMORY_MB = "taskmanager.memory.process.size";
 
@@ -173,27 +173,21 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
 
         Properties conProp =
                 MapUtil.jsonStrToObject(launcherOptions.getConfProp(), Properties.class);
-        int jobManagerMemoryMb = 1024;
-        int taskManagerMemoryMb = 1024;
+        int jobManagerMemoryMb = DEFAULT_JM_MEMORY;
+        int taskManagerMemoryMb = DEFAULT_TM_MEMORY;
         int slotsPerTaskManager = 1;
 
         if (conProp != null) {
             if (conProp.containsKey(JobManagerOptions.TOTAL_PROCESS_MEMORY.key())) {
                 jobManagerMemoryMb =
-                        Math.max(
-                                MIN_JM_MEMORY,
-                                ValueUtil.getInt(
-                                        conProp.getProperty(
-                                                JobManagerOptions.TOTAL_PROCESS_MEMORY.key())));
+                        getMemoryMb(
+                                conProp.getProperty(JobManagerOptions.TOTAL_PROCESS_MEMORY.key()));
                 jobManagerMemoryMb = jobManagerMemoryMb >> 20;
             }
             if (conProp.containsKey(TaskManagerOptions.TOTAL_PROCESS_MEMORY.key())) {
                 taskManagerMemoryMb =
-                        Math.max(
-                                MIN_TM_MEMORY,
-                                ValueUtil.getInt(
-                                        conProp.getProperty(
-                                                TaskManagerOptions.TOTAL_PROCESS_MEMORY.key())));
+                        getMemoryMb(
+                                conProp.getProperty(TaskManagerOptions.TOTAL_PROCESS_MEMORY.key()));
 
                 taskManagerMemoryMb = taskManagerMemoryMb >> 20;
             }
@@ -232,5 +226,19 @@ public class YarnPerJobClusterClientHelper implements ClusterClientHelper {
                 YarnConfLoader.getYarnConf(launcherOptions.getHadoopConfDir()));
 
         return clusterSpecification;
+    }
+
+    private int getMemoryMb(String memory) {
+        if (StringUtils.isBlank(memory)) {
+            throw new IllegalArgumentException("invalid memory value: " + memory);
+        }
+        String m = memory.trim().toLowerCase();
+        if (m.endsWith("m")) {
+            return Integer.parseInt(m.substring(0, m.length() - 1));
+        } else if (m.endsWith("g")) {
+            return Integer.parseInt(m.substring(0, m.length() - 1)) * 1024;
+        } else {
+            throw new IllegalArgumentException("memory unit only support m,g");
+        }
     }
 }
