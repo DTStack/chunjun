@@ -692,7 +692,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     /** 构建基于startLocation&endLocation的过滤条件 * */
     protected void buildLocationFilter(JdbcInputSplit jdbcInputSplit, List<String> whereList) {
-        String sql = null;
         String startLocation = jdbcInputSplit.getStartLocation();
         if (formatState.getState() != null && StringUtils.isNotBlank(jdbcConf.getRestoreColumn())) {
             startLocation = String.valueOf(formatState.getState());
@@ -702,20 +701,20 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                         jdbcInputSplit.getStartLocation(),
                         startLocation);
                 jdbcInputSplit.setStartLocation(startLocation);
-                sql =
+                whereList.add(
                         SqlUtil.buildFilterSql(
                                 jdbcConf.getCustomSql(),
                                 ">",
                                 startLocation,
                                 jdbcDialect.quoteIdentifier(jdbcConf.getRestoreColumn()),
                                 jdbcConf.getRestoreColumnType(),
-                                jdbcConf.isPolling(),
-                                this::getTimeStr);
+                                jdbcInputSplit.isPolling(),
+                                this::getTimeStr));
             }
         } else if (jdbcConf.isIncrement()) {
             if (StringUtils.isNotBlank(startLocation)) {
                 String operator = jdbcConf.isUseMaxFunc() ? " >= " : " > ";
-                sql =
+                whereList.add(
                         SqlUtil.buildFilterSql(
                                 jdbcConf.getCustomSql(),
                                 operator,
@@ -723,22 +722,19 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                                 jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
                                 jdbcConf.getIncreColumnType(),
                                 jdbcInputSplit.isPolling(),
-                                this::getTimeStr);
-            }
-            if (StringUtils.isNotBlank(jdbcInputSplit.getEndLocation())) {
-                sql =
-                        SqlUtil.buildFilterSql(
-                                jdbcConf.getCustomSql(),
-                                "<",
-                                jdbcInputSplit.getEndLocation(),
-                                jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                                jdbcConf.getIncreColumnType(),
-                                false,
-                                this::getTimeStr);
+                                this::getTimeStr));
             }
         }
-        if (sql != null) {
-            whereList.add(sql);
+        if (StringUtils.isNotBlank(jdbcInputSplit.getEndLocation())) {
+            whereList.add(
+                    SqlUtil.buildFilterSql(
+                            jdbcConf.getCustomSql(),
+                            "<",
+                            jdbcInputSplit.getEndLocation(),
+                            jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
+                            jdbcConf.getIncreColumnType(),
+                            false,
+                            this::getTimeStr));
         }
     }
 
