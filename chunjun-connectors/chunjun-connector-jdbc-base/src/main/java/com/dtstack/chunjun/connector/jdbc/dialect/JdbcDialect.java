@@ -357,7 +357,7 @@ public interface JdbcDialect extends Serializable {
                 sql.append(" AND ");
             }
             sql.append(quoteIdentifier(splitPkName))
-                    .append(" < ")
+                    .append(split.getRangeEndLocationOperator())
                     .append(split.getEndLocationOfSplit());
         }
 

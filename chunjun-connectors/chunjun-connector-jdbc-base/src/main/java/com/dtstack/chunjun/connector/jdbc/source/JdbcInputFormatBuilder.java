@@ -68,9 +68,6 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
                 sb.append("increColumn can't be empty when increment is true;\n");
             }
             conf.setSplitPk(conf.getIncreColumn());
-            if (conf.getParallelism() > 1) {
-                conf.setSplitStrategy("mod");
-            }
         }
 
         if (conf.getParallelism() > 1) {
