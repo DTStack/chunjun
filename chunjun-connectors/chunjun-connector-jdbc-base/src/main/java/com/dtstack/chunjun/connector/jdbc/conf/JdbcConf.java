@@ -55,7 +55,7 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
     private String orderByColumn;
     private String querySql;
     private String splitPk;
-    private String splitStrategy = "range";
+    private String splitStrategy;
     private int fetchSize = 0;
     private int queryTimeOut = 0;
     // 连接超时时间

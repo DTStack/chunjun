@@ -80,7 +80,7 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
                 columnCount = resultSet.getMetaData().getColumnCount();
             }
             // 增量任务
-            isUpdateLocation =
+            needUpdateEndLocation =
                     jdbcConf.isIncrement() && !jdbcConf.isPolling() && !jdbcConf.isUseMaxFunc();
             RowType rowType =
                     TableUtil.createRowType(
