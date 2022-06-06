@@ -39,6 +39,13 @@ public class JdbcInputSplit extends GenericInputSplit {
     /** 分片endLocation * */
     private String endLocationOfSplit;
 
+    private boolean isPolling;
+
+    private String splitStrategy;
+
+    /** only latest range split use '<=' */
+    private String rangeEndLocationOperator = " < ";
+
     /**
      * Creates a generic input split with the given split number.
      *
@@ -52,13 +59,17 @@ public class JdbcInputSplit extends GenericInputSplit {
             String startLocation,
             String endLocation,
             String startLocationOfSplit,
-            String endLocationOfSplit) {
+            String endLocationOfSplit,
+            String splitStrategy,
+            boolean isPolling) {
         super(partitionNumber, totalNumberOfPartitions);
         this.mod = mod;
         this.startLocation = startLocation;
         this.endLocation = endLocation;
         this.startLocationOfSplit = startLocationOfSplit;
         this.endLocationOfSplit = endLocationOfSplit;
+        this.splitStrategy = splitStrategy;
+        this.isPolling = isPolling;
     }
 
     public int getMod() {
@@ -101,6 +112,30 @@ public class JdbcInputSplit extends GenericInputSplit {
         this.endLocationOfSplit = endLocationOfSplit;
     }
 
+    public String getRangeEndLocationOperator() {
+        return rangeEndLocationOperator;
+    }
+
+    public void setRangeEndLocationOperator(String rangeEndLocationOperator) {
+        this.rangeEndLocationOperator = rangeEndLocationOperator;
+    }
+
+    public boolean isPolling() {
+        return isPolling;
+    }
+
+    public void setPolling(boolean polling) {
+        isPolling = polling;
+    }
+
+    public String getSplitStrategy() {
+        return splitStrategy;
+    }
+
+    public void setSplitStrategy(String splitStrategy) {
+        this.splitStrategy = splitStrategy;
+    }
+
     @Override
     public String toString() {
         return "JdbcInputSplit{"
@@ -118,6 +153,15 @@ public class JdbcInputSplit extends GenericInputSplit {
                 + ", endLocationOfSplit='"
                 + endLocationOfSplit
                 + '\''
-                + '}';
+                + ", isPolling="
+                + isPolling
+                + ", splitStrategy='"
+                + splitStrategy
+                + '\''
+                + ", rangeEndLocationOperator='"
+                + rangeEndLocationOperator
+                + '\''
+                + '}'
+                + super.toString();
     }
 }

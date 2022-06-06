@@ -32,8 +32,21 @@ public class DistributedJdbcInputSplit extends JdbcInputSplit {
     private List<DataSourceConf> sourceList;
 
     public DistributedJdbcInputSplit(
-            int partitionNumber, int totalNumberOfPartitions, List<DataSourceConf> sourceList) {
-        super(partitionNumber, totalNumberOfPartitions, partitionNumber, null, null, null, null);
+            int partitionNumber,
+            int totalNumberOfPartitions,
+            List<DataSourceConf> sourceList,
+            String splitStrategy,
+            boolean isPolling) {
+        super(
+                partitionNumber,
+                totalNumberOfPartitions,
+                partitionNumber,
+                null,
+                null,
+                null,
+                null,
+                splitStrategy,
+                isPolling);
         this.sourceList = sourceList;
     }
 

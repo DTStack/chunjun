@@ -90,7 +90,12 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
 
         for (int i = 0; i < subList.size(); i++) {
             DistributedJdbcInputSplit split =
-                    new DistributedJdbcInputSplit(i, minNumSplits, subList.get(i));
+                    new DistributedJdbcInputSplit(
+                            i,
+                            minNumSplits,
+                            subList.get(i),
+                            jdbcConf.getSplitStrategy(),
+                            jdbcConf.isPolling());
             inputSplits[i] = split;
         }
 

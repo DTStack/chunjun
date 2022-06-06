@@ -110,7 +110,10 @@ public class SqlUtil {
             }
             splitFilter =
                     buildSplitFilterSql(
-                            jdbcConf.getSplitStrategy(), jdbcDialect, jdbcInputSplit, splitColumn);
+                            jdbcInputSplit.getSplitStrategy(),
+                            jdbcDialect,
+                            jdbcInputSplit,
+                            splitColumn);
         }
 
         String querySql;
