@@ -1,0 +1,82 @@
+.footer {
+  text-align: center;
+  padding: 40px 17px 0;
+  &__copyright {
+    color: var(--second-text-color);
+    font-size: var(--font-size-base);
+    line-height: 20px;
+    height: 101px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  &__wrapper {
+    height: 558px;
+    display: flex;
+    align-items: center;
+    &--left,
+    &--right {
+      height: 100%;
+      width: 50%;
+    }
+    &--left {
+      background-image: url(../../assets/img/block2x.png);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: left;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+
+      & .left__cards--card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: transparent;
+      }
+      & .left__cards--title {
+        font-size: var(--font-size-lg);
+        font-weight: 600;
+        color: var(--black-text-color);
+        margin-bottom: 20px;
+        line-height: 22px;
+      }
+      & .left__cards--text {
+        font-size: var(--font-size-base);
+        color: var(--second-text-color);
+      }
+    }
+    &--right {
+      background-image: url(../../assets/img/block2@2x.png);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: right;
+      display: flex;
+      padding: 150px 0 0 0;
+      // align-items: center;
+      justify-content: space-evenly;
+      & .right__wrapper {
+        &--title {
+          font-size: var(--font-size-lg);
+          line-height: 22px;
+          color: var(--black-text-color);
+          font-weight: 600;
+          margin-bottom: 20px;
+        }
+        &--list {
+          display: flex;
+          flex-direction: column;
+        }
+        &--link {
+          color: var(--second-text-color);
+          line-height: 22px;
+          font-size: var(--font-size-base);
+          display: inline-block;
+          &:not(:last-child) {
+            margin-bottom: 8px;
+          }
+        }
+      }
+    }
+  }
+}
