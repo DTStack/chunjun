@@ -1,0 +1,113 @@
+.chunjun {
+  z-index: 8;
+  transform: translateY(-50px);
+  &__title {
+    color: #1a194d;
+  }
+  &__wrapper {
+    &--card {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .left {
+      @media screen and (max-width: 976px) {
+        flex-direction: column;
+      }
+    }
+
+    .right {
+      @media screen and (max-width: 976px) {
+        flex-direction: column-reverse;
+      }
+    }
+
+    &--img {
+      img {
+        width: 465px;
+        @media screen and (max-width: 676px) {
+          width: 90%;
+        }
+      }
+    }
+
+    &--description {
+      width: 465px;
+      @media screen and (max-width: 676px) {
+        width: 90%;
+      }
+    }
+
+    &--img,
+    &--description {
+      // flex: 1 1 0%;
+      padding: 50px;
+      @media screen and (max-width: 976px) {
+        padding: 30px;
+      }
+    }
+    .left &--img {
+      display: flex;
+      justify-content: end;
+    }
+
+    .right &--description {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      @media screen and (max-width: 976px) {
+        display: inline-block;
+      }
+    }
+    &--description {
+      h4 {
+        font-size: 25px;
+        font-weight: 400;
+        margin-bottom: 30px;
+        @media screen and (max-width: 976px) {
+          text-align: center;
+          font-size: 20px;
+        }
+      }
+      p {
+        font-size: var(--font-size-lg);
+        text-indent: 4ch;
+        display: inline-block;
+        @media screen and (max-width: 976px) {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+}
+
+.fourth {
+  padding: 100px;
+  margin-bottom: 30px;
+
+  @media screen and (max-width: 600px) {
+    padding: 30px;
+  }
+
+  &__title {
+    @media screen and (max-width: 600px) {
+      font-size: 20px;
+    }
+  }
+
+  &__committer,
+  &__button {
+    display: flex;
+    justify-content: center;
+  }
+  &__committer {
+    margin-bottom: 100px;
+    & img {
+      max-width: 100%;
+    }
+    @media screen and (max-width: 600px) {
+      margin-bottom: 30px;
+    }
+  }
+}
