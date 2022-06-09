@@ -18,7 +18,9 @@
                 "type": "string"
               }
             ],
-            "sliceRecordCount": ["30"],
+            "sliceRecordCount": [
+              "30"
+            ],
             "permitsPerSecond": 1
           },
           "table": {
@@ -36,10 +38,6 @@
               {
                 "name": "name",
                 "type": "string"
-              },
-              {
-                "name": "content",
-                "type": "timestamp"
               }
             ],
             "print": true
@@ -50,7 +48,7 @@
           "name": "streamwriter"
         },
         "transformer": {
-          "transformSql": "select id,name, NOW() from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
+          "transformSql": "select id,name from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
         }
       }
     ],
