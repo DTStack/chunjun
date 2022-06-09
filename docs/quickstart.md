@@ -81,7 +81,7 @@ sh build/build.sh
               },
               {
                 "name": "content",
-                "type": "timestamp"
+                "type": "string"
               }
             ],
             "print": true
@@ -92,7 +92,7 @@ sh build/build.sh
           "name": "streamwriter"
         },
         "transformer": {
-          "transformSql": "select id,name, NOW() from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
+          "transformSql": "select id,name, content from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
         }
       }
     ],

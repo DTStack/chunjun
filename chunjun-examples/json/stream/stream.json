@@ -38,6 +38,10 @@
               {
                 "name": "name",
                 "type": "string"
+              },
+              {
+                "name": "content",
+                "type": "string"
               }
             ],
             "print": true
@@ -48,7 +52,7 @@
           "name": "streamwriter"
         },
         "transformer": {
-          "transformSql": "select id,name from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
+          "transformSql": "select id,name,content from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
         }
       }
     ],
