@@ -116,4 +116,4 @@ Microsoft SQL Server 2012 and above
 | Not supported at the moment | CURSOR、ROWVERSION、HIERARCHYID、SQL_VARIANT、SPATIAL GEOMETRY TYPE、SPATIAL GEOGRAPHY TYPE、TABLE |
 
 ## 6. Profile Demo
-see `flinkx-examples` directory。
+see `chunjun-examples` directory。

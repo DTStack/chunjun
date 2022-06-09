@@ -360,7 +360,7 @@ RowData中的数据依次为：
 - scn：Oracle数据库变更记录对应的scn号
 - type：变更类型，INSERT，UPDATE、DELETE
 - opTime：数据库中SQL的执行时间
-- ts：自增ID，不重复，可用于排序，解码后为FlinkX的事件时间，解码规则如下:
+- ts：自增ID，不重复，可用于排序，解码后为ChunJun的事件时间，解码规则如下:
   <br/>
 
 ```java
@@ -384,4 +384,4 @@ long id = Long.parseLong("6815665753853923328");
 
 
 ## 九、脚本示例
-见项目内`FlinkX : Local : Test`模块中的`demo`文件夹。
+见项目内`ChunJun : Local : Test`模块中的`demo`文件夹。

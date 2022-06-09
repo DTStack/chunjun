@@ -361,7 +361,7 @@ The data in rowdata is：
 - scn：SCN number corresponding to Oracle database change record
 - type：DML Type，INSERT，UPDATE、DELETE
 - opTime：Execution time of SQL in database
-- ts：Self incrementing ID, non duplicate, can be used for sorting. After decoding, it is the event time of flinkx. The decoding rules are as follows:
+- ts：Self incrementing ID, non duplicate, can be used for sorting. After decoding, it is the event time of chunjun. The decoding rules are as follows:
   <br/>
 
 ```java
@@ -385,4 +385,4 @@ long id = Long.parseLong("6815665753853923328");
 
 
 ## Ⅸ、Script Example
-See the `flinkx-examples` folder in the project。
+See the `chunjun-examples` folder in the project。

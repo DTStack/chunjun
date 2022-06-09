@@ -109,4 +109,4 @@ kudu 常用版本
 
 ## 六、脚本示例
 
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。

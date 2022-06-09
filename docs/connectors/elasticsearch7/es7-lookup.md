@@ -18,7 +18,7 @@ Elasticsearch 7.x
 ## 1、SQL
 
 - hosts
-   - 描述：Elasticsearch集群的连接地址。eg: ["localhost:9200"]
+   - 描述：Elasticsearch集群的连接地址。eg: "localhost:9200"，多个地址用分号作为分隔符。
    - 必选：是
    - 参数类型：List<String>
    - 默认值：无
@@ -37,6 +37,31 @@ Elasticsearch 7.x
    - 必须：否
    - 参数类型：String
    - 默认值：无
+- client.connect-timeout
+    - 描述：ES Client最大连接超时时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：5000
+- client.socket-timeout
+    - 描述：ES Client最大socket超时时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：1800000
+- client.keep-alive-time
+    - 描述：ES Client会话最大保持时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：5000
+- client.request-timeout
+    - 描述：ES Client最大请求超时时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：2000
+- client.max-connection-per-route
+    - 描述：每一个路由值的最大连接数量
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：10
 - lookup.cache-type
    - 描述：维表类型。eg: all 或者 lru
    - 必须：否
@@ -86,4 +111,4 @@ Elasticsearch 7.x
 |  | VARCHAR |
 
 # 六、脚本示例
-见项目内FlinkX：Local：Test模块中的demo文件夹。
+见项目内ChunJun：Local：Test模块中的demo文件夹。

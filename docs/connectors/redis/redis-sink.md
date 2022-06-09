@@ -180,6 +180,23 @@ redis sink
   - 默认值：无
 <br />
 
+- **type和mode**
+    - 描述：type 表示 value 的类型，mode 表示在选定的数据类型下的写入模式。
+    - 选项：string/list/set/zset/hash
+
+      | type | 描述 | mode | 说明 | 注意 |
+      | ---- | ---- | ---- | ---- | ---- |
+      | string | 字符串 | set | 存储这个数据，如果已经存在则覆盖 |  |
+      | list | 字符串列表 | lpush | 在 list 最左边存储这个数据 |  |
+      | list | 字符串列表 | rpush | 在 list 最右边存储这个数据 |  |
+      | set | 字符串集合 | sadd | 向 set 集合中存储这个数据，如果已经存在则覆盖 |  |
+      | zset | 有序字符串集合 | zadd | 向 zset 有序集合中存储这个数据，如果已经存在则覆盖 | 当 value 类型是 zset 时，数据源的每一行记录需要遵循相应的规范，即每一行记录除 key 以外，只能有一对 score 和 value，并且 score 必须在 value 前面，rediswriter 方能解析出哪一个 column 是 score，哪一个 column 是 value。 |
+      | hash | 哈希 | hset | 向 hash 有序集合中存储这个数据，如果已经存在则覆盖 | 当 value 类型是 hash 时，数据源的每一行记录需要遵循相应的规范，即每一行记录除 key 以外，只能有一对 attribute 和 value，并且 attribute 必须在 value 前面，Rediswriter 方能解析出哪一个 column 是 attribute，哪一个 column 是 value。 |
+    - 必选：是
+    - 默认值：无
+<br />
+      
+
 ## 五、数据类型
 | 支持 | BOOLEAN、TINYINT、SMALLINT、INT、BIGINT、FLOAT、DOUBLE、DECIMAL、STRING、VARCHAR、CHAR、TIMESTAMP、DATE、BINARY |
 | --- | --- |
@@ -187,4 +204,4 @@ redis sink
 
 
 ## 六、脚本示例
-见项目内`flinkx-examples`文件夹。
+见项目内`chunjun-examples`文件夹。

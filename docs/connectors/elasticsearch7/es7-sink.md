@@ -46,6 +46,12 @@ Elasticsearch 7.x
    - 必须：否
    - 参数类型：Integer
    - 默认值：1
+- ids
+   - 描述：用来标识文档Id的字段列表
+   - 必须：否
+   - 参数类型：string数组
+   - 默认值：无
+   - 注意：当需要对数据进行更新和删除操作时，必需指定
 - keyDelimiter
    - 描述：文档id之间的分隔符号，eg:“${col1}_${col2}”
    - 必须：否
@@ -55,7 +61,31 @@ Elasticsearch 7.x
    - 描述：需要读取的字段
    - 注意：不支持*格式
    - 格式：
-   
+- connectTimeout
+    - 描述：ES Client最大连接超时时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：5000
+- socketTimeout
+    - 描述：ES Client最大socket超时时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：1800000
+- keepAliveTime
+    - 描述：ES Client会话最大保持时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：5000
+- requestTimeout
+    - 描述：ES Client最大请求超时时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：2000
+- maxConnPerRoute
+    - 描述：每一个路由值的最大连接数量
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：10
 ```
 "column": [{
     "name": "col", -- 字段名称，可使用多级格式查找
@@ -68,7 +98,7 @@ Elasticsearch 7.x
 ## 2、SQL
 
 - hosts
-   - 描述：Elasticsearch集群的连接地址。eg: ["localhost:9200"]
+   - 描述：Elasticsearch集群的连接地址。eg: "localhost:9200", 多地址用分号分隔符隔开。
    - 必选：是
    - 参数类型：List<String>
    - 默认值：无
@@ -97,6 +127,31 @@ Elasticsearch 7.x
    - 必须：否
    - 参数类型：String
    - 默认值："_"
+- client.connect-timeout
+    - 描述：ES Client最大连接超时时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：5000
+- client.socket-timeout
+    - 描述：ES Client最大socket超时时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：1800000
+- client.keep-alive-time
+    - 描述：ES Client会话最大保持时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：5000
+- client.request-timeout
+    - 描述：ES Client最大请求超时时间。
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：2000
+- client.max-connection-per-route
+    - 描述：每一个路由值的最大连接数量
+    - 必须：否
+    - 参数类型：Integer
+    - 默认值：10
 
 # 五、数据类型
 
@@ -106,4 +161,4 @@ Elasticsearch 7.x
 | 不支持 | IP，binary, nested, object|
 
 # 六、脚本示例
-见项目内`FlinkX：Local：Test`模块中的`demo文件夹。
+见项目内`ChunJun：Local：Test`模块中的`demo文件夹。

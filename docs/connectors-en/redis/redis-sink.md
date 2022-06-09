@@ -181,6 +181,23 @@ All major versions
   - Default：(none)
 <br />
 
+- **type和mode**
+    - Description：Type indicates the data type and mode indicates the write mode
+    - Options：string/list/set/zset/hash
+
+      | Type | Mode | 
+      | ---- | ---- |
+      | string | set | 
+      | list | lpush | 
+      | list | rpush | 
+      | set |  sadd | 
+      | zset | zadd |  
+      | hash | hset |
+    - Required：yes
+    - Default：(none)
+<br />
+      
+
 ## 五、Data Types
 | support   | BOOLEAN、TINYINT、SMALLINT、INT、BIGINT、FLOAT、DOUBLE、DECIMAL、STRING、VARCHAR、CHAR、TIMESTAMP、DATE、BINARY |
 | ---------- | --- |
@@ -188,4 +205,4 @@ All major versions
 
 
 ## 六、examples
-link `flinkx-examples`
+link `chunjun-examples`

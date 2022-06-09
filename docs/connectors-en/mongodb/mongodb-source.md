@@ -108,4 +108,4 @@ do not support right now.
 | no support | array |
 
 ## 6. Example
-The details are in flinkx-examples dir.
+The details are in chunjun-examples dir.

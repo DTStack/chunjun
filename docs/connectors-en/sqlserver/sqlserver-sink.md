@@ -146,7 +146,7 @@ Microsoft SQL Server 2012 and above
   - Default:at-least-once
 
 - **batchSize**
-  - Description:The number of records submitted in batch at one time. This value can greatly reduce the number of network interactions between flinkx and the database and improve the overall throughput,Setting this value too large may cause the flinkx process to run oom
+  - Description:The number of records submitted in batch at one time. This value can greatly reduce the number of network interactions between chunjun and the database and improve the overall throughput,Setting this value too large may cause the chunjun process to run oom
   - Required:optional
   - Type:int
   - Default:1024
@@ -251,4 +251,4 @@ Microsoft SQL Server 2012 and above
 | ---| ---|
 | Not supported at the moment | CURSOR、ROWVERSION、HIERARCHYID、SQL_VARIANT、SPATIAL GEOMETRY TYPE、SPATIAL GEOGRAPHY TYPE、TABLE |
 ## 6. Demo
-see details in`flinkx-examples` directory.
+see details in`chunjun-examples` directory.

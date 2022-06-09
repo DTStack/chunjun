@@ -48,7 +48,31 @@ Elasticsearch 7.x
    - Description：Columns to be synchronized
    - note：'*' is not supported.
    - format: 
-  
+- connectTimeout
+    - Description：Elasticsearch client max connect timeout.
+    - Required：optional
+    - Type：Integer
+    - Default：5000
+- socketTimeout
+    - Description：Elasticsearch client max socket timeout.
+    - Required：optional
+    - Type：Integer
+    - Default：1800000
+- keepAliveTime
+    - Description：Elasticsearch client connection max keepAlive time.
+    - Required：optional
+    - Type：Integer
+    - Default：5000
+- requestTimeout
+    - Description：Elasticsearch client connection max request timeout.
+    - Required：optional
+    - Type：Integer
+    - Default：2000
+- maxConnPerRoute
+    - Description：Elasticsearch client connection assigns maximum connection per route value.
+    - Required：optional
+    - Type：Integer
+    - Default：10
 ```
 "column": [{
     "name": "col", -- Column name, which can be found in a multi-level format
@@ -61,7 +85,7 @@ Elasticsearch 7.x
 ## 2、SQL
 
 - hosts
-   - Description：One or more Elasticsearch hosts to connect to。eg: ["localhost:9200"]
+   - Description：One or more Elasticsearch hosts to connect to。eg: "localhost:9200", Multiple addresses are delimited by semicolons.
    - Required：required
    - Type：List<String>
    - Default：none
@@ -85,6 +109,31 @@ Elasticsearch 7.x
    - Required：否
    - Type：Integer
    - Default：1000
+- client.connect-timeout
+    - Description：Elasticsearch client max connect timeout.
+    - Required：optional
+    - Type：Integer
+    - Default：5000
+- client.socket-timeout
+    - Description：Elasticsearch client max socket timeout.
+    - Required：optional
+    - Type：Integer
+    - Default：1800000
+- client.keep-alive-time
+    - Description：Elasticsearch client connection max keepAlive time.
+    - Required：optional
+    - Type：Integer
+    - Default：5000
+- client.request-timeout
+    - Description：Elasticsearch client connection max request timeout.
+    - Required：optional
+    - Type：Integer
+    - Default：2000
+- client.max-connection-per-route
+    - Description：Elasticsearch client connection assigns maximum connection per route value.
+    - Required：optional
+    - Type：Integer
+    - Default：10
 
 ​
 
@@ -99,4 +148,4 @@ Elasticsearch 7.x
 
 # 六、Sample demo
 
-See the 'demo' folder in the 'FlinkX: Local: Test' module of the project.
+See the 'demo' folder in the 'ChunJun: Local: Test' module of the project.
