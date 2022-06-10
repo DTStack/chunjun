@@ -22,7 +22,7 @@ kafka主流版本
    - 默认值：无
 <br />
 
-- **consumerSettings**
+- **producerSettings**
   - 描述：kafka连接配置，支持所有`kafka.consumer.ConsumerConfig.ConsumerConfig`中定义的配置
    - 必选：是
    - 字段类型：Map
@@ -30,7 +30,7 @@ kafka主流版本
    - 如：
     ```json
     {
-        "consumerSettings":{
+        "producerSettings":{
             "bootstrap.servers":"host1:9092,host2:9092,host3:9092"
         }
     }
