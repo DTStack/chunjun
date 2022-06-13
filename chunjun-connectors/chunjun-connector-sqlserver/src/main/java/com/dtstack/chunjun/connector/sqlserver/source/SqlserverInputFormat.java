@@ -22,14 +22,21 @@ import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
+import com.dtstack.chunjun.throwable.ReadRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
+import org.apache.flink.table.data.RowData;
+import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * Company：www.dtstack.com
@@ -43,9 +50,9 @@ public class SqlserverInputFormat extends JdbcInputFormat {
      * 构建边界位置sql
      *
      * @param incrementColType 增量字段类型
-     * @param incrementCol 增量字段名称
-     * @param location 边界位置(起始/结束)
-     * @param operator 判断符( >, >=, <)
+     * @param incrementCol     增量字段名称
+     * @param location         边界位置(起始/结束)
+     * @param operator         判断符( >, >=, <)
      * @return
      */
     @Override
@@ -57,7 +64,11 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                 ColumnType.isTimeType(incrementColType)
                         || ColumnType.NVARCHAR.name().equals(incrementColType);
         if (isTimeType) {
-            endTimeStr = getTimeStr(Long.parseLong(location));
+            if (incrementColType.equalsIgnoreCase(ColumnType.TIMESTAMP.name())) {
+                endTimeStr = location;
+            } else {
+                endTimeStr = getTimeStr(Long.parseLong(location));
+            }
             endLocationSql = incrementCol + operator + endTimeStr;
         } else if (ColumnType.isNumberType(incrementColType)) {
             endLocationSql = incrementCol + operator + location;
@@ -114,7 +125,13 @@ public class SqlserverInputFormat extends JdbcInputFormat {
                     }
                     JdbcUtil.closeDbResources(resultSet, null, null, false);
                     // 此处endLocation理应不会为空
-                    queryForPolling(String.valueOf(state));
+                    String location;
+                    if (state instanceof byte[]) {
+                        location = new String((byte[]) state);
+                    } else {
+                        location = String.valueOf(state);
+                    }
+                    queryForPolling(location);
                     return false;
                 } catch (InterruptedException e) {
                     LOG.warn("interrupted while waiting for polling, e = {}", e);
@@ -134,10 +151,109 @@ public class SqlserverInputFormat extends JdbcInputFormat {
     }
 
     /**
+     * 增量轮询查询
+     *
+     * @param startLocation
+     * @throws SQLException
+     */
+    protected void queryForPolling(String startLocation) throws SQLException {
+        // 每隔五分钟打印一次，(当前时间 - 任务开始时间) % 300秒 <= 一个间隔轮询周期
+        if ((System.currentTimeMillis() - startTime) % 300000 <= jdbcConf.getPollingInterval()) {
+            LOG.info("polling startLocation = {}", startLocation);
+        } else {
+            LOG.debug("polling startLocation = {}", startLocation);
+        }
+
+        boolean isNumber = StringUtils.isNumeric(startLocation);
+        switch (type) {
+            case TIMESTAMP:
+                ps.setInt(1, Integer.parseInt(startLocation));
+                break;
+            case DATE:
+                Date date =
+                        isNumber
+                                ? new Date(Long.parseLong(startLocation))
+                                : Date.valueOf(startLocation);
+                ps.setDate(1, date);
+                break;
+            default:
+                if (isNumber) {
+                    ps.setLong(1, Long.parseLong(startLocation));
+                } else {
+                    ps.setString(1, startLocation);
+                }
+        }
+        resultSet = ps.executeQuery();
+        hasNext = resultSet.next();
+    }
+
+    @Override
+    public RowData nextRecordInternal(RowData rowData) throws ReadRecordException {
+        if (!hasNext) {
+            return null;
+        }
+        try {
+            @SuppressWarnings("unchecked")
+            RowData finalRowData = rowConverter.toInternal(resultSet);
+            if (needUpdateEndLocation) {
+                Object obj;
+                switch (type) {
+                    case DATETIME:
+                    case DATE:
+                        obj = resultSet.getTimestamp(jdbcConf.getIncreColumn()).getTime();
+                        break;
+                    case TIMESTAMP:
+                        obj =
+                                Integer.parseInt(
+                                        String.valueOf(
+                                                ByteBuffer.wrap(
+                                                                (byte[])
+                                                                        resultSet.getObject(
+                                                                                jdbcConf
+                                                                                        .getRestoreColumnIndex()
+                                                                                        + 1))
+                                                        .getLong()));
+                        break;
+                    default:
+                        obj = resultSet.getObject(jdbcConf.getIncreColumn());
+                }
+                String location = String.valueOf(obj);
+                endLocationAccumulator.add(new BigInteger(location));
+                LOG.debug("update endLocationAccumulator, current Location = {}", location);
+            }
+            if (jdbcConf.getRestoreColumnIndex() > -1) {
+                state = resultSet.getObject(jdbcConf.getRestoreColumnIndex() + 1);
+                if (state instanceof byte[]) {
+                    state =
+                            Integer.parseInt(
+                                    String.valueOf(
+                                            ByteBuffer.wrap(
+                                                            (byte[])
+                                                                    resultSet.getObject(
+                                                                            jdbcConf
+                                                                                    .getRestoreColumnIndex()
+                                                                                    + 1))
+                                                    .getLong()));
+                }
+            }
+            return finalRowData;
+        } catch (Exception se) {
+            throw new ReadRecordException("", se, 0, rowData);
+        } finally {
+            try {
+                hasNext = resultSet.next();
+            } catch (SQLException e) {
+                LOG.error("can not read next record", e);
+                hasNext = false;
+            }
+        }
+    }
+
+    /**
      * Returns true if the connection has not been closed and is still valid.
      *
      * @param connection jdbc connection
-     * @param timeOut The time in seconds to wait for the database operation.
+     * @param timeOut    The time in seconds to wait for the database operation.
      */
     public boolean isValid(Connection connection, int timeOut) {
         try {
@@ -161,5 +277,19 @@ public class SqlserverInputFormat extends JdbcInputFormat {
             return false;
         }
         return true;
+    }
+
+    public String buildLocation(
+            String columnType, String location, Function<Long, String> function) {
+        if (ColumnType.isTimeType(columnType)) {
+            if (ColumnType.TIMESTAMP.name().equalsIgnoreCase(columnType)) {
+                return location;
+            }
+            return function.apply(Long.parseLong(location));
+        } else if (ColumnType.isNumberType(columnType)) {
+            return location;
+        } else {
+            return "'" + location + "'";
+        }
     }
 }

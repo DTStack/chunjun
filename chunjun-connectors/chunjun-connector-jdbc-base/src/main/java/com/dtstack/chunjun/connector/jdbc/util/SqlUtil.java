@@ -22,21 +22,18 @@ import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.enums.ColumnType;
-
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.function.Function;
 
 public class SqlUtil {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     public static String buildQuerySplitRangeSql(JdbcConf jdbcConf, JdbcDialect jdbcDialect) {
-        /** 构建where条件 * */
+        // 构建where条件
         String whereFilter = "";
         if (StringUtils.isNotBlank(jdbcConf.getWhere())) {
             whereFilter = " WHERE " + jdbcConf.getWhere();
@@ -58,15 +55,12 @@ public class SqlUtil {
         } else {
             // rowNum字段作为splitKey
             if (isRowNumSplitKey(jdbcConf.getSplitPk())) {
-                StringBuilder customTableBuilder =
-                        new StringBuilder(128)
-                                .append("SELECT ")
-                                .append(getRowNumColumn(jdbcConf.getSplitPk(), jdbcDialect))
-                                .append(" FROM ")
-                                .append(
-                                        jdbcDialect.buildTableInfoWithSchema(
-                                                jdbcConf.getSchema(), jdbcConf.getTable()))
-                                .append(whereFilter);
+                String customTableBuilder = "SELECT " +
+                        getRowNumColumn(jdbcConf.getSplitPk(), jdbcDialect) +
+                        " FROM " +
+                        jdbcDialect.buildTableInfoWithSchema(
+                                jdbcConf.getSchema(), jdbcConf.getTable()) +
+                        whereFilter;
 
                 querySplitRangeSql =
                         String.format(
@@ -88,7 +82,9 @@ public class SqlUtil {
         return querySplitRangeSql;
     }
 
-    /** create querySql for inputSplit * */
+    /**
+     * create querySql for inputSplit *
+     */
     public static String buildQuerySqlBySplit(
             JdbcConf jdbcConf,
             JdbcDialect jdbcDialect,
@@ -159,57 +155,6 @@ public class SqlUtil {
     }
 
     /**
-     * 构造过滤条件SQL
-     *
-     * @param operator 比较符
-     * @param location 比较的值
-     * @param columnName 字段名称
-     * @param columnType 字段类型
-     * @param isPolling 是否是轮询任务
-     * @return
-     */
-    public static String buildFilterSql(
-            String customSql,
-            String operator,
-            String location,
-            String columnName,
-            String columnType,
-            boolean isPolling,
-            Function<Long, String> function) {
-        StringBuilder sql = new StringBuilder(64);
-        if (StringUtils.isNotEmpty(customSql)) {
-            sql.append(JdbcUtil.TEMPORARY_TABLE_NAME).append(".");
-        }
-        sql.append(columnName).append(" ").append(operator).append(" ");
-        if (isPolling) {
-            // 轮询任务使用占位符
-            sql.append("?");
-        } else {
-            sql.append(SqlUtil.buildLocation(columnType, location, function));
-        }
-
-        return sql.toString();
-    }
-
-    /**
-     * buildLocation
-     *
-     * @param columnType
-     * @param location
-     * @return
-     */
-    public static String buildLocation(
-            String columnType, String location, Function<Long, String> function) {
-        if (ColumnType.isTimeType(columnType)) {
-            return function.apply(Long.parseLong(location));
-        } else if (ColumnType.isNumberType(columnType)) {
-            return location;
-        } else {
-            return "'" + location + "'";
-        }
-    }
-
-    /**
      * build order sql
      *
      * @param sortRule
@@ -235,7 +180,9 @@ public class SqlUtil {
                 && splitKey.contains(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
     }
 
-    /** 获取分片key rownum * */
+    /**
+     * 获取分片key rownum *
+     */
     public static String getRowNumColumn(String splitKey, JdbcDialect jdbcDialect) {
         String orderBy =
                 splitKey.substring(
