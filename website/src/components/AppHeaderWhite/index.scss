@@ -44,9 +44,15 @@
         color: var(--black-text-color) !important;
         width: 88px;
         position: relative;
-        // background-color: red;
-
-        &[aria-current="page"] {
+        &-active {
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: var(--font-size-base);
+          color: var(--black-text-color) !important;
+          width: 88px;
+          position: relative;
           &::before {
             content: "";
             position: absolute;
@@ -67,6 +73,29 @@
             background-color: #057cea;
           }
         }
+        // background-color: red;
+
+        // &[aria-current="page"] {
+        //   &::before {
+        //     content: "";
+        //     position: absolute;
+        //     width: 100%;
+        //     height: 100%;
+        //     left: 0;
+        //     top: 0;
+        //     background-color: #057cea;
+        //     opacity: 0.1;
+        //   }
+        //   &::after {
+        //     content: "";
+        //     position: absolute;
+        //     left: 0;
+        //     bottom: 0;
+        //     height: 1px;
+        //     width: 100%;
+        //     background-color: #057cea;
+        //   }
+        // }
       }
     }
     &__utilities {
