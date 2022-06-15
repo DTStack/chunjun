@@ -28,7 +28,7 @@ import org.apache.hadoop.hbase.client.Result;
 import java.util.Map;
 
 /**
- * @program: flinkx
+ * @program: chunjun
  * @author: wuren
  * @create: 2021/10/19
  */

@@ -1,5 +1,6 @@
 import "./index.scss"
-import React from "react"
+import React, { useEffect, useLayoutEffect } from "react"
+import Aos from "aos"
 
 const AppShowcase = () => {
   const imgs = [
@@ -132,18 +133,23 @@ const AppShowcase = () => {
       id: "nat-30",
     },
   ]
+  useLayoutEffect(() => {
+    Aos.init({
+      duration: 1000,
+    })
+  }, [])
   return (
-    <section className="showcase flex-padding">
-      <h1 className="section__title showcase__title">Sponsors</h1>
-      <div className="showcase__wrapper">
+    <section
+      data-aos={"zoom-in"}
+      className="showcase flex flex-col items-center justify-center  bg-white flex-padding"
+    >
+      <h1 className="text-center w-full text-3xl p-8">Sponsors</h1>
+      <div className="flex flex-wrap w-full md:w-3/4 bg-white p-3">
         {imgs.map(i => {
           return (
-            <img
-              src={i.img}
-              alt=""
-              key={i.id}
-              className="showcase__wrapper--img"
-            />
+            <div className=" bg:w-1/6 md:w-1/6   sm:w-1/5 w-1/5  h-32   flex items-center p-2">
+              <img src={i.img} alt="" key={i.id} className="w-full" />
+            </div>
           )
         })}
       </div>
