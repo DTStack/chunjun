@@ -104,6 +104,9 @@ public class YarnSessionClusterClientHelper implements ClusterClientHelper {
                     JobGraph jobGraph =
                             JobGraphUtil.buildJobGraph(
                                     launcherOptions, programArgs.toArray(new String[0]));
+                    jobGraph.getClasspaths().clear();
+                    jobGraph.getUserJars().clear();
+                    jobGraph.getUserArtifacts().clear();
                     JobID jobID = (JobID) clusterClient.submitJob(jobGraph).get();
                     LOG.info("submit job successfully, jobID = {}", jobID);
                     return clusterClient;
