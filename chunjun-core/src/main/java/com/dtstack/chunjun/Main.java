@@ -50,6 +50,10 @@ import com.dtstack.chunjun.util.PrintUtil;
 import com.dtstack.chunjun.util.PropertiesUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.core.execution.JobClient;
@@ -69,9 +73,6 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.factories.TableFactoryService;
 import org.apache.flink.table.types.DataType;
 
-import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,6 +139,7 @@ public class Main {
      * @param tableEnv
      * @param job
      * @param options
+     *
      * @throws Exception
      */
     private static void exeSqlJob(
@@ -171,6 +173,7 @@ public class Main {
      * @param tableEnv
      * @param job
      * @param options
+     *
      * @throws Exception
      */
     private static void exeSyncJob(
@@ -179,7 +182,7 @@ public class Main {
             String job,
             Options options)
             throws Exception {
-        SyncConf config = parseFlinkxConf(job, options);
+        SyncConf config = parseConf(job, options);
         configStreamExecutionEnvironment(env, options, config);
 
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
@@ -236,6 +239,7 @@ public class Main {
      * @param tableEnv
      * @param config
      * @param sourceDataStream
+     *
      * @return
      */
     private static DataStream<RowData> syncStreamToTable(
@@ -273,16 +277,13 @@ public class Main {
      *
      * @param job
      * @param options
+     *
      * @return
      */
-    public static SyncConf parseFlinkxConf(String job, Options options) {
+    public static SyncConf parseConf(String job, Options options) {
         SyncConf config;
         try {
             config = SyncConf.parseJob(job);
-
-            if (StringUtils.isNotBlank(options.getFlinkxDistDir())) {
-                config.setPluginRoot(options.getFlinkxDistDir());
-            }
 
             Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
 
@@ -292,9 +293,6 @@ public class Main {
                 config.setSavePointPath(savePointPath);
             }
 
-            if (StringUtils.isNotBlank(options.getRemoteFlinkxDistDir())) {
-                config.setRemotePluginPath(options.getRemoteFlinkxDistDir());
-            }
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
         }
@@ -306,7 +304,7 @@ public class Main {
      *
      * @param env StreamExecutionEnvironment
      * @param options options
-     * @param config FlinkxConf
+     * @param config ChunJunConf
      */
     private static void configStreamExecutionEnvironment(
             StreamExecutionEnvironment env, Options options, SyncConf config) {
@@ -317,13 +315,13 @@ public class Main {
         } else {
             Preconditions.checkArgument(
                     ExecuteProcessHelper.checkRemoteSqlPluginPath(
-                            options.getRemoteFlinkxDistDir(),
+                            options.getRemoteChunJunDistDir(),
                             options.getMode(),
                             options.getPluginLoadMode()),
                     "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
             FactoryHelper factoryHelper = new FactoryHelper();
-            factoryHelper.setLocalPluginPath(options.getFlinkxDistDir());
-            factoryHelper.setRemotePluginPath(options.getRemoteFlinkxDistDir());
+            factoryHelper.setLocalPluginPath(options.getChunjunDistDir());
+            factoryHelper.setRemotePluginPath(options.getRemoteChunJunDistDir());
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
             factoryHelper.setExecutionMode(options.getMode());

@@ -1,0 +1,50 @@
+.menu__layout {
+  display: flex;
+  width: 100%;
+  min-height: 60vh;
+  background-color: white;
+  border-top: 1px solid #ebebeb;
+}
+.toggle {
+  position: relative;
+
+  width: 100%;
+}
+
+.toggle__dir {
+  transform: rotate(0) scale(0.9, 1.6);
+  width: 10px;
+  position: absolute;
+  right: 9px;
+}
+.rotate {
+  transform: rotate(90deg) scale(0.9, 1.6);
+}
+.menu {
+  width: 264px;
+  padding: 6px;
+  user-select: none;
+  flex-shrink: 0;
+  border-right: 1px solid #ebebeb;
+  &__item {
+    color: #333;
+    height: 48px;
+    list-style: none;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transform: all 0;
+    font-size: 16px;
+    font-weight: 500;
+    &-active {
+      background-color: #f3f6f7;
+      color: #057cea;
+    }
+    &:hover {
+      background-color: #f3f6f7;
+      color: #057cea;
+    }
+  }
+}

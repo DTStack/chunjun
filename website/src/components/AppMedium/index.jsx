@@ -1,13 +1,22 @@
-import React from "react"
+import Aos from "aos"
+import React, { useEffect } from "react"
 import "./index.scss"
 
 const AppMedium = () => {
+  useEffect(() => {
+    Aos.init({
+      duration: 1000,
+    })
+  }, [])
   return (
     <>
       <section className="chunjun flex-padding">
         <h1 className="section__title chunjun__title">what is chunjun</h1>
         <div className="chunjun__wrapper">
-          <div className="chunjun__wrapper--card left">
+          <div
+            data-aos="zoom-in"
+            className="chunjun__wrapper--card   left flex items-center"
+          >
             <div className="chunjun__wrapper--img">
               <img
                 src={require("../../assets/img/flink-png@2x.png").default}
@@ -21,11 +30,11 @@ const AppMedium = () => {
               </p>
             </div>
           </div>
-          <div className="chunjun__wrapper--card right">
+          <div data-aos="zoom-in" className=" chunjun__wrapper--card right">
             <div className="chunjun__wrapper--description">
               <h4>我们开源啦！</h4>
               <p>
-                2018年4月，秉承着开源共享理念的数栈技术团队在github上开源了FlinkX，历经4年多的发展，FlinkX从当初的一个小项目，成长为拥有2900+star，1300+fork的开源项目。
+                2018年4月，秉承着开源共享理念的数栈技术团队在github上开源了ChunJun，历经4年多的发展，ChunJun从当初的一个小项目，成长为拥有2900+star，1300+fork的开源项目。
               </p>
             </div>
             <div className="chunjun__wrapper--img">
@@ -35,7 +44,7 @@ const AppMedium = () => {
               />
             </div>
           </div>
-          <div className="chunjun__wrapper--card left">
+          <div data-aos="zoom-in" className="chunjun__wrapper--card left">
             <div className="chunjun__wrapper--img">
               <img
                 src={require("../../assets/img/easy-to-use@2x.png").default}
@@ -69,7 +78,7 @@ const AppMedium = () => {
           </div>
         </div>
       </section>
-      <section className="fourth">
+      <section data-aos="zoom-in" className="fourth">
         <h1 className="section__title fourth__title">加入纯钧</h1>
         <div className="fourth__committer">
           <a href="https://github.com/DTStack/chunjun/graphs/contributors">
