@@ -6,8 +6,8 @@ import { Link } from "gatsby"
 const AppFooter = () => {
   return (
     <footer className="footer flex-padding">
-      <div className="footer__wrapper">
-        <div className="footer__wrapper--left">
+      <div className="footer__wrapper flex  flex-col md:flex-row justify-center ">
+        <div className="footer__wrapper--left w-full flex justify-center">
           <Card component="a" className="left__cards--card">
             <Card.Section>
               <Image
@@ -27,7 +27,7 @@ const AppFooter = () => {
             </Text>
           </Card>
         </div>
-        <div className="footer__wrapper--right">
+        <div className="footer__wrapper--right w-full flex justify-center">
           <div className="right__wrapper">
             <h3 className="right__wrapper--title">文档</h3>
             <ul className="right__wrapper--list">

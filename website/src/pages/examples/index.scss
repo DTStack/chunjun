@@ -1,0 +1,13 @@
+.json-pre {
+  *,
+  *::before,
+  *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    transition: all 0s !important;
+  }
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+  padding: 20px;
+}

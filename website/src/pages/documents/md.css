@@ -1,12 +1,12 @@
 .markdown-body {
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
-  margin: 0;
+
   color: #24292f;
   background-color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
     sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  font-size: 16px;
+
   line-height: 1.5;
   word-wrap: break-word;
 }
@@ -76,7 +76,6 @@
   font-weight: 600;
   padding-bottom: 0.3em;
   font-size: 2em;
-  border-bottom: 1px solid hsla(210, 18%, 87%, 1);
 }
 
 .markdown-body mark {
@@ -127,7 +126,7 @@
   box-sizing: content-box;
   overflow: hidden;
   background: transparent;
-  border-bottom: 1px solid hsla(210, 18%, 87%, 1);
+
   height: 0.25em;
   padding: 0;
   margin: 24px 0;
@@ -262,7 +261,6 @@
   font-weight: 600;
   padding-bottom: 0.3em;
   font-size: 1.5em;
-  border-bottom: 1px solid hsla(210, 18%, 87%, 1);
 }
 
 .markdown-body h3 {

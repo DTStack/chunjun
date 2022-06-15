@@ -88,7 +88,7 @@ public abstract class SinkFactory implements RawTypeConvertible {
         return createOutput(dataSet, outputFormat, this.getClass().getSimpleName().toLowerCase());
     }
 
-    /** 初始化FlinkxCommonConf */
+    /** 初始化ChunJunCommonConf */
     public void initCommonConf(ChunJunCommonConf commonConf) {
         PropertiesUtil.initCommonConf(commonConf, this.syncConf);
         commonConf.setCheckFormat(this.syncConf.getWriter().getBooleanVal("check", true));
