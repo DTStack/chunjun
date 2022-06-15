@@ -1,6 +1,6 @@
 import "./index.scss"
 import { Card, Image, Text } from "@mantine/core"
-import React from "react"
+import React, { useLayoutEffect } from "react"
 
 const AppCards = () => {
   return (

@@ -1,10 +1,72 @@
 .md__title {
   font-size: 3.6rem;
-  text-align: center;
+  text-align: left;
 }
 
 .md__tag {
   font-size: 1rem;
   color: #ccc;
   text-align: right;
+}
+
+.btn-group {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+.go-btn {
+  width: 200px;
+  background: #ffffff;
+  padding: 20px;
+
+  border: none;
+  outline: none;
+  border-radius: 4px;
+  cursor: pointer;
+  .top-text {
+    color: #666666;
+    margin-bottom: 5px;
+  }
+}
+.next-btn {
+  .top-text,
+  .bo-text {
+    text-align: right;
+  }
+}
+.pre-btn {
+  .top-text,
+  .bo-text {
+    text-align: left;
+  }
+}
+
+.table-of-content {
+  p,
+  a,
+  ul,
+  li,
+  p {
+    padding: 0px;
+    margin: 0;
+    color: black;
+    font-size: 17px;
+    line-height: 33px;
+    display: block;
+  }
+  ul {
+    padding-left: 7px;
+  }
+  a {
+    padding: 3px;
+  }
+  a :hover {
+    background-color: #f3f6f7;
+    border: 1px solid black;
+  }
+}
+.document-content {
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+  margin: 0;
 }

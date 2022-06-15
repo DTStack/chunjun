@@ -144,7 +144,7 @@ public class PluginUtil {
     }
 
     /**
-     * Obtain local and remote FlinkX plugin jar package path
+     * Obtain local and remote ChunJun plugin jar package path
      *
      * @param pluginPath
      * @param suffix
@@ -414,7 +414,7 @@ public class PluginUtil {
             jarList.addAll(urlList);
 
             List<String> pipelineJars = new ArrayList();
-            LOG.info("Flinkx executionMode: " + executionMode);
+            LOG.info("ChunJun executionMode: " + executionMode);
             if (ClusterMode.getByName(executionMode) == ClusterMode.kubernetesApplication) {
                 for (String jarUrl : jarList) {
                     String newJarUrl = jarUrl;
@@ -430,7 +430,7 @@ public class PluginUtil {
                 pipelineJars.addAll(jarList);
             }
 
-            LOG.info("Flinkx reset pipeline.jars: " + pipelineJars);
+            LOG.info("ChunJun reset pipeline.jars: " + pipelineJars);
             configuration.set(PipelineOptions.JARS, pipelineJars);
 
             List<String> classpathList = configuration.get(PipelineOptions.CLASSPATHS);
