@@ -84,14 +84,7 @@ public class DynamicPreparedStmt {
         dynamicPreparedStmt.getColumnMeta(schemaName, tableName, connection);
         dynamicPreparedStmt.buildRowConvert();
 
-        String sql =
-                dynamicPreparedStmt.prepareTemplates(
-                        rowKind,
-                        schemaName,
-                        tableName,
-                        jdbcConf.getUniqueKey().toArray(new String[0]),
-                        jdbcConf.getMode(),
-                        jdbcConf.isAllReplace());
+        String sql = dynamicPreparedStmt.prepareTemplates(rowKind, schemaName, tableName, jdbcConf);
         String[] fieldNames = new String[dynamicPreparedStmt.columnNameList.size()];
         dynamicPreparedStmt.columnNameList.toArray(fieldNames);
         dynamicPreparedStmt.fieldNamedPreparedStatement =
@@ -120,14 +113,7 @@ public class DynamicPreparedStmt {
             dynamicPreparedStmt.columnNameList.add(fieldConf.getName());
             dynamicPreparedStmt.columnTypeList.add(fieldConf.getType());
         }
-        String sql =
-                dynamicPreparedStmt.prepareTemplates(
-                        rowKind,
-                        schemaName,
-                        tableName,
-                        jdbcConf.getUniqueKey().toArray(new String[0]),
-                        jdbcConf.getMode(),
-                        jdbcConf.isAllReplace());
+        String sql = dynamicPreparedStmt.prepareTemplates(rowKind, schemaName, tableName, jdbcConf);
         dynamicPreparedStmt.fieldNamedPreparedStatement =
                 FieldNamedPreparedStatementImpl.prepareStatement(connection, sql, fieldNames);
         return dynamicPreparedStmt;
@@ -151,19 +137,12 @@ public class DynamicPreparedStmt {
     }
 
     protected String prepareTemplates(
-            RowKind rowKind,
-            String schemaName,
-            String tableName,
-            String[] uniqueKeys,
-            String mode,
-            boolean allReplace) {
+            RowKind rowKind, String schemaName, String tableName, JdbcConf jdbcConf) {
         String singleSql = null;
         switch (rowKind) {
             case INSERT:
             case UPDATE_AFTER:
-                singleSql =
-                        this.getInsertStatementWithWriteMode(
-                                mode, schemaName, tableName, uniqueKeys, allReplace);
+                singleSql = this.getInsertStatementWithWriteMode(jdbcConf, schemaName, tableName);
                 break;
             case DELETE:
             case UPDATE_BEFORE:
@@ -180,12 +159,9 @@ public class DynamicPreparedStmt {
     }
 
     protected String getInsertStatementWithWriteMode(
-            String mode,
-            String schemaName,
-            String tableName,
-            String[] uniqueKeys,
-            boolean allReplace) {
+            JdbcConf jdbcConf, String schemaName, String tableName) {
         String singleSql;
+        String mode = jdbcConf.getMode();
         if (EWriteMode.INSERT.name().equalsIgnoreCase(mode)) {
             singleSql =
                     jdbcDialect.getInsertIntoStatement(
@@ -197,6 +173,8 @@ public class DynamicPreparedStmt {
                                     schemaName, tableName, columnNameList.toArray(new String[0]))
                             .get();
         } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(mode)) {
+            String[] uniqueKeys = jdbcConf.getUniqueKey().toArray(new String[0]);
+            boolean allReplace = jdbcConf.isAllReplace();
             singleSql =
                     jdbcDialect
                             .getUpsertStatement(
