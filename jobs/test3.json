@@ -1,0 +1,79 @@
+{
+  "job": {
+    "content": [
+      {
+        "nameMapping": {
+          "schemaMappings": {
+            "TIEZHU": "public"
+          },
+          "tableMappings": {
+            "TIEZHU": {
+              "TEST_TWO": "test_two",
+              "two": "table2"
+            }
+          },
+          "fieldMappings": {
+            "TIEZHU": {
+              "TEST_TWO": {
+                "ID": "id",
+                "_DATE": "_date_",
+                "_TIMESTAMP": "_timestamp_",
+                "_STR": "_str_"
+              },
+              "two": {
+                "id": "id",
+                "name": "username"
+              }
+            }
+          }
+        },
+        "reader": {
+          "parameter": {
+            "schema": "TIEZHU",
+            "password": "abc123",
+            "split": true,
+            "cat": "insert,update,delete",
+            "jdbcUrl": "jdbc:oracle:thin:@172.16.100.243:1521:orcl",
+            "readPosition": "current",
+            "pavingData": false,
+            "table": [
+              "TIEZHU.TEST_TWO"
+            ],
+            "username": "tiezhu"
+          },
+          "name": "oraclelogminerreader",
+          "type": 2
+        },
+        "writer": {
+          "parameter": {
+            "password": "abc123",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:postgresql://172.16.101.246:5432/tiezhu",
+                "table": [
+                  "*"
+                ]
+              }
+            ],
+            "writeMode": "APPEND",
+            "username": "admin"
+          },
+          "name": "postgresqlwriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": true,
+        "isStream": true
+      },
+      "errorLimit": {},
+      "speed": {
+        "readerChannel": 1,
+        "writerChannel": 1,
+        "bytes": -1048576,
+        "channel": 1
+      }
+    }
+  }
+}

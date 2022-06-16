@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.chunjun.connector.jdbc.sink;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
@@ -116,7 +117,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         String tableInfo = jdbcConf.getTable();
 
         if ("*".equalsIgnoreCase(tableInfo)) {
-            stmtProxy = new PreparedStmtProxy(dbConn, jdbcDialect, false);
+            stmtProxy = new PreparedStmtProxy(dbConn, jdbcDialect, false, jdbcConf);
         } else {
             FieldNamedPreparedStatement fieldNamedPreparedStatement =
                     FieldNamedPreparedStatement.prepareStatement(

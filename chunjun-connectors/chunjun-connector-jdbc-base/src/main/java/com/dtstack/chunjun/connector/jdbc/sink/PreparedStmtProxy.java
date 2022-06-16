@@ -90,10 +90,15 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
     /** 是否将框架额外添加的扩展信息写入到数据库,默认不写入* */
     protected boolean writeExtInfo;
 
-    public PreparedStmtProxy(Connection connection, JdbcDialect jdbcDialect, boolean writeExtInfo) {
+    public PreparedStmtProxy(
+            Connection connection,
+            JdbcDialect jdbcDialect,
+            boolean writeExtInfo,
+            JdbcConf jdbcConf) {
         this.connection = connection;
         this.jdbcDialect = jdbcDialect;
         this.writeExtInfo = writeExtInfo;
+        this.jdbcConf = jdbcConf;
         initCache(true);
     }
 
