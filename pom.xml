@@ -418,12 +418,12 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	<!--<repositories>
+	<repositories>
 		<repository>
 			<id>dtstack-github</id>
 			<url>https://github.com/dtstack/maven-repository/raw/master/</url>
 		</repository>
-	</repositories>-->
+	</repositories>
 	<profiles>
 
 		<!-- 本地测试模块-->
