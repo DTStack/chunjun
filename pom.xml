@@ -21,6 +21,7 @@
 		<module>chunjun-dirty</module>
 		<module>chunjun-restore</module>
         <module>chunjun-sql</module>
+        <module>chunjun-assembly</module>
     </modules>
 
 	<properties>
@@ -417,12 +418,12 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	<repositories>
+	<!--<repositories>
 		<repository>
 			<id>dtstack-github</id>
 			<url>https://github.com/dtstack/maven-repository/raw/master/</url>
 		</repository>
-	</repositories>
+	</repositories>-->
 	<profiles>
 
 		<!-- 本地测试模块-->
