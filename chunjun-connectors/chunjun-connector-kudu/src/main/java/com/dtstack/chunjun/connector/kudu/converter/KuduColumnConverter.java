@@ -32,6 +32,7 @@ import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -74,7 +75,12 @@ public class KuduColumnConverter
     protected ISerializationConverter<Operation> wrapIntoNullableExternalConverter(
             ISerializationConverter serializationConverter, String type) {
         return (val, index, operation) -> {
-            if (((ColumnRowData) val).getField(index) == null || val.isNullAt(index)) {
+            if (val instanceof ColumnRowData && ((ColumnRowData) val).getField(index) == null
+                    || val.isNullAt(index)) {
+                operation.getRow().setNull(columnName.get(index));
+            } else if (val instanceof GenericRowData
+                            && ((GenericRowData) val).getField(index) == null
+                    || val.isNullAt(index)) {
                 operation.getRow().setNull(columnName.get(index));
             } else {
                 serializationConverter.serialize(val, index, operation);
@@ -134,6 +140,7 @@ public class KuduColumnConverter
             case "DATE":
                 return val -> new SqlDateColumn(Date.valueOf(String.valueOf(val)));
             case "TIMESTAMP":
+            case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return val -> new TimestampColumn((Timestamp) val);
             case "BINARY":
                 return val -> new BytesColumn((byte[]) val);
@@ -182,7 +189,7 @@ public class KuduColumnConverter
                                 .getRow()
                                 .addDecimal(
                                         columnName.get(index),
-                                        ((ColumnRowData) val).getField(index).asBigDecimal());
+                                        val.getDecimal(index, 38, 18).toBigDecimal());
             case "VARCHAR":
                 return (val, index, operation) ->
                         operation
@@ -194,15 +201,16 @@ public class KuduColumnConverter
                                 .getRow()
                                 .addDate(
                                         columnName.get(index),
-                                        ((ColumnRowData) val).getField(index).asSqlDate());
+                                        new Date(val.getTimestamp(index, 6).getMillisecond()));
 
             case "TIMESTAMP":
+            case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return (val, index, operation) ->
                         operation
                                 .getRow()
                                 .addTimestamp(
                                         columnName.get(index),
-                                        ((ColumnRowData) val).getField(index).asTimestamp());
+                                        val.getTimestamp(index, 6).toTimestamp());
             default:
                 throw new UnsupportedTypeException(type);
         }
