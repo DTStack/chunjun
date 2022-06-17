@@ -21,7 +21,6 @@ package com.dtstack.chunjun.connector.kudu.converter;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
-import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
 import org.apache.flink.table.data.DecimalData;
@@ -40,6 +39,7 @@ import org.apache.kudu.client.RowResult;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -139,7 +139,7 @@ public class KuduRowConverter
                 return val -> (int) Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay();
             case "TIMESTAMP":
             case "TIMESTAMP_WITHOUT_TIME_ZONE":
-                return val -> TimestampData.fromEpochMillis(((java.util.Date) val).getTime());
+                return val -> TimestampData.fromTimestamp((Timestamp) val);
             case "BINARY":
                 return val -> (byte[]) val;
             default:
@@ -187,7 +187,7 @@ public class KuduRowConverter
                                 .getRow()
                                 .addDecimal(
                                         columnName.get(index),
-                                        ((ColumnRowData) val).getField(index).asBigDecimal());
+                                        val.getDecimal(index, 38, 18).toBigDecimal());
             case "VARCHAR":
                 return (val, index, operation) ->
                         operation
@@ -199,11 +199,7 @@ public class KuduRowConverter
                                 .getRow()
                                 .addDate(
                                         columnName.get(index),
-                                        Date.valueOf(
-                                                LocalDate.ofEpochDay(
-                                                        ((ColumnRowData) val)
-                                                                .getField(index)
-                                                                .asInt())));
+                                        Date.valueOf(LocalDate.ofEpochDay(val.getInt(index))));
 
             case "TIMESTAMP":
             case "TIMESTAMP_WITHOUT_TIME_ZONE":
@@ -212,7 +208,7 @@ public class KuduRowConverter
                                 .getRow()
                                 .addTimestamp(
                                         columnName.get(index),
-                                        ((ColumnRowData) val).getField(index).asTimestamp());
+                                        val.getTimestamp(index, 6).toTimestamp());
             default:
                 throw new UnsupportedTypeException(type);
         }

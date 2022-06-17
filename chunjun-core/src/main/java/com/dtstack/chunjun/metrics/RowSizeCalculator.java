@@ -22,6 +22,8 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
+import org.apache.flink.table.data.RowData;
+
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 
 import java.util.Arrays;
@@ -88,10 +90,15 @@ public abstract class RowSizeCalculator<T> {
         }
     }
 
-    static class SyncCalculator extends RowSizeCalculator<ColumnRowData> {
+    /** 同步流量统计，泛型由ColumnRowData修改为RowData，避免类型转换异常 判断入参类型，并利用不同方式统计流量 */
+    static class SyncCalculator extends RowSizeCalculator<RowData> {
         @Override
-        public long getObjectSize(ColumnRowData object) {
-            return object.getByteSize();
+        public long getObjectSize(RowData object) {
+            if (object instanceof ColumnRowData) {
+                return ((ColumnRowData) object).getByteSize();
+            } else {
+                return ObjectSizeCalculator.getObjectSize(object);
+            }
         }
     }
 
