@@ -53,7 +53,6 @@ public class KuduRawTypeConverter {
             case "INT64":
             case "BIGINT":
             case "LONG":
-            case "UNIXTIME_MICROS":
                 return DataTypes.BIGINT();
             case "BOOL":
             case "BOOLEAN":
@@ -70,6 +69,7 @@ public class KuduRawTypeConverter {
             case "DATE":
                 return DataTypes.DATE();
             case "TIMESTAMP":
+            case "UNIXTIME_MICROS":
                 return DataTypes.TIMESTAMP();
             default:
                 throw new UnsupportedTypeException(type);

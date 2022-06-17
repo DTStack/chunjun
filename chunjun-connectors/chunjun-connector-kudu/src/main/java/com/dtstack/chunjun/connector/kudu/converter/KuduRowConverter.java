@@ -138,6 +138,7 @@ public class KuduRowConverter
             case "DATE":
                 return val -> (int) Date.valueOf(String.valueOf(val)).toLocalDate().toEpochDay();
             case "TIMESTAMP":
+            case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return val -> TimestampData.fromEpochMillis(((java.util.Date) val).getTime());
             case "BINARY":
                 return val -> (byte[]) val;
@@ -205,6 +206,7 @@ public class KuduRowConverter
                                                                 .asInt())));
 
             case "TIMESTAMP":
+            case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return (val, index, operation) ->
                         operation
                                 .getRow()
