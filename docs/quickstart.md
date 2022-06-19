@@ -31,6 +31,70 @@ sh build/build.sh
 ## unix平台
 ./$CHUNJUN_HOME/bin/install_jars.sh
 ```
+## 安装包快速部署
+执行完上述命令之后，在chunjun-assembly模块的target目录会得到一个完整的安装包，快速部署只需要将这个安装包解压即可使用。
+<div align=center>
+  <img src="images/quick_9.png" />
+</div>
+将安装包上传至安装服务器解压即可，执行如下命令：
+
+```bash
+# 创建一个目录
+mkdir /opt/chunjun
+# 解压
+tar -zxvf chunjun-assembly-XXX-chunjun-dist.tar.gz -C /opt/chunjun
+
+cd /opt/chunjun
+
+```
+解压之后，进入chunjun目录能够看到如下目录和文件
+<div align=center>
+  <img src="images/quick_10.png" />
+</div>
+
+```bash
+# 配置CHUNJUN_HOME,在/etc/profile 最后一行添加如下内容
+
+export CHUNUN_HOME=/opt/chunjun
+
+# 添加好之后，保存并使其生效
+source /etc/profile
+
+```
+
+
+快速执行入门案例，验证安装结果
+
+```bash
+# 创建一个目录
+bin/start-chunjun \
+	-mode local \
+	-jobType sync \
+	-job chunjun-examples/json/stream/stream.json \
+	-chunjunDistDir $CHUNJUN_HOME 
+  
+# 查看结果
+tail -f nohup.out
+```
+效果如下：
+<div align=center>
+  <img src="images/quick_11.png" />
+</div>
+
+## 常见问题
+### 执行命令出现权限不足
+执行start-chunjun命令时，出现-bash: bin/start-chunjun: Permission denied，如图所示
+<div align=center>
+  <img src="images/quick_12.png" />
+</div>
+这是由于bin目录下的脚本文件没有可执行权限，赋予可执行权限即可
+
+```bash
+cd bin
+# 给bin目录下的所有文件赋予可执行文件
+chmod u+x *
+```
+
 
 ## 运行任务
 **NOTE:项目中的chunjun-examples模块下提供了大量 [数据同步案例](chunjun-examples/json) 和 [SQL案例](chunjun-examples/sql)**
@@ -81,7 +145,7 @@ sh build/build.sh
               },
               {
                 "name": "content",
-                "type": "timestamp"
+                "type": "string"
               }
             ],
             "print": true
@@ -92,7 +156,7 @@ sh build/build.sh
           "name": "streamwriter"
         },
         "transformer": {
-          "transformSql": "select id,name, NOW() from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
+          "transformSql": "select id,name, content from sourceTable where CHAR_LENGTH(name) < 50 and CHAR_LENGTH(content) < 50"
         }
       }
     ],
@@ -165,7 +229,7 @@ bin/start-chunjun \
 	-mode local \
 	-jobType sync \
 	-job chunjun-examples/json/stream/stream.json \
-	-chunjunDistDir chunjun-dist 
+	-chunjunDistDir $CHUNJUN_HOME 
 ```
 
 可以在flink-conf.yaml配置文件里配置端口：
@@ -182,7 +246,7 @@ bin/start-chunjun \
 	-mode local \
 	-jobType sync \
 	-job chunjun-examples/json/stream/stream.json \
-	-chunjunDistDir chunjun-dist 
+	-chunjunDistDir $CHUNJUN_HOME
 ```
 
 任务运行后可以通过8888端口访问flink界面查看任务运行情况：
@@ -201,7 +265,7 @@ bin/start-chunjun \
 	-mode standalone \
 	-jobType sync \
 	-job chunjun-examples/json/stream/stream.json \
-	-chunjunDistDir chunjun-dist  \
+	-chunjunDistDir $CHUNJUN_HOME  \
 	-flinkConfDir $FLINK_HOME/conf \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
 ```
@@ -225,7 +289,7 @@ $FLINK_HOME/bin/start-cluster.sh
 ./bin/start-chunjun \
 	-mode standalone \
 	-jobType sync \
-	-chunjunDistDir chunjun-dist  \
+	-chunjunDistDir $CHUNJUN_HOME  \
 	-job chunjun-examples/json/stream/stream.json \
 	-flinkConfDir $FLINK_HOME/conf
 ```
@@ -246,7 +310,7 @@ bin/start-chunjun \
 	-mode yarn-session \
 	-jobType sync \
 	-job chunjun-examples/json/stream/stream.json \
-	-chunjunDistDir chunjun-dist  \
+	-chunjunDistDir $CHUNJUN_HOME  \
 	-flinkConfDir $FLINK_HOME/conf \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
 	-confProp "{\"flink.checkpoint.interval\":60000}"
@@ -274,7 +338,7 @@ bin/start-chunjun \
 	-jobType sync \
 	-job chunjun-examples/json/stream/stream.json \
 	-flinkConfDir $FLINK_HOME/conf \
-	-chunjunDistDir chunjun-dist  \
+	-chunjunDistDir $CHUNJUN_HOME  \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop
 ```
 
@@ -293,7 +357,7 @@ bin/start-chunjun \
 	-mode yarn-per-job \
 	-jobType sync \
 	-job chunjun-examples/json/stream/stream.json \
-	-chunjunDistDir chunjun-dist  \
+	-chunjunDistDir $CHUNJUN_HOME  \
 	-flinkConfDir $FLINK_HOME/conf \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
 	-flinkLibDir $FLINK_HOME/lib \
@@ -307,7 +371,7 @@ bin/start-chunjun \
 	-mode yarn-per-job \
 	-jobType sync \
 	-job chunjun-examples/json/stream/stream.json \
-	-chunjunDistDir chunjun-dist  \
+	-chunjunDistDir $CHUNJUN_HOME  \
 	-hadoopConfDir $HADOOP_HOME/etc/hadoop \
 	-flinkLibDir $FLINK_HOME/lib \
 ```
@@ -334,7 +398,7 @@ bin/start-chunjun \
     -job chunjun-examples/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
-    -chunjunDistDir chunjun-dist  \
+    -chunjunDistDir $CHUNJUN_HOME  \
     -flinkLibDir $FLINK_HOME/lib \
     -flinkConfDir $FLINK_HOME/conf \
     -confProp "{\"kubernetes.config.file\":\"${kubernetes_config_path}\",\"kubernetes.cluster-id\":\"${cluster_id}\",\"kubernetes.namespace\":\"${namespace}\"}"
@@ -357,7 +421,7 @@ bin/start-chunjun \
     -job chunjun-examples/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
-    -chunjunDistDir chunjun-dist  \
+    -chunjunDistDir $CHUNJUN_HOME  \
     -remotePluginPath /opt/chunjun-dist \
     -pluginLoadMode classpath \
     -flinkLibDir $FLINK_HOME/lib \
