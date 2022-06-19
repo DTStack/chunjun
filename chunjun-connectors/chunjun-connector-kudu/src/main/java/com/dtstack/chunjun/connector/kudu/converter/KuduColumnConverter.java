@@ -140,6 +140,7 @@ public class KuduColumnConverter
             case "DATE":
                 return val -> new SqlDateColumn(Date.valueOf(String.valueOf(val)));
             case "TIMESTAMP":
+            case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return val -> new TimestampColumn((Timestamp) val);
             case "BINARY":
                 return val -> new BytesColumn((byte[]) val);
@@ -203,6 +204,7 @@ public class KuduColumnConverter
                                         new Date(val.getTimestamp(index, 6).getMillisecond()));
 
             case "TIMESTAMP":
+            case "TIMESTAMP_WITHOUT_TIME_ZONE":
                 return (val, index, operation) ->
                         operation
                                 .getRow()

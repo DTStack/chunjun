@@ -21,6 +21,7 @@
 		<module>chunjun-dirty</module>
 		<module>chunjun-restore</module>
         <module>chunjun-sql</module>
+        <module>chunjun-assembly</module>
     </modules>
 
 	<properties>
