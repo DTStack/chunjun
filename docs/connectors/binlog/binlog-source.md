@@ -148,7 +148,7 @@ Binlog为什么需要这些权限：
     - 注意：为空，则从当前position处消费，timestamp的优先级高于 journalName+position
     - 参数：
         - timestamp：时间戳，采集起点从指定的时间戳处消费；
-        - journalName：文件名，采集起点从指定文件的起始处消费；
+        - journal-name：文件名，采集起点从指定文件的起始处消费；
         - position：文件的指定位置，采集起点从指定文件的指定位置处消费
     - 字段类型：map
     - 默认值：无
