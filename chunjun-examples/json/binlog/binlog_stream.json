@@ -11,7 +11,7 @@
           "host" : "localhost",
           "port" : 3306,
           "start" : {
-            "journalName": "mysql-bin.000001"
+            "journal-name": "mysql-bin.000001"
           },
           "table" : [  ],
           "splitUpdate" : true,

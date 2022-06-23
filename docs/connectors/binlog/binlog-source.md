@@ -145,7 +145,7 @@ Binlog为什么需要这些权限：
 
 - **start**
     - 描述：要读取的binlog文件的开始位置
-    - 注意：为空，则从当前position处消费，timestamp的优先级高于 journalName+position
+    - 注意：为空，则从当前position处消费，timestamp的优先级高于 journal-name+position
     - 参数：
         - timestamp：时间戳，采集起点从指定的时间戳处消费；
         - journal-name：文件名，采集起点从指定文件的起始处消费；
