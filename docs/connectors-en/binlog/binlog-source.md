@@ -137,10 +137,10 @@ Why does Binlog need these permissions:
 
 - **start**
     - Description: The starting position of the binlog file to be read
-    - Note: If it is empty, it will be consumed from the current position, and the priority of timestamp is higher than journalName+position
+    - Note: If it is empty, it will be consumed from the current position, and the priority of timestamp is higher than journal-name+position
     - Parameters:
     - timestamp: timestamp, the start point of collection is consumed from the specified timestamp;
-    - journalName: file name, the start point of collection is consumed from the beginning of the specified file;
+    - journal-name: file name, the start point of collection is consumed from the beginning of the specified file;
     - position: the specified position of the file, the start point of collection is consumed from the specified position of the specified file
     - Field type: map
     - Default value: none
