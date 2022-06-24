@@ -43,6 +43,7 @@ import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DdlResult;
 import com.alibaba.otter.canal.parse.inbound.mysql.ddl.DruidDdlParser;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -286,9 +287,18 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
     @Override
     protected IDeserializationConverter createInternalConverter(String type) {
         String substring = type;
-        int index = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
+        // 为了支持无符号类型  如 int unsigned
+        if (StringUtils.contains(substring, ConstantValue.DATA_TYPE_UNSIGNED)) {
+            substring = substring.replaceAll(ConstantValue.DATA_TYPE_UNSIGNED, "").trim();
+        }
+
+        if (StringUtils.contains(substring, ConstantValue.DATA_TYPE_UNSIGNED_LOWER)) {
+            substring = substring.replaceAll(ConstantValue.DATA_TYPE_UNSIGNED_LOWER, "").trim();
+        }
+
+        int index = substring.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
         if (index > 0) {
-            substring = type.substring(0, index);
+            substring = substring.substring(0, index);
         }
         switch (substring.toUpperCase(Locale.ENGLISH)) {
             case "BIT":

@@ -21,6 +21,7 @@ package com.dtstack.chunjun.connector.oraclelogminer.listener;
 import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
 import com.dtstack.chunjun.connector.oraclelogminer.util.SqlUtil;
+import com.dtstack.chunjun.util.ExceptionUtil;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.codec.DecoderException;
@@ -205,20 +206,19 @@ public class LogMinerHelper {
                     try {
                         logMinerConnection.queryData(sql);
                     } catch (Exception e) {
-                        listener.sendException(e, null);
-                        restart(logMinerConnection);
+                        // ignore
                     }
                 });
     }
 
     /** 当前connection重新加载即可 */
-    public void restart() {
+    public void restart(Exception e) {
         LogMinerConnection logMinerConnection = activeConnectionList.get(currentIndex);
-        restart(logMinerConnection);
+        restart(logMinerConnection, e != null ? e : logMinerConnection.getE());
     }
 
     /** connection重新加载 */
-    public void restart(LogMinerConnection connection) {
+    public void restart(LogMinerConnection connection, Exception e) {
         LOG.info(
                 "restart connection, startScn: {},endScn: {}",
                 connection.startScn,
@@ -233,15 +233,56 @@ public class LogMinerHelper {
                                 + connection.endScn
                                 + "]");
             }
-            // 加载的区间是左闭右开 所以需要把 listener.getCurrentPosition() 加 1
-            connection.startOrUpdateLogMiner(
-                    connection.startScn.compareTo(listener.getCurrentPosition()) > 0
-                            ? connection.startScn
-                            : listener.getCurrentPosition().add(BigInteger.ONE),
-                    connection.endScn);
+            boolean isRedoChangeError =
+                    e != null && ExceptionUtil.getErrorMessage(e).contains("ORA-00310");
+            if (isRedoChangeError) {
+                BigInteger startScn =
+                        connection.startScn.compareTo(listener.getCurrentPosition()) > 0
+                                ? connection.startScn
+                                : listener.getCurrentPosition().add(BigInteger.ONE);
+                // 如果是ora-310错误是因为加载redolog，然后数据源日志切换速度很快，导致解析出现问题 此时只能读取归档日志
+                Pair<BigInteger, Boolean> endScn =
+                        connection.getEndScn(startScn, new ArrayList<>(32), false);
+                // 从读取redoLog切到归档日志时没有可读的日志文件，循环获取endScn
+                if (endScn.getLeft() == null) {
+                    for (int i = 0; i < 10; i++) {
+                        LOG.info("restart connection but not find archive log, waiting.....");
+                        Thread.sleep(5000);
+                        endScn = connection.getEndScn(startScn, new ArrayList<>(32), false);
+                        if (endScn.getLeft() != null) {
+                            break;
+                        }
+                    }
+                    // 如果归档日志连续等待50s后还是没有redolog归档 则可以继续读取redoLog
+                    if (endScn.getLeft() == null) {
+                        endScn = connection.getEndScn(startScn, new ArrayList<>(32));
+                    }
+                }
+
+                connection.startOrUpdateLogMiner(startScn, endScn.getLeft());
+            } else {
+                // 加载的区间是左闭右开 所以需要把 listener.getCurrentPosition() 加 1
+                connection.startOrUpdateLogMiner(
+                        connection.startScn.compareTo(listener.getCurrentPosition()) > 0
+                                ? connection.startScn
+                                : listener.getCurrentPosition().add(BigInteger.ONE),
+                        connection.endScn);
+            }
+
             loadData(connection, logMinerSelectSql);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (isRedoChangeError) {
+                // 当前connection加载的信息发生变化 需要进行更新
+                updateCurrentConnection(connection);
+                // 其余的提前加载的connection状态改为INITIALIZE，需要重新加载
+                for (LogMinerConnection logMinerConnection :
+                        activeConnectionList.stream()
+                                .filter(i -> i != connection)
+                                .collect(Collectors.toList())) {
+                    logMinerConnection.disConnect();
+                }
+            }
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
         }
     }
 
@@ -260,7 +301,8 @@ public class LogMinerHelper {
         if (currentConnection.isLoading()) {
             return false;
         } else if (state.equals(LogMinerConnection.STATE.FAILED)) {
-            restart();
+            listener.sendException(currentConnection.getE(), null);
+            restart(currentConnection.getE());
             return false;
         }
 
@@ -335,7 +377,8 @@ public class LogMinerHelper {
                     && !logMinerConnection.getState().equals(LogMinerConnection.STATE.INITIALIZE)) {
                 choosedConnection = logMinerConnection;
                 if (choosedConnection.getState().equals(LogMinerConnection.STATE.FAILED)) {
-                    restart();
+                    listener.sendException(choosedConnection.getE(), null);
+                    restart(choosedConnection.getE());
                 }
                 break;
             }
