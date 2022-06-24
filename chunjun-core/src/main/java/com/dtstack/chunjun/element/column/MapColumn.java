@@ -42,6 +42,14 @@ public class MapColumn extends AbstractBaseColumn {
         }
     }
 
+    public MapColumn(Map<String, Object> data, int byteSize) {
+        super(data, byteSize);
+    }
+
+    public static MapColumn from(Map<String, Object> data) {
+        return new MapColumn(data, 0);
+    }
+
     @Override
     public String asString() {
         if (null == data) {

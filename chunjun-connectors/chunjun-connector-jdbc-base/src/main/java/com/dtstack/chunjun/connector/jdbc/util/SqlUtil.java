@@ -263,7 +263,7 @@ public class SqlUtil {
             sql = jdbcDialect.getSplitModFilter(jdbcInputSplit, splitColumn);
         }
         if (jdbcInputSplit.getSplitNumber() == 0) {
-            sql += " OR " + jdbcDialect.quoteIdentifier(splitColumn) + " IS NULL";
+            sql = "(" + sql + " OR " + jdbcDialect.quoteIdentifier(splitColumn) + " IS NULL)";
         }
         return sql;
     }

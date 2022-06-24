@@ -75,6 +75,14 @@ public class BigDecimalColumn extends AbstractBaseColumn {
         super(bigDecimal, getStringSize(data));
     }
 
+    public BigDecimalColumn(BigDecimal data, int byteSize) {
+        super(data, byteSize);
+    }
+
+    public static BigDecimalColumn from(BigDecimal data) {
+        return new BigDecimalColumn(data, 0);
+    }
+
     @Override
     public String asString() {
         if (null == data) {

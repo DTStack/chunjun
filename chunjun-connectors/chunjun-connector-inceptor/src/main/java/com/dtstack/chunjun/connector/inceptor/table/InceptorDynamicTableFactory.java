@@ -265,7 +265,6 @@ public class InceptorDynamicTableFactory extends JdbcDynamicTableFactory {
         return null;
     }
 
-    @Override
     protected void validateConfigOptions(ReadableConfig config) {
         String jdbcUrl = config.get(URL);
         checkState(true, "Cannot handle such jdbc url: " + jdbcUrl);

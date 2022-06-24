@@ -57,7 +57,7 @@ public class InceptorJdbcSinkFactory extends JdbcSinkFactory {
                     TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
             rowConverter = jdbcDialect.getRowConverter(rowType);
         }
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         if (builder instanceof InceptorHdfsOutputFormatBuilder) {
             // InceptorHdfsOutputFormatBuilder 只有实时任务或者离线任务的事务表才会调用 所以此处设置为true，其余的orc text
             // parquet通过文件方式写入

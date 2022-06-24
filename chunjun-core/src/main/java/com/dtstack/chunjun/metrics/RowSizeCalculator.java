@@ -53,18 +53,18 @@ public abstract class RowSizeCalculator<T> {
      * if jdk support,use {@link jdk.nashorn.internal.ir.debug.ObjectSizeCalculator} else use
      * toString().getBytes().length
      *
+     * <p>ObjectSizeCalculator is in jre/lib/ext/nashorn.jar,In order to be able to determine
+     * correctly in different JDK, we call it directly once
+     *
      * @return RowSizeCalculator
      */
     public static RowSizeCalculator getRowSizeCalculator() {
-        String vmName = System.getProperty("java.vm.name");
-        String dataModel = System.getProperty("sun.arch.data.model");
-        if (vmName != null
-                && (vmName.startsWith("OpenJDK ") || vmName.startsWith("Java HotSpot(TM) "))) {
-            if ("32".equals(dataModel) || "64".equals(dataModel)) {
-                return new RowObjectSizeCalculator();
-            }
+        try {
+            ObjectSizeCalculator.getObjectSize("");
+            return new RowObjectSizeCalculator();
+        } catch (Throwable e) {
+            return new RowToStringCalculator();
         }
-        return new RowToStringCalculator();
     }
 
     static class RowObjectSizeCalculator extends RowSizeCalculator<Object> {
@@ -123,7 +123,7 @@ public abstract class RowSizeCalculator<T> {
             }
             throw new ChunJunRuntimeException(
                     String.format(
-                            "ChunJun CalculatorType only one of %s",
+                            "ChunJun CalculatorType only support one of %s",
                             Arrays.stream(CalculatorType.values())
                                     .map(CalculatorType::getTypeName)
                                     .collect(Collectors.toList())));

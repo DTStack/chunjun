@@ -257,7 +257,7 @@ public class Main {
 
         DataType[] tableDataTypes = adaptTable.getSchema().getFieldDataTypes();
         String[] tableFieldNames = adaptTable.getSchema().getFieldNames();
-        TypeInformation<RowData> typeInformation =
+        TypeInformation<? extends RowData> typeInformation =
                 TableUtil.getTypeInformation(tableDataTypes, tableFieldNames);
         DataStream<RowData> dataStream =
                 tableEnv.toRetractStream(adaptTable, typeInformation).map(f -> f.f1);
