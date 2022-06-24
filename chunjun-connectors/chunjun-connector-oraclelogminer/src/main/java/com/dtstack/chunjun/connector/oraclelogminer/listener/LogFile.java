@@ -102,6 +102,10 @@ public class LogFile {
         this.type = type;
     }
 
+    public boolean isOnline() {
+        return "ONLINE".equals(this.type);
+    }
+
     @Override
     public String toString() {
         return "LogFile{"

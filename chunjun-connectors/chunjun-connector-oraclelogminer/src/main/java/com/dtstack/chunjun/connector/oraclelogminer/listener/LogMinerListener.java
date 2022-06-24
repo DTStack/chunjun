@@ -144,7 +144,7 @@ public class LogMinerListener implements Runnable {
                 }
             } catch (Exception e) {
                 sendException(e, log);
-                logMinerHelper.restart();
+                logMinerHelper.restart(e);
             }
         }
     }
@@ -221,6 +221,7 @@ public class LogMinerListener implements Runnable {
                         sb.append("\nerror msg is : ").append(errorMsg);
                         throw new RuntimeException(sb.toString());
                     }
+                    rowData = null;
                 } else {
                     positionManager.updatePosition(poll.getScn());
                     failedTimes = 0;

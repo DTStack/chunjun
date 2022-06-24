@@ -127,9 +127,7 @@ public class HiveDbUtil {
 
         UserGroupInformation ugi;
         try {
-            ugi =
-                    KerberosUtil.loginAndReturnUgi(
-                            conf.get(KerberosUtil.KEY_PRINCIPAL_FILE), principal, keytabFileName);
+            ugi = KerberosUtil.loginAndReturnUgi(conf, principal, keytabFileName);
         } catch (Exception e) {
             throw new RuntimeException("Login kerberos error:", e);
         }

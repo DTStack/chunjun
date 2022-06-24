@@ -129,6 +129,8 @@ public class LogMinerConnection {
     /** 为delete类型的rollback语句查找对应的insert语句的connection */
     private LogMinerConnection queryDataForRollbackConnection;
 
+    private Exception exception;
+
     public LogMinerConnection(LogMinerConf logMinerConfig, TransactionManager transactionManager) {
         this.logMinerConfig = logMinerConfig;
         this.transactionManager = transactionManager;
@@ -287,6 +289,7 @@ public class LogMinerConnection {
                     GsonUtil.GSON.toJson(this.addedLogFiles));
         } catch (Exception e) {
             this.CURRENT_STATE.set(STATE.FAILED);
+            this.exception = e;
             throw new RuntimeException(e);
         }
     }
@@ -324,6 +327,7 @@ public class LogMinerConnection {
             return true;
         } catch (Exception e) {
             this.CURRENT_STATE.set(STATE.FAILED);
+            this.exception = e;
             String message =
                     String.format(
                             "query logMiner data failed, sql:[%s], e: %s",
@@ -513,17 +517,30 @@ public class LogMinerConnection {
     /** 根据leftScn 以及加载的日志大小限制 获取可加载的scn范围 以及此范围对应的日志文件 */
     protected Pair<BigInteger, Boolean> getEndScn(BigInteger startScn, List<LogFile> logFiles)
             throws SQLException {
+        return getEndScn(startScn, logFiles, true);
+    }
+
+    protected Pair<BigInteger, Boolean> getEndScn(
+            BigInteger startScn, List<LogFile> logFiles, boolean addRedoLog) throws SQLException {
 
         List<LogFile> logFileLists = new ArrayList<>();
         PreparedStatement statement = null;
         ResultSet rs = null;
-        BigInteger onlineNextChange = null;
         try {
-            statement =
-                    connection.prepareStatement(
-                            oracleInfo.isOracle10()
-                                    ? SqlUtil.SQL_QUERY_LOG_FILE_10
-                                    : SqlUtil.SQL_QUERY_LOG_FILE);
+            checkAndResetConnection();
+            String sql;
+            if (addRedoLog) {
+                sql =
+                        oracleInfo.isOracle10()
+                                ? SqlUtil.SQL_QUERY_LOG_FILE_10
+                                : SqlUtil.SQL_QUERY_LOG_FILE;
+            } else {
+                sql =
+                        oracleInfo.isOracle10()
+                                ? SqlUtil.SQL_QUERY_ARCHIVE_LOG_FILE_10
+                                : SqlUtil.SQL_QUERY_ARCHIVE_LOG_FILE;
+            }
+            statement = connection.prepareStatement(sql);
             statement.setString(1, startScn.toString());
             statement.setString(2, startScn.toString());
             rs = statement.executeQuery();
@@ -534,12 +551,8 @@ public class LogMinerConnection {
                 logFile.setNextChange(new BigInteger(rs.getString("next_change#")));
                 logFile.setThread(rs.getLong("thread#"));
                 logFile.setBytes(rs.getLong("BYTES"));
+                logFile.setType(rs.getString("TYPE"));
                 logFileLists.add(logFile);
-                // 最大的nextChange一定是online的nextChange
-                if (onlineNextChange == null
-                        || onlineNextChange.compareTo(logFile.getNextChange()) < 0) {
-                    onlineNextChange = logFile.getNextChange();
-                }
             }
         } finally {
             closeResources(rs, statement, null);
@@ -590,18 +603,22 @@ public class LogMinerConnection {
                 if (logFile1.getFirstChange().compareTo(minNextScn) < 0) {
                     logFiles.add(logFile1);
                     fileSize += logFile1.getBytes();
+                    if (logFile1.isOnline()) {
+                        loadRedoLog = true;
+                    }
                 }
             }
             endScn = minNextScn;
         }
 
-        // 如果最小的nextScn都是onlineNextChange，就代表加载所有的日志文件
-        if (endScn.equals(onlineNextChange)) {
+        if (loadRedoLog) {
             // 解决logminer偶尔丢失数据问题，读取online日志的时候，需要将rightScn置为当前SCN
             endScn = getCurrentScn();
             logFiles = logFileLists;
-            // 如果加载了online日志  则loadRedoLog为true
-            loadRedoLog = true;
+        }
+
+        if (CollectionUtils.isEmpty(logFiles)) {
+            return Pair.of(null, loadRedoLog);
         }
 
         LOG.info(
@@ -1137,5 +1154,9 @@ public class LogMinerConnection {
                 RETRY_TIMES,
                 SLEEP_TIME,
                 false);
+    }
+
+    public Exception getE() {
+        return exception;
     }
 }

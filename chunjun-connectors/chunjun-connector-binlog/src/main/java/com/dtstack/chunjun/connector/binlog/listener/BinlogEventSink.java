@@ -83,8 +83,8 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
                 processRowChange(rowChange, schema, table, executeTime);
             } catch (WriteRecordException e) {
                 // todo 脏数据记录
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace(
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(
                             "write error rowData, rowData = {}, e = {}",
                             e.getRowData().toString(),
                             ExceptionUtil.getErrorMessage(e));

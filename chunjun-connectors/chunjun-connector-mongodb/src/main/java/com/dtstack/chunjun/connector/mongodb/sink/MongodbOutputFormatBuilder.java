@@ -36,9 +36,11 @@ import java.util.List;
  */
 public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
     MongodbDataSyncConf mongodbDataSyncConf;
+    String upsertKey;
 
     public MongodbOutputFormatBuilder(MongodbDataSyncConf mongodbDataSyncConf) {
         this.mongodbDataSyncConf = mongodbDataSyncConf;
+        this.upsertKey = mongodbDataSyncConf.getReplaceKey();
         MongoClientConf mongoClientConf =
                 MongoClientConfFactory.createMongoClientConf(mongodbDataSyncConf);
         MongodbOutputFormat.WriteMode writeMode =
@@ -50,12 +52,12 @@ public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
 
     public MongodbOutputFormatBuilder(
             MongoClientConf mongoClientConf, String key, MongodbOutputFormat.WriteMode writeMode) {
+        this.upsertKey = key;
         this.format = new MongodbOutputFormat(mongoClientConf, key, writeMode);
     }
 
     @Override
     protected void checkFormat() {
-        String upsertKey = mongodbDataSyncConf.getReplaceKey();
         if (!StringUtils.isBlank(upsertKey)) {
             List<FieldConf> fields = mongodbDataSyncConf.getColumn();
             boolean flag = false;

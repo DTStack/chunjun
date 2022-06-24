@@ -233,6 +233,7 @@
 									<excludes>
 										<exclude>org.apache.hadoop.security.GroupMappingServiceProvider</exclude>
 										<exclude>org.apache.hadoop.fs.*</exclude>
+										<exclude>org.apache.hadoop.fs.permission.*</exclude>
 
 										<exclude>org.apache.hadoop.conf.*</exclude>
 
@@ -246,6 +247,8 @@
 										<exclude>org.apache.hadoop.filecache.*</exclude>
 
 										<exclude>org.apache.hadoop.io.retry.*</exclude>
+										<exclude>org.apache.hadoop.ipc.RemoteException</exclude>
+										<exclude>org.apache.hadoop.ipc.StandbyException</exclude>
 										<exclude>org.apache.hadoop.hdfs.server.*</exclude>
 										<exclude>org.apache.hadoop.hdfs.server.namenode.*</exclude>
 										<exclude>org.apache.hadoop.hdfs.server.namenode.ha.*</exclude>
