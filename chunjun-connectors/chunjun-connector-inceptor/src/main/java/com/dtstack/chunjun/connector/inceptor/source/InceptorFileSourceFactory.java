@@ -83,7 +83,7 @@ public class InceptorFileSourceFactory extends SourceFactory {
                         inceptorFileConf.getColumn(),
                         getRawTypeConverter());
 
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createInput(builder.finish());
     }
 }

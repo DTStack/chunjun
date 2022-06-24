@@ -27,6 +27,7 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
@@ -135,6 +136,7 @@ public class HdfsParquetColumnConverter
             case "BOOLEAN":
                 return (IDeserializationConverter<Boolean, AbstractBaseColumn>) BooleanColumn::new;
             case "TINYINT":
+                return (IDeserializationConverter<Byte, AbstractBaseColumn>) ByteColumn::new;
             case "SMALLINT":
             case "INT":
                 return (IDeserializationConverter<Integer, AbstractBaseColumn>)

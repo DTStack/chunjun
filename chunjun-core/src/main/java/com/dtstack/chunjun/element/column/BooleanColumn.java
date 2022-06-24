@@ -36,6 +36,14 @@ public class BooleanColumn extends AbstractBaseColumn {
         super(data, 1);
     }
 
+    public BooleanColumn(boolean data, int byteSize) {
+        super(data, byteSize);
+    }
+
+    public static BooleanColumn from(boolean data) {
+        return new BooleanColumn(data, 0);
+    }
+
     @Override
     public Boolean asBoolean() {
         if (null == data) {

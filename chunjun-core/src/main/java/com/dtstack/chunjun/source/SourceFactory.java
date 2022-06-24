@@ -38,7 +38,7 @@ import org.apache.flink.util.Preconditions;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -59,13 +59,24 @@ public abstract class SourceFactory implements RawTypeConvertible {
     protected SourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         this.env = env;
         this.syncConf = syncConf;
-
-        if (syncConf.getTransformer() == null
-                || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
-            fieldList = Collections.emptyList();
-        } else {
-            fieldList = syncConf.getReader().getFieldList();
+        List<FieldConf> readerFiledConfList = syncConf.getReader().getFieldList();
+        this.fieldList = new ArrayList<>(readerFiledConfList.size());
+        fieldList.addAll(readerFiledConfList);
+        if (syncConf.getTransformer() != null
+                && !StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
             useAbstractBaseColumn = false;
+        } else {
+            fieldList.forEach(
+                    fieldConf -> {
+                        /*
+                         In a synchronous job, we don't care about the name field when
+                         typeInformation is generated.To avoid name duplication/empty, use
+                         indexValue
+                        */
+                        if (fieldConf.getName() == null) {
+                            fieldConf.setName(String.valueOf(fieldConf.getIndex()));
+                        }
+                    });
         }
     }
 
@@ -134,7 +145,9 @@ public abstract class SourceFactory implements RawTypeConvertible {
 
     protected TypeInformation<RowData> getTypeInformation() {
         if (typeInformation == null) {
-            typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter());
+            typeInformation =
+                    TableUtil.getTypeInformation(
+                            fieldList, getRawTypeConverter(), useAbstractBaseColumn);
         }
         return typeInformation;
     }

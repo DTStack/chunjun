@@ -36,12 +36,12 @@ import java.sql.Timestamp;
  * @author shitou
  * @date 2022/4/15
  */
-public class ArrayColumn extends AbstractBaseColumn {
+public class SqlArrayColumn extends AbstractBaseColumn {
 
     private static final long serialVersionUID = 1L;
     protected Array data;
 
-    public ArrayColumn(final Array data) {
+    public SqlArrayColumn(final Array data) {
         super(data, data.toString().length());
     }
 
