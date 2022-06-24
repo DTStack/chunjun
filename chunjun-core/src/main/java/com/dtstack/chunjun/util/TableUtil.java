@@ -18,7 +18,9 @@
 package com.dtstack.chunjun.util;
 
 import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.typeutil.ColumnRowDataTypeInfo;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
@@ -28,10 +30,13 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -48,15 +53,17 @@ public class TableUtil {
      * @return TypeInformation
      */
     public static TypeInformation<RowData> getTypeInformation(
-            List<FieldConf> fieldList, RawTypeConverter converter) {
+            List<FieldConf> fieldList, RawTypeConverter converter, boolean useAbstractBaseColumn) {
         List<String> fieldName =
                 fieldList.stream().map(FieldConf::getName).collect(Collectors.toList());
-        if (fieldName.size() == 0) {
+        String[] fieldTypes = fieldList.stream().map(FieldConf::getType).toArray(String[]::new);
+        String[] fieldFormat = fieldList.stream().map(FieldConf::getFormat).toArray(String[]::new);
+        String[] fieldNames = fieldList.stream().map(FieldConf::getName).toArray(String[]::new);
+        if (fieldName.size() == 0
+                || fieldName.get(0).equalsIgnoreCase(ConstantValue.STAR_SYMBOL)
+                || Arrays.stream(fieldTypes).anyMatch(Objects::isNull)) {
             return new GenericTypeInfo<>(RowData.class);
         }
-
-        String[] fieldNames = fieldList.stream().map(FieldConf::getName).toArray(String[]::new);
-        String[] fieldTypes = fieldList.stream().map(FieldConf::getType).toArray(String[]::new);
         TableSchema.Builder builder = TableSchema.builder();
         for (int i = 0; i < fieldTypes.length; i++) {
             DataType dataType = converter.apply(fieldTypes[i]);
@@ -65,7 +72,7 @@ public class TableUtil {
         DataType[] dataTypes =
                 builder.build().toRowDataType().getChildren().toArray(new DataType[] {});
 
-        return getTypeInformation(dataTypes, fieldNames);
+        return getTypeInformation(dataTypes, fieldNames, fieldFormat, useAbstractBaseColumn);
     }
 
     /**
@@ -77,7 +84,37 @@ public class TableUtil {
      */
     public static TypeInformation<RowData> getTypeInformation(
             DataType[] dataTypes, String[] fieldNames) {
-        return InternalTypeInfo.of(getRowType(dataTypes, fieldNames));
+        return getTypeInformation(dataTypes, fieldNames, new String[fieldNames.length], false);
+    }
+
+    /**
+     * 获取TypeInformation
+     *
+     * @param dataTypes
+     * @param fieldNames
+     * @return
+     */
+    public static TypeInformation<RowData> getTypeInformation(
+            DataType[] dataTypes,
+            String[] fieldNames,
+            String[] fieldFormat,
+            boolean useAbstractBaseColumn) {
+        RowType rowType = getRowType(dataTypes, fieldNames, fieldFormat);
+
+        if (useAbstractBaseColumn) {
+            if (useGenericTypeInfo(rowType)) {
+                return new GenericTypeInfo<>(RowData.class);
+            }
+            return ColumnRowDataTypeInfo.of(rowType);
+        } else {
+            return InternalTypeInfo.of(getRowType(dataTypes, fieldNames, fieldFormat));
+        }
+    }
+
+    public static boolean useGenericTypeInfo(RowType rowType) {
+        return rowType.getChildren().stream()
+                .map(LogicalType::getTypeRoot)
+                .anyMatch(logicalTypeRoot -> logicalTypeRoot == LogicalTypeRoot.ARRAY);
     }
 
     /**
@@ -87,10 +124,16 @@ public class TableUtil {
      * @param fieldNames
      * @return
      */
-    public static RowType getRowType(DataType[] dataTypes, String[] fieldNames) {
-        return RowType.of(
-                Arrays.stream(dataTypes).map(DataType::getLogicalType).toArray(LogicalType[]::new),
-                fieldNames);
+    public static RowType getRowType(
+            DataType[] dataTypes, String[] fieldNames, String[] formatField) {
+        List<RowType.RowField> rowFieldList = new ArrayList<>(dataTypes.length);
+        for (int i = 0; i < dataTypes.length; i++) {
+            rowFieldList.add(
+                    new RowType.RowField(
+                            fieldNames[i], dataTypes[i].getLogicalType(), formatField[i]));
+        }
+
+        return new RowType(rowFieldList);
     }
 
     /**

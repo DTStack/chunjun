@@ -839,7 +839,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected void executeQuery(String startLocation) throws SQLException {
         if (currentJdbcInputSplit.isPolling()) {
             if (StringUtils.isBlank(startLocation)) {
-                // Get the startLocation from the database
                 queryPollingWithOutStartLocation();
                 // Concatenated sql statement for next polling query
                 StringBuilder builder = new StringBuilder(128);
@@ -889,7 +888,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
     }
     /**
-     * 间隔轮询查询起始位置
+     * polling mode first query when startLocation is not set
      *
      * @throws SQLException
      */

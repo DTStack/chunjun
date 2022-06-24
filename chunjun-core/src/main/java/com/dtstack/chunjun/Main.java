@@ -50,10 +50,6 @@ import com.dtstack.chunjun.util.PrintUtil;
 import com.dtstack.chunjun.util.PropertiesUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
-import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.core.execution.JobClient;
@@ -73,6 +69,9 @@ import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.table.factories.TableFactoryService;
 import org.apache.flink.table.types.DataType;
 
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +138,6 @@ public class Main {
      * @param tableEnv
      * @param job
      * @param options
-     *
      * @throws Exception
      */
     private static void exeSqlJob(
@@ -173,7 +171,6 @@ public class Main {
      * @param tableEnv
      * @param job
      * @param options
-     *
      * @throws Exception
      */
     private static void exeSyncJob(
@@ -239,7 +236,6 @@ public class Main {
      * @param tableEnv
      * @param config
      * @param sourceDataStream
-     *
      * @return
      */
     private static DataStream<RowData> syncStreamToTable(
@@ -261,7 +257,7 @@ public class Main {
 
         DataType[] tableDataTypes = adaptTable.getSchema().getFieldDataTypes();
         String[] tableFieldNames = adaptTable.getSchema().getFieldNames();
-        TypeInformation<RowData> typeInformation =
+        TypeInformation<? extends RowData> typeInformation =
                 TableUtil.getTypeInformation(tableDataTypes, tableFieldNames);
         DataStream<RowData> dataStream =
                 tableEnv.toRetractStream(adaptTable, typeInformation).map(f -> f.f1);
@@ -277,7 +273,6 @@ public class Main {
      *
      * @param job
      * @param options
-     *
      * @return
      */
     public static SyncConf parseConf(String job, Options options) {

@@ -157,10 +157,11 @@ public class StarrocksSinkFactory extends JdbcSinkFactory {
                     TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
             rowConverter = jdbcDialect.getRowConverter(rowType);
             typeInformation =
-                    TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
+                    TableUtil.getTypeInformation(
+                            Collections.emptyList(), getRawTypeConverter(), false);
         } else {
             List<FieldConf> fieldList = syncConf.getWriter().getFieldList();
-            typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter());
+            typeInformation = TableUtil.getTypeInformation(fieldList, getRawTypeConverter(), true);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
 

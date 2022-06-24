@@ -66,6 +66,12 @@ public final class ColumnRowData implements RowData, Serializable {
         byteSize = 1;
     }
 
+    public ColumnRowData(RowKind kind, int arity, int byteSize) {
+        this.columnList = new ArrayList<>(arity);
+        this.kind = kind;
+        this.byteSize = byteSize;
+    }
+
     public ColumnRowData(int arity) {
         this(RowKind.INSERT, arity);
     }
@@ -76,6 +82,10 @@ public final class ColumnRowData implements RowData, Serializable {
         }
         this.header.put(name, this.header.size());
         byteSize += getStringSize(name);
+    }
+
+    public void setHeader(Map<String, Integer> header) {
+        this.header = header;
     }
 
     public void replaceHeader(String original, String another) {
@@ -141,6 +151,10 @@ public final class ColumnRowData implements RowData, Serializable {
         if (value != null) {
             this.byteSize += value.byteSize;
         }
+    }
+
+    public void addFieldWithOutByteSize(AbstractBaseColumn value) {
+        this.columnList.add(value);
     }
 
     public void addAllField(List<AbstractBaseColumn> list) {
@@ -274,7 +288,7 @@ public final class ColumnRowData implements RowData, Serializable {
         return null;
     }
 
-    public long getByteSize() {
+    public int getByteSize() {
         return byteSize;
     }
 

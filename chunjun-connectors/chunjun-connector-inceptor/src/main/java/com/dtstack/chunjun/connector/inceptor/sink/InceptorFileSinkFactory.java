@@ -79,7 +79,7 @@ public class InceptorFileSinkFactory extends SinkFactory {
                         inceptorFileConf.getColumn(),
                         getRawTypeConverter());
 
-        builder.setRowConverter(rowConverter);
+        builder.setRowConverter(rowConverter, useAbstractBaseColumn);
         return createOutput(dataSet, builder.finish());
     }
 

@@ -52,7 +52,8 @@ public class BaseMetric {
                 runtimeContext
                         .getMetricGroup()
                         .addGroup(
-                                Metrics.METRIC_GROUP_KEY_CHUNJUN, Metrics.METRIC_GROUP_VALUE_OUTPUT);
+                                Metrics.METRIC_GROUP_KEY_CHUNJUN,
+                                Metrics.METRIC_GROUP_VALUE_OUTPUT);
 
         chunjunDirtyMetricGroup =
                 chunjunMetricGroup.addGroup(

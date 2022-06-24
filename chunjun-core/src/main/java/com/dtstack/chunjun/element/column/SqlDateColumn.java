@@ -33,8 +33,16 @@ public class SqlDateColumn extends AbstractBaseColumn {
         super(data, 8);
     }
 
+    public SqlDateColumn(Date data, int byteSize) {
+        super(data, 0);
+    }
+
     public SqlDateColumn(long data) {
         super(Date.valueOf(LocalDate.ofEpochDay(data)), 8);
+    }
+
+    public static SqlDateColumn from(Date date) {
+        return new SqlDateColumn(date, 0);
     }
 
     @Override

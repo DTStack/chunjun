@@ -44,6 +44,14 @@ public class BytesColumn extends AbstractBaseColumn {
         this.encoding = encoding;
     }
 
+    public BytesColumn(byte[] data, int byteSize) {
+        super(data, byteSize);
+    }
+
+    public static BytesColumn from(byte[] data) {
+        return new BytesColumn(data, 0);
+    }
+
     @Override
     public Boolean asBoolean() {
         if (null == data) {

@@ -19,7 +19,6 @@
 package com.dtstack.chunjun.connector.postgresql.source;
 
 import com.dtstack.chunjun.conf.SyncConf;
-import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
 
@@ -36,10 +35,5 @@ public class PostgresqlSourceFactory extends JdbcSourceFactory {
 
     public PostgresqlSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env, new PostgresqlDialect());
-    }
-
-    @Override
-    protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new PostgresqlInputFormat());
     }
 }
