@@ -51,8 +51,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Date: 2021/06/22 Company: www.dtstack.com
@@ -62,6 +65,10 @@ import java.util.TreeMap;
 public class HiveUtil {
     public static final String TABLE_COLUMN_KEY = "key";
     public static final String TABLE_COLUMN_TYPE = "type";
+    public static final String DECIMAL_KEY = "DECIMAL";
+    public static final String DECIMAL_FORMAT = "DECIMAL(%s, %s)";
+    public static final String DECIMAL_PATTERN_STR = "DECIMAL(\\((\\s*\\d+\\s*),(\\s*\\d+\\s*)\\))";
+    public static final Pattern DECIMAL_PATTERN = Pattern.compile(DECIMAL_PATTERN_STR);
     public static final String PARTITION_TEMPLATE = "%s=%s";
     private static final Logger logger = LoggerFactory.getLogger(HiveUtil.class);
     private static final String CREATE_PARTITION_TEMPLATE =
@@ -168,8 +175,7 @@ public class HiveUtil {
             metadataParser.fillTableInfo(tableInfo, result);
         } catch (Exception e) {
             if (e.getMessage().contains(NO_SUCH_TABLE_EXCEPTION)) {
-                throw new ChunJunRuntimeException(
-                        String.format("表%s不存在", tableInfo.getTablePath()));
+                throw new ChunJunRuntimeException(String.format("表%s不存在", tableInfo.getTablePath()));
             } else {
                 throw e;
             }
@@ -360,9 +366,32 @@ public class HiveUtil {
                 type = "TIMESTAMP";
                 break;
             default:
-                type = "STRING";
+                type = convertDefaultType(type);
         }
         return type;
+    }
+
+    /**
+     * 转化decimal类型，带上精度
+     *
+     * @param type type 类型
+     * @return 有精度的decimal
+     */
+    private static String convertDefaultType(String type) {
+        String toUpperCase = type.toUpperCase(Locale.ROOT);
+        if (toUpperCase.contains(DECIMAL_KEY)) {
+            Matcher matcher = DECIMAL_PATTERN.matcher(toUpperCase);
+            if (matcher.matches()) {
+                final int precision = Integer.parseInt(matcher.group(2).trim());
+                final int scale = Integer.parseInt(matcher.group(3).trim());
+                return String.format(DECIMAL_FORMAT, precision, scale);
+            } else {
+                throw new IllegalArgumentException(
+                        "Get wrong type of decimal, the type is: " + type);
+            }
+        }
+
+        return "STRING";
     }
 
     public static AbstractBaseColumn parseDataFromMap(Object data) {
