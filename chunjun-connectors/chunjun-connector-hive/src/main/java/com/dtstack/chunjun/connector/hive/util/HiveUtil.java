@@ -175,7 +175,8 @@ public class HiveUtil {
             metadataParser.fillTableInfo(tableInfo, result);
         } catch (Exception e) {
             if (e.getMessage().contains(NO_SUCH_TABLE_EXCEPTION)) {
-                throw new ChunJunRuntimeException(String.format("表%s不存在", tableInfo.getTablePath()));
+                throw new ChunJunRuntimeException(
+                        String.format("表%s不存在", tableInfo.getTablePath()));
             } else {
                 throw e;
             }
