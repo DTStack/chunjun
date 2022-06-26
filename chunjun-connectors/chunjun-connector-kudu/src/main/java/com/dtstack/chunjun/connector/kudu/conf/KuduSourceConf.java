@@ -43,7 +43,7 @@ public class KuduSourceConf extends KuduCommonConf {
      */
     private String readMode;
 
-    private int batchSizeBytes;
+    private int batchSizeBytes = 1024;
 
     private String filter;
 
