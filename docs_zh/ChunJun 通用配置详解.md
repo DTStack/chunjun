@@ -151,7 +151,7 @@ errorLimit 用于配置任务运行时数据读取写入的出错控制。具体
 
 ### MetricPluginConf
 
-metricPluginConf 用于配置 flinkx 指标相关信息。
+metricPluginConf 用于配置 chunjun 指标相关信息。
 
 目前只应用于 Jdbc 插件中，在作业结束时将 StartLocation 和 EndLocation 指标发送到指定数据源中。
 
@@ -240,7 +240,7 @@ log 用于配置 ChunJun 中定义的插件日志的保存与记录。具体配�
 "log" : {
   "isLogger": false,
   "level" : "info",
-  "path" : "/tmp/dtstack/flinkx/",
+  "path" : "/tmp/dtstack/chunjun/",
   "pattern":""
 }
 ```
@@ -249,5 +249,5 @@ log 用于配置 ChunJun 中定义的插件日志的保存与记录。具体配�
 | -------- | -------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | isLogger | 是否保存日志记录     | 否       | false                                                                                                                                                       | Boolean  |
 | level    | 日志级别             | 否       | info                                                                                                                                                        | String   |
-| path     | 服务器上日志保存路径 | 否       | /tmp/dtstack/flinkx/                                                                                                                                        | String   |
+| path     | 服务器上日志保存路径 | 否       | /tmp/dtstack/chunjun/                                                                                                                                        | String   |
 | pattern  | 日志输出格式         | 否       | log4j：%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{60} %X{sourceThread} - %msg%n<br />logback : %d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n | String   |
