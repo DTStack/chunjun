@@ -5,7 +5,7 @@ export const headerList = [
   },
   {
     name: "文档",
-    path: "/documents",
+    path: "/documents/7e3fa940-adf2-5eb8-bfb2-9252eb015e73",
     key: "documents",
   },
   {
@@ -13,21 +13,22 @@ export const headerList = [
     path: "/examples",
     key: "examples",
   },
-  {
-    name: "博客",
-    path: "/blogs",
-    key: "blogs",
-  },
+  // {
+  //   name: "博客",
+  //   path: "/blogs",
+  //   key: "blogs",
+  // },
   {
     name: "下载",
-    path: "/download",
+    path: null,
+    url: "https://github.com/DTStack/chunjun/releases",
     key: "download",
   },
-  {
-    name: "Roadmap",
-    path: "/roadmap",
-    key: "roadmap",
-  },
+  // {
+  //   name: "Roadmap",
+  //   path: "/roadmap",
+  //   key: "roadmap",
+  // },
 ]
 
 export function buildMenu(nodes) {

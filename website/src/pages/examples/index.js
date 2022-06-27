@@ -1,8 +1,6 @@
 import * as React from "react"
-import { graphql, Link, navigate, useStaticQuery } from "gatsby"
+import { graphql, navigate } from "gatsby"
 
-import AppHeader from "../../components/AppHeader"
-import MenuLayout from "../../components/documentsMenu/menu"
 import { buildMenu, getFileArr } from "../../util"
 const IndexPage = props => {
   //nodes 是文档list的相关信息, 文档的详细路由是  /documents/{name}
@@ -12,7 +10,7 @@ const IndexPage = props => {
   if (fileList[0]) navigate(`/examples/${fileList[0].data.id}`)
   return (
     <>
-      <h1 className="md__title">介绍</h1>
+      <h1 className="md__title">Loading....</h1>
     </>
   )
 }
@@ -23,13 +21,7 @@ export const query = graphql`
       id
       content
     }
-    allFile(
-      filter: {
-        sourceInstanceName: { eq: "examples" }
-        extension: { eq: "json" }
-        ctime: {}
-      }
-    ) {
+    allFile(filter: { sourceInstanceName: { eq: "examples" }, extension: { eq: "json" }, ctime: {} }) {
       edges {
         node {
           id

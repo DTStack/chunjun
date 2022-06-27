@@ -1,5 +1,4 @@
-import "./index.scss"
-import React, { useEffect, useLayoutEffect } from "react"
+import React, { useEffect } from "react"
 import Aos from "aos"
 
 const AppShowcase = () => {
@@ -124,31 +123,20 @@ const AppShowcase = () => {
       img: require("../../assets/img/nat-27.png").default,
       id: "nat-27",
     },
-    {
-      img: require("../../assets/img/nat-28.png").default,
-      id: "nat-28",
-    },
-    {
-      img: require("../../assets/img/nat-30.png").default,
-      id: "nat-30",
-    },
   ]
-  useLayoutEffect(() => {
+  useEffect(() => {
     Aos.init({
       duration: 1000,
     })
   }, [])
   return (
-    <section
-      data-aos={"zoom-in"}
-      className="showcase flex flex-col items-center justify-center  bg-white flex-padding"
-    >
-      <h1 className="text-center w-full text-3xl p-8">Sponsors</h1>
-      <div className="flex flex-wrap w-full md:w-3/4 bg-white p-3">
+    <section data-aos="zoom-in" className="flex-padding flex flex-col items-center justify-center  bg-white">
+      <h1 className="text-center w-full text-xl">成为我们的客户</h1>
+      <div className="flex flex-wrap w-full bg-white p-3">
         {imgs.map(i => {
           return (
-            <div className=" bg:w-1/6 md:w-1/6   sm:w-1/5 w-1/5  h-32   flex items-center p-2">
-              <img src={i.img} alt="" key={i.id} className="w-full" />
+            <div key={i.id} className=" bg:w-1/6 md:w-1/6  sm:w-1/5 w-1/5  h-32 flex items-center p-2">
+              <img src={i.img} alt="" className="w-full" />
             </div>
           )
         })}

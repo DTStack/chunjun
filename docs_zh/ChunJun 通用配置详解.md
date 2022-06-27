@@ -25,12 +25,12 @@
 
 <table>
 	<tr>
-		<td colspan={2}>名称</td>
+		<td colspan="2">名称</td>
 		<td>说明</td>
 		<td>是否必填</td>
 	</tr>
 	<tr>
-		<td rowspan={2}>contend</td>
+		<td rowspan="2">contend</td>
 		<td>reader</td>
 		<td>reader插件详细配置</td>
 		<td>是</td>
@@ -41,7 +41,7 @@
 		<td>是</td>
 	</tr>
   <tr>
-		<td rowspan={7}>setting</td>
+		<td rowspan="7">setting</td>
 		<td>speed</td>
 		<td>速率限制</td>
 		<td>否</td>
