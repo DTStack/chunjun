@@ -1,72 +1,177 @@
-.md__title {
-  font-size: 3.6rem;
-  text-align: left;
-}
-
-.md__tag {
-  font-size: 1rem;
-  color: #ccc;
-  text-align: right;
-}
-
-.btn-group {
+.container {
+  position: relative;
   display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-}
-.go-btn {
-  width: 200px;
-  background: #ffffff;
-  padding: 20px;
-
-  border: none;
-  outline: none;
-  border-radius: 4px;
-  cursor: pointer;
-  .top-text {
-    color: #666666;
-    margin-bottom: 5px;
-  }
-}
-.next-btn {
-  .top-text,
-  .bo-text {
-    text-align: right;
-  }
-}
-.pre-btn {
-  .top-text,
-  .bo-text {
-    text-align: left;
-  }
-}
-
-.table-of-content {
-  p,
-  a,
-  ul,
-  li,
-  p {
-    padding: 0px;
-    margin: 0;
-    color: black;
-    font-size: 17px;
-    line-height: 33px;
-    display: block;
-  }
-  ul {
-    padding-left: 7px;
-  }
-  a {
-    padding: 3px;
-  }
-  a :hover {
-    background-color: #f3f6f7;
-    border: 1px solid black;
-  }
-}
-.document-content {
-  height: calc(100vh - 80px);
+  padding: 0 20px;
+  height: calc(100vh - 64px);
   overflow-y: auto;
-  margin: 0;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  @media screen and (max-width: 1200px) {
+    padding: 10px;
+  }
+  &-wrapper {
+    width: 60vw;
+
+    @media screen and (max-width: 768px) {
+      width: 95vw;
+      margin: auto;
+    }
+    a {
+      color: #0984e3;
+      max-width: 100vw;
+    }
+    h1 {
+      display: block;
+      font-size: 2em;
+      margin-block-start: 0.67em;
+      margin-block-end: 0.67em;
+      margin-inline-start: 0px;
+      margin-inline-end: 0px;
+      &:first-child {
+        margin: 0 0 20px 0;
+      }
+    }
+
+    h2 {
+      font-size: 25px;
+    }
+
+    h3 {
+      display: block;
+      font-size: 1.17em;
+      margin-block-start: 1em;
+      margin-block-end: 1em;
+      margin-inline-start: 0px;
+      margin-inline-end: 0px;
+    }
+
+    h4 {
+      font-size: 16px;
+      margin-block-start: 1.33em;
+      margin-block-end: 1.33em;
+      margin-inline-start: 0px;
+      margin-inline-end: 0px;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+      text-transform: capitalize;
+      font-weight: 550;
+    }
+
+    p {
+      display: block;
+      margin-block-start: 1em;
+      margin-block-end: 1em;
+      margin-inline-start: 0px;
+      margin-inline-end: 0px;
+      overflow-wrap: break-word;
+    }
+
+    pre {
+      background-color: #eee;
+      padding: 10px;
+      margin: 20px 0;
+      overflow: auto;
+    }
+
+    table {
+      margin: 20px 0;
+      border-collapse: collapse;
+      display: block;
+      & > tr {
+        vertical-align: middle;
+      }
+    }
+
+    td,
+    th {
+      border: 0.1px solid #535c68;
+      padding: 12px;
+      & a {
+        display: block;
+      }
+      &:nth-child(odd) {
+        background-color: #dfe6e9;
+      }
+    }
+    td {
+      display: table-cell;
+      vertical-align: inherit;
+    }
+
+    ul {
+      display: block;
+      margin-block-start: 1em;
+      margin-block-end: 1em;
+      margin-inline-start: 0px;
+      margin-inline-end: 0px;
+      padding-inline-start: 40px;
+    }
+    li {
+      list-style-type: disc;
+    }
+
+    blockquote p {
+      display: block;
+      margin-block-start: 1em;
+      margin-block-end: 1em;
+      margin-inline-start: 0px;
+      margin-inline-end: 0px;
+      padding: 0 20px;
+    }
+  }
+  &-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 90px auto;
+    &-btn {
+      // width: 200px
+      min-width: 200px;
+      height: 72px;
+      background: #ffffff;
+      box-shadow: 0px 1px 6px 0px rgba(125, 159, 199, 0.14);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 17px 14px;
+      & span {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+.outline {
+  border: 0;
+  padding-left: 20px;
+  outline: none;
+  max-width: 250px;
+  // height: 100%;
+  position: sticky;
+  top: 64px;
+  @media screen and (max-width: 1200px) {
+    display: none;
+  }
+  &-wrapper {
+    ul {
+      & ul {
+        margin-left: 20px;
+      }
+
+      & li {
+        list-style-type: circle;
+      }
+    }
+    a {
+      color: #0984e3;
+      font-size: 12.8px;
+    }
+  }
 }
