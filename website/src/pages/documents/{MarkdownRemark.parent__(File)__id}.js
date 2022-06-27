@@ -1,10 +1,9 @@
 import * as React from "react"
-import { graphql, navigate, useStaticQuery } from "gatsby"
-import "./index.scss"
-import "./md.css"
+import { graphql, navigate } from "gatsby"
 import { buildMenu, getFileArr } from "../../util"
-import "../../font/iconfont.css"
-import AppFooter from "../../components/AppFooter"
+import { Left, Right } from "@icon-park/react"
+import "./index.scss"
+
 const BlogPost = props => {
   // const menuData = buildMenu(ldata.allFile.edges.map(item => item.node))
 
@@ -12,13 +11,10 @@ const BlogPost = props => {
   const fileList = getFileArr(menuData.children)
   const html = props.data.markdownRemark.html
   const tableOfContents = props.data.markdownRemark.tableOfContents
-  const data = props.data.markdownRemark
-  const title = data.parent.name
-  const modifiedTime = data.parent.modifiedTime
+  // const data = props.data.markdownRemark
 
-  // const state = props.location.state
-  let location = window.location.pathname.split("/").pop()
-  let fileIndex = fileList.map(item => item.data.id).indexOf(location)
+  const location = window.location.pathname.split("/").pop()
+  const fileIndex = fileList.map(item => item.data.id).indexOf(location)
 
   const [preName, setPre] = React.useState("（无）")
   const [nextName, setNext] = React.useState("（无）")
@@ -27,7 +23,7 @@ const BlogPost = props => {
     if (fileIndex > 0) {
       setPre(fileList[fileIndex - 1].name)
     }
-    if (fileIndex != fileList.length - 1) {
+    if (fileIndex !== fileList.length - 1) {
       setNext(fileList[fileIndex + 1].name)
     }
   }, [])
@@ -44,7 +40,7 @@ const BlogPost = props => {
     })
   }
   function goNext() {
-    if (fileIndex + 1 == fileList.length) return
+    if (fileIndex + 1 === fileList.length) return
     let target = fileList[fileIndex + 1]
     navigate(`/documents/${target.data.id}`, {
       state: {
@@ -55,59 +51,30 @@ const BlogPost = props => {
   }
 
   return (
-    <>
-      <div className="p-0 dark:bg-black dark:text-white relative">
-        <div className="dark:bg-black flex p-0">
-          <section
-            className="dark-markdown-body dark:bg-black px-7 document-content flex-1 mr-3 pr-3"
-            style={{ minHeight: "50vh" }}
-          >
-            <h1 className="md__title"> {title} </h1>
-            <h3 className="text-sm text-blue-400 text-left">
-              更新于 : {new Date(modifiedTime).toLocaleDateString()}{" "}
-            </h3>
-
-            <div dangerouslySetInnerHTML={{ __html: html }} />
-            <div className="btn-group ">
-              <button
-                className="go-btn pre-btn border flex justify-between items-center border-gray-200 hover:border-blue-400  text-base shadow-sm hover:shadow"
-                onClick={goPre}
-              >
-                <i className="iconfont text-2xl icon-left-line"></i>
-                <div>
-                  <p className="top-text">上一篇</p>
-                  <p className="bo-text">
-                    <span className="font-bold text-3xl">{preName}</span>
-                  </p>
-                </div>
-              </button>
-              <button
-                className="go-btn pre-btn border flex justify-between items-center border-gray-200 hover:border-blue-400  text-base shadow-sm hover:shadow"
-                onClick={goNext}
-              >
-                <div>
-                  <p className="top-text">下一篇</p>
-                  <p className="bo-text">
-                    <span className=" text-3xl font-bold">{nextName}</span>
-                  </p>
-                </div>
-                <i className="iconfont text-2xl icon-right-line"></i>
-              </button>
-            </div>
-            <AppFooter></AppFooter>
-          </section>
-          <section
-            style={{ width: "250px" }}
-            className=" flex-grow-0 p-0  border-l border-gray-200 flex-shrink-0 pl-5  table-of-content"
-          >
-            <div
-              className="table-of-content"
-              dangerouslySetInnerHTML={{ __html: tableOfContents }}
-            />
-          </section>
+    <section className="container">
+      <div>
+        <div className="container-wrapper" dangerouslySetInnerHTML={{ __html: html }} />
+        <div className="container-group">
+          <button className="container-group-btn" onClick={goPre}>
+            <Left theme="outline" size="24" fill="#333" />
+            <span style={{ textAlign: "left", padding: "0 5px" }}>
+              <p>上一篇:</p>
+              {preName}
+            </span>
+          </button>
+          <button className="container-group-btn" onClick={goNext}>
+            <span style={{ textAlign: "right", padding: "0 5px" }}>
+              <p>下一篇:</p>
+              {nextName}
+            </span>
+            <Right theme="outline" size="24" fill="#333" />
+          </button>
         </div>
       </div>
-    </>
+      <aside className="outline">
+        <div className="outline-wrapper" dangerouslySetInnerHTML={{ __html: tableOfContents }} />
+      </aside>
+    </section>
   )
 }
 
@@ -126,13 +93,7 @@ export const query = graphql`
         }
       }
     }
-    allFile(
-      filter: {
-        sourceInstanceName: { eq: "docs" }
-        extension: { eq: "md" }
-        ctime: {}
-      }
-    ) {
+    allFile(filter: { sourceInstanceName: { eq: "docs" }, extension: { eq: "md" }, ctime: {} }) {
       edges {
         node {
           id

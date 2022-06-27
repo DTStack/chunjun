@@ -1,72 +1,45 @@
-import "./index.scss"
-import { Card, Image, Text } from "@mantine/core"
-import React, { useLayoutEffect } from "react"
+import React, { useEffect } from "react"
+import Aos from "aos"
 
 const AppCards = () => {
+  useEffect(() => {
+    Aos.init({
+      duration: 1000,
+    })
+  }, [])
+
   return (
-    <section className="cards flex-padding">
-      <Card component="a" className="cards__card">
-        <Card.Section>
-          <Image
-            src={require("../../assets/img/easy-to-use@2x.png").default}
-            height={136}
-            width={136}
-            alt="No way!"
-          />
-        </Card.Section>
-
-        <Text weight={500} className="cards__card--title">
-          easy to use
-        </Text>
-
-        <Text size="sm" className="cards__card--text">
-          基于json、sql
-          快速构建数据同步任务，你只需要关注数据源的结构信息即可，让您节省时间，专注于数据集成的开发。
-        </Text>
-      </Card>
-      <Card component="a" className="cards__card">
-        <Card.Section>
-          <Image
-            src={require("../../assets/img/flink-png@2x.png").default}
-            width={136}
-            height={136}
-            alt="No way!"
-          />
-        </Card.Section>
-
-        <Text weight={500} className="cards__card--title">
-          基于 Flink
-        </Text>
-
-        <Text size="sm" className="cards__card--text">
-          该项目构建于flink之上，基于flink 原生的input,output
-          相关接口来实现多种数据源之间的数据传输，同时可以基于 flink
-          自己扩展插件。
-        </Text>
-      </Card>
-      <Card component="a" className="cards__card">
-        <Card.Section>
-          <Image
-            src={require("../../assets/img/cloud-png@2x.png").default}
-            width={136}
-            height={136}
-            alt="No way!"
-          />
-        </Card.Section>
-
-        <Text weight={500} className="cards__card--title">
-          关键特性
-        </Text>
-
-        <Text size="sm" className="cards__card--text">
-          1. 多种数据源之间数据传输
-          <br />
-          2. 断点续传 3. 增量同步 4. 实时采集
-          <br />
-          5.脏数据管理 6. 实时数据还原
-        </Text>
-      </Card>
-    </section>
+    <>
+      <section data-aos="zoom-in" className="flex-padding py-[36px] w-full mb-[48px]">
+        <h1 className="text-center mb-[54px] text-xl">ChunJun 纯钧 核心特性</h1>
+        <div className="grid md:grid-cols-3 grid-cols-2 md:gap-y-[52px] gap-y-4 justify-items-center">
+          <div className="md:w-[256px] w-full flex flex-col items-center">
+            <img className=" mb-[15px] md:w-[80px] w-[96px]" src={require("../../assets/svg/hero-6.svg").default} alt="" />
+            <p className="text-center text-gray-400">基于json、sql 构建任务</p>
+          </div>
+          <div className="md:w-[256px] w-full flex flex-col items-center">
+            <img className=" mb-[15px] md:w-[80px] w-[96px]" src={require("../../assets/svg/hero-2.svg").default} alt="" />
+            <p className="text-center text-gray-400">支持多种异构数据源之间数据传输</p>
+          </div>
+          <div className="md:w-[256px] w-full flex flex-col items-center">
+            <img className=" mb-[15px] md:w-[80px] w-[96px]" src={require("../../assets/svg/hero-4.svg").default} alt="" />
+            <p className="text-center text-gray-400">支持断点续传、增量同步</p>
+          </div>
+          <div className="md:w-[256px] w-full flex flex-col items-center">
+            <img className=" mb-[15px] md:w-[80px] w-[96px]" src={require("../../assets/svg/hero-1.svg").default} alt="" />
+            <p className="text-center text-gray-400">支持任务脏数据存储管理</p>
+          </div>
+          <div className="md:w-[256px] w-full flex flex-col items-center">
+            <img className=" mb-[15px] md:w-[80px] w-[96px]" src={require("../../assets/svg/hero-3.svg").default} alt="" />
+            <p className="text-center text-gray-400">支持Schema同步</p>
+          </div>
+          <div className="md:w-[256px] w-full flex flex-col items-center">
+            <img className=" mb-[15px] md:w-[80px] w-[96px]" src={require("../../assets/svg/hero-5.svg").default} alt="" />
+            <p className="text-center text-gray-400">支持RDBS数据源实时采集</p>
+          </div>
+        </div>
+      </section>
+    </>
   )
 }
 

@@ -10,4 +10,7 @@
   height: calc(100vh - 80px);
   overflow-y: auto;
   padding: 20px;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }

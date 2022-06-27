@@ -1,7 +1,13 @@
 module.exports = {
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
+  content: ["./src/**/*.{jsx,ts,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      backgroundImage: {
+        "hero-pattern": "url('./img/bg.png')",
+        block: "url('./img/block2x.png')",
+        block2: "url('./img/block2@2x.png')",
+      },
+    },
   },
   plugins: [],
 }
