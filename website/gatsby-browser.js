@@ -6,37 +6,31 @@
 require("./src/styles/global.css")
 const React = require("react")
 const { default: AppHeader } = require("./src/components/AppHeader")
-const { default: AppHeaderWhite } = require("./src/components/AppHeaderWhite")
 
 const Layout = require("./src/components/documentsMenu/menu").default
 const JsonLayout = require("./src/components/jsonMenu/menu").default
 const SpaceLayout = require("./src/components/space/spaceLayout").default
-const { default: AppFooter } = require("./src/components/AppFooter")
 // You can delete this file if you're not using it
-import("./src/assets/sass/index.scss")
+// import("./src/assets/sass/index.scss")
 exports.wrapPageElement = ({ element, props }) => {
   // props provide same data to Layout as Page element will get
   // including location, data, etc - you don't need to pass it
 
+  const flag = element.key.includes("documents") || element.key.includes("examples") || element.key.includes("download")
+
   return (
-    <>
-      <div className=" ">
-        {element.key.includes("documents") ? (
-          <>
-            <div style={{ minHeight: "100vh", backgroundColor: "#fff" }}>
-              <AppHeaderWhite></AppHeaderWhite>
-              <Layout {...props}>{element}</Layout>
-            </div>
-          </>
-        ) : element.key.includes("examples") ? (
-          <div style={{ minHeight: "100vh", backgroundColor: "#fff" }}>
-            <AppHeaderWhite></AppHeaderWhite>
-            <JsonLayout {...props}>{element}</JsonLayout>
-          </div>
-        ) : (
+    <div className="min-h-screen">
+      {flag ? (
+        <>
+          <AppHeader color={true} />
+          {element.key.includes("documents") && <Layout {...props}>{element}</Layout>}
+          {element.key.includes("examples") && <JsonLayout {...props}>{element}</JsonLayout>}
+        </>
+      ) : (
+        <>
           <SpaceLayout {...props}>{element}</SpaceLayout>
-        )}
-      </div>
-    </>
+        </>
+      )}
+    </div>
   )
 }
