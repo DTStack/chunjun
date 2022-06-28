@@ -239,7 +239,7 @@ public class LogParser {
             try {
                 String valueSub = value.substring(8, value.length() - 2);
                 if (StringUtils.isNotEmpty(valueSub)) {
-                    return decodeUnicode(s1);
+                    return decodeUnicode(valueSub);
                 } else {
                     return "";
                 }
