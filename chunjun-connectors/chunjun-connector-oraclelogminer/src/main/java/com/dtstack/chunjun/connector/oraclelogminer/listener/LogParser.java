@@ -237,8 +237,8 @@ public class LogParser {
             }
         } else if (value.startsWith("UNISTR('")) {
             try {
-                String s1 = value.substring(8, value.length() - 2);
-                if (StringUtils.isNotEmpty(s1)) {
+                String valueSub = value.substring(8, value.length() - 2);
+                if (StringUtils.isNotEmpty(valueSub)) {
                     return decodeUnicode(s1);
                 } else {
                     return "";
