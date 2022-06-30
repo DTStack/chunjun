@@ -12,6 +12,7 @@
     top: 0;
     background-color: #fff;
     opacity: 0.1;
+    font-size: 15px;
   }
   .header-link[aria-current="page"]::after {
     content: "";
@@ -21,6 +22,9 @@
     height: 1px;
     width: 100%;
     background-color: #fff;
+  }
+  .hero {
+    height: calc(100vh - 90px);
   }
   @media screen and (max-width: 1504px) {
     .hero {
@@ -34,23 +38,25 @@
   }
 
   .btn {
-    display: inline-block;
+    /* display: inline-block; */
     outline: none;
     position: relative;
-    padding: 12px 42px;
-    font-size: var(--font-size-base);
-    border-radius: 4px;
+    padding: 12px 45px;
+    border-radius: 100px;
     text-transform: capitalize;
     border: 0;
     cursor: pointer;
     transition: all 0.3s ease;
+    @media screen and (min-width: 1921px) {
+      padding: 24px 90px;
+    }
   }
 
   .btn::after {
     content: "";
     position: absolute;
     z-index: -1;
-    border-radius: 4px;
+    border-radius: 100px;
     width: 100%;
     height: 100%;
     left: 0;
@@ -91,6 +97,11 @@
     color: #fff;
   }
 
+  .btn__black {
+    background-color: #333;
+    color: #fff;
+  }
+
   p {
     overflow-wrap: break-word !important;
   }
@@ -101,6 +112,25 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .text-vsm {
+    font-size: 1vmax;
+  }
+
+  .text-vbase {
+    font-size: 1.2vmax;
+  }
+
+  .text-vlg {
+    font-size: 1.6vmax;
+  }
+
+  .text-vxl {
+    font-size: 1.8vmax;
+  }
+  .text-v2xl {
+    font-size: 2vmax;
   }
 }
 
@@ -113,5 +143,13 @@
   }
   .active {
     @apply bg-gray-50 text-indigo-600 font-bold rounded-sm;
+  }
+
+  .card {
+    @apply lg:w-1/3 md:w-1/2 w-4/5;
+  }
+
+  .card-text {
+    @apply text-center md:text-base text-sm;
   }
 }

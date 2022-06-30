@@ -5,12 +5,12 @@ export const headerList = [
   },
   {
     name: "文档",
-    path: "/documents/7e3fa940-adf2-5eb8-bfb2-9252eb015e73",
+    path: "/documents",
     key: "documents",
   },
   {
     name: "案例",
-    path: "/examples",
+    path: "/examples/json",
     key: "examples",
   },
   // {
