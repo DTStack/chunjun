@@ -3,27 +3,14 @@ const isNodeSupported = node => {
 }
 
 const isTextFile = node => {
-  return (
-    node.internal.type === "File" &&
-    node.internal.mediaType === "application/json"
-  )
+  return node.internal.type === "File" && (node.internal.mediaType === "application/json" || node.internal.mediaType.includes("sql"))
 }
 
 const isFileWithoutExtension = node => {
-  return (
-    node.internal.type === "File" &&
-    node.internal.mediaType === "application/octet-stream" &&
-    !node.internal.extension
-  )
+  return node.internal.type === "File" && node.internal.mediaType === "application/octet-stream" && !node.internal.extension
 }
 
-exports.onCreateNode = async ({
-  node,
-  actions,
-  loadNodeContent,
-  createNodeId,
-  createContentDigest,
-}) => {
+exports.onCreateNode = async ({ node, actions, loadNodeContent, createNodeId, createContentDigest }) => {
   if (!isNodeSupported(node)) {
     return
   }

@@ -5,11 +5,13 @@
  */
 require("./src/styles/global.css")
 const React = require("react")
-const { default: AppHeader } = require("./src/components/AppHeader")
+// const { default: AppHeader } = require("./src/components/AppHeader")
 
 const Layout = require("./src/components/documentsMenu/menu").default
 const JsonLayout = require("./src/components/jsonMenu/menu").default
 const SpaceLayout = require("./src/components/space/spaceLayout").default
+// const AppFooter = require("./src/components/AppFooter").default
+
 // You can delete this file if you're not using it
 // import("./src/assets/sass/index.scss")
 exports.wrapPageElement = ({ element, props }) => {
@@ -19,17 +21,14 @@ exports.wrapPageElement = ({ element, props }) => {
   const flag = element.key.includes("documents") || element.key.includes("examples") || element.key.includes("download")
 
   return (
-    <div className="min-h-screen">
+    <div>
       {flag ? (
         <>
-          <AppHeader color={true} />
           {element.key.includes("documents") && <Layout {...props}>{element}</Layout>}
           {element.key.includes("examples") && <JsonLayout {...props}>{element}</JsonLayout>}
         </>
       ) : (
-        <>
-          <SpaceLayout {...props}>{element}</SpaceLayout>
-        </>
+        <SpaceLayout {...props}>{element}</SpaceLayout>
       )}
     </div>
   )

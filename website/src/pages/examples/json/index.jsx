@@ -1,35 +1,22 @@
 import React from "react"
 import { graphql, navigate } from "gatsby"
+import { buildMenu, getFileArr } from "../../../util"
+import { Skeleton } from "@mantine/core"
 
-import { buildMenu, getFileArr } from "../../util"
 const IndexPage = props => {
-  //nodes 是文档list的相关信息, 文档的详细路由是  /documents/{name}
-
   const menuData = buildMenu(props.data.allFile.edges.map(item => item.node))
   const fileList = getFileArr(menuData.children)
-  if (fileList[0]) navigate(`/documents/${fileList[0].data.id}`)
-  return (
-    <>
-      <h1 className="md__title">Loading....</h1>
-    </>
-  )
+  if (fileList[0]) navigate(`/examples/json/${fileList[0].data.id}`)
+  return <Skeleton className="h-screen" visible />
 }
 
 export const query = graphql`
   query ($id: String) {
-    markdownRemark(id: { eq: $id }) {
-      html
+    jsonContent(id: { eq: $id }) {
       id
-      parent {
-        ... on File {
-          id
-          name
-          modifiedTime
-          ino
-        }
-      }
+      content
     }
-    allFile(filter: { sourceInstanceName: { eq: "docs" }, extension: { eq: "md" }, ctime: {} }) {
+    allFile(filter: { sourceInstanceName: { eq: "examples" }, extension: { eq: "json" }, ctime: {} }) {
       edges {
         node {
           id
