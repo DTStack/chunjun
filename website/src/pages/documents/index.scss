@@ -2,7 +2,8 @@
   position: relative;
   display: flex;
   padding: 0 20px;
-  height: calc(100vh - 64px);
+  height: calc(100vh - 90px);
+  justify-content: center;
   overflow-y: auto;
   &::-webkit-scrollbar {
     display: none;

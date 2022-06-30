@@ -130,9 +130,9 @@ const AppShowcase = () => {
     })
   }, [])
   return (
-    <section data-aos="zoom-in" className="flex-padding flex flex-col items-center justify-center  bg-white">
-      <h1 className="text-center w-full text-xl">成为我们的客户</h1>
-      <div className="flex flex-wrap w-full bg-white p-3">
+    <section data-aos="zoom-out" className="min-h-screen flex flex-col items-center justify-center  bg-white">
+      <h1 className="text-center w-full lg:text-4xl text-2xl font-bold">成为我们的客户</h1>
+      <div className="flex flex-wrap w-full bg-white lg:p-12 p-6">
         {imgs.map(i => {
           return (
             <div key={i.id} className=" bg:w-1/6 md:w-1/6  sm:w-1/5 w-1/5  h-32 flex items-center p-2">
