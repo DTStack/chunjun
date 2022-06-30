@@ -24,14 +24,13 @@ module.exports = {
       resolve: `gatsby-source-filesystem`,
       options: {
         name: `examples`,
-        path: path.resolve(__dirname, "../chunjun-examples/json"),
+        path: path.resolve(__dirname, "../chunjun-examples"),
       },
     },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
         name: `images`,
-        // path: `${__dirname}/src/images`,
         path: path.resolve(__dirname, "src/images"),
       },
     },

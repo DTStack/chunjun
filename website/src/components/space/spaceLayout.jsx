@@ -8,7 +8,7 @@ import * as React from "react"
 
 const MenuLayout = ({ children }) => {
   //nodes 是文档list的相关信息, 文档的详细路由是  /documents/{name}
-
+  console.log("spacelayout")
   return <>{children}</>
 }
 
