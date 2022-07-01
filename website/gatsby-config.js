@@ -55,6 +55,12 @@ module.exports = {
               elements: [`h1`, `h2`],
             },
           },
+          {
+            resolve: `gatsby-remark-images`,
+            options: {
+              
+            },
+          },
         ],
       },
     },

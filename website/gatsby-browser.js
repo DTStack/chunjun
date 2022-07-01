@@ -9,6 +9,7 @@ const React = require("react")
 
 const Layout = require("./src/components/documentsMenu/menu").default
 const JsonLayout = require("./src/components/jsonMenu/menu").default
+const SqlLayout = require("./src/components/sqlMenu/menu").default
 const SpaceLayout = require("./src/components/space/spaceLayout").default
 // const AppFooter = require("./src/components/AppFooter").default
 
@@ -19,13 +20,14 @@ exports.wrapPageElement = ({ element, props }) => {
   // including location, data, etc - you don't need to pass it
 
   const flag = element.key.includes("documents") || element.key.includes("examples") || element.key.includes("download")
-
+  console.log(element.key);
   return (
     <div>
       {flag ? (
         <>
           {element.key.includes("documents") && <Layout {...props}>{element}</Layout>}
-          {element.key.includes("examples") && <JsonLayout {...props}>{element}</JsonLayout>}
+          {element.key.includes("examples/json") && <JsonLayout {...props}>{element}</JsonLayout>}
+          {element.key.includes("examples/sql") && <SqlLayout {...props}>{element}</SqlLayout>}
         </>
       ) : (
         <SpaceLayout {...props}>{element}</SpaceLayout>
