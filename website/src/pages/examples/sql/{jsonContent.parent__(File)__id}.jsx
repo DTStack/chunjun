@@ -1,15 +1,23 @@
 import React from "react"
 import { graphql } from "gatsby"
 import ReactJson from "react-json-view"
+import hljs from 'highlight.js';
 
 const BlogPost = props => {
-  let json = {}
+  
+  let sql =  ''
   try {
-    json = JSON.parse(props.data.jsonContent.content)
+    sql =  (props.data.jsonContent.content)
   } catch {}
+  React.useLayoutEffect(()=>{
+    hljs.highlightAll()
+  },[])
   return (
     <section className="json">
-      <ReactJson displayObjectSize={false}  src={json} />
+      <pre><code class="language-html">
+      {sql}
+        </code></pre>
+       
     </section>
   )
 }
