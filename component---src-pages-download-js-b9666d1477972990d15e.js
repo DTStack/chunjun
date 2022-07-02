@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkgatsby_starter_default=self.webpackChunkgatsby_starter_default||[]).push([[333],{4597:function(e,t,a){a.r(t);var l=a(7294),n=a(1115);t.default=function(){return l.createElement("div",null,l.createElement("div",{className:"blog-container text-center text-2xl p-10"},"开发中"),l.createElement(n.Z,null))}}}]);
-//# sourceMappingURL=component---src-pages-download-js-b9666d1477972990d15e.js.map
