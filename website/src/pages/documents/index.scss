@@ -121,5 +121,18 @@
     margin-inline-start: 0px;
     margin-inline-end: 0px;
     padding: 0 20px;
+    background-color: rgb(243, 244, 244);
+    color: #999;
+    padding: 5px 10px;
+    position: relative;
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 2px;
+      background-color: #999;
+    }
   }
 }
