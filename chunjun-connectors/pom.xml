@@ -51,6 +51,7 @@
         <module>chunjun-connector-ftp</module>
 <!--        <module>chunjun-connector-hdfs</module>-->
 <!--        <module>chunjun-connector-hive</module>-->
+<!--		<module>chunjun-connector-hive3</module>-->
 <!--        <module>chunjun-connector-inceptor</module>-->
 
 		<!--NoSql-->
