@@ -10,7 +10,7 @@ const AppCards = () => {
   }, [])
 
   return (
-    <section className="w-full space-y-6">
+    <section className="w-full space-y-6 mb-6">
       <section data-aos="zoom-in" className="w-full">
         <div className="text-center lg:text-3xl text-2xl font-bold md:w-3/5 w-4/5 m-auto uppercase font-mono">
           <span className="from-indigo-400 bg-gradient-to-r via-blue-500 to-pink-500 bg-clip-text text-transparent">sources&nbsp;&&nbsp;</span>
