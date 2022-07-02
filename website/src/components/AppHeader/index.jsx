@@ -20,7 +20,7 @@ const AppHeader = () => {
         {links.map(l =>
           l.path ? (
             !Array.isArray(l.path) ? (
-              <Link to={l.path} key={l.name} className="header-link font-bold hover:text-indigo-600 h-full flex items-center justify-center relative w-[88px]">
+              <Link to={l.path} key={l.name} className="header-link font-medium hover:text-indigo-600 h-full flex items-center justify-center relative w-[88px]">
                 {l.name}
               </Link>
             ) : (
@@ -30,7 +30,7 @@ const AppHeader = () => {
                 withArrow={false}
                 onClose={() => setVisible(false)}
                 target={
-                  <a onClick={() => setVisible(v => !v)} className="header-link font-bold hover:text-indigo-600 h-full flex items-center cursor-pointer justify-center relative w-[88px]">
+                  <a onClick={() => setVisible(v => !v)} className="header-link font-medium hover:text-indigo-600 h-full flex items-center cursor-pointer justify-center relative w-[88px]">
                     {l.name}
                   </a>
                 }
@@ -47,7 +47,7 @@ const AppHeader = () => {
               </Popover>
             )
           ) : (
-            <a target="_blank" key={l.name} rel="noreferrer" className="header-link font-bold hover:text-indigo-600  h-full flex items-center justify-center relative w-[88px]" href={l.url}>
+            <a target="_blank" key={l.name} rel="noreferrer" className="header-link font-medium hover:text-indigo-600  h-full flex items-center justify-center relative w-[88px]" href={l.url}>
               {l.name}
             </a>
           )
