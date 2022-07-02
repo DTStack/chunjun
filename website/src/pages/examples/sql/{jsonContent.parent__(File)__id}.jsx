@@ -11,7 +11,7 @@ const BlogPost = props => {
 
   return (
     <section className="w-full 2xl:flex 2xl:justify-center 2xl:items-center 2xl:text-2xl text-base">
-      <Highlight className="sql" language="sql">
+      <Highlight className="sql w-full overflow-x-hidden" language="sql">
         {sql}
       </Highlight>
     </section>

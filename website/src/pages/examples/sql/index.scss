@@ -6,6 +6,27 @@
   color: rgb(193, 120, 218);
 }
 
-.hljs-string {
+.hljs-string,
+.hljs-comment {
   color: rgb(143, 195, 118);
+}
+
+.hljs-comment {
+  word-break: break-all;
+  overflow: hidden;
+  width: 100%;
+  display: inline-block;
+  white-space: normal;
+}
+
+.sql {
+  .pre {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    .code {
+      width: 100%;
+      background-color: red;
+    }
+  }
 }

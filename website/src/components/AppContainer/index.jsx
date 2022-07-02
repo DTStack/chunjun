@@ -101,6 +101,7 @@ const AppContainer = ({ children, data, category }) => {
           main: {
             height: "calc(100vh - 90px)",
             overflowY: "auto",
+            overflowX: "hidden",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
