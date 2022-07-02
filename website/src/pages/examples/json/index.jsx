@@ -7,7 +7,7 @@ const IndexPage = props => {
   const menuData = buildMenu(props.data.allFile.edges.map(item => item.node))
   const fileList = getFileArr(menuData.children)
   if (fileList[0]) navigate(`/examples/json/${fileList[0].data.id}`)
-  return <Skeleton className="h-screen" visible />
+  return <Skeleton visible />
 }
 
 export const query = graphql`

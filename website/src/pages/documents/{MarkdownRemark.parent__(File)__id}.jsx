@@ -1,17 +1,14 @@
-import * as React from "react"
+import React from "react"
 import { graphql, navigate } from "gatsby"
 import { buildMenu, getFileArr } from "../../util"
 import { Left, Right } from "@icon-park/react"
 import "./index.scss"
 
 const BlogPost = props => {
-  // const menuData = buildMenu(ldata.allFile.edges.map(item => item.node))
-
   const menuData = buildMenu(props.data.allFile.edges.map(item => item.node))
   const fileList = getFileArr(menuData.children)
   const html = props.data.markdownRemark.html
   const tableOfContents = props.data.markdownRemark.tableOfContents
-  // const data = props.data.markdownRemark
 
   const location = window.location.pathname.split("/").pop()
   const fileIndex = fileList.map(item => item.data.id).indexOf(location)
@@ -31,7 +28,7 @@ const BlogPost = props => {
   function goPre() {
     if (fileIndex === 0) return
 
-    let target = fileList[fileIndex - 1]
+    const target = fileList[fileIndex - 1]
     navigate(`/documents/${target.data.id}`, {
       state: {
         fileIndex: fileIndex - 1,
@@ -41,7 +38,7 @@ const BlogPost = props => {
   }
   function goNext() {
     if (fileIndex + 1 === fileList.length) return
-    let target = fileList[fileIndex + 1]
+    const target = fileList[fileIndex + 1]
     navigate(`/documents/${target.data.id}`, {
       state: {
         fileIndex: fileIndex + 1,
@@ -51,29 +48,29 @@ const BlogPost = props => {
   }
 
   return (
-    <section className="container">
-      <div>
-        <div className="container-wrapper" dangerouslySetInnerHTML={{ __html: html }} />
-        <div className="container-group">
-          <button className="container-group-btn" onClick={goPre}>
-            <Left theme="outline" size="24" fill="#333" />
-            <span style={{ textAlign: "left", padding: "0 5px" }}>
-              <p>上一篇:</p>
-              {preName}
-            </span>
-          </button>
-          <button className="container-group-btn" onClick={goNext}>
-            <span style={{ textAlign: "right", padding: "0 5px" }}>
-              <p>下一篇:</p>
-              {nextName}
-            </span>
-            <Right theme="outline" size="24" fill="#333" />
-          </button>
-        </div>
+    <section className="container px-4 w-full">
+      <div className="flex">
+        <div className="container-wrapper md:w-2/3 2xl:w-4/5" dangerouslySetInnerHTML={{ __html: html }} />
+        <aside className="text-sm sticky list-none">
+          <div dangerouslySetInnerHTML={{ __html: tableOfContents }} />
+        </aside>
       </div>
-      <aside className="outline">
-        <div className="outline-wrapper" dangerouslySetInnerHTML={{ __html: tableOfContents }} />
-      </aside>
+      <div className="w-2/3 flex items-center justify-between">
+        <button className="ring-1 ring-gray-50 shadow-md text-sm flex items-center rounded-sm text-gray-600 w-[200px] py-4" onClick={goPre}>
+          <Left theme="outline" size="24" fill="#333" />
+          <span className="text-left px-[5px]">
+            <div className="m-0 text-gray-600">上一篇:</div>
+            <div className="text-black">{preName}</div>
+          </span>
+        </button>
+        <button className="ring-1 ring-gray-50 shadow-md text-sm flex items-center rounded-sm text-gray-600 w-[200px] py-4" onClick={goNext}>
+          <span className="text-right px-[5px]">
+            <div className="m-0 text-gray-600">下一篇:</div>
+            <div className="text-black">{nextName}</div>
+          </span>
+          <Right theme="outline" size="24" fill="#333" />
+        </button>
+      </div>
     </section>
   )
 }

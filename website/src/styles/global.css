@@ -142,7 +142,7 @@
     @apply text-gray-500 inline-block text-base;
   }
   .active {
-    @apply bg-gray-50 text-indigo-600 font-bold rounded-sm;
+    @apply bg-gray-50 text-indigo-600 font-medium rounded-sm;
   }
 
   .card {
