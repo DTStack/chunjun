@@ -54,7 +54,6 @@ const AppContainer = ({ children, data, category }) => {
   }
 
   const menuData = buildMenu(data.allFile.edges.map(item => item.node))
-  const currentPage = window.location.href.split("/").pop()
   const buildChildren = children => {
     return children.map(c => {
       if (c.type === "dir") {
@@ -65,7 +64,7 @@ const AppContainer = ({ children, data, category }) => {
         )
       } else {
         return (
-          <Link key={c.data.id} to={`${category}/${c.data.id}`} className={`w-full pl-[20px] text-sm rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center ${c.data.id === currentPage ? "active" : null}`}>
+          <Link activeClassName="active" key={c.data.id} to={`${category}/${c.data.id}`} className={`w-full pl-[20px] text-sm rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center`}>
             {c.name}
           </Link>
         )
@@ -79,7 +78,7 @@ const AppContainer = ({ children, data, category }) => {
       <Navbar className="hidden md:inline-block px-0 no-scrollbar" hiddenBreakpoint="sm" width={{ sm: 200, lg: 256 }} p="xs" style={{ zIndex: "1", height: "calc(100vh - 90px)", overflowY: "auto" }}>
         {children.map(item => {
           return item.type === "file" ? (
-            <Link to={`${category}/${item.data.id}`} key={item.data.id} className={`w-full text-base pl-[20px] rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center ${item.data.id === currentPage ? "active" : null}`}>
+            <Link activeClassName="active" to={`${category}/${item.data.id}`} key={item.data.id} className={`w-full text-base pl-[20px] rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center`}>
               {item.name}
             </Link>
           ) : (
