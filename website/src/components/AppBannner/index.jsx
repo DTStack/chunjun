@@ -1,6 +1,6 @@
 import React from "react"
 import { Github } from "@icon-park/react"
-import { Link } from "gatsby"
+import Link from '../Link'
 
 const AppBanner = () => {
   return (

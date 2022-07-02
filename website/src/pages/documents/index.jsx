@@ -6,7 +6,7 @@ import { buildMenu, getFileArr } from "../../util"
 const IndexPage = props => {
   const menuData = buildMenu(props.data.allFile.edges.map(item => item.node))
   const fileList = getFileArr(menuData.children)
-  if (fileList[0]) navigate(`/documents/${fileList.find(page => page.name === "快速开始").data.id}`)
+  if (fileList[0] && navigate) navigate(`/documents/${fileList.find(page => page.name === "快速开始").data.id}`)
   return <Skeleton className="h-screen" visible />
 }
 

@@ -1,7 +1,11 @@
-/**
- * Implement Gatsby's SSR (Server Side Rendering) APIs in this file.
- *
- * See: https://www.gatsbyjs.com/docs/ssr-apis/
- */
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { createStylesServer, ServerStyles } from '@mantine/ssr';
 
-// You can delete this file if you're not using it
+const stylesServer = createStylesServer();
+
+export const replaceRenderer = ({ bodyComponent, replaceBodyHTMLString, setHeadComponents }) => {
+  const html = renderToString(bodyComponent);
+  setHeadComponents([<ServerStyles html={html} server={stylesServer} />]);
+  replaceBodyHTMLString(html);
+};

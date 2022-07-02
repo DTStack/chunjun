@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Link } from "gatsby"
+import Link from '../Link'
 import { Burger, Popover, Text } from "@mantine/core"
 import AppDrawer from "../AppDrawer"
 import { headerList } from "../../util"
