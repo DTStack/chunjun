@@ -54,18 +54,17 @@ const AppContainer = ({ children, data, category }) => {
   }
 
   const menuData = buildMenu(data.allFile.edges.map(item => item.node))
-  const currentPage = window.location.href.split("/").pop()
   const buildChildren = children => {
     return children.map(c => {
       if (c.type === "dir") {
         return (
-          <Accordion iconPosition="right">
+          <Accordion key={c.name} iconPosition="right">
             <Accordion.Item label={c.name}>{buildChildren(c.children)}</Accordion.Item>
           </Accordion>
         )
       } else {
         return (
-          <Link to={`${category}/${c.data.id}`} className={`w-full px-[20px] text-sm rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center ${c.data.id === currentPage ? "active" : null}`}>
+          <Link activeClassName="active" key={c.data.id} to={`${category}/${c.data.id}`} className={`w-full pl-[20px] text-sm rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center`}>
             {c.name}
           </Link>
         )
@@ -76,15 +75,17 @@ const AppContainer = ({ children, data, category }) => {
   const asideMenu = menu => {
     const { children } = menu
     return (
-      <Navbar className="hidden md:inline-block" hiddenBreakpoint="sm" width={{ sm: 200, lg: 260 }} p="xs" style={{ zIndex: "1", height: "calc(100vh - 90px)", overflowY: "auto" }}>
+      <Navbar className="hidden md:inline-block px-0 no-scrollbar" hiddenBreakpoint="sm" width={{ sm: 200, lg: 256 }} p="xs" style={{ zIndex: "1", height: "calc(100vh - 90px)", overflowY: "auto" }}>
         {children.map(item => {
           return item.type === "file" ? (
-            <Link to={`${category}/${item.data.id}`} className={`w-full text-lg px-[20px] rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center ${item.data.id === currentPage ? "active" : null}`}>
+            <Link activeClassName="active" to={`${category}/${item.data.id}`} key={item.data.id} className={`w-full text-base pl-[20px] rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center`}>
               {item.name}
             </Link>
           ) : (
-            <Accordion iconPosition="right">
-              <Accordion.Item label={item.name}>{buildChildren(item.children)}</Accordion.Item>
+            <Accordion key={item.id} iconPosition="right" className="uppercase">
+              <Accordion.Item label={item.name} className="capitalize">
+                {buildChildren(item.children)}
+              </Accordion.Item>
             </Accordion>
           )
         })}
@@ -100,10 +101,14 @@ const AppContainer = ({ children, data, category }) => {
           main: {
             height: "calc(100vh - 90px)",
             overflowY: "auto",
+            overflowX: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           },
         }}
         classNames={{
-          main: "no-scrollbar",
+          main: "no-scrollbar main",
         }}
         footer={<AppFooter />}
         header={<AppHeader />}

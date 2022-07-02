@@ -22,44 +22,44 @@ const AppFooter = () => {
           </Card>
         </div>
         <div className="h-full bg-block2 bg-no-repeat bg-center bg-contain w-full flex justify-center items-center">
-          <div className="flex">
-            <div className="mr-2">
+          <div className="flex md:space-x-12 space-x-6">
+            <div>
               <h3 className="mb-[20px]">文档</h3>
-              <ul className="flex flex-col">
-                <Link className="footer-link" to="/">
+              <ul className="flex flex-col space-y-2">
+                <Link className="footer-link" to="/documents">
                   快速上手
                 </Link>
               </ul>
             </div>
-            <div className="mr-2">
+            <div>
               <h3 className="mb-[20px]">社区</h3>
-              <ul className="flex flex-col">
-                <Link className="footer-link" to="/">
+              <ul className="flex flex-col space-y-2">
+                <a className="footer-link" href="https://github.com/DTStack/chunjun/issues">
                   Issue Tracker
-                </Link>
-                <Link className="footer-link" to="/">
+                </a>
+                <a className="footer-link" href="https://github.com/DTStack/chunjun/pulls">
                   Pull Requests
-                </Link>
-                <Link className="footer-link" to="/">
+                </a>
+                <a className="footer-link" href="https://github.com/DTStack/chunjun/discussions">
                   Discussions
-                </Link>
+                </a>
               </ul>
             </div>
             <div>
               <h3 className="mb-[20px]">更多</h3>
-              <ul className="flex flex-col">
+              <ul className="flex flex-col space-y-2">
                 <Link className="footer-link" to="/">
                   博客
                 </Link>
-                <Link className="footer-link" to="/">
+                <a className="footer-link" href="https://github.com/DTStack/chunjun">
                   Github
-                </Link>
+                </a>
               </ul>
             </div>
           </div>
         </div>
       </div>
-      <div className="h-[20px] text-gray-600 text-sm flex justify-center items-center">Copyright © 2022 袋鼠云, Inc. Built with Gatsby.</div>
+      <div className="py-4 text-gray-600 text-base flex justify-center items-center">Apache LICENSE 2.0 Licensed, Copyright 2018-2022 Chunjun All Rights Reserved</div>
     </footer>
   )
 }

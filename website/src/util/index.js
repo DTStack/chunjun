@@ -10,7 +10,16 @@ export const headerList = [
   },
   {
     name: "案例",
-    path: "/examples/json",
+    path: [
+      {
+        name: "sql",
+        link: "/examples/sql",
+      },
+      {
+        name: "json",
+        link: "/examples/json",
+      },
+    ],
     key: "examples",
   },
   // {

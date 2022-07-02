@@ -1,23 +1,19 @@
 import React from "react"
 import { graphql } from "gatsby"
-import ReactJson from "react-json-view"
-import hljs from 'highlight.js';
+import Highlight from "react-highlight"
+import "./index.scss"
 
 const BlogPost = props => {
-  
-  let sql =  ''
+  let sql = ""
   try {
-    sql =  (props.data.jsonContent.content)
+    sql = props.data.jsonContent.content
   } catch {}
-  React.useLayoutEffect(()=>{
-    hljs.highlightAll()
-  },[])
+
   return (
-    <section className="json">
-      <pre><code class="language-html">
-      {sql}
-        </code></pre>
-       
+    <section className="w-full 2xl:flex 2xl:justify-center 2xl:items-center 2xl:text-2xl text-base">
+      <Highlight className="sql w-full overflow-x-hidden" language="sql">
+        {sql}
+      </Highlight>
     </section>
   )
 }
