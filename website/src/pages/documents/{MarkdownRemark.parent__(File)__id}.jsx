@@ -51,8 +51,8 @@ const BlogPost = props => {
     <section className="container px-4 w-full">
       <div className="flex">
         <div className="container-wrapper md:w-2/3 2xl:w-4/5" dangerouslySetInnerHTML={{ __html: html }} />
-        <aside className="text-sm sticky list-none">
-          <div dangerouslySetInnerHTML={{ __html: tableOfContents }} />
+        <aside className="text-sm list-none relative">
+          <div className="sticky top-0 right-0" dangerouslySetInnerHTML={{ __html: tableOfContents }} />
         </aside>
       </div>
       <div className="w-2/3 flex items-center justify-between">
@@ -63,7 +63,7 @@ const BlogPost = props => {
             <div className="text-black">{preName}</div>
           </span>
         </button>
-        <button className="ring-1 ring-gray-50 shadow-md text-sm flex items-center rounded-sm text-gray-600 w-[200px] py-4" onClick={goNext}>
+        <button className="ring-1 ring-gray-50 shadow-md text-sm flex items-center justify-end rounded-sm text-gray-600 w-[200px] py-4" onClick={goNext}>
           <span className="text-right px-[5px]">
             <div className="m-0 text-gray-600">下一篇:</div>
             <div className="text-black">{nextName}</div>

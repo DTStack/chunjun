@@ -76,7 +76,7 @@ const AppContainer = ({ children, data, category }) => {
   const asideMenu = menu => {
     const { children } = menu
     return (
-      <Navbar className="hidden md:inline-block px-0" hiddenBreakpoint="sm" width={{ sm: 200, lg: 256 }} p="xs" style={{ zIndex: "1", height: "calc(100vh - 90px)", overflowY: "auto" }}>
+      <Navbar className="hidden md:inline-block px-0 no-scrollbar" hiddenBreakpoint="sm" width={{ sm: 200, lg: 256 }} p="xs" style={{ zIndex: "1", height: "calc(100vh - 90px)", overflowY: "auto" }}>
         {children.map(item => {
           return item.type === "file" ? (
             <Link to={`${category}/${item.data.id}`} key={item.data.id} className={`w-full text-base pl-[20px] rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center ${item.data.id === currentPage ? "active" : null}`}>
@@ -108,7 +108,7 @@ const AppContainer = ({ children, data, category }) => {
           },
         }}
         classNames={{
-          main: "no-scrollbar",
+          main: "no-scrollbar main",
         }}
         footer={<AppFooter />}
         header={<AppHeader />}
