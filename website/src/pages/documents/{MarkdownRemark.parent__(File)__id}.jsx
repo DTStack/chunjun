@@ -3,14 +3,14 @@ import { graphql, navigate } from "gatsby"
 import { buildMenu, getFileArr } from "../../util"
 import { Left, Right } from "@icon-park/react"
 import "./index.scss"
-
+import { useLocation } from '@reach/router';
 const BlogPost = props => {
   const menuData = buildMenu(props.data.allFile.edges.map(item => item.node))
   const fileList = getFileArr(menuData.children)
   const html = props.data.markdownRemark.html
   const tableOfContents = props.data.markdownRemark.tableOfContents
 
-  const location = window.location.pathname.split("/").pop()
+  const location = useLocation().pathname.split("/").pop()
   const fileIndex = fileList.map(item => item.data.id).indexOf(location)
 
   const [preName, setPre] = React.useState("（无）")

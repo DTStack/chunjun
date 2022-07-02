@@ -1,6 +1,6 @@
 import React from "react"
 import { Card, Text, Image } from "@mantine/core"
-import { Link } from "gatsby"
+import Link from '../Link'
 
 const AppFooter = () => {
   return (
