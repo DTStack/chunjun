@@ -5,10 +5,9 @@ import { Skeleton } from "@mantine/core"
 
 const IndexPage = props => {
   const menuData = buildMenu(props.data.allFile.edges.map(item => item.node))
-  console.log(props.data.allFile.edges.map(item => item.node));
   const fileList = getFileArr(menuData.children)
-  
-  return <Skeleton className="h-screen" visible />
+  if (fileList[0]) navigate(`/examples/sql/${fileList[0].data.id}`)
+  return <Skeleton visible />
 }
 
 export const query = graphql`

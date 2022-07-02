@@ -7,9 +7,10 @@ const BlogPost = props => {
   try {
     json = JSON.parse(props.data.jsonContent.content)
   } catch {}
+
   return (
-    <section className="json">
-      <ReactJson displayObjectSize={false}  src={json} />
+    <section className="w-full 2xl:flex 2xl:justify-center 2xl:items-center 2xl:text-2xl text-base">
+      <ReactJson displayObjectSize={false} src={json} />
     </section>
   )
 }

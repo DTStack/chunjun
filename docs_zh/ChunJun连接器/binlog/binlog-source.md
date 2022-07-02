@@ -249,8 +249,7 @@ Binlog为什么需要这些权限：
 ### 2、SQL
 
 - **url**
-  -
-  描述：MySQL数据库的jdbc连接字符串，参考文档：[Mysql官方文档](http://dev.mysql.com/doc/connector-j/en/connector-j-reference-configuration-properties.html)
+    - 描述：MySQL数据库的jdbc连接字符串，参考文档：[Mysql官方文档](http://dev.mysql.com/doc/connector-j/en/connector-j-reference-configuration-properties.html)
     - 必选：是
     - 字段类型：string
     - 默认值：无

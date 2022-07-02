@@ -20,7 +20,7 @@ exports.wrapPageElement = ({ element, props }) => {
   // including location, data, etc - you don't need to pass it
 
   const flag = element.key.includes("documents") || element.key.includes("examples") || element.key.includes("download")
-  console.log(element.key);
+  console.log(element.key)
   return (
     <div>
       {flag ? (
@@ -34,4 +34,16 @@ exports.wrapPageElement = ({ element, props }) => {
       )}
     </div>
   )
+}
+
+exports.shouldUpdateScroll = ({ routerProps: { location } }) => {
+  const { pathname } = location
+  // list of routes for the scroll-to-top-hook
+  const scrollToTopRoutes = [`/documents`, `/examples`]
+  // if the new route is part of the list above, scroll to top (0, 0)
+  if (scrollToTopRoutes.find(path => pathname.includes(path))) {
+    document.querySelector(".main")?.scrollTo(0, 0)
+  }
+
+  return false
 }

@@ -10,9 +10,16 @@ const AppCards = () => {
   }, [])
 
   return (
-    <>
-      <section data-aos="zoom-in" className="w-full min-h-screen">
-        <h1 className="text-center lg:text-4xl text-2xl font-bold font-mono">
+    <section className="w-full space-y-6 mb-6">
+      <section data-aos="zoom-in" className="w-full">
+        <div className="text-center lg:text-3xl text-2xl font-bold md:w-3/5 w-4/5 m-auto uppercase font-mono">
+          <span className="from-indigo-400 bg-gradient-to-r via-blue-500 to-pink-500 bg-clip-text text-transparent">source&nbsp;&&nbsp;</span>
+          <span className="from-green-400 bg-gradient-to-r via-blue-500 to-pink-500 bg-clip-text text-transparent">sink</span>
+        </div>
+        <img className=" md:w-3/5 w-4/5 m-auto bg-gray-100" src={require("../../assets/img/chunjun.gif").default} alt="" />
+      </section>
+      <section data-aos="zoom-in" className="w-full">
+        <h1 className="text-center lg:text-3xl text-2xl font-bold font-mono">
           ChunJun 纯钧 <span className="from-yellow-400 bg-gradient-to-r via-red-500 to-pink-500 bg-clip-text text-transparent">核心特性</span>
         </h1>
         <div className="grid md:grid-cols-3 grid-cols-2 md:gap-y-6 gap-y-4 justify-items-center lg:p-6 p-4">
@@ -42,7 +49,7 @@ const AppCards = () => {
           </div>
         </div>
       </section>
-    </>
+    </section>
   )
 }
 
