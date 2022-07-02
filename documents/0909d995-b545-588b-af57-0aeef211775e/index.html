@@ -1,0 +1,964 @@
+<!DOCTYPE html><html><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="ie=edge"/><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/><meta name="generator" content="Gatsby 4.17.2"/><style data-href="/chunjun/styles.2083f81cb427e9648eda.css" data-identity="gatsby-global-css">/*
+! tailwindcss v3.1.3 | MIT License | https://tailwindcss.com
+*/*,:after,:before{border:0 solid #e5e7eb;box-sizing:border-box}:after,:before{--tw-content:""}html{-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;line-height:1.5;-moz-tab-size:4;-o-tab-size:4;tab-size:4}body{line-height:inherit;margin:0}hr{border-top-width:1px;color:inherit;height:0}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{border-collapse:collapse;border-color:inherit;text-indent:0}button,input,optgroup,select,textarea{color:inherit;font-family:inherit;font-size:100%;font-weight:inherit;line-height:inherit;margin:0;padding:0}button,select{text-transform:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{color:#9ca3af;opacity:1}input:-ms-input-placeholder,textarea:-ms-input-placeholder{color:#9ca3af;opacity:1}input::placeholder,textarea::placeholder{color:#9ca3af;opacity:1}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{height:auto;max-width:100%}*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: }::-webkit-backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: }.container{width:100%}@media (min-width:640px){.container{max-width:640px}}@media (min-width:768px){.container{max-width:768px}}@media (min-width:1024px){.container{max-width:1024px}}@media (min-width:1280px){.container{max-width:1280px}}@media (min-width:1536px){.container{max-width:1536px}}.flex-padding{padding-left:20px;padding-right:20px}@media (min-width:768px){.flex-padding{padding-left:60px;padding-right:60px}}@media (min-width:1024px){.flex-padding{padding-left:180px;padding-right:180px}}.footer-link{--tw-text-opacity:1;color:rgb(107 114 128/var(--tw-text-opacity));display:inline-block;font-size:1rem;line-height:1.5rem}.footer-link:hover{--tw-text-opacity:1}.active,.footer-link:hover{color:rgb(79 70 229/var(--tw-text-opacity))}.active{--tw-bg-opacity:1;--tw-text-opacity:1;background-color:rgb(249 250 251/var(--tw-bg-opacity));border-radius:.125rem;font-weight:500}.card{width:80%}@media (min-width:768px){.card{width:50%}}@media (min-width:1024px){.card{width:33.333333%}}.card-text{font-size:.875rem;line-height:1.25rem;text-align:center}@media (min-width:768px){.card-text{font-size:1rem;line-height:1.5rem}}.visible{visibility:visible}.absolute{position:absolute}.relative{position:relative}.sticky{position:-webkit-sticky;position:sticky}.top-0{top:0}.right-0{right:0}.z-20{z-index:20}.m-auto{margin:auto}.m-0{margin:0}.mb-8{margin-bottom:2rem}.mb-6{margin-bottom:1.5rem}.mr-4{margin-right:1rem}.mr-2{margin-right:.5rem}.mb-\[20px\]{margin-bottom:20px}.mr-0{margin-right:0}.inline-block{display:inline-block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-\[48px\]{height:48px}.h-\[558px\]{height:558px}.h-full{height:100%}.h-\[90px\]{height:90px}.h-\[60px\]{height:60px}.h-32{height:8rem}.h-screen{height:100vh}.min-h-screen{min-height:100vh}.w-full{width:100%}.w-4\/5{width:80%}.w-\[88px\]{width:88px}.w-\[50px\]{width:50px}.w-1\/5{width:20%}.w-2\/3{width:66.666667%}.w-\[200px\]{width:200px}.flex-1{flex:1 1 0%}.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.cursor-move{cursor:move}.select-none{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.list-none{list-style-type:none}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.justify-items-center{justify-items:center}.gap-y-4{row-gap:1rem}.space-y-6>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-bottom:calc(1.5rem*var(--tw-space-y-reverse));margin-top:calc(1.5rem*(1 - var(--tw-space-y-reverse)))}.space-x-6>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-left:calc(1.5rem*(1 - var(--tw-space-x-reverse)));margin-right:calc(1.5rem*var(--tw-space-x-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-bottom:calc(.5rem*var(--tw-space-y-reverse));margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)))}.space-y-1>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-bottom:calc(.25rem*var(--tw-space-y-reverse));margin-top:calc(.25rem*(1 - var(--tw-space-y-reverse)))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-bottom:calc(.75rem*var(--tw-space-y-reverse));margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)))}.overflow-x-hidden{overflow-x:hidden}.rounded-sm{border-radius:.125rem}.rounded-full{border-radius:9999px}.rounded{border-radius:.25rem}.rounded-md{border-radius:.375rem}.border{border-width:1px}.border-0{border-width:0}.border-gray-200{--tw-border-opacity:1;border-color:rgb(229 231 235/var(--tw-border-opacity))}.bg-gray-100{--tw-bg-opacity:1;background-color:rgb(243 244 246/var(--tw-bg-opacity))}.bg-transparent{background-color:transparent}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity))}.bg-blue-200{--tw-bg-opacity:1;background-color:rgb(191 219 254/var(--tw-bg-opacity))}.bg-block2{background-image:url(/chunjun/static/block2@2x-d6368f11d942afc17e48c3c0c461fcd1.png)}.bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}.bg-block{background-image:url(/chunjun/static/block2x-52fe3fa30e91af1d0d72376982a7bf59.png)}.from-yellow-400{--tw-gradient-from:#facc15;--tw-gradient-to:rgba(250,204,21,0);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-indigo-400{--tw-gradient-from:#818cf8;--tw-gradient-to:rgba(129,140,248,0);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.from-green-400{--tw-gradient-from:#4ade80;--tw-gradient-to:rgba(74,222,128,0);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}.via-red-500{--tw-gradient-to:rgba(239,68,68,0);--tw-gradient-stops:var(--tw-gradient-from),#ef4444,var(--tw-gradient-to)}.via-blue-500{--tw-gradient-to:rgba(59,130,246,0);--tw-gradient-stops:var(--tw-gradient-from),#3b82f6,var(--tw-gradient-to)}.to-pink-500{--tw-gradient-to:#ec4899}.bg-contain{background-size:contain}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.bg-center{background-position:50%}.bg-no-repeat{background-repeat:no-repeat}.p-4{padding:1rem}.p-3{padding:.75rem}.p-8{padding:2rem}.p-6{padding:1.5rem}.p-2{padding:.5rem}.px-4{padding-left:1rem;padding-right:1rem}.py-8{padding-bottom:2rem;padding-top:2rem}.px-0{padding-left:0;padding-right:0}.py-4{padding-bottom:1rem;padding-top:1rem}.py-0{padding-bottom:0;padding-top:0}.px-\[20px\]{padding-left:20px;padding-right:20px}.px-\[5px\]{padding-left:5px;padding-right:5px}.pl-\[20px\]{padding-left:20px}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-base{font-size:1rem;line-height:1.5rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-normal{font-weight:400}.uppercase{text-transform:uppercase}.capitalize{text-transform:capitalize}.leading-7{line-height:1.75rem}.text-transparent{color:transparent}.text-gray-600{--tw-text-opacity:1;color:rgb(75 85 99/var(--tw-text-opacity))}.text-black{--tw-text-opacity:1;color:rgb(0 0 0/var(--tw-text-opacity))}.shadow-md{--tw-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color),0 2px 4px -2px var(--tw-shadow-color)}.shadow-lg,.shadow-md{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.outline{outline-style:solid}.ring-1{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.ring-gray-50{--tw-ring-opacity:1;--tw-ring-color:rgb(249 250 251/var(--tw-ring-opacity))}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.header-link[aria-current=page]:before{background-color:#fff;content:"";font-size:15px;height:100%;left:0;opacity:.1;position:absolute;top:0;width:100%}.header-link[aria-current=page]:after{background-color:#fff;bottom:0;content:"";height:1px;left:0;position:absolute;width:100%}.hero{height:calc(100vh - 90px)}@media screen and (max-width:1504px){.hero{background-position:70% 50%}}@media screen and (max-width:676px){.hero{background-position:65% 50%}}.btn{border:0;border-radius:100px;cursor:pointer;outline:none;padding:12px 45px;position:relative;text-transform:capitalize;@media screen and (min-width:1921px){padding-bottom:24px;padding-left:90px;padding-right:90px;padding-top:24px}}.btn,.btn:after{transition:all .3s ease}.btn:after{background-color:inherit;background-image:inherit;border-radius:100px;content:"";height:100%;left:0;position:absolute;top:0;width:100%;z-index:-1}.btn:hover{transform:translateY(-3px)}.btn:hover:after{opacity:0;transform:scale(1.4,1.6)}.btn:active{transform:translate(1px)}.btn__large{padding:14px 35px;@media screen and (max-width:1504px){font-size:15px;padding-bottom:12px;padding-left:20px;padding-right:20px;padding-top:12px}}.btn__blue{background-image:linear-gradient(270deg,#057cea,#00c5a0);color:#fff}.btn__black{background-color:#333;color:#fff}p{overflow-wrap:break-word!important}.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}.hover\:bg-gray-100:hover{--tw-bg-opacity:1;background-color:rgb(243 244 246/var(--tw-bg-opacity))}.hover\:text-indigo-600:hover{--tw-text-opacity:1;color:rgb(79 70 229/var(--tw-text-opacity))}.hover\:shadow-lg:hover{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}.hover\:shadow-lg:hover,.hover\:shadow-sm:hover{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.hover\:shadow-sm:hover{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color)}@media (min-width:640px){.sm\:w-1\/5{width:20%}}@media (min-width:768px){.md\:mr-\[80px\]{margin-right:80px}.md\:inline-block{display:inline-block}.md\:flex{display:flex}.md\:hidden{display:none}.md\:w-3\/5{width:60%}.md\:w-1\/6{width:16.666667%}.md\:w-2\/3{width:66.666667%}.md\:grow-0{flex-grow:0}.md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.md\:flex-row{flex-direction:row}.md\:gap-y-6{row-gap:1.5rem}.md\:space-x-12>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-left:calc(3rem*(1 - var(--tw-space-x-reverse)));margin-right:calc(3rem*var(--tw-space-x-reverse))}}@media (min-width:1024px){.lg\:p-6{padding:1.5rem}.lg\:p-12{padding:3rem}.lg\:text-6xl{font-size:3.75rem;line-height:1}.lg\:text-3xl{font-size:1.875rem;line-height:2.25rem}.lg\:text-4xl{font-size:2.25rem;line-height:2.5rem}}@media (min-width:1280px){.xl\:text-8xl{font-size:6rem;line-height:1}.xl\:text-4xl{font-size:2.25rem;line-height:2.5rem}.xl\:text-2xl{font-size:1.5rem;line-height:2rem}}@media (min-width:1536px){.\32xl\:flex{display:flex}.\32xl\:w-4\/5{width:80%}.\32xl\:items-center{align-items:center}.\32xl\:justify-center{justify-content:center}.\32xl\:text-2xl{font-size:1.5rem;line-height:2rem}}.container span.gatsby-resp-image-background-image .gatsby-resp-image-image{display:block;margin:auto;max-width:90%}.container ul{list-style:none}.container ul li{display:block;list-style-type:none;margin-bottom:4px}.container a{color:#0984e3;max-width:100vw}.container h1{-webkit-margin-before:.67em;-webkit-margin-after:.67em;-webkit-margin-start:0;-webkit-margin-end:0;display:block;font-size:2em;margin-block-end:.67em;margin-block-start:.67em;margin-inline-end:0;margin-inline-start:0}.container h1:first-child{margin:0 0 20px}.container h2{font-size:25px}.container h3{-webkit-margin-before:1em;-webkit-margin-after:1em;-webkit-margin-start:0;-webkit-margin-end:0;display:block;font-size:1.17em;margin-block-end:1em;margin-block-start:1em;margin-inline-end:0;margin-inline-start:0}.container h4{-webkit-margin-before:1.33em;-webkit-margin-after:1.33em;-webkit-margin-start:0;-webkit-margin-end:0;font-size:16px;margin-block-end:1.33em;margin-block-start:1.33em;margin-inline-end:0;margin-inline-start:0}.container h1,.container h2,.container h3,.container h4,.container h5{font-weight:550;text-transform:capitalize}.container p{-webkit-margin-before:1em;-webkit-margin-after:1em;-webkit-margin-start:0;-webkit-margin-end:0;display:block;margin-block-end:1em;margin-block-start:1em;margin-inline-end:0;margin-inline-start:0;overflow-wrap:break-word}.container pre{background-color:#eee;margin:20px 0;overflow:auto;padding:10px}.container table{border-collapse:collapse;display:block;margin:20px 0}.container table>tr{vertical-align:middle}.container td,.container th{border:.1px solid #535c68;padding:12px}.container td a,.container th a{display:block}.container td:nth-child(odd),.container th:nth-child(odd){background-color:#dfe6e9}.container td{display:table-cell;vertical-align:inherit}.container ul{-webkit-margin-before:1em;-webkit-margin-after:1em;-webkit-margin-start:0;-webkit-margin-end:0;-webkit-padding-start:40px;display:block;margin-block-end:1em;margin-block-start:1em;margin-inline-end:0;margin-inline-start:0;padding-inline-start:40px}.container li{list-style-type:disc}.container blockquote p{-webkit-margin-before:1em;-webkit-margin-after:1em;-webkit-margin-start:0;-webkit-margin-end:0;background-color:#f3f4f4;color:#999;display:block;margin-block-end:1em;margin-block-start:1em;margin-inline-end:0;margin-inline-start:0;padding:5px 10px;position:relative}.container blockquote p:before{background-color:#999;content:"";height:100%;left:0;position:absolute;top:0;width:2px}.hljs-keyword,.hljs-type{color:#c178da}.hljs-comment,.hljs-string{color:#8fc376}.hljs-comment{display:inline-block;overflow:hidden;white-space:normal;width:100%;word-break:break-all}.sql .pre{display:flex;justify-content:center;width:100%}.sql .pre .code{background-color:red;width:100%}[data-aos][data-aos][data-aos-duration="50"],body[data-aos-duration="50"] [data-aos]{transition-duration:50ms}[data-aos][data-aos][data-aos-delay="50"],body[data-aos-delay="50"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="50"].aos-animate,body[data-aos-delay="50"] [data-aos].aos-animate{transition-delay:50ms}[data-aos][data-aos][data-aos-duration="100"],body[data-aos-duration="100"] [data-aos]{transition-duration:.1s}[data-aos][data-aos][data-aos-delay="100"],body[data-aos-delay="100"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="100"].aos-animate,body[data-aos-delay="100"] [data-aos].aos-animate{transition-delay:.1s}[data-aos][data-aos][data-aos-duration="150"],body[data-aos-duration="150"] [data-aos]{transition-duration:.15s}[data-aos][data-aos][data-aos-delay="150"],body[data-aos-delay="150"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="150"].aos-animate,body[data-aos-delay="150"] [data-aos].aos-animate{transition-delay:.15s}[data-aos][data-aos][data-aos-duration="200"],body[data-aos-duration="200"] [data-aos]{transition-duration:.2s}[data-aos][data-aos][data-aos-delay="200"],body[data-aos-delay="200"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="200"].aos-animate,body[data-aos-delay="200"] [data-aos].aos-animate{transition-delay:.2s}[data-aos][data-aos][data-aos-duration="250"],body[data-aos-duration="250"] [data-aos]{transition-duration:.25s}[data-aos][data-aos][data-aos-delay="250"],body[data-aos-delay="250"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="250"].aos-animate,body[data-aos-delay="250"] [data-aos].aos-animate{transition-delay:.25s}[data-aos][data-aos][data-aos-duration="300"],body[data-aos-duration="300"] [data-aos]{transition-duration:.3s}[data-aos][data-aos][data-aos-delay="300"],body[data-aos-delay="300"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="300"].aos-animate,body[data-aos-delay="300"] [data-aos].aos-animate{transition-delay:.3s}[data-aos][data-aos][data-aos-duration="350"],body[data-aos-duration="350"] [data-aos]{transition-duration:.35s}[data-aos][data-aos][data-aos-delay="350"],body[data-aos-delay="350"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="350"].aos-animate,body[data-aos-delay="350"] [data-aos].aos-animate{transition-delay:.35s}[data-aos][data-aos][data-aos-duration="400"],body[data-aos-duration="400"] [data-aos]{transition-duration:.4s}[data-aos][data-aos][data-aos-delay="400"],body[data-aos-delay="400"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="400"].aos-animate,body[data-aos-delay="400"] [data-aos].aos-animate{transition-delay:.4s}[data-aos][data-aos][data-aos-duration="450"],body[data-aos-duration="450"] [data-aos]{transition-duration:.45s}[data-aos][data-aos][data-aos-delay="450"],body[data-aos-delay="450"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="450"].aos-animate,body[data-aos-delay="450"] [data-aos].aos-animate{transition-delay:.45s}[data-aos][data-aos][data-aos-duration="500"],body[data-aos-duration="500"] [data-aos]{transition-duration:.5s}[data-aos][data-aos][data-aos-delay="500"],body[data-aos-delay="500"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="500"].aos-animate,body[data-aos-delay="500"] [data-aos].aos-animate{transition-delay:.5s}[data-aos][data-aos][data-aos-duration="550"],body[data-aos-duration="550"] [data-aos]{transition-duration:.55s}[data-aos][data-aos][data-aos-delay="550"],body[data-aos-delay="550"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="550"].aos-animate,body[data-aos-delay="550"] [data-aos].aos-animate{transition-delay:.55s}[data-aos][data-aos][data-aos-duration="600"],body[data-aos-duration="600"] [data-aos]{transition-duration:.6s}[data-aos][data-aos][data-aos-delay="600"],body[data-aos-delay="600"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="600"].aos-animate,body[data-aos-delay="600"] [data-aos].aos-animate{transition-delay:.6s}[data-aos][data-aos][data-aos-duration="650"],body[data-aos-duration="650"] [data-aos]{transition-duration:.65s}[data-aos][data-aos][data-aos-delay="650"],body[data-aos-delay="650"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="650"].aos-animate,body[data-aos-delay="650"] [data-aos].aos-animate{transition-delay:.65s}[data-aos][data-aos][data-aos-duration="700"],body[data-aos-duration="700"] [data-aos]{transition-duration:.7s}[data-aos][data-aos][data-aos-delay="700"],body[data-aos-delay="700"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="700"].aos-animate,body[data-aos-delay="700"] [data-aos].aos-animate{transition-delay:.7s}[data-aos][data-aos][data-aos-duration="750"],body[data-aos-duration="750"] [data-aos]{transition-duration:.75s}[data-aos][data-aos][data-aos-delay="750"],body[data-aos-delay="750"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="750"].aos-animate,body[data-aos-delay="750"] [data-aos].aos-animate{transition-delay:.75s}[data-aos][data-aos][data-aos-duration="800"],body[data-aos-duration="800"] [data-aos]{transition-duration:.8s}[data-aos][data-aos][data-aos-delay="800"],body[data-aos-delay="800"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="800"].aos-animate,body[data-aos-delay="800"] [data-aos].aos-animate{transition-delay:.8s}[data-aos][data-aos][data-aos-duration="850"],body[data-aos-duration="850"] [data-aos]{transition-duration:.85s}[data-aos][data-aos][data-aos-delay="850"],body[data-aos-delay="850"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="850"].aos-animate,body[data-aos-delay="850"] [data-aos].aos-animate{transition-delay:.85s}[data-aos][data-aos][data-aos-duration="900"],body[data-aos-duration="900"] [data-aos]{transition-duration:.9s}[data-aos][data-aos][data-aos-delay="900"],body[data-aos-delay="900"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="900"].aos-animate,body[data-aos-delay="900"] [data-aos].aos-animate{transition-delay:.9s}[data-aos][data-aos][data-aos-duration="950"],body[data-aos-duration="950"] [data-aos]{transition-duration:.95s}[data-aos][data-aos][data-aos-delay="950"],body[data-aos-delay="950"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="950"].aos-animate,body[data-aos-delay="950"] [data-aos].aos-animate{transition-delay:.95s}[data-aos][data-aos][data-aos-duration="1000"],body[data-aos-duration="1000"] [data-aos]{transition-duration:1s}[data-aos][data-aos][data-aos-delay="1000"],body[data-aos-delay="1000"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1000"].aos-animate,body[data-aos-delay="1000"] [data-aos].aos-animate{transition-delay:1s}[data-aos][data-aos][data-aos-duration="1050"],body[data-aos-duration="1050"] [data-aos]{transition-duration:1.05s}[data-aos][data-aos][data-aos-delay="1050"],body[data-aos-delay="1050"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1050"].aos-animate,body[data-aos-delay="1050"] [data-aos].aos-animate{transition-delay:1.05s}[data-aos][data-aos][data-aos-duration="1100"],body[data-aos-duration="1100"] [data-aos]{transition-duration:1.1s}[data-aos][data-aos][data-aos-delay="1100"],body[data-aos-delay="1100"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1100"].aos-animate,body[data-aos-delay="1100"] [data-aos].aos-animate{transition-delay:1.1s}[data-aos][data-aos][data-aos-duration="1150"],body[data-aos-duration="1150"] [data-aos]{transition-duration:1.15s}[data-aos][data-aos][data-aos-delay="1150"],body[data-aos-delay="1150"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1150"].aos-animate,body[data-aos-delay="1150"] [data-aos].aos-animate{transition-delay:1.15s}[data-aos][data-aos][data-aos-duration="1200"],body[data-aos-duration="1200"] [data-aos]{transition-duration:1.2s}[data-aos][data-aos][data-aos-delay="1200"],body[data-aos-delay="1200"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1200"].aos-animate,body[data-aos-delay="1200"] [data-aos].aos-animate{transition-delay:1.2s}[data-aos][data-aos][data-aos-duration="1250"],body[data-aos-duration="1250"] [data-aos]{transition-duration:1.25s}[data-aos][data-aos][data-aos-delay="1250"],body[data-aos-delay="1250"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1250"].aos-animate,body[data-aos-delay="1250"] [data-aos].aos-animate{transition-delay:1.25s}[data-aos][data-aos][data-aos-duration="1300"],body[data-aos-duration="1300"] [data-aos]{transition-duration:1.3s}[data-aos][data-aos][data-aos-delay="1300"],body[data-aos-delay="1300"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1300"].aos-animate,body[data-aos-delay="1300"] [data-aos].aos-animate{transition-delay:1.3s}[data-aos][data-aos][data-aos-duration="1350"],body[data-aos-duration="1350"] [data-aos]{transition-duration:1.35s}[data-aos][data-aos][data-aos-delay="1350"],body[data-aos-delay="1350"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1350"].aos-animate,body[data-aos-delay="1350"] [data-aos].aos-animate{transition-delay:1.35s}[data-aos][data-aos][data-aos-duration="1400"],body[data-aos-duration="1400"] [data-aos]{transition-duration:1.4s}[data-aos][data-aos][data-aos-delay="1400"],body[data-aos-delay="1400"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1400"].aos-animate,body[data-aos-delay="1400"] [data-aos].aos-animate{transition-delay:1.4s}[data-aos][data-aos][data-aos-duration="1450"],body[data-aos-duration="1450"] [data-aos]{transition-duration:1.45s}[data-aos][data-aos][data-aos-delay="1450"],body[data-aos-delay="1450"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1450"].aos-animate,body[data-aos-delay="1450"] [data-aos].aos-animate{transition-delay:1.45s}[data-aos][data-aos][data-aos-duration="1500"],body[data-aos-duration="1500"] [data-aos]{transition-duration:1.5s}[data-aos][data-aos][data-aos-delay="1500"],body[data-aos-delay="1500"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1500"].aos-animate,body[data-aos-delay="1500"] [data-aos].aos-animate{transition-delay:1.5s}[data-aos][data-aos][data-aos-duration="1550"],body[data-aos-duration="1550"] [data-aos]{transition-duration:1.55s}[data-aos][data-aos][data-aos-delay="1550"],body[data-aos-delay="1550"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1550"].aos-animate,body[data-aos-delay="1550"] [data-aos].aos-animate{transition-delay:1.55s}[data-aos][data-aos][data-aos-duration="1600"],body[data-aos-duration="1600"] [data-aos]{transition-duration:1.6s}[data-aos][data-aos][data-aos-delay="1600"],body[data-aos-delay="1600"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1600"].aos-animate,body[data-aos-delay="1600"] [data-aos].aos-animate{transition-delay:1.6s}[data-aos][data-aos][data-aos-duration="1650"],body[data-aos-duration="1650"] [data-aos]{transition-duration:1.65s}[data-aos][data-aos][data-aos-delay="1650"],body[data-aos-delay="1650"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1650"].aos-animate,body[data-aos-delay="1650"] [data-aos].aos-animate{transition-delay:1.65s}[data-aos][data-aos][data-aos-duration="1700"],body[data-aos-duration="1700"] [data-aos]{transition-duration:1.7s}[data-aos][data-aos][data-aos-delay="1700"],body[data-aos-delay="1700"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1700"].aos-animate,body[data-aos-delay="1700"] [data-aos].aos-animate{transition-delay:1.7s}[data-aos][data-aos][data-aos-duration="1750"],body[data-aos-duration="1750"] [data-aos]{transition-duration:1.75s}[data-aos][data-aos][data-aos-delay="1750"],body[data-aos-delay="1750"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1750"].aos-animate,body[data-aos-delay="1750"] [data-aos].aos-animate{transition-delay:1.75s}[data-aos][data-aos][data-aos-duration="1800"],body[data-aos-duration="1800"] [data-aos]{transition-duration:1.8s}[data-aos][data-aos][data-aos-delay="1800"],body[data-aos-delay="1800"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1800"].aos-animate,body[data-aos-delay="1800"] [data-aos].aos-animate{transition-delay:1.8s}[data-aos][data-aos][data-aos-duration="1850"],body[data-aos-duration="1850"] [data-aos]{transition-duration:1.85s}[data-aos][data-aos][data-aos-delay="1850"],body[data-aos-delay="1850"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1850"].aos-animate,body[data-aos-delay="1850"] [data-aos].aos-animate{transition-delay:1.85s}[data-aos][data-aos][data-aos-duration="1900"],body[data-aos-duration="1900"] [data-aos]{transition-duration:1.9s}[data-aos][data-aos][data-aos-delay="1900"],body[data-aos-delay="1900"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1900"].aos-animate,body[data-aos-delay="1900"] [data-aos].aos-animate{transition-delay:1.9s}[data-aos][data-aos][data-aos-duration="1950"],body[data-aos-duration="1950"] [data-aos]{transition-duration:1.95s}[data-aos][data-aos][data-aos-delay="1950"],body[data-aos-delay="1950"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="1950"].aos-animate,body[data-aos-delay="1950"] [data-aos].aos-animate{transition-delay:1.95s}[data-aos][data-aos][data-aos-duration="2000"],body[data-aos-duration="2000"] [data-aos]{transition-duration:2s}[data-aos][data-aos][data-aos-delay="2000"],body[data-aos-delay="2000"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2000"].aos-animate,body[data-aos-delay="2000"] [data-aos].aos-animate{transition-delay:2s}[data-aos][data-aos][data-aos-duration="2050"],body[data-aos-duration="2050"] [data-aos]{transition-duration:2.05s}[data-aos][data-aos][data-aos-delay="2050"],body[data-aos-delay="2050"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2050"].aos-animate,body[data-aos-delay="2050"] [data-aos].aos-animate{transition-delay:2.05s}[data-aos][data-aos][data-aos-duration="2100"],body[data-aos-duration="2100"] [data-aos]{transition-duration:2.1s}[data-aos][data-aos][data-aos-delay="2100"],body[data-aos-delay="2100"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2100"].aos-animate,body[data-aos-delay="2100"] [data-aos].aos-animate{transition-delay:2.1s}[data-aos][data-aos][data-aos-duration="2150"],body[data-aos-duration="2150"] [data-aos]{transition-duration:2.15s}[data-aos][data-aos][data-aos-delay="2150"],body[data-aos-delay="2150"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2150"].aos-animate,body[data-aos-delay="2150"] [data-aos].aos-animate{transition-delay:2.15s}[data-aos][data-aos][data-aos-duration="2200"],body[data-aos-duration="2200"] [data-aos]{transition-duration:2.2s}[data-aos][data-aos][data-aos-delay="2200"],body[data-aos-delay="2200"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2200"].aos-animate,body[data-aos-delay="2200"] [data-aos].aos-animate{transition-delay:2.2s}[data-aos][data-aos][data-aos-duration="2250"],body[data-aos-duration="2250"] [data-aos]{transition-duration:2.25s}[data-aos][data-aos][data-aos-delay="2250"],body[data-aos-delay="2250"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2250"].aos-animate,body[data-aos-delay="2250"] [data-aos].aos-animate{transition-delay:2.25s}[data-aos][data-aos][data-aos-duration="2300"],body[data-aos-duration="2300"] [data-aos]{transition-duration:2.3s}[data-aos][data-aos][data-aos-delay="2300"],body[data-aos-delay="2300"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2300"].aos-animate,body[data-aos-delay="2300"] [data-aos].aos-animate{transition-delay:2.3s}[data-aos][data-aos][data-aos-duration="2350"],body[data-aos-duration="2350"] [data-aos]{transition-duration:2.35s}[data-aos][data-aos][data-aos-delay="2350"],body[data-aos-delay="2350"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2350"].aos-animate,body[data-aos-delay="2350"] [data-aos].aos-animate{transition-delay:2.35s}[data-aos][data-aos][data-aos-duration="2400"],body[data-aos-duration="2400"] [data-aos]{transition-duration:2.4s}[data-aos][data-aos][data-aos-delay="2400"],body[data-aos-delay="2400"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2400"].aos-animate,body[data-aos-delay="2400"] [data-aos].aos-animate{transition-delay:2.4s}[data-aos][data-aos][data-aos-duration="2450"],body[data-aos-duration="2450"] [data-aos]{transition-duration:2.45s}[data-aos][data-aos][data-aos-delay="2450"],body[data-aos-delay="2450"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2450"].aos-animate,body[data-aos-delay="2450"] [data-aos].aos-animate{transition-delay:2.45s}[data-aos][data-aos][data-aos-duration="2500"],body[data-aos-duration="2500"] [data-aos]{transition-duration:2.5s}[data-aos][data-aos][data-aos-delay="2500"],body[data-aos-delay="2500"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2500"].aos-animate,body[data-aos-delay="2500"] [data-aos].aos-animate{transition-delay:2.5s}[data-aos][data-aos][data-aos-duration="2550"],body[data-aos-duration="2550"] [data-aos]{transition-duration:2.55s}[data-aos][data-aos][data-aos-delay="2550"],body[data-aos-delay="2550"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2550"].aos-animate,body[data-aos-delay="2550"] [data-aos].aos-animate{transition-delay:2.55s}[data-aos][data-aos][data-aos-duration="2600"],body[data-aos-duration="2600"] [data-aos]{transition-duration:2.6s}[data-aos][data-aos][data-aos-delay="2600"],body[data-aos-delay="2600"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2600"].aos-animate,body[data-aos-delay="2600"] [data-aos].aos-animate{transition-delay:2.6s}[data-aos][data-aos][data-aos-duration="2650"],body[data-aos-duration="2650"] [data-aos]{transition-duration:2.65s}[data-aos][data-aos][data-aos-delay="2650"],body[data-aos-delay="2650"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2650"].aos-animate,body[data-aos-delay="2650"] [data-aos].aos-animate{transition-delay:2.65s}[data-aos][data-aos][data-aos-duration="2700"],body[data-aos-duration="2700"] [data-aos]{transition-duration:2.7s}[data-aos][data-aos][data-aos-delay="2700"],body[data-aos-delay="2700"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2700"].aos-animate,body[data-aos-delay="2700"] [data-aos].aos-animate{transition-delay:2.7s}[data-aos][data-aos][data-aos-duration="2750"],body[data-aos-duration="2750"] [data-aos]{transition-duration:2.75s}[data-aos][data-aos][data-aos-delay="2750"],body[data-aos-delay="2750"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2750"].aos-animate,body[data-aos-delay="2750"] [data-aos].aos-animate{transition-delay:2.75s}[data-aos][data-aos][data-aos-duration="2800"],body[data-aos-duration="2800"] [data-aos]{transition-duration:2.8s}[data-aos][data-aos][data-aos-delay="2800"],body[data-aos-delay="2800"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2800"].aos-animate,body[data-aos-delay="2800"] [data-aos].aos-animate{transition-delay:2.8s}[data-aos][data-aos][data-aos-duration="2850"],body[data-aos-duration="2850"] [data-aos]{transition-duration:2.85s}[data-aos][data-aos][data-aos-delay="2850"],body[data-aos-delay="2850"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2850"].aos-animate,body[data-aos-delay="2850"] [data-aos].aos-animate{transition-delay:2.85s}[data-aos][data-aos][data-aos-duration="2900"],body[data-aos-duration="2900"] [data-aos]{transition-duration:2.9s}[data-aos][data-aos][data-aos-delay="2900"],body[data-aos-delay="2900"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2900"].aos-animate,body[data-aos-delay="2900"] [data-aos].aos-animate{transition-delay:2.9s}[data-aos][data-aos][data-aos-duration="2950"],body[data-aos-duration="2950"] [data-aos]{transition-duration:2.95s}[data-aos][data-aos][data-aos-delay="2950"],body[data-aos-delay="2950"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="2950"].aos-animate,body[data-aos-delay="2950"] [data-aos].aos-animate{transition-delay:2.95s}[data-aos][data-aos][data-aos-duration="3000"],body[data-aos-duration="3000"] [data-aos]{transition-duration:3s}[data-aos][data-aos][data-aos-delay="3000"],body[data-aos-delay="3000"] [data-aos]{transition-delay:0}[data-aos][data-aos][data-aos-delay="3000"].aos-animate,body[data-aos-delay="3000"] [data-aos].aos-animate{transition-delay:3s}[data-aos][data-aos][data-aos-easing=linear],body[data-aos-easing=linear] [data-aos]{transition-timing-function:cubic-bezier(.25,.25,.75,.75)}[data-aos][data-aos][data-aos-easing=ease],body[data-aos-easing=ease] [data-aos]{transition-timing-function:ease}[data-aos][data-aos][data-aos-easing=ease-in],body[data-aos-easing=ease-in] [data-aos]{transition-timing-function:ease-in}[data-aos][data-aos][data-aos-easing=ease-out],body[data-aos-easing=ease-out] [data-aos]{transition-timing-function:ease-out}[data-aos][data-aos][data-aos-easing=ease-in-out],body[data-aos-easing=ease-in-out] [data-aos]{transition-timing-function:ease-in-out}[data-aos][data-aos][data-aos-easing=ease-in-back],body[data-aos-easing=ease-in-back] [data-aos]{transition-timing-function:cubic-bezier(.6,-.28,.735,.045)}[data-aos][data-aos][data-aos-easing=ease-out-back],body[data-aos-easing=ease-out-back] [data-aos]{transition-timing-function:cubic-bezier(.175,.885,.32,1.275)}[data-aos][data-aos][data-aos-easing=ease-in-out-back],body[data-aos-easing=ease-in-out-back] [data-aos]{transition-timing-function:cubic-bezier(.68,-.55,.265,1.55)}[data-aos][data-aos][data-aos-easing=ease-in-sine],body[data-aos-easing=ease-in-sine] [data-aos]{transition-timing-function:cubic-bezier(.47,0,.745,.715)}[data-aos][data-aos][data-aos-easing=ease-out-sine],body[data-aos-easing=ease-out-sine] [data-aos]{transition-timing-function:cubic-bezier(.39,.575,.565,1)}[data-aos][data-aos][data-aos-easing=ease-in-out-sine],body[data-aos-easing=ease-in-out-sine] [data-aos]{transition-timing-function:cubic-bezier(.445,.05,.55,.95)}[data-aos][data-aos][data-aos-easing=ease-in-quad],body[data-aos-easing=ease-in-quad] [data-aos]{transition-timing-function:cubic-bezier(.55,.085,.68,.53)}[data-aos][data-aos][data-aos-easing=ease-out-quad],body[data-aos-easing=ease-out-quad] [data-aos]{transition-timing-function:cubic-bezier(.25,.46,.45,.94)}[data-aos][data-aos][data-aos-easing=ease-in-out-quad],body[data-aos-easing=ease-in-out-quad] [data-aos]{transition-timing-function:cubic-bezier(.455,.03,.515,.955)}[data-aos][data-aos][data-aos-easing=ease-in-cubic],body[data-aos-easing=ease-in-cubic] [data-aos]{transition-timing-function:cubic-bezier(.55,.085,.68,.53)}[data-aos][data-aos][data-aos-easing=ease-out-cubic],body[data-aos-easing=ease-out-cubic] [data-aos]{transition-timing-function:cubic-bezier(.25,.46,.45,.94)}[data-aos][data-aos][data-aos-easing=ease-in-out-cubic],body[data-aos-easing=ease-in-out-cubic] [data-aos]{transition-timing-function:cubic-bezier(.455,.03,.515,.955)}[data-aos][data-aos][data-aos-easing=ease-in-quart],body[data-aos-easing=ease-in-quart] [data-aos]{transition-timing-function:cubic-bezier(.55,.085,.68,.53)}[data-aos][data-aos][data-aos-easing=ease-out-quart],body[data-aos-easing=ease-out-quart] [data-aos]{transition-timing-function:cubic-bezier(.25,.46,.45,.94)}[data-aos][data-aos][data-aos-easing=ease-in-out-quart],body[data-aos-easing=ease-in-out-quart] [data-aos]{transition-timing-function:cubic-bezier(.455,.03,.515,.955)}[data-aos^=fade][data-aos^=fade]{opacity:0;transition-property:opacity,transform}[data-aos^=fade][data-aos^=fade].aos-animate{opacity:1;transform:translateZ(0)}[data-aos=fade-up]{transform:translate3d(0,100px,0)}[data-aos=fade-down]{transform:translate3d(0,-100px,0)}[data-aos=fade-right]{transform:translate3d(-100px,0,0)}[data-aos=fade-left]{transform:translate3d(100px,0,0)}[data-aos=fade-up-right]{transform:translate3d(-100px,100px,0)}[data-aos=fade-up-left]{transform:translate3d(100px,100px,0)}[data-aos=fade-down-right]{transform:translate3d(-100px,-100px,0)}[data-aos=fade-down-left]{transform:translate3d(100px,-100px,0)}[data-aos^=zoom][data-aos^=zoom]{opacity:0;transition-property:opacity,transform}[data-aos^=zoom][data-aos^=zoom].aos-animate{opacity:1;transform:translateZ(0) scale(1)}[data-aos=zoom-in]{transform:scale(.6)}[data-aos=zoom-in-up]{transform:translate3d(0,100px,0) scale(.6)}[data-aos=zoom-in-down]{transform:translate3d(0,-100px,0) scale(.6)}[data-aos=zoom-in-right]{transform:translate3d(-100px,0,0) scale(.6)}[data-aos=zoom-in-left]{transform:translate3d(100px,0,0) scale(.6)}[data-aos=zoom-out]{transform:scale(1.2)}[data-aos=zoom-out-up]{transform:translate3d(0,100px,0) scale(1.2)}[data-aos=zoom-out-down]{transform:translate3d(0,-100px,0) scale(1.2)}[data-aos=zoom-out-right]{transform:translate3d(-100px,0,0) scale(1.2)}[data-aos=zoom-out-left]{transform:translate3d(100px,0,0) scale(1.2)}[data-aos^=slide][data-aos^=slide]{transition-property:transform}[data-aos^=slide][data-aos^=slide].aos-animate{transform:translateZ(0)}[data-aos=slide-up]{transform:translate3d(0,100%,0)}[data-aos=slide-down]{transform:translate3d(0,-100%,0)}[data-aos=slide-right]{transform:translate3d(-100%,0,0)}[data-aos=slide-left]{transform:translate3d(100%,0,0)}[data-aos^=flip][data-aos^=flip]{-webkit-backface-visibility:hidden;backface-visibility:hidden;transition-property:transform}[data-aos=flip-left]{transform:perspective(2500px) rotateY(-100deg)}[data-aos=flip-left].aos-animate{transform:perspective(2500px) rotateY(0)}[data-aos=flip-right]{transform:perspective(2500px) rotateY(100deg)}[data-aos=flip-right].aos-animate{transform:perspective(2500px) rotateY(0)}[data-aos=flip-up]{transform:perspective(2500px) rotateX(-100deg)}[data-aos=flip-up].aos-animate{transform:perspective(2500px) rotateX(0)}[data-aos=flip-down]{transform:perspective(2500px) rotateX(100deg)}[data-aos=flip-down].aos-animate{transform:perspective(2500px) rotateX(0)}.blog-container{background-color:#fff;height:100vh}</style><style data-emotion="mantine "></style><title data-react-helmet="true"></title><style>.gatsby-image-wrapper{position:relative;overflow:hidden}.gatsby-image-wrapper picture.object-fit-polyfill{position:static!important}.gatsby-image-wrapper img{bottom:0;height:100%;left:0;margin:0;max-width:none;padding:0;position:absolute;right:0;top:0;width:100%;object-fit:cover}.gatsby-image-wrapper [data-main-image]{opacity:0;transform:translateZ(0);transition:opacity .25s linear;will-change:opacity}.gatsby-image-wrapper-constrained{display:inline-block;vertical-align:top}</style><noscript><style>.gatsby-image-wrapper noscript [data-main-image]{opacity:1!important}.gatsby-image-wrapper [data-placeholder-image]{opacity:0!important}</style></noscript><script type="module">const e="undefined"!=typeof HTMLImageElement&&"loading"in HTMLImageElement.prototype;e&&document.body.addEventListener("load",(function(e){const t=e.target;if(void 0===t.dataset.mainImage)return;if(void 0===t.dataset.gatsbyImageSsr)return;let a=null,n=t;for(;null===a&&n;)void 0!==n.parentNode.dataset.gatsbyImageWrapper&&(a=n.parentNode),n=n.parentNode;const o=a.querySelector("[data-placeholder-image]"),r=new Image;r.src=t.currentSrc,r.decode().catch((()=>{})).then((()=>{t.style.opacity=1,o&&(o.style.opacity=0,o.style.transition="opacity 500ms linear")}))}),!0);</script><style type="text/css">
+    .custom-class.before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: translateX(-100%);
+      padding-right: 4px;
+    }
+    .custom-class.after {
+      display: inline-block;
+      padding-left: 4px;
+    }
+    h1 .custom-class svg,
+    h2 .custom-class svg,
+    h3 .custom-class svg,
+    h4 .custom-class svg,
+    h5 .custom-class svg,
+    h6 .custom-class svg {
+      visibility: hidden;
+    }
+    h1:hover .custom-class svg,
+    h2:hover .custom-class svg,
+    h3:hover .custom-class svg,
+    h4:hover .custom-class svg,
+    h5:hover .custom-class svg,
+    h6:hover .custom-class svg,
+    h1 .custom-class:focus svg,
+    h2 .custom-class:focus svg,
+    h3 .custom-class:focus svg,
+    h4 .custom-class:focus svg,
+    h5 .custom-class:focus svg,
+    h6 .custom-class:focus svg {
+      visibility: visible;
+    }
+  </style><script>
+    document.addEventListener("DOMContentLoaded", function(event) {
+      var hash = window.decodeURI(location.hash.replace('#', ''))
+      if (hash !== '') {
+        var element = document.getElementById(hash)
+        if (element) {
+          var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+          var clientTop = document.documentElement.clientTop || document.body.clientTop || 0
+          var offset = element.getBoundingClientRect().top + scrollTop - clientTop
+          // Wait for the browser to finish rendering before scrolling.
+          setTimeout((function() {
+            window.scrollTo(0, offset - 100)
+          }), 0)
+        }
+      }
+    })
+  </script></head><body><div id="___gatsby"><div style="outline:none" tabindex="-1" id="gatsby-focus-wrapper"><section class="container px-4 w-full"><div class="flex"><div class="container-wrapper md:w-2/3 2xl:w-4/5"><h1 id="Oracle配置LogMiner" style="position:relative;">Oracle配置LogMiner<a href="#Oracle%E9%85%8D%E7%BD%AELogMiner" aria-label="Oracle配置LogMiner permalink" class="custom-class after"><svg aria-hidden="true" height="20" version="1.1" viewBox="0 0 16 16" width="20"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a></h1>
+<p>注意：</p>
+<p>1、某个Oracle数据源能同时运行的任务数量取决于该Oracle的内存大小</p>
+<p>2、若数据量太大导致日志组频繁切换需要增加日志组数量，增大单个日志组存储大小</p>
+<h2 id="一Oracle-10g单机版" style="position:relative;">一、Oracle 10g(单机版)<a href="#%E4%B8%80Oracle-10g%E5%8D%95%E6%9C%BA%E7%89%88" aria-label="一Oracle 10g单机版 permalink" class="custom-class after"><svg aria-hidden="true" height="20" version="1.1" viewBox="0 0 16 16" width="20"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a></h2>
+<h3>1、查询Oracle版本信息，这里配置的是<code>Oracle 10g</code></h3>
+<pre><code class="language-sql">--查看oracle版本
+select *
+from v$version;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 570px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/eff0fb89ea88b9f80fc77472f3f83c16/432e7/LogMiner1.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 28.834355828220858%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAGCAYAAADDl76dAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAwklEQVQY05WQyYqEQBBE3RBFxX1DERcE8eDJ//+1GF4N9q2b7kNQWUnGq8iykiRR0zRK09SoqirVdW16yLZtWZb1vbZtk+M4v5k+aRgG9X0vThK1batxHNV1nUnLSe+ZoUb0y7JUnudmntoAz/MUKe/71r7vOo5Dy7JoXVej67rEzDRNiuNYQRAoDMNX7fu+gUZR9A+ETgMzKeZ51vOvwLmTBkNRFMqyTK7rvl8ZwwPCSBISAmQN7jzKujwE2PO8t8A/de+MgNTFDR0AAAAASUVORK5CYII='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/eff0fb89ea88b9f80fc77472f3f83c16/432e7/LogMiner1.png"
+        srcset="/chunjun/static/eff0fb89ea88b9f80fc77472f3f83c16/222b7/LogMiner1.png 163w,
+/chunjun/static/eff0fb89ea88b9f80fc77472f3f83c16/ff46a/LogMiner1.png 325w,
+/chunjun/static/eff0fb89ea88b9f80fc77472f3f83c16/432e7/LogMiner1.png 570w"
+        sizes="(max-width: 570px) 100vw, 570px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>本章Oracle的版本如上图所示。</p>
+<h3>2、通过命令行方式登录Oracle，查看是否开启日志归档</h3>
+<pre><code class="language-sql">--查询数据库归档模式
+archive
+log list;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 538px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/d4c2baf5742598604d67c7195acae10c/9516f/LogMiner2.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 20.245398773006134%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAECAYAAACOXx+WAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAp0lEQVQY022PSQqEMBBF47BQQsBFFDTEASRKEBwQAt7/Xr+pAm1sevGoFCn+IMZxRFmWqOsaTdOgqiretdYQQjBxHDNRFCFJEmRZxvP+f3GeJ67rwjRNcM4hhIC+719HSikcx4Ft2zAMA9q2fQzTNH2Lk0jXdbDW8rzfUkqGjigRNSEhY8zThKC9KIqv4LIs8N6z8zzPWNcV+75zSkpB7nmeM38r/vAB0WFgT3dFAF4AAAAASUVORK5CYII='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/d4c2baf5742598604d67c7195acae10c/9516f/LogMiner2.png"
+        srcset="/chunjun/static/d4c2baf5742598604d67c7195acae10c/222b7/LogMiner2.png 163w,
+/chunjun/static/d4c2baf5742598604d67c7195acae10c/ff46a/LogMiner2.png 325w,
+/chunjun/static/d4c2baf5742598604d67c7195acae10c/9516f/LogMiner2.png 538w"
+        sizes="(max-width: 538px) 100vw, 538px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>图中显示<code>No Archive Mode</code>表示未开启日志归档。</p>
+<h3>3、开启日志归档，开启日志归档需要重启数据库，请注意</h3>
+<h4>a、配置归档日志保存的路径</h4>
+<p>根据自身环境配置归档日志保存路径，需要提前创建相应目录及赋予相应访问权限</p>
+<pre><code class="language-shell"># 创建归档日志保存目录
+mkdir -p /data/oracle/archivelog
+
+# 进入Oracle目录
+cd $ORACLE_HOME
+
+# 查看Oracle权限组，本章权限组如下图所示
+ls -l
+
+# 对归档日志保存目录赋予相应权限
+chown -R 下图中的用户名:下图中的组名 /data/oracle/
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 650px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/71749b4a05b0693a4a2b41cc65367f8d/8c557/LogMiner3.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 61.34969325153374%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAMCAYAAABiDJ37AAAACXBIWXMAAAsTAAALEwEAmpwYAAABDklEQVQoz6WT2YqEQAxFXUBF3FcU910RX/TB//+xNDeDM0MzzfTyEMpUKqeSm1IYx5H2fadt26hpGsrznJIkob7v2e+6jhzHIdu2yXVd8n2fV8/zeIXpuk6yLJMgCCQAWFUVxXHMwSAIKE1TKsuSfU3TKMsyjiNRkiROhuEbJoriFww2zzMnAAJw27a0riud58l+FEW0LAtXaxjGT+Ijm6bpu02sdV0TLoEMRVFwZfBxEap5CQjAbyAqtyyL9cS+oijvA4/jYCB0xGAAVVX1eSBauwdiMNAWPvZN0/ysZezjyQzDwBq+PJS/NLyAOPd2hXgm9xXCEP9oKBcQQ8G5MAyfB0L8Rxpiwtcv+B/wBidWJVCJP9GkAAAAAElFTkSuQmCC'); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/71749b4a05b0693a4a2b41cc65367f8d/a6d36/LogMiner3.png"
+        srcset="/chunjun/static/71749b4a05b0693a4a2b41cc65367f8d/222b7/LogMiner3.png 163w,
+/chunjun/static/71749b4a05b0693a4a2b41cc65367f8d/ff46a/LogMiner3.png 325w,
+/chunjun/static/71749b4a05b0693a4a2b41cc65367f8d/a6d36/LogMiner3.png 650w,
+/chunjun/static/71749b4a05b0693a4a2b41cc65367f8d/8c557/LogMiner3.png 700w"
+        sizes="(max-width: 650px) 100vw, 650px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<pre><code class="language-sql">--配置归档日志保存的路径
+alter
+system set log_archive_dest_1='location=/data/oracle/archivelog' scope=spfile;
+</code></pre>
+<h4>b、关闭数据库</h4>
+<pre><code class="language-sql">shutdown
+immediate;
+startup
+mount;
+</code></pre>
+<h4>c、开启日志归档</h4>
+<pre><code class="language-sql">--开启日志归档
+alter
+database archivelog;
+</code></pre>
+<h4>d、开启扩充日志</h4>
+<pre><code class="language-sql">--开启扩充日志
+alter
+database add supplemental log data (all) columns; 
+</code></pre>
+<h4>e、开启数据库</h4>
+<pre><code class="language-sql">alter
+database open;
+</code></pre>
+<p>再次查询数据库归档模式，<code>Archive Mode</code>表示已开启归档模式，<code>Archive destination</code>表示归档日志储存路径。</p>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 570px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/b80510b08c743c638936f99298858a8a/432e7/LogMiner4.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 21.47239263803681%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAECAYAAACOXx+WAAAACXBIWXMAAAsTAAALEwEAmpwYAAAApklEQVQY032PzQqEMAyEq2IRtCraikpVkBZ/QOjF93+0kQQW1sPuYQgMyTcTse87vPeYpgnWWmzbBqUU0jSFEAJRFKFtW3RdB601qqpi/6cIdhwHw9Z1ZWBRFK8l5xxCCOj7Hk3TcGBZlgynwBfwvm+GnOeJ67pAjUnkUeskSWCM4ZA8z3kS8AON4/gNnOcZ4ziylmXhlsMw8EFd15BSIsuy/29+6QGec16W4Hl2tAAAAABJRU5ErkJggg=='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/b80510b08c743c638936f99298858a8a/432e7/LogMiner4.png"
+        srcset="/chunjun/static/b80510b08c743c638936f99298858a8a/222b7/LogMiner4.png 163w,
+/chunjun/static/b80510b08c743c638936f99298858a8a/ff46a/LogMiner4.png 325w,
+/chunjun/static/b80510b08c743c638936f99298858a8a/432e7/LogMiner4.png 570w"
+        sizes="(max-width: 570px) 100vw, 570px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<h3>4、配置日志组</h3>
+<h4>a、查询默认日志组信息</h4>
+<pre><code class="language-sql">SELECT *
+FROM v$log;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 650px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/773de4e4d5c9c47b5c5f807c1130e2a9/0786c/LogMiner5.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 30.061349693251532%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAGCAYAAADDl76dAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA1ElEQVQY02WRxw7DMAxDnb0DZyM7l/z/J6p4Qo2m7UGAIVEkRZuqqmSaJun7XvI8l33fZRgGaZpGyrIU3/e1iqIQz/O0xztNU8UnSSLGmE9BeF2XbNsmbdvKfd8yjqOs6yrneeoSBIhmWaaC8zwrFhzCcRyrAIJmWRZ1dByHdF2nb9w+VaMo0qXfHoVDLnjMjDJDUte1WGtVlX4QBDrjCuZuMQxDxeISPLg/QgacRkFA3+VHbrh3hDijxw79rwzdIpkBwAmlebzFOMt9isO73Mj1SfgCuwCFkFvbQgcAAAAASUVORK5CYII='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/773de4e4d5c9c47b5c5f807c1130e2a9/a6d36/LogMiner5.png"
+        srcset="/chunjun/static/773de4e4d5c9c47b5c5f807c1130e2a9/222b7/LogMiner5.png 163w,
+/chunjun/static/773de4e4d5c9c47b5c5f807c1130e2a9/ff46a/LogMiner5.png 325w,
+/chunjun/static/773de4e4d5c9c47b5c5f807c1130e2a9/a6d36/LogMiner5.png 650w,
+/chunjun/static/773de4e4d5c9c47b5c5f807c1130e2a9/0786c/LogMiner5.png 663w"
+        sizes="(max-width: 650px) 100vw, 650px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>如上图所示，日志组的默认数量为2组，大小为4194304/1024/1024 = 4MB，这意味着日志大小每达到4MB就会进行日志组的切换，切换太过频繁会导致查询出错，因此需要增加日志组数量及大小。</p>
+<h4>b、查询日志组储存路径</h4>
+<pre><code class="language-sql">SELECT *
+FROM v$logfile;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 650px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/e7ba215e6aa55acae7efd6539ee16f4e/cecac/LogMiner6.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 57.668711656441715%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAMCAYAAABiDJ37AAAACXBIWXMAAAsTAAALEwEAmpwYAAAA4ElEQVQoz61SSQ6DMBALO2LfEQLBkf+/0JUHTRRVPZTSgxXPBJyxE9P3PYZhQNd1mKZJ0DQNfN+HMeY+9n3HPM8Yx1GEKOx53m9iBCeKoghpmiJJEuFc4zj+GvzecWTsRGy+bd5HXddgjmVZSn7nedq6qipwXznjIG/bVmrlvIMwDC/BLMsQBIE0CHKF9hiDu89ae8qtK5I8z+WUoiiwrqvU7scqphm7Pc3QWubtbtsmQsuy4DgOa4erC9pTmxoFXwYj4iEiSAFmo/nwx0fPhifo6O4zuAub4aNpPsF6/xNeJB4ATmt3goEAAAAASUVORK5CYII='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/e7ba215e6aa55acae7efd6539ee16f4e/a6d36/LogMiner6.png"
+        srcset="/chunjun/static/e7ba215e6aa55acae7efd6539ee16f4e/222b7/LogMiner6.png 163w,
+/chunjun/static/e7ba215e6aa55acae7efd6539ee16f4e/ff46a/LogMiner6.png 325w,
+/chunjun/static/e7ba215e6aa55acae7efd6539ee16f4e/a6d36/LogMiner6.png 650w,
+/chunjun/static/e7ba215e6aa55acae7efd6539ee16f4e/cecac/LogMiner6.png 728w"
+        sizes="(max-width: 650px) 100vw, 650px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>如上图所示，默认路径为<code>/usr/lib/oracle/xe/app/oracle/flash_recovery_area/XE/onlinelog/</code>。</p>
+<h4>c、新增日志组与删除原有日志组</h4>
+<p>请与DBA联系，决定是否可以删除原有日志组。</p>
+<pre><code class="language-sql">--增加两组日志组
+alter
+database add logfile group 3 ('/usr/lib/oracle/xe/app/oracle/flash_recovery_area/XE/onlinelog/redo3.log') size 200m;
+alter
+database add logfile group 4 ('/usr/lib/oracle/xe/app/oracle/flash_recovery_area/XE/onlinelog/redo4.log') size 200m;
+</code></pre>
+<pre><code class="language-sql">--删除原有两组日志组，并继续新增两组日志组
+alter
+system checkpoint;
+alter
+system switch logfile;
+alter
+database drop
+logfile group 1;
+alter
+database drop
+logfile group 2;
+alter
+database add logfile group 1 ('/usr/lib/oracle/xe/app/oracle/flash_recovery_area/XE/onlinelog/redo1.log') size 200m;
+alter
+database add logfile group 2 ('/usr/lib/oracle/xe/app/oracle/flash_recovery_area/XE/onlinelog/redo2.log') size 200m;
+</code></pre>
+<h4>d、查询创建的日志组</h4>
+<pre><code class="language-sql">SELECT *
+FROM v$log;
+SELECT *
+FROM v$logfile;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 650px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/f7c239869252561d281b762410e15536/e7dce/LogMiner7.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 58.282208588957054%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAMCAYAAABiDJ37AAAACXBIWXMAAAsTAAALEwEAmpwYAAABV0lEQVQoz22S247CMAxEy62lFNpCC70BQhSJ//9Cr45XE2UXHqwkk2Q8Yzvp+97u97uVZWnzPBvny+ViSZLYYrHwdblchvNqtfJVAf4nuq6z4/Hon67Xq9V1bW3bOjk4j4ZhsMPhEJKez2cP8P1+78RKmqDu/X472fP5dLWQpmlqm83G1ut1WMGyLPO9QhirE7KpqsqKonAQJbLCw9Pp5EpQJ1u73c6aprFxHG273f63/VsbVMR1E4YlEuZ5Hj6RGFxOPgglnT1Fjz+iDDU4EI5ykoB/JeQBaigsD9RBMAhpUkyIOhQzDew/CKdp8mzUi7FBsWxTLz7HStQkkqhUIRgNZUcJBDSGRgjHHi44a4QIcCUKM8mYPB4PV/h6vbxzzKY6ixIlhYR7iLgDx7JGJyi83W5ul2BgZZmaMhZEbE21Bo+bGGrIY6yq47LAB9X12xziIh4n4gdvDwlRO/j35gAAAABJRU5ErkJggg=='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/f7c239869252561d281b762410e15536/a6d36/LogMiner7.png"
+        srcset="/chunjun/static/f7c239869252561d281b762410e15536/222b7/LogMiner7.png 163w,
+/chunjun/static/f7c239869252561d281b762410e15536/ff46a/LogMiner7.png 325w,
+/chunjun/static/f7c239869252561d281b762410e15536/a6d36/LogMiner7.png 650w,
+/chunjun/static/f7c239869252561d281b762410e15536/e7dce/LogMiner7.png 653w"
+        sizes="(max-width: 650px) 100vw, 650px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 650px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/38e1f60971a0a1213914f75157a76f55/f8915/LogMiner8.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 85.2760736196319%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAARCAYAAADdRIy+AAAACXBIWXMAAAsTAAALEwEAmpwYAAABQ0lEQVQ4y6WT266CMBBFQQEBlftFhRDCC///hT1ZkwwpNsajPux0OpTpavfUy7LM3O9307at6bpOVFWVCcPQeJ73uYZhMKgoCpPnuSiO4++KoWVZzOl0MsfjUah835eYXBRFb6XrtoLQUCQIAklAer1eJSb/Tg5h3/dyTO6NkeOTs6+AGJVlKXNGXe/c9fl8FjqwD4fDtpBjk2ckr1dCzpZDiKs4rYVwvGkayaFnSnIQKq1DyIfH42Hqut4W7S75U63rKoVwK01TkySJ6Nlle05sz3eU6ui3ctxmJ4igY6dxHMVl4ldUjLQbo9M6/EwxSHFc+/ByuchcxVzXMGqM+7uC0LErO/JR3zWEr16FTUtL7QqyE82M09ASY5JNpnQ2Ie1D3unFeZ7N7Xbbfub4P7XNNE2b9Sr7WP/RDgATfmmbZ/0BIVtuOh4kvEgAAAAASUVORK5CYII='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/38e1f60971a0a1213914f75157a76f55/a6d36/LogMiner8.png"
+        srcset="/chunjun/static/38e1f60971a0a1213914f75157a76f55/222b7/LogMiner8.png 163w,
+/chunjun/static/38e1f60971a0a1213914f75157a76f55/ff46a/LogMiner8.png 325w,
+/chunjun/static/38e1f60971a0a1213914f75157a76f55/a6d36/LogMiner8.png 650w,
+/chunjun/static/38e1f60971a0a1213914f75157a76f55/f8915/LogMiner8.png 748w"
+        sizes="(max-width: 650px) 100vw, 650px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<h3>5、检查是否安装LogMiner工具</h3>
+<p>Oracle10g默认已安装LogMiner工具包，通过以下命令查询：</p>
+<pre><code class="language-sql">desc DBMS_LOGMNR;
+desc DBMS_LOGMNR_D;
+</code></pre>
+<p>若无信息打印，则执行下列SQL初始化LogMiner工具包：</p>
+<pre><code class="language-sql">@
+$ORACLE_HOME
+/rdbms/admin/dbmslm.sql;
+@
+$ORACLE_HOME
+/rdbms/admin/dbmslmd.sql;
+</code></pre>
+<h3>6、创建LogMiner角色并赋权</h3>
+<p>其中<code>roma_logminer_privs</code>为角色名称，可根据自身需求修改。</p>
+<pre><code class="language-sql">create role roma_logminer_privs;
+grant
+create
+session,execute_catalog_role,select any transaction,flashback any table,select any table,lock any table,select any dictionary to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_COL$ to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_OBJ$ to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_USER$ to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_UID$ to roma_logminer_privs;
+grant select_catalog_role to roma_logminer_privs;
+</code></pre>
+<h3>7、创建LogMiner用户并赋权</h3>
+<p>其中<code>roma_logminer</code>为用户名，<code>password</code>为密码，请根据自身需求修改。</p>
+<pre><code class="language-sql">create
+user roma_logminer identified by password default tablespace users;
+grant roma_logminer_privs to roma_logminer;
+grant execute_catalog_role to roma_logminer;
+alter
+user roma_logminer quota unlimited on users;
+</code></pre>
+<h3>8、验证用户权限</h3>
+<p>以创建的LogMiner用户登录Oracle数据库，执行以下SQL查询权限，结果如图所示：</p>
+<pre><code class="language-sql"> SELECT *
+ FROM USER_ROLE_PRIVS;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 645px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/59b5c6b498cbcbe7b396dedc52986164/af192/LogMiner9.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 18.404907975460123%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAECAYAAACOXx+WAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAoUlEQVQY042QywqFMBBD6wOtiLhStD5oxZZW/P/fi2RAV3dxF6EMyRwmVV3XYds29H0PYwzWdcW+71iWRWZKKfW/zvMEoRzyPEdRFKKyLOV9odM0oW3bb5FelmWoqgrjOGIYBjlKee9xXRcI1lqjrutPDKeUEEIAc8xYazHPs3gUIWzonJNmioH7vmXxVwXCjuMQn9AYo1zz+k3TyMwW/KYHjRpfQcVePnAAAAAASUVORK5CYII='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/59b5c6b498cbcbe7b396dedc52986164/af192/LogMiner9.png"
+        srcset="/chunjun/static/59b5c6b498cbcbe7b396dedc52986164/222b7/LogMiner9.png 163w,
+/chunjun/static/59b5c6b498cbcbe7b396dedc52986164/ff46a/LogMiner9.png 325w,
+/chunjun/static/59b5c6b498cbcbe7b396dedc52986164/af192/LogMiner9.png 645w"
+        sizes="(max-width: 645px) 100vw, 645px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<pre><code class="language-sql">SELECT *
+FROM SESSION_PRIVS;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 431px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/086acb72865c309ff8897f6fe892fdec/9cb4e/LogMiner10.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 41.104294478527606%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA3ElEQVQoz52RyYqEQBBEBRVbRVAUFXfcd1FRT/7/Z8WQCTOXnh665xAERVW+yowUoiiCaZrwfR9hGMK2bViWha7r+JxlGZqmYS/LEnEcQxCE13JdF47jgNwwjL8fvyP6MU1T5HmOIAjweDyg6zo0TXspVVXZFUV5BhJoGAaGVlWF4zgYTpdUIEnSr5JlGaIoPgPneca3CHRdF9q2/f/Ifd8zzPM8rOvK4e/7jrquuWuK4CMgFZ7nyRDa5rIsvMn7vjGOI4/3EZBym6YJSZKAuiWnTrdtQ1EUP3m+qy+cwbnRnuk6egAAAABJRU5ErkJggg=='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/086acb72865c309ff8897f6fe892fdec/9cb4e/LogMiner10.png"
+        srcset="/chunjun/static/086acb72865c309ff8897f6fe892fdec/222b7/LogMiner10.png 163w,
+/chunjun/static/086acb72865c309ff8897f6fe892fdec/ff46a/LogMiner10.png 325w,
+/chunjun/static/086acb72865c309ff8897f6fe892fdec/9cb4e/LogMiner10.png 431w"
+        sizes="(max-width: 431px) 100vw, 431px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>至此，Oracle 10g数据库LogMiner实时采集配置完毕。</p>
+<h2 id="二Oracle-11g单机版" style="position:relative;">二、Oracle 11g(单机版)<a href="#%E4%BA%8COracle-11g%E5%8D%95%E6%9C%BA%E7%89%88" aria-label="二Oracle 11g单机版 permalink" class="custom-class after"><svg aria-hidden="true" height="20" version="1.1" viewBox="0 0 16 16" width="20"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a></h2>
+<h3>1、查询Oracle版本信息，这里配置的是<code>Oracle 11g</code></h3>
+<pre><code class="language-sql">--查看oracle版本
+select *
+from v$version;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 650px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/cc3d5d6246dfeaf9103af14be5794b95/62de4/LogMiner11.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 21.47239263803681%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAECAYAAACOXx+WAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAl0lEQVQY05WPyQqEMBBEE0TjQhY3RDEheAgJ4v9/Xkl6cGaOM4eC6qJ5VLFt26C1RlmWpLqu0TQNecbY/zqOAxlqjCHwIyklZX3fYxgG8t8/Tz6OI9q2Bef8BbyuC845nOeJEAKstXTHGEnrukIpha7rqL0Q4r0ig3JeFMWnYUoJy7Jg33eCZcA8z/De0z1NEzWrquqnyTdSO1wRjpwOTgAAAABJRU5ErkJggg=='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/cc3d5d6246dfeaf9103af14be5794b95/a6d36/LogMiner11.png"
+        srcset="/chunjun/static/cc3d5d6246dfeaf9103af14be5794b95/222b7/LogMiner11.png 163w,
+/chunjun/static/cc3d5d6246dfeaf9103af14be5794b95/ff46a/LogMiner11.png 325w,
+/chunjun/static/cc3d5d6246dfeaf9103af14be5794b95/a6d36/LogMiner11.png 650w,
+/chunjun/static/cc3d5d6246dfeaf9103af14be5794b95/62de4/LogMiner11.png 746w"
+        sizes="(max-width: 650px) 100vw, 650px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>本章Oracle的版本如上图所示。</p>
+<h3>2、通过命令行方式登录Oracle，查看是否开启日志归档</h3>
+<pre><code class="language-sql">--查询数据库归档模式
+archive
+log list;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 510px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/9f4e23c4572b4c45e77e339c85b0b06f/0abdd/LogMiner12.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 25.153374233128833%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAFCAYAAABFA8wzAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAtklEQVQY042QywqFMAxEK4riAxEF6wufqLjQhej/f9pIZtG70MVdHNI002RSdRwH2rbFMAzouo5R8jRN4boulFIkiiISxzFjlmWwbdvUDdLwui6M40j2fce6ri/htm247xvneaKqKjRNw+ae5yEIgt9wEfZ9T3fLsvA8zzPquqbLMAwpLMsSRVGYqLVmPc9z3olr43CaJk6VdaWhOJQBSZLA930KxcVrvS/kvxzHYWJZluGvxx88blJ17l4Yy1oAAAAASUVORK5CYII='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/9f4e23c4572b4c45e77e339c85b0b06f/0abdd/LogMiner12.png"
+        srcset="/chunjun/static/9f4e23c4572b4c45e77e339c85b0b06f/222b7/LogMiner12.png 163w,
+/chunjun/static/9f4e23c4572b4c45e77e339c85b0b06f/ff46a/LogMiner12.png 325w,
+/chunjun/static/9f4e23c4572b4c45e77e339c85b0b06f/0abdd/LogMiner12.png 510w"
+        sizes="(max-width: 510px) 100vw, 510px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>图中显示<code>No Archive Mode</code>表示未开启日志归档。</p>
+<h3>3、开启日志归档，开启日志归档需要重启数据库，请注意</h3>
+<h4>a、配置归档日志保存的路径</h4>
+<p>根据自身环境配置归档日志保存路径，需要提前创建相应目录及赋予相应访问权限</p>
+<pre><code class="language-sql"> alter
+system set log_archive_dest_1='location=/data/oracle/archivelog' scope=spfile;
+</code></pre>
+<h4>b、关闭数据库</h4>
+<pre><code class="language-sql">shutdown
+immediate;
+startup
+mount;
+</code></pre>
+<h4>c、开启日志归档</h4>
+<pre><code class="language-sql">--开启日志归档
+alter
+database archivelog;
+</code></pre>
+<h4>d、开启扩充日志</h4>
+<pre><code class="language-sql">--开启扩充日志
+alter
+database add supplemental log data (all) columns; 
+</code></pre>
+<h4>e、开启数据库</h4>
+<pre><code class="language-sql">alter
+database open;
+</code></pre>
+<p>再次查询数据库归档模式，<code>Archive Mode</code>表示已开启归档模式，<code>Archive destination</code>表示归档日志储存路径。
+<span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 496px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/3e5dbb9c7b5564b769cd1c031829bdfd/bb630/LogMiner13.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 24.539877300613497%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAFCAYAAABFA8wzAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAyElEQVQY022QyaqFQAxE2xEFFRei4ixOC1FR9P8/rS4VaHnCWxQkneR0JWrfd5RliXEc0TSNqOs65HmOMAyhlBJZlgXP8+C6LoIg+NQ+2rYNz/NgmiaBHccBfmIYxqcxjmPc943zPFEUBdI0hWmar95eguZ5RlVVGIZB3C3LgiRJ4DgObNuWRt/35b2ua4GxnmWZxJxlLsDrutD3vcAI5hDXb9tW3K7riiiKZF1COaRdcQut1yVhHNYOCSSEOe+l70YY43/v9kc/o2V5A09aLDcAAAAASUVORK5CYII='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/3e5dbb9c7b5564b769cd1c031829bdfd/bb630/LogMiner13.png"
+        srcset="/chunjun/static/3e5dbb9c7b5564b769cd1c031829bdfd/222b7/LogMiner13.png 163w,
+/chunjun/static/3e5dbb9c7b5564b769cd1c031829bdfd/ff46a/LogMiner13.png 325w,
+/chunjun/static/3e5dbb9c7b5564b769cd1c031829bdfd/bb630/LogMiner13.png 496w"
+        sizes="(max-width: 496px) 100vw, 496px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<h3>4、检查是否安装LogMiner工具</h3>
+<p>Oracle11g默认已安装LogMiner工具包，通过以下命令查询：</p>
+<pre><code class="language-sql">desc DBMS_LOGMNR;
+desc DBMS_LOGMNR_D;
+</code></pre>
+<p>若无信息打印，则执行下列SQL初始化LogMiner工具包：</p>
+<pre><code class="language-sql">@
+$ORACLE_HOME
+/rdbms/admin/dbmslm.sql;
+@
+$ORACLE_HOME
+/rdbms/admin/dbmslmd.sql;
+</code></pre>
+<h3>5、创建LogMiner角色并赋权</h3>
+<p>其中<code>roma_logminer_privs</code>为角色名称，可根据自身需求修改。</p>
+<pre><code class="language-sql">create role roma_logminer_privs;
+grant
+create
+session,execute_catalog_role,select any transaction,flashback any table,select any table,lock any table,select any dictionary to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_COL$ to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_OBJ$ to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_USER$ to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_UID$ to roma_logminer_privs;
+grant select_catalog_role to roma_logminer_privs;
+</code></pre>
+<h3>6、创建LogMiner用户并赋权</h3>
+<p>其中<code>roma_logminer</code>为用户名，<code>password</code>为密码，请根据自身需求修改。</p>
+<pre><code class="language-sql">create
+user roma_logminer identified by password default tablespace users;
+grant roma_logminer_privs to roma_logminer;
+grant execute_catalog_role to roma_logminer;
+alter
+user roma_logminer quota unlimited on users;
+</code></pre>
+<h3>7、验证用户权限</h3>
+<p>以创建的LogMiner用户登录Oracle数据库，执行以下SQL查询权限，结果如图所示：</p>
+<pre><code class="language-sql"> SELECT *
+ FROM USER_ROLE_PRIVS;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 645px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/59b5c6b498cbcbe7b396dedc52986164/af192/LogMiner14.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 18.404907975460123%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAECAYAAACOXx+WAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAoUlEQVQY042QywqFMBBD6wOtiLhStD5oxZZW/P/fi2RAV3dxF6EMyRwmVV3XYds29H0PYwzWdcW+71iWRWZKKfW/zvMEoRzyPEdRFKKyLOV9odM0oW3bb5FelmWoqgrjOGIYBjlKee9xXRcI1lqjrutPDKeUEEIAc8xYazHPs3gUIWzonJNmioH7vmXxVwXCjuMQn9AYo1zz+k3TyMwW/KYHjRpfQcVePnAAAAAASUVORK5CYII='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/59b5c6b498cbcbe7b396dedc52986164/af192/LogMiner14.png"
+        srcset="/chunjun/static/59b5c6b498cbcbe7b396dedc52986164/222b7/LogMiner14.png 163w,
+/chunjun/static/59b5c6b498cbcbe7b396dedc52986164/ff46a/LogMiner14.png 325w,
+/chunjun/static/59b5c6b498cbcbe7b396dedc52986164/af192/LogMiner14.png 645w"
+        sizes="(max-width: 645px) 100vw, 645px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<pre><code class="language-sql">SELECT *
+FROM SESSION_PRIVS;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 431px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/086acb72865c309ff8897f6fe892fdec/9cb4e/LogMiner15.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 41.104294478527606%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA3ElEQVQoz52RyYqEQBBEBRVbRVAUFXfcd1FRT/7/Z8WQCTOXnh665xAERVW+yowUoiiCaZrwfR9hGMK2bViWha7r+JxlGZqmYS/LEnEcQxCE13JdF47jgNwwjL8fvyP6MU1T5HmOIAjweDyg6zo0TXspVVXZFUV5BhJoGAaGVlWF4zgYTpdUIEnSr5JlGaIoPgPneca3CHRdF9q2/f/Ifd8zzPM8rOvK4e/7jrquuWuK4CMgFZ7nyRDa5rIsvMn7vjGOI4/3EZBym6YJSZKAuiWnTrdtQ1EUP3m+qy+cwbnRnuk6egAAAABJRU5ErkJggg=='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/086acb72865c309ff8897f6fe892fdec/9cb4e/LogMiner15.png"
+        srcset="/chunjun/static/086acb72865c309ff8897f6fe892fdec/222b7/LogMiner15.png 163w,
+/chunjun/static/086acb72865c309ff8897f6fe892fdec/ff46a/LogMiner15.png 325w,
+/chunjun/static/086acb72865c309ff8897f6fe892fdec/9cb4e/LogMiner15.png 431w"
+        sizes="(max-width: 431px) 100vw, 431px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>至此，Oracle 11g数据库LogMiner实时采集配置完毕。</p>
+<h2 id="三Oracle-12c单机版非CBD" style="position:relative;">三、Oracle 12c(单机版非CBD)<a href="#%E4%B8%89Oracle-12c%E5%8D%95%E6%9C%BA%E7%89%88%E9%9D%9ECBD" aria-label="三Oracle 12c单机版非CBD permalink" class="custom-class after"><svg aria-hidden="true" height="20" version="1.1" viewBox="0 0 16 16" width="20"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a></h2>
+<h3>1、查询Oracle版本信息，这里配置的是<code>Oracle 12c</code></h3>
+<pre><code class="language-sql">--查看oracle版本
+select BANNER
+from v$version;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 650px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/a9381834c3e0f0f872718e232c10a2bc/8c557/LogMiner16.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 23.31288343558282%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAFCAYAAABFA8wzAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAqElEQVQY05VQyw6EIBBDjR40Kj4ixAcYlRj+/wNrZjZwWC+7h6bTJpTOiKZp0HUdrLXYtg1SSgzDAKUU2raFEOI/1HX9MpMkiUjTlJFlWZyD/vb4vTEGzjns+455npnJI9C8LAu3pdZaa4zjiL7veZ6mCeu6slcUxSeUxHmeuK6LA8P63ntm2qAsS+R5/tqCODYLoBAKpDbHcfAdqdF936zDJ1VV/XTDB+w/cmRy+bwhAAAAAElFTkSuQmCC'); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/a9381834c3e0f0f872718e232c10a2bc/a6d36/LogMiner16.png"
+        srcset="/chunjun/static/a9381834c3e0f0f872718e232c10a2bc/222b7/LogMiner16.png 163w,
+/chunjun/static/a9381834c3e0f0f872718e232c10a2bc/ff46a/LogMiner16.png 325w,
+/chunjun/static/a9381834c3e0f0f872718e232c10a2bc/a6d36/LogMiner16.png 650w,
+/chunjun/static/a9381834c3e0f0f872718e232c10a2bc/8c557/LogMiner16.png 700w"
+        sizes="(max-width: 650px) 100vw, 650px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>本章Oracle的版本如上图所示。</p>
+<h3>2、通过命令行方式登录Oracle，查看是否开启日志归档</h3>
+<pre><code class="language-sql">--查询数据库归档模式
+archive
+log list;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 495px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/f92ec21269193fd9de6bb5f649b3a175/a4d88/LogMiner17.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 24.539877300613497%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAFCAYAAABFA8wzAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAvklEQVQY04WQyaqFQBBDHVARRdyIM86KghsV/P8vyyMBfRfu4i4O3dUV0qkyqqoC6boOdV2LPM+Rpils24ZhGMLzPDiOA9d1RRRFenv6L8dx4L5vma7rivM80bbtl3BZFlB7XRfKskRRFEiSRD3TNP8/7/v+Tdg0jU4aBkHwpqKQmmEYME2TdIRTcBqas5bptm0YxxHzPEvMet931RTGcSzDLMuU5MGyrK+7EnJnTOH7vuBuwjCU6HPkJ+kv/gAKTXbbvN9O+AAAAABJRU5ErkJggg=='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/f92ec21269193fd9de6bb5f649b3a175/a4d88/LogMiner17.png"
+        srcset="/chunjun/static/f92ec21269193fd9de6bb5f649b3a175/222b7/LogMiner17.png 163w,
+/chunjun/static/f92ec21269193fd9de6bb5f649b3a175/ff46a/LogMiner17.png 325w,
+/chunjun/static/f92ec21269193fd9de6bb5f649b3a175/a4d88/LogMiner17.png 495w"
+        sizes="(max-width: 495px) 100vw, 495px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>图中显示<code>No Archive Mode</code>表示未开启日志归档。</p>
+<h3>3、开启日志归档，开启日志归档需要重启数据库，请注意</h3>
+<h4>a、配置归档日志保存的路径</h4>
+<p>根据自身环境配置归档日志保存路径，需要提前创建相应目录及赋予相应访问权限</p>
+<pre><code class="language-sql"> alter
+system set log_archive_dest_1='location=/data/oracle/archivelog' scope=spfile;
+</code></pre>
+<h4>b、关闭数据库</h4>
+<pre><code class="language-sql">shutdown
+immediate;
+startup
+mount;
+</code></pre>
+<h4>c、开启日志归档</h4>
+<pre><code class="language-sql">--开启日志归档
+alter
+database archivelog;
+</code></pre>
+<h4>d、开启扩充日志</h4>
+<pre><code class="language-sql">--开启扩充日志
+alter
+database add supplemental log data (all) columns; 
+</code></pre>
+<h4>e、开启数据库</h4>
+<pre><code class="language-sql">alter
+database open;
+</code></pre>
+<p>再次查询数据库归档模式，<code>Archive Mode</code>表示已开启归档模式，<code>Archive destination</code>表示归档日志储存路径。
+<span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 496px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/3e5dbb9c7b5564b769cd1c031829bdfd/bb630/LogMiner18.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 24.539877300613497%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAFCAYAAABFA8wzAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAyElEQVQY022QyaqFQAxE2xEFFRei4ixOC1FR9P8/rS4VaHnCWxQkneR0JWrfd5RliXEc0TSNqOs65HmOMAyhlBJZlgXP8+C6LoIg+NQ+2rYNz/NgmiaBHccBfmIYxqcxjmPc943zPFEUBdI0hWmar95eguZ5RlVVGIZB3C3LgiRJ4DgObNuWRt/35b2ua4GxnmWZxJxlLsDrutD3vcAI5hDXb9tW3K7riiiKZF1COaRdcQut1yVhHNYOCSSEOe+l70YY43/v9kc/o2V5A09aLDcAAAAASUVORK5CYII='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/3e5dbb9c7b5564b769cd1c031829bdfd/bb630/LogMiner18.png"
+        srcset="/chunjun/static/3e5dbb9c7b5564b769cd1c031829bdfd/222b7/LogMiner18.png 163w,
+/chunjun/static/3e5dbb9c7b5564b769cd1c031829bdfd/ff46a/LogMiner18.png 325w,
+/chunjun/static/3e5dbb9c7b5564b769cd1c031829bdfd/bb630/LogMiner18.png 496w"
+        sizes="(max-width: 496px) 100vw, 496px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<h3>4、创建LogMiner角色并赋权</h3>
+<p>其中<code>roma_logminer_privs</code>为角色名称，可根据自身需求修改。</p>
+<pre><code class="language-sql">create role roma_logminer_privs;
+grant
+create
+session,execute_catalog_role,select any transaction,flashback any table,select any table,lock any table,logmining,select any dictionary to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_COL$ to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_OBJ$ to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_USER$ to roma_logminer_privs;
+grant select on SYSTEM.LOGMNR_UID$ to roma_logminer_privs;
+grant select_catalog_role to roma_logminer_privs;
+grant LOGMINING to roma_logminer_privs;
+</code></pre>
+<h3>5、创建LogMiner用户并赋权</h3>
+<p>其中<code>roma_logminer</code>为用户名，<code>password</code>为密码，请根据自身需求修改。</p>
+<pre><code class="language-sql">create
+user roma_logminer identified by password default tablespace users;
+grant roma_logminer_privs to roma_logminer;
+grant execute_catalog_role to roma_logminer;
+alter
+user roma_logminer quota unlimited on users;
+</code></pre>
+<h3>6、验证用户权限</h3>
+<p>以创建的LogMiner用户登录Oracle数据库，执行以下SQL查询权限，结果如图所示：</p>
+<pre><code class="language-sql"> SELECT *
+ FROM USER_ROLE_PRIVS;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 650px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/9d58dc7f1b9d53b3d71650596dc12d53/82158/LogMiner19.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 55.828220858895705%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAALCAYAAAB/Ca1DAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA2UlEQVQoz6WTyQqDQBBER9wXRMUVXMFd8Cj6/x9WoRsSSEggyRwecxke1VM9omka5HkO13WZMAyZIAgQRREsy4IQ4nuWZUHf9yxQVRWKovB5R9d1mKb5FsMwnk66z8KyLFHXNSejVLZtc7Jf0TQNYp5nFEUBGp1kvu//NuIrx3FgHEfs+45hGFguJWzblpORiNLRe0gJz/PkhNd1YZompGkqJ6QykiThNqkMaktKuK4rrw1JqSWq/p+GHy1v24aqqtB1HeI4Zj7t3Vd7mGUZHMfhX+J5HiMz8g2rG/COFlTyXwAAAABJRU5ErkJggg=='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/9d58dc7f1b9d53b3d71650596dc12d53/a6d36/LogMiner19.png"
+        srcset="/chunjun/static/9d58dc7f1b9d53b3d71650596dc12d53/222b7/LogMiner19.png 163w,
+/chunjun/static/9d58dc7f1b9d53b3d71650596dc12d53/ff46a/LogMiner19.png 325w,
+/chunjun/static/9d58dc7f1b9d53b3d71650596dc12d53/a6d36/LogMiner19.png 650w,
+/chunjun/static/9d58dc7f1b9d53b3d71650596dc12d53/82158/LogMiner19.png 696w"
+        sizes="(max-width: 650px) 100vw, 650px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<pre><code class="language-sql">SELECT *
+FROM SESSION_PRIVS;
+</code></pre>
+<p><span
+      class="gatsby-resp-image-wrapper"
+      style="position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 445px; "
+    >
+      <a
+    class="gatsby-resp-image-link"
+    href="/chunjun/static/9dc3b920e25125625c2c17ac91769f5a/e66bf/LogMiner20.png"
+    style="display: block"
+    target="_blank"
+    rel="noopener"
+  >
+    <span
+    class="gatsby-resp-image-background-image"
+    style="padding-bottom: 46.012269938650306%; position: relative; bottom: 0; left: 0; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAJCAYAAAAywQxIAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA30lEQVQoz52SyYqEQBBERVHxpqgouCGi4oKKG3jy/78qhwjGw9Dt0PYhqCrIfBWRVUpZlmLbtkRRJFmWieM44nmedF0ncRxLXdeCmqIouHddVxRFuReaAPB9n+C7QlVV/wddyvOc7gAOw5CNhmG8SNf1P2fTNN9f0jSNTNPEuFVVyb7vjIhiy7LYeCdN016B4zhK27YUQNu2cf0o3jvN8yxQmqYyDINgBOu60i3GgHiPgH3fM/KyLIRc8c/zpGvM7hEQgOM46A7xgyAgFHCA4fIREC+cJAmb8X2+nt2vfgBpcM9kJJN4kgAAAABJRU5ErkJggg=='); background-size: cover; display: block;"
+  ></span>
+  <img
+        class="gatsby-resp-image-image"
+        alt="image"
+        title="image"
+        src="/chunjun/static/9dc3b920e25125625c2c17ac91769f5a/e66bf/LogMiner20.png"
+        srcset="/chunjun/static/9dc3b920e25125625c2c17ac91769f5a/222b7/LogMiner20.png 163w,
+/chunjun/static/9dc3b920e25125625c2c17ac91769f5a/ff46a/LogMiner20.png 325w,
+/chunjun/static/9dc3b920e25125625c2c17ac91769f5a/e66bf/LogMiner20.png 445w"
+        sizes="(max-width: 445px) 100vw, 445px"
+        style="width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;"
+        loading="lazy"
+        decoding="async"
+      />
+  </a>
+    </span></p>
+<p>至此，Oracle 12c数据库LogMiner实时采集配置完毕。</p></div><aside class="text-sm list-none relative"><div class="sticky top-0 right-0"><ul>
+<li>
+<p><a href="#oracle%E9%85%8D%E7%BD%AElogminer">Oracle配置LogMiner</a></p>
+<ul>
+<li><a href="#%E4%B8%80oracle-10g%E5%8D%95%E6%9C%BA%E7%89%88">一、Oracle 10g(单机版)</a></li>
+<li><a href="#%E4%BA%8Coracle-11g%E5%8D%95%E6%9C%BA%E7%89%88">二、Oracle 11g(单机版)</a></li>
+<li><a href="#%E4%B8%89oracle-12c%E5%8D%95%E6%9C%BA%E7%89%88%E9%9D%9Ecbd">三、Oracle 12c(单机版非CBD)</a></li>
+</ul>
+</li>
+</ul></div></aside></div><div class="w-2/3 flex items-center justify-between"><button class="ring-1 ring-gray-50 shadow-md text-sm flex items-center rounded-sm text-gray-600 w-[200px] py-4"><span class="i-icon i-icon-left"><svg width="24" height="24" viewBox="0 0 48 48" fill="none"><path d="M31 36L19 24L31 12" stroke="#333" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="text-left px-[5px]"><div class="m-0 text-gray-600">上一篇:</div><div class="text-black">（无）</div></span></button><button class="ring-1 ring-gray-50 shadow-md text-sm flex items-center justify-end rounded-sm text-gray-600 w-[200px] py-4"><span class="text-right px-[5px]"><div class="m-0 text-gray-600">下一篇:</div><div class="text-black">（无）</div></span><span class="i-icon i-icon-right"><svg width="24" height="24" viewBox="0 0 48 48" fill="none"><path d="M19 12L31 24L19 36" stroke="#333" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button></div></section></div><div id="gatsby-announcer" style="position:absolute;top:0;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border:0" aria-live="assertive" aria-atomic="true"></div></div><script id="gatsby-script-loader">/*<![CDATA[*/window.pagePath="/documents/0909d995-b545-588b-af57-0aeef211775e/";window.___webpackCompilationHash="b0f178c76beab1453387";/*]]>*/</script><script id="gatsby-chunk-mapping">/*<![CDATA[*/window.___chunkMapping={"polyfill":["/polyfill-4718f0fec20e0d09d7f5.js"],"app":["/app-7b1375b591cf2af8dbf5.js"],"component---src-pages-documents-index-jsx":["/component---src-pages-documents-index-jsx-d689c90e2c443a89a027.js"],"component---src-pages-documents-markdown-remark-parent-file-id-jsx":["/component---src-pages-documents-markdown-remark-parent-file-id-jsx-5d4b0b839b81d7ef58eb.js"],"component---src-pages-examples-json-index-jsx":["/component---src-pages-examples-json-index-jsx-45668731583a361197aa.js"],"component---src-pages-examples-json-json-content-parent-file-id-jsx":["/component---src-pages-examples-json-json-content-parent-file-id-jsx-78e7f8a56ee596a36f3c.js"],"component---src-pages-examples-sql-index-jsx":["/component---src-pages-examples-sql-index-jsx-f9972033d14d0b334aac.js"],"component---src-pages-examples-sql-json-content-parent-file-id-jsx":["/component---src-pages-examples-sql-json-content-parent-file-id-jsx-7a5a7843b48be8381e40.js"],"component---src-pages-index-js":["/component---src-pages-index-js-17462e309ecdecaddefe.js"],"component---src-pages-roadmap-js":["/component---src-pages-roadmap-js-cd526004e644149ce733.js"],"component---src-templates-using-dsg-js":["/component---src-templates-using-dsg-js-0d48e8ba1cf0e08d99a4.js"]};/*]]>*/</script><script src="/chunjun/polyfill-4718f0fec20e0d09d7f5.js" nomodule=""></script><script src="/chunjun/app-7b1375b591cf2af8dbf5.js" async=""></script><script src="/chunjun/framework-a4e155cd0476dc1ca208.js" async=""></script><script src="/chunjun/webpack-runtime-5c85b7875e2cfdd71d6f.js" async=""></script></body></html>

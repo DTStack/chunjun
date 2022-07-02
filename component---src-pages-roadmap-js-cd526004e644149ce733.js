@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkgatsby_starter_default=self.webpackChunkgatsby_starter_default||[]).push([[917],{7902:function(e,t,a){a.r(t);var l=a(7294),n=a(1115);t.default=function(){return l.createElement("div",null,l.createElement("div",{className:"blog-container text-2xl text-center p-10"},"开发中"),l.createElement(n.Z,null))}}}]);
+//# sourceMappingURL=component---src-pages-roadmap-js-cd526004e644149ce733.js.map

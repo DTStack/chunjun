@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkgatsby_starter_default=self.webpackChunkgatsby_starter_default||[]).push([[69],{5295:function(t,e,a){a.r(e);var s=a(7294);e.default=function(t){try{JSON.parse(t.data.jsonContent.content)}catch(e){}return s.createElement("section",{className:"w-full 2xl:flex 2xl:justify-center 2xl:items-center 2xl:text-2xl text-base"})}}}]);
+//# sourceMappingURL=component---src-pages-examples-json-json-content-parent-file-id-jsx-a2c34340ff147e0946e8.js.map
