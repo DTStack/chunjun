@@ -59,12 +59,19 @@ const AppContainer = ({ children, data, category }) => {
       if (c.type === "dir") {
         return (
           <Accordion key={c.name} iconPosition="right">
-            <Accordion.Item label={c.name}>{buildChildren(c.children)}</Accordion.Item>
+            <Accordion.Item label={c.name}>
+              {buildChildren(c.children)}
+            </Accordion.Item>
           </Accordion>
         )
       } else {
         return (
-          <Link activeClassName="active" key={c.data.id} to={`${category}/${c.data.id}`} className={`w-full pl-[20px] text-sm rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center`}>
+          <Link
+            activeClassName="active"
+            key={c.data.id}
+            to={`${category}/${c.data.id}`}
+            className={`w-full pl-[20px] text-sm rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center`}
+          >
             {c.name}
           </Link>
         )
@@ -75,10 +82,21 @@ const AppContainer = ({ children, data, category }) => {
   const asideMenu = menu => {
     const { children } = menu
     return (
-      <Navbar className="hidden md:inline-block px-0 no-scrollbar" hiddenBreakpoint="sm" width={{ sm: 200, lg: 256 }} p="xs" style={{ zIndex: "1", height: "calc(100vh - 90px)", overflowY: "auto" }}>
+      <Navbar
+        className="md:inline-block sticky top-[90px]    hidden  px-0 no-scrollbar"
+        hiddenBreakpoint="sm"
+        width={{ sm: 200, lg: 256 }}
+        p="xs"
+        style={{ zIndex: "1", overflowY: "auto", height: "calc(100vh - 90px)" }}
+      >
         {children.map(item => {
           return item.type === "file" ? (
-            <Link activeClassName="active" to={`${category}/${item.data.id}`} key={item.data.id} className={`w-full text-base pl-[20px] rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center`}>
+            <Link
+              activeClassName="active"
+              to={`${category}/${item.data.id}`}
+              key={item.data.id}
+              className={`w-full text-base pl-[20px] rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center`}
+            >
               {item.name}
             </Link>
           ) : (
@@ -96,27 +114,14 @@ const AppContainer = ({ children, data, category }) => {
   return (
     <>
       <Seo title="纯钧" />
-      <AppShell
-        styles={{
-          main: {
-            height: "calc(100vh - 90px)",
-            overflowY: "auto",
-            overflowX: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          },
-        }}
-        classNames={{
-          main: "no-scrollbar main",
-        }}
-        footer={<AppFooter />}
-        header={<AppHeader />}
-        padding={"sm"}
-        navbar={menuData.children.length > 0 && asideMenu(menuData)}
-      >
+
+      <AppHeader />
+      <div className="container-content relative border justify-between bg-white flex z-20 shadow-lg">
+        {menuData.children.length > 0 && asideMenu(menuData)}
         {children}
-      </AppShell>
+      </div>
+
+      <AppFooter />
     </>
   )
 }

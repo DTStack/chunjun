@@ -11,7 +11,7 @@ const AppHeader = () => {
   const links = headerList
 
   return (
-    <header className={`w-full h-[90px] bg-white sticky top-0 z-20 flex px-4 justify-between shadow-md items-center}`}>
+    <header className={`w-full h-[90px] bg-white sticky top-0 z-50 flex px-4 justify-between shadow-md items-center}`}>
       <Link to="/" className="h-full hover:text-indigo-600 font-bold flex-1 md:grow-0 md:mr-[80px] mr-0 m-0 flex items-center text-xl leading-7 capitalize">
         <img src={require("../../assets/img/logo-light.svg").default} alt="" className="m-0 h-[60px]" />
         ChunJun
