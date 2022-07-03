@@ -43,8 +43,6 @@ public class HdfsConf extends BaseFileConf {
     private int[] fullColumnIndexes;
 
     /** hive3 事务表 */
-    private boolean hiveTransactionTable = false;
-
     private boolean isTransaction = false;
 
     private String partitionName;
@@ -131,14 +129,6 @@ public class HdfsConf extends BaseFileConf {
         this.fullColumnIndexes = fullColumnIndexes;
     }
 
-    public boolean isHiveTransactionTable() {
-        return hiveTransactionTable;
-    }
-
-    public void setHiveTransactionTable(boolean hiveTransactionTable) {
-        this.hiveTransactionTable = hiveTransactionTable;
-    }
-
     public String getPartitionName() {
         return partitionName;
     }
@@ -198,8 +188,6 @@ public class HdfsConf extends BaseFileConf {
                 + fullColumnType
                 + ", fullColumnIndexes="
                 + Arrays.toString(fullColumnIndexes)
-                + ", hiveTransactionTable="
-                + hiveTransactionTable
                 + ", isTransaction="
                 + isTransaction
                 + ", partitionName='"
@@ -211,7 +199,6 @@ public class HdfsConf extends BaseFileConf {
                 + ", table='"
                 + table
                 + '\''
-                + '}'
-                + super.toString();
+                + '}';
     }
 }

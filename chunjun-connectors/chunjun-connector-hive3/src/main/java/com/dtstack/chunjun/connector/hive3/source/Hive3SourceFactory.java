@@ -52,8 +52,7 @@ public class Hive3SourceFactory extends SourceFactory {
     @Override
     public DataStream<RowData> createSource() {
         Hive3InputFormatBuilder builder =
-                new Hive3InputFormatBuilder(
-                        hdfsConf.getFileType(), hdfsConf.isHiveTransactionTable());
+                new Hive3InputFormatBuilder(hdfsConf.getFileType(), hdfsConf.isTransaction());
         builder.setHdfsConf(hdfsConf);
         AbstractRowConverter rowConverter =
                 Hive3Util.createRowConverter(

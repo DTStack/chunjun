@@ -72,7 +72,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
     // kerberos 认证
     protected transient UserGroupInformation ugi;
     protected boolean openKerberos;
-    public static final String HADOOP_USER_NAME = "HADOOP_USER_NAME";
+    public static final String HADOOP_USER_NAME = "hadoop.user.name";
     public static final String KEY_PRINCIPAL = "principal";
 
     protected final Logger LOG = LoggerFactory.getLogger(HdfsOrcOutputFormat.class);
