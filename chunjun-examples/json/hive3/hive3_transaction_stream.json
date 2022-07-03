@@ -1,0 +1,58 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "path": "hdfs://ns/user/hive/warehouse/dtstack",
+            "hadoopConfig": {
+              "dfs.nameservices": "ns",
+              "fs.defaultFS": "hdfs://ns",
+              "dfs.ha.namenodes.ns": "nn1,nn2",
+              "dfs.namenode.rpc-address.ns.nn1": "hadoop3x1:9000",
+              "dfs.namenode.rpc-address.ns.nn2": "hadoop3x2:9000",
+              "dfs.client.failover.proxy.provider.ns": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+              "fs.hdfs.impl.disable.cache": "true",
+              "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem"
+            },
+            "column": [
+              {
+                "index": 0,
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "index": 1,
+                "name": "name",
+                "type": "String"
+              },
+              {
+                "index": 2,
+                "name": "age",
+                "type": "int"
+              }
+            ],
+            "defaultFS": "hdfs://ns",
+            "fieldDelimiter": ",",
+            "encoding": "utf-8",
+            "fileType": "orc",
+            "isTransaction": true
+          },
+          "name": "hive3reader"
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": true
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}
