@@ -19,7 +19,7 @@ Kudu 1.14.0
 ### 4.1、Sync
 
 - **masters**
-    - 描述：kudu的IP地址和端口
+    - 描述：kudu的IP地址和端口, 必须不为 null。
     - 必选：是
     - 参数类型：string
     - 默认值：无
@@ -44,6 +44,8 @@ Kudu 1.14.0
 - **flushMode**
     - 描述：写入 kudu 时，Kudu session的 flushMode
     - 必选：否
+    - 字段类型：string
+    - 可选的值：auto_flush_background, manual_flush
     - 默认值：AUTO_FLUSH_SYNC
   
 
