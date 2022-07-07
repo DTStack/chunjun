@@ -22,14 +22,13 @@ import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.util.PropertiesUtil;
 
-import org.apache.commons.lang.StringUtils;
-
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
