@@ -118,10 +118,12 @@ public class RedisRowConverter
                     typeIndexList.stream()
                             .filter(x -> x.first.equals(key))
                             .collect(Collectors.toList());
-            Triplet<String, Integer, LogicalType> typeTriplet = collect.get(0);
-            genericRowData.setField(
-                    typeTriplet.second,
-                    toInternalConverters.get(typeTriplet.second).deserialize(input.get(key)));
+            if (!collect.isEmpty()) {
+                Triplet<String, Integer, LogicalType> typeTriplet = collect.get(0);
+                genericRowData.setField(
+                        typeTriplet.second,
+                        toInternalConverters.get(typeTriplet.second).deserialize(input.get(key)));
+            }
         }
 
         return genericRowData;
