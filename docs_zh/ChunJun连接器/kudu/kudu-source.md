@@ -87,7 +87,7 @@ Kudu 1.14.0
 
 
 - **batchSizeBytes**
-    - 描述：scanner在每批中返回的最大字节数。
+    - 描述：scanner在每批中返回的最大字节数。最大不能超过 1G。
     - 必选：否
     - 字段类型：int
     - 默认值：0
@@ -102,7 +102,7 @@ Kudu 1.14.0
 ### 2、SQL
 
 - **masters**
-    - 描述：kudu的IP地址和端口
+    - 描述：kudu的IP地址和端口, 必须不为 null。
     - 必选：是
     - 参数类型：string
     - 默认值：无
