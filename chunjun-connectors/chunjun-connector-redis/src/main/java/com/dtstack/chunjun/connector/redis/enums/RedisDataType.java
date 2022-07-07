@@ -36,7 +36,7 @@ public enum RedisDataType {
 
     HASH("hash");
 
-    public String type;
+    public final String type;
 
     RedisDataType(String type) {
         this.type = type;

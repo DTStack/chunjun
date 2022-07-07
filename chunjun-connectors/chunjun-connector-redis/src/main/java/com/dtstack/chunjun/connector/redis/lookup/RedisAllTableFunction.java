@@ -53,8 +53,8 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(RedisAllTableFunction.class);
+    private final RedisConf redisConf;
     private transient RedisSyncClient redisSyncClient;
-    private RedisConf redisConf;
 
     public RedisAllTableFunction(
             RedisConf redisConf,
@@ -68,13 +68,12 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
 
     @Override
     public void eval(Object... keys) {
-        StringBuilder keyPattern = new StringBuilder(redisConf.getTableName());
-        keyPattern
-                .append("_")
-                .append(Arrays.stream(keys).map(String::valueOf).collect(Collectors.joining("_")));
+        String keyPattern =
+                redisConf.getTableName()
+                        + "_"
+                        + Arrays.stream(keys).map(String::valueOf).collect(Collectors.joining("_"));
         List<Map<String, Object>> cacheList =
-                ((Map<String, List<Map<String, Object>>>) cacheRef.get())
-                        .get(keyPattern.toString());
+                ((Map<String, List<Map<String, Object>>>) cacheRef.get()).get(keyPattern);
 
         // 有数据才往下发，(左/内)连接flink会做相应的处理
         if (!CollectionUtils.isEmpty(cacheList)) {
