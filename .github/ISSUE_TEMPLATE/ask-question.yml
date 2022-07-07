@@ -1,0 +1,59 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Ask Question
+description: Ask question and need help.
+title: "[Question][Module Name] Ask for question"
+labels: [ "question", "Waiting for reply" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For better global communication, Please write in English.
+
+        If you feel the description in English is not clear, then you can append description in Chinese, thanks!
+
+  - type: checkboxes
+    attributes:
+      label: Search before asking
+      description: >
+        Please make sure to search in the [issues](https://github.com/DTStack/chunjun/issues) first to see whether the same feature was requested already.
+      options:
+        - label: >
+            I had searched in the [issues](https://github.com/DTStack/chunjun/issues) and found no similar question.
+        - label: >
+            I had googled my question but i didn't get any help.
+        - label: >
+            I had read the documentation: [ChunJun doc](https://dtstack.github.io/chunjun) but it didn't help me.
+
+  - type: textarea
+    attributes:
+      label: Description
+      description: A description what you want to know, or what kind of help do you want from us.
+
+  - type: checkboxes
+    attributes:
+      label: Code of Conduct
+      description: |
+        The Code of Conduct helps create a safe space for everyone. We require that everyone agrees to it.
+      options:
+        - label: |
+            I agree to follow this project's [Code of Conduct](https://www.apache.org/foundation/policies/conduct)
+          required: true
+
+  - type: markdown
+    attributes:
+      value: "Thanks for completing our form!"
