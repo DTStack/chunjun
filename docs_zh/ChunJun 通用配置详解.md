@@ -6,20 +6,22 @@
 
 ```JSON
 {
-	"job" : {
-		"content" :[{
-    	"reader" : {},
-    	"writer" : {}
-    }],
-   "setting" : {
-      "speed" : {},
-      "errorLimit" : {},
-      "metricPluginConf" : {},
-      "restore" : {},
-      "log" : {},
-      "dirty":{}
+  "job": {
+    "content": [
+      {
+        "reader": {},
+        "writer": {}
+      }
+    ],
+    "setting": {
+      "speed": {},
+      "errorLimit": {},
+      "metricPluginConf": {},
+      "restore": {},
+      "log": {},
+      "dirty": {}
     }
-	}
+  }
 }
 ```
 
