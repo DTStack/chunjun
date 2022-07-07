@@ -19,20 +19,29 @@ Hadoop 2.x、Hadoop 3.x
 ## 四、参数说明
 ### 1、Sync
 - **path**
-  - 描述：读取的数据文件路径
+  - 描述：读取的数据文件路径 path+filename
   - 必选：是
   - 参数类型：string
   - 默认值：无
 <br />
+
+- **fileName**
+    - 描述：数据文件目录名称
+    - 必选：否
+    - 参数类型：string
+    - 默认值：无
+    - 注意：不为空，则hdfs读取的路径为 path+filename
+      <br />
+
 
 - **fileType**
   - 描述：文件的类型，目前只支持用户配置为`text`、`orc`、`parquet`
     - text：textfile文件格式
     - orc：orcfile文件格式
     - parquet：parquet文件格式
-  - 必选：否
+  - 必选：是
   - 参数类型：string
-  - 默认值：无
+  - 默认值：text
 <br />
 
 - **defaultFS**

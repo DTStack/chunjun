@@ -28,7 +28,7 @@ Hadoop 2.x、Hadoop 3.x
   <br />
 
 - **fileName**
-  - 描述：数据文件目录名称
+  - 描述：数据文件目录名称,可以传递分区(eg: pt=2022)
   - 注意：真正写入的文件路径是 path/fileName
   - 必选：否
   - 参数类型：string
@@ -66,16 +66,16 @@ Hadoop 2.x、Hadoop 3.x
   - 描述：需要读取的字段
   - 注意：不支持*格式
   - 格式：
-```text
-"column": [{
-    "name": "col",
-    "type": "string",
-    "index":1,
-    "isPart":false,
-    "format": "yyyy-MM-dd hh:mm:ss",
-    "value": "value"
-}]
-```
+    ```text
+    "column": [{
+        "name": "col",
+        "type": "string",
+        "index":1,
+        "isPart":false,
+        "format": "yyyy-MM-dd hh:mm:ss",
+        "value": "value"
+    }]
+    ```
 
 - 属性说明:
   - name：必选，字段名称
