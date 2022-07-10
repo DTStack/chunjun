@@ -16,7 +16,13 @@ export const query = graphql`
       id
       content
     }
-    allFile(filter: { sourceInstanceName: { eq: "examples" }, extension: { eq: "sql" }, ctime: {} }) {
+    allFile(
+      filter: {
+        sourceInstanceName: { eq: "examples" }
+        extension: { eq: "sql" }
+        ctime: {}
+      }
+    ) {
       edges {
         node {
           id

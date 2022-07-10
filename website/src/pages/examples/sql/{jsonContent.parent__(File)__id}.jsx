@@ -14,8 +14,8 @@ const BlogPost = props => {
   })
   return (
     <animated.section
-      style={aprops}
-      className="w-full 2xl:flex 2xl:justify-center 2xl:items-center 2xl:text-2xl text-base"
+      style={{ ...aprops }}
+      className="w-full relative 2xl:flex 2xl:justify-center 2xl:items-center   overflow-x-auto justify-center 2xl:text-2xl text-base"
     >
       <Highlight className="sql w-full overflow-x-hidden" language="sql">
         {sql}

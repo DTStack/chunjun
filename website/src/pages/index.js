@@ -10,11 +10,13 @@ import "aos/dist/aos.css"
 const IndexPage = () => (
   <>
     <Seo title="纯钧" />
-    <AppHeader />
-    <AppBanner />
-    <AppCards />
-    <AppMedium />
-    <AppFooter />
+    <section className="dark:bg-[#1a1b1e]">
+      <AppHeader />
+      <AppBanner />
+      <AppCards />
+      <AppMedium />
+      <AppFooter />
+    </section>
   </>
 )
 

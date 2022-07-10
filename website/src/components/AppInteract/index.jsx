@@ -3,7 +3,6 @@ import { useCallback, useEffect, useLayoutEffect, useState } from "react"
 import "./index.css"
 import { getData } from "./data"
 import { Popover } from "antd"
-import "antd/dist/antd.css"
 
 function getPath({ head, tail }) {
   let startNode = JSON.parse(JSON.stringify(head))
