@@ -2,6 +2,8 @@ import React from "react"
 import { graphql } from "gatsby"
 import { JSONTree } from "react-json-tree"
 import { useSpring, animated } from "react-spring"
+import { useContext } from "react"
+import { ModeContext } from "../../../components/Context"
 const BlogPost = props => {
   let json = {}
   try {
@@ -31,10 +33,11 @@ const BlogPost = props => {
     to: { opacity: 1, left: 0 },
     from: { opacity: 0, left: 100 },
   })
+  const { mode } = useContext(ModeContext)
   return (
     <animated.section
       style={aprops}
-      className="w-full 2xl:flex relative 2xl:justify-center 2xl:items-center 2xl:text-2xl text-base"
+      className="w-full relative  2xl:flex  2xl:justify-center 2xl:items-center 2xl:text-2xl text-base"
     >
       <JSONTree
         valueRenderer={raw => <em>{raw}</em>}
@@ -43,7 +46,7 @@ const BlogPost = props => {
         hideRoot={() => true}
         theme={theme}
         data={json}
-        invertTheme={true}
+        invertTheme={mode !== "dark"}
       />
     </animated.section>
   )

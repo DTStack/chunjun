@@ -4,6 +4,7 @@
  * See: https://www.gatsbyjs.com/docs/browser-apis/
  */
 require("./src/styles/global.css")
+require('antd/dist/antd.css')
 const React = require("react")
 // const { default: AppHeader } = require("./src/components/AppHeader")
 
@@ -11,6 +12,7 @@ const Layout = require("./src/components/documentsMenu/menu").default
 const JsonLayout = require("./src/components/jsonMenu/menu").default
 const SqlLayout = require("./src/components/sqlMenu/menu").default
 const SpaceLayout = require("./src/components/space/spaceLayout").default
+const Context = require("./src/components/Context/index").default
 // const AppFooter = require("./src/components/AppFooter").default
 
 // You can delete this file if you're not using it
@@ -22,17 +24,20 @@ exports.wrapPageElement = ({ element, props }) => {
   const flag = element.key.includes("documents") || element.key.includes("examples") || element.key.includes("download")
   console.log(element.key)
   return (
-    <div>
-      {flag ? (
-        <>
-          {element.key.includes("documents") && <Layout {...props}>{element}</Layout>}
-          {element.key.includes("examples/json") && <JsonLayout {...props}>{element}</JsonLayout>}
-          {element.key.includes("examples/sql") && <SqlLayout {...props}>{element}</SqlLayout>}
-        </>
-      ) : (
-        <SpaceLayout {...props}>{element}</SpaceLayout>
-      )}
-    </div>
+    <Context>
+      <>
+        {flag ? (
+          <>
+            {element.key.includes("documents") && <Layout {...props}>{element}</Layout>}
+            {element.key.includes("examples/json") && <JsonLayout {...props}>{element}</JsonLayout>}
+            {element.key.includes("examples/sql") && <SqlLayout {...props}>{element}</SqlLayout>}
+          </>
+        ) : (
+          <SpaceLayout {...props}>{element}</SpaceLayout>
+        )}
+      </>
+    </Context>
+
   )
 }
 

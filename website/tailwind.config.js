@@ -1,5 +1,6 @@
 module.exports = {
   content: ["./src/**/*.{jsx,ts,tsx}"],
+  darkMode: 'class',
   theme: {
     extend: {
       backgroundImage: {
