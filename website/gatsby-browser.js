@@ -4,7 +4,6 @@
  * See: https://www.gatsbyjs.com/docs/browser-apis/
  */
 require("./src/styles/global.css")
-require('antd/dist/antd.css')
 const React = require("react")
 // const { default: AppHeader } = require("./src/components/AppHeader")
 
@@ -37,7 +36,6 @@ exports.wrapPageElement = ({ element, props }) => {
         )}
       </>
     </Context>
-
   )
 }
 
