@@ -24,6 +24,7 @@
 		<!--MQ-->
 		<module>chunjun-connector-kafka</module>
 		<module>chunjun-connector-emqx</module>
+		<module>chunjun-connector-rocketmq</module>
 
 		<!--RDB-->
 		<module>chunjun-connector-jdbc-base</module>
