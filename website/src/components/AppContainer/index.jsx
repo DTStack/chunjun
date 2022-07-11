@@ -1,17 +1,12 @@
 import AppHeader from "../AppHeader"
 import AppFooter from "../AppFooter"
-import { AppShell, Accordion, Navbar } from "@mantine/core"
+import { Accordion } from "@mantine/core"
 import { Link, navigate } from "gatsby"
 import React from "react"
 import Seo from "../seo"
 import "./darkMenu.scss"
 import { Menu } from "antd"
 import { ModeContext } from "../Context/index"
-import {
-  AppstoreOutlined,
-  MailOutlined,
-  SettingOutlined,
-} from "@ant-design/icons"
 import { useContext } from "react"
 
 const AppContainer = ({ children, data, category }) => {
@@ -67,7 +62,6 @@ const AppContainer = ({ children, data, category }) => {
         linkToRoot(structrue, node)
       }
     }
-    console.log(root, "sql")
     return deep ? root.children[0] : root
   }
 
@@ -80,19 +74,12 @@ const AppContainer = ({ children, data, category }) => {
       if (c.type === "dir") {
         return (
           <Accordion key={c.name} iconPosition="right">
-            <Accordion.Item label={c.name}>
-              {buildChildren(c.children)}
-            </Accordion.Item>
+            <Accordion.Item label={c.name}>{buildChildren(c.children)}</Accordion.Item>
           </Accordion>
         )
       } else {
         return (
-          <Link
-            activeClassName="active"
-            key={c.data.id}
-            to={`${category}/${c.data.id}`}
-            className={` `}
-          >
+          <Link activeClassName="active" key={c.data.id} to={`${category}/${c.data.id}`} className={` `}>
             {c.name}
           </Link>
         )
@@ -104,7 +91,6 @@ const AppContainer = ({ children, data, category }) => {
     const [key, setKey] = React.useState([])
     const [submenu, setsubmenu] = React.useState([])
     function click(ob) {
-      console.log(ob)
       if (ob.key && navigate) {
         navigate(`${category}/${ob.key}`)
         setKey([ob.key])
@@ -137,16 +123,13 @@ const AppContainer = ({ children, data, category }) => {
       </div>
     )
   }
-  console.log(menuData, "sss")
   return (
     <>
       <Seo title="纯钧" />
 
       <AppHeader />
       <div className=" dark:bg-[#1a1b1e] dark:text-gray-300   relative border dark:border-black justify-between bg-white text-[ #ccc] flex z-20 shadow-lg">
-        {menuData.children &&
-          menuData.children.length > 0 &&
-          AsideMenu(menuData)}
+        {menuData.children && menuData.children.length > 0 && AsideMenu(menuData)}
         {children}
       </div>
 

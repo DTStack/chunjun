@@ -1,11 +1,9 @@
 import React from "react"
 import { graphql, navigate } from "gatsby"
 import { buildMenu, getFileArr } from "../../util"
-import { Left, Right } from "@icon-park/react"
 import "./index.scss"
 import "./hljs.scss"
 import { useLocation } from "@reach/router"
-import AppFooter from "../../components/AppFooter"
 import { useSpring, animated } from "react-spring"
 import { MenuUnfoldOutlined } from "@ant-design/icons"
 import { BsArrowLeft, BsArrowRight } from "react-icons/bs"
@@ -14,10 +12,7 @@ const BlogPost = props => {
   const menuData = buildMenu(props.data.allFile.edges.map(item => item.node))
   const fileList = getFileArr(menuData.children)
   const html = props.data.markdownRemark.html
-  const tableOfContents = props.data.markdownRemark.tableOfContents.replace(
-    new RegExp("<a", "g"),
-    "<a permalink"
-  )
+  const tableOfContents = props.data.markdownRemark.tableOfContents.replace(new RegExp("<a", "g"), "<a permalink")
   console.log(tableOfContents)
   const location = useLocation().pathname.split("/").pop()
   const fileIndex = fileList.map(item => item.data.id).indexOf(location)
@@ -66,30 +61,18 @@ const BlogPost = props => {
 
   return (
     <>
-      <animated.div
-        style={{ "max-width": "800px", ...aprops }}
-        className="relative  md:w-[calc(100%-600px)] px-4 pb-3 w-full"
-      >
-        <div
-          className="w-full pt-4 container-content"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
+      <animated.div style={{ "max-width": "800px", ...aprops }} className="relative  md:w-[calc(100%-600px)] px-4 pb-3 w-full">
+        <div className="w-full pt-4 container-content" dangerouslySetInnerHTML={{ __html: html }} />
 
         <div className="w-full flex-wrap flex items-cen ter justify-between">
-          <button
-            className="ring-1 ring-gray-50  hover:bg-[#f8f9fa]  dark:ring-gray-600  w-full md:w-[45%] mb-1    hover:shadow-none hover:border border dark:hover:bg-black  shadow-sm text-sm flex items-center dark:border-[#1a1b1e]  rounded-sm text-gray-600 justify-between    py-4 px-8"
-            onClick={goPre}
-          >
+          <button className="ring-1 ring-gray-50  hover:bg-[#f8f9fa]  dark:ring-gray-600  w-full md:w-[45%] mb-1    hover:shadow-none hover:border border dark:hover:bg-black  shadow-sm text-sm flex items-center dark:border-[#1a1b1e]  rounded-sm text-gray-600 justify-between    py-4 px-8" onClick={goPre}>
             <BsArrowLeft theme="outline" size="24" fill="#333" />
             <span className="text-right px-[5px]">
               <div className=" text-[20px] mb-3 text-gray-600">上一篇</div>
               <div className="text-[#acb2b7]">{preName}</div>
             </span>
           </button>
-          <button
-            className="ring-1 ring-gray-50  hover:bg-[#f8f9fa]  dark:ring-gray-600  w-full md:w-[45%] mb-1    hover:shadow-none hover:border border dark:hover:bg-black  shadow-sm text-sm flex items-center dark:border-[#1a1b1e]  rounded-sm text-gray-600 justify-between    py-4 px-8"
-            onClick={goNext}
-          >
+          <button className="ring-1 ring-gray-50  hover:bg-[#f8f9fa]  dark:ring-gray-600  w-full md:w-[45%] mb-1    hover:shadow-none hover:border border dark:hover:bg-black  shadow-sm text-sm flex items-center dark:border-[#1a1b1e]  rounded-sm text-gray-600 justify-between    py-4 px-8" onClick={goNext}>
             <span className="text-right px-[5px]">
               <div className=" text-[20px] mb-3 text-gray-600">下一篇</div>
               <div className="text-[#acb2b7]">{nextName}</div>
@@ -99,17 +82,11 @@ const BlogPost = props => {
         </div>
       </animated.div>
 
-      <aside
-        style={{ height: "calc(100vh - 90px)" }}
-        className="hidden md:inline-block  w-[300px]  flex-shrink-0 text-sm sticky top-[90px] bottom-[-200px] list-none"
-      >
+      <aside style={{ height: "calc(100vh - 90px)" }} className="hidden md:inline-block  w-[300px]  flex-shrink-0 text-sm sticky top-[90px] bottom-[-200px] list-none">
         <div className="flex items-center text-base">
           <MenuUnfoldOutlined /> <span className="mx-3">目录</span>
         </div>
-        <div
-          className=" right-0  container-content container-content-toc"
-          dangerouslySetInnerHTML={{ __html: tableOfContents }}
-        />
+        <div className=" right-0  container-content container-content-toc" dangerouslySetInnerHTML={{ __html: tableOfContents }} />
       </aside>
     </>
   )
@@ -130,13 +107,7 @@ export const query = graphql`
         }
       }
     }
-    allFile(
-      filter: {
-        sourceInstanceName: { eq: "docs" }
-        extension: { eq: "md" }
-        ctime: {}
-      }
-    ) {
+    allFile(filter: { sourceInstanceName: { eq: "docs" }, extension: { eq: "md" }, ctime: {} }) {
       edges {
         node {
           id
