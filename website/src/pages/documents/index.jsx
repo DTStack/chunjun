@@ -1,6 +1,8 @@
 import React from "react"
 import { graphql, navigate } from "gatsby"
 import { Skeleton } from "@mantine/core"
+import "antd/dist/antd.css"
+
 
 import { buildMenu, getFileArr } from "../../util"
 

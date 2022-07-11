@@ -1,8 +1,8 @@
-import * as React from "react"
-import { Link } from "gatsby"
+import * as React from 'react'
+import { Link } from 'gatsby'
 
-import Layout from "../components/layout"
-import Seo from "../components/seo"
+import Layout from '../components/layout'
+import Seo from '../components/seo'
 
 const UsingDSG = () => (
   <Layout>
@@ -12,7 +12,7 @@ const UsingDSG = () => (
     </h1>
     <p>This page is not created until requested by a user.</p>
     <p>
-      To learn more, head over to our{" "}
+      To learn more, head over to our{' '}
       <a href="https://www.gatsbyjs.com/docs/reference/rendering-options/deferred-static-generation/">
         documentation about Deferred Static Generation
       </a>

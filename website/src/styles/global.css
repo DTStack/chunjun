@@ -42,7 +42,7 @@
     outline: none;
     position: relative;
     padding: 12px 45px;
-    border-radius: 100px;
+    border-radius: 10px;
     text-transform: capitalize;
     border: 0;
     cursor: pointer;
@@ -56,7 +56,7 @@
     content: "";
     position: absolute;
     z-index: -1;
-    border-radius: 100px;
+    border-radius: 10px;
     width: 100%;
     height: 100%;
     left: 0;
@@ -138,7 +138,7 @@
   .flex-padding {
     @apply lg:px-[180px] md:px-[60px] px-[20px];
   }
- 
+
   .footer-link {
     @apply text-gray-500 inline-block text-base hover:text-indigo-600 dark:text-[#797a7d];
   }
@@ -147,7 +147,7 @@
   }
 
   .card {
-    @apply lg:w-1/3 md:w-1/2 w-4/5;
+    @apply lg:w-1/5 md:w-1/4 w-2/5;
   }
 
   .card-text {
