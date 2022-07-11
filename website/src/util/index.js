@@ -1,46 +1,26 @@
-import { Tooltip } from "@mantine/core"
-import { FaBookOpen, FaDownload } from "react-icons/fa"
-import { FcHome } from "react-icons/fc"
-import { BiCodeBlock } from "react-icons/bi"
-import React from "react"
 export const headerList = [
   {
-    name: "首页",
-    path: "/",
-    icon: (
-      <Tooltip className="flex items-center" position="bottom" label="首页">
-        <FcHome className="text-xl"></FcHome>
-      </Tooltip>
-    ),
+    name: '首页',
+    path: '/'
   },
   {
-    name: "文档",
-    path: "/documents",
-    key: "documents",
-    icon: (
-      <Tooltip className="flex items-center" position="bottom" label="文档">
-        <FaBookOpen className="text-xl" />
-      </Tooltip>
-    ),
+    name: '文档',
+    path: '/documents',
+    key: 'documents'
   },
   {
-    name: "案例",
+    name: '案例',
     path: [
       {
-        name: "sql",
-        link: "/examples/sql",
+        name: 'sql',
+        link: '/examples/sql'
       },
       {
-        name: "json",
-        link: "/examples/json",
-      },
+        name: 'json',
+        link: '/examples/json'
+      }
     ],
-    key: "examples",
-    icon: (
-      <Tooltip className="flex items-center" position="bottom" label="案例">
-        <BiCodeBlock className="text-xl" />
-      </Tooltip>
-    ),
+    key: 'examples'
   },
   // {
   //   name: "博客",
@@ -48,16 +28,11 @@ export const headerList = [
   //   key: "blogs",
   // },
   {
-    name: "下载",
+    name: '下载',
     path: null,
-    url: "https://github.com/DTStack/chunjun/releases",
-    key: "download",
-    icon: (
-      <Tooltip className="flex items-center" position="bottom" label="下载">
-        <FaDownload className="text-xl" />
-      </Tooltip>
-    ),
-  },
+    url: 'https://github.com/DTStack/chunjun/releases',
+    key: 'download'
+  }
   // {
   //   name: '主题',
   //   path: '//',
@@ -79,43 +54,43 @@ export const headerList = [
   // },
 ]
 
-export function buildMenu(nodes) {
+export function buildMenu (nodes) {
   let id = 1
   const root = { children: [] }
-  function linkToRoot(structrue, node) {
+  function linkToRoot (structrue, node) {
     let rootRef = root
 
     for (let i = 0; i < structrue.length - 1; i++) {
-      let dirname = structrue[i]
+      const dirname = structrue[i]
       let nextRef = rootRef.children.find(item => item.name === dirname)
       if (!nextRef) {
         nextRef = {
-          type: "dir",
+          type: 'dir',
           name: dirname,
           id: id++,
           children: [],
-          parent: rootRef,
+          parent: rootRef
         }
         rootRef.children.push(nextRef)
       }
       rootRef = nextRef
     }
     rootRef.children.push({
-      type: "file",
+      type: 'file',
       name: node.name,
       data: node,
-      parent: rootRef,
+      parent: rootRef
     })
   }
   for (let i = 0; i < nodes.length; i++) {
-    let node = nodes[i]
-    let structrue = node.relativePath.split("/")
+    const node = nodes[i]
+    const structrue = node.relativePath.split('/')
     if (structrue.length === 1) {
       root.children.push({
-        type: "file",
+        type: 'file',
         name: node.name,
         data: node,
-        parent: root,
+        parent: root
       })
     } else {
       linkToRoot(structrue, node)
@@ -125,12 +100,12 @@ export function buildMenu(nodes) {
   return root
 }
 
-export function getFileArr(list) {
+export function getFileArr (list) {
   const res = []
   travel(list)
-  function travel(list) {
+  function travel (list) {
     list.forEach(item => {
-      if (item.type === "file") {
+      if (item.type === 'file') {
         res.push(item)
       } else {
         travel(item.children || [])

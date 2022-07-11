@@ -3,17 +3,17 @@ import Link from "../Link"
 import { Burger, Popover, Text } from "@mantine/core"
 import AppDrawer from "../AppDrawer"
 import { headerList } from "../../util"
-import { useContext } from "react"
-import { ModeContext } from "../Context"
+// import { useContext } from "react"
+// import { ModeContext } from "../Context"
 const AppHeader = () => {
   const [opened, setOpened] = useState(false)
   const [visible, setVisible] = useState(false)
   const [show, setShow] = useState(false)
   const links = headerList
-  const { mode } = useContext(ModeContext)
+  // const { mode } = useContext(ModeContext)
   return (
-    <header className={`w-full dark:bg-[#1a1b1e] text-blue-400 h-[60px] border-bottom border-[#e9ecef]  bg-white sticky top-0 z-50 flex px-4 justify-between shadow-sm items-center}`}>
-      <Link to="/" className="h-full hover:text-blue-400 font-bold flex-1 md:grow-0 md:mr-[80px] mr-0 m-0 flex items-center text-xl leading-7 capitalize">
+    <header className={`w-full dark:bg-[#1a1b1e] h-[60px] border-bottom border-[#e9ecef]  bg-white sticky top-0 z-50 flex px-4 justify-between shadow-sm items-center}`}>
+      <Link to="/" className="h-full font-bold flex-1 md:grow-0 md:mr-[80px] mr-0 m-0 flex items-center text-xl leading-7 capitalize">
         <img src={require("../../assets/img/logo-light.svg").default} alt="" className="m-0 h-[60px]" />
         ChunJun
       </Link>
@@ -21,8 +21,8 @@ const AppHeader = () => {
         {links.map(l =>
           l.path ? (
             !Array.isArray(l.path) ? (
-              <Link to={l.path} clickfn={l.clickfn} key={l.name} className="header-link  text-blue-300 font-medium hover:text-blue-600 h-full flex items-center justify-center relative w-[60px]">
-                {l.renderIcon ? <l.renderIcon mode={mode}></l.renderIcon> : l.icon ? l.icon : l.name}
+              <Link to={l.path} clickfn={l.clickfn} key={l.name} className="header-link text-black font-medium hover:text-blue-600 h-full flex items-center justify-center relative w-[60px]">
+                {l.name}
               </Link>
             ) : (
               <Popover
@@ -31,8 +31,8 @@ const AppHeader = () => {
                 withArrow={false}
                 onClose={() => setVisible(false)}
                 target={
-                  <a onClick={() => setVisible(v => !v)} className=" text-blue-300 header-link font-medium hover:text-blue-600 h-full flex items-center cursor-pointer justify-center relative w-[60px]">
-                    {l.icon ? l.icon : l.name}
+                  <a onClick={() => setVisible(v => !v)} className=" text-black header-link font-medium hover:text-blue-600 h-full flex items-center cursor-pointer justify-center relative w-[60px]">
+                    {l.name}
                   </a>
                 }
                 width={88}
@@ -40,7 +40,7 @@ const AppHeader = () => {
               >
                 <div className="flex space-y-1 flex-col">
                   {l.path.map(i => (
-                    <Text size="md" key={i.name} className="text-left  uppercase font-normal font-mono hover:text-blue-600">
+                    <Text size="md" key={i.name} className="text-left font-bold uppercase font-mono hover:text-blue-600">
                       <Link to={i.link}>{i.name}</Link>
                     </Text>
                   ))}
@@ -48,8 +48,8 @@ const AppHeader = () => {
               </Popover>
             )
           ) : (
-            <a target="_blank" key={l.name} clickfn={l.clickfn} rel="noreferrer" className="  text-blue-300 header-link  font-medium hover:text-blue-600  h-full flex items-center justify-center relative w-[60px]" href={l.url}>
-              {l.icon ? l.icon : l.name}
+            <a target="_blank" key={l.name} clickfn={l.clickfn} rel="noreferrer" className="text-black header-link  font-medium hover:text-blue-600  h-full flex items-center justify-center relative w-[60px]" href={l.url}>
+              {l.name}
             </a>
           )
         )}

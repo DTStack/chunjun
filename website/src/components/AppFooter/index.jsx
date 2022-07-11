@@ -4,17 +4,12 @@ import Link from "../Link"
 
 const AppFooter = () => {
   return (
-    <footer className="dark:text-white  dark:bg-[#1a1b1e] text-center flex-padding">
+    <footer className="dark:text-white  dark:bg-[#1a1b1e] text-center">
       <div className="h-[558px] items-center flex flex-col md:flex-row justify-center">
         <div className="h-full w-full flex justify-center items-center bg-block dark:bg-none bg-contain bg-center bg-no-repeat">
           <Card component="a" className="left__cards--card bg-transparent">
             <Card.Section className="flex justify-center items-center">
-              <Image
-                src={require("../../assets/img/dt.jpg").default}
-                height={181}
-                width={177}
-                alt="No way!"
-              />
+              <Image src={require("../../assets/img/dt.jpg").default} height={181} width={177} alt="No way!" />
             </Card.Section>
 
             <Text weight={500} className="left__cards--title  dark:text-white ">
@@ -39,22 +34,13 @@ const AppFooter = () => {
             <div>
               <h3 className="mb-[20px] dark:text-white">社区</h3>
               <ul className="flex flex-col space-y-2">
-                <a
-                  className="footer-link"
-                  href="https://github.com/DTStack/chunjun/issues"
-                >
+                <a className="footer-link" href="https://github.com/DTStack/chunjun/issues">
                   Issue Tracker
                 </a>
-                <a
-                  className="footer-link"
-                  href="https://github.com/DTStack/chunjun/pulls"
-                >
+                <a className="footer-link" href="https://github.com/DTStack/chunjun/pulls">
                   Pull Requests
                 </a>
-                <a
-                  className="footer-link"
-                  href="https://github.com/DTStack/chunjun/discussions"
-                >
+                <a className="footer-link" href="https://github.com/DTStack/chunjun/discussions">
                   Discussions
                 </a>
               </ul>
@@ -65,10 +51,7 @@ const AppFooter = () => {
                 <Link className="footer-link" to="/">
                   博客
                 </Link>
-                <a
-                  className="footer-link"
-                  href="https://github.com/DTStack/chunjun"
-                >
+                <a className="footer-link" href="https://github.com/DTStack/chunjun">
                   Github
                 </a>
               </ul>
@@ -76,10 +59,7 @@ const AppFooter = () => {
           </div>
         </div>
       </div>
-      <div className="py-4 text-gray-600 text-base flex justify-center items-center">
-        Apache LICENSE 2.0 Licensed, Copyright 2018-2022 Chunjun All Rights
-        Reserved
-      </div>
+      <div className="py-4 text-gray-600 text-base flex justify-center items-center">Apache LICENSE 2.0 Licensed, Copyright 2018-2022 Chunjun All Rights Reserved</div>
     </footer>
   )
 }
