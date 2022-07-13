@@ -58,4 +58,19 @@ echo "FLINK_HOME is $FLINK_HOME"
 echo "HADOOP_HOME is $HADOOP_HOME"
 echo "ChunJun starting ..."
 
-$JAVA_RUN -cp $JAR_DIR $CLASS_NAME $ARGS -mode $MODE -jobType $JOBTYPE -chunjunDistDir $CHUNJUN_HOME -flinkConfDir $FLINK_HOME/conf -flinkLibDir $FLINK_HOME/lib -hadoopConfDir $HADOOP_HOME/etc/hadoop
+# basic parameters for all jobs
+PARAMS="$ARGS -mode $MODE -jobType $JOBTYPE -chunjunDistDir $CHUNJUN_HOME"
+
+# if FLINK_HOME is not set or not a directory, ignore flinkConfDir parameter
+if [ ! -z $FLINK_HOME ] && [ -d $FLINK_HOME ];then
+    PARAMS="$PARAMS -flinkConfDir $FLINK_HOME/conf -flinkLibDir $FLINK_HOME/lib"
+fi
+
+# if HADOOP_HOME is not set or not a directory, ignore hadoopConfDir parameter
+if [ ! -z $HADOOP_HOME ] && [ -d $HADOOP_HOME ];then
+    PARAMS="$PARAMS -hadoopConfDir $HADOOP_HOME/etc/hadoop"
+fi
+
+echo "start command: $JAVA_RUN -cp $JAR_DIR $CLASS_NAME $PARAMS"
+
+$JAVA_RUN -cp $JAR_DIR $CLASS_NAME $PARAMS
