@@ -280,6 +280,11 @@ public class Main {
         try {
             config = SyncConf.parseJob(job);
 
+            // 设置chunjun-dist的路径
+            if (StringUtils.isNotBlank(options.getChunjunDistDir())) {
+                config.setPluginRoot(options.getChunjunDistDir());
+            }
+
             Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
 
             String savePointPath =
