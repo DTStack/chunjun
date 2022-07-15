@@ -58,10 +58,6 @@ public class Options {
     @OptionRequired(description = "Flink configuration directory")
     private String flinkConfDir;
 
-    @Deprecated
-    @OptionRequired(description = "ChunJun dist dir")
-    private String flinkxDistDir;
-
     @OptionRequired(description = "ChunJun dist dir")
     private String chunjunDistDir;
 
@@ -79,10 +75,6 @@ public class Options {
 
     @OptionRequired(description = "plugin load mode, by classpath or shipfile")
     private String pluginLoadMode = "shipfile";
-
-    @Deprecated
-    @OptionRequired(description = "remote ChunJun dist dir")
-    private String remoteFlinkxDistDir;
 
     @OptionRequired(description = "remote ChunJun dist dir")
     private String remoteChunJunDistDir;
@@ -145,17 +137,7 @@ public class Options {
     }
 
     public String getChunjunDistDir() {
-        String flinkxDistDir = this.flinkxDistDir;
-        String chunjunDistDir = this.chunjunDistDir;
-        String distDir;
-
-        if (StringUtils.isNotBlank(flinkxDistDir)) {
-            LOG.warn("Option 'flinkxDistDir' is deprecated, please replace with 'chunjunDistDir'.");
-            distDir = flinkxDistDir;
-        } else {
-            distDir = chunjunDistDir;
-        }
-        return distDir;
+        return this.chunjunDistDir;
     }
 
     public void setChunjunDistDir(String chunjunDistDir) {
@@ -203,18 +185,7 @@ public class Options {
     }
 
     public String getRemoteChunJunDistDir() {
-        String remoteFlinkxDistDir = this.remoteFlinkxDistDir;
-        String remoteChunJunDistDir = this.remoteChunJunDistDir;
-        String remoteDir;
-
-        if (StringUtils.isNotBlank(remoteFlinkxDistDir)) {
-            LOG.warn(
-                    "Option 'remoteFlinkxDistDir' is deprecated, please replace with 'remoteChunJunDistDir'.");
-            remoteDir = remoteFlinkxDistDir;
-        } else {
-            remoteDir = remoteChunJunDistDir;
-        }
-        return remoteDir;
+        return this.remoteChunJunDistDir;
     }
 
     public void setRemoteChunJunDistDir(String remoteChunJunDistDir) {
@@ -251,43 +222,6 @@ public class Options {
 
     public void setJobType(String jobType) {
         this.jobType = jobType;
-    }
-
-    public String getFlinkxDistDir() {
-        String flinkxDistDir = this.flinkxDistDir;
-        String chunjunDistDir = this.chunjunDistDir;
-        String distDir;
-
-        if (StringUtils.isNotBlank(flinkxDistDir)) {
-            LOG.warn("Option 'flinkxDistDir' is deprecated, please replace with 'chunjunDistDir'.");
-            distDir = flinkxDistDir;
-        } else {
-            distDir = chunjunDistDir;
-        }
-        return distDir;
-    }
-
-    public void setFlinkxDistDir(String flinkxDistDir) {
-        this.flinkxDistDir = flinkxDistDir;
-    }
-
-    public String getRemoteFlinkxDistDir() {
-        String remoteFlinkxDistDir = this.remoteFlinkxDistDir;
-        String remoteChunJunDistDir = this.remoteChunJunDistDir;
-        String remoteDir;
-
-        if (StringUtils.isNotBlank(remoteFlinkxDistDir)) {
-            LOG.warn(
-                    "Option 'remoteFlinkxDistDir' is deprecated, please replace with 'remoteChunJunDistDir'.");
-            remoteDir = remoteFlinkxDistDir;
-        } else {
-            remoteDir = remoteChunJunDistDir;
-        }
-        return remoteDir;
-    }
-
-    public void setRemoteFlinkxDistDir(String remoteFlinkxDistDir) {
-        this.remoteFlinkxDistDir = remoteFlinkxDistDir;
     }
 
     @Override

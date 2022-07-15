@@ -166,7 +166,7 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
             }
         }
 
-        return values.toArray(new String[values.size()]);
+        return values.toArray(new String[0]);
     }
 
     private String concatValues(ColumnRowData row) {

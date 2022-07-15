@@ -40,4 +40,4 @@ done
 bin=`dirname "$target"`
 
 # get flink config
-. "$bin"/submit.sh
+. "$bin"/submit.sh $@

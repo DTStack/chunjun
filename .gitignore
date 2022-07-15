@@ -43,3 +43,8 @@ nohup.out
 
 # chunjun plugins
 chunjun-dist/
+
+*/.cache
+*/node_modules
+/website/public
+/website/public/page-data/
