@@ -350,6 +350,11 @@
                             <tasks>
                                 <copy todir="${basedir}/../${dist.dir}/"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+								<copy todir="${basedir}/../${dist.dir}/bin">
+									<fileset dir="${basedir}/../bin">
+										<include name="*"/>
+									</fileset>
+								</copy>
                                 <move file="${basedir}/../${dist.dir}/${project.artifactId}-${project.version}.jar"
                                       tofile="${basedir}/../${dist.dir}/${project.artifactId}-${git.branch}.jar" />
 								<delete>
