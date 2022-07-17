@@ -70,8 +70,6 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
 
     /** source kafka msg decode */
     private final IDecode decode;
-    /** sink json Decoder */
-    private final JsonDecoder jsonDecoder;
     /** kafka Conf */
     private final KafkaConf kafkaConf;
     /** kafka sink out fields */
@@ -80,7 +78,6 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
     public KafkaColumnConverter(KafkaConf kafkaConf, List<String> keyTypeList) {
         this.kafkaConf = kafkaConf;
         this.outList = keyTypeList;
-        this.jsonDecoder = new JsonDecoder();
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
             this.decode = new JsonDecoder();
         } else {
@@ -90,7 +87,6 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
 
     public KafkaColumnConverter(KafkaConf kafkaConf) {
         this.commonConf = this.kafkaConf = kafkaConf;
-        this.jsonDecoder = new JsonDecoder();
         if (DEFAULT_CODEC.defaultValue().equals(kafkaConf.getCodec())) {
             this.decode = new JsonDecoder();
         } else {
