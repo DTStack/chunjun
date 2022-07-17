@@ -3,7 +3,9 @@
  *
  * See: https://www.gatsbyjs.com/docs/browser-apis/
  */
+require("antd/lib/menu/style/index.css")
 require("./src/styles/global.css")
+require("./src/styles/normal.css")
 const React = require("react")
 // const { default: AppHeader } = require("./src/components/AppHeader")
 
