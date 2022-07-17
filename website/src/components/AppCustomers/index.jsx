@@ -142,14 +142,14 @@ const AppCustomers = () => {
       setTimeout(() => {
         setActive(origin => [...origin, ...imagesList[0]])
       }, 500)
-    }, 1500)
+    }, 3000)
 
     return () => {
       clearInterval(timer)
     }
   }, [])
   return (
-    <section className="py-[50px] pb-[50px] w-[80%] m-auto">
+    <section className="p-8">
       <p className="mb-[20px] text-[27px]">
         <span className="border-b-2 pb-[5px] text-[22px] font-bold  text-gray-700 border-gray-300 inline-block">
           合作伙伴

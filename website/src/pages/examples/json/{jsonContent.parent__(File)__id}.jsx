@@ -8,7 +8,7 @@ const BlogPost = props => {
   let json = {}
   try {
     json = JSON.parse(props.data.jsonContent.content)
-  } catch {}
+  } catch { }
   const theme = {
     scheme: "monokai",
     author: "wimer hazenberg (http://www.monokai.nl)",
@@ -37,11 +37,11 @@ const BlogPost = props => {
   return (
     <animated.section
       style={aprops}
-      className="w-full relative  2xl:flex  2xl:justify-center 2xl:items-center 2xl:text-2xl text-base"
+      className="w-full px-6 py-4 relative 2xl:flex 2xl:justify-center 2xl:items-center 2xl:text-2xl text-base"
     >
       <JSONTree
-        valueRenderer={raw => <em>{raw}</em>}
-        labelRenderer={([key]) => <strong>{key}</strong>}
+        valueRenderer={raw => <em className="italic">{raw}</em>}
+        labelRenderer={([key]) => <strong className="font-mono">{key}</strong>}
         shouldExpandNode={() => true}
         hideRoot={() => true}
         theme={theme}

@@ -13,7 +13,7 @@ const AppMembers = () => {
         <div className="flex flex-wrap m-[-7px]">
           {members.map(item => {
             return (
-              <div className="border border-gray-200 flex items-center justify-center m-[7px] hover:bg-slate-300 block">
+              <div key={item.id} className="border border-gray-200 flex items-center justify-center m-[7px] hover:bg-gray-50">
                 <img
                   width={40}
                   height={40}

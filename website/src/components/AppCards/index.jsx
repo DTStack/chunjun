@@ -10,11 +10,11 @@ const AppCards = () => {
   }, [])
 
   return (
-    <section className="w-full space-y-6 dark:bg-[#1a1b1e] bg-wave bg-contain bg-top">
+    <section className="w-full md:h-[600px] space-y-6 dark:bg-[#1a1b1e] bg-wave md:bg-contain bg-cover md:bg-top bg-bottom md:bg-repeat bg-no-repeat">
       <section data-aos="zoom-in" className="w-full dark:text-[#797a7d]">
-        <h1 data-aos="fade-down" className="text-center lg:text-3xl text-4xl font-bold font-mono dark:text-[#797a7d] from-blue-400 bg-gradient-to-r via-indigo-500  to-purple-600 bg-clip-text text-transparent capitalize">Core features
+        <h1 data-aos="fade-down" className="text-center md:text-3xl text-2xl font-bold font-mono dark:text-[#797a7d] from-green-400 bg-gradient-to-r  to-purple-600 bg-clip-text text-transparent capitalize">Core features
         </h1>
-        <div className="grid md:grid-cols-3 grid-cols-2 md:gap-y-6 gap-8 justify-items-center lg:p-6 p-4">
+        <div className="grid md:grid-cols-3 grid-cols-2 md:gap-y-24 md:gap-x-12 gap-8 justify-items-center lg:p-6 p-4">
           <div className="w-full flex flex-col items-center space-y-6">
             <img className="card" src={require('../../assets/svg/code.svg').default} alt="code" />
             <Text className="card-text">基于json、sql 构建任务</Text>

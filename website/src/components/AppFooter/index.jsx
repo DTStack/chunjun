@@ -4,8 +4,8 @@ import Link from "../Link"
 
 const AppFooter = () => {
   return (
-    <footer className="dark:text-white  dark:bg-[#1a1b1e] text-center">
-      <div className="h-[558px] items-center flex flex-col md:flex-row justify-center">
+    <footer className="dark:text-white p-8 dark:bg-[#1a1b1e] text-center">
+      <div className="items-center flex flex-col md:flex-row justify-center h-[400px]">
         <div className="h-full w-full flex justify-center items-center bg-block dark:bg-none bg-contain bg-center bg-no-repeat">
           <Card component="a" className="left__cards--card bg-transparent">
             <Card.Section className="flex justify-center items-center">
