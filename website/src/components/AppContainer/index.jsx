@@ -74,12 +74,19 @@ const AppContainer = ({ children, data, category }) => {
       if (c.type === "dir") {
         return (
           <Accordion key={c.name} iconPosition="right">
-            <Accordion.Item label={c.name}>{buildChildren(c.children)}</Accordion.Item>
+            <Accordion.Item label={c.name}>
+              {buildChildren(c.children)}
+            </Accordion.Item>
           </Accordion>
         )
       } else {
         return (
-          <Link activeClassName="active" key={c.data.id} to={`${category}/${c.data.id}`} className={` `}>
+          <Link
+            activeClassName="active"
+            key={c.data.id}
+            to={`${category}/${c.data.id}`}
+            className={` `}
+          >
             {c.name}
           </Link>
         )
@@ -103,7 +110,10 @@ const AppContainer = ({ children, data, category }) => {
     }
     const { mode } = useContext(ModeContext)
     return (
-      <div className="sticky top-[60px] w-[250px] overflow-x-hidden h-[calc(100vh-60px)]">
+      <div
+        id="root"
+        className="root sticky top-[60px] w-[250px] overflow-x-hidden h-[calc(100vh-60px)]"
+      >
         <Menu
           onClick={click}
           style={{
@@ -129,7 +139,9 @@ const AppContainer = ({ children, data, category }) => {
 
       <AppHeader />
       <div className=" dark:bg-[#1a1b1e] dark:text-gray-300   relative border dark:border-black justify-between bg-white text-[ #ccc] flex z-20 shadow-lg">
-        {menuData.children && menuData.children.length > 0 && AsideMenu(menuData)}
+        {menuData.children &&
+          menuData.children.length > 0 &&
+          AsideMenu(menuData)}
         {children}
       </div>
 
