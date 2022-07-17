@@ -136,15 +136,13 @@ const AppContainer = ({ children, data, category }) => {
   return (
     <>
       <Seo title="纯钧" />
-
       <AppHeader />
-      <div className=" dark:bg-[#1a1b1e] dark:text-gray-300   relative border dark:border-black justify-between bg-white text-[ #ccc] flex z-20 shadow-lg">
+      <div className="dark:bg-[#1a1b1e] dark:text-gray-300 relative border dark:border-black justify-between bg-white text-black flex z-20 shadow-lg">
         {menuData.children &&
           menuData.children.length > 0 &&
           AsideMenu(menuData)}
         {children}
       </div>
-
       <AppFooter />
     </>
   )
