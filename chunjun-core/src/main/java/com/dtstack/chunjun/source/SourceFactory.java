@@ -127,7 +127,7 @@ public abstract class SourceFactory implements RawTypeConvertible {
     protected DataStream<RowData> createInput(
             RichParallelSourceFunction<RowData> function, String sourceName) {
         Preconditions.checkNotNull(sourceName);
-        return env.addSource(function, sourceName, getTypeInformation());
+        return env.addSource(function, sourceName);
     }
 
     protected DataStream<RowData> createInput(InputFormat<RowData, InputSplit> inputFormat) {
