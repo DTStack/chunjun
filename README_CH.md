@@ -1,116 +1,214 @@
-Chunjun
-============
+# ChunJun
 
-[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
+<p align="left">
+  <img src="https://img.shields.io/github/stars/DTStack/chunjun?style=social" alt="npm version" />
+  <img src="https://img.shields.io/github/license/DTStack/chunjun" alt="license" />
+  <a href="https://github.com/DTStack/chunjun/releases"><img src="https://img.shields.io/github/downloads/DTStack/chunjun/total" alt="npm downloads" /></a>
+  <img src="https://img.shields.io/gitlab/coverage/DTStack/chunjun/master" alt="master coverage" />
+</p>
 
-[English](README.md) | 中文
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](README.md)
+[![CN doc](https://img.shields.io/badge/文档-中文版-blue.svg)](README_CH.md)
 
-# 技术交流
+## 介绍
 
-- 招聘**Flink研发工程师**，如果有兴趣可以联系思枢（微信号：ysqwhiletrue）<BR>
-  Flink开发工程师JD要求：<BR>
-  1.负责袋鼠云基于Flink的衍生框架数据同步chunjun和实时计算flinkstreamsql框架的开发；<BR>
-  2.调研和把握当前最新大数据实时计算技术，将其中的合适技术引入到平台中，改善产品，提升竞争力；<BR>
-  职位要求：<BR>
-  1、本科及以上学历，3年及以上的Flink开发经验，精通Java，熟悉Scala、Python优先考虑；<BR>
-  2、熟悉Flink原理，有基于Flink做过二次源码的开发，在github上贡献者Flink源码者优先；<BR>
-  3、有机器学习、数据挖掘相关经验者优先；<BR>
-  4、对新技术有快速学习和上手能力，对代码有一定的洁癖；<BR>
-  加分项：<BR>
-  1.在GitHub或其他平台上有过开源项目<BR>
-  可以添加本人微信号ysqwhiletrue，注明招聘，如有意者发送简历至[sishu@dtstack.com](mailto:sishu@dtstack.com)
+纯钧（ChunJun，原名FlinkX），是一款基于Flink之上，稳定、易用、高效、批流一体的数据集成工具，可实现多种异构数据源之间的数据同步与计算，目前已在上千家公司部署且稳定运行。
 
-- 我们使用[钉钉](https://www.dingtalk.com/)沟通交流，可以搜索群号[**30537511**]或者扫描下面的二维码进入钉钉群
+官方网站：https://dtstack.github.io/chunjun/
 
-  <div align=center>
-     <img src=docs/images/ding.jpg width=300 />
-   </div>
+## 特性
 
-# 介绍
+纯钧（ChunJun）将不同的数据库抽象成了reader/source 插件，writer/sink 插件和lookup 维表插件，其具有以下特点：
 
-*[Chunjun 1.12 新特性](docs/changeLog.md)*
+- 基于实时计算引擎Flink，支持JSON模版配置任务，兼容Flink SQL语法；
+- 支持分布式运行，支持flink-standalone、yarn-session、yarn-per job等多种提交方式；
+- 支持Docker一键部署，支持K8S 部署运行；
+- 支持多种异构数据源，可支持MySQL、Oracle、SQLServer、Hive、Kudu等20多种数据源的同步与计算；
+- 易拓展，高灵活性，新拓展的数据源插件可以与现有数据源插件即时互通，插件开发者不需要关心其他插件的代码逻辑；
+- 不仅仅支持全量同步，还支持增量同步、间隔轮训；
+- 批流一体，不仅仅支持离线同步及计算，还兼容实时场景；
+- 支持脏数据存储，并提供指标监控等；
+- 配合checkpoint实现断点续传；
+- 不仅仅支持同步DML数据，还支持Schema变更同步；
 
-Chunjun是一个基于Flink的批流统一的数据同步工具，既可以采集静态的数据，比如MySQL，HDFS等，也可以采集实时变化的数据，比如MySQL binlog，Kafka等。**同时，Chunjun也是支持原生FlinkSql所有语法和特性的计算框架**，<big>**并且提供了大量[案例](Chunjun-examples)**</big>。Chunjun目前包含下面这些特性：
+## 源码编译
 
-- 大部分插件支持并发读写数据，可以大幅度提高读写速度；
+### 获取代码
 
-- 部分插件支持失败恢复的功能，可以从失败的位置恢复任务，节约运行时间；[失败恢复](docs/restore.md)
+使用git工具将纯钧项目代码下载在本地
 
-- 关系数据库的Source插件支持间隔轮询功能，可以持续不断的采集变化的数据；[间隔轮询](docs/offline/reader/mysqlreader.md)
+```shell
+git clone https://github.com/DTStack/chunjun.git
+```
 
-- 部分数据库支持开启Kerberos安全认证；[Kerberos](docs/kerberos.md)
+### 项目编译
 
-- 可以限制source的读取速度，降低对业务数据库的影响；
+在项目源码目录下执行
 
-- 可以记录sink插件写数据时产生的脏数据；
+```shell
+./mvnw clean package -DskipTests
+```
 
-- 可以限制脏数据的最大数量；
+或者执行
 
-- 支持多种运行模式；
+```shell
+sh build/build.sh
+```
 
-- **同步任务支持执行flinksql语法的transformer操作；**
+### 多平台兼容
 
-- **sql任务支持和flinkSql自带connectors[共用](docs/conectorShare.md)；**
+chunjun目前支持tdh和开源hadoop平台，对不同的平台有需要使用不同的maven命令打包
 
-Chunjun目前支持下面这些数据库：
+| 平台类型 |                                              | 含义                                    |
+| -------- | -------------------------------------------- | --------------------------------------- |
+| tdh      | mvn clean package -DskipTests -P default,tdh | 打包出inceptor插件以及default支持的插件 |
+| default  | mvn clean package -DskipTests -P default     | 除了inceptor插件之外的所有插件          |
 
-|                        | Database Type  | Source                                                    | Sink                                                      | Lookup
-|:----------------------:|:--------------:|:---------------------------------------------------------:|:---------------------------------------------------------:|:---------------------------------------------------------:|
-| Batch Synchronization  | MySQL          | [doc](docs/connectors/mysql/mysql-source.md)              | [doc](docs/connectors/mysql/mysql-sink.md)                |[doc](docs/connectors/mysql/mysql-lookup.md)               |
-|                        | TiDB           |                                                           | 参考mysql                                                  |参考mysql                                                  |   
-|                        | Oracle         | [doc](docs/connectors/oracle/oracle-source.md)            | [doc](docs/connectors/oracle/oracle-sink.md)              |[doc](docs/connectors/oracle/oracle-lookup.md)             |
-|                        | SqlServer      | [doc](docs/connectors/sqlserver/sqlserver-source.md)      | [doc](docs/connectors/sqlserver/sqlserver-sink.md)        |[doc](docs/connectors/sqlserver/sqlserver-lookup.md)       |
-|                        | PostgreSQL     | [doc](docs/connectors/postgres/postgres-source.md)        | [doc](docs/connectors/postgres/postgres-sink.md)          |[doc](docs/connectors/postgres/postgres-lookup.md)         |
-|                        | DB2            | [doc](docs/connectors/db2/db2-source.md)                  | [doc](docs/connectors/db2/db2-sink.md)                    |[doc](docs/connectors/db2/db2-lookup.md)                   |
-|                        | ClickHouse     | [doc](docs/connectors/clickhouse/clickhouse-source.md)    | [doc](docs/connectors/clickhouse/clickhouse-sink.md)      |[doc](docs/connectors/clickhouse/clickhouse-lookup.md)     |
-|                        | Greenplum      | [doc](docs/connectors/greenplum/greenplum-source.md)      | [doc](docs/connectors/greenplum/greenplum-sink.md)        |                                                           |
-|                        | KingBase       | [doc](docs/connectors/kingbase/kingbase-source.md)        | [doc](docs/connectors/kingbase/kingbase-sink.md)          |                                                           |
-|                        | MongoDB        | [doc](docs/connectors/mongodb/mongodb-source.md)          | [doc](docs/connectors/mongodb/mongodb-sink.md)            |[doc](docs/connectors/mongodb/mongodb-lookup.md)           |
-|                        | SAP HANA       | [doc](docs/connectors/saphana/saphana-source.md)          | [doc](docs/connectors/saphana/saphana-sink.md)            |                                                           |  
-|                        | ElasticSearch7 | [doc](docs/connectors/elasticsearch7/es7-source.md)       | [doc](docs/connectors/elasticsearch7/es7-lookup.md)       |[doc](docs/connectors/elasticsearch7/es7-sink.md)          |
-|                        | FTP            | [doc](docs/connectors/ftp/ftp-source.md)                  | [doc](docs/connectors/ftp/ftp-sink.md)                    |                                                           |
-|                        | HDFS           | [doc](docs/connectors/hdfs/hdfs-source.md)                | [doc](docs/connectors/hdfs/hdfs-sink.md)                  |                                                           |
-|                        | Stream         | [doc](docs/connectors/stream/stream-source.md)            | [doc](docs/connectors/stream/stream-sink.md)              |                                                           |
-|                        | Redis          |                                                           | [doc](docs/connectors/redis/redis-sink.md)                |[doc](docs/connectors/redis/redis-lookup.md)               |
-|                        | Hive           |                                                           | [doc](docs/connectors/hive/hive-sink.md)                  |                                                           |
-|                        | Hbase          | [doc](docs/connectors/hbase/hbase-source.md)              | [doc](docs/connectors/hbase/hbase-sink.md)                |[doc](docs/connectors/hbase/hbase-lookup.md)               |
-|                        | Solr           | [doc](docs/connectors/solr/solr-source.md)                | [doc](docs/connectors/solr/solr-sink.md)                  |                                                           |
-|                        | File           |  [doc](docs/connectors/file/file-source.md)               |                                                           |                                                           |
-|                        | StarRocks      |                                                           | [doc](docs/connectors/starrocks/starrocks-sink.md)        |                                                           |
-| Stream Synchronization | Kafka          | [doc](docs/connectors/kafka/kafka-source.md)              | [doc](docs/connectors/kafka/kafka-sink.md)                |                                                           |
-|                        | EMQX           | [doc](docs/connectors/emqx/emqx-source.md)                | [doc](docs/connectors/emqx/emqx-sink.md)                  |                                                           |
-|                        | MySQL Binlog   | [doc](docs/connectors/binlog/binlog-source.md)            |                                                           |                                                           |
-|                        | Oracle LogMiner | [doc](docs/connectors/logminer/LogMiner-source.md)       |                                                           |                                                           |
-|                        | Sqlserver CDC | [doc](docs/connectors/sqlservercdc/SqlserverCDC-source.md) |                                                           |                                                           |      
+### 常见问题
 
-# 快速开始
+#### 1.编译找不到DB2、达梦、Gbase、Ojdbc8等驱动包
 
-请点击[快速开始](docs/quickstart.md)
+解决办法：在$CHUNJUN_HOME/jars目录下有这些驱动包，可以手动安装，也可以使用插件提供的脚本安装：
 
-# 通用配置
+```bash
+## windows平台
+./$CHUNJUN_HOME/bin/install_jars.bat
 
-请点击[插件通用配置](docs/generalconfig.md)
+## unix平台
+./$CHUNJUN_HOME/bin/install_jars.sh
+```
 
-# 统计指标
+#### 2. 关于编译ChunJun-core报错Failed to read artifact descriptor for com.google.errorprone:javac-shaded
 
-请点击[统计指标](docs/statistics.md)
+报错信息：
 
-# Iceberg
-请点击 [Iceberg](docs/iceberg.md)
+```java
+[ERROR]Failed to execute goal com.diffplug.spotless:spotless-maven-plugin:2.4.2:check(spotless-check)on project flinkx-core:
+        Execution spotless-check of goal com.diffplug.spotless:spotless-maven-plugin:2.4.2:check failed:Unable to resolve dependencies:
+        Failed to collect dependencies at com.google.googlejavaformat:google-java-format:jar:1.7->com.google.errorprone:javac-shaded:jar:9+181-r4173-1:
+        Failed to read artifact descriptor for com.google.errorprone:javac-shaded:jar:9+181-r4173-1:Could not transfer artifact
+        com.google.errorprone:javac-shaded:pom:9+181-r4173-1 from/to aliyunmaven(https://maven.aliyun.com/repository/public): 
+        Access denied to:https://maven.aliyun.com/repository/public/com/google/errorprone/javac-shaded/9+181-r4173-1/javac-shaded-9+181-r4173-1.pom -> [Help 1]
+```
 
-# Kerberos
+解决：
 
-请点击[Kerberos](docs/kerberos.md)
+https://repo1.maven.org/maven2/com/google/errorprone/javac-shaded/9+181-r4173-1/javac-shaded-9+181-r4173-1.jar
+从这个地址下载javac-shaded-9+181-r4173-1.jar， 临时放到chunjun根目录下jars目录里，然后在源码根目录下 执行安装依赖包命令如下：
 
-# Questions
+```shell
+mvn install:install-file -DgroupId=com.google.errorprone -DartifactId=javac-shaded -Dversion=9+181-r4173-1 -Dpackaging=jar -Dfile=./jars/javac-shaded-9+181-r4173-1.jar
+```
 
-请点击[Questions](docs/questions.md)
+## 快速开始
 
-# 如何贡献Chunjun
+以下表格是分支与flink版本之间的对应关系，如果版本没有对齐，可能会导致任务出现序列化异常，类冲突等问题。
 
-请点击[如何贡献Chunjun](docs/contribution.md)
+| 分支         | flink 版本 |
+| ------------ | ---------- |
+| master       | 1.12.7     |
+| 1.12_release | 1.12.7     |
+| 1.10_release | 1.10.1     |
+| 1.8_release  | 1.8.3      |
 
-# License
+纯钧支持多种模式运行任务，不同模式下，所依赖的环境和步骤有所不同，以下内容是不同模式下的提交步骤：
 
-Chunjun is under the Apache 2.0 license. See
-the [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) file for details.
+### Local
+
+Local 模式不依赖Flink环境和Hadoop环境，在本地环境启动一个JVM进程执行纯钧任务。
+
+#### 提交步骤
+
+进入到chunjun-dist 目录，执行命令
+
+```shell
+sh bin/chunjun-local.sh  -job chunjun-examples/json/stream/stream.json
+```
+
+即可执行一个简单的 **stream -> stream** 同步任务
+
+[参考视频](https://www.bilibili.com/video/BV1mT411g7fJ?spm_id_from=333.999.0.0)
+
+### Standalone
+
+Standalone模式依赖Flink Standalone环境，不依赖Hadoop环境。
+
+#### 提交步骤
+
+##### 1. 启动Flink Standalone环境
+
+```shell
+sh $FLINK_HOME/bin/start-cluster.sh
+```
+
+启动成功后默认端口为8081，我们可以访问当前机器的8081端口进入standalone的flink web ui
+
+##### 2. 提交任务
+
+进入到本地chunjun-dist目录，执行命令
+
+```shell
+sh bin/chunjun-standalone.sh -job chunjun-examples/json/stream/stream.json
+```
+
+提交成功之后，可以在flink web ui 上观察任务情况；
+
+[参考视频](https://www.bilibili.com/video/BV1TT41137UV?spm_id_from=333.999.0.0)
+
+### Yarn Session
+
+YarnSession 模式依赖Flink 和 Hadoop 环境，需要在任务提交之前启动相应的yarn session；
+
+#### 提交步骤
+
+##### 1. 启动Yarn Session环境
+
+Yarn Session 模式依赖Flink 和 Hadoop 环境，需要在提交机器中提前设置好$HADOOP_HOME和$FLINK_HOME
+
+我们需要使用yarn-session -t参数上传chunjun-dist
+
+```shell
+cd $FLINK_HOME/bin
+./yarn-session -t $CHUNJUN_HOME -d
+```
+
+##### 2. 提交任务
+
+通过yarn web ui 查看session 对应的application $SESSION_APPLICATION_ID，进入到本地chunjun-dist目录，执行命令
+
+```shell
+sh ./bin/chunjun-yarn-session.sh -job chunjun-examples/json/stream/stream.json -confProp {\"yarn.application.id\":\"SESSION_APPLICATION_ID\"}
+```
+
+yarn.application.id 也可以在 flink-conf.yaml 中设置；提交成功之后，可以通过 yarn web ui 上观察任务情况。
+
+[参考视频](https://www.bilibili.com/video/BV1oU4y1D7e7?spm_id_from=333.999.0.0)
+
+### Yarn Per-Job
+
+Yarn Per-Job 模式依赖Flink 和 Hadoop 环境，需要在提交机器中提前设置好$HADOOP_HOME和$FLINK_HOME。
+
+#### 提交步骤
+
+Yarn Per-Job 提交任务配置正确即可提交。进入本地chunjun-dist目录，执行命令提交任务。
+
+```shell
+sh ./bin/chunjun-yarn-perjob.sh -job chunjun-examples/json/stream/stream.json
+```
+
+提交成功之后，可以通过 yarn web ui 上观察任务情况；
+
+## 插件文档
+
+详情请访问：https://dtstack.github.io/chunjun/documents/
+
+## 贡献者
+
+感谢所有的贡献者！
+
+<a href="https://github.com/DTStack/chunjun/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=DTStack/chunjun"  alt="contributors"/>
+
+## 开源协议
+
+纯钧遵循Apache 2.0 开源协议。
