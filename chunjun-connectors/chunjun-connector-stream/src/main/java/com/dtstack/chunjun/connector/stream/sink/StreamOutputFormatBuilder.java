@@ -26,12 +26,10 @@ import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
  *
  * @author jiangbo @Company: www.dtstack.com
  */
-public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    private StreamOutputFormat format;
+public class StreamOutputFormatBuilder extends BaseRichOutputFormatBuilder<StreamOutputFormat> {
 
     public StreamOutputFormatBuilder() {
-        super.format = format = new StreamOutputFormat();
+        super(new StreamOutputFormat());
     }
 
     public void setStreamConf(StreamConf streamConf) {

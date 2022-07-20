@@ -29,12 +29,11 @@ import org.apache.commons.lang3.StringUtils;
  * @author tiezhu
  * @since 2021/6/21 星期一
  */
-public class CassandraOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    private final CassandraOutputFormat format;
+public class CassandraOutputFormatBuilder
+        extends BaseRichOutputFormatBuilder<CassandraOutputFormat> {
 
     public CassandraOutputFormatBuilder() {
-        super.format = this.format = new CassandraOutputFormat();
+        super(new CassandraOutputFormat());
     }
 
     public void setSinkConf(CassandraSinkConf config) {

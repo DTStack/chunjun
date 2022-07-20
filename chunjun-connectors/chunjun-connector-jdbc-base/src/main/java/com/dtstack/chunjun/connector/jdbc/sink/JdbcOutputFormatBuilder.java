@@ -25,12 +25,10 @@ import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 import org.apache.commons.lang.StringUtils;
 
 /** @author sishu.yss @Company: www.dtstack.com */
-public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    protected JdbcOutputFormat format;
+public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder<JdbcOutputFormat> {
 
     public JdbcOutputFormatBuilder(JdbcOutputFormat format) {
-        super.format = this.format = format;
+        super(format);
     }
 
     public void setJdbcConf(JdbcConf jdbcConf) {

@@ -28,12 +28,10 @@ import org.apache.commons.lang3.StringUtils;
  * @create 2021-06-04 09:55
  * @description
  */
-public class EmqxOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    protected EmqxOutputFormat format;
+public class EmqxOutputFormatBuilder extends BaseRichOutputFormatBuilder<EmqxOutputFormat> {
 
     public EmqxOutputFormatBuilder() {
-        super.format = format = new EmqxOutputFormat();
+        super(new EmqxOutputFormat());
     }
 
     public void setEmqxConf(EmqxConf emqxConf) {

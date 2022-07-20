@@ -30,12 +30,11 @@ import java.util.List;
  * @author shitou
  * @date 2021/11/8
  */
-public class DorisHttpOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    private final DorisHttpOutputFormat format;
+public class DorisHttpOutputFormatBuilder
+        extends BaseRichOutputFormatBuilder<DorisHttpOutputFormat> {
 
     public DorisHttpOutputFormatBuilder() {
-        super.format = format = new DorisHttpOutputFormat();
+        super(new DorisHttpOutputFormat());
     }
 
     public void setDorisOptions(DorisConf options) {

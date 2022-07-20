@@ -34,12 +34,10 @@ import java.util.Map;
  *
  * @author huyifan.zju@163.com
  */
-public class HBaseOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    private final HBaseOutputFormat format;
+public class HBaseOutputFormatBuilder extends BaseRichOutputFormatBuilder<HBaseOutputFormat> {
 
     public HBaseOutputFormatBuilder() {
-        super.format = format = new HBaseOutputFormat();
+        super(new HBaseOutputFormat());
     }
 
     public void setHbaseConf(HBaseConf config) {

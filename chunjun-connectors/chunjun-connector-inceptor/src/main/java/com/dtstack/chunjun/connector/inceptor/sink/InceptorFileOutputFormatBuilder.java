@@ -21,18 +21,23 @@ package com.dtstack.chunjun.connector.inceptor.sink;
 import com.dtstack.chunjun.connector.inceptor.conf.InceptorFileConf;
 import com.dtstack.chunjun.connector.inceptor.enums.ECompressType;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.sink.format.FileOutputFormatBuilder;
+import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
 
-public class InceptorFileOutputFormatBuilder extends FileOutputFormatBuilder {
-    private final BaseInceptorFileOutputFormat format;
+public class InceptorFileOutputFormatBuilder
+        extends BaseRichOutputFormatBuilder<BaseInceptorFileOutputFormat> {
 
-    public InceptorFileOutputFormatBuilder(String fileType) {
-        switch (fileType.toUpperCase(Locale.ENGLISH)) {
+    public InceptorFileOutputFormatBuilder(BaseInceptorFileOutputFormat format) {
+        super(format);
+    }
+
+    public static InceptorFileOutputFormatBuilder newBuilder(String type) {
+        BaseInceptorFileOutputFormat format;
+        switch (type.toUpperCase(Locale.ENGLISH)) {
             case "ORC":
                 format = new InceptorFileOrcOutputFormat();
                 break;
@@ -42,11 +47,11 @@ public class InceptorFileOutputFormatBuilder extends FileOutputFormatBuilder {
             default:
                 format = new InceptorFileTextOutputFormat();
         }
-        super.setFormat(format);
+        return new InceptorFileOutputFormatBuilder(format);
     }
 
     public void setInceptorConf(InceptorFileConf inceptorFileConf) {
-        super.setBaseFileConf(inceptorFileConf);
+        format.setBaseFileConf(inceptorFileConf);
         format.setInceptorFileConf(inceptorFileConf);
     }
 

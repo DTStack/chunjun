@@ -34,13 +34,6 @@ public class ClickhouseOutputFormatBuilder extends JdbcOutputFormatBuilder {
     protected void checkFormat() {
         JdbcConf jdbcConf = format.getJdbcConf();
         StringBuilder sb = new StringBuilder(256);
-        // username and password is nullable
-        //        if (StringUtils.isBlank(jdbcConf.getUsername())) {
-        //            sb.append("No username supplied;\n");
-        //        }
-        //        if (StringUtils.isBlank(jdbcConf.getPassword())) {
-        //            sb.append("No password supplied;\n");
-        //        }
         if (StringUtils.isBlank(jdbcConf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }

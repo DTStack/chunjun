@@ -69,7 +69,7 @@ public class HdfsDynamicTableSink implements DynamicTableSink {
             columnList.add(field);
         }
         hdfsConf.setColumn(columnList);
-        HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(hdfsConf.getFileType());
+        HdfsOutputFormatBuilder builder = HdfsOutputFormatBuilder.newBuild(hdfsConf.getFileType());
         builder.setHdfsConf(hdfsConf);
         AbstractRowConverter rowConverter;
         switch (FileType.getByName(hdfsConf.getFileType())) {

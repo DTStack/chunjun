@@ -26,12 +26,10 @@ import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
  * @program chunjun
  * @create 2021/06/28
  */
-public class SolrOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-    private final SolrConf solrConf;
+public class SolrOutputFormatBuilder extends BaseRichOutputFormatBuilder<SolrOutputFormat> {
 
     public SolrOutputFormatBuilder(SolrConf solrConf) {
-        this.solrConf = solrConf;
-        this.format = new SolrOutputFormat(solrConf);
+        super(new SolrOutputFormat(solrConf));
         setConfig(solrConf);
     }
 
