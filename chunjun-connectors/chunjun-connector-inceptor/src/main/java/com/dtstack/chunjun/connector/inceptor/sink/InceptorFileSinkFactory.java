@@ -67,7 +67,7 @@ public class InceptorFileSinkFactory extends SinkFactory {
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         InceptorFileOutputFormatBuilder builder =
-                new InceptorFileOutputFormatBuilder(inceptorFileConf.getFileType());
+                InceptorFileOutputFormatBuilder.newBuilder(inceptorFileConf.getFileType());
         builder.setInceptorConf(inceptorFileConf);
         builder.setCompressType(
                 ECompressType.getByTypeAndFileType(

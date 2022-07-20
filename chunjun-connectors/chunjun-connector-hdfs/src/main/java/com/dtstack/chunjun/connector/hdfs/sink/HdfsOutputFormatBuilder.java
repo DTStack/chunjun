@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.hdfs.sink;
 import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
 import com.dtstack.chunjun.connector.hdfs.enums.FileType;
 import com.dtstack.chunjun.constants.ConstantValue;
-import com.dtstack.chunjun.sink.format.FileOutputFormatBuilder;
+import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -30,11 +30,15 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author tudou
  */
-public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
-    private final BaseHdfsOutputFormat format;
+public class HdfsOutputFormatBuilder extends BaseRichOutputFormatBuilder<BaseHdfsOutputFormat> {
 
-    public HdfsOutputFormatBuilder(String fileType) {
-        switch (FileType.getByName(fileType)) {
+    public HdfsOutputFormatBuilder(BaseHdfsOutputFormat format) {
+        super(format);
+    }
+
+    public static HdfsOutputFormatBuilder newBuild(String type) {
+        BaseHdfsOutputFormat format;
+        switch (FileType.getByName(type)) {
             case ORC:
                 format = new HdfsOrcOutputFormat();
                 break;
@@ -44,11 +48,12 @@ public class HdfsOutputFormatBuilder extends FileOutputFormatBuilder {
             default:
                 format = new HdfsTextOutputFormat();
         }
-        super.setFormat(format);
+        return new HdfsOutputFormatBuilder(format);
     }
 
     public void setHdfsConf(HdfsConf hdfsConf) {
-        super.setBaseFileConf(hdfsConf);
+        super.setConfig(hdfsConf);
+        format.setBaseFileConf(hdfsConf);
         format.setHdfsConf(hdfsConf);
     }
 

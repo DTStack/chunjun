@@ -68,7 +68,7 @@ public class MongodbDynamicTableSink implements DynamicTableSink {
         String[] fieldNames = physicalSchema.getFieldNames();
         MongodbOutputFormatBuilder builder =
                 new MongodbOutputFormatBuilder(
-                        mongoClientConf, null, MongodbOutputFormat.WriteMode.INSERT);
+                        null, mongoClientConf, null, MongodbOutputFormat.WriteMode.INSERT);
         ChunJunCommonConf commonConf = new ChunJunCommonConf();
         commonConf.setBatchSize(mongoWriteConf.getFlushMaxRows());
         commonConf.setFlushIntervalMills(mongoWriteConf.getFlushInterval());

@@ -29,12 +29,11 @@ import com.google.common.base.Preconditions;
  * @author: lany
  * @create: 2021/06/18 11:59
  */
-public class Elasticsearch6OutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    protected Elasticsearch6OutputFormat format;
+public class Elasticsearch6OutputFormatBuilder
+        extends BaseRichOutputFormatBuilder<Elasticsearch6OutputFormat> {
 
     public Elasticsearch6OutputFormatBuilder() {
-        super.format = format = new Elasticsearch6OutputFormat();
+        super(new Elasticsearch6OutputFormat());
     }
 
     public void setEsConf(Elasticsearch6Conf esConf) {

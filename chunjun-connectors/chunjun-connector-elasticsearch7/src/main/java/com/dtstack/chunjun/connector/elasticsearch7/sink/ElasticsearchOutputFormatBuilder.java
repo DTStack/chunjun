@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.elasticsearch7.sink;
 
-import com.dtstack.chunjun.connector.elasticsearch.table.IndexGenerator;
 import com.dtstack.chunjun.connector.elasticsearch.table.IndexGeneratorFactory;
 import com.dtstack.chunjun.connector.elasticsearch7.ElasticsearchConf;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
@@ -33,14 +32,13 @@ import com.google.common.base.Preconditions;
  * @author: lany
  * @create: 2021/06/27 17:19
  */
-public class ElasticsearchOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    protected ElasticsearchOutputFormat format;
+public class ElasticsearchOutputFormatBuilder
+        extends BaseRichOutputFormatBuilder<ElasticsearchOutputFormat> {
 
     public ElasticsearchOutputFormatBuilder(ElasticsearchConf conf, TableSchema schema) {
-        IndexGenerator indexGenerator =
-                IndexGeneratorFactory.createIndexGenerator(conf.getIndex(), schema);
-        super.format = format = new ElasticsearchOutputFormat(conf, indexGenerator);
+        super(
+                new ElasticsearchOutputFormat(
+                        conf, IndexGeneratorFactory.createIndexGenerator(conf.getIndex(), schema)));
         super.setConfig(conf);
     }
 
