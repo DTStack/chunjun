@@ -1,0 +1,102 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "address",
+                "type": "string"
+              },
+              {
+                "name": "phone_number",
+                "type": "string"
+              },
+              {
+                "name": "email",
+                "type": "string"
+              }
+            ],
+            "connection": [
+              {
+                "password": "xxxx",
+                "jdbcUrl": [
+                  "jdbc:mysql://127.0.0.1:3306/kinodb?useUnicode=true&characterEncoding=UTF-8&useSSL=false"
+                ],
+                "table": ["user_7", "user_8", "user_9"],
+                "username": "root",
+                "schema": "kinodb"
+              },
+              {
+                "password": "xxxx",
+                "jdbcUrl": [
+                  "jdbc:mysql://127.0.0.1:3307/kinodb?useUnicode=true&characterEncoding=UTF-8&useSSL=false"
+                ],
+                "table": ["user_20", "dep_[0-1]+"],
+                "username": "root",
+                "schema": "kinodb"
+              },
+              {
+                "password": "xxxx",
+                "jdbcUrl": [
+                  "jdbc:mysql://127.0.0.1:3308/kinodb?useUnicode=true&characterEncoding=UTF-8&useSSL=false"
+                ],
+                "table": ["user_[0-9]+"],
+                "username": "root",
+                "schema": "kinodb_[0-9]+"
+              }
+            ]
+          },
+          "name": "mysqlmreader"
+        },
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "address",
+                "type": "string"
+              },
+              {
+                "name": "phone_number",
+                "type": "string"
+              },
+              {
+                "name": "email",
+                "type": "string"
+              }
+            ],
+            "print": true
+          },
+          "table": {
+            "tableName": "sinkTable"
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "readerChannel": 1,
+        "writerChannel": 1,
+        "channel": 1
+      }
+    }
+  }
+}
