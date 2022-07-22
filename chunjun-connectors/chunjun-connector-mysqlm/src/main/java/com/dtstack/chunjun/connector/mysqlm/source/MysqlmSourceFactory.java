@@ -103,8 +103,8 @@ public class MysqlmSourceFactory extends DistributedJdbcSourceFactory {
                 tables.put(schemaName, new ArrayList<>());
             }
         }
-        for (String schemaName : tables.keySet()) {
-            ResultSet tableResult = metaData.getTables(currSchema, null, null, null);
+        for (String databaseName : tables.keySet()) {
+            ResultSet tableResult = metaData.getTables(databaseName, null, null, null);
             while (tableResult.next()) {
                 String tableName = tableResult.getString("TABLE_NAME");
                 LOG.info(
@@ -115,7 +115,7 @@ public class MysqlmSourceFactory extends DistributedJdbcSourceFactory {
                         tableName);
                 Matcher matcher = table.matcher(tableName);
                 if (matcher.matches()) {
-                    tables.get(schemaName).add(tableName);
+                    tables.get(databaseName).add(tableName);
                 }
             }
         }
