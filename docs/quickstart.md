@@ -330,7 +330,6 @@ bin/flinkx \
 ```
 bin/flinkx \
     -mode kubernetes-session \
-    -jobType sync \
     -job flinkx-examples/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
@@ -353,7 +352,6 @@ $FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink-session-test
 ```
 bin/flinkx \
     -mode kubernetes-application \
-    -jobType sync \
     -job flinkx-examples/json/stream/stream.json \
     -jobName kubernetes-job \
     -jobType sync \
