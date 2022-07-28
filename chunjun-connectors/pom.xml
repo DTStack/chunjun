@@ -77,7 +77,8 @@
 
 		<!--Distribute plugin, just for SYNC-->
 		<module>chunjun-connector-mysqld</module>
-	</modules>
+        <module>chunjun-connector-mysqlm</module>
+    </modules>
 
 
 	<dependencies>
