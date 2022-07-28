@@ -154,7 +154,9 @@ public final class ColumnRowData implements RowData, Serializable {
     }
 
     public void addFieldWithOutByteSize(AbstractBaseColumn value) {
-        this.columnList.add(value);
+        if (org.apache.commons.lang.StringUtils.isNotBlank(value.asString()))
+            this.columnList.add(value);
+        else this.columnList.add(null);
     }
 
     public void addAllField(List<AbstractBaseColumn> list) {
