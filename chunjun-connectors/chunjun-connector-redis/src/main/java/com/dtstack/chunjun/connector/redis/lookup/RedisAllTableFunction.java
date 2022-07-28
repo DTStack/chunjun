@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.redis.lookup;
 
 import com.dtstack.chunjun.connector.redis.conf.RedisConf;
 import com.dtstack.chunjun.connector.redis.connection.RedisSyncClient;
-import com.dtstack.chunjun.connector.redis.enums.RedisConnectType;
+import com.dtstack.chunjun.connector.redis.util.RedisUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
 import com.dtstack.chunjun.lookup.conf.LookupConf;
@@ -31,17 +31,13 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisCommands;
-import redis.clients.jedis.JedisPool;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -95,7 +91,8 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
         }
 
         Set<String> keys =
-                getRedisKeys(redisConf.getRedisConnectType(), jedis, keyPattern.toString());
+                RedisUtil.getRedisKeys(
+                        redisConf.getRedisConnectType(), jedis, keyPattern.toString());
         if (CollectionUtils.isEmpty(keys)) {
             return;
         }
@@ -121,23 +118,5 @@ public class RedisAllTableFunction extends AbstractAllTableFunction {
         } finally {
             redisSyncClient.closeJedis(jedis);
         }
-    }
-
-    private Set<String> getRedisKeys(
-            RedisConnectType redisType, JedisCommands jedis, String keyPattern) {
-        if (!redisType.equals(RedisConnectType.CLUSTER)) {
-            return ((Jedis) jedis).keys(keyPattern);
-        }
-        Set<String> keys = new TreeSet<>();
-        Map<String, JedisPool> clusterNodes = ((JedisCluster) jedis).getClusterNodes();
-        for (String k : clusterNodes.keySet()) {
-            JedisPool jp = clusterNodes.get(k);
-            try (Jedis connection = jp.getResource()) {
-                keys.addAll(connection.keys(keyPattern));
-            } catch (Exception e) {
-                LOG.error("Getting keys error", e);
-            }
-        }
-        return keys;
     }
 }

@@ -83,7 +83,14 @@ public class RedisColumnConverter extends AbstractRowConverter<Object, Object, J
 
     @Override
     public RowData toInternal(Object input) {
-        return null;
+        Map<String, String> map = (Map<String, String>) input;
+        List<FieldConf> column = redisConf.getColumn();
+        ColumnRowData rowData = new ColumnRowData(column.size());
+        for (int i = 0; i < column.size(); i++) {
+            StringColumn value = new StringColumn(map.get(column.get(i).getName()));
+            rowData.addField(value);
+        }
+        return rowData;
     }
 
     @Override

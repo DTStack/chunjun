@@ -99,4 +99,7 @@ public class RedisOptions {
 
     public static final ConfigOption<String> REDIS_DATA_MODE =
             ConfigOptions.key("mode").stringType().noDefaultValue().withDescription("mode");
+
+    public static final ConfigOption<String> KEY_PREFIX =
+            ConfigOptions.key("keyPrefix").stringType().noDefaultValue().withDescription("mode");
 }
