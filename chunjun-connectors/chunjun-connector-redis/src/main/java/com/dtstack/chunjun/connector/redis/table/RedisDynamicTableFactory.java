@@ -46,6 +46,7 @@ import java.util.Set;
 
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.DATABASE;
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.KEYEXPIREDTIME;
+import static com.dtstack.chunjun.connector.redis.options.RedisOptions.KEY_PREFIX;
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.MASTERNAME;
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.MAXIDLE;
 import static com.dtstack.chunjun.connector.redis.options.RedisOptions.MAXTOTAL;
@@ -122,7 +123,6 @@ public class RedisDynamicTableFactory
     public Set<ConfigOption<?>> requiredOptions() {
         Set<ConfigOption<?>> requiredOptions = new HashSet<>();
         requiredOptions.add(URL);
-        requiredOptions.add(TABLENAME);
         requiredOptions.add(REDIS_DATA_TYPE);
         requiredOptions.add(REDIS_DATA_MODE);
         return requiredOptions;
@@ -131,6 +131,8 @@ public class RedisDynamicTableFactory
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> optionalOptions = new HashSet<>();
+        optionalOptions.add(KEY_PREFIX);
+        optionalOptions.add(TABLENAME);
         optionalOptions.add(PASSWORD);
         optionalOptions.add(REDISTYPE);
         optionalOptions.add(MASTERNAME);
@@ -170,7 +172,7 @@ public class RedisDynamicTableFactory
         redisConf.setExpireTime(config.get(KEYEXPIREDTIME));
         redisConf.setType(RedisDataType.getDataType(config.get(REDIS_DATA_TYPE)));
         redisConf.setMode(RedisDataMode.getDataMode(config.get(REDIS_DATA_MODE)));
-
+        redisConf.setKeyPrefix(config.get(KEY_PREFIX));
         List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
         redisConf.setUpdateKey(keyFields);
         return redisConf;
