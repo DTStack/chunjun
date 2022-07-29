@@ -39,11 +39,14 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 /** Simple implementation of {@link FieldNamedPreparedStatement}. */
 public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatement {
 
-    private final PreparedStatement statement;
+    private PreparedStatement statement;
+    private final String parsedSQL;
     private final int[][] indexMapping;
 
-    private FieldNamedPreparedStatementImpl(PreparedStatement statement, int[][] indexMapping) {
+    private FieldNamedPreparedStatementImpl(
+            PreparedStatement statement, String parsedSQL, int[][] indexMapping) {
         this.statement = statement;
+        this.parsedSQL = parsedSQL;
         this.indexMapping = indexMapping;
     }
 
@@ -71,7 +74,7 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
         }
 
         return new FieldNamedPreparedStatementImpl(
-                connection.prepareStatement(parsedSQL), indexMapping);
+                connection.prepareStatement(parsedSQL), parsedSQL, indexMapping);
     }
 
     /**
@@ -269,5 +272,11 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
     @Override
     public void close() throws SQLException {
         statement.close();
+    }
+
+    @Override
+    public void reOpen(Connection connection) throws SQLException {
+        statement = null;
+        statement = connection.prepareStatement(parsedSQL);
     }
 }

@@ -182,6 +182,10 @@ public class DynamicPreparedStmt {
         }
     }
 
+    public void reOpenStatement(Connection connection) throws SQLException {
+        this.fieldNamedPreparedStatement.reOpen(connection);
+    }
+
     public void close() throws SQLException {
         fieldNamedPreparedStatement.close();
     }
