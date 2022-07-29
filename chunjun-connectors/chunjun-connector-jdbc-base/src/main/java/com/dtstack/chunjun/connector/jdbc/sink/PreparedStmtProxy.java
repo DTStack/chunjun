@@ -50,6 +50,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -73,6 +74,8 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
     /** LUR cache key info: database_table_rowkind * */
     protected Cache<String, DynamicPreparedStmt> pstmtCache;
 
+    protected boolean cacheIsExpire = false;
+
     /** 当前的执行sql的preparestatement */
     protected transient FieldNamedPreparedStatement currentFieldNamedPstmt;
 
@@ -93,6 +96,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         this.connection = connection;
         this.jdbcDialect = jdbcDialect;
         this.writeExtInfo = writeExtInfo;
+        this.cacheIsExpire = true;
         initCache(true);
     }
 
@@ -361,6 +365,21 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
     @Override
     public void close() throws SQLException {
         currentFieldNamedPstmt.close();
+    }
+
+    @Override
+    public void reOpen(Connection connection) throws SQLException {
+        this.connection = connection;
+        ConcurrentMap<String, DynamicPreparedStmt> stringDynamicPreparedStmtConcurrentMap =
+                pstmtCache.asMap();
+        initCache(cacheIsExpire);
+        for (Map.Entry<String, DynamicPreparedStmt> entry :
+                stringDynamicPreparedStmtConcurrentMap.entrySet()) {
+            DynamicPreparedStmt value = entry.getValue();
+            value.reOpenStatement(connection);
+            pstmtCache.put(entry.getKey(), value);
+            currentFieldNamedPstmt = value.getFieldNamedPreparedStatement();
+        }
     }
 
     public void clearStatementCache() {
