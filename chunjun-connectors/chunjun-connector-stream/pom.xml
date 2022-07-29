@@ -70,11 +70,11 @@
                                 <copy todir="${basedir}/../../${dist.dir}/connector/stream"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
                                 <move file="${basedir}/../../${dist.dir}/connector/stream/${project.artifactId}-${project.version}.jar"
-                                      tofile="${basedir}/../../${dist.dir}/connector/stream/${project.artifactId}-${git.branch}.jar"/>
+                                      tofile="${basedir}/../../${dist.dir}/connector/stream/${project.artifactId}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../../${dist.dir}/connector/stream/"
 											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}-${git.branch}.jar"/>
+											 excludes="${project.artifactId}.jar"/>
 								</delete>
                             </tasks>
                         </configuration>

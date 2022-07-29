@@ -181,13 +181,13 @@
                         <configuration>
                             <tasks>
 								<move file="${basedir}/target/${artifactId}-${project.version}.jar"
-									  tofile="${basedir}/target/${artifactId}-${git.branch}.jar"/>
+									  tofile="${basedir}/target/${artifactId}.jar"/>
 								<copy todir="${basedir}/../lib/"
-									  file="${basedir}/target/${artifactId}-${git.branch}.jar"/>
+									  file="${basedir}/target/${artifactId}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../lib"
 											 includes="${artifactId}-*.jar"
-											 excludes="${artifactId}-${git.branch}.jar"/>
+											 excludes="${artifactId}.jar"/>
 								</delete>
                             </tasks>
                         </configuration>

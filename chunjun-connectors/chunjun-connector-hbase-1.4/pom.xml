@@ -168,12 +168,12 @@
 								<copy todir="${basedir}/../../${dist.dir}/connector/hbase14/"
 									  file="${basedir}/target/hbase-1.4/original-${project.artifactId}-${project.version}.jar"/>
 								<move file="${basedir}/../../${dist.dir}/connector/hbase14/original-${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/hbase14/${project.artifactId}-${git.branch}.jar"/>
+									  tofile="${basedir}/../../${dist.dir}/connector/hbase14/${project.artifactId}.jar"/>
 								<delete>
 									<!--suppress UnresolvedMavenProperty -->
 									<fileset dir="${basedir}/../../${dist.dir}/connector/hbase14/"
 											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}-${git.branch}.jar"/>
+											 excludes="${project.artifactId}.jar"/>
 								</delete>
 							</tasks>
 						</configuration>
