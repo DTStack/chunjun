@@ -226,12 +226,10 @@ public class BinlogUtil {
      * @return
      */
     public static String getDataBaseByUrl(String jdbcUrl) {
-        int idx = jdbcUrl.lastIndexOf('?');
-        if (idx != -1) {
-            return StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1, idx);
-        } else {
-            return StringUtils.substring(jdbcUrl, jdbcUrl.lastIndexOf('/') + 1);
-        }
+        int paramStartIndex = jdbcUrl.lastIndexOf('?');
+        paramStartIndex = paramStartIndex < 0 ? jdbcUrl.length() : paramStartIndex;
+        int dbStartIndex = StringUtils.substring(jdbcUrl, 0, paramStartIndex).lastIndexOf('/') + 1;
+        return StringUtils.substring(jdbcUrl, dbStartIndex, paramStartIndex);
     }
 
     /**
