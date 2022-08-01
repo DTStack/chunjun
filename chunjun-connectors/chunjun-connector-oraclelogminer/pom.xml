@@ -106,11 +106,11 @@
 								<copy todir="${basedir}/../../${dist.dir}/connector/oraclelogminer"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
 								<move file="${basedir}/../../${dist.dir}/connector/oraclelogminer/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/oraclelogminer/${project.artifactId}-${git.branch}.jar"/>
+									  tofile="${basedir}/../../${dist.dir}/connector/oraclelogminer/${project.artifactId}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../../${dist.dir}/connector/oraclelogminer/"
 											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}-${git.branch}.jar"/>
+											 excludes="${project.artifactId}.jar"/>
 								</delete>
 							</tasks>
 						</configuration>

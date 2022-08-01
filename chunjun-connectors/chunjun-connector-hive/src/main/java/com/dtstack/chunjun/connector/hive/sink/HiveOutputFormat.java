@@ -246,8 +246,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 outputFormatMap.entrySet()) {
             try {
                 BaseHdfsOutputFormat format = entry.getValue().getRight();
-                format.finalizeGlobal(numTasks);
                 format.close();
+                format.finalizeGlobal(numTasks);
             } catch (IOException e) {
                 LOG.warn("close {} outputFormat error", entry.getKey(), e);
             }

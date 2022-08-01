@@ -116,11 +116,11 @@
 									<copy todir="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/"
 										  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
 									<move file="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/${project.artifactId}-${project.version}.jar"
-										  tofile="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/${project.artifactId}-${git.branch}.jar"/>
+										  tofile="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/${project.artifactId}.jar"/>
 									<delete>
 										<fileset dir="${basedir}/../../${dist.dir}/${connector.base.dir}/${connector.dir}/"
 												 includes="${project.artifactId}-*.jar"
-												 excludes="${project.artifactId}-${git.branch}.jar"/>
+												 excludes="${project.artifactId}.jar"/>
 									</delete>
 								</tasks>
 							</configuration>
