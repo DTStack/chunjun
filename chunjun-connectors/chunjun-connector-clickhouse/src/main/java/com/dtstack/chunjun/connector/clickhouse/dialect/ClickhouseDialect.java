@@ -24,7 +24,11 @@ import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 /**
  * @program chunjun
@@ -67,7 +71,18 @@ public class ClickhouseDialect implements JdbcDialect {
 
     @Override
     public String getDeleteStatement(String schema, String tableName, String[] conditionFields) {
-        throw new ChunJunRuntimeException("Clickhouse does not support delete sql");
+        try {
+            String conditionClause =
+                    Arrays.stream(conditionFields)
+                            .map(f -> format("%s = :%s", quoteIdentifier(f), f))
+                            .collect(Collectors.joining(" AND "));
+            return "ALTER TABLE"
+                    + buildTableInfoWithSchema(schema, tableName)
+                    + " DELETE WHERE "
+                    + conditionClause;
+        } catch (Exception e) {
+            throw new ChunJunRuntimeException("Clickhouse does not support delete sql");
+        }
     }
 
     @Override
