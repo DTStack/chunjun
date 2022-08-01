@@ -7,10 +7,10 @@ CREATE TABLE source
     status       STRING
 ) WITH (
       'connector' = 'redis-x',
-      'url'= 'localhost:6379',
+      'url'= 'hadoop101:6379',
       'database' = '1',
       'password' = '123456',
-      'keyPrefix' = 'run_power*',
+      'table-name' = 'run_power*',
       'type' = 'hash',
       'mode' = 'hget'
       );
