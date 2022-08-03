@@ -53,66 +53,42 @@ public class BytesColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Boolean asBoolean() {
-        if (null == data) {
-            return null;
-        }
+    public Boolean asBooleanInternal() {
         throw new CastException("Bytes", "Boolean", this.asString());
     }
 
     @Override
-    public byte[] asBytes() {
-        if (null == data) {
-            return null;
-        }
+    public byte[] asBytesInternal() {
         return (byte[]) data;
     }
 
     @Override
-    public String asString() {
-        if (null == data) {
-            return null;
-        }
+    public String asStringInternal() {
         return new String((byte[]) data, Charset.forName(encoding));
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Bytes", "BigDecimal", this.asString());
+    public BigDecimal asBigDecimalInternal() {
+        throw new CastException("Bytes", "BigDecimal", this.asStringInternal());
     }
 
     @Override
-    public Timestamp asTimestamp() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Bytes", "Timestamp", this.asString());
+    public Timestamp asTimestampInternal() {
+        throw new CastException("Bytes", "Timestamp", this.asStringInternal());
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Bytes", "java.sql.Time", this.asString());
+    public Time asTimeInternal() {
+        throw new CastException("Bytes", "java.sql.Time", this.asStringInternal());
     }
 
     @Override
-    public Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Bytes", "java.sql.Date", this.asString());
+    public Date asSqlDateInternal() {
+        throw new CastException("Bytes", "java.sql.Date", this.asStringInternal());
     }
 
     @Override
-    public String asTimestampStr() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Bytes", "Timestamp", this.asString());
+    public String asTimestampStrInternal() {
+        throw new CastException("Bytes", "Timestamp", this.asStringInternal());
     }
 }

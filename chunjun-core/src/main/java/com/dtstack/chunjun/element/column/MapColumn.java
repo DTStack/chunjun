@@ -51,10 +51,7 @@ public class MapColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public String asString() {
-        if (null == data) {
-            return null;
-        }
+    public String asStringInternal() {
         return JsonUtil.toJson(data);
     }
 
@@ -67,58 +64,37 @@ public class MapColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public byte[] asBytes() {
-        if (null == data) {
-            return null;
-        }
+    public byte[] asBytesInternal() {
         return JsonUtil.toJson(data).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
-    public Boolean asBoolean() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "Boolean", this.asString());
+    public Boolean asBooleanInternal() {
+        throw new CastException("Map", "Boolean", this.asStringInternal());
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "BigDecimal", this.asString());
+    public BigDecimal asBigDecimalInternal() {
+        throw new CastException("Map", "BigDecimal", this.asStringInternal());
     }
 
     @Override
-    public Timestamp asTimestamp() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "Timestamp", this.asString());
+    public Timestamp asTimestampInternal() {
+        throw new CastException("Map", "Timestamp", this.asStringInternal());
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "java.sql.Time", this.asString());
+    public Time asTimeInternal() {
+        throw new CastException("Map", "java.sql.Time", this.asStringInternal());
     }
 
     @Override
-    public java.sql.Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "java.sql.Date", this.asString());
+    public java.sql.Date asSqlDateInternal() {
+        throw new CastException("Map", "java.sql.Date", this.asStringInternal());
     }
 
     @Override
-    public String asTimestampStr() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Map", "Timestamp", this.asString());
+    public String asTimestampStrInternal() {
+        throw new CastException("Map", "Timestamp", this.asStringInternal());
     }
 }

@@ -45,63 +45,42 @@ public class BooleanColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Boolean asBoolean() {
-        if (null == data) {
-            return null;
-        }
+    public Boolean asBooleanInternal() {
         return (boolean) data;
     }
 
     @Override
-    public byte[] asBytes() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("boolean", "Bytes", this.asString());
+    public byte[] asBytesInternal() {
+        throw new CastException("boolean", "Bytes", this.asStringInternal());
     }
 
     @Override
-    public String asString() {
-        if (null == data) {
-            return null;
-        }
+    public String asStringInternal() {
         return (boolean) data ? "true" : "false";
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
-        if (null == data) {
-            return null;
-        }
+    public BigDecimal asBigDecimalInternal() {
         return BigDecimal.valueOf((boolean) data ? 1L : 0L);
     }
 
     @Override
-    public Timestamp asTimestamp() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("boolean", "Timestamp", this.asString());
+    public Timestamp asTimestampInternal() {
+        throw new CastException("boolean", "Timestamp", this.asStringInternal());
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("boolean", "java.sql.Time", this.asString());
+    public Time asTimeInternal() {
+        throw new CastException("boolean", "java.sql.Time", this.asStringInternal());
     }
 
     @Override
-    public Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("boolean", "java.sql.Date", this.asString());
+    public Date asSqlDateInternal() {
+        throw new CastException("boolean", "java.sql.Date", this.asStringInternal());
     }
 
     @Override
-    public String asTimestampStr() {
-        throw new CastException("boolean", "Timestamp", this.asString());
+    public String asTimestampStrInternal() {
+        throw new CastException("boolean", "Timestamp", this.asStringInternal());
     }
 }

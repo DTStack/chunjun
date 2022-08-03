@@ -84,11 +84,7 @@ public class BigDecimalColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public String asString() {
-        if (null == data) {
-            return null;
-        }
-
+    public String asStringInternal() {
         return data.toString();
     }
 
@@ -102,57 +98,39 @@ public class BigDecimalColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public byte[] asBytes() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("BigDecimal", "Bytes", this.asString());
+    public byte[] asBytesInternal() {
+        throw new CastException("BigDecimal", "Bytes", this.asStringInternal());
     }
 
     @Override
-    public Boolean asBoolean() {
-        if (null == data) {
-            return null;
-        }
+    public Boolean asBooleanInternal() {
         BigDecimal bigDecimal = (BigDecimal) data;
         return bigDecimal.compareTo(BigDecimal.ZERO) != 0;
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
-        if (null == data) {
-            return null;
-        }
+    public BigDecimal asBigDecimalInternal() {
         return (BigDecimal) data;
     }
 
     @Override
-    public Timestamp asTimestamp() {
-        if (null == data) {
-            return null;
-        }
+    public Timestamp asTimestampInternal() {
         BigDecimal bigDecimal = (BigDecimal) data;
         return new Timestamp(bigDecimal.longValue());
     }
 
     @Override
-    public java.sql.Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
-        return java.sql.Date.valueOf(asTimestamp().toLocalDateTime().toLocalDate());
+    public java.sql.Date asSqlDateInternal() {
+        return java.sql.Date.valueOf(asTimestampInternal().toLocalDateTime().toLocalDate());
     }
 
     @Override
-    public String asTimestampStr() {
-        return asTimestamp().toString();
+    public String asTimestampStrInternal() {
+        return asTimestampInternal().toString();
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
+    public Time asTimeInternal() {
         BigDecimal bigDecimal = (BigDecimal) data;
         return new Time(bigDecimal.longValue());
     }

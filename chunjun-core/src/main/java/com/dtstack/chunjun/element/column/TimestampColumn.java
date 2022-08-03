@@ -87,27 +87,18 @@ public class TimestampColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Boolean asBoolean() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Timestamp", "Boolean", this.asString());
+    public Boolean asBooleanInternal() {
+        throw new CastException("Timestamp", "Boolean", this.asStringInternal());
     }
 
     @Override
-    public byte[] asBytes() {
-        if (null == data) {
-            return null;
-        }
-        throw new CastException("Timestamp", "Bytes", this.asString());
+    public byte[] asBytesInternal() {
+        throw new CastException("Timestamp", "Bytes", this.asStringInternal());
     }
 
     @Override
-    public String asString() {
-        if (null == data) {
-            return null;
-        }
-        return asTimestampStr();
+    public String asStringInternal() {
+        return asTimestampStrInternal();
     }
 
     /**
@@ -117,10 +108,7 @@ public class TimestampColumn extends AbstractBaseColumn {
      * @return 指定precision的Timestamp字符串
      */
     @Override
-    public String asTimestampStr() {
-        if (null == data) {
-            return null;
-        }
+    public String asTimestampStrInternal() {
         // precision>0需要补上'.'的长度
         int resLength =
                 (precision == 0 ? DATETIME_STR_LENGTH : DATETIME_STR_LENGTH + 1 + precision);
@@ -136,10 +124,7 @@ public class TimestampColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
-        if (null == data) {
-            return null;
-        }
+    public BigDecimal asBigDecimalInternal() {
         return new BigDecimal(((TimeStamp) data).getTime());
     }
 
@@ -152,31 +137,17 @@ public class TimestampColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Short asShort() {
-        throw new CastException("java.sql.Timestamp", "Short", this.asString());
-    }
-
-    @Override
-    public Timestamp asTimestamp() {
-        if (null == data) {
-            return null;
-        }
+    public Timestamp asTimestampInternal() {
         return (Timestamp) data;
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
+    public Time asTimeInternal() {
         return new Time(((Timestamp) data).getTime());
     }
 
     @Override
-    public java.sql.Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
+    public java.sql.Date asSqlDateInternal() {
         return java.sql.Date.valueOf(asTimestamp().toLocalDateTime().toLocalDate());
     }
 
@@ -185,12 +156,10 @@ public class TimestampColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Integer asInt() {
-        throw new CastException("java.sql.Timestamp", "Integer", this.asString());
-    }
-
-    @Override
     public Integer asYearInt() {
-        return asTimestamp().toLocalDateTime().getYear();
+        if (null == data) {
+            return null;
+        }
+        return asTimestampInternal().toLocalDateTime().getYear();
     }
 }

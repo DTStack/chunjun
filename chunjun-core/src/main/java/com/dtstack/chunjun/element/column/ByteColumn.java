@@ -48,48 +48,42 @@ public class ByteColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Boolean asBoolean() {
+    public Boolean asBooleanInternal() {
         return (byte) data != 0x00;
     }
 
     @Override
-    public byte[] asBytes() {
+    public byte[] asBytesInternal() {
         return new byte[] {(byte) data};
     }
 
     @Override
-    public String asString() {
+    public String asStringInternal() {
         return String.valueOf(data);
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
+    public BigDecimal asBigDecimalInternal() {
         return new BigDecimal((byte) data);
     }
 
     @Override
-    public Timestamp asTimestamp() {
+    public Timestamp asTimestampInternal() {
         throw new CastException("byte", "Timestamp", String.valueOf(data));
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
+    public Time asTimeInternal() {
         throw new CastException("byte", "java.sql.Time", String.valueOf(data));
     }
 
     @Override
-    public Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
+    public Date asSqlDateInternal() {
         throw new CastException("byte", "java.sql.Date", String.valueOf(data));
     }
 
     @Override
-    public String asTimestampStr() {
+    public String asTimestampStrInternal() {
         throw new CastException("byte", "Timestamp", String.valueOf(data));
     }
 }

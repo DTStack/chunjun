@@ -43,44 +43,140 @@ public abstract class AbstractBaseColumn implements Serializable {
      *
      * @return
      */
-    public abstract Boolean asBoolean();
+    public Boolean asBoolean() {
+        if (data == null) {
+            return null;
+        }
+        return asBooleanInternal();
+    }
 
     /**
      * Convert data to byte[] type
      *
      * @return
      */
-    public abstract byte[] asBytes();
+    public byte[] asBytes() {
+        if (data == null) {
+            return null;
+        }
+        return asBytesInternal();
+    }
 
     /**
      * Convert data to String type
      *
      * @return
      */
-    public abstract String asString();
+    public String asString() {
+        if (data == null) {
+            return null;
+        }
+        return asStringInternal();
+    }
 
     /**
      * Convert data to BigDecimal type
      *
      * @return
      */
-    public abstract BigDecimal asBigDecimal();
+    public BigDecimal asBigDecimal() {
+        if (data == null) {
+            return null;
+        }
+        return asBigDecimalInternal();
+    }
 
     /**
      * Convert data to Timestamp type
      *
      * @return
      */
-    public abstract Timestamp asTimestamp();
+    public Timestamp asTimestamp() {
+        if (data == null) {
+            return null;
+        }
+        return asTimestampInternal();
+    }
 
     /** Convert data to Time type */
-    public abstract Time asTime();
+    public Time asTime() {
+        if (data == null) {
+            return null;
+        }
+        return asTimeInternal();
+    }
 
     /** Convert data to java.sql.Date type */
-    public abstract java.sql.Date asSqlDate();
+    public java.sql.Date asSqlDate() {
+        if (data == null) {
+            return null;
+        }
+        return asSqlDateInternal();
+    }
 
     /** Convert data to timestamp string */
-    public abstract String asTimestampStr();
+    public String asTimestampStr() {
+        if (data == null) {
+            return null;
+        }
+        return asTimestampStrInternal();
+    }
+
+    /**
+     * Convert data to Boolean type
+     *
+     * @return
+     */
+    public abstract Boolean asBooleanInternal();
+
+    /**
+     * Convert data to byte[] type
+     *
+     * @return
+     */
+    public abstract byte[] asBytesInternal();
+
+    /**
+     * Convert data to String type
+     *
+     * @return
+     */
+    public abstract String asStringInternal();
+
+    /**
+     * Convert data to BigDecimal type
+     *
+     * @return
+     */
+    public abstract BigDecimal asBigDecimalInternal();
+
+    /**
+     * Convert data to Timestamp type
+     *
+     * @return
+     */
+    public abstract Timestamp asTimestampInternal();
+
+    /** Convert data to Time type */
+    public abstract Time asTimeInternal();
+
+    /** Convert data to java.sql.Date type */
+    public abstract java.sql.Date asSqlDateInternal();
+
+    /** Convert data to timestamp string */
+    public abstract String asTimestampStrInternal();
+
+    /**
+     * Convert data to short type
+     *
+     * @return
+     */
+    public Byte asByte() {
+        if (null == data) {
+            return null;
+        }
+        return this.asBigDecimal().byteValue();
+    }
 
     /**
      * Convert data to short type

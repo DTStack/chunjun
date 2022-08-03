@@ -74,10 +74,7 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public String asString() {
-        if (null == data) {
-            return null;
-        }
+    public String asStringInternal() {
         if (isCustomFormat) {
             return asTimestampStr();
         } else {
@@ -128,15 +125,12 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public byte[] asBytes() {
-        if (null == data) {
-            return null;
-        }
+    public byte[] asBytesInternal() {
         return ((String) data).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
-    public Boolean asBoolean() {
+    public Boolean asBooleanInternal() {
         if (null == data) {
             return null;
         }
@@ -161,10 +155,7 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
-        if (null == data) {
-            return null;
-        }
+    public BigDecimal asBigDecimalInternal() {
         String data = String.valueOf(this.data);
         this.validateDoubleSpecific(data);
 
@@ -198,10 +189,7 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Timestamp asTimestamp() {
-        if (null == data) {
-            return null;
-        }
+    public Timestamp asTimestampInternal() {
         try {
             return new Timestamp(this.asDate().getTime());
         } catch (CastException e) {
@@ -219,26 +207,17 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Time asTime() {
-        if (null == data) {
-            return null;
-        }
+    public Time asTimeInternal() {
         return new Time(asTimestamp().getTime());
     }
 
     @Override
-    public java.sql.Date asSqlDate() {
-        if (null == data) {
-            return null;
-        }
+    public java.sql.Date asSqlDateInternal() {
         return java.sql.Date.valueOf(asTimestamp().toLocalDateTime().toLocalDate());
     }
 
     @Override
-    public String asTimestampStr() {
-        if (null == data) {
-            return null;
-        }
+    public String asTimestampStrInternal() {
         SimpleDateFormat dateFormat = DateUtil.buildDateFormatter(format);
         String data = String.valueOf(this.data);
         try {

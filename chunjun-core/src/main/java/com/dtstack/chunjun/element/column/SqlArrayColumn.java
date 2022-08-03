@@ -46,17 +46,17 @@ public class SqlArrayColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public Boolean asBoolean() {
+    public Boolean asBooleanInternal() {
         return null;
     }
 
     @Override
-    public byte[] asBytes() {
+    public byte[] asBytesInternal() {
         return new byte[0];
     }
 
     @Override
-    public String asString() {
+    public String asStringInternal() {
         if (data == null) {
             return null;
         }
@@ -64,27 +64,27 @@ public class SqlArrayColumn extends AbstractBaseColumn {
     }
 
     @Override
-    public BigDecimal asBigDecimal() {
+    public BigDecimal asBigDecimalInternal() {
         return null;
     }
 
     @Override
-    public Timestamp asTimestamp() {
+    public Timestamp asTimestampInternal() {
         return null;
     }
 
     @Override
-    public Time asTime() {
+    public Time asTimeInternal() {
         return null;
     }
 
     @Override
-    public Date asSqlDate() {
+    public Date asSqlDateInternal() {
         return null;
     }
 
     @Override
-    public String asTimestampStr() {
+    public String asTimestampStrInternal() {
         return null;
     }
 }
