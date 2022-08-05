@@ -25,15 +25,15 @@ import java.math.BigDecimal;
 /** @author liuliu 2022/8/3 */
 public class IntColumn extends NumericColumn {
 
-    IntColumn(int data) {
-        this(data, 4);
+    public IntColumn(int data) {
+        super(data, 4);
     }
 
     private IntColumn(int data, int byteSize) {
         super(data, byteSize);
     }
 
-    public IntColumn from(int data) {
+    public static IntColumn from(int data) {
         return new IntColumn(data, 0);
     }
 

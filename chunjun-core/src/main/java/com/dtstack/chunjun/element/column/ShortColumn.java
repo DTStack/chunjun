@@ -24,14 +24,14 @@ import java.math.BigDecimal;
 public class ShortColumn extends NumericColumn {
 
     public ShortColumn(short data) {
-        this(data, 2);
+        super(data, 2);
     }
 
-    public ShortColumn(short data, int byteSize) {
+    private ShortColumn(short data, int byteSize) {
         super(data, byteSize);
     }
 
-    public ShortColumn from(short data) {
+    public static ShortColumn from(short data) {
         return new ShortColumn(data, 2);
     }
 

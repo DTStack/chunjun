@@ -39,18 +39,6 @@ public class BigDecimalColumn extends AbstractBaseColumn {
         this(data, data.toString());
     }
 
-    public BigDecimalColumn(int data) {
-        this(new BigDecimal(data), String.valueOf(data));
-    }
-
-    public BigDecimalColumn(double data) {
-        this(String.valueOf(data));
-    }
-
-    public BigDecimalColumn(float data) {
-        this(String.valueOf(data));
-    }
-
     public BigDecimalColumn(long data) {
         this(new BigDecimal(data), String.valueOf(data));
     }
@@ -63,19 +51,11 @@ public class BigDecimalColumn extends AbstractBaseColumn {
         this(new BigDecimal(data), data.toString());
     }
 
-    public BigDecimalColumn(short data) {
-        this(new BigDecimal(data), String.valueOf(data));
-    }
-
-    public BigDecimalColumn(short data, int size) {
-        super(new BigDecimal(data), size);
-    }
-
-    public BigDecimalColumn(BigDecimal bigDecimal, String data) {
+    private BigDecimalColumn(BigDecimal bigDecimal, String data) {
         super(bigDecimal, getStringSize(data));
     }
 
-    public BigDecimalColumn(BigDecimal data, int byteSize) {
+    private BigDecimalColumn(BigDecimal data, int byteSize) {
         super(data, byteSize);
     }
 

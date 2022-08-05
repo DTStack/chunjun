@@ -42,7 +42,7 @@ public class MapColumn extends AbstractBaseColumn {
         }
     }
 
-    public MapColumn(Map<String, Object> data, int byteSize) {
+    private MapColumn(Map<String, Object> data, int byteSize) {
         super(data, byteSize);
     }
 

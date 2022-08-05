@@ -24,7 +24,13 @@ import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -58,22 +64,31 @@ public class DmColumnConverter extends JdbcColumnConverter {
             case TINYINT:
                 return val -> {
                     if (val instanceof Integer) {
-                        return new BigDecimalColumn(((Integer) val).byteValue());
+                        return new ByteColumn(((Integer) val).byteValue());
                     } else if (val instanceof Short) {
-                        return new BigDecimalColumn(((Short) val).byteValue());
+                        return new ByteColumn(((Short) val).byteValue());
                     } else {
-                        return new BigDecimalColumn((Byte) val);
+                        return new ByteColumn((Byte) val);
                     }
                 };
             case SMALLINT:
+                return val -> {
+                    if (val instanceof Byte) {
+                        return new ShortColumn((Byte) val);
+                    } else if (val instanceof Short) {
+                        return new ShortColumn((Short) val);
+                    } else {
+                        return new ShortColumn(((Integer) val).shortValue());
+                    }
+                };
             case INTEGER:
                 return val -> {
                     if (val instanceof Byte) {
-                        return new BigDecimalColumn(((Byte) val).intValue());
+                        return new IntColumn((Byte) val);
                     } else if (val instanceof Short) {
-                        return new BigDecimalColumn(((Short) val).intValue());
+                        return new IntColumn(((Short) val).intValue());
                     } else {
-                        return new BigDecimalColumn((Integer) val);
+                        return new IntColumn((Integer) val);
                     }
                 };
             case INTERVAL_YEAR_MONTH:
@@ -83,7 +98,7 @@ public class DmColumnConverter extends JdbcColumnConverter {
                                     (YearMonthIntervalType) type;
                             switch (yearMonthIntervalType.getResolution()) {
                                 case YEAR:
-                                    return new BigDecimalColumn(
+                                    return new IntColumn(
                                             Integer.parseInt(String.valueOf(val).substring(0, 4)));
                                 case MONTH:
                                 case YEAR_TO_MONTH:
@@ -93,11 +108,11 @@ public class DmColumnConverter extends JdbcColumnConverter {
                             }
                         };
             case FLOAT:
-                return val -> new BigDecimalColumn((Float) val);
+                return val -> new FloatColumn((Float) val);
             case DOUBLE:
-                return val -> new BigDecimalColumn((Double) val);
+                return val -> new DoubleColumn((Double) val);
             case BIGINT:
-                return val -> new BigDecimalColumn((Long) val);
+                return val -> new LongColumn((Long) val);
             case DECIMAL:
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:

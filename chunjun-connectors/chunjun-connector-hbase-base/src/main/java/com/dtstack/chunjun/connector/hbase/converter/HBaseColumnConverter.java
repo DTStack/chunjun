@@ -30,7 +30,13 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -234,7 +240,7 @@ public class HBaseColumnConverter
                 return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
                     @Override
                     public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        return new BigDecimalColumn(bytes[0]);
+                        return new ByteColumn(bytes[0]);
                     }
                 };
             case BOOLEAN:
@@ -251,7 +257,7 @@ public class HBaseColumnConverter
                     @Override
                     public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
                         Long value = Bytes.toLong(bytes);
-                        return new BigDecimalColumn(value);
+                        return new LongColumn(value);
                     }
                 };
             case SMALLINT:
@@ -259,7 +265,7 @@ public class HBaseColumnConverter
                     @Override
                     public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
                         Short value = Bytes.toShort(bytes);
-                        return new BigDecimalColumn(value);
+                        return new ShortColumn(value);
                     }
                 };
             case DOUBLE:
@@ -267,7 +273,7 @@ public class HBaseColumnConverter
                     @Override
                     public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
                         Double value = Bytes.toDouble(bytes);
-                        return new BigDecimalColumn(value);
+                        return new DoubleColumn(value);
                     }
                 };
             case FLOAT:
@@ -275,7 +281,7 @@ public class HBaseColumnConverter
                     @Override
                     public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
                         Float value = Bytes.toFloat(bytes);
-                        return new BigDecimalColumn(value);
+                        return new FloatColumn(value);
                     }
                 };
             case DECIMAL:
@@ -292,7 +298,7 @@ public class HBaseColumnConverter
                     @Override
                     public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
                         Integer value = Bytes.toInt(bytes);
-                        return new BigDecimalColumn(value);
+                        return new IntColumn(value);
                     }
                 };
             case DATE:

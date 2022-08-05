@@ -26,14 +26,14 @@ import java.math.BigDecimal;
 public class FloatColumn extends NumericColumn {
 
     public FloatColumn(float data) {
-        this(data, 4);
+        super(data, 4);
     }
 
     private FloatColumn(float data, int byteSize) {
         super(data, byteSize);
     }
 
-    public FloatColumn from(float data) {
+    public static FloatColumn from(float data) {
         return new FloatColumn(data, 0);
     }
 

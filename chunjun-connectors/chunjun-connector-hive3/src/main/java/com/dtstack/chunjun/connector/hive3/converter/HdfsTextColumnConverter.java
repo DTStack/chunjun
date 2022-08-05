@@ -29,6 +29,11 @@ import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
@@ -126,10 +131,15 @@ public class HdfsTextColumnConverter
             case TINYINT:
                 return val -> new ByteColumn(Byte.parseByte(val));
             case SMALLINT:
+                return val -> new ShortColumn(Short.parseShort(val));
             case INTEGER:
+                return val -> new IntColumn(Integer.parseInt(val));
             case BIGINT:
+                return val -> new LongColumn(Long.parseLong(val));
             case FLOAT:
+                return val -> new FloatColumn(Float.parseFloat(val));
             case DOUBLE:
+                return val -> new DoubleColumn(Double.parseDouble(val));
             case DECIMAL:
                 return BigDecimalColumn::new;
             case VARCHAR:

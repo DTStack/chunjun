@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.typeutil.serializer.base;
 
 import com.dtstack.chunjun.element.AbstractBaseColumn;
-import com.dtstack.chunjun.element.column.BigDecimalColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.typeutil.serializer.DeeplyEqualsChecker;
 import com.dtstack.chunjun.typeutil.serializer.SerializerTestBase;
@@ -27,7 +27,6 @@ import com.dtstack.chunjun.typeutil.serializer.SerializerTestBase;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.java.tuple.Tuple2;
 
-import java.math.BigDecimal;
 import java.util.function.BiFunction;
 
 /** @author liuliu 2022/5/13 */
@@ -40,7 +39,7 @@ public class LongColumnSerializerTest extends SerializerTestBase<AbstractBaseCol
                 new BiFunction<Object, Object, Boolean>() {
                     @Override
                     public Boolean apply(Object o, Object o2) {
-                        return (o instanceof BigDecimalColumn && o2 instanceof BigDecimalColumn)
+                        return (o instanceof LongColumn && o2 instanceof LongColumn)
                                 || (o instanceof NullColumn && o2 instanceof NullColumn);
                     }
                 },
@@ -66,9 +65,9 @@ public class LongColumnSerializerTest extends SerializerTestBase<AbstractBaseCol
     protected AbstractBaseColumn[] getTestData() {
         return new AbstractBaseColumn[] {
             new NullColumn(),
-            new BigDecimalColumn(new BigDecimal("123123123123")),
-            new BigDecimalColumn(new BigDecimal("212123123123")),
-            new BigDecimalColumn(new BigDecimal("1234312123123")),
+            new LongColumn(123123123123L),
+            new LongColumn(212123123123L),
+            new LongColumn(1234312123123L),
         };
     }
 
@@ -76,11 +75,8 @@ public class LongColumnSerializerTest extends SerializerTestBase<AbstractBaseCol
 
         @Override
         public boolean check(Object o1, Object o2, DeeplyEqualsChecker checker) {
-            if (o1 instanceof BigDecimalColumn && o2 instanceof BigDecimalColumn) {
-                return ((BigDecimalColumn) o1)
-                                .asBigDecimal()
-                                .compareTo(((BigDecimalColumn) o2).asBigDecimal())
-                        == 0;
+            if (o1 instanceof LongColumn && o2 instanceof LongColumn) {
+                return ((LongColumn) o1).asLong().compareTo(((LongColumn) o2).asLong()) == 0;
             } else {
                 return o1 instanceof NullColumn && o2 instanceof NullColumn;
             }

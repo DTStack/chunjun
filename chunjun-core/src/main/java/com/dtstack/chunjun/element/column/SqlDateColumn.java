@@ -33,8 +33,8 @@ public class SqlDateColumn extends AbstractBaseColumn {
         super(data, 8);
     }
 
-    public SqlDateColumn(Date data, int byteSize) {
-        super(data, 0);
+    private SqlDateColumn(Date data, int byteSize) {
+        super(data, byteSize);
     }
 
     public SqlDateColumn(long data) {

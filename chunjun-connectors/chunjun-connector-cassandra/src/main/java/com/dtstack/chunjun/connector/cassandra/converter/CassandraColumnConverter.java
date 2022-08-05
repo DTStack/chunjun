@@ -28,6 +28,11 @@ import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
@@ -118,17 +123,17 @@ public class CassandraColumnConverter
                 return val -> new ByteColumn((byte) val);
             case "SMALLINT":
             case "VARINT":
-                return val -> new BigDecimalColumn((Short) val);
+                return val -> new ShortColumn((Short) val);
             case "INTEGER":
             case "INT":
-                return val -> new BigDecimalColumn((Integer) val);
+                return val -> new IntColumn((Integer) val);
             case "FLOAT":
-                return val -> new BigDecimalColumn((Float) val);
+                return val -> new FloatColumn((Float) val);
             case "DOUBLE":
-                return val -> new BigDecimalColumn((Double) val);
+                return val -> new DoubleColumn((Double) val);
             case "LONG":
             case "BIGINT":
-                return val -> new BigDecimalColumn((Long) val);
+                return val -> new LongColumn((Long) val);
             case "DECIMAL":
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case "VARCHAR":

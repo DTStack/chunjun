@@ -23,7 +23,13 @@ import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -78,27 +84,27 @@ public class HBaseColumnConverterTest {
         FieldConf id = new FieldConf();
         id.setName("stu:id");
         id.setType("int");
-        rowData.addField(new BigDecimalColumn(1));
+        rowData.addField(new IntColumn(1));
 
         FieldConf decimal_val = new FieldConf();
         decimal_val.setName("msg:decimal_val");
         decimal_val.setType("decimal(38, 18)");
-        rowData.addField(new BigDecimalColumn(3.3));
+        rowData.addField(new BigDecimalColumn(new BigDecimal("3.3")));
 
         FieldConf float_val = new FieldConf();
         float_val.setName("msg:float_val");
         float_val.setType("float");
-        rowData.addField(new BigDecimalColumn(3.33));
+        rowData.addField(new FloatColumn(3.33f));
 
         FieldConf smallint_val = new FieldConf();
         smallint_val.setName("msg:smallint_val");
         smallint_val.setType("smallint");
-        rowData.addField(new BigDecimalColumn(3));
+        rowData.addField(new ShortColumn((short) 3));
 
         FieldConf bigint_val = new FieldConf();
         bigint_val.setName("msg:bigint_val");
         bigint_val.setType("bigint");
-        rowData.addField(new BigDecimalColumn(1));
+        rowData.addField(new LongColumn(1));
 
         FieldConf boolean_val = new FieldConf();
         boolean_val.setName("msg:boolean_val");
@@ -108,7 +114,7 @@ public class HBaseColumnConverterTest {
         FieldConf tinyint_val = new FieldConf();
         tinyint_val.setName("msg:tinyint_val");
         tinyint_val.setType("tinyint");
-        rowData.addField(new BigDecimalColumn(1));
+        rowData.addField(new ByteColumn((byte) 1));
 
         FieldConf date_val = new FieldConf();
         date_val.setName("msg:date_val");
@@ -143,7 +149,7 @@ public class HBaseColumnConverterTest {
         FieldConf double_val = new FieldConf();
         double_val.setName("msg:double_val");
         double_val.setType("double");
-        rowData.addField(new BigDecimalColumn(3.33));
+        rowData.addField(new DoubleColumn(3.33d));
 
         FieldConf val_1 = new FieldConf();
         val_1.setName("val_1");

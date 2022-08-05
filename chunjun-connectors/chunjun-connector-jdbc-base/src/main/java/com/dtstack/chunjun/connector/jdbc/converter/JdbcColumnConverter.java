@@ -29,7 +29,13 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -133,10 +139,11 @@ public class JdbcColumnConverter
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
-                return val -> new BigDecimalColumn(((Integer) val).byteValue());
+                return val -> new ByteColumn(((Integer) val).byteValue());
             case SMALLINT:
+                return val -> new ShortColumn(((Integer) val).shortValue());
             case INTEGER:
-                return val -> new BigDecimalColumn((Integer) val);
+                return val -> new IntColumn((Integer) val);
             case INTERVAL_YEAR_MONTH:
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)
                         val -> {
@@ -144,7 +151,7 @@ public class JdbcColumnConverter
                                     (YearMonthIntervalType) type;
                             switch (yearMonthIntervalType.getResolution()) {
                                 case YEAR:
-                                    return new BigDecimalColumn(
+                                    return new IntColumn(
                                             Integer.parseInt(String.valueOf(val).substring(0, 4)));
                                 case MONTH:
                                 case YEAR_TO_MONTH:
@@ -154,11 +161,11 @@ public class JdbcColumnConverter
                             }
                         };
             case FLOAT:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).floatValue());
+                return val -> new FloatColumn(Float.parseFloat(val.toString()));
             case DOUBLE:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).doubleValue());
+                return val -> new DoubleColumn(Double.parseDouble(val.toString()));
             case BIGINT:
-                return val -> new BigDecimalColumn((new BigDecimal(val.toString()).longValue()));
+                return val -> new LongColumn(Long.parseLong(val.toString()));
             case DECIMAL:
                 return val -> new BigDecimalColumn(new BigDecimal(val.toString()));
             case CHAR:

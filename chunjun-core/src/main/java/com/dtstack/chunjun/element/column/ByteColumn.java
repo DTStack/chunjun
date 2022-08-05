@@ -35,7 +35,7 @@ public class ByteColumn extends AbstractBaseColumn {
         super(data, 1);
     }
 
-    public ByteColumn(byte data, int byteSize) {
+    private ByteColumn(byte data, int byteSize) {
         super(data, byteSize);
     }
 

@@ -58,7 +58,7 @@ public class TimestampColumn extends AbstractBaseColumn {
         this.precision = precision;
     }
 
-    public TimestampColumn(Timestamp data, int precision, int byteSize) {
+    private TimestampColumn(Timestamp data, int precision, int byteSize) {
         super(data, byteSize);
         this.precision = precision;
     }
@@ -68,7 +68,7 @@ public class TimestampColumn extends AbstractBaseColumn {
         this.precision = precision;
     }
 
-    public TimestampColumn(long data, int precision, int byteSize) {
+    private TimestampColumn(long data, int precision, int byteSize) {
         super(new Timestamp(data), byteSize);
         this.precision = precision;
     }

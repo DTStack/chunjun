@@ -54,6 +54,7 @@ public class SqlserverMicroSoftRawTypeConverter {
             case "BIT":
                 return DataTypes.BOOLEAN();
             case "BIGINT":
+            case "TIMESTAMP":
                 return DataTypes.BIGINT();
             case "SMALLINT":
             case "TINYINT":
@@ -96,7 +97,6 @@ public class SqlserverMicroSoftRawTypeConverter {
             case "BINARY":
             case "VARBINARY":
             case "IMAGE":
-            case "TIMESTAMP":
                 return DataTypes.BYTES();
             case "MONEY":
             case "SMALLMONEY":

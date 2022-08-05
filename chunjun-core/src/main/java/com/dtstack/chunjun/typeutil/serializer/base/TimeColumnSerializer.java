@@ -75,20 +75,19 @@ public class TimeColumnSerializer extends TypeSerializerSingleton<AbstractBaseCo
     @Override
     public void serialize(AbstractBaseColumn record, DataOutputView target) throws IOException {
         if (record == null || record instanceof NullColumn) {
-            target.writeBoolean(false);
+            target.writeLong(Long.MIN_VALUE);
         } else {
-            target.writeBoolean(true);
-            target.writeLong(record.asTime().getTime());
+            target.writeLong(((Time) record.getData()).getTime());
         }
     }
 
     @Override
     public AbstractBaseColumn deserialize(DataInputView source) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        if (isNotNull) {
-            return TimeColumn.from(new Time(source.readLong()));
-        } else {
+        long value = source.readLong();
+        if (value == Long.MIN_VALUE) {
             return new NullColumn();
+        } else {
+            return TimeColumn.from(new Time(value));
         }
     }
 
@@ -100,11 +99,7 @@ public class TimeColumnSerializer extends TypeSerializerSingleton<AbstractBaseCo
 
     @Override
     public void copy(DataInputView source, DataOutputView target) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        target.writeBoolean(isNotNull);
-        if (isNotNull) {
-            target.writeLong(source.readLong());
-        }
+        target.writeLong(source.readLong());
     }
 
     @Override

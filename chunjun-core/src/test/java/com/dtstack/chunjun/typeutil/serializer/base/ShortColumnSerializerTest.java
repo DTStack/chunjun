@@ -19,15 +19,14 @@
 package com.dtstack.chunjun.typeutil.serializer.base;
 
 import com.dtstack.chunjun.element.AbstractBaseColumn;
-import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.typeutil.serializer.DeeplyEqualsChecker;
 import com.dtstack.chunjun.typeutil.serializer.SerializerTestBase;
 
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.java.tuple.Tuple2;
 
-import java.math.BigDecimal;
 import java.util.function.BiFunction;
 
 /** @author liuliu 2022/5/13 */
@@ -40,7 +39,7 @@ public class ShortColumnSerializerTest extends SerializerTestBase<AbstractBaseCo
                 new BiFunction<Object, Object, Boolean>() {
                     @Override
                     public Boolean apply(Object o, Object o2) {
-                        return (o instanceof BigDecimalColumn && o2 instanceof BigDecimalColumn)
+                        return (o instanceof ShortColumn && o2 instanceof ShortColumn)
                                 || (o instanceof NullColumn && o2 instanceof NullColumn);
                     }
                 },
@@ -66,9 +65,9 @@ public class ShortColumnSerializerTest extends SerializerTestBase<AbstractBaseCo
     protected AbstractBaseColumn[] getTestData() {
         return new AbstractBaseColumn[] {
             new NullColumn(),
-            new BigDecimalColumn(new BigDecimal("123")),
-            new BigDecimalColumn(new BigDecimal("12")),
-            new BigDecimalColumn(new BigDecimal("1")),
+            new ShortColumn((short) 123),
+            new ShortColumn((short) 12),
+            new ShortColumn((short) 1),
         };
     }
 
@@ -76,10 +75,10 @@ public class ShortColumnSerializerTest extends SerializerTestBase<AbstractBaseCo
 
         @Override
         public boolean check(Object o1, Object o2, DeeplyEqualsChecker checker) {
-            if (o1 instanceof BigDecimalColumn && o2 instanceof BigDecimalColumn) {
-                return ((BigDecimalColumn) o1)
+            if (o1 instanceof ShortColumn && o2 instanceof ShortColumn) {
+                return ((ShortColumn) o1)
                                 .asBigDecimal()
-                                .compareTo(((BigDecimalColumn) o2).asBigDecimal())
+                                .compareTo(((ShortColumn) o2).asBigDecimal())
                         == 0;
             } else {
                 return o1 instanceof NullColumn && o2 instanceof NullColumn;

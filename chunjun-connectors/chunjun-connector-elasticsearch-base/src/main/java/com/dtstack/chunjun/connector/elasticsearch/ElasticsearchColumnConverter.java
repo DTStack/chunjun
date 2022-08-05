@@ -25,7 +25,13 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -149,16 +155,17 @@ public class ElasticsearchColumnConverter
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).byteValue());
+                return val -> new ByteColumn(Byte.parseByte(val.toString()));
             case SMALLINT:
+                return val -> new ShortColumn(Short.parseShort(val.toString()));
             case INTEGER:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).intValue());
+                return val -> new IntColumn(Integer.parseInt(val.toString()));
             case FLOAT:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).floatValue());
+                return val -> new FloatColumn(Float.parseFloat(val.toString()));
             case DOUBLE:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).doubleValue());
+                return val -> new DoubleColumn(Double.parseDouble(val.toString()));
             case BIGINT:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).longValue());
+                return val -> new LongColumn(Long.parseLong(val.toString()));
             case DECIMAL:
                 return val -> new BigDecimalColumn(new BigDecimal(val.toString()));
             case CHAR:

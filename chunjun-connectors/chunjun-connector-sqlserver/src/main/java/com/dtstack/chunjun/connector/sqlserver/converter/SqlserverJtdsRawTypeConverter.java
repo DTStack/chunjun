@@ -52,6 +52,7 @@ public class SqlserverJtdsRawTypeConverter {
             case "BIT":
                 return DataTypes.BOOLEAN();
             case "BIGINT":
+            case "TIMESTAMP":
                 return DataTypes.BIGINT();
             case "TINYINT":
                 return DataTypes.TINYINT();
@@ -94,7 +95,6 @@ public class SqlserverJtdsRawTypeConverter {
             case "BINARY":
             case "VARBINARY":
             case "IMAGE":
-            case "TIMESTAMP":
                 return DataTypes.BYTES();
             case "MONEY":
             case "SMALLMONEY":

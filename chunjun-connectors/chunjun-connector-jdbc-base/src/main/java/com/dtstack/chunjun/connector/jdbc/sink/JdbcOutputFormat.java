@@ -250,7 +250,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             if (!dbConn.isValid(10)) {
                 if (Semantic.EXACTLY_ONCE == semantic) {
                     throw new FlinkRuntimeException(
-                            "jdbc connection is valid!work's semantic is ExactlyOnce.To prevent data loss,we don't try to reopen the connection");
+                            "jdbc connection is invalid!work's semantic is ExactlyOnce.To prevent data loss,we don't try to reopen the connection");
                 }
                 LOG.info("db connection reconnect..");
                 dbConn = getConnection();

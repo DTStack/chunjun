@@ -27,6 +27,11 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
@@ -125,10 +130,20 @@ public class HdfsTextColumnConverter
             case "TINYINT":
                 return (IDeserializationConverter<Byte, AbstractBaseColumn>) ByteColumn::new;
             case "SMALLINT":
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new ShortColumn(Short.parseShort(val));
             case "INT":
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new IntColumn(Integer.parseInt(val));
             case "BIGINT":
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new LongColumn(Long.parseLong(val));
             case "FLOAT":
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new FloatColumn(Float.parseFloat(val));
             case "DOUBLE":
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new DoubleColumn(Double.parseDouble(val));
             case "DECIMAL":
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
                         BigDecimalColumn::new;

@@ -123,12 +123,12 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     public void convertToExternal(RowData row) throws Exception {
         getOrCreateFieldNamedPstmt(row);
-        if (!writeExtInfo) {
-            if (row instanceof ColumnRowData) {
-                ColumnRowData copy = ((ColumnRowData) row).copy();
-                copy.removeExtHeaderInfo();
-                row = copy;
-            }
+        if (!writeExtInfo
+                && row instanceof ColumnRowData
+                && ((ColumnRowData) row).getHeaderInfo() != null) {
+            ColumnRowData copy = ((ColumnRowData) row).copy();
+            copy.removeExtHeaderInfo();
+            row = copy;
         }
 
         currentFieldNamedPstmt =

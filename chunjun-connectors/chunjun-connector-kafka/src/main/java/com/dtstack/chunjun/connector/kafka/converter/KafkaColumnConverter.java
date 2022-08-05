@@ -30,7 +30,13 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
 import com.dtstack.chunjun.element.column.MapColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -204,11 +210,11 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "INT":
             case "INTEGER":
-                return val -> new BigDecimalColumn(Integer.parseInt(val.toString()));
+                return val -> new IntColumn(Integer.parseInt(val.toString()));
             case "BOOLEAN":
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case "TINYINT":
-                return val -> new BigDecimalColumn(Byte.parseByte(val.toString()));
+                return val -> new ByteColumn(Byte.parseByte(val.toString()));
             case "CHAR":
             case "CHARACTER":
             case "STRING":
@@ -216,14 +222,14 @@ public class KafkaColumnConverter extends AbstractRowConverter<String, Object, b
             case "TEXT":
                 return val -> new StringColumn(val.toString());
             case "SHORT":
-                return val -> new BigDecimalColumn(Short.parseShort(val.toString()));
+                return val -> new ShortColumn(Short.parseShort(val.toString()));
             case "LONG":
             case "BIGINT":
-                return val -> new BigDecimalColumn(Long.parseLong(val.toString()));
+                return val -> new LongColumn(Long.parseLong(val.toString()));
             case "FLOAT":
-                return val -> new BigDecimalColumn(Float.parseFloat(val.toString()));
+                return val -> new FloatColumn(Float.parseFloat(val.toString()));
             case "DOUBLE":
-                return val -> new BigDecimalColumn(Double.parseDouble(val.toString()));
+                return val -> new DoubleColumn(Double.parseDouble(val.toString()));
             case "DECIMAL":
                 return val -> new BigDecimalColumn(new BigDecimal(val.toString()));
             case "DATE":

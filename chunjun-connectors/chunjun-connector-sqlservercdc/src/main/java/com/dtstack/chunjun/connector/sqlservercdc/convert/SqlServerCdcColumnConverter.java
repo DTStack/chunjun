@@ -27,7 +27,11 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
 import com.dtstack.chunjun.element.column.MapColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
@@ -265,21 +269,20 @@ public class SqlServerCdcColumnConverter
         }
         switch (substring.toUpperCase(Locale.ENGLISH)) {
             case "BIT":
-                return (IDeserializationConverter<Boolean, AbstractBaseColumn>)
-                        val -> new BooleanColumn(val);
+                return (IDeserializationConverter<Boolean, AbstractBaseColumn>) BooleanColumn::new;
             case "TINYINT":
-                return (IDeserializationConverter<Short, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<Short, AbstractBaseColumn>)
+                        val -> new ByteColumn(val.byteValue());
             case "INT":
             case "INTEGER":
             case "SMALLINT":
-                return (IDeserializationConverter<Integer, AbstractBaseColumn>)
-                        BigDecimalColumn::new;
+                return (IDeserializationConverter<Integer, AbstractBaseColumn>) IntColumn::new;
             case "FLOAT":
             case "REAL":
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)
-                        val -> (new BigDecimalColumn(val.toString()));
+                        val -> (new FloatColumn(Float.parseFloat(val.toString())));
             case "BIGINT":
-                return (IDeserializationConverter<Long, AbstractBaseColumn>) BigDecimalColumn::new;
+                return (IDeserializationConverter<Long, AbstractBaseColumn>) LongColumn::new;
             case "DECIMAL":
             case "NUMERIC":
                 return (IDeserializationConverter<BigDecimal, AbstractBaseColumn>)

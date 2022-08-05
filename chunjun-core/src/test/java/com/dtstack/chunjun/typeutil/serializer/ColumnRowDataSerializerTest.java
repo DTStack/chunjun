@@ -24,7 +24,12 @@ import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -51,6 +56,7 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -84,12 +90,7 @@ public class ColumnRowDataSerializerTest extends SerializerTestBase<RowData> {
     protected Tuple2<BiFunction<Object, Object, Boolean>, DeeplyEqualsChecker.CustomEqualityChecker>
             getCustomChecker() {
         return Tuple2.of(
-                new BiFunction<Object, Object, Boolean>() {
-                    @Override
-                    public Boolean apply(Object o, Object o2) {
-                        return o instanceof ColumnRowData && o2 instanceof ColumnRowData;
-                    }
-                },
+                (o, o2) -> o instanceof ColumnRowData && o2 instanceof ColumnRowData,
                 new ColumnRowDataColumnChecker());
     }
 
@@ -182,19 +183,19 @@ public class ColumnRowDataSerializerTest extends SerializerTestBase<RowData> {
         ColumnRowData columnRowData = new ColumnRowData(13);
         columnRowData.addHeader("123");
         columnRowData.addExtHeader("1234");
+        columnRowData.addField(new BooleanColumn(true));
         columnRowData.addField(new BooleanColumn(false));
-        columnRowData.addField(new BytesColumn(new byte[] {1, 2}));
         columnRowData.addField(new ByteColumn((byte) 1));
-        columnRowData.addField(new BigDecimalColumn((byte) 1));
+        columnRowData.addField(new ByteColumn((byte) 2));
         columnRowData.addField(new BytesColumn((new byte[] {1, 2})));
         columnRowData.addField(new BigDecimalColumn(new BigDecimal("1234123123")));
-        columnRowData.addField(new BigDecimalColumn(123.123));
-        columnRowData.addField(new BigDecimalColumn((float) 1.12));
-        columnRowData.addField(new BigDecimalColumn(123));
-        columnRowData.addField(new BigDecimalColumn(123123123L));
-        columnRowData.addField(new BigDecimalColumn((short) 12));
+        columnRowData.addField(new DoubleColumn(123.123));
+        columnRowData.addField(new FloatColumn((float) 1.12));
+        columnRowData.addField(new IntColumn(123));
+        columnRowData.addField(new LongColumn(123123123L));
+        columnRowData.addField(new ShortColumn((short) 12));
         columnRowData.addField(new SqlDateColumn(100));
-        columnRowData.addField(new TimestampColumn(System.currentTimeMillis(), 0));
+        columnRowData.addField(new SqlDateColumn(new Date(System.currentTimeMillis())));
         columnRowData.addField(new StringColumn("123", "yyyy-MM-dd HH:mm:ss.SSS"));
         columnRowData.addField(new TimeColumn(19));
         columnRowData.addField(new TimestampColumn(System.currentTimeMillis()));

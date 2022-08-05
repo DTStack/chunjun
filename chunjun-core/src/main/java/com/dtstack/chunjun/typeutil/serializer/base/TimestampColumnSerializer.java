@@ -69,9 +69,8 @@ public class TimestampColumnSerializer extends TypeSerializerSingleton<AbstractB
     @Override
     public void serialize(AbstractBaseColumn record, DataOutputView target) throws IOException {
         if (record == null || record instanceof NullColumn) {
-            target.writeBoolean(false);
+            target.writeLong(Long.MIN_VALUE);
         } else {
-            target.writeBoolean(true);
             TimestampColumn timestampColumn = (TimestampColumn) record;
             Timestamp timestamp = timestampColumn.asTimestamp();
             target.writeLong(timestamp.getTime());
@@ -87,16 +86,16 @@ public class TimestampColumnSerializer extends TypeSerializerSingleton<AbstractB
 
     @Override
     public AbstractBaseColumn deserialize(DataInputView source) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        if (isNotNull) {
-            Timestamp timestamp = new Timestamp(source.readLong());
+        long value = source.readLong();
+        if (value == Long.MIN_VALUE) {
+            return new NullColumn();
+        } else {
+            Timestamp timestamp = new Timestamp(value);
             int precision = source.readInt();
             if (!isCompact(precision)) {
                 timestamp.setNanos(source.readInt());
             }
             return TimestampColumn.from(timestamp, precision);
-        } else {
-            return new NullColumn();
         }
     }
 
@@ -108,10 +107,9 @@ public class TimestampColumnSerializer extends TypeSerializerSingleton<AbstractB
 
     @Override
     public void copy(DataInputView source, DataOutputView target) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        target.writeBoolean(isNotNull);
-        if (isNotNull) {
-            target.writeLong(source.readLong());
+        long millisecond = source.readLong();
+        target.writeLong(millisecond);
+        if (Long.MIN_VALUE != millisecond) {
             int precision = source.readInt();
             target.writeInt(precision);
             if (!isCompact(precision)) {

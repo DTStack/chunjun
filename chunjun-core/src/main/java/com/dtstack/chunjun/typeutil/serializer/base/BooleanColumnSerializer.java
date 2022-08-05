@@ -20,7 +20,6 @@ package com.dtstack.chunjun.typeutil.serializer.base;
 
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
-import com.dtstack.chunjun.element.column.BytesColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
@@ -68,31 +67,22 @@ public class BooleanColumnSerializer extends TypeSerializerSingleton<AbstractBas
     @Override
     public void serialize(AbstractBaseColumn record, DataOutputView target) throws IOException {
         if (record == null || record instanceof NullColumn) {
-            target.writeInt(0);
-        } else if (record instanceof BytesColumn) {
-            target.writeInt(2);
-            byte[] bytes = record.asBytes();
-            target.writeInt(bytes.length);
-            target.write(bytes);
+            target.writeByte(2);
         } else {
-            target.writeInt(1);
-            target.writeBoolean(record.asBoolean());
+            target.writeByte((boolean) record.getData() ? 1 : 0);
         }
     }
 
     @Override
     public AbstractBaseColumn deserialize(DataInputView source) throws IOException {
-        int value = source.readInt();
+        byte value = source.readByte();
         switch (value) {
-            case 0:
+            case 2:
                 return new NullColumn();
             case 1:
-                return BooleanColumn.from(source.readBoolean());
-            case 2:
-                int len = source.readInt();
-                byte[] result = new byte[len];
-                source.readFully(result);
-                return BytesColumn.from(result);
+                return BooleanColumn.from(true);
+            case 0:
+                return BooleanColumn.from(false);
             default:
                 // you should not be here
                 throw new ChunJunRuntimeException("");
@@ -107,17 +97,7 @@ public class BooleanColumnSerializer extends TypeSerializerSingleton<AbstractBas
 
     @Override
     public void copy(DataInputView source, DataOutputView target) throws IOException {
-        int type = source.readInt();
-        target.writeInt(type);
-        if (type == 1) {
-            target.writeBoolean(source.readBoolean());
-        } else if (type == 2) {
-            int len = source.readInt();
-            byte[] result = new byte[len];
-            source.readFully(result);
-            target.writeInt(len);
-            target.write(result);
-        }
+        target.writeByte(source.readByte());
     }
 
     @Override

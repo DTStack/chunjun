@@ -27,6 +27,12 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -125,11 +131,23 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
                         val -> new BooleanColumn(Boolean.parseBoolean(val));
             case TINYINT:
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new ByteColumn(Byte.parseByte(val));
             case SMALLINT:
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new ShortColumn(Short.parseShort(val));
             case INTEGER:
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new IntColumn(Integer.parseInt(val));
             case BIGINT:
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new LongColumn(Long.parseLong(val));
             case FLOAT:
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new FloatColumn(Float.parseFloat(val));
             case DOUBLE:
+                return (IDeserializationConverter<String, AbstractBaseColumn>)
+                        val -> new DoubleColumn(Double.parseDouble(val));
             case DECIMAL:
                 return (IDeserializationConverter<String, AbstractBaseColumn>)
                         BigDecimalColumn::new;
@@ -161,6 +179,6 @@ public class FtpColumnConverter extends AbstractRowConverter<RowData, RowData, S
     @Override
     protected ISerializationConverter<List<String>> createExternalConverter(FieldConf fieldConf) {
         return (rowData, index, list) ->
-                list.add(index, ((ColumnRowData) rowData).getField(index).asString());
+                list.add(index, ((ColumnRowData) rowData).getField(index).asStringInternal());
     }
 }

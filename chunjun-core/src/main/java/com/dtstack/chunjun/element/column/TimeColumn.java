@@ -34,7 +34,7 @@ public class TimeColumn extends AbstractBaseColumn {
         super(data, 8);
     }
 
-    public TimeColumn(Time data, int byteSize) {
+    private TimeColumn(Time data, int byteSize) {
         super(data, byteSize);
     }
 

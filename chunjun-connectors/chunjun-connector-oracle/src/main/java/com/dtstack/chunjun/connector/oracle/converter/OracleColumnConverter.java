@@ -26,13 +26,20 @@ import com.dtstack.chunjun.converter.ISerializationConverter;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 
 import org.apache.flink.connector.jdbc.utils.JdbcTypeUtil;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.utils.TypeConversions;
 
 import oracle.sql.TIMESTAMP;
@@ -60,16 +67,17 @@ public class OracleColumnConverter extends JdbcColumnConverter {
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
-                return val -> new BigDecimalColumn(((Integer) val).byteValue());
+                return val -> new ByteColumn(((Integer) val).byteValue());
             case SMALLINT:
+                return val -> new ShortColumn(((Integer) val).shortValue());
             case INTEGER:
-                return val -> new BigDecimalColumn((Integer) val);
+                return val -> new IntColumn((Integer) val);
             case FLOAT:
-                return val -> new BigDecimalColumn((Float) val);
+                return val -> new FloatColumn((Float) val);
             case DOUBLE:
-                return val -> new BigDecimalColumn((Double) val);
+                return val -> new DoubleColumn((Double) val);
             case BIGINT:
-                return val -> new BigDecimalColumn((Long) val);
+                return val -> new LongColumn((Long) val);
             case DECIMAL:
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
@@ -82,9 +90,12 @@ public class OracleColumnConverter extends JdbcColumnConverter {
                 }
                 return val -> new StringColumn((String) val);
             case DATE:
-                return val -> new TimestampColumn((Timestamp) val, 0);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
+                final int precision = ((TimestampType) type).getPrecision();
+                if (precision == 0) {
+                    return val -> new TimestampColumn((Timestamp) val, 0);
+                }
                 return val -> new TimestampColumn(((TIMESTAMP) val).timestampValue());
             case BINARY:
             case VARBINARY:

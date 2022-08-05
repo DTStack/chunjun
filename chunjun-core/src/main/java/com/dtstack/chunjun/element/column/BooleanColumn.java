@@ -36,7 +36,7 @@ public class BooleanColumn extends AbstractBaseColumn {
         super(data, 1);
     }
 
-    public BooleanColumn(boolean data, int byteSize) {
+    private BooleanColumn(boolean data, int byteSize) {
         super(data, byteSize);
     }
 

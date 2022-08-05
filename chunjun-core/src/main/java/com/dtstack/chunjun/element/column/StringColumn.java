@@ -58,7 +58,7 @@ public class StringColumn extends AbstractBaseColumn {
         byteSize += getStringSize(data);
     }
 
-    public StringColumn(String data, String format, boolean isCustomFormat, int byteSize) {
+    private StringColumn(String data, String format, boolean isCustomFormat, int byteSize) {
         super(data, byteSize);
         this.format = format;
         this.isCustomFormat = isCustomFormat;
@@ -135,7 +135,7 @@ public class StringColumn extends AbstractBaseColumn {
             return null;
         }
 
-        String data = String.valueOf(this.data);
+        String data = (String) this.data;
         // 如果是数值类型
         try {
             return NumberUtils.toInt(data) != 0;

@@ -26,14 +26,14 @@ import java.math.BigDecimal;
 public class DoubleColumn extends NumericColumn {
 
     public DoubleColumn(double data) {
-        this(data, 8);
+        super(data, 8);
     }
 
     private DoubleColumn(double data, int byteSize) {
         super(data, byteSize);
     }
 
-    public DoubleColumn from(double data) {
+    public static DoubleColumn from(double data) {
         return new DoubleColumn(data, 0);
     }
 

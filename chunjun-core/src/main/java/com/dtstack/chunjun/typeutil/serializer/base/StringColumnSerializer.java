@@ -25,7 +25,6 @@ import com.dtstack.chunjun.element.column.StringColumn;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.TypeSerializerSchemaCompatibility;
 import org.apache.flink.api.common.typeutils.TypeSerializerSnapshot;
-import org.apache.flink.api.common.typeutils.base.BooleanSerializer;
 import org.apache.flink.api.common.typeutils.base.StringSerializer;
 import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataOutputView;
@@ -40,12 +39,11 @@ public class StringColumnSerializer extends TypeSerializer<AbstractBaseColumn> {
     private static final long serialVersionUID = 1L;
 
     private final StringSerializer stringSerializer = StringSerializer.INSTANCE;
-    private final BooleanSerializer booleanSerializer = BooleanSerializer.INSTANCE;
 
     private final String format;
     private final boolean isCustomFormat;
 
-    private static final StringColumn EMPTY = new StringColumn("", "", false, 0);
+    private static final StringColumn EMPTY = StringColumn.from("", "", false);
 
     public StringColumnSerializer(String format) {
         if (StringUtils.isNotBlank(format)) {
@@ -95,19 +93,18 @@ public class StringColumnSerializer extends TypeSerializer<AbstractBaseColumn> {
     @Override
     public void serialize(AbstractBaseColumn record, DataOutputView target) throws IOException {
         if (record == null || record instanceof NullColumn) {
-            target.writeBoolean(false);
+            target.write(0);
         } else {
             StringColumn column = (StringColumn) record;
-            target.writeBoolean(true);
             stringSerializer.serialize((String) column.getData(), target);
         }
     }
 
     @Override
     public AbstractBaseColumn deserialize(DataInputView source) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        if (isNotNull) {
-            return StringColumn.from(stringSerializer.deserialize(source), format, isCustomFormat);
+        String data = stringSerializer.deserialize(source);
+        if (data != null) {
+            return StringColumn.from(data, format, isCustomFormat);
         } else {
             return new NullColumn();
         }
@@ -121,11 +118,7 @@ public class StringColumnSerializer extends TypeSerializer<AbstractBaseColumn> {
 
     @Override
     public void copy(DataInputView source, DataOutputView target) throws IOException {
-        boolean isNotNull = source.readBoolean();
-        target.writeBoolean(isNotNull);
-        if (isNotNull) {
-            stringSerializer.copy(source, target);
-        }
+        stringSerializer.copy(source, target);
     }
 
     @Override

@@ -31,7 +31,13 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlArrayColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
@@ -103,10 +109,11 @@ public class PostgresqlColumnConverter extends JdbcColumnConverter {
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
-                return val -> new BigDecimalColumn(((Integer) val).byteValue());
+                return val -> new ByteColumn(((Integer) val).byteValue());
             case SMALLINT:
+                return val -> new ShortColumn(((Integer) val).shortValue());
             case INTEGER:
-                return val -> new BigDecimalColumn((Integer) val);
+                return val -> new IntColumn((Integer) val);
             case INTERVAL_YEAR_MONTH:
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)
                         val -> {
@@ -114,7 +121,7 @@ public class PostgresqlColumnConverter extends JdbcColumnConverter {
                                     (YearMonthIntervalType) type;
                             switch (yearMonthIntervalType.getResolution()) {
                                 case YEAR:
-                                    return new BigDecimalColumn(
+                                    return new IntColumn(
                                             Integer.parseInt(String.valueOf(val).substring(0, 4)));
                                 case MONTH:
                                 case YEAR_TO_MONTH:
@@ -124,11 +131,11 @@ public class PostgresqlColumnConverter extends JdbcColumnConverter {
                             }
                         };
             case FLOAT:
-                return val -> new BigDecimalColumn((Float) val);
+                return val -> new FloatColumn((Float) val);
             case DOUBLE:
-                return val -> new BigDecimalColumn((Double) val);
+                return val -> new DoubleColumn((Double) val);
             case BIGINT:
-                return val -> new BigDecimalColumn((Long) val);
+                return val -> new LongColumn((Long) val);
             case DECIMAL:
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:

@@ -27,6 +27,11 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -89,7 +94,7 @@ public class StreamColumnConverter
                 return val -> new BigDecimalColumn(new BigDecimal(id.incrementAndGet()));
             case "INT":
             case "INTEGER":
-                return val -> new BigDecimalColumn(JMockData.mock(int.class));
+                return val -> new IntColumn(JMockData.mock(int.class));
             case "BOOLEAN":
                 return val -> new BooleanColumn(JMockData.mock(boolean.class));
             case "TINYINT":
@@ -100,14 +105,14 @@ public class StreamColumnConverter
                 return val -> new StringColumn(JMockData.mock(char.class).toString());
             case "SHORT":
             case "SMALLINT":
-                return val -> new BigDecimalColumn(JMockData.mock(short.class));
+                return val -> new ShortColumn(JMockData.mock(short.class));
             case "LONG":
             case "BIGINT":
-                return val -> new BigDecimalColumn(JMockData.mock(long.class));
+                return val -> new LongColumn(JMockData.mock(long.class));
             case "FLOAT":
-                return val -> new BigDecimalColumn(JMockData.mock(float.class));
+                return val -> new FloatColumn(JMockData.mock(float.class));
             case "DOUBLE":
-                return val -> new BigDecimalColumn(JMockData.mock(double.class));
+                return val -> new DoubleColumn(JMockData.mock(double.class));
             case "DECIMAL":
                 return val -> new BigDecimalColumn(JMockData.mock(BigDecimal.class));
             case "DATE":

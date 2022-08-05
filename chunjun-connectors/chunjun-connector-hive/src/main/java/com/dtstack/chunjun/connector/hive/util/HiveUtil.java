@@ -27,8 +27,14 @@ import com.dtstack.chunjun.connector.hive.parser.Cdh2HiveMetadataParser;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
@@ -405,19 +411,19 @@ public class HiveUtil {
         } else if (data instanceof Boolean) {
             return new BooleanColumn((Boolean) data);
         } else if (data instanceof Byte) {
-            return new BigDecimalColumn((Byte) data);
+            return new ByteColumn((Byte) data);
         } else if (data instanceof Short) {
-            return new BigDecimalColumn((Short) data);
+            return new ShortColumn((Short) data);
         } else if (data instanceof Integer) {
-            return new BigDecimalColumn((Integer) data);
+            return new IntColumn((Integer) data);
         } else if (data instanceof Long) {
-            return new BigDecimalColumn((Long) data);
+            return new LongColumn((Long) data);
         } else if (data instanceof BigInteger) {
             return new BigDecimalColumn((BigInteger) data);
         } else if (data instanceof Float) {
-            return new BigDecimalColumn((Float) data);
+            return new FloatColumn((Float) data);
         } else if (data instanceof Double) {
-            return new BigDecimalColumn((Double) data);
+            return new DoubleColumn((Double) data);
         } else if (data instanceof BigDecimal) {
             return new BigDecimalColumn((BigDecimal) data);
         } else if (data instanceof Timestamp) {

@@ -44,7 +44,7 @@ public class BytesColumn extends AbstractBaseColumn {
         this.encoding = encoding;
     }
 
-    public BytesColumn(byte[] data, int byteSize) {
+    private BytesColumn(byte[] data, int byteSize) {
         super(data, byteSize);
     }
 

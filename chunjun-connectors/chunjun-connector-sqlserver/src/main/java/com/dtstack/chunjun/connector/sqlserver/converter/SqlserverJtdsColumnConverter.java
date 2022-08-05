@@ -28,7 +28,13 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.BytesColumn;
+import com.dtstack.chunjun.element.column.DoubleColumn;
+import com.dtstack.chunjun.element.column.FloatColumn;
+import com.dtstack.chunjun.element.column.IntColumn;
+import com.dtstack.chunjun.element.column.LongColumn;
+import com.dtstack.chunjun.element.column.ShortColumn;
 import com.dtstack.chunjun.element.column.SqlDateColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimeColumn;
@@ -43,7 +49,6 @@ import org.apache.flink.table.types.logical.TimestampType;
 import microsoft.sql.DateTimeOffset;
 import org.apache.commons.lang3.StringUtils;
 
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
@@ -79,7 +84,7 @@ public class SqlserverJtdsColumnConverter extends JdbcColumnConverter {
                 if ("timestamp".equalsIgnoreCase(fieldConf.getType())) {
                     byte[] value = (byte[]) field;
                     String hexString = StringUtil.bytesToHexString(value);
-                    baseColumn = new BigDecimalColumn(Long.parseLong(hexString, 16));
+                    baseColumn = new LongColumn(Long.parseLong(hexString, 16));
                 } else {
                     baseColumn =
                             (AbstractBaseColumn)
@@ -98,12 +103,17 @@ public class SqlserverJtdsColumnConverter extends JdbcColumnConverter {
             case BOOLEAN:
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
-                return val -> new BigDecimalColumn(new BigDecimal(val.toString()).byteValue());
+                return val -> new ByteColumn(Byte.parseByte(val.toString()));
             case SMALLINT:
+                return val -> new ShortColumn(((Integer) val).shortValue());
             case INTEGER:
+                return val -> new IntColumn((Integer) val);
             case FLOAT:
+                return val -> new FloatColumn(Float.parseFloat(val.toString()));
             case DOUBLE:
+                return val -> new DoubleColumn(Double.parseDouble(val.toString()));
             case BIGINT:
+                return val -> new LongColumn(Long.parseLong(val.toString()));
             case DECIMAL:
                 return val -> new BigDecimalColumn(val.toString());
             case CHAR:

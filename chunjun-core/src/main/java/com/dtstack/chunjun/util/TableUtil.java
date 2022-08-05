@@ -24,6 +24,7 @@ import com.dtstack.chunjun.typeutil.ColumnRowDataTypeInfo;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
+import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.TableColumn;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.data.RowData;
@@ -33,11 +34,11 @@ import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Date: 2021/04/07 Company: www.dtstack.com
@@ -54,25 +55,30 @@ public class TableUtil {
      */
     public static TypeInformation<RowData> getTypeInformation(
             List<FieldConf> fieldList, RawTypeConverter converter, boolean useAbstractBaseColumn) {
-        List<String> fieldName =
-                fieldList.stream().map(FieldConf::getName).collect(Collectors.toList());
-        String[] fieldTypes = fieldList.stream().map(FieldConf::getType).toArray(String[]::new);
-        String[] fieldFormat = fieldList.stream().map(FieldConf::getFormat).toArray(String[]::new);
-        String[] fieldNames = fieldList.stream().map(FieldConf::getName).toArray(String[]::new);
-        if (fieldName.size() == 0
-                || fieldName.get(0).equalsIgnoreCase(ConstantValue.STAR_SYMBOL)
-                || Arrays.stream(fieldTypes).anyMatch(Objects::isNull)) {
+        if (converter == null
+                || fieldList.size() == 0
+                || fieldList.get(0).getName().equalsIgnoreCase(ConstantValue.STAR_SYMBOL)
+                || fieldList.stream().map(FieldConf::getType).anyMatch(Objects::isNull)) {
             return new GenericTypeInfo<>(RowData.class);
         }
+        String[] fieldNames = new String[fieldList.size()];
+        String[] fieldFormats = new String[fieldList.size()];
         TableSchema.Builder builder = TableSchema.builder();
-        for (int i = 0; i < fieldTypes.length; i++) {
-            DataType dataType = converter.apply(fieldTypes[i]);
-            builder.add(TableColumn.physical(fieldNames[i], dataType));
+        for (int i = 0; i < fieldList.size(); i++) {
+            FieldConf fieldConf = fieldList.get(i);
+            fieldNames[i] = fieldConf.getName();
+            fieldFormats[i] = fieldConf.getFormat();
+            DataType dataType = converter.apply(fieldConf.getType());
+            if (StringUtils.isNotBlank(fieldConf.getParseFormat())
+                    || StringUtils.isNotBlank(fieldConf.getFormat())
+                    || StringUtils.isNotBlank(fieldConf.getValue())) {
+                dataType = DataTypes.STRING();
+            }
+            builder.add(TableColumn.physical(fieldConf.getName(), dataType));
         }
         DataType[] dataTypes =
                 builder.build().toRowDataType().getChildren().toArray(new DataType[] {});
-
-        return getTypeInformation(dataTypes, fieldNames, fieldFormat, useAbstractBaseColumn);
+        return getTypeInformation(dataTypes, fieldNames, fieldFormats, useAbstractBaseColumn);
     }
 
     /**
