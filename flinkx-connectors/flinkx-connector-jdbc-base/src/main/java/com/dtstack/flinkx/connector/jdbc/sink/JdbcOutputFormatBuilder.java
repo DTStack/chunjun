@@ -60,8 +60,5 @@ public class JdbcOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         if (StringUtils.isBlank(jdbcConf.getJdbcUrl())) {
             sb.append("No jdbc url supplied;\n");
         }
-        if (sb.length() > 0) {
-            throw new IllegalArgumentException(sb.toString());
-        }
     }
 }

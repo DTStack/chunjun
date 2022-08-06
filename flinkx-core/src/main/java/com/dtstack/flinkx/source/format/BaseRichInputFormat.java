@@ -45,7 +45,6 @@ import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.table.data.RowData;
 
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -197,9 +196,6 @@ public abstract class BaseRichInputFormat extends RichInputFormat<RowData, Input
             updateDuration();
             if (numReadCounter != null) {
                 numReadCounter.add(1);
-            }
-            if (bytesReadCounter != null) {
-                bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(internalRow));
             }
         }
 

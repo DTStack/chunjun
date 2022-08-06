@@ -28,6 +28,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Date: 2019/11/05 Company: www.dtstack.com
@@ -39,6 +40,7 @@ public class ClickhouseUtil {
 
     public static Connection getConnection(String url, String username, String password)
             throws SQLException {
+        System.out.println("call get conn");
         Properties properties = new Properties();
         properties.put(ClickHouseQueryParam.USER.getKey(), username);
         if (StringUtils.isNotEmpty(password)) {
@@ -48,7 +50,10 @@ public class ClickhouseUtil {
         Connection conn = null;
         for (int i = 0; i < MAX_RETRY_TIMES && failed; ++i) {
             try {
-                conn = new BalancedClickhouseDataSource(url, properties).getConnection();
+                conn =
+                        new BalancedClickhouseDataSource(url, properties)
+                                .scheduleActualization(3000, TimeUnit.MILLISECONDS)
+                                .getConnection();
                 try (Statement statement = conn.createStatement()) {
                     statement.execute("select 111");
                     failed = false;

@@ -18,8 +18,16 @@
 
 package com.dtstack.flinkx.connector.clickhouse.sink;
 
+import com.dtstack.flinkx.connector.clickhouse.util.CkProperties;
 import com.dtstack.flinkx.connector.clickhouse.util.ClickhouseUtil;
+import com.dtstack.flinkx.connector.clickhouse.util.pool.CkClientFactory;
+import com.dtstack.flinkx.connector.clickhouse.util.pool.CkClientPool;
 import com.dtstack.flinkx.connector.jdbc.sink.JdbcOutputFormat;
+import com.dtstack.flinkx.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.flinkx.throwable.WriteRecordException;
+import com.dtstack.flinkx.util.GsonUtil;
+
+import org.apache.flink.table.data.RowData;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -30,6 +38,71 @@ import java.sql.SQLException;
  * @create: 2021/05/10
  */
 public class ClickhouseOutputFormat extends JdbcOutputFormat {
+
+    protected CkClientPool ckClientPool;
+
+    @Override
+    protected void openInternal(int taskNumber, int numTasks) {
+        super.openInternal(taskNumber, numTasks);
+        CkClientFactory clientFactory = new CkClientFactory();
+        CkProperties ckProperties = new CkProperties();
+        ckProperties.setUrl(jdbcConf.getJdbcUrl());
+        ckProperties.setPassword(jdbcConf.getPassword());
+        ckProperties.setUsername(jdbcConf.getUsername());
+        clientFactory.setCkProperties(ckProperties);
+        ckClientPool = new CkClientPool(clientFactory);
+        LOG.info("init ck client pool");
+    }
+
+    @Override
+    protected void writeSingleRecordInternal(RowData row) throws WriteRecordException {
+        Connection newConn = ckClientPool.borrowObject();
+        try {
+            FieldNamedPreparedStatement fieldNamedPreparedStatement =
+                    FieldNamedPreparedStatement.prepareStatement(
+                            newConn,
+                            prepareTemplates(),
+                            this.columnNameList.toArray(new String[0]));
+            fieldNamedPreparedStatement =
+                    (FieldNamedPreparedStatement)
+                            rowConverter.toExternal(row, fieldNamedPreparedStatement);
+            fieldNamedPreparedStatement.execute();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            ckClientPool.returnObject(newConn);
+        }
+    }
+
+    @Override
+    protected void writeMultipleRecordsInternal() throws Exception {
+        Connection newConn = ckClientPool.borrowObject();
+        try {
+            FieldNamedPreparedStatement fieldNamedPreparedStatement =
+                    FieldNamedPreparedStatement.prepareStatement(
+                            newConn,
+                            prepareTemplates(),
+                            this.columnNameList.toArray(new String[0]));
+
+            for (RowData row : rows) {
+                fieldNamedPreparedStatement =
+                        (FieldNamedPreparedStatement)
+                                rowConverter.toExternal(row, fieldNamedPreparedStatement);
+                fieldNamedPreparedStatement.addBatch();
+                lastRow = row;
+            }
+            fieldNamedPreparedStatement.executeBatch();
+        } catch (Exception e) {
+            LOG.warn(
+                    "write Multiple Records error, start to rollback connection, row size = {}, first row = {}",
+                    rows.size(),
+                    rows.size() > 0 ? GsonUtil.GSON.toJson(rows.get(0)) : "null",
+                    e);
+            throw e;
+        } finally {
+            ckClientPool.returnObject(newConn);
+        }
+    }
 
     @Override
     protected Connection getConnection() throws SQLException {

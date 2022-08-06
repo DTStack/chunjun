@@ -41,7 +41,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Preconditions;
 
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -201,7 +200,7 @@ public class DynamicKafkaSerializationSchema
     protected void beforeSerialize(long size, RowData rowData) {
         updateDuration();
         numWriteCounter.add(size);
-        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
+        bytesWriteCounter.add(1);
         if (checkpointEnabled) {
             snapshotWriteCounter.add(size);
         }

@@ -70,7 +70,7 @@ else
   # TODO get vaild module path
   vaild_module_path=$modules
   echo "build module paths: $vaild_module_path"
-  mvn -T 1C clean package -DskipTests -pl $vaild_module_path -am
+  mvn -T 10 clean package -DskipTests -pl $vaild_module_path -am
 fi
 
 

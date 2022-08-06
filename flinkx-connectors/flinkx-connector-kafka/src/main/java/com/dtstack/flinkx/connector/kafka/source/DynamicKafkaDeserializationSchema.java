@@ -43,7 +43,6 @@ import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
 
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -179,9 +178,6 @@ public class DynamicKafkaDeserializationSchema implements KafkaDeserializationSc
             updateDuration();
             if (numReadCounter != null) {
                 numReadCounter.add(1);
-            }
-            if (bytesReadCounter != null) {
-                bytesReadCounter.add(ObjectSizeCalculator.getObjectSize(record));
             }
         }
     }
