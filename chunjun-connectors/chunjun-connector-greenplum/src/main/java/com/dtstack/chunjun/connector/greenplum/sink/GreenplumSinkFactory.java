@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.greenplum.sink;
 
 import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.connector.greenplum.dialect.GreenplumDialect;
 import com.dtstack.chunjun.connector.postgresql.sink.PostgresqlSinkFactory;
 
 /**
@@ -29,6 +30,6 @@ import com.dtstack.chunjun.connector.postgresql.sink.PostgresqlSinkFactory;
 public class GreenplumSinkFactory extends PostgresqlSinkFactory {
 
     public GreenplumSinkFactory(SyncConf syncConf) {
-        super(syncConf);
+        super(syncConf, new GreenplumDialect());
     }
 }

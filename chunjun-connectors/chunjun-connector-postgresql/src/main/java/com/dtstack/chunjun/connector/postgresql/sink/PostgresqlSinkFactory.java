@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.postgresql.sink;
 
 import com.dtstack.chunjun.conf.SyncConf;
+import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
 import com.dtstack.chunjun.connector.postgresql.dialect.PostgresqlDialect;
@@ -34,6 +35,10 @@ public class PostgresqlSinkFactory extends JdbcSinkFactory {
 
     public PostgresqlSinkFactory(SyncConf syncConf) {
         super(syncConf, new PostgresqlDialect());
+    }
+
+    public PostgresqlSinkFactory(SyncConf syncConf, JdbcDialect dialect) {
+        super(syncConf, dialect);
     }
 
     @Override
