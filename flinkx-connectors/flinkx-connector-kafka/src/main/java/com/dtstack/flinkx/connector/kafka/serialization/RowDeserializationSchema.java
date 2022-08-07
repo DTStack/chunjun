@@ -26,6 +26,7 @@ import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import java.nio.charset.StandardCharsets;
@@ -65,8 +66,10 @@ public class RowDeserializationSchema extends DynamicKafkaDeserializationSchema 
     public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<RowData> collector) {
         try {
             beforeDeserialize(record);
-            collector.collect(
-                    converter.toInternal(new String(record.value(), StandardCharsets.UTF_8)));
+            String content = new String(record.value(), StandardCharsets.UTF_8);
+            if (StringUtils.isNotEmpty(content)) {
+                collector.collect(converter.toInternal(content));
+            }
         } catch (Exception e) {
             dirtyManager.collect(
                     new String(record.value(), StandardCharsets.UTF_8),
