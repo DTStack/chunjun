@@ -28,8 +28,6 @@ import com.dtstack.chunjun.connector.doris.rest.module.QueryPlan;
 import com.dtstack.chunjun.connector.doris.rest.module.Schema;
 import com.dtstack.chunjun.connector.doris.rest.module.Tablet;
 
-import org.apache.flink.shaded.guava18.com.google.common.annotations.VisibleForTesting;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -242,7 +240,6 @@ public class FeRestService implements Serializable {
      * @return first element is db name, second element is table name
      * @throws IllegalArgumentException table identifier is illegal
      */
-    @VisibleForTesting
     static String[] parseIdentifier(String tableIdentifier) throws IllegalArgumentException {
         LOG.trace("Parse identifier '{}'.", tableIdentifier);
         if (StringUtils.isEmpty(tableIdentifier)) {
@@ -264,7 +261,6 @@ public class FeRestService implements Serializable {
      * @return the chosen one Doris FE node
      * @throws IllegalArgumentException fe nodes is illegal
      */
-    @VisibleForTesting
     static String randomEndpoint(List<String> feNodes) throws IllegalArgumentException {
         LOG.trace("Parse feNodes '{}'.", feNodes);
         if (feNodes.isEmpty()) {
@@ -282,7 +278,6 @@ public class FeRestService implements Serializable {
      * @return the chosen one Doris BE node
      * @throws IllegalArgumentException BE nodes is illegal
      */
-    @VisibleForTesting
     public static String randomBackend(DorisConf options) throws IOException {
         List<BackendRow> backends = getBackends(options);
         LOG.trace("Parse beNodes '{}'.", backends);
@@ -302,7 +297,6 @@ public class FeRestService implements Serializable {
      * @return the chosen one Doris BE node
      * @throws IllegalArgumentException BE nodes is illegal
      */
-    @VisibleForTesting
     static List<BackendRow> getBackends(DorisConf options) throws IOException {
         List<String> feNodes = options.getFeNodes();
         String feNode = randomEndpoint(feNodes);
@@ -351,7 +345,6 @@ public class FeRestService implements Serializable {
      * @return uri string
      * @throws IllegalArgumentException throw when configuration is illegal
      */
-    @VisibleForTesting
     static String getUriStr(DorisConf options) throws IllegalArgumentException {
         return "http://"
                 + randomEndpoint(options.getFeNodes())
@@ -385,7 +378,6 @@ public class FeRestService implements Serializable {
      * @return inner {@link Schema} struct
      * @throws RuntimeException throw when translate failed
      */
-    @VisibleForTesting
     public static Schema parseSchema(String response) throws RuntimeException {
         LOG.trace("Parse response '{}' to schema.", response);
         ObjectMapper mapper = new ObjectMapper();
@@ -472,7 +464,6 @@ public class FeRestService implements Serializable {
      * @return inner {@link QueryPlan} struct
      * @throws RuntimeException throw when translate failed.
      */
-    @VisibleForTesting
     static QueryPlan getQueryPlan(String response) throws RuntimeException {
         ObjectMapper mapper = new ObjectMapper();
         QueryPlan queryPlan;
@@ -513,7 +504,6 @@ public class FeRestService implements Serializable {
      * @return BE to tablets {@link Map}
      * @throws RuntimeException throw when select failed.
      */
-    @VisibleForTesting
     static Map<String, List<Long>> selectBeForTablet(QueryPlan queryPlan) throws RuntimeException {
         Map<String, List<Long>> be2Tablets = new HashMap<>();
         for (Map.Entry<String, Tablet> part : queryPlan.getPartitions().entrySet()) {
@@ -566,7 +556,6 @@ public class FeRestService implements Serializable {
      * @param loadConf configuration of request
      * @return tablet count limit
      */
-    @VisibleForTesting
     static int tabletCountLimitForOnePartition(LoadConf loadConf) {
         int tabletsSize = DORIS_TABLET_SIZE_DEFAULT;
         if (loadConf.getRequestTabletSize() != null) {
@@ -595,7 +584,6 @@ public class FeRestService implements Serializable {
      * @return Doris RDD partition {@link List}
      * @throws IllegalArgumentException throw when translate failed
      */
-    @VisibleForTesting
     static List<PartitionDefinition> tabletsMapToPartition(
             DorisConf options,
             Map<String, List<Long>> be2Tablets,
