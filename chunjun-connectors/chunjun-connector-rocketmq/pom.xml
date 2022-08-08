@@ -31,7 +31,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>flinkx-connector-rocketmq</artifactId>
+	<artifactId>chunjun-connector-rocketmq</artifactId>
 	<name>ChunJun : Connectors : RocketMQ</name>
 
 	<properties>
