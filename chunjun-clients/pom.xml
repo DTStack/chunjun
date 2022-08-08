@@ -42,10 +42,6 @@
 					<artifactId>logback-core</artifactId>
 					<groupId>ch.qos.logback</groupId>
 				</exclusion>
-				<exclusion>
-					<artifactId>minlog</artifactId>
-					<groupId>com.esotericsoftware.minlog</groupId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 
