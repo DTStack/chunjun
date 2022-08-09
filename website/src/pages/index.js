@@ -4,17 +4,24 @@ import AppBanner from "../components/AppBannner"
 import AppFooter from "../components/AppFooter"
 import AppCards from "../components/AppCards"
 import AppMedium from "../components/AppMedium"
-// import AppShowcase from "../components/AppShowcase"
+import AppShowCase from "../components/AppShowCase"
 import Seo from "../components/seo"
 import "aos/dist/aos.css"
+import AppCustomers from "../components/AppCustomers"
 const IndexPage = () => (
   <>
     <Seo title="纯钧" />
-    <AppHeader />
-    <AppBanner />
-    <AppCards />
-    <AppMedium />
-    <AppFooter />
+    <section className="dark:bg-[#1a1b1e]">
+      <AppHeader />
+      <AppBanner />
+
+      <AppCards />
+      <AppMedium />
+      <AppShowCase />
+      <AppCustomers />
+
+      <AppFooter />
+    </section>
   </>
 )
 

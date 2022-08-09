@@ -48,3 +48,5 @@ chunjun-dist/
 */node_modules
 /website/public
 /website/public/page-data/
+
+chunjun-dev/data/**

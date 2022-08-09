@@ -1,105 +1,213 @@
-Chunjun
-============
+# ChunJun
 
-[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
+<p align="left">
+  <img src="https://img.shields.io/github/stars/DTStack/chunjun?style=social" alt="npm version" />
+  <img src="https://img.shields.io/github/license/DTStack/chunjun" alt="license" />
+  <a href="https://github.com/DTStack/chunjun/releases"><img src="https://img.shields.io/github/downloads/DTStack/chunjun/total" alt="npm downloads" /></a>
+  <img src="https://img.shields.io/gitlab/coverage/DTStack/chunjun/master" alt="master coverage" />
+</p>
 
-English | [中文](README_CH.md)
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](README.md)
+[![CN doc](https://img.shields.io/badge/文档-中文版-blue.svg)](README_CH.md)
 
-# Communication
+## Introduce
 
-- We are recruiting **Big data platform development engineers**.If you want more information about the position, please add WeChat ID [**ysqwhiletrue**] or email your resume to [sishu@dtstack.com](mailto:sishu@dtstack.com).
+ChunJun(formerly known as FlinkX), is a data integration tool based on Flink, which is **stable**, **easy to use**, **efficient**, and **integrated with DataStream/DataSet API**. It can realize data synchronization and calculation between various heterogeneous data sources. ChunJun has been deployed and running stably in thousands of companies so far.
 
-- We use [DingTalk](https://www.dingtalk.com/) to communicate,You can search the group number [**30537511**] or scan the QR code below to join the communication group
-  
-  <div align=center>
-     <img src=docs/images/IMG_3362.JPG width=300 />
-   </div>
+Official website of ChunJun: https://dtstack.github.io/chunjun/
 
-# Introduction
+## Features of ChunJun
 
-*[Chunjun 1.12 New Features](docs/changeLog.md)*
+ChunJun abstracts different databases into reader/source plugins, writer/sink plugins and lookup plugins, and it has the following features:
 
-Chunjun is a data synchronization tool based on Flink. Chunjun can collect static data, such as MySQL, HDFS, etc, as well as real-time changing data, such as MySQL binlog, Kafka, etc. **At the same time, Chunjun is also a computing framework that supports all the syntax and features of native FlinkSql** , <big>**And provide a large number of [cases](Chunjun-examples)**</big>. Chunjun currently includes the following features:
+- Based on the real-time computing engine--Flink, and supports JSON template and SQL script configuration tasks. The SQL script is compatible with Flink SQL syntax;
+- Support distributed operation, support flink-standalone, yarn-session, yarn-per job and other submission methods;
+- Support Docker one-click deployment, support deploy and run on k8s;
+- Supports a variety of heterogeneous data sources, and supports synchronization and calculation of more than 20 data sources such as MySQL, Oracle, SQLServer, Hive, Kudu, etc.
+- Easy to expand, highly flexible, newly expanded data source plugins can integrate with existing data source plugins instantly, plugin developers do not need to care about the code logic of other plugins;
+- Not only supports full synchronization, but also supports incremental synchronization and interval training;
+- Not only supports offline synchronization and calculation, but also compatible with real-time scenarios;
+- Support dirty data storage, and provide indicator monitoring, etc.;
+- Cooperate with the flink checkpoint mechanism to achieve breakpoint resuming, task disaster recovery;
+- Not only supports synchronizing DML data, but also supports DDL synchronization, like 'CREATE TABLE', 'ALTER COLUMN', etc.;
 
-- Most plugins support concurrent reading and writing of data, which can greatly improve the speed of reading and writing;
+## Build And Compilation
 
-- Some plug-ins support the function of failure recovery, which can restore tasks from the failed location and save running time; [Failure Recovery](docs/restore.md)
+### Get the code
 
-- The source plugin for relational databases supports interval polling. It can continuously collect changing data; [Interval Polling](docs/offline/reader/mysqlreader.md)
+Use the git to clone the code of ChunJun
 
-- Some databases support opening Kerberos security authentication;  [Kerberos](docs/kerberos.md)
+```shell
+git clone https://github.com/DTStack/chunjun.git
+```
 
-- Limit the reading speed of source plugins and reduce the impact on business databases;
+### build
 
-- Save the dirty data when writing data;
+Execute the command in the project directory.
 
-- Limit the maximum number of dirty data;
+```shell
+./mvnw clean package -DskipTests
+```
 
-- Multiple running modes: Local,Standalone,Yarn Session,Yarn Per;
+Or execute
 
-- **Synchronization tasks support transformer operations that execute flinksql syntax;**
+```shell
+sh build/build.sh
+```
 
-- **sql task support is [shared](docs/conectorShare.md) with flinkSql's own connectors;**
+### Multi-platform compatible
 
-The following databases are currently supported:
+Chunjun currently supports tdh and open-source hadoop platforms, and different platforms need to be packaged with different maven commands.
 
-|                        | Database Type  | Source                          | Sink                          | Lookup
-|:----------------------:|:--------------:|:-------------------------------:|:-------------------------------:|:-------------------------------:|
-| Batch Synchronization  | MySQL          | [doc](docs/connectors/mysql/mysql-source.md)        | [doc](docs/connectors/mysql/mysql-sink.md)      |[doc](docs/connectors/mysql/mysql-lookup.md)      |
-|                        | TiDB           || reference mysql                                 |reference mysql                                   |   
-|                        | Oracle         | [doc](docs/connectors/oracle/oracle-source.md)       | [doc](docs/connectors/oracle/oracle-sink.md)     |[doc](docs/connectors/oracle/oracle-lookup.md)      |
-|                        | Doris          |                                 | [doc](docs/connectors/doris/dorisbatch-sink.md)     |                    |
-|                        | SqlServer      | [doc](docs/connectors/sqlserver/sqlserver-source.md)    | [doc](docs/connectors/sqlserver/sqlserver-sink.md)  |[doc](docs/connectors/sqlserver/sqlserver-lookup.md)
-|                        | PostgreSQL     | [doc](docs/connectors/postgres/postgres-source.md) | [doc](docs/connectors/postgres/postgres-sink.md) | [doc](docs/connectors/postgres/postgres-lookup.md) |
-|                        | DB2            | [doc](docs/connectors/db2/db2-source.md)          | [doc](docs/connectors/db2/db2-sink.md)        | [doc](docs/connectors/db2/db2-lookup.md)
-|                        | ClickHouse     | [doc](docs/connectors/clickhouse/clickhouse-source.md)   | [doc](docs/connectors/clickhouse/clickhouse-sink.md) | [doc](docs/connectors/clickhouse/clickhouse-lookup.md)      |
-|                        | Greenplum      | [doc](docs/connectors/greenplum/greenplum-source.md)    | [doc](docs/connectors/greenplum/greenplum-sink.md)  |
-|                        | KingBase       | [doc](docs/connectors/kingbase/kingbase-source.md)     | [doc](docs/connectors/kingbase/kingbase-sink.md)   |
-|                        | MongoDB        | [doc](docs/connectors/mongodb/mongodb-source.md) | [doc](docs/connectors/mongodb/mongodb-sink.md) |[doc](docs/connectors/mongodb/mongodb-lookup.md) |
-|                        | SAP HANA  | [doc](docs/connectors/saphana/saphana-source.md)           | [doc](docs/connectors/saphana/saphana-sink.md)         |
-|                        | ElasticSearch7 | [doc](docs/connectors/elasticsearch7/es7-source.md) | [doc](docs/connectors/elasticsearch7/es7-sink.md) | [doc](docs/connectors/elasticsearch7/es7-sink.md) |
-|                        | FTP            | [doc](docs/connectors/ftp/ftp-source.md)          | [doc](docs/connectors/ftp/ftp-sink.md)        |
-|                        | HDFS           | [doc](docs/connectors/hdfs/hdfs-source.md)         | [doc](docs/connectors/hdfs/hdfs-sink.md)       |
-|                        | Stream         | [doc](docs/connectors/stream/stream-source.md)       | [doc](docs/connectors/stream/stream-sink.md) |
-|                        | Redis          |                                                  | [doc](docs/connectors/redis/redis-sink.md)      |[doc](docs/connectors/redis/redis-lookup.md)      |
-|                        | Hive           |                                                  | [doc](docs/connectors/hive/hive-sink.md)       |
-|                        | Solr          | [doc](docs/connectors/solr/solr-source.md)        | [doc](docs/connectors/solr/solr-sink.md)       |
-|                        | File           |  [doc](docs/connectors/file/file-source.md)
-|                        | StarRocks      |                                                  | [doc](docs/connectors/starrocks/starrocks-sink.md) |
-| Stream Synchronization | Kafka          | [doc](docs/connectors/kafka/kafka-source.md)       | [doc](docs/connectors/kafka/kafka-sink.md)     |
-|                        | EMQX           | [doc](docs/connectors/emqx/emqx-source.md)        | [doc](docs/connectors/emqx/emqx-sink.md)      |
-|                        | MySQL Binlog   | [doc](docs/connectors/binlog/binlog-source.md)      |                                                |
-|                        | Oracle LogMiner | [doc](docs/connectors/logminer/LogMiner-source.md)   |                                            |
-|                        | Sqlserver CDC | [doc](docs/connectors/sqlservercdc/SqlserverCDC-source.md) |                                                |
-|                        | Postgres  CDC | [doc](docs/connectors/pgwal/Postgres-CDC.md) |                                                |
+| Hadoop Platformas |                                              | Comment                                                      |
+|-------------------| -------------------------------------------- |--------------------------------------------------------------|
+| tdh               | mvn clean package -DskipTests -P default,tdh | Package the inceport plugin and plugins supported by default |
+| default           | mvn clean package -DskipTests -P default     | Package the all plugins except the inceptor plugin.          |
 
-# Quick Start
+### Common problem
 
-Please click [Quick Start](docs/quickstart.md)
+#### 1.Can not find dependencies
 
-# General Configuration
+Solution: There are some driver packages in the directory '$ChunJun_HOME/jars', and you can install these dependencies manually or execute the command below:
 
-Please click [General Configuration](docs/generalconfig.md)
+```bash
+## windows
+./$CHUNJUN_HOME/bin/install_jars.bat
 
-# Statistics Metric
+## unix
+./$CHUNJUN_HOME/bin/install_jars.sh
+```
 
-Please click [Statistics Metric](docs/statistics.md)
+#### 2. Compiling module 'ChunJun-core' then throws 'Failed to read artifact descriptor for com.google.errorprone:javac-shaded'
 
-# Iceberg
-Please click [Iceberg](docs/iceberg.md)
+Error message：
 
-# Kerberos
+```java
+[ERROR]Failed to execute goal com.diffplug.spotless:spotless-maven-plugin:2.4.2:check(spotless-check)on project flinkx-core:
+        Execution spotless-check of goal com.diffplug.spotless:spotless-maven-plugin:2.4.2:check failed:Unable to resolve dependencies:
+        Failed to collect dependencies at com.google.googlejavaformat:google-java-format:jar:1.7->com.google.errorprone:javac-shaded:jar:9+181-r4173-1:
+        Failed to read artifact descriptor for com.google.errorprone:javac-shaded:jar:9+181-r4173-1:Could not transfer artifact
+        com.google.errorprone:javac-shaded:pom:9+181-r4173-1 from/to aliyunmaven(https://maven.aliyun.com/repository/public): 
+        Access denied to:https://maven.aliyun.com/repository/public/com/google/errorprone/javac-shaded/9+181-r4173-1/javac-shaded-9+181-r4173-1.pom -> [Help 1]
+```
 
-Please click [Kerberos](docs/kerberos.md)
+Solution：
+Download the 'javac-shaded-9+181-r4173-1.jar' from url 'https://repo1.maven.org/maven2/com/google/errorprone/javac-shaded/9+181-r4173-1/javac-shaded-9+181-r4173-1.jar', and then install locally by using command below:
 
-# Questions
+```shell
+mvn install:install-file -DgroupId=com.google.errorprone -DartifactId=javac-shaded -Dversion=9+181-r4173-1 -Dpackaging=jar -Dfile=./jars/javac-shaded-9+181-r4173-1.jar
+```
 
-Please click [Questions](docs/questions.md)
+## Quick Start
 
-# How to contribute Chunjun
+The following table shows the correspondence between the branches of ChunJun and the version of flink. If the versions are not aligned, problems such as 'Serialization Exceptions', 'NoSuchMethod Exception', etc. mysql occur in tasks.
 
-Please click [Contribution](docs/contribution.md)
+| Branches     | Flink version |
+|--------------|---------------|
+| master       | 1.12.7        |
+| 1.12_release | 1.12.7        |
+| 1.10_release | 1.10.1        |
+| 1.8_release  | 1.8.3         |
 
-# License
+ChunJun supports running tasks in multiple modes. Different modes depend on different environments and steps. The following are
 
-Chunjun is under the Apache 2.0 license. See the [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) file for details.
+### Local
+
+Local mode does not depend on the Flink environment and Hadoop environment, and starts a JVM process in the local environment to perform tasks.
+
+#### Steps
+
+Go to the directory of 'chunjun-dist' and execute the command below:
+
+```shell
+sh bin/chunjun-local.sh  -job $SCRIPT_PATH
+```
+
+The parameter of "$SCRIPT_PATH" means 'the path where the task script is located'.
+After execute, you can perform a task locally.
+
+[Reference video](https://www.bilibili.com/video/BV1mT411g7fJ?spm_id_from=333.999.0.0)
+
+### Standalone
+
+Standalone mode depend on the Flink Standalone environment and does not depend on the Hadoop environment.
+
+#### Steps
+
+##### 1. Start Flink Standalone Cluster
+
+```shell
+sh $FLINK_HOME/bin/start-cluster.sh
+```
+
+After the startup is successful, the default port of Flink Web is 8081, which you can configure in the file of 'flink-conf.yaml'. We can access the 8081 port of the current machine to enter the flink web of standalone cluster.
+
+##### 2. Submit task
+
+Go to the directory of 'chunjun-dist' and execute the command below:
+
+```shell
+sh bin/chunjun-standalone.sh -job chunjun-examples/json/stream/stream.json
+```
+
+After the command execute successfully, you can observe the task staus on the flink web.
+
+[Reference video](https://www.bilibili.com/video/BV1TT41137UV?spm_id_from=333.999.0.0)
+
+### Yarn Session
+
+YarnSession mode depends on the Flink jars and Hadoop environments, and the yarn-session needs to be started before the task is submitted.
+
+#### Steps
+
+##### 1. Start yarn-session environment
+
+Yarn-session mode depend on Flink and Hadoop environment. You need to set $HADOOP_HOME and $FLINK_HOME in advance, and we need to upload 'chunjun-dist' with yarn-session '-t' parameter.
+
+```shell
+cd $FLINK_HOME/bin
+./yarn-session -t $CHUNJUN_HOME -d
+```
+
+##### 2. Submit task
+
+Get the application id $SESSION_APPLICATION_ID corresponding to the yarn-session through yarn web, then enter the directory 'chunjun-dist' and execute the command below:
+
+```shell
+sh ./bin/chunjun-yarn-session.sh -job chunjun-examples/json/stream/stream.json -confProp {\"yarn.application.id\":\"SESSION_APPLICATION_ID\"}
+```
+
+'yarn.application.id' can also be set in 'flink-conf.yaml'.
+After the submission is successful, the task status can be observed on the yarn web.
+
+[Reference video](https://www.bilibili.com/video/BV1oU4y1D7e7?spm_id_from=333.999.0.0)
+
+### Yarn Per-Job
+
+Yarn Per-Job mode depend on Flink and Hadoop environment. You need to set $HADOOP_HOME and $FLINK_HOME in advance.
+
+#### Steps
+
+The yarn per-job task can be submitted after the configuration is correct. Then enter the directory 'chunjun-dist' and execute the command below:
+
+```shell
+sh ./bin/chunjun-yarn-perjob.sh -job chunjun-examples/json/stream/stream.json
+```
+
+After the submission is successful, the task status can be observed on the yarn web.
+
+## Docs of Connectors
+
+For details, please visit：https://dtstack.github.io/chunjun/documents/
+
+## Contributors
+
+Thanks to all contributors! We are very happy that you can contribute Chunjun.
+
+<a href="https://github.com/DTStack/chunjun/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=DTStack/chunjun"  alt="contributors"/>
+</a>
+
+## License
+
+ChunJun is under the Apache 2.0 license. Please visit [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) for details.

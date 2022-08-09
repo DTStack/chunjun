@@ -31,7 +31,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>flinkx-connector-rocketmq</artifactId>
+	<artifactId>chunjun-connector-rocketmq</artifactId>
 	<name>ChunJun : Connectors : RocketMQ</name>
 
 	<properties>
@@ -126,11 +126,11 @@
 								<copy todir="${basedir}/../../${dist.dir}/connector/rocketmq/"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
 								<move file="${basedir}/../../${dist.dir}/connector/rocketmq/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/rocketmq/${project.artifactId}-${git.branch}.jar"/>
+									  tofile="${basedir}/../../${dist.dir}/connector/rocketmq/${project.artifactId}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../../${dist.dir}/connector/rocketmq/"
 											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}-${git.branch}.jar"/>
+											 excludes="${project.artifactId}.jar"/>
 								</delete>
 							</tasks>
 						</configuration>

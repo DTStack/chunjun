@@ -29,12 +29,10 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author tudou
  */
-public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    protected HiveOutputFormat format;
+public class HiveOutputFormatBuilder extends BaseRichOutputFormatBuilder<HiveOutputFormat> {
 
     public HiveOutputFormatBuilder() {
-        super.format = format = new HiveOutputFormat();
+        super(new HiveOutputFormat());
     }
 
     public void setHiveConf(HiveConf hiveConf) {

@@ -1,7 +1,7 @@
-import * as React from "react"
-import "./blog.scss"
+import * as React from 'react'
+import './blog.scss'
 // import AppHeaderWhite from "../components/AppHeaderWhite"
-import AppFooter from "../components/AppFooter"
+import AppFooter from '../components/AppFooter'
 const RoadMap = () => {
   return (
     <div>

@@ -28,12 +28,10 @@ import org.apache.commons.lang3.StringUtils;
  * @author tiezhu
  * @since 2021/6/21 星期一
  */
-public class KuduOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    private final KuduOutputFormat format;
+public class KuduOutputFormatBuilder extends BaseRichOutputFormatBuilder<KuduOutputFormat> {
 
     public KuduOutputFormatBuilder() {
-        super.format = format = new KuduOutputFormat();
+        super(new KuduOutputFormat());
     }
 
     public void setSinkConf(KuduSinkConf sinkConf) {

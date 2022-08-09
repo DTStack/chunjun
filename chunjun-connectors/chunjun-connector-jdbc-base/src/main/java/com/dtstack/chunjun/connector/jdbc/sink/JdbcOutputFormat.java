@@ -28,6 +28,7 @@ import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.enums.Semantic;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -37,6 +38,7 @@ import com.dtstack.chunjun.util.TableUtil;
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.util.FlinkRuntimeException;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -233,6 +235,29 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
         } finally {
             // 执行完后清空batch
             stmtProxy.clearBatch();
+        }
+    }
+
+    @Override
+    public synchronized void writeRecord(RowData rowData) {
+        checkConnValid();
+        super.writeRecord(rowData);
+    }
+
+    public void checkConnValid() {
+        try {
+            LOG.debug("check db connection valid..");
+            if (!dbConn.isValid(10)) {
+                if (Semantic.EXACTLY_ONCE == semantic) {
+                    throw new FlinkRuntimeException(
+                            "jdbc connection is valid!work's semantic is ExactlyOnce.To prevent data loss,we don't try to reopen the connection");
+                }
+                LOG.info("db connection reconnect..");
+                dbConn = getConnection();
+                stmtProxy.reOpen(dbConn);
+            }
+        } catch (Exception e) {
+            throw new ChunJunRuntimeException("failed to check jdbcConnection valid", e);
         }
     }
 

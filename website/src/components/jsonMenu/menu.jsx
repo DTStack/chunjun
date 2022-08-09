@@ -12,7 +12,13 @@ const MenuLayout = ({ children }) => {
   //nodes 是文档list的相关信息, 文档的详细路由是  /documents/{name}
   const data = useStaticQuery(graphql`
     query MyQuery2 {
-      allFile(filter: { sourceInstanceName: { eq: "examples" }, extension: { eq: "json" }, ctime: {} }) {
+      allFile(
+        filter: {
+          sourceInstanceName: { eq: "examples" }
+          extension: { eq: "json" }
+          ctime: {}
+        }
+      ) {
         edges {
           node {
             id
@@ -32,7 +38,8 @@ const MenuLayout = ({ children }) => {
       }
     }
   `)
-
+  console.log(data, "sql")
+  data.deep = 1
   return (
     <AppContainer data={data} category="/examples/json">
       {children}

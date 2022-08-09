@@ -77,7 +77,7 @@ public class JdbcColumnConverter
             wrapIntoNullableExternalConverter(
                     ISerializationConverter serializationConverter, LogicalType type) {
         return (val, index, statement) -> {
-            if (((ColumnRowData) val).getField(index) == null) {
+            if (val == null || val.isNullAt(index)) {
                 statement.setObject(index, null);
             } else {
                 serializationConverter.serialize(val, index, statement);

@@ -170,7 +170,7 @@ public class RedisDynamicTableFactory
         redisConf.setExpireTime(config.get(KEYEXPIREDTIME));
         redisConf.setType(RedisDataType.getDataType(config.get(REDIS_DATA_TYPE)));
         redisConf.setMode(RedisDataMode.getDataMode(config.get(REDIS_DATA_MODE)));
-
+        redisConf.setKeyPrefix(config.get(TABLENAME));
         List<String> keyFields = schema.getPrimaryKey().map(pk -> pk.getColumns()).orElse(null);
         redisConf.setUpdateKey(keyFields);
         return redisConf;

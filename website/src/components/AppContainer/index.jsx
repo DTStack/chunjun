@@ -1,15 +1,19 @@
 import AppHeader from "../AppHeader"
 import AppFooter from "../AppFooter"
-import { AppShell, Accordion, Navbar } from "@mantine/core"
-import { Link } from "gatsby"
+import { Accordion } from "@mantine/core"
+import { Link, navigate } from "gatsby"
 import React from "react"
 import Seo from "../seo"
+import "./darkMenu.scss"
+import { Menu } from "antd"
+import { ModeContext } from "../Context/index"
+import { useContext } from "react"
 
 const AppContainer = ({ children, data, category }) => {
-  //nodes 是文档list的相关信息, 文档的详细路由是  /documents/{name}
+  let id = 0
 
-  function buildMenu(nodes) {
-    let id = 1
+  //nodes 是文档list的相关信息, 文档的详细路由是  /documents/{name}
+  function buildMenu(nodes, deep = 0) {
     const root = { children: [] }
     function linkToRoot(structrue, node) {
       let rootRef = root
@@ -21,7 +25,9 @@ const AppContainer = ({ children, data, category }) => {
           nextRef = {
             type: "dir",
             name: dirname,
+            label: dirname,
             id: id++,
+            key: id,
             children: [],
             parent: rootRef,
           }
@@ -29,9 +35,13 @@ const AppContainer = ({ children, data, category }) => {
         }
         rootRef = nextRef
       }
+
       rootRef.children.push({
         type: "file",
         name: node.name,
+        label: node.name,
+        id: node.id,
+        key: node.id,
         data: node,
         parent: rootRef,
       })
@@ -43,28 +53,40 @@ const AppContainer = ({ children, data, category }) => {
         root.children.push({
           type: "file",
           name: node.name,
+          label: node.name,
           data: node,
+          key: node.id,
           parent: root,
         })
       } else {
         linkToRoot(structrue, node)
       }
     }
-    return root
+    return deep ? root.children[0] : root
   }
 
-  const menuData = buildMenu(data.allFile.edges.map(item => item.node))
+  const menuData = buildMenu(
+    data.allFile.edges.map(item => item.node),
+    data.deep
+  )
   const buildChildren = children => {
     return children.map(c => {
       if (c.type === "dir") {
         return (
           <Accordion key={c.name} iconPosition="right">
-            <Accordion.Item label={c.name}>{buildChildren(c.children)}</Accordion.Item>
+            <Accordion.Item label={c.name}>
+              {buildChildren(c.children)}
+            </Accordion.Item>
           </Accordion>
         )
       } else {
         return (
-          <Link activeClassName="active" key={c.data.id} to={`${category}/${c.data.id}`} className={`w-full pl-[20px] text-sm rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center`}>
+          <Link
+            activeClassName="active"
+            key={c.data.id}
+            to={`${category}/${c.data.id}`}
+            className={` `}
+          >
             {c.name}
           </Link>
         )
@@ -72,51 +94,56 @@ const AppContainer = ({ children, data, category }) => {
     })
   }
 
-  const asideMenu = menu => {
-    const { children } = menu
+  const AsideMenu = menu => {
+    const [key, setKey] = React.useState([])
+    const [submenu, setsubmenu] = React.useState([])
+    function click(ob) {
+      if (ob.key && navigate) {
+        navigate(`${category}/${ob.key}`)
+        setKey([ob.key])
+      } else {
+        console.log(ob)
+      }
+    }
+    function menuClick(params) {
+      setsubmenu(params)
+    }
+    const { mode } = useContext(ModeContext)
     return (
-      <Navbar className="hidden md:inline-block px-0 no-scrollbar" hiddenBreakpoint="sm" width={{ sm: 200, lg: 256 }} p="xs" style={{ zIndex: "1", height: "calc(100vh - 90px)", overflowY: "auto" }}>
-        {children.map(item => {
-          return item.type === "file" ? (
-            <Link activeClassName="active" to={`${category}/${item.data.id}`} key={item.data.id} className={`w-full text-base pl-[20px] rounded-sm cursor-pointer hover:bg-gray-100 h-[48px] flex items-center`}>
-              {item.name}
-            </Link>
-          ) : (
-            <Accordion key={item.id} iconPosition="right" className="uppercase">
-              <Accordion.Item label={item.name} className="capitalize">
-                {buildChildren(item.children)}
-              </Accordion.Item>
-            </Accordion>
-          )
-        })}
-      </Navbar>
+      <div
+        id="root"
+        className="root sticky top-[60px] w-[250px] overflow-x-hidden h-[calc(100vh-60px)]"
+      >
+        <Menu
+          onClick={click}
+          style={{
+            width: "250",
+            maxWidth: "250",
+            height: "100%",
+          }}
+          theme={mode}
+          onOpenChange={menuClick}
+          selectedKeys={key}
+          defaultOpenKeys={submenu}
+          openKeys={submenu}
+          defaultSelectedKeys={key}
+          mode="inline"
+          items={menu.children}
+        />
+      </div>
     )
   }
-
   return (
     <>
       <Seo title="纯钧" />
-      <AppShell
-        styles={{
-          main: {
-            height: "calc(100vh - 90px)",
-            overflowY: "auto",
-            overflowX: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          },
-        }}
-        classNames={{
-          main: "no-scrollbar main",
-        }}
-        footer={<AppFooter />}
-        header={<AppHeader />}
-        padding={"sm"}
-        navbar={menuData.children.length > 0 && asideMenu(menuData)}
-      >
+      <AppHeader />
+      <div className="dark:bg-[#1a1b1e] dark:text-gray-300 relative border dark:border-black justify-between bg-white text-black flex z-20 shadow-lg">
+        {menuData.children &&
+          menuData.children.length > 0 &&
+          AsideMenu(menuData)}
         {children}
-      </AppShell>
+      </div>
+      <AppFooter />
     </>
   )
 }

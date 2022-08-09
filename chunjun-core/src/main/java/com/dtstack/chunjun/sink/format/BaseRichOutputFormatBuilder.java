@@ -33,10 +33,15 @@ import org.slf4j.LoggerFactory;
  *
  * @author huyifan.zju@163.com
  */
-public abstract class BaseRichOutputFormatBuilder {
+public abstract class BaseRichOutputFormatBuilder<T extends BaseRichOutputFormat> {
+
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    protected BaseRichOutputFormat format;
+    protected T format;
+
+    public BaseRichOutputFormatBuilder(T format) {
+        this.format = format;
+    }
 
     public void setConfig(ChunJunCommonConf config) {
         format.setConfig(config);

@@ -31,8 +31,12 @@ else
   fi
 fi
 
-export CHUNJUN_HOME="$(cd "`dirname "$0"`"/..; pwd)"
-JAR_DIR=$CHUNJUN_HOME/lib/*
+if [[ $CHUNJUN_HOME && -z $CHUNJUN_HOME ]];then
+    export CHUNJUN_HOME=$CHUNJUN_HOME
+else
+    export CHUNJUN_HOME="$(cd "`dirname "$0"`"/../chunjun-dist; pwd)"
+fi
+JAR_DIR=$CHUNJUN_HOME/../lib/*
 CLASS_NAME=com.dtstack.chunjun.client.Launcher
 
 JOBTYPE="sync"
