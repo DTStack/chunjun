@@ -454,7 +454,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             LOG.info(String.format("Query max value sql is '%s'", queryMaxValueSql));
 
             conn = getConnection();
-            st = conn.createStatement(resultSetType, resultSetConcurrency);
+            st = conn.createStatement(getResultSetType(), resultSetConcurrency);
             st.setQueryTimeout(jdbcConf.getQueryTimeOut());
             rs = st.executeQuery(queryMaxValueSql);
             if (rs.next()) {
@@ -486,6 +486,15 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
 
     /**
+     * The constant indicating the type for a <code>ResultSet</code> object
+     *
+     * @return
+     */
+    protected int getResultSetType() {
+        return resultSetType;
+    }
+
+    /**
      * 从数据库中查询切割键的最大 最小值
      *
      * @return
@@ -502,7 +511,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             LOG.info(String.format("Query SplitRange sql is '%s'", querySplitRangeSql));
 
             conn = getConnection();
-            st = conn.createStatement(resultSetType, resultSetConcurrency);
+            st = conn.createStatement(getResultSetType(), resultSetConcurrency);
             st.setQueryTimeout(jdbcConf.getQueryTimeOut());
             rs = st.executeQuery(querySplitRangeSql);
             if (rs.next()) {
@@ -867,7 +876,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                 state = startLocation;
             }
         } else {
-            statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
+            statement = dbConn.createStatement(getResultSetType(), resultSetConcurrency);
             statement.setFetchSize(jdbcConf.getFetchSize());
             statement.setQueryTimeout(jdbcConf.getQueryTimeOut());
             resultSet = statement.executeQuery(jdbcConf.getQuerySql());
@@ -885,7 +894,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     }
     /** init prepareStatement */
     public void initPrepareStatement(String querySql) throws SQLException {
-        ps = dbConn.prepareStatement(querySql, resultSetType, resultSetConcurrency);
+        ps = dbConn.prepareStatement(querySql, getResultSetType(), resultSetConcurrency);
         ps.setFetchSize(jdbcConf.getFetchSize());
         ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
     }
