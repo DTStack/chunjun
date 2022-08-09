@@ -1,16 +1,52 @@
-# Created by .ignore support plugin (hsz.mobi)
-.idea/
-plugins/
-syncplugins/
-*.iml
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+replay_pid*
+
+# build targets
 target/
+
+# Intellij Idea files
+.idea/
+*.iml
+
+# mac system
+.DS_Store
+
 lib/
-jobs/
+
+# out log.
 nohup.out
-flinkconf/
-hadoopconf/
-/default_task_id_output
-/syncplugins
-flinkxplugins
-flinkx-dist/
-flinkx-test/
+
+# auth
+*.keytab
+
+# chunjun plugins
+chunjun-dist/
+
+*/.cache
+*/node_modules
+/website/public
+/website/public/page-data/
+
+chunjun-dev/data/**

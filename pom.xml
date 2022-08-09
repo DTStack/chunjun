@@ -4,22 +4,23 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.dtstack.flinkx</groupId>
-	<artifactId>flinkx-parent</artifactId>
-	<name>FlinkX</name>
+	<groupId>com.dtstack.chunjun</groupId>
+	<artifactId>chunjun</artifactId>
+	<name>ChunJun</name>
 	<packaging>pom</packaging>
 	<version>1.12-SNAPSHOT</version>
 
 	<modules>
-		<module>flinkx-core</module>
-		<module>flinkx-connectors</module>
-		<module>flinkx-clients</module>
-<!--		<module>flinkx-local-test</module>-->
-		<module>flinkx-formats</module>
-		<module>flinkx-docker</module>
-		<module>flinkx-metrics</module>
-		<module>flinkx-dirtydata-collectors</module>
-		<module>flinkx-restore</module>
+		<module>chunjun-core</module>
+		<module>chunjun-connectors</module>
+		<module>chunjun-clients</module>
+		<module>chunjun-formats</module>
+		<module>chunjun-docker</module>
+		<module>chunjun-metrics</module>
+		<module>chunjun-dirty</module>
+		<module>chunjun-restore</module>
+		<module>chunjun-sql</module>
+		<module>chunjun-assembly</module>
 	</modules>
 
 	<properties>
@@ -28,13 +29,16 @@
 		<flink.version>1.12.7</flink.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<prometheus.version>0.8.1</prometheus.version>
-		<hadoop.version>2.7.5</hadoop.version>
+		<hadoop.version>3.1.4</hadoop.version>
 		<http.version>4.5.3</http.version>
-		<guava.version>19.0</guava.version>
+		<guava.version>27.0-jre</guava.version>
 		<!-- fix CVE-2021-45105 -->
 		<log4j2.version>2.17.0</log4j2.version>
-		<dist.dir>flinkx-dist</dist.dir>
+		<dist.dir>chunjun-dist</dist.dir>
 		<powermock.version>2.0.4</powermock.version>
+		<log4j.version>1.2.17</log4j.version>
+		<slf4j.version>1.7.36</slf4j.version>
+		<logback.version>1.2.11</logback.version>
 	</properties>
 
 	<dependencies>
@@ -84,24 +88,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4</artifactId>
-			<version>${powermock.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito2</artifactId>
-			<version>${powermock.version}</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.mockito</groupId>
-					<artifactId>mockito-core</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
 		<!--Hadoop-->
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
@@ -112,6 +98,10 @@
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
 					<groupId>commons-cli</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -200,6 +190,10 @@
 					<artifactId>commons-cli</artifactId>
 					<groupId>commons-cli</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -215,6 +209,12 @@
 			<artifactId>hadoop-yarn-api</artifactId>
 			<version>${hadoop.version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -223,17 +223,16 @@
 			<version>1.8.2</version>
 			<scope>provided</scope>
 		</dependency>
-
 	</dependencies>
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>com.google.guava</groupId>
-				<artifactId>guava</artifactId>
-				<version>${guava.version}</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+	<!--<dependencyManagement>-->
+	<!--	<dependencies>-->
+	<!--		<dependency>-->
+	<!--			<groupId>com.google.guava</groupId>-->
+	<!--			<artifactId>guava</artifactId>-->
+	<!--			<version>${guava.version}</version>-->
+	<!--		</dependency>-->
+	<!--	</dependencies>-->
+	<!--</dependencyManagement>-->
 	<build>
 		<plugins>
 			<plugin>
@@ -273,32 +272,10 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<reportOutputDirectory>javadocs</reportOutputDirectory>
-					<destDir>flinkx-java-docs</destDir>
+					<destDir>chunjun-java-docs</destDir>
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<groupId>pl.project13.maven</groupId>
-				<artifactId>git-commit-id-plugin</artifactId>
-				<version>2.2.6</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>revision</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<dateFormat>yyyy.MM.dd HH:mm:ss</dateFormat>
-					<verbose>false</verbose>
-					<generateGitPropertiesFile>true</generateGitPropertiesFile>
-					<gitDescribe>
-						<always>false</always>
-						<dirty>-dirty</dirty>
-						<forceLongFormat>false</forceLongFormat>
-					</gitDescribe>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>
@@ -416,10 +393,13 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	<repositories>
-		<repository>
-			<id>dtstack-github</id>
-			<url>https://github.com/dtstack/maven-repository/raw/master/</url>
-		</repository>
-	</repositories>
+	<profiles>
+		<!-- 本地测试模块-->
+		<profile>
+			<id>local-test</id>
+			<modules>
+				<module>chunjun-local-test</module>
+			</modules>
+		</profile>
+	</profiles>
 </project>

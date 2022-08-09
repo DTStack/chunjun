@@ -1,0 +1,165 @@
+version: '3.5'
+
+# 网络配置
+networks:
+  backend:
+    driver: ${NETWORKS_DRIVER}
+
+
+services:
+  chunjun-mysql5.7:
+    build:
+      context: ./mysql5.7
+    environment:
+      - TZ=${TZ}
+      - MYSQL_USER=${MYSQL57_USERNAME}                  # 设置 Mysql 用户名称
+      - MYSQL_PASSWORD=${MYSQL57_PASSWORD}              # 设置 Mysql 用户密码
+      - MYSQL_ROOT_PASSWORD=${MYSQL57_ROOT_PASSWORD}    # 设置 Mysql root 用户密码
+    privileged: true
+    volumes:
+      - ${DATA_PATH_HOST}/mysql57:/var/lib/mysql        # 引用 .env 配置中 DATA_PATH_HOST 变量，将宿主机上存放 Mysql 数据的目录挂载到容器中 /var/lib/mysql 目录
+    ports:
+      - "${MYSQL57_PORT}:3306"                           # 设置容器3306端口映射指定宿主机端口
+    networks:
+      - backend
+    restart: always
+  chunjun-mysql8:
+    build:
+      context: ./mysql8
+    environment:
+      - TZ=${TZ}
+      - MYSQL_USER=${MYSQL8_USERNAME}                  # 设置 Mysql 用户名称
+      - MYSQL_PASSWORD=${MYSQL8_PASSWORD}              # 设置 Mysql 用户密码
+      - MYSQL_ROOT_PASSWORD=${MYSQL8_ROOT_PASSWORD}    # 设置 Mysql root 用户密码
+    privileged: true
+    volumes:
+      - ${DATA_PATH_HOST}/mysql8:/var/lib/mysql        # 引用 .env 配置中 DATA_PATH_HOST 变量，将宿主机上存放 Mysql 数据的目录挂载到容器中 /var/lib/mysql 目录
+    ports:
+      - "${MYSQL8_PORT}:3306"                           # 设置容器3306端口映射指定宿主机端口
+    networks:
+      - backend
+    restart: always
+  chunjun-redis5:
+    build:
+      context: ./redis5
+    environment:
+      - TZ=${TZ}
+    privileged: true
+    command: "redis-server --requirepass ${REDIS5_PASSWORD}  --appendonly yes"
+    volumes:
+      - ${DATA_PATH_HOST}/redis5:/data                 # 引用 .env 配置中 DATA_PATH_HOST 变量，将宿主机上存放 Redis 数据的目录挂载到容器中 /data 目录
+    ports:
+      - "${REDIS5_PORT}:6379"                          # 设置容器6379端口映射指定宿主机端口
+    networks:
+      - backend
+    restart: always
+  chunjun-redis6:
+    build:
+      context: ./redis6
+    environment:
+      - TZ=${TZ}
+    privileged: true
+    command: "redis-server --requirepass ${REDIS6_PASSWORD} --appendonly yes"
+    volumes:
+      - ${DATA_PATH_HOST}/redis6:/data                 # 引用 .env 配置中 DATA_PATH_HOST 变量，将宿主机上存放 Redis 数据的目录挂载到容器中 /data 目录
+    ports:
+      - "${REDIS6_PORT}:6379"                          # 设置容器6379端口映射指定宿主机端口
+    networks:
+      - backend
+    restart: always
+  chunjun-dm7:
+    build:
+      context: ./dm7
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ${DATA_PATH_HOST}/dm7:/var/dmdbms/data/  # 引用 .env 配置中 DATA_PATH_HOST 变量，将宿主机上存放 dm7 数据的目录挂载到容器中 /data 目录
+    ports:
+      - "${DM7_PORT}:5236"                          # 设置容器5236端口映射指定宿主机端口
+    privileged: true
+    networks:
+      - backend
+    restart: always
+  chunjun-dm8:
+    build:
+      context: ./dm8
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ${DATA_PATH_HOST}/dm8:/var/dmdbms/data/  # 引用 .env 配置中 DATA_PATH_HOST 变量，将宿主机上存放 dm7 数据的目录挂载到容器中 /data 目录
+    ports:
+      - "${DM8_PORT}:5236"                          # 设置容器5236端口映射指定宿主机端口
+    privileged: true
+    networks:
+      - backend
+    restart: always
+  #zookeeper是kafka的依赖 - Zookeeper is the dependencies of Kafka
+  chunjun-zookeeper:
+    build:
+      context: ./zookeeper
+    environment:
+      - TZ=${TZ}
+    restart: always
+    ports:
+      - ${ZOOKEEPER_PORT}:2181
+    networks:
+      - backend
+  chunjun-kafka2.8:
+    build:
+      context: ./kafka2.8
+    ports:
+      - "${KAFKA28_PORT}:${KAFKA28_PORT}"
+    environment:
+      - KAFKA_BROKER_ID=0
+      - KAFKA_ZOOKEEPER_CONNECT=chunjun-zookeeper:2181
+      - KAFKA_PORT=${KAFKA28_PORT}
+      - KAFKA_ADVERTISED_HOST_NAME=chunjun-kafka2.8
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - TZ=Asia/Shanghai
+    restart: always
+    volumes:
+      - ${DATA_PATH_HOST}/kafka28:/var/run/docker.sock
+      - /etc/localtime:/etc/localtime
+    networks:
+      - backend
+    depends_on:
+      - chunjun-zookeeper
+  #    kudu
+  chunjun-kudu-master:
+    build:
+      context: ./kudu
+    networks:
+      - backend
+    restart: always
+    ports:
+      - "${KUDU_MASTER_PORT}:7051"
+      - "8051"
+    command: [ "master" ]
+    environment:
+      - KUDU_MASTERS=chunjun-kudu-master
+  chunjun-kudu-tserver:
+    build:
+      context: ./kudu
+    ports:
+      - "${KUDU_TSERVER_PORT}:7050"
+      - "8050"
+    command: [ "tserver" ]
+    environment:
+      - KUDU_MASTERS=chunjun-kudu-master
+    networks:
+      - backend
+    depends_on:
+      - chunjun-kudu-master
+  chunjun-app:
+    build:
+      context: ./app
+    networks:
+      - backend
+    ports:
+      - "2222:22"
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ${DATA_PATH_HOST}/app/code:/root/app/code
+      - ${DATA_PATH_HOST}/app/repository:/root/.m2/repository
+      - /etc/localtime:/etc/localtime
