@@ -71,10 +71,6 @@ public class ChunjunBaseE2eTest {
     public static final URL FLINK_CONF_DIR_URL =
             ChunjunBaseE2eTest.class.getClassLoader().getResource("docker/flink");
 
-    public static final URL FLINK_CONF_DIR_URL1 =
-            ChunjunBaseE2eTest.class
-                    .getClassLoader()
-                    .getResource("chunjun-slf4j-log4j12-1.7.10.jar");
     @Nullable private RestClusterClient<StandaloneClusterId> restClusterClient;
 
     @ClassRule public static final Network NETWORK = Network.newNetwork();
