@@ -21,7 +21,8 @@
 		<module>chunjun-restore</module>
 		<module>chunjun-sql</module>
 		<module>chunjun-assembly</module>
-	</modules>
+        <module>chunjun-e2e</module>
+    </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
