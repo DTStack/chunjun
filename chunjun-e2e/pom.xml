@@ -30,13 +30,6 @@
 
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connectors</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-clients</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
