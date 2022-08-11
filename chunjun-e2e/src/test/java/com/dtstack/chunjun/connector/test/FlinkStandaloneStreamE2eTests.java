@@ -18,17 +18,17 @@
 
 package com.dtstack.chunjun.connector.test;
 
-import com.dtstack.chunjun.connector.test.entity.JobAccumulatorResult;
+import com.dtstack.chunjun.connector.entity.JobAccumulatorResult;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.time.Duration;
 
-public class StreamE2eTests extends ChunjunBaseE2eTest {
+public class FlinkStandaloneStreamE2eTests extends ChunjunFlinkStandaloneE2eTest {
 
     @Test
-    public void test() throws Exception {
+    public void testStream() throws Exception {
         submitSyncJobOnStandLone(CHUNJUN_HOME + "/chunjun-examples/json/stream/stream.json");
         JobAccumulatorResult jobAccumulatorResult = waitUntilJobFinished(Duration.ofMinutes(30));
 

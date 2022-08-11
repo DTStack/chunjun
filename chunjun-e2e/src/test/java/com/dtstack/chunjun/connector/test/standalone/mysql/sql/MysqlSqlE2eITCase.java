@@ -16,28 +16,6 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.test.entity;
+package com.dtstack.chunjun.connector.test.standalone.mysql.sql;
 
-public class JobAccumulatorResult {
-    private final long numRead;
-    private final long numWrite;
-    private final long nErrors;
-
-    public JobAccumulatorResult(long numRead, long numWrite, long nErrors) {
-        this.numRead = numRead;
-        this.numWrite = numWrite;
-        this.nErrors = nErrors;
-    }
-
-    public long getNumRead() {
-        return numRead;
-    }
-
-    public long getNumWrite() {
-        return numWrite;
-    }
-
-    public long getNumError() {
-        return nErrors;
-    }
-}
+public class MysqlSqlE2eITCase {}

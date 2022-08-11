@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.test.entity;
+package com.dtstack.chunjun.connector.entity;
 
 import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -28,58 +28,58 @@ import java.util.List;
 import java.util.Map;
 
 public class LaunchCommandBuilder {
-    private List<String> commonds;
+    private List<String> commands;
 
     public LaunchCommandBuilder(String jobType) {
         Assert.assertTrue("sync".equals(jobType) || "sql".equals(jobType));
-        this.commonds = new ArrayList<>(18);
-        commonds.add("-jobType");
-        commonds.add(jobType);
+        this.commands = new ArrayList<>(18);
+        commands.add("-jobType");
+        commands.add(jobType);
     }
 
     public LaunchCommandBuilder withRunningMode(ClusterMode clusterMode) {
-        commonds.add("-mode");
-        commonds.add(clusterMode.name());
+        commands.add("-mode");
+        commands.add(clusterMode.name());
         return this;
     }
 
     public LaunchCommandBuilder withJobContentPath(String contentPath) {
-        commonds.add("-job");
-        commonds.add(contentPath);
+        commands.add("-job");
+        commands.add(contentPath);
         return this;
     }
 
     public LaunchCommandBuilder withChunJunDistDir(String chunJunDistDir) {
-        commonds.add("-chunjunDistDir");
-        commonds.add(chunJunDistDir);
+        commands.add("-chunjunDistDir");
+        commands.add(chunJunDistDir);
         return this;
     }
 
     public LaunchCommandBuilder withFlinkConfDir(String flinkConfDir) {
-        commonds.add("-flinkConfDir");
-        commonds.add(flinkConfDir);
+        commands.add("-flinkConfDir");
+        commands.add(flinkConfDir);
         return this;
     }
 
     public LaunchCommandBuilder withFlinkCustomConf(Map<String, Object> properties) {
-        commonds.add("-confProp");
-        commonds.add(GsonUtil.GSON.toJson(properties));
+        commands.add("-confProp");
+        commands.add(GsonUtil.GSON.toJson(properties));
         return this;
     }
 
     public LaunchCommandBuilder withAddJar(List<String> path) {
-        commonds.add("-addjar");
-        commonds.add(GsonUtil.GSON.toJson(path));
+        commands.add("-addjar");
+        commands.add(GsonUtil.GSON.toJson(path));
         return this;
     }
 
     public LaunchCommandBuilder withShipFile(String path) {
-        commonds.add("-addShipfile");
-        commonds.add(path);
+        commands.add("-addShipfile");
+        commands.add(path);
         return this;
     }
 
     public String[] builder() {
-        return commonds.toArray(new String[0]);
+        return commands.toArray(new String[0]);
     }
 }
