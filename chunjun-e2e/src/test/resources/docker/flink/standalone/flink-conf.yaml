@@ -32,11 +32,11 @@
 #env.java.opts.jobmanager: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
 #env.java.opts.taskmanager: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006
 
-jobmanager.rpc.address: 127.0.0.1
+jobmanager.rpc.address: 0.0.0.0
 
 # The RPC port where the JobManager is reachable.
 
-#jobmanager.rpc.port: 6123
+jobmanager.rpc.port: 6123
 
 
 # The total process memory size for the JobManager.
@@ -151,11 +151,11 @@ jobmanager.execution.failover-strategy: region
 # The port to which the REST client connects to. If rest.bind-port has
 # not been specified, then the server will bind to this port as well.
 #
-#rest.port: 8081
+rest.port: 8081
 
 # The address to which the REST client will connect to
 #
-#rest.address: 0.0.0.0
+rest.address: 0.0.0.0
 
 # Port range for the REST and web server to bind to.
 #

@@ -18,6 +18,9 @@
 
 package com.dtstack.chunjun.connector.test;
 
+
+import com.dtstack.chunjun.connector.test.ChunjunFlinkStandaloneE2eTest;
+
 import com.dtstack.chunjun.connector.test.entity.JobAccumulatorResult;
 
 import org.junit.Assert;
@@ -25,7 +28,9 @@ import org.junit.Test;
 
 import java.time.Duration;
 
-public class StreamE2eTests extends ChunjunBaseE2eTest {
+import static com.dtstack.chunjun.connector.test.ChunjunBaseE2eTest.CHUNJUN_HOME;
+
+public class StreamE2eTests2 extends ChunjunFlinkStandaloneE2eTest {
 
     @Test
     public void test() throws Exception {
@@ -34,4 +39,5 @@ public class StreamE2eTests extends ChunjunBaseE2eTest {
 
         Assert.assertEquals(jobAccumulatorResult.getNumRead(), 30);
     }
+
 }

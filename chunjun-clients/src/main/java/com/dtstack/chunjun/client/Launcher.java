@@ -182,10 +182,10 @@ public class Launcher {
                 launcherOptions.setChunjunDistDir(distDir);
             }
         }
-        if (StringUtils.isEmpty(distDir)) {
-            notConfiguredException(KEY_CHUNJUN_HOME);
-        }
-        System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, distDir);
+//        if (StringUtils.isEmpty(distDir)) {
+//            notConfiguredException(KEY_CHUNJUN_HOME);
+//        }
+//        System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, distDir);
     }
 
     private static String getSystemProperty(String name) {
