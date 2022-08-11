@@ -15,6 +15,23 @@
 
 	<dependencies>
 
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-test</artifactId>
+			<version>2.6.0</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>javassist</artifactId>
+					<groupId>org.javassist</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
 		<!-- 日志实现 -->
 		<!-- fix CVE-2021-45105 -->
 		<dependency>
