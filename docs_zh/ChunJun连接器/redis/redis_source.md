@@ -26,7 +26,7 @@ redis2.9以上
   - 描述：要写入Redis数据库
   - 必选：否
   - 默认值：0
-- **keyPrefix**
+- **table-name**
   - 描述：需要匹配的key前缀
   - 必选：是
   - 默认值：无
@@ -74,4 +74,4 @@ redis2.9以上
 
 
 ## 六、配置示例
-见项目内`flinkx-examples`文件夹
+见项目内`chunjun-examples`文件夹

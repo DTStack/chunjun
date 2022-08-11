@@ -206,11 +206,11 @@
 			<artifactId>chunjun-connector-saphana</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-inceptor</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+		<!--<dependency>-->
+		<!--	<groupId>com.dtstack.chunjun</groupId>-->
+		<!--	<artifactId>chunjun-connector-inceptor</artifactId>-->
+		<!--	<version>${project.version}</version>-->
+		<!--</dependency>-->
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-oceanbase</artifactId>

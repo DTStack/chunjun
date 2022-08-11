@@ -12,13 +12,32 @@
     <artifactId>chunjun-connector-stream</artifactId>
 	<name>ChunJun : Connectors : Stream</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.github.jsonzou</groupId>
-            <artifactId>jmockdata</artifactId>
-            <version>4.2.0</version>
-        </dependency>
-    </dependencies>
+	<dependencies>
+		<!-- 日志框架 start -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.jsonzou</groupId>
+			<artifactId>jmockdata</artifactId>
+			<version>4.2.0</version>
+		</dependency>
+	</dependencies>
 
     <build>
         <plugins>

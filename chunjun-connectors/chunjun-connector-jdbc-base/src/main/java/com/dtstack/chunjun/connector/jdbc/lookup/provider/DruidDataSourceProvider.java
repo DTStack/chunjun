@@ -18,9 +18,8 @@
 
 package com.dtstack.chunjun.connector.jdbc.lookup.provider;
 
-import org.apache.flink.shaded.guava18.com.google.common.base.CaseFormat;
-
 import com.alibaba.druid.pool.DruidDataSource;
+import com.google.common.base.CaseFormat;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.spi.DataSourceProvider;
 

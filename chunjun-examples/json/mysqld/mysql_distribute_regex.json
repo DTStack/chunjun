@@ -1,0 +1,68 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "address",
+                "type": "string"
+              },
+              {
+                "name": "phone_number",
+                "type": "string"
+              },
+              {
+                "name": "email",
+                "type": "string"
+              }
+            ],
+            "connection": [
+              {
+                "password": "xxx",
+                "jdbcUrl": [
+                  "jdbc:mysql://ip1:3306/mysql?useUnicode=true&characterEncoding=UTF-8&useSSL=false"
+                ],
+                "table": ["user_[0-9]+"],
+                "username": "root",
+                "schema": "db_[0-9]+"
+              },
+              {
+                "password": "xxx",
+                "jdbcUrl": [
+                  "jdbc:mysql://ip2:3306/mysql?useUnicode=true&characterEncoding=UTF-8&useSSL=false"
+                ],
+                "table": ["user_[0-9]+", "dep_1", "dep_2"],
+                "username": "root",
+                "schema": "db_[0-9]+"
+              }
+            ]
+          },
+          "name": "mysqldreader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "readerChannel": 1,
+        "writerChannel": 1,
+        "channel": 1
+      }
+    }
+  }
+}
