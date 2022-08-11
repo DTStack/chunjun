@@ -1,0 +1,11 @@
+FROM mysql:5.7
+
+LABEL maintainer="www.dtstack.com"
+
+ENV LANG=C.UTF-8
+
+ENV TZ=Asia/Shanghai
+
+WORKDIR /docker-entrypoint-initdb.d
+
+ADD ./init.sql .
