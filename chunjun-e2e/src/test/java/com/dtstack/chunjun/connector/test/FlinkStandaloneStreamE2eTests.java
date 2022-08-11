@@ -18,9 +18,6 @@
 
 package com.dtstack.chunjun.connector.test;
 
-
-import com.dtstack.chunjun.connector.test.ChunjunFlinkStandaloneE2eTest;
-
 import com.dtstack.chunjun.connector.test.entity.JobAccumulatorResult;
 
 import org.junit.Assert;
@@ -30,14 +27,13 @@ import java.time.Duration;
 
 import static com.dtstack.chunjun.connector.test.ChunjunBaseE2eTest.CHUNJUN_HOME;
 
-public class StreamE2eTests2 extends ChunjunFlinkStandaloneE2eTest {
+public class FlinkStandaloneStreamE2eTests extends ChunjunFlinkStandaloneE2eTest {
 
     @Test
-    public void test() throws Exception {
-        submitSyncJobOnStandLone(CHUNJUN_HOME + "\\chunjun-examples\\json\\stream\\stream.json");
+    public void testStream() throws Exception {
+        submitSyncJobOnStandLone(CHUNJUN_HOME + "/chunjun-examples/json/stream/stream.json");
         JobAccumulatorResult jobAccumulatorResult = waitUntilJobFinished(Duration.ofMinutes(30));
 
         Assert.assertEquals(jobAccumulatorResult.getNumRead(), 30);
     }
-
 }

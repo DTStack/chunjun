@@ -30,7 +30,6 @@ import com.dtstack.chunjun.options.Options;
 import com.dtstack.chunjun.util.ExecuteProcessHelper;
 
 import org.apache.flink.client.deployment.ClusterDeploymentException;
-import org.apache.flink.configuration.ConfigConstants;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -182,10 +181,10 @@ public class Launcher {
                 launcherOptions.setChunjunDistDir(distDir);
             }
         }
-//        if (StringUtils.isEmpty(distDir)) {
-//            notConfiguredException(KEY_CHUNJUN_HOME);
-//        }
-//        System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, distDir);
+        //        if (StringUtils.isEmpty(distDir)) {
+        //            notConfiguredException(KEY_CHUNJUN_HOME);
+        //        }
+        //        System.setProperty(ConfigConstants.ENV_FLINK_PLUGINS_DIR, distDir);
     }
 
     private static String getSystemProperty(String name) {

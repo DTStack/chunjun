@@ -63,8 +63,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import static com.dtstack.chunjun.connector.test.containers.FlinkStandaloneContainer.JOB_MANAGER_REST_PORT;
-import static com.dtstack.chunjun.connector.test.containers.FlinkStandaloneContainer.JOB_MANAGER_RPC_PORT;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
@@ -73,48 +71,52 @@ import static org.apache.flink.util.Preconditions.checkState;
  * @date 2022/8/11 11:18
  */
 public class ChunjunFlinkStandaloneE2eTest {
-    private static final Logger LOG = LoggerFactory.getLogger(ChunjunBaseE2eTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ChunjunFlinkStandaloneE2eTest.class);
 
     public static final URL FLINK_CONF_DIR_URL =
             ChunjunBaseE2eTest.class.getClassLoader().getResource("docker/flink/standalone");
 
-    final public static String CHUNJUN_DIST = new File(System.getProperty("user.dir")).getParentFile().getAbsolutePath() + File.separator + "chunjun-dist";
+    public static final String CHUNJUN_DIST =
+            new File(System.getProperty("user.dir")).getParentFile().getAbsolutePath()
+                    + "/chunjun-dist";
 
     private static final String FLINK_STANDALONE_HOST = "standalone";
 
-    @ClassRule
-    public static final Network NETWORK = Network.newNetwork();
+    public static final int JOB_MANAGER_REST_PORT = 8081;
+
+    public static final int JOB_MANAGER_RPC_PORT = 6213;
+
+    @ClassRule public static final Network NETWORK = Network.newNetwork();
 
     protected FlinkStandaloneContainer flinkStandaloneContainer;
 
-    @Nullable
-    private RestClusterClient<StandaloneClusterId> restClusterClient;
+    @Nullable private RestClusterClient<StandaloneClusterId> restClusterClient;
 
     @Before
     public void before() throws URISyntaxException {
         LOG.info("Starting flink standalone containers...");
 
-        flinkStandaloneContainer = new FlinkStandaloneContainer(FLINK_STANDALONE_HOST)
-//                .withCommand(FLINK_STANDALONE_HOST)
-                .withNetwork(NETWORK)
-                .withNetworkAliases(FLINK_STANDALONE_HOST)
-                .withExposedPorts(JOB_MANAGER_REST_PORT, JOB_MANAGER_RPC_PORT)
-                .withFileSystemBind("D:\\code\\chunjun\\chunjun-dist", "/code/chunjun/chunjun-dist")
-                .withLogConsumer(new Slf4jLogConsumer(LOG))
-                .withEnv("CHUNJUN_HOME","/code/chunjun/chunjun-dist")
-                .withEnv("FLINK_HOME","/opt/flink/conf")
-                .waitingFor(new WaitStrategy() {
-                    @Override
-                    public void waitUntilReady(WaitStrategyTarget waitStrategyTarget) {
+        flinkStandaloneContainer =
+                new FlinkStandaloneContainer(FLINK_STANDALONE_HOST)
+                        .withCommand(FLINK_STANDALONE_HOST)
+                        .withNetwork(NETWORK)
+                        .withNetworkAliases(FLINK_STANDALONE_HOST)
+                        .withExposedPorts(JOB_MANAGER_REST_PORT, JOB_MANAGER_RPC_PORT)
+                        .withFileSystemBind(CHUNJUN_DIST, CHUNJUN_DIST)
+                        .withLogConsumer(new Slf4jLogConsumer(LOG))
+                        .waitingFor(
+                                new WaitStrategy() {
+                                    @Override
+                                    public void waitUntilReady(
+                                            WaitStrategyTarget waitStrategyTarget) {}
 
-                    }
+                                    @Override
+                                    public WaitStrategy withStartupTimeout(
+                                            Duration startupTimeout) {
+                                        return null;
+                                    }
+                                });
 
-                    @Override
-                    public WaitStrategy withStartupTimeout(Duration startupTimeout) {
-                        return null;
-                    }
-                });
-        ;
         Startables.deepStart(Stream.of(flinkStandaloneContainer)).join();
         LOG.info("Containers are started.");
     }
@@ -141,7 +143,8 @@ public class ChunjunFlinkStandaloneE2eTest {
             final Configuration clientConfiguration = new Configuration();
             clientConfiguration.set(RestOptions.ADDRESS, flinkStandaloneContainer.getHost());
             clientConfiguration.set(
-                    RestOptions.PORT, flinkStandaloneContainer.getMappedPort(JOB_MANAGER_REST_PORT));
+                    RestOptions.PORT,
+                    flinkStandaloneContainer.getMappedPort(JOB_MANAGER_REST_PORT));
             this.restClusterClient =
                     new RestClusterClient<>(clientConfiguration, StandaloneClusterId.getInstance());
         } catch (Exception e) {
@@ -151,18 +154,20 @@ public class ChunjunFlinkStandaloneE2eTest {
         return restClusterClient;
     }
 
-
     protected void submitSyncJobOnStandLone(String syncConf) throws Exception {
         HashMap<String, Object> customProperties = Maps.newHashMap();
-        customProperties.put("jobmanager.rpc.port", flinkStandaloneContainer.getMappedPort(JOB_MANAGER_RPC_PORT));
-        customProperties.put("rest.port", flinkStandaloneContainer.getMappedPort(JOB_MANAGER_REST_PORT));
+        customProperties.put(
+                "jobmanager.rpc.port",
+                flinkStandaloneContainer.getMappedPort(JOB_MANAGER_RPC_PORT));
+        customProperties.put(
+                "rest.port", flinkStandaloneContainer.getMappedPort(JOB_MANAGER_REST_PORT));
 
         String[] syncs =
                 new LaunchCommandBuilder("sync")
-                        .withFlinkConfDir("D:\\code\\chunjun\\chunjun-e2e\\target\\test-classes\\docker\\flink\\standalone")
+                        .withFlinkConfDir(FLINK_CONF_DIR_URL.toURI().getPath())
                         .withRunningMode(ClusterMode.standalone)
                         .withJobContentPath(syncConf)
-                        .withChunJunDistDir("/code/chunjun/chunjun-dist")
+                        .withChunJunDistDir(CHUNJUN_DIST)
                         .withFlinkCustomConf(customProperties)
                         .builder();
         Launcher.main(syncs);
