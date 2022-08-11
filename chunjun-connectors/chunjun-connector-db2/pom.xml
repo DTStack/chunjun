@@ -22,11 +22,13 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/com.ibm.db2/jcc -->
 		<dependency>
-			<groupId>com.ibm.db2.jcc</groupId>
-			<artifactId>db2jcc</artifactId>
-			<version>${db2.version}</version>
+			<groupId>com.ibm.db2</groupId>
+			<artifactId>jcc</artifactId>
+			<version>11.5.7.0</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>

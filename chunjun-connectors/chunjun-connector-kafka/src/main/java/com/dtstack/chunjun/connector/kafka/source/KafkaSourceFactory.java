@@ -24,7 +24,6 @@ import com.dtstack.chunjun.connector.kafka.conf.KafkaConf;
 import com.dtstack.chunjun.connector.kafka.converter.KafkaColumnConverter;
 import com.dtstack.chunjun.connector.kafka.enums.StartupMode;
 import com.dtstack.chunjun.connector.kafka.serialization.RowDeserializationSchema;
-import com.dtstack.chunjun.connector.kafka.serialization.ticdc.TicdcDeserializationSchema;
 import com.dtstack.chunjun.connector.kafka.util.KafkaUtil;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.source.SourceFactory;
@@ -106,8 +105,6 @@ public class KafkaSourceFactory extends SourceFactory {
     public DynamicKafkaDeserializationSchema createKafkaDeserializationSchema(String type) {
 
         switch (type.toLowerCase(Locale.ENGLISH)) {
-            case "ticdc":
-                return new TicdcDeserializationSchema(kafkaConf);
             default:
                 return new RowDeserializationSchema(kafkaConf, new KafkaColumnConverter(kafkaConf));
         }

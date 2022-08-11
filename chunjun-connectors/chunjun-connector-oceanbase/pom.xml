@@ -17,11 +17,13 @@
 		<maven.compiler.target>8</maven.compiler.target>
 	</properties>
 	<dependencies>
+		<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
 		<dependency>
-			<groupId>com.alipay.oceanbase</groupId>
-			<artifactId>oceanbase-client</artifactId>
-			<version>1.1.5</version>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.30</version>
 		</dependency>
+
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-jdbc-base</artifactId>

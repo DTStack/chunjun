@@ -86,8 +86,8 @@ public class Db2ColumnConverter extends JdbcColumnConverter {
             case BINARY:
             case VARBINARY:
                 return val -> {
-                    Blob blob = (com.ibm.db2.jcc.am.c6) val;
-                    int length = 0;
+                    Blob blob = (Blob) val;
+                    int length;
                     try {
                         length = (int) blob.length();
                         return new BytesColumn(blob.getBytes(1, length));

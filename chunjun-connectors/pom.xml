@@ -34,7 +34,7 @@
 		<module>chunjun-connector-db2</module>
 		<module>chunjun-connector-postgresql</module>
 		<module>chunjun-connector-gbase</module>
-		<module>chunjun-connector-kingbase</module>
+<!--		<module>chunjun-connector-kingbase</module>-->
 		<module>chunjun-connector-greenplum</module>
 		<module>chunjun-connector-dm</module>
 		<module>chunjun-connector-clickhouse</module>
@@ -49,11 +49,13 @@
 		<module>chunjun-connector-file</module>
 		<module>chunjun-connector-filesystem</module>
 		<module>chunjun-connector-ftp</module>
+		<module>chunjun-connector-hdfs</module>
+		<module>chunjun-connector-hive</module>
+		<module>chunjun-connector-hive3</module>
 
 		<!--NoSql-->
 		<module>chunjun-connector-hbase-base</module>
 		<module>chunjun-connector-hbase-1.4</module>
-		<!--		<module>chunjun-connector-elasticsearch5</module>-->
 		<!--		<module>chunjun-connector-elasticsearch6</module>-->
 		<module>chunjun-connector-elasticsearch7</module>
 		<module>chunjun-connector-elasticsearch-base</module>
@@ -131,47 +133,4 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-	<profiles>
-		<!-- apache 相关插件, 默认开启 -->
-		<profile>
-			<id>default</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<properties>
-				<hadoop.version>2.7.5</hadoop.version>
-			</properties>
-			<modules>
-				<!--- =========================================== 离线 ============================================== -->
-				<module>chunjun-connector-hdfs</module>
-				<module>chunjun-connector-hive</module>
-				<!--- =========================================== 实时 ============================================== -->
-			</modules>
-		</profile>
-
-		<!-- 适配 tdh 相关插件-->
-		<profile>
-			<id>tdh</id>
-			<modules>
-				<!-- =========================================== 离线 =============================================== -->
-				<module>chunjun-connector-inceptor</module>
-				<!-- =========================================== 实时 =============================================== -->
-				<!-- =========================================== 元数据 ============================================= -->
-			</modules>
-		</profile>
-
-		<!-- 适配 hive3 相关插件-->
-		<profile>
-			<id>hive3</id>
-			<properties>
-				<hadoop.version>3.1.4</hadoop.version>
-			</properties>
-			<modules>
-				<!-- =========================================== 离线 =============================================== -->
-				<module>chunjun-connector-hive3</module>
-				<!-- =========================================== 实时 =============================================== -->
-				<!-- =========================================== 元数据 ============================================= -->
-			</modules>
-		</profile>
-	</profiles>
 </project>
