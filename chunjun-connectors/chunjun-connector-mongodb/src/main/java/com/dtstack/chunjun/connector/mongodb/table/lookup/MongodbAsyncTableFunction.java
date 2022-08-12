@@ -40,8 +40,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author Ada Wong
@@ -87,20 +88,21 @@ public class MongodbAsyncTableFunction extends AsyncTableFunction<RowData> {
             basicDbObject.append(keyNames[i], keys[i]);
         }
 
-        AtomicInteger atomicInteger = new AtomicInteger(0);
+        List<RowData> rowList = new CopyOnWriteArrayList<>();
 
         Block<Document> block =
                 (document) -> {
                     RowData row = converter.toInternalLookup(document);
-                    atomicInteger.incrementAndGet();
-                    future.complete(Collections.singleton(row));
+                    rowList.add(row);
                 };
 
         SingleResultCallback<Void> callbackWhenFinished =
                 (result, t) -> {
-                    if (atomicInteger.get() <= 0) {
+                    if (rowList.size() <= 0) {
                         LOG.warn("Cannot retrieve the data from the database");
                         future.complete(Collections.EMPTY_LIST);
+                    } else {
+                        future.complete(rowList);
                     }
                 };
 

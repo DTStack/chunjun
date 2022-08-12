@@ -58,6 +58,16 @@ public class StringColumn extends AbstractBaseColumn {
         byteSize += getStringSize(data);
     }
 
+    public StringColumn(String data, String format, boolean isCustomFormat, int byteSize) {
+        super(data, byteSize);
+        this.format = format;
+        this.isCustomFormat = isCustomFormat;
+    }
+
+    public static StringColumn from(final String data, String format, boolean isCustomFormat) {
+        return new StringColumn(data, format, isCustomFormat, 0);
+    }
+
     public StringColumn(Byte aByte) {
         super(aByte, 0);
         byteSize += 1;
@@ -255,5 +265,13 @@ public class StringColumn extends AbstractBaseColumn {
 
     public boolean isCustomFormat() {
         return isCustomFormat;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
     }
 }

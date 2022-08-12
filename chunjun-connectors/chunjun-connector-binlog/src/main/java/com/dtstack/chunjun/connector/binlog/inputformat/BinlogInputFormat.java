@@ -254,7 +254,7 @@ public class BinlogInputFormat extends BaseRichInputFormat {
                             binlogConf.getUsername(),
                             binlogConf.getPassword())
                     .check(journalName)) {
-                throw new IllegalArgumentException("Can't find journalName: " + journalName);
+                throw new IllegalArgumentException("Can't find journal-name: " + journalName);
             }
         }
     }

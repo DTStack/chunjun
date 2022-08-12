@@ -179,7 +179,7 @@ public class Main {
             String job,
             Options options)
             throws Exception {
-        SyncConf config = parseFlinkxConf(job, options);
+        SyncConf config = parseConf(job, options);
         configStreamExecutionEnvironment(env, options, config);
 
         SourceFactory sourceFactory = DataSyncFactoryUtil.discoverSource(config, env);
@@ -257,7 +257,7 @@ public class Main {
 
         DataType[] tableDataTypes = adaptTable.getSchema().getFieldDataTypes();
         String[] tableFieldNames = adaptTable.getSchema().getFieldNames();
-        TypeInformation<RowData> typeInformation =
+        TypeInformation<? extends RowData> typeInformation =
                 TableUtil.getTypeInformation(tableDataTypes, tableFieldNames);
         DataStream<RowData> dataStream =
                 tableEnv.toRetractStream(adaptTable, typeInformation).map(f -> f.f1);
@@ -275,13 +275,14 @@ public class Main {
      * @param options
      * @return
      */
-    public static SyncConf parseFlinkxConf(String job, Options options) {
+    public static SyncConf parseConf(String job, Options options) {
         SyncConf config;
         try {
             config = SyncConf.parseJob(job);
 
-            if (StringUtils.isNotBlank(options.getFlinkxDistDir())) {
-                config.setPluginRoot(options.getFlinkxDistDir());
+            // 设置chunjun-dist的路径
+            if (StringUtils.isNotBlank(options.getChunjunDistDir())) {
+                config.setPluginRoot(options.getChunjunDistDir());
             }
 
             Properties confProperties = PropertiesUtil.parseConf(options.getConfProp());
@@ -292,9 +293,6 @@ public class Main {
                 config.setSavePointPath(savePointPath);
             }
 
-            if (StringUtils.isNotBlank(options.getRemoteFlinkxDistDir())) {
-                config.setRemotePluginPath(options.getRemoteFlinkxDistDir());
-            }
         } catch (Exception e) {
             throw new ChunJunRuntimeException(e);
         }
@@ -306,7 +304,7 @@ public class Main {
      *
      * @param env StreamExecutionEnvironment
      * @param options options
-     * @param config FlinkxConf
+     * @param config ChunJunConf
      */
     private static void configStreamExecutionEnvironment(
             StreamExecutionEnvironment env, Options options, SyncConf config) {
@@ -317,13 +315,13 @@ public class Main {
         } else {
             Preconditions.checkArgument(
                     ExecuteProcessHelper.checkRemoteSqlPluginPath(
-                            options.getRemoteFlinkxDistDir(),
+                            options.getRemoteChunJunDistDir(),
                             options.getMode(),
                             options.getPluginLoadMode()),
                     "Non-local mode or shipfile deployment mode, remoteSqlPluginPath is required");
             FactoryHelper factoryHelper = new FactoryHelper();
-            factoryHelper.setLocalPluginPath(options.getFlinkxDistDir());
-            factoryHelper.setRemotePluginPath(options.getRemoteFlinkxDistDir());
+            factoryHelper.setLocalPluginPath(options.getChunjunDistDir());
+            factoryHelper.setRemotePluginPath(options.getRemoteChunJunDistDir());
             factoryHelper.setPluginLoadMode(options.getPluginLoadMode());
             factoryHelper.setEnv(env);
             factoryHelper.setExecutionMode(options.getMode());

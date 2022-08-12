@@ -67,6 +67,8 @@ public class KingbaseRawTypeConverter {
             case "BPCHAR":
             case "CHAR":
             case "VARCHAR":
+            case "TEXT":
+            case "JSON":
                 return DataTypes.STRING();
             case "DATE":
                 return DataTypes.DATE();
@@ -77,10 +79,6 @@ public class KingbaseRawTypeConverter {
             case "BLOB":
             case "JSONB":
                 return DataTypes.BYTES();
-            case "TEXT":
-                return DataTypes.STRING();
-            case "JSON":
-                return DataTypes.STRING();
             default:
                 throw new UnsupportedTypeException(type);
         }

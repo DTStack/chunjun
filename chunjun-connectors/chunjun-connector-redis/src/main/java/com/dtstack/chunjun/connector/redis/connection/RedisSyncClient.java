@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.JedisPool;
@@ -204,10 +205,8 @@ public class RedisSyncClient {
 
     public void close(JedisCommands jedis) {
         try {
-            if (jedis != null) {
-                if (jedis instanceof Closeable) {
-                    ((Closeable) jedis).close();
-                }
+            if (jedis != null && ((Jedis) jedis).isConnected()) {
+                ((Closeable) jedis).close();
             }
             if (jedisSentinelPool != null) {
                 jedisSentinelPool.close();

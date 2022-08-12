@@ -218,7 +218,7 @@ public class ChunJunCommonConf implements Serializable {
 
     @Override
     public String toString() {
-        return "FlinkxCommonConf{"
+        return "ChunJunCommonConf{"
                 + "speedBytes="
                 + speedBytes
                 + ", errorRecord="

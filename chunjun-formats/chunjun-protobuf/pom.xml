@@ -9,7 +9,8 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>flinkx-protobuf</artifactId>
+	<artifactId>chunjun-protobuf</artifactId>
+	<name>ChunJun : Formats : Protobuf</name>
 
 	<properties>
 		<maven.compiler.source>8</maven.compiler.source>
@@ -74,11 +75,11 @@
 								<copy todir="${basedir}/../../${dist.dir}/formats/pbformat"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
 								<move file="${basedir}/../../${dist.dir}/formats/pbformat/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/formats/pbformat/${project.artifactId}-${git.branch}.jar"/>
+									  tofile="${basedir}/../../${dist.dir}/formats/pbformat/${project.artifactId}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../../${dist.dir}/formats/pbformat/"
 											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}-${git.branch}.jar"/>
+											 excludes="${project.artifactId}.jar"/>
 								</delete>
 							</tasks>
 						</configuration>

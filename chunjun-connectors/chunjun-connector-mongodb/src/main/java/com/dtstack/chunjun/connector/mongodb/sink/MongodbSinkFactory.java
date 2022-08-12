@@ -60,7 +60,8 @@ public class MongodbSinkFactory extends SinkFactory {
 
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
-        MongodbOutputFormatBuilder builder = new MongodbOutputFormatBuilder(mongodbDataSyncConf);
+        MongodbOutputFormatBuilder builder =
+                MongodbOutputFormatBuilder.newBuilder(mongodbDataSyncConf);
         MongoConverterFactory mongoConverterFactory =
                 new MongoConverterFactory(mongodbDataSyncConf);
         AbstractRowConverter converter;

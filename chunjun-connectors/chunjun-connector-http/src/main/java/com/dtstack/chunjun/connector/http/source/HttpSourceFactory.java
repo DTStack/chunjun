@@ -91,11 +91,12 @@ public class HttpSourceFactory extends SourceFactory {
                 || org.apache.commons.lang3.StringUtils.isBlank(
                         syncConf.getTransformer().getTransformSql())) {
             typeInformation =
-                    TableUtil.getTypeInformation(Collections.emptyList(), getRawTypeConverter());
+                    TableUtil.getTypeInformation(
+                            Collections.emptyList(), getRawTypeConverter(), true);
         } else {
             typeInformation =
                     TableUtil.getTypeInformation(
-                            subColumns(httpRestConfig.getColumn()), getRawTypeConverter());
+                            subColumns(httpRestConfig.getColumn()), getRawTypeConverter(), false);
             useAbstractBaseColumn = false;
         }
         super.initCommonConf(httpRestConfig);

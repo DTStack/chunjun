@@ -6,12 +6,10 @@ import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 import org.apache.flink.util.CollectionUtil;
 
 /** @Author xirang @Company Dtstack @Date: 2022/3/14 2:57 PM */
-public class InfluxdbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    private InfluxdbOutputFormat format;
+public class InfluxdbOutputFormatBuilder extends BaseRichOutputFormatBuilder<InfluxdbOutputFormat> {
 
     public InfluxdbOutputFormatBuilder() {
-        super.format = this.format = new InfluxdbOutputFormat();
+        super(new InfluxdbOutputFormat());
     }
 
     public void setInfluxdbConfig(InfluxdbSinkConfig config) {

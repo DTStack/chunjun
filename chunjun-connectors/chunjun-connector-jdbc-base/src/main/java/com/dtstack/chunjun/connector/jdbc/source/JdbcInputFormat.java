@@ -60,6 +60,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static com.dtstack.chunjun.enums.ColumnType.TIMESTAMPTZ;
 
@@ -408,6 +409,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
         ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
     }
+
     /**
      * 从数据库中查询增量字段的最大值
      *
@@ -702,7 +704,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                         startLocation);
                 jdbcInputSplit.setStartLocation(startLocation);
                 whereList.add(
-                        SqlUtil.buildFilterSql(
+                        buildFilterSql(
                                 jdbcConf.getCustomSql(),
                                 ">",
                                 startLocation,
@@ -715,7 +717,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             if (StringUtils.isNotBlank(startLocation)) {
                 String operator = jdbcConf.isUseMaxFunc() ? " >= " : " > ";
                 whereList.add(
-                        SqlUtil.buildFilterSql(
+                        buildFilterSql(
                                 jdbcConf.getCustomSql(),
                                 operator,
                                 startLocation,
@@ -724,17 +726,17 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                                 jdbcInputSplit.isPolling(),
                                 this::getTimeStr));
             }
-        }
-        if (StringUtils.isNotBlank(jdbcInputSplit.getEndLocation())) {
-            whereList.add(
-                    SqlUtil.buildFilterSql(
-                            jdbcConf.getCustomSql(),
-                            "<",
-                            jdbcInputSplit.getEndLocation(),
-                            jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                            jdbcConf.getIncreColumnType(),
-                            false,
-                            this::getTimeStr));
+            if (StringUtils.isNotBlank(jdbcInputSplit.getEndLocation())) {
+                whereList.add(
+                        buildFilterSql(
+                                jdbcConf.getCustomSql(),
+                                "<",
+                                jdbcInputSplit.getEndLocation(),
+                                jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
+                                jdbcConf.getIncreColumnType(),
+                                false,
+                                this::getTimeStr));
+            }
         }
     }
 
@@ -839,7 +841,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected void executeQuery(String startLocation) throws SQLException {
         if (currentJdbcInputSplit.isPolling()) {
             if (StringUtils.isBlank(startLocation)) {
-                // Get the startLocation from the database
                 queryPollingWithOutStartLocation();
                 // Concatenated sql statement for next polling query
                 StringBuilder builder = new StringBuilder(128);
@@ -889,7 +890,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         ps.setQueryTimeout(jdbcConf.getQueryTimeOut());
     }
     /**
-     * 间隔轮询查询起始位置
+     * polling mode first query when startLocation is not set
      *
      * @throws SQLException
      */
@@ -922,6 +923,57 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             LOG.warn(
                     "interrupted while waiting for polling, e = {}",
                     ExceptionUtil.getErrorMessage(e));
+        }
+    }
+
+    /**
+     * 构造过滤条件SQL
+     *
+     * @param operator 比较符
+     * @param location 比较的值
+     * @param columnName 字段名称
+     * @param columnType 字段类型
+     * @param isPolling 是否是轮询任务
+     * @return
+     */
+    public String buildFilterSql(
+            String customSql,
+            String operator,
+            String location,
+            String columnName,
+            String columnType,
+            boolean isPolling,
+            Function<Long, String> function) {
+        StringBuilder sql = new StringBuilder(64);
+        if (StringUtils.isNotEmpty(customSql)) {
+            sql.append(JdbcUtil.TEMPORARY_TABLE_NAME).append(".");
+        }
+        sql.append(columnName).append(" ").append(operator).append(" ");
+        if (isPolling) {
+            // 轮询任务使用占位符
+            sql.append("?");
+        } else {
+            sql.append(buildLocation(columnType, location, function));
+        }
+
+        return sql.toString();
+    }
+
+    /**
+     * buildLocation
+     *
+     * @param columnType
+     * @param location
+     * @return
+     */
+    public String buildLocation(
+            String columnType, String location, Function<Long, String> function) {
+        if (ColumnType.isTimeType(columnType)) {
+            return function.apply(Long.parseLong(location));
+        } else if (ColumnType.isNumberType(columnType)) {
+            return location;
+        } else {
+            return "'" + location + "'";
         }
     }
 

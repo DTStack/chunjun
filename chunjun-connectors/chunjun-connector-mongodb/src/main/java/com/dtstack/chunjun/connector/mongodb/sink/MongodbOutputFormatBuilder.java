@@ -34,28 +34,32 @@ import java.util.List;
  * @program chunjun
  * @create 2021/06/24
  */
-public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
+public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder<MongodbOutputFormat> {
     MongodbDataSyncConf mongodbDataSyncConf;
+    String upsertKey;
 
-    public MongodbOutputFormatBuilder(MongodbDataSyncConf mongodbDataSyncConf) {
-        this.mongodbDataSyncConf = mongodbDataSyncConf;
+    public static MongodbOutputFormatBuilder newBuilder(MongodbDataSyncConf mongodbDataSyncConf) {
+        String upsertKey = mongodbDataSyncConf.getReplaceKey();
         MongoClientConf mongoClientConf =
                 MongoClientConfFactory.createMongoClientConf(mongodbDataSyncConf);
         MongodbOutputFormat.WriteMode writeMode =
                 parseWriteMode(mongodbDataSyncConf.getWriteMode());
-        this.format =
-                new MongodbOutputFormat(
-                        mongoClientConf, mongodbDataSyncConf.getReplaceKey(), writeMode);
+        return new MongodbOutputFormatBuilder(
+                mongodbDataSyncConf, mongoClientConf, upsertKey, writeMode);
     }
 
     public MongodbOutputFormatBuilder(
-            MongoClientConf mongoClientConf, String key, MongodbOutputFormat.WriteMode writeMode) {
-        this.format = new MongodbOutputFormat(mongoClientConf, key, writeMode);
+            MongodbDataSyncConf mongodbDataSyncConf,
+            MongoClientConf mongoClientConf,
+            String key,
+            MongodbOutputFormat.WriteMode writeMode) {
+        super(new MongodbOutputFormat(mongoClientConf, key, writeMode));
+        this.upsertKey = key;
+        this.mongodbDataSyncConf = mongodbDataSyncConf;
     }
 
     @Override
     protected void checkFormat() {
-        String upsertKey = mongodbDataSyncConf.getReplaceKey();
         if (!StringUtils.isBlank(upsertKey)) {
             List<FieldConf> fields = mongodbDataSyncConf.getColumn();
             boolean flag = false;
@@ -74,7 +78,7 @@ public class MongodbOutputFormatBuilder extends BaseRichOutputFormatBuilder {
         }
     }
 
-    private MongodbOutputFormat.WriteMode parseWriteMode(String str) {
+    private static MongodbOutputFormat.WriteMode parseWriteMode(String str) {
         if (WriteMode.REPLACE.getMode().equals(str) || WriteMode.UPDATE.getMode().equals(str)) {
             return MongodbOutputFormat.WriteMode.UPSERT;
         } else {

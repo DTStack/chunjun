@@ -62,6 +62,13 @@ under the License.
 			<artifactId>easyexcel</artifactId>
 			<version>3.0.1</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jetty-util</artifactId>
+			<version>6.1.26</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -129,11 +136,11 @@ under the License.
 								<copy todir="${basedir}/../../${dist.dir}/connector/ftp/"
 									  file="${basedir}/target/${artifactId}-${project.version}.jar"/>
 								<move file="${basedir}/../../${dist.dir}/connector/ftp/${artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/ftp/${artifactId}-${git.branch}.jar"/>
+									  tofile="${basedir}/../../${dist.dir}/connector/ftp/${artifactId}.jar"/>
 								<delete>
 									<fileset dir="${basedir}/../../${dist.dir}/connector/ftp/"
 											 includes="${artifactId}-*.jar"
-											 excludes="${artifactId}-${git.branch}.jar"/>
+											 excludes="${artifactId}.jar"/>
 								</delete>
 							</tasks>
 						</configuration>

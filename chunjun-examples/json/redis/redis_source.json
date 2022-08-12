@@ -1,0 +1,80 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "hostPort": "localhost:6379",
+            "type": "hash",
+            "keyPrefix": "run_power*",
+            "password": "******",
+            "mode": "hget",
+            "database": 1,
+            "column": [
+              {
+                "name": "tag_code",
+                "type": "string"
+              },
+              {
+                "name": "start",
+                "type": "string"
+              },
+              {
+                "name": "lastStart",
+                "type": "string"
+              },
+              {
+                "name": "lastStatus",
+                "type": "string"
+              },
+              {
+                "name": "status",
+                "type": "string"
+              }
+            ]
+          },
+          "name": "redisreader"
+        },
+        "writer": {
+          "parameter": {
+            "column": [
+              {
+                "name": "tag_code",
+                "type": "string"
+              },
+              {
+                "name": "start",
+                "type": "string"
+              },
+              {
+                "name": "lastStart",
+                "type": "string"
+              },
+              {
+                "name": "lastStatus",
+                "type": "string"
+              },
+              {
+                "name": "status",
+                "type": "string"
+              }
+            ],
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 100
+      },
+      "speed": {
+        "bytes": 0,
+        "channel": 1,
+        "readerChannel": 1,
+        "writerChannel": 1
+      }
+    }
+  }
+}

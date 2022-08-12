@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.chunjun.connector.jdbc.sink;
 
 import com.dtstack.chunjun.conf.FieldConf;
@@ -25,7 +24,6 @@ import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatementImpl;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.enums.EWriteMode;
 import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.table.types.logical.RowType;
@@ -73,7 +71,6 @@ public class DynamicPreparedStmt {
             RowKind rowKind,
             Connection connection,
             JdbcDialect jdbcDialect,
-            JdbcConf jdbcConf,
             boolean writeExtInfo)
             throws SQLException {
         DynamicPreparedStmt dynamicPreparedStmt = new DynamicPreparedStmt();
@@ -84,14 +81,7 @@ public class DynamicPreparedStmt {
         dynamicPreparedStmt.getColumnMeta(schemaName, tableName, connection);
         dynamicPreparedStmt.buildRowConvert();
 
-        String sql =
-                dynamicPreparedStmt.prepareTemplates(
-                        rowKind,
-                        schemaName,
-                        tableName,
-                        jdbcConf.getUniqueKey().toArray(new String[0]),
-                        jdbcConf.getMode(),
-                        jdbcConf.isAllReplace());
+        String sql = dynamicPreparedStmt.prepareTemplates(rowKind, schemaName, tableName);
         String[] fieldNames = new String[dynamicPreparedStmt.columnNameList.size()];
         dynamicPreparedStmt.columnNameList.toArray(fieldNames);
         dynamicPreparedStmt.fieldNamedPreparedStatement =
@@ -105,14 +95,12 @@ public class DynamicPreparedStmt {
             RowKind rowKind,
             Connection connection,
             JdbcDialect jdbcDialect,
-            JdbcConf jdbcConf,
+            List<FieldConf> fieldConfList,
             AbstractRowConverter<?, ?, ?, ?> rowConverter)
             throws SQLException {
-        List<FieldConf> fieldConfList = jdbcConf.getColumn();
         DynamicPreparedStmt dynamicPreparedStmt = new DynamicPreparedStmt();
         dynamicPreparedStmt.jdbcDialect = jdbcDialect;
         dynamicPreparedStmt.rowConverter = rowConverter;
-        dynamicPreparedStmt.jdbcConf = jdbcConf;
         String[] fieldNames = new String[fieldConfList.size()];
         for (int i = 0; i < fieldConfList.size(); i++) {
             FieldConf fieldConf = fieldConfList.get(i);
@@ -120,14 +108,7 @@ public class DynamicPreparedStmt {
             dynamicPreparedStmt.columnNameList.add(fieldConf.getName());
             dynamicPreparedStmt.columnTypeList.add(fieldConf.getType());
         }
-        String sql =
-                dynamicPreparedStmt.prepareTemplates(
-                        rowKind,
-                        schemaName,
-                        tableName,
-                        jdbcConf.getUniqueKey().toArray(new String[0]),
-                        jdbcConf.getMode(),
-                        jdbcConf.isAllReplace());
+        String sql = dynamicPreparedStmt.prepareTemplates(rowKind, schemaName, tableName);
         dynamicPreparedStmt.fieldNamedPreparedStatement =
                 FieldNamedPreparedStatementImpl.prepareStatement(connection, sql, fieldNames);
         return dynamicPreparedStmt;
@@ -150,20 +131,14 @@ public class DynamicPreparedStmt {
         return dynamicPreparedStmt;
     }
 
-    protected String prepareTemplates(
-            RowKind rowKind,
-            String schemaName,
-            String tableName,
-            String[] uniqueKeys,
-            String mode,
-            boolean allReplace) {
+    protected String prepareTemplates(RowKind rowKind, String schemaName, String tableName) {
         String singleSql = null;
         switch (rowKind) {
             case INSERT:
             case UPDATE_AFTER:
                 singleSql =
-                        this.getInsertStatementWithWriteMode(
-                                mode, schemaName, tableName, uniqueKeys, allReplace);
+                        jdbcDialect.getInsertIntoStatement(
+                                schemaName, tableName, columnNameList.toArray(new String[0]));
                 break;
             case DELETE:
             case UPDATE_BEFORE:
@@ -174,40 +149,6 @@ public class DynamicPreparedStmt {
             default:
                 // TODO 异常如何处理
                 LOG.warn("not support RowKind: {}", rowKind);
-        }
-
-        return singleSql;
-    }
-
-    protected String getInsertStatementWithWriteMode(
-            String mode,
-            String schemaName,
-            String tableName,
-            String[] uniqueKeys,
-            boolean allReplace) {
-        String singleSql;
-        if (EWriteMode.INSERT.name().equalsIgnoreCase(mode)) {
-            singleSql =
-                    jdbcDialect.getInsertIntoStatement(
-                            schemaName, tableName, columnNameList.toArray(new String[0]));
-        } else if (EWriteMode.REPLACE.name().equalsIgnoreCase(mode)) {
-            singleSql =
-                    jdbcDialect
-                            .getReplaceStatement(
-                                    schemaName, tableName, columnNameList.toArray(new String[0]))
-                            .get();
-        } else if (EWriteMode.UPDATE.name().equalsIgnoreCase(mode)) {
-            singleSql =
-                    jdbcDialect
-                            .getUpsertStatement(
-                                    schemaName,
-                                    tableName,
-                                    columnNameList.toArray(new String[0]),
-                                    uniqueKeys,
-                                    allReplace)
-                            .get();
-        } else {
-            throw new IllegalArgumentException("Unknown write mode:" + mode);
         }
 
         return singleSql;
@@ -239,6 +180,10 @@ public class DynamicPreparedStmt {
             int index = nameList.indexOf(columnName);
             columnTypeList.add(typeList.get(index));
         }
+    }
+
+    public void reOpenStatement(Connection connection) throws SQLException {
+        this.fieldNamedPreparedStatement.reOpen(connection);
     }
 
     public void close() throws SQLException {

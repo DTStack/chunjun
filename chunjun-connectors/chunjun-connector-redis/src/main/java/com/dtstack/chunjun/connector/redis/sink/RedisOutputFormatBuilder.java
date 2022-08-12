@@ -32,12 +32,10 @@ import java.util.stream.Collectors;
  * @create 2021-06-16 15:14
  * @description
  */
-public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder {
-
-    private RedisOutputFormat format;
+public class RedisOutputFormatBuilder extends BaseRichOutputFormatBuilder<RedisOutputFormat> {
 
     public RedisOutputFormatBuilder() {
-        super.format = format = new RedisOutputFormat();
+        super(new RedisOutputFormat());
     }
 
     public void setRedisConf(RedisConf redisConf) {

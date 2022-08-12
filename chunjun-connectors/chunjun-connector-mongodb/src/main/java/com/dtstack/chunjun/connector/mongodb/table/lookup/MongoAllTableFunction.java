@@ -44,7 +44,7 @@ import java.util.Map;
  */
 public class MongoAllTableFunction extends AbstractAllTableFunction {
 
-    private static final int FETCH_SIZE = 1000;
+    private final int fetchSize;
     private final MongoClientConf mongoClientConf;
     private transient MongoClient mongoClient;
     private transient MongoCollection collection;
@@ -57,6 +57,7 @@ public class MongoAllTableFunction extends AbstractAllTableFunction {
             String[] fieldNames) {
         super(fieldNames, keyNames, lookupConf, new MongodbRowConverter(rowType, fieldNames));
         this.mongoClientConf = mongoClientConf;
+        this.fetchSize = lookupConf.getFetchSize();
     }
 
     @Override
@@ -70,7 +71,7 @@ public class MongoAllTableFunction extends AbstractAllTableFunction {
         Map<String, List<Map<String, Object>>> tmpCache =
                 (Map<String, List<Map<String, Object>>>) cacheRef;
 
-        FindIterable<Document> findIterable = collection.find().limit(FETCH_SIZE);
+        FindIterable<Document> findIterable = collection.find().limit(fetchSize);
         MongoCursor<Document> mongoCursor = findIterable.iterator();
         while (mongoCursor.hasNext()) {
             Document doc = mongoCursor.next();

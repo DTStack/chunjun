@@ -141,6 +141,7 @@ public enum ColumnType {
                     DECFLOAT,
                     DECIMAL,
                     NUMBER,
+                    NUMERIC,
                     PRECISION,
                     DOUBLEPRECISION);
 

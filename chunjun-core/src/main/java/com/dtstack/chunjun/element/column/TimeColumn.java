@@ -34,6 +34,14 @@ public class TimeColumn extends AbstractBaseColumn {
         super(data, 8);
     }
 
+    public TimeColumn(Time data, int byteSize) {
+        super(data, byteSize);
+    }
+
+    public static TimeColumn from(Time data) {
+        return new TimeColumn(data, 0);
+    }
+
     public TimeColumn(int data) {
         super(Time.valueOf(LocalTime.ofNanoOfDay(data * 1_000_000L)), 8);
     }

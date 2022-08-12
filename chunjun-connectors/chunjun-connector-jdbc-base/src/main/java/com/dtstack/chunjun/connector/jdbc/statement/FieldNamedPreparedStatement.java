@@ -263,4 +263,7 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
      * @see PreparedStatement#close()
      */
     void close() throws SQLException;
+
+    /** *Reopen the Statement */
+    void reOpen(Connection connection) throws SQLException;
 }

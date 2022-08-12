@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.chunjun.connector.jdbc.sink;
 
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
@@ -51,6 +50,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -71,8 +71,10 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
 
     private final int cacheDurationMin = 10;
 
-    /** LRU cache key info: database_table_rowkind * */
+    /** LUR cache key info: database_table_rowkind * */
     protected Cache<String, DynamicPreparedStmt> pstmtCache;
+
+    protected boolean cacheIsExpire = false;
 
     /** 当前的执行sql的preparestatement */
     protected transient FieldNamedPreparedStatement currentFieldNamedPstmt;
@@ -94,6 +96,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
         this.connection = connection;
         this.jdbcDialect = jdbcDialect;
         this.writeExtInfo = writeExtInfo;
+        this.cacheIsExpire = true;
         initCache(true);
     }
 
@@ -160,7 +163,6 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                                             columnRowData.getRowKind(),
                                             connection,
                                             jdbcDialect,
-                                            jdbcConf,
                                             writeExtInfo);
                                 } catch (SQLException e) {
                                     LOG.warn("", e);
@@ -184,7 +186,7 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
                                             row.getRowKind(),
                                             connection,
                                             jdbcDialect,
-                                            jdbcConf,
+                                            jdbcConf.getColumn(),
                                             currentRowConverter);
                                 } catch (SQLException e) {
                                     LOG.warn("", e);
@@ -363,6 +365,21 @@ public class PreparedStmtProxy implements FieldNamedPreparedStatement {
     @Override
     public void close() throws SQLException {
         currentFieldNamedPstmt.close();
+    }
+
+    @Override
+    public void reOpen(Connection connection) throws SQLException {
+        this.connection = connection;
+        ConcurrentMap<String, DynamicPreparedStmt> stringDynamicPreparedStmtConcurrentMap =
+                pstmtCache.asMap();
+        initCache(cacheIsExpire);
+        for (Map.Entry<String, DynamicPreparedStmt> entry :
+                stringDynamicPreparedStmtConcurrentMap.entrySet()) {
+            DynamicPreparedStmt value = entry.getValue();
+            value.reOpenStatement(connection);
+            pstmtCache.put(entry.getKey(), value);
+            currentFieldNamedPstmt = value.getFieldNamedPreparedStatement();
+        }
     }
 
     public void clearStatementCache() {

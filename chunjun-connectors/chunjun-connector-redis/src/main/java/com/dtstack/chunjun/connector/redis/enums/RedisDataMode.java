@@ -26,6 +26,7 @@ package com.dtstack.chunjun.connector.redis.enums;
 public enum RedisDataMode {
 
     /** reader mode */
+    H_GET("hget"),
 
     /** write mode */
     SET("set"),
@@ -33,16 +34,13 @@ public enum RedisDataMode {
     R_PUSH("rpush"),
     S_ADD("sadd"),
     Z_ADD("zadd"),
-    H_SET("hset");
+    H_SET("hset"),
+    ;
 
-    public String mode;
+    public final String mode;
 
     RedisDataMode(String mode) {
         this.mode = mode;
-    }
-
-    public String getMode() {
-        return mode;
     }
 
     public static RedisDataMode getDataMode(String mode) {
@@ -53,5 +51,9 @@ public enum RedisDataMode {
         }
 
         throw new RuntimeException("Unsupported redis data mode:" + mode);
+    }
+
+    public String getMode() {
+        return mode;
     }
 }

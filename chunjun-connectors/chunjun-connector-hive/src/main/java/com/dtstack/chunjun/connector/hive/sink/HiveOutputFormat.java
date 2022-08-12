@@ -246,8 +246,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
                 outputFormatMap.entrySet()) {
             try {
                 BaseHdfsOutputFormat format = entry.getValue().getRight();
-                format.finalizeGlobal(numTasks);
                 format.close();
+                format.finalizeGlobal(numTasks);
             } catch (IOException e) {
                 LOG.warn("close {} outputFormat error", entry.getKey(), e);
             }
@@ -296,7 +296,8 @@ public class HiveOutputFormat extends BaseRichOutputFormat {
     private BaseHdfsOutputFormat createHdfsOutputFormat(
             TableInfo tableInfo, String path, String hiveTablePath, boolean useAbstractBaseColumn) {
         try {
-            HdfsOutputFormatBuilder builder = new HdfsOutputFormatBuilder(hiveConf.getFileType());
+            HdfsOutputFormatBuilder builder =
+                    HdfsOutputFormatBuilder.newBuild(hiveConf.getFileType());
             HiveConf copyHiveConf =
                     GsonUtil.GSON.fromJson(GsonUtil.GSON.toJson(hiveConf), HiveConf.class);
             copyHiveConf.setPath(path);

@@ -35,6 +35,14 @@ public class ByteColumn extends AbstractBaseColumn {
         super(data, 1);
     }
 
+    public ByteColumn(byte data, int byteSize) {
+        super(data, byteSize);
+    }
+
+    public static ByteColumn from(byte data) {
+        return new ByteColumn(data, 0);
+    }
+
     public ByteColumn(char data) {
         super(data, 1);
     }
@@ -56,7 +64,7 @@ public class ByteColumn extends AbstractBaseColumn {
 
     @Override
     public BigDecimal asBigDecimal() {
-        throw new CastException("byte", "BigDecimal", String.valueOf(data));
+        return new BigDecimal((byte) data);
     }
 
     @Override
