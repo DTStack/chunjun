@@ -127,10 +127,17 @@ public class TableUtil {
     public static RowType getRowType(
             DataType[] dataTypes, String[] fieldNames, String[] formatField) {
         List<RowType.RowField> rowFieldList = new ArrayList<>(dataTypes.length);
-        for (int i = 0; i < dataTypes.length; i++) {
-            rowFieldList.add(
-                    new RowType.RowField(
-                            fieldNames[i], dataTypes[i].getLogicalType(), formatField[i]));
+        if (formatField == null || formatField.length == 0) {
+            for (int i = 0; i < dataTypes.length; i++) {
+                rowFieldList.add(
+                        new RowType.RowField(fieldNames[i], dataTypes[i].getLogicalType()));
+            }
+        } else {
+            for (int i = 0; i < dataTypes.length; i++) {
+                rowFieldList.add(
+                        new RowType.RowField(
+                                fieldNames[i], dataTypes[i].getLogicalType(), formatField[i]));
+            }
         }
 
         return new RowType(rowFieldList);

@@ -17,21 +17,18 @@
  */
 package com.dtstack.chunjun.connector.hbase14.table;
 
+import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
 import com.dtstack.chunjun.connector.hbase14.converter.HbaseRowConverter;
 import com.dtstack.chunjun.connector.hbase14.sink.HBaseOutputFormatBuilder;
-import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
 
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
-import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.types.utils.TypeConversions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,12 +43,17 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
     private final HBaseConf conf;
     private final TableSchema tableSchema;
     private final HBaseTableSchema hbaseSchema;
+    protected final String nullStringLiteral;
 
     public HBaseDynamicTableSink(
-            HBaseConf conf, TableSchema tableSchema, HBaseTableSchema hbaseSchema) {
+            HBaseConf conf,
+            TableSchema tableSchema,
+            HBaseTableSchema hbaseSchema,
+            String nullStringLiteral) {
         this.conf = conf;
         this.tableSchema = tableSchema;
         this.hbaseSchema = hbaseSchema;
+        this.nullStringLiteral = nullStringLiteral;
     }
 
     @Override
@@ -61,44 +63,31 @@ public class HBaseDynamicTableSink implements DynamicTableSink {
 
     @Override
     public SinkFunctionProvider getSinkRuntimeProvider(Context context) {
-        List<LogicalType> logicalTypes = new ArrayList<>();
-
-        String[] familyNames = hbaseSchema.getFamilyNames();
-        int rowKeyIndex = hbaseSchema.getRowKeyIndex();
-        for (int i = 0; i < familyNames.length; i++) {
-            if (i == rowKeyIndex) {
-                logicalTypes.add(
-                        TypeConversions.fromDataToLogicalType(
-                                hbaseSchema.getRowKeyDataType().get()));
-            }
-            DataType[] qualifierDataTypes = hbaseSchema.getQualifierDataTypes(familyNames[i]);
-            for (DataType dataType : qualifierDataTypes) {
-                logicalTypes.add(TypeConversions.fromDataToLogicalType(dataType));
-            }
+        final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
+        String[] fieldNames = tableSchema.getFieldNames();
+        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
+        for (int i = 0; i < fieldNames.length; i++) {
+            FieldConf field = new FieldConf();
+            field.setName(fieldNames[i]);
+            field.setType(rowType.getTypeAt(i).asSummaryString());
+            field.setIndex(i);
+            columnList.add(field);
         }
 
-        // todo 测试下顺序是否是一致的
-        RowType of = RowType.of(logicalTypes.toArray(new LogicalType[0]));
-
         HBaseOutputFormatBuilder builder = new HBaseOutputFormatBuilder();
-        builder.setConfig(conf);
-        builder.setHbaseConf(conf);
         builder.setHbaseConfig(conf.getHbaseConfig());
         builder.setTableName(conf.getTable());
-
         builder.setWriteBufferSize(conf.getWriteBufferSize());
-        String nullStringLiteral = conf.getNullStringLiteral();
-
-        AbstractRowConverter rowConverter = new HbaseRowConverter(hbaseSchema, nullStringLiteral);
-        builder.setRowConverter(rowConverter);
-
+        HbaseRowConverter hbaseRowConverter = new HbaseRowConverter(hbaseSchema, nullStringLiteral);
+        builder.setRowConverter(hbaseRowConverter);
+        builder.setConfig(conf);
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction(builder.finish()), conf.getParallelism());
     }
 
     @Override
     public DynamicTableSink copy() {
-        return new HBaseDynamicTableSink(conf, tableSchema, hbaseSchema);
+        return new HBaseDynamicTableSink(conf, tableSchema, hbaseSchema, nullStringLiteral);
     }
 
     @Override

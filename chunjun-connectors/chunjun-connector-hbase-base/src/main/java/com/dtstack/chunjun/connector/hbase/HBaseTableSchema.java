@@ -251,7 +251,7 @@ public class HBaseTableSchema implements Serializable {
      *     are returned.
      * @return The names and types of all registered column qualifiers of a specific column family.
      */
-    private Map<String, DataType> getFamilyInfo(String family) {
+    public Map<String, DataType> getFamilyInfo(String family) {
         return familyMap.get(family);
     }
 

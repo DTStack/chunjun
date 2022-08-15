@@ -16,14 +16,15 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.hbase14.util;
+package com.dtstack.chunjun.connector.hbase.util;
 
-import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
+import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
 import com.dtstack.chunjun.security.KerberosUtil;
 import com.dtstack.chunjun.util.FileSystemUtil;
 
 import org.apache.flink.runtime.util.ExecutorThreadFactory;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -48,6 +49,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHENTICATION;
+import static com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils.KEY_HBASE_SECURITY_AUTHORIZATION;
+import static com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils.KEY_HBASE_SECURITY_AUTH_ENABLE;
 import static com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils.KEY_JAVA_SECURITY_KRB5_CONF;
 import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 
@@ -61,9 +65,10 @@ import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 public class HBaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(HBaseHelper.class);
 
-    private static final String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
-    private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
-    private static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
+    public static Connection getHbaseConnection(HBaseConf hBaseConf) {
+        Map<String, Object> hbaseConfig = ImmutableMap.copyOf(hBaseConf.getHbaseConfig());
+        return getHbaseConnection(hbaseConfig);
+    }
 
     public static Connection getHbaseConnection(Map<String, Object> hbaseConfigMap) {
         Validate.isTrue(MapUtils.isNotEmpty(hbaseConfigMap), "hbaseConfig不能为空Map结构!");
