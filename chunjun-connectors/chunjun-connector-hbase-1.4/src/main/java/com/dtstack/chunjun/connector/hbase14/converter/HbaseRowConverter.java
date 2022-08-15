@@ -20,16 +20,30 @@ package com.dtstack.chunjun.connector.hbase14.converter;
 
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
+import com.dtstack.chunjun.converter.IDeserializationConverter;
 
+import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.StringData;
+import org.apache.flink.table.data.TimestampData;
+import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.types.RowKind;
 
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
+
+import java.math.BigDecimal;
+
+import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPrecision;
 
 public class HbaseRowConverter
         extends AbstractRowConverter<Result, RowData, Mutation, LogicalType> {
+    private static final int MIN_TIMESTAMP_PRECISION = 0;
+    private static final int MAX_TIMESTAMP_PRECISION = 3;
+    private static final int MIN_TIME_PRECISION = 0;
+    private static final int MAX_TIME_PRECISION = 3;
     private HBaseTableSchema schema;
     private String nullStringLiteral;
     private transient HBaseSerde serde;
@@ -37,16 +51,89 @@ public class HbaseRowConverter
     public HbaseRowConverter(HBaseTableSchema schema, String nullStringLiteral) {
         //        super(rowType);
         this.schema = schema;
+
         this.nullStringLiteral = nullStringLiteral;
     }
 
     @Override
     public RowData toInternal(Result input) throws Exception {
+
         if (serde == null) {
             this.serde = new HBaseSerde(schema, nullStringLiteral);
         }
 
         return serde.convertToRow(input);
+    }
+
+    @Override
+    protected IDeserializationConverter createInternalConverter(LogicalType type) {
+        // ordered by type root definition
+        switch (type.getTypeRoot()) {
+            case CHAR:
+            case VARCHAR:
+                // reuse bytes
+                return (IDeserializationConverter<byte[], StringData>) StringData::fromBytes;
+            case BOOLEAN:
+                return (IDeserializationConverter<byte[], Boolean>) Bytes::toBoolean;
+            case BINARY:
+            case VARBINARY:
+                return value -> value;
+            case DECIMAL:
+                DecimalType decimalType = (DecimalType) type;
+                final int precision = decimalType.getPrecision();
+                final int scale = decimalType.getScale();
+                return (IDeserializationConverter<byte[], DecimalData>)
+                        value -> {
+                            BigDecimal decimal = Bytes.toBigDecimal(value);
+                            return DecimalData.fromBigDecimal(decimal, precision, scale);
+                        };
+            case TINYINT:
+                return (IDeserializationConverter<byte[], Byte>) value -> value[0];
+            case SMALLINT:
+                return (IDeserializationConverter<byte[], Short>) Bytes::toShort;
+            case INTEGER:
+            case DATE:
+            case INTERVAL_YEAR_MONTH:
+                return (IDeserializationConverter<byte[], Integer>) Bytes::toInt;
+            case TIME_WITHOUT_TIME_ZONE:
+                final int timePrecision = getPrecision(type);
+                if (timePrecision < MIN_TIME_PRECISION || timePrecision > MAX_TIME_PRECISION) {
+                    throw new UnsupportedOperationException(
+                            String.format(
+                                    "The precision %s of TIME type is out of the range [%s, %s] supported by "
+                                            + "HBase connector",
+                                    timePrecision, MIN_TIME_PRECISION, MAX_TIME_PRECISION));
+                }
+                return (IDeserializationConverter<byte[], Integer>) Bytes::toInt;
+            case BIGINT:
+            case INTERVAL_DAY_TIME:
+                return (IDeserializationConverter<byte[], Long>) Bytes::toLong;
+            case FLOAT:
+                return (IDeserializationConverter<byte[], Float>) Bytes::toFloat;
+            case DOUBLE:
+                return (IDeserializationConverter<byte[], Double>) Bytes::toDouble;
+            case TIMESTAMP_WITHOUT_TIME_ZONE:
+            case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
+                final int timestampPrecision = getPrecision(type);
+                if (timestampPrecision < MIN_TIMESTAMP_PRECISION
+                        || timestampPrecision > MAX_TIMESTAMP_PRECISION) {
+                    throw new UnsupportedOperationException(
+                            String.format(
+                                    "The precision %s of TIMESTAMP type is out of the range [%s, %s] supported by "
+                                            + "HBase connector",
+                                    timestampPrecision,
+                                    MIN_TIMESTAMP_PRECISION,
+                                    MAX_TIMESTAMP_PRECISION));
+                }
+                return (IDeserializationConverter<byte[], TimestampData>)
+                        value -> {
+                            // TODO: support higher precision
+                            long milliseconds = Bytes.toLong(value);
+                            return TimestampData.fromEpochMillis(milliseconds);
+                        };
+            default:
+                throw new UnsupportedOperationException("Unsupported type: " + type);
+        }
     }
 
     @Override

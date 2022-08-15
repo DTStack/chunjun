@@ -223,7 +223,7 @@ public class Main {
         if (speed.getWriterChannel() > 0) {
             dataStreamSink.setParallelism(speed.getWriterChannel());
         }
-        env.disableOperatorChaining();
+        // env.disableOperatorChaining();
         JobExecutionResult result = env.execute(options.getJobName());
         if (env instanceof MyLocalStreamEnvironment) {
             PrintUtil.printResult(result.getAllAccumulatorResults());

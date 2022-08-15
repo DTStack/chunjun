@@ -18,9 +18,7 @@
 
 package com.dtstack.chunjun.connector.hbase14.sink;
 
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
-import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
-import com.dtstack.chunjun.connector.hbase14.util.HBaseHelper;
+import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormat;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 
@@ -29,17 +27,15 @@ import org.apache.flink.table.data.RowData;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.BufferedMutator;
 import org.apache.hadoop.hbase.client.BufferedMutatorParams;
 import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +57,6 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
 
     private transient Connection connection;
     private transient BufferedMutator bufferedMutator;
-
     private transient Table table;
 
     @Override
@@ -71,9 +66,10 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
     protected void writeSingleRecordInternal(RowData rawRecord) throws WriteRecordException {
         int i = 0;
         try {
-
-            bufferedMutator.mutate((Mutation) rowConverter.toExternal(rawRecord, null));
-
+            Mutation mutation = null;
+            mutation = (Mutation) rowConverter.toExternal(rawRecord, mutation);
+            bufferedMutator.mutate(mutation);
+            bufferedMutator.flush();
         } catch (Exception ex) {
             if (i < rawRecord.getArity()) {
                 throw new WriteRecordException(
@@ -85,18 +81,7 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void openInternal(int taskNumber, int numTasks) throws IOException {
-        boolean openKerberos = HBaseConfigUtils.isEnableKerberos(hbaseConfig);
-        if (openKerberos) {
-            UserGroupInformation ugi = HBaseHelper.getUgi(hbaseConfig);
-            ugi.doAs(
-                    (PrivilegedAction<Object>)
-                            () -> {
-                                openConnection();
-                                return null;
-                            });
-        } else {
-            openConnection();
-        }
+        openConnection();
     }
 
     public void openConnection() {
@@ -104,9 +89,16 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
         Validate.isTrue(hbaseConfig != null && hbaseConfig.size() != 0, "hbaseConfig不能为空Map结构!");
 
         try {
+            connection = HBaseHelper.getHbaseConnection(hbaseConfig);
             org.apache.hadoop.conf.Configuration hConfiguration =
                     HBaseHelper.getConfig(hbaseConfig);
-            connection = ConnectionFactory.createConnection(hConfiguration);
+            try (Admin admin = this.connection.getAdmin()) {
+                boolean exist = admin.tableExists(TableName.valueOf(tableName));
+                if (!exist) {
+                    throw new IOException(
+                            "Target table is not exist,please check for table: " + tableName);
+                }
+            }
 
             bufferedMutator =
                     connection.getBufferedMutator(
@@ -129,7 +121,9 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
         try {
             List<Mutation> mutations = new ArrayList<>();
             for (RowData record : rows) {
-                mutations.add((Mutation) rowConverter.toExternal(record, null));
+                Mutation mutation = null;
+                mutation = (Mutation) rowConverter.toExternal(record, mutation);
+                mutations.add(mutation);
             }
             results = new Object[mutations.size()];
             table.batch(mutations, results);
@@ -147,7 +141,6 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
 
     @Override
     public void closeInternal() throws IOException {
-
         HBaseHelper.closeBufferedMutator(bufferedMutator);
         HBaseHelper.closeConnection(connection);
     }
@@ -156,7 +149,7 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
         this.tableName = tableName;
     }
 
-    public void setHbaseConf(Map<String, Object> hbaseConfig) {
+    public void setHbaseConfig(Map<String, Object> hbaseConfig) {
         this.hbaseConfig = hbaseConfig;
     }
 
@@ -170,9 +163,5 @@ public class HBaseOutputFormat extends BaseRichOutputFormat {
 
     public Map<String, Object> getHbaseConfig() {
         return hbaseConfig;
-    }
-
-    public void setHbaseConf(HBaseConf config) {
-        this.config = config;
     }
 }

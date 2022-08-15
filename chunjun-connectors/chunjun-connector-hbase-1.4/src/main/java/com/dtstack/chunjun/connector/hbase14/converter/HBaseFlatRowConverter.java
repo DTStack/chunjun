@@ -18,26 +18,24 @@
 
 package com.dtstack.chunjun.connector.hbase14.converter;
 
-import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.hbase.FunctionParser;
 import com.dtstack.chunjun.connector.hbase.FunctionTree;
 import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
-import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
-import com.dtstack.chunjun.element.column.*;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
 
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Mutation;
@@ -45,31 +43,25 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MAX_TIMESTAMP_PRECISION;
+import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MAX_TIME_PRECISION;
 import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MIN_TIMESTAMP_PRECISION;
+import static com.dtstack.chunjun.connector.hbase.HBaseTypeUtils.MIN_TIME_PRECISION;
 import static org.apache.flink.table.types.logical.utils.LogicalTypeChecks.getPrecision;
 
 /**
  * @author jier
- * @program flinkx
+ * @program chunjun FlatRowConverter for sync task when add transformer
  * @create 2021/04/30
  */
-public class HBaseColumnConverter
+public class HBaseFlatRowConverter
         extends AbstractRowConverter<Result, RowData, Mutation, LogicalType> {
 
     public static final String KEY_ROW_KEY = "rowkey";
@@ -77,6 +69,8 @@ public class HBaseColumnConverter
     private FunctionTree functionTree;
 
     private List<Integer> rowKeyColumnIndex;
+
+    private final String encoding;
 
     private final Integer versionColumnIndex;
 
@@ -91,27 +85,21 @@ public class HBaseColumnConverter
 
     private final List<String> columnNames = new ArrayList<>();
 
-    private final String encoding;
-
     private final HBaseConf hBaseConf;
 
     private List<String> rowKeyColumns;
 
     private final String nullMode;
 
-    private final List<FieldConf> fieldList;
-
     private byte[][][] familyAndQualifier;
 
-    public HBaseColumnConverter(HBaseConf hBaseConf, RowType rowType) {
+    public HBaseFlatRowConverter(HBaseConf hBaseConf, RowType rowType) {
         super(rowType);
-        encoding = StringUtils.isEmpty(hBaseConf.getEncoding()) ? "utf-8" : hBaseConf.getEncoding();
+
         nullMode = hBaseConf.getNullMode();
+        encoding = StringUtils.isEmpty(hBaseConf.getEncoding()) ? "utf-8" : hBaseConf.getEncoding();
+
         for (int i = 0; i < hBaseConf.getColumn().size(); i++) {
-            toInternalConverters.add(
-                    i,
-                    wrapIntoNullableInternalConverter(
-                            createInternalConverter(rowType.getTypeAt(i))));
             toExternalConverters.add(
                     i,
                     wrapIntoNullableExternalConverter(
@@ -119,8 +107,7 @@ public class HBaseColumnConverter
         }
         this.familyAndQualifier = new byte[rowType.getFieldCount()][][];
         for (int i = 0; i < hBaseConf.getColumn().size(); i++) {
-            FieldConf fieldConf = hBaseConf.getColumn().get(i);
-            String name = fieldConf.getName();
+            String name = hBaseConf.getColumn().get(i).getName();
             columnNames.add(name);
             String[] cfAndQualifier = name.split(":");
             if (cfAndQualifier.length == 2
@@ -133,44 +120,16 @@ public class HBaseColumnConverter
                 familyAndQualifier[i] = qualifierKeys;
             } else if (KEY_ROW_KEY.equals(name)) {
                 rowKeyIndex = i;
-            } else if (!StringUtils.isBlank(fieldConf.getValue())) {
-                familyAndQualifier[i] = new byte[2][];
             } else {
                 throw new IllegalArgumentException(
                         "hbase 中，column 的列配置格式应该是：列族:列名. 您配置的列错误：" + name);
             }
         }
-        fieldList = hBaseConf.getColumnMetaInfos();
 
         this.hBaseConf = hBaseConf;
         initRowKeyConfig();
         this.versionColumnIndex = hBaseConf.getVersionColumnIndex();
         this.versionColumnValue = hBaseConf.getVersionColumnValue();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public RowData toInternal(Result input) throws Exception {
-        ColumnRowData result = new ColumnRowData(fieldList.size());
-        for (int i = 0; i < fieldList.size(); i++) {
-            AbstractBaseColumn baseColumn = null;
-            if (StringUtils.isBlank(fieldList.get(i).getValue())) {
-                byte[] bytes;
-                if (KEY_ROW_KEY.equals(fieldList.get(i).getName())) {
-                    bytes = input.getRow();
-                } else {
-                    bytes = input.getValue(familyAndQualifier[i][0], familyAndQualifier[i][1]);
-                }
-                baseColumn = (AbstractBaseColumn) toInternalConverters.get(i).deserialize(bytes);
-            }
-            result.addField(assembleFieldProps(fieldList.get(i), baseColumn));
-        }
-        return result;
-    }
-
-    @Override
-    public RowData toInternalLookup(RowData input) {
-        throw new ChunJunRuntimeException("Hbase Connector doesn't support Lookup Table Function.");
     }
 
     @Override
@@ -222,167 +181,25 @@ public class HBaseColumnConverter
     }
 
     @Override
-    @SuppressWarnings("all")
-    protected IDeserializationConverter createInternalConverter(LogicalType logicalType) {
-        switch (logicalType.getTypeRoot()) {
-            case TINYINT:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        return new BigDecimalColumn(bytes[0]);
-                    }
-                };
-            case BOOLEAN:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        Boolean result = Bytes.toBoolean(bytes);
-                        return new BooleanColumn(result);
-                    }
-                };
-            case INTERVAL_DAY_TIME:
-            case BIGINT:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        Long value = Bytes.toLong(bytes);
-                        return new BigDecimalColumn(value);
-                    }
-                };
-            case SMALLINT:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        Short value = Bytes.toShort(bytes);
-                        return new BigDecimalColumn(value);
-                    }
-                };
-            case DOUBLE:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        Double value = Bytes.toDouble(bytes);
-                        return new BigDecimalColumn(value);
-                    }
-                };
-            case FLOAT:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        Float value = Bytes.toFloat(bytes);
-                        return new BigDecimalColumn(value);
-                    }
-                };
-            case DECIMAL:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        BigDecimal value = Bytes.toBigDecimal(bytes);
-                        return new BigDecimalColumn(value);
-                    }
-                };
-            case INTERVAL_YEAR_MONTH:
-            case INTEGER:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        Integer value = Bytes.toInt(bytes);
-                        return new BigDecimalColumn(value);
-                    }
-                };
-            case DATE:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        Date date;
-                        try {
-                            date = new Date(Bytes.toInt((bytes)));
-                        } catch (Exception e) {
-                            String dateValue = Bytes.toStringBinary((bytes));
-                            date = DateUtils.parseDate(dateValue);
-                        }
-                        return new SqlDateColumn(date.getTime());
-                    }
-                };
-            case CHAR:
-            case VARCHAR:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        String value = new String(bytes, encoding);
-                        return new StringColumn(value);
-                    }
-                };
-            case BINARY:
-            case VARBINARY:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        return new BytesColumn(bytes);
-                    }
-                };
-            case TIMESTAMP_WITHOUT_TIME_ZONE:
-            case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        final int timestampPrecision = getPrecision(logicalType);
-                        if (timestampPrecision < MIN_TIMESTAMP_PRECISION
-                                || timestampPrecision > MAX_TIMESTAMP_PRECISION) {
-                            throw new UnsupportedOperationException(
-                                    String.format(
-                                            "The precision %s of TIMESTAMP type is out of the range [%s, %s] supported by "
-                                                    + "HBase connector",
-                                            timestampPrecision,
-                                            MIN_TIMESTAMP_PRECISION,
-                                            MAX_TIMESTAMP_PRECISION));
-                        }
-                        long value = Bytes.toLong(bytes);
-                        Timestamp timestamp = new Timestamp(value);
-                        return new TimestampColumn(timestamp, timestampPrecision);
-                    }
-                };
-            case TIME_WITHOUT_TIME_ZONE:
-                return new IDeserializationConverter<byte[], AbstractBaseColumn>() {
-                    @Override
-                    public AbstractBaseColumn deserialize(byte[] bytes) throws Exception {
-                        int value = Bytes.toInt(bytes);
-                        LocalTime localTime = LocalTime.ofNanoOfDay(value * 1_000_000L);
-                        Time time = Time.valueOf(localTime);
-                        return new TimeColumn(time);
-                    }
-                };
-            default:
-                throw new UnsupportedTypeException(logicalType.getTypeRoot());
-        }
+    public RowData toInternal(Result input) throws Exception {
+        throw new ChunJunRuntimeException("This Hbase Convertor doesn't support toInternal.");
+    }
+
+    @Override
+    public RowData toInternalLookup(RowData input) {
+        throw new ChunJunRuntimeException("Hbase Connector doesn't support Lookup Table Function.");
     }
 
     @Override
     protected ISerializationConverter<Mutation> createExternalConverter(LogicalType logicalType) {
         Function<AbstractBaseColumn, byte[]> valueDigger;
         switch (logicalType.getTypeRoot()) {
-            case TINYINT:
-                return new ISerializationConverter<Mutation>() {
-                    @Override
-                    public void serialize(RowData rowData, int pos, Mutation output)
-                            throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        byte value = baseColumn.asInt().byteValue();
-                        byte[] bytes = new byte[] {value};
-                        byte[][] qualifier = familyAndQualifier[pos];
-                        ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
-                    }
-                };
             case BOOLEAN:
                 return new ISerializationConverter<Mutation>() {
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        Boolean value = baseColumn.asBoolean();
-                        byte[] bytes = Bytes.toBytes(value);
+                        byte[] bytes = Bytes.toBytes(rowData.getBoolean(pos));
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
@@ -393,10 +210,7 @@ public class HBaseColumnConverter
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        Long value = baseColumn.asLong();
-                        byte[] bytes = Bytes.toBytes(value);
+                        byte[] bytes = Bytes.toBytes(rowData.getLong(pos));
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
@@ -406,10 +220,7 @@ public class HBaseColumnConverter
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        Short value = baseColumn.asShort();
-                        byte[] bytes = Bytes.toBytes(value);
+                        byte[] bytes = Bytes.toBytes(rowData.getShort(pos));
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
@@ -419,10 +230,7 @@ public class HBaseColumnConverter
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        Double value = baseColumn.asDouble();
-                        byte[] bytes = Bytes.toBytes(value);
+                        byte[] bytes = Bytes.toBytes(rowData.getDouble(pos));
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
@@ -432,10 +240,7 @@ public class HBaseColumnConverter
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        Float value = baseColumn.asFloat();
-                        byte[] bytes = Bytes.toBytes(value);
+                        byte[] bytes = Bytes.toBytes(rowData.getFloat(pos));
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
@@ -445,10 +250,12 @@ public class HBaseColumnConverter
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        BigDecimal value = baseColumn.asBigDecimal();
-                        byte[] bytes = Bytes.toBytes(value);
+                        DecimalType decimalType = (DecimalType) logicalType;
+                        final int precision = decimalType.getPrecision();
+                        final int scale = decimalType.getScale();
+                        byte[] bytes =
+                                Bytes.toBytes(
+                                        rowData.getDecimal(pos, precision, scale).toBigDecimal());
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
@@ -460,10 +267,7 @@ public class HBaseColumnConverter
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        Integer value = baseColumn.asInt();
-                        byte[] bytes = Bytes.toBytes(value);
+                        byte[] bytes = Bytes.toBytes(rowData.getInt(pos));
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
@@ -474,10 +278,10 @@ public class HBaseColumnConverter
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        String value = baseColumn.asString();
-                        byte[] bytes = value.getBytes(Charset.forName(encoding));
+                        byte[] bytes =
+                                rowData.getString(pos)
+                                        .toString()
+                                        .getBytes(Charset.forName(encoding));
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
@@ -488,9 +292,7 @@ public class HBaseColumnConverter
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        byte[] bytes = baseColumn.asBinary();
+                        byte[] bytes = rowData.getBinary(pos);
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
@@ -498,6 +300,7 @@ public class HBaseColumnConverter
             case TIMESTAMP_WITHOUT_TIME_ZONE:
             case TIMESTAMP_WITH_LOCAL_TIME_ZONE:
                 return new ISerializationConverter<Mutation>() {
+
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
@@ -512,24 +315,30 @@ public class HBaseColumnConverter
                                             MIN_TIMESTAMP_PRECISION,
                                             MAX_TIMESTAMP_PRECISION));
                         }
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        Timestamp timestamp = baseColumn.asTimestamp();
-                        byte[] bytes = Bytes.toBytes(timestamp.getTime());
+                        long millisecond =
+                                rowData.getTimestamp(pos, timestampPrecision).getMillisecond();
+                        byte[] bytes = Bytes.toBytes(millisecond);
+                        ;
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
                 };
             case TIME_WITHOUT_TIME_ZONE:
                 return new ISerializationConverter<Mutation>() {
+
                     @Override
                     public void serialize(RowData rowData, int pos, Mutation output)
                             throws Exception {
-                        ColumnRowData columnRowData = (ColumnRowData) rowData;
-                        AbstractBaseColumn baseColumn = columnRowData.getField(pos);
-                        Time time = baseColumn.asTime();
-                        int data = (int) (time.toLocalTime().toNanoOfDay() / 1_000_000L);
-                        byte[] bytes = Bytes.toBytes(data);
+                        final int timePrecision = getPrecision(logicalType);
+                        if (timePrecision < MIN_TIME_PRECISION
+                                || timePrecision > MAX_TIME_PRECISION) {
+                            throw new UnsupportedOperationException(
+                                    String.format(
+                                            "The precision %s of TIME type is out of the range [%s, %s] supported by "
+                                                    + "HBase connector",
+                                            timePrecision, MIN_TIME_PRECISION, MAX_TIME_PRECISION));
+                        }
+                        byte[] bytes = Bytes.toBytes(rowData.getInt(pos));
                         byte[][] qualifier = familyAndQualifier[pos];
                         ((Put) output).addColumn(qualifier[0], qualifier[1], bytes);
                     }
@@ -542,9 +351,11 @@ public class HBaseColumnConverter
     private byte[] getRowkey(RowData record) throws Exception {
         Map<String, Object> nameValueMap = new HashMap<>((rowKeyColumnIndex.size() << 2) / 3);
         for (Integer keyColumnIndex : rowKeyColumnIndex) {
+            // todo: When flink disableOperatorChaining the record is BinaryRowData and will throw a
+            // class cast exception
             nameValueMap.put(
                     columnNames.get(keyColumnIndex),
-                    ((ColumnRowData) record).getField(keyColumnIndex).getData());
+                    ((GenericRowData) record).getField(keyColumnIndex));
         }
 
         String rowKeyStr = functionTree.evaluate(nameValueMap);
@@ -615,8 +426,6 @@ public class HBaseColumnConverter
             return date.getTime();
         } else if (timeStampValue instanceof Date) {
             return ((Date) timeStampValue).getTime();
-        } else if (timeStampValue instanceof BigDecimal) {
-            return ((BigDecimal) timeStampValue).longValue();
         } else {
             throw new RuntimeException("version 类型不兼容: " + timeStampValue.getClass());
         }

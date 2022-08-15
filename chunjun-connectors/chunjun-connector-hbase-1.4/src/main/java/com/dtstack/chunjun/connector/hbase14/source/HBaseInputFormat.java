@@ -18,17 +18,16 @@
 
 package com.dtstack.chunjun.connector.hbase14.source;
 
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
-import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
-import com.dtstack.chunjun.connector.hbase14.util.HBaseHelper;
+import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
+import com.dtstack.chunjun.connector.hbase14.util.ScanBuilder;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
-import com.dtstack.chunjun.throwable.ReadRecordException;
 
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
 
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.RegionLocator;
 import org.apache.hadoop.hbase.client.Result;
@@ -37,10 +36,8 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.Pair;
-import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,9 +50,17 @@ import java.util.Map;
  * @author huyifan.zju@163.com
  */
 public class HBaseInputFormat extends BaseRichInputFormat {
-
     protected Map<String, Object> hbaseConfig;
-    protected HBaseConf hBaseConf;
+    protected final String tableName;
+    protected String startRowkey;
+    protected String endRowkey;
+    protected List<String> columnNames;
+    protected List<String> columnValues;
+    protected List<String> columnFormats;
+    protected List<String> columnTypes;
+    protected boolean isBinaryRowkey;
+    /** 客户端每次 rpc fetch 的行数 */
+    protected int scanCacheSize = 1000;
 
     private transient Connection connection;
     private transient Scan scan;
@@ -63,13 +68,29 @@ public class HBaseInputFormat extends BaseRichInputFormat {
     private transient ResultScanner resultScanner;
     private transient Result next;
 
+    private ScanBuilder scanBuilder;
+
+    public HBaseInputFormat(String tableName, ScanBuilder scanBuilder) {
+        this.scanBuilder = scanBuilder;
+        this.tableName = tableName;
+    }
+
     @Override
     public void openInputFormat() throws IOException {
         super.openInputFormat();
 
         LOG.info("HbaseOutputFormat openInputFormat start");
 
-        connection = HBaseHelper.getHbaseConnection(hbaseConfig);
+        this.scan = scanBuilder.buildScan();
+        this.scan.setCaching(scanCacheSize);
+        this.connection = HBaseHelper.getHbaseConnection(hbaseConfig);
+        try (Admin admin = this.connection.getAdmin()) {
+            boolean exist = admin.tableExists(TableName.valueOf(tableName));
+            if (!exist) {
+                throw new IOException(
+                        "Target table is not exist,please check for table: " + tableName);
+            }
+        }
 
         LOG.info("HbaseOutputFormat openInputFormat end");
     }
@@ -77,65 +98,8 @@ public class HBaseInputFormat extends BaseRichInputFormat {
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws IOException {
         try (Connection connection = HBaseHelper.getHbaseConnection(hbaseConfig)) {
-            if (HBaseConfigUtils.isEnableKerberos(hbaseConfig)) {
-                UserGroupInformation ugi = HBaseHelper.getUgi(hbaseConfig);
-                return ugi.doAs(
-                        (PrivilegedAction<HBaseInputSplit[]>)
-                                () ->
-                                        split(
-                                                connection,
-                                                hBaseConf.getTable(),
-                                                hBaseConf.getStartRowkey(),
-                                                hBaseConf.getEndRowkey(),
-                                                hBaseConf.isBinaryRowkey()));
-            } else {
-                return split(
-                        connection,
-                        hBaseConf.getTable(),
-                        hBaseConf.getStartRowkey(),
-                        hBaseConf.getEndRowkey(),
-                        hBaseConf.isBinaryRowkey());
-            }
+            return split(connection, tableName, startRowkey, endRowkey, isBinaryRowkey);
         }
-    }
-
-    @Override
-    public void openInternal(InputSplit inputSplit) throws IOException {
-        HBaseInputSplit hbaseInputSplit = (HBaseInputSplit) inputSplit;
-        byte[] startRow = Bytes.toBytesBinary(hbaseInputSplit.getStartkey());
-        byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
-
-        if (null == connection || connection.isClosed()) {
-            connection = HBaseHelper.getHbaseConnection(hbaseConfig);
-        }
-
-        table = connection.getTable(TableName.valueOf(hBaseConf.getTable()));
-        scan = new Scan();
-        scan.setStartRow(startRow);
-        scan.setStopRow(stopRow);
-        scan.setCaching(hBaseConf.getScanCacheSize());
-        resultScanner = table.getScanner(scan);
-    }
-
-    @Override
-    public boolean reachedEnd() throws IOException {
-        next = resultScanner.next();
-        return next == null;
-    }
-
-    @Override
-    public RowData nextRecordInternal(RowData rawRow) throws ReadRecordException {
-        try {
-            rawRow = rowConverter.toInternal(next);
-            return rawRow;
-        } catch (Exception se) {
-            throw new ReadRecordException("", se, 0, rawRow);
-        }
-    }
-
-    @Override
-    public void closeInternal() throws IOException {
-        HBaseHelper.closeConnection(connection);
     }
 
     public HBaseInputSplit[] split(
@@ -254,5 +218,43 @@ public class HBaseInputFormat extends BaseRichInputFormat {
             tempStartRowkeyByte = startRowkeyByte;
         }
         return Bytes.toStringBinary(tempStartRowkeyByte);
+    }
+
+    @Override
+    public void openInternal(InputSplit inputSplit) throws IOException {
+        HBaseInputSplit hbaseInputSplit = (HBaseInputSplit) inputSplit;
+        byte[] startRow = Bytes.toBytesBinary(hbaseInputSplit.getStartkey());
+        byte[] stopRow = Bytes.toBytesBinary(hbaseInputSplit.getEndKey());
+
+        if (null == connection || connection.isClosed()) {
+            connection = HBaseHelper.getHbaseConnection(hbaseConfig);
+        }
+
+        table = connection.getTable(TableName.valueOf(tableName));
+        //        scan = new Scan();
+        this.scan.setStartRow(startRow);
+        this.scan.setStopRow(stopRow);
+        this.scan.setCaching(scanCacheSize);
+        resultScanner = table.getScanner(scan);
+    }
+
+    @Override
+    public boolean reachedEnd() throws IOException {
+        next = resultScanner.next();
+        return next == null;
+    }
+
+    @Override
+    public RowData nextRecordInternal(RowData rawRow) {
+        try {
+            return rowConverter.toInternal(next);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void closeInternal() throws IOException {
+        HBaseHelper.closeConnection(connection);
     }
 }

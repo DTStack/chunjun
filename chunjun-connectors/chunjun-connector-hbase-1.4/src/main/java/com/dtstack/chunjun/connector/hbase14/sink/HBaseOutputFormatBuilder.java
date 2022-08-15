@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.hbase14.sink;
 
-import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
 import com.dtstack.chunjun.connector.hbase.conf.HBaseConfigConstants;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
@@ -40,16 +39,12 @@ public class HBaseOutputFormatBuilder extends BaseRichOutputFormatBuilder<HBaseO
         super(new HBaseOutputFormat());
     }
 
-    public void setHbaseConf(HBaseConf config) {
-        format.setHbaseConf(config);
-    }
-
     public void setTableName(String tableName) {
         format.setTableName(tableName);
     }
 
     public void setHbaseConfig(Map<String, Object> hbaseConfig) {
-        format.setHbaseConf(hbaseConfig);
+        format.setHbaseConfig(hbaseConfig);
     }
 
     public void setWriteBufferSize(Long writeBufferSize) {
