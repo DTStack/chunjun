@@ -19,9 +19,9 @@
 package com.dtstack.chunjun.connector.test;
 
 import com.dtstack.chunjun.client.Launcher;
+import com.dtstack.chunjun.connector.containers.flink.FlinkStandaloneContainer;
 import com.dtstack.chunjun.connector.entity.JobAccumulatorResult;
 import com.dtstack.chunjun.connector.entity.LaunchCommandBuilder;
-import com.dtstack.chunjun.connector.test.containers.FlinkStandaloneContainer;
 import com.dtstack.chunjun.enums.ClusterMode;
 import com.dtstack.chunjun.util.GsonUtil;
 

@@ -50,7 +50,6 @@ import org.testcontainers.lifecycle.Startables;
 import javax.annotation.Nullable;
 
 import java.io.File;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Collection;
@@ -98,7 +97,7 @@ public class ChunjunFlinkStandaloneTestEnvironment {
     @Nullable private RestClusterClient<StandaloneClusterId> restClusterClient;
 
     @Before
-    public void before() throws URISyntaxException, InterruptedException {
+    public void before() throws Exception {
         Assert.assertTrue("chunjun-dist directory must exists", new File(CHUNJUN_DIST).exists());
 
         LOG.info("Starting flink standalone containers...");
