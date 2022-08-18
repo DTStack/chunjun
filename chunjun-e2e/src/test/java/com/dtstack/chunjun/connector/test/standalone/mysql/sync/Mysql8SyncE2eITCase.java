@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.lifecycle.Startables;
 
-import java.net.URISyntaxException;
 import java.util.stream.Stream;
 
 public class Mysql8SyncE2eITCase extends MysqlBaseSyncE2eITCase {
@@ -38,7 +37,7 @@ public class Mysql8SyncE2eITCase extends MysqlBaseSyncE2eITCase {
     protected MysqlBaseContainer mysql8Container;
 
     @Before
-    public void before() throws URISyntaxException, InterruptedException {
+    public void before() throws Exception {
         super.before();
         LOG.info("Starting mysql8 containers...");
         mysql8Container = new Mysql8Container();
