@@ -17,10 +17,12 @@
 			<artifactId>chunjun-connector-jdbc-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.dameng/DmJdbcDriver18 -->
 		<dependency>
-			<groupId>dm.jdbc.driver</groupId>
-			<artifactId>dm7</artifactId>
-			<version>18.0.0</version>
+			<groupId>com.dameng</groupId>
+			<artifactId>DmJdbcDriver18</artifactId>
+			<version>8.1.2.141</version>
 		</dependency>
 	</dependencies>
 

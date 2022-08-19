@@ -45,8 +45,9 @@ import static com.dtstack.chunjun.security.KerberosUtil.KRB_STR;
 public class HBaseConfigUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(HBaseConfigUtils.class);
-    private static final String KEY_HBASE_SECURITY_AUTHENTICATION = "hbase.security.authentication";
-    private static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
+    protected static final String KEY_HBASE_SECURITY_AUTHENTICATION =
+            "hbase.security.authentication";
+    protected static final String KEY_HBASE_SECURITY_AUTHORIZATION = "hbase.security.authorization";
     private static final String KEY_HBASE_MASTER_KERBEROS_PRINCIPAL =
             "hbase.master.kerberos.principal";
     public static final String KEY_HBASE_REGIONSERVER_KERBEROS_PRINCIPAL =
@@ -56,7 +57,7 @@ public class HBaseConfigUtils {
     public static final String KEY_HBASE_CLIENT_KERBEROS_PRINCIPAL =
             "hbase.client.kerberos.principal";
 
-    private static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
+    protected static final String KEY_HBASE_SECURITY_AUTH_ENABLE = "hbase.security.auth.enable";
     public static final String KEY_ZOOKEEPER_SASL_CLIENT = "zookeeper.sasl.client";
     public static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
     public static final String KEY_KEY_TAB = "hbase.keytab";

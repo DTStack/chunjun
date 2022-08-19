@@ -33,7 +33,8 @@ import java.util.Locale;
 public class GreenplumRawTypeConverter {
 
     /**
-     * inspired by Postgresql doc. https://www.postgresql.org/docs/current/datatype.html
+     * inspired by Postgresql doc. <a
+     * href="https://www.postgresql.org/docs/current/datatype.html">...</a>
      *
      * @param type
      */

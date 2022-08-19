@@ -20,37 +20,35 @@ package com.dtstack.chunjun.connector.hive3.sink;
 
 import com.dtstack.chunjun.connector.hive3.conf.HdfsConf;
 import com.dtstack.chunjun.connector.hive3.enums.FileType;
-import com.dtstack.chunjun.sink.format.FileOutputFormatBuilder;
-import com.dtstack.chunjun.throwable.UnsupportedTypeException;
+import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
 /** @author liuliu 2022/3/23 */
-public class Hive3OutputFormatBuilder extends FileOutputFormatBuilder {
+public class Hive3OutputFormatBuilder extends BaseRichOutputFormatBuilder<BaseHdfsOutputFormat> {
     BaseHdfsOutputFormat outputFormat;
 
-    public Hive3OutputFormatBuilder(String fileType, boolean isHiveTransactionTable) {
-        switch (FileType.getByName(fileType)) {
+    public Hive3OutputFormatBuilder(BaseHdfsOutputFormat format) {
+        super(format);
+    }
+
+    public static Hive3OutputFormatBuilder newBuild(String type) {
+        BaseHdfsOutputFormat format;
+        switch (FileType.getByName(type)) {
             case ORC:
-                if (isHiveTransactionTable) {
-                    outputFormat = new HdfsTransactionOutputFormat();
-                } else {
-                    outputFormat = new HdfsOrcOutputFormat();
-                }
+                format = new HdfsOrcOutputFormat();
                 break;
             case PARQUET:
-                outputFormat = new HdfsParquetOutputFormat();
-                break;
-            case TEXT:
-                outputFormat = new HdfsTextOutputFormat();
+                format = new HdfsParquetOutputFormat();
                 break;
             default:
-                throw new UnsupportedTypeException(fileType);
+                format = new HdfsTextOutputFormat();
         }
-        super.setFormat(outputFormat);
+        return new Hive3OutputFormatBuilder(format);
     }
 
     public void setHdfsConf(HdfsConf hdfsConf) {
-        super.setBaseFileConf(hdfsConf);
-        outputFormat.setHdfsConf(hdfsConf);
+        super.setConfig(hdfsConf);
+        format.setBaseFileConf(hdfsConf);
+        format.setHdfsConf(hdfsConf);
     }
 
     @Override

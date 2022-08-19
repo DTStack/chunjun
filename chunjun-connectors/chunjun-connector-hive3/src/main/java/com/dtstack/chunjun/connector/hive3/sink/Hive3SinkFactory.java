@@ -32,7 +32,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.table.data.RowData;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +64,7 @@ public class Hive3SinkFactory extends SinkFactory {
     @Override
     public DataStreamSink<RowData> createSink(DataStream<RowData> dataSet) {
         Hive3OutputFormatBuilder builder =
-                new Hive3OutputFormatBuilder(hdfsConf.getFileType(), hdfsConf.isTransaction());
+                Hive3OutputFormatBuilder.newBuild(hdfsConf.getFileType());
         builder.setHdfsConf(hdfsConf);
         AbstractRowConverter rowConverter =
                 Hive3Util.createRowConverter(

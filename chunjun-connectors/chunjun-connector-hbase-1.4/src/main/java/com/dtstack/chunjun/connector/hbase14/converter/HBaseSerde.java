@@ -53,10 +53,10 @@ public class HBaseSerde implements Serializable {
 
     private static final byte[] EMPTY_BYTES = new byte[] {};
 
-    private static final int MIN_TIMESTAMP_PRECISION = 0;
-    private static final int MAX_TIMESTAMP_PRECISION = 3;
-    private static final int MIN_TIME_PRECISION = 0;
-    private static final int MAX_TIME_PRECISION = 3;
+    public static final int MIN_TIMESTAMP_PRECISION = 0;
+    public static final int MAX_TIMESTAMP_PRECISION = 3;
+    public static final int MIN_TIME_PRECISION = 0;
+    public static final int MAX_TIME_PRECISION = 3;
 
     private final byte[] nullStringBytes;
 

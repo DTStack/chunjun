@@ -28,7 +28,10 @@ import java.util.Locale;
 /** @author kunni */
 public class DmRawTypeConverter {
 
-    /** inspired by dm doc. https://www.dameng.com/form/login/s/L3ZpZXdfNjEuaHRtbA%3D%3D.html */
+    /**
+     * inspired by dm doc. <a
+     * href="https://www.dameng.com/form/login/s/L3ZpZXdfNjEuaHRtbA%3D%3D.html">...</a>
+     */
     public static DataType apply(String type) {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "CHAR":

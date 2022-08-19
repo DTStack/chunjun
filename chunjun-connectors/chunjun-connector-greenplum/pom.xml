@@ -18,10 +18,12 @@
 			<artifactId>chunjun-connector-postgresql</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.pivotal/greenplum-jdbc -->
 		<dependency>
 			<groupId>com.pivotal</groupId>
 			<artifactId>greenplum-jdbc</artifactId>
-			<version>5.1.4.000275</version>
+			<version>5.1.4</version>
 		</dependency>
 	</dependencies>
 

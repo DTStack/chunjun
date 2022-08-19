@@ -22,9 +22,8 @@ import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
 import com.dtstack.chunjun.connector.hbase.table.lookup.AbstractHBaseAllTableFunction;
 import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
+import com.dtstack.chunjun.connector.hbase.util.HBaseHelper;
 import com.dtstack.chunjun.connector.hbase14.converter.HBaseSerde;
-import com.dtstack.chunjun.connector.hbase14.converter.HbaseRowConverter;
-import com.dtstack.chunjun.connector.hbase14.util.HBaseHelper;
 import com.dtstack.chunjun.lookup.conf.LookupConf;
 import com.dtstack.chunjun.security.KerberosUtil;
 
@@ -33,7 +32,6 @@ import org.apache.flink.table.functions.FunctionContext;
 
 import com.google.common.collect.Maps;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
@@ -54,24 +52,21 @@ public class HBaseAllTableFunction extends AbstractHBaseAllTableFunction {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(HBaseAllTableFunction.class);
-
     private Connection conn;
-    private String tableName;
     private Table table;
     private ResultScanner resultScanner;
 
+    private final HBaseTableSchema hbaseTableSchema;
     private transient HBaseSerde serde;
+    private final String nullStringLiteral;
+    private final HBaseConf hBaseConf;
 
     public HBaseAllTableFunction(
             LookupConf lookupConf, HBaseTableSchema hbaseTableSchema, HBaseConf hBaseConf) {
-        super(
-                null,
-                null,
-                lookupConf,
-                new HbaseRowConverter(hbaseTableSchema, hBaseConf.getNullStringLiteral()),
-                hbaseTableSchema,
-                hBaseConf);
-        this.tableName = hbaseTableSchema.getTableName();
+        super(null, null, lookupConf, null, hbaseTableSchema, hBaseConf);
+        this.hbaseTableSchema = hbaseTableSchema;
+        this.hBaseConf = hBaseConf;
+        this.nullStringLiteral = hBaseConf.getNullStringLiteral();
     }
 
     @Override
@@ -82,11 +77,10 @@ public class HBaseAllTableFunction extends AbstractHBaseAllTableFunction {
 
     @Override
     protected void loadData(Object cacheRef) {
-        Configuration hbaseDomainConf = HBaseConfiguration.create();
+        Configuration hbaseDomainConf = new Configuration();
         for (Map.Entry<String, Object> entry : hBaseConf.getHbaseConfig().entrySet()) {
             hbaseDomainConf.set(entry.getKey(), entry.getValue().toString());
         }
-
         int loadDataCount = 0;
         try {
             if (HBaseConfigUtils.isEnableKerberos(hbaseDomainConf)) {
@@ -117,8 +111,7 @@ public class HBaseAllTableFunction extends AbstractHBaseAllTableFunction {
             } else {
                 conn = ConnectionFactory.createConnection(hbaseDomainConf);
             }
-
-            table = conn.getTable(TableName.valueOf(tableName));
+            table = conn.getTable(TableName.valueOf(hbaseTableSchema.getTableName()));
             resultScanner = table.getScanner(new Scan());
             Map<Object, RowData> tmpCache = (Map<Object, RowData>) cacheRef;
             for (Result r : resultScanner) {
