@@ -66,6 +66,7 @@
 
 		<!--CDC-->
 		<module>chunjun-connector-binlog</module>
+		<module>chunjun-connector-oceanbasecdc</module>
 		<module>chunjun-connector-oraclelogminer</module>
 		<module>chunjun-connector-sqlservercdc</module>
 		<module>chunjun-connector-pgwal</module>
