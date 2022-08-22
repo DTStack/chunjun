@@ -21,7 +21,6 @@ package com.dtstack.chunjun.converter;
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
 import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
-import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.util.DateUtil;
@@ -92,7 +91,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
             IDeserializationConverter IDeserializationConverter) {
         return val -> {
             if (val == null) {
-                return new NullColumn();
+                return null;
             } else {
                 try {
                     return IDeserializationConverter.deserialize(val);
