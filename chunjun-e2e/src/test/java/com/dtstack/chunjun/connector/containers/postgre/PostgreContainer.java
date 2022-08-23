@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dtstack.chunjun.connector.containers.mysql;
+package com.dtstack.chunjun.connector.containers.postgre;
 
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
@@ -24,23 +24,26 @@ import org.testcontainers.containers.wait.strategy.WaitStrategyTarget;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 
 import java.net.URISyntaxException;
-import java.nio.file.Path;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.time.Duration;
 
-public class MysqlBaseContainer extends JdbcDatabaseContainer {
+public class PostgreContainer extends JdbcDatabaseContainer {
+    private static final URL POSTGRE_DOCKERFILE =
+            PostgreContainer.class.getClassLoader().getResource("docker/postgre/Dockerfile");
 
-    private final String databaseName = "chunjun";
-    private final String username = "root";
-    private final String password = "123456";
+    private static final String PG_TEST_USER = "postgre";
+    private static final String PG_TEST_PASSWORD = "postgre";
+    private static final String PG_TEST_DATABASE = "postgre";
+    protected static final String PG_DRIVER_CLASS = "org.postgresql.Driver";
+    private static final String POSTGRE_HOST = "chunjun-e2e-postgres";
+    public static final Integer POSTGRESQL_PORT = 5432;
 
-    public static final Integer MYSQL_PORT = 3306;
-
-    public MysqlBaseContainer(String imageName, Path dockerfile) throws URISyntaxException {
-        super(new ImageFromDockerfile(imageName, true).withDockerfile(dockerfile));
-        withEnv("MYSQL_USER", "admin");
-        withEnv("MYSQL_PASSWORD", password);
-        withEnv("MYSQL_ROOT_PASSWORD", password);
-        withExposedPorts(MYSQL_PORT);
+    public PostgreContainer() throws URISyntaxException {
+        super(
+                new ImageFromDockerfile(POSTGRE_HOST, true)
+                        .withDockerfile(Paths.get(POSTGRE_DOCKERFILE.toURI())));
+        withExposedPorts(POSTGRESQL_PORT);
         waitingFor(
                 new WaitStrategy() {
                     @Override
@@ -53,53 +56,35 @@ public class MysqlBaseContainer extends JdbcDatabaseContainer {
                 });
     }
 
-    public int getDatabasePort() {
-        return getMappedPort(MYSQL_PORT);
-    }
-
     @Override
     public String getDriverClassName() {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            return "com.mysql.cj.jdbc.Driver";
-        } catch (ClassNotFoundException e) {
-            return "com.mysql.jdbc.Driver";
-        }
+        return PG_DRIVER_CLASS;
     }
 
     @Override
     public String getJdbcUrl() {
-        return getJdbcUrl(databaseName);
-    }
-
-    public String getJdbcUrl(String databaseName) {
-        String additionalUrlParams = constructUrlParameters("?", "&");
-        return "jdbc:mysql://"
-                + getHost()
+        String additionalUrlParams = this.constructUrlParameters("?", "&");
+        return "jdbc:postgresql://"
+                + this.getContainerIpAddress()
                 + ":"
-                + getDatabasePort()
+                + this.getMappedPort(POSTGRESQL_PORT)
                 + "/"
-                + databaseName
+                + PG_TEST_DATABASE
                 + additionalUrlParams;
     }
 
     @Override
     public String getUsername() {
-        return username;
+        return PG_TEST_USER;
     }
 
     @Override
     public String getPassword() {
-        return password;
+        return PG_TEST_PASSWORD;
     }
 
     @Override
     protected String getTestQueryString() {
         return "SELECT 1";
-    }
-
-    @Override
-    public String getDatabaseName() {
-        return databaseName;
     }
 }
