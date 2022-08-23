@@ -41,7 +41,7 @@ public class FlinkStandaloneContainer extends GenericContainer<FlinkStandaloneCo
 
     public FlinkStandaloneContainer(String imageName) throws URISyntaxException {
         super(
-                new ImageFromDockerfile(imageName, false)
+                new ImageFromDockerfile(imageName, true)
                         .withDockerfile(Paths.get(FLINK_STANDALONE_DOCKERFILE.toURI())));
         waitingFor(
                 new WaitStrategy() {

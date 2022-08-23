@@ -10,7 +10,8 @@ FROM rohitbasu77/oracle11g:latest
 
 LABEL maintainer="www.dtstack.com"
 
-
+ENV LANG=C.UTF-8
+ENV TZ=Asia/Shanghai
 EXPOSE 1521
 EXPOSE 22
 
