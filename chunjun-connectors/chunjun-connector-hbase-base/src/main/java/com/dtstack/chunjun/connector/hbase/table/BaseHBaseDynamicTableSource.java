@@ -102,12 +102,12 @@ public abstract class BaseHBaseDynamicTableSource
         }
         fillKerberosConf();
         hbaseSchema.setTableName(hBaseConf.getTable());
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return ParallelAsyncTableFunctionProvider.of(
-                    getAbstractLruTableFunction(), lookupConf.getParallelism());
+        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+            return ParallelTableFunctionProvider.of(
+                    getAbstractAllTableFunction(), lookupConf.getParallelism());
         }
-        return ParallelTableFunctionProvider.of(
-                getAbstractAllTableFunction(), lookupConf.getParallelism());
+        return ParallelAsyncTableFunctionProvider.of(
+                getAbstractLruTableFunction(), lookupConf.getParallelism());
     }
 
     @Override
