@@ -72,19 +72,18 @@ public class RedisDynamicTableSource
         }
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return ParallelAsyncTableFunctionProvider.of(
-                    new RedisLruTableFunction(
-                            redisConf, lookupConf, new RedisRowConverter(rowType)),
+        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+            return ParallelTableFunctionProvider.of(
+                    new RedisAllTableFunction(
+                            redisConf,
+                            lookupConf,
+                            physicalSchema.getFieldNames(),
+                            keyNames,
+                            new RedisRowConverter(rowType)),
                     lookupConf.getParallelism());
         }
-        return ParallelTableFunctionProvider.of(
-                new RedisAllTableFunction(
-                        redisConf,
-                        lookupConf,
-                        physicalSchema.getFieldNames(),
-                        keyNames,
-                        new RedisRowConverter(rowType)),
+        return ParallelAsyncTableFunctionProvider.of(
+                new RedisLruTableFunction(redisConf, lookupConf, new RedisRowConverter(rowType)),
                 lookupConf.getParallelism());
     }
 
