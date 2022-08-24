@@ -49,7 +49,7 @@ public class MqttConnectUtil {
      */
     public static MqttClient getMqttClient(EmqxConf emqxConf, String clientId) {
         MqttClient client = null;
-        for (int i = 0; i <= 60; i++) {
+        for (int i = 0; i <= emqxConf.getTimes(); i++) {
             try {
                 client = new MqttClient(emqxConf.getBroker(), clientId);
                 MqttConnectOptions options = new MqttConnectOptions();

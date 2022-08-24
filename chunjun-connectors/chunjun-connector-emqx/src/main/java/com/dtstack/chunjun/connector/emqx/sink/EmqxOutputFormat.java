@@ -59,7 +59,9 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
             // 如果断开就重新连接
             if (this.client == null || !this.client.isConnected()) {
                 // 如果关闭的话，就重新连接
-                this.openInternal(1, 1);
+                MqttConnectUtil.getMqttClient(
+                        emqxConf,
+                        CLIENT_ID_WRITER.defaultValue() + LocalTime.now().toSecondOfDay() + jobId);
             }
             MqttMessage message = (MqttMessage) rowConverter.toExternal(rowData, new MqttMessage());
             message.setQos(emqxConf.getQos());
