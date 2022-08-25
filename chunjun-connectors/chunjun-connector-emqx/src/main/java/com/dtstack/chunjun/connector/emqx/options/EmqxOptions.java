@@ -80,6 +80,6 @@ public class EmqxOptions {
                     .defaultValue("writer")
                     .withDescription("dclient.id.pre");
     /** 重连接的次数 * */
-    public static final ConfigOption<Integer> TIMES =
-            ConfigOptions.key("times").intType().defaultValue(10).withDescription(" times ");
+    public static final ConfigOption<Integer> connectRetryTimes =
+            ConfigOptions.key("connectRetryTimes").intType().defaultValue(10).withDescription(" connectRetryTimes ");
 }

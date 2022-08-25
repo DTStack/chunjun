@@ -56,19 +56,18 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
     @Override
     protected void writeSingleRecordInternal(RowData rowData) throws WriteRecordException {
         try {
-            // 如果断开就重新连接
+            MqttMessage message = (MqttMessage) rowConverter.toExternal(rowData, new MqttMessage());
+            message.setQos(emqxConf.getQos());
+            client.publish(emqxConf.getTopic(), message);
+        } catch (MqttException e) {
+            //当mqtt客户端连接异常报错的时候，再重新建立连接
             if (this.client == null || !this.client.isConnected()) {
                 // 如果关闭的话，就重新连接
                 MqttConnectUtil.getMqttClient(
                         emqxConf,
                         CLIENT_ID_WRITER.defaultValue() + LocalTime.now().toSecondOfDay() + jobId);
             }
-            MqttMessage message = (MqttMessage) rowConverter.toExternal(rowData, new MqttMessage());
-            message.setQos(emqxConf.getQos());
-            client.publish(emqxConf.getTopic(), message);
-        } catch (MqttException e) {
             throw new RuntimeException(e);
-
         } catch (Exception e) {
             throw new WriteRecordException("", e, 0, rowData);
         }

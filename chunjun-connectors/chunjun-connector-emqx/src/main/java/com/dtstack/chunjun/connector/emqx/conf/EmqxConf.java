@@ -39,11 +39,11 @@ public class EmqxConf extends ChunJunCommonConf {
     /** emq clean session */
     private boolean isCleanSession = true;
     /** emq EXACTLY_ONCE */
-    private int qos = 1;
+    private int qos = 2;
     /** emq codec */
     private String codec = "plain";
     /** emqx reconnect times */
-    private int times = 10;
+    private int connectRetryTimes = 10;
 
     /**
      * Field mapping configuration. The data passed from the reader plug-in to the writer plug-in
@@ -116,12 +116,12 @@ public class EmqxConf extends ChunJunCommonConf {
         this.tableFields = tableFields;
     }
 
-    public void setTimes(int times) {
-        this.times = times;
+    public void setConnectRetryTimes(int connectRetryTimes) {
+        this.connectRetryTimes = connectRetryTimes;
     }
 
-    public int getTimes() {
-        return times;
+    public int getConnectRetryTimes() {
+        return connectRetryTimes;
     }
 
     @Override
@@ -146,8 +146,8 @@ public class EmqxConf extends ChunJunCommonConf {
                 + ", codec='"
                 + codec
                 + '\''
-                + ",times='"
-                + times
+                + ",connectRetryTimes='"
+                + connectRetryTimes
                 + '\''
                 + ", tableFields="
                 + tableFields

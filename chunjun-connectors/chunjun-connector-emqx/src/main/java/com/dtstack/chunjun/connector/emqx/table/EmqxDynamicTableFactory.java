@@ -51,7 +51,7 @@ import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.FORMAT;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.ISCLEANSESSION;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.PASSWORD;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.QOS;
-import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.TIMES;
+import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.connectRetryTimes;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.TOPIC;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.USERNAME;
 
@@ -117,7 +117,6 @@ public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         Set<ConfigOption<?>> requiredOptions = new HashSet<>();
         requiredOptions.add(BROKER);
         requiredOptions.add(TOPIC);
-        requiredOptions.add(TIMES);
         return requiredOptions;
     }
 
@@ -129,6 +128,7 @@ public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         optionalOptions.add(USERNAME);
         optionalOptions.add(PASSWORD);
         optionalOptions.add(FORMAT);
+        optionalOptions.add(connectRetryTimes);
         return optionalOptions;
     }
 
