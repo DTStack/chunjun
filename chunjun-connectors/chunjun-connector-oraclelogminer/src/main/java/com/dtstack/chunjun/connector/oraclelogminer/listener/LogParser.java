@@ -53,6 +53,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * @author jiangbo
  * @date 2020/3/30
@@ -230,7 +233,27 @@ public class LogParser {
             return value.substring(15, value.length() - 2);
         }
 
+        //NCHAR/NVARCHAR2类型中文处理
+        //NCHAR/NVARCHAR2类型中插入中文，读出来是这样的格式： UNISTR('\4E2D\56FD\4EBA                                     ')
+        if (value.startsWith("UNISTR('") && value.endsWith("')")) {
+            String substring = value.substring(8, value.length() - 2);
+            String replace = substring.replace("\\", "\\u");
+            return unicodeToString(replace);
+        }
+
         return value;
+    }
+
+    public static String unicodeToString(String str) {
+        Pattern pattern = Pattern.compile("(\\\\u(\\w{4}))");
+        Matcher matcher = pattern.matcher(str);
+        char ch;
+        while (matcher.find()) {
+            // 本行为核心代码，处理当前的unicode后4位变为16进制，在转换为对应的char中文字符
+            ch = (char) Integer.parseInt(matcher.group(2), 16);
+            str = str.replace(matcher.group(1), ch + "");
+        }
+        return str;
     }
 
     public LinkedList<RowData> parse(QueueData pair, AbstractCDCRowConverter rowConverter)
