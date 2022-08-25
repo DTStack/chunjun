@@ -51,6 +51,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
+							<finalName>chunjun-dist</finalName>
 							<descriptors>
 								<descriptor>src/main/assembly/assembly.xml</descriptor>
 							</descriptors>
