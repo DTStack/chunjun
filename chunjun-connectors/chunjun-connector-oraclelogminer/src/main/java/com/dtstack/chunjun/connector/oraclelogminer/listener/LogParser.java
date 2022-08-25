@@ -52,6 +52,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author jiangbo
@@ -62,6 +64,8 @@ public class LogParser {
     public static Logger LOG = LoggerFactory.getLogger(LogParser.class);
 
     public static SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
+
+    public static final Pattern pattern = Pattern.compile("(\\\\u(\\w{4}))");
 
     private final LogMinerConf config;
 
@@ -230,7 +234,24 @@ public class LogParser {
             return value.substring(15, value.length() - 2);
         }
 
+        //support nchar、nvarchar2 chinese value
+        if (value.startsWith("UNISTR('") && value.endsWith("')")) {
+            String substring = value.substring(8, value.length() - 2);
+            String replace = substring.replace("\\", "\\u");
+            return unicodeToString(replace);
+        }
+
         return value;
+    }
+
+    public static String unicodeToString(String str) {
+        Matcher matcher = pattern.matcher(str);
+        char ch;
+        while (matcher.find()) {
+            ch = (char) Integer.parseInt(matcher.group(2), 16);
+            str = str.replace(matcher.group(1), String.valueOf(ch));
+        }
+        return str;
     }
 
     public LinkedList<RowData> parse(QueueData pair, AbstractCDCRowConverter rowConverter)
