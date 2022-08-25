@@ -79,7 +79,8 @@ public class EmqxOptions {
                     .stringType()
                     .defaultValue("writer")
                     .withDescription("dclient.id.pre");
-    /** 重连接的次数 * */
+
+    /** Number of reconnections * */
     public static final ConfigOption<Integer> connectRetryTimes =
             ConfigOptions.key("connectRetryTimes")
                     .intType()
