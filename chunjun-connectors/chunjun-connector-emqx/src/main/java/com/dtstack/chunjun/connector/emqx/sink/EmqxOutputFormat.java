@@ -60,7 +60,7 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
             message.setQos(emqxConf.getQos());
             client.publish(emqxConf.getTopic(), message);
         } catch (MqttException e) {
-            //当mqtt客户端连接异常报错的时候，再重新建立连接
+            // 当mqtt客户端连接异常报错的时候，再重新建立连接
             if (this.client == null || !this.client.isConnected()) {
                 // 如果关闭的话，就重新连接
                 MqttConnectUtil.getMqttClient(

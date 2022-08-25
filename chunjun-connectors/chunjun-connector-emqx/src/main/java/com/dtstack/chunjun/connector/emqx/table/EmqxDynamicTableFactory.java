@@ -51,9 +51,9 @@ import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.FORMAT;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.ISCLEANSESSION;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.PASSWORD;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.QOS;
-import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.connectRetryTimes;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.TOPIC;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.USERNAME;
+import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.connectRetryTimes;
 
 /**
  * @author chuixue
