@@ -206,13 +206,6 @@ public class LogParser {
             return value.substring(17, value.length() - 2);
         }
 
-        // support nchar、nvarchar2 chinese value
-        if (value.startsWith("UNISTR('") && value.endsWith("')")) {
-            String substring = value.substring(8, value.length() - 2);
-            String replace = substring.replace("\\", "\\u");
-            return unicodeToString(replace);
-        }
-
         return value;
     }
 
@@ -250,6 +243,13 @@ public class LogParser {
         // INTERVAL DAY(2) TO SECOND(6)
         if (value.startsWith("TO_DSINTERVAL('") && value.endsWith("')")) {
             return value.substring(15, value.length() - 2);
+        }
+
+        // support nchar、nvarchar2 chinese value
+        if (value.startsWith("UNISTR('") && value.endsWith("')")) {
+            String substring = value.substring(8, value.length() - 2);
+            String replace = substring.replace("\\", "\\u");
+            return unicodeToString(replace);
         }
 
         return value;
