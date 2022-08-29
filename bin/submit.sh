@@ -31,12 +31,26 @@ else
   fi
 fi
 
+#1: deploy with assembly dist package file
+#2: deploy with project package
+CHUNJUN_DEPLOY_MODE=1
 if [[ $CHUNJUN_HOME && -z $CHUNJUN_HOME ]];then
-    export CHUNJUN_HOME=$CHUNJUN_HOME
+  export CHUNJUN_HOME=$CHUNJUN_HOME
 else
-    export CHUNJUN_HOME="$(cd "`dirname "$0"`"/../chunjun-dist; pwd)"
+  CHUNJUN_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+  if [ -d "$CHUNJUN_HOME/chunjun-dist" ]; then
+    CHUNJUN_HOME="$CHUNJUN_HOME/chunjun-dist"
+    CHUNJUN_DEPLOY_MODE=2
+  fi
 fi
-JAR_DIR=$CHUNJUN_HOME/../lib/*
+# 1.In yarn-session case, JAR_DIR can not be found
+# 2.In other cases, JAR_DIR can be found
+if [ $CHUNJUN_DEPLOY_MODE -eq 1 ]; then
+  JAR_DIR=$CHUNJUN_HOME/lib/*
+else
+  JAR_DIR=$CHUNJUN_HOME/../lib/*
+fi
+
 CLASS_NAME=com.dtstack.chunjun.client.Launcher
 
 JOBTYPE="sync"

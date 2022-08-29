@@ -1,5 +1,5 @@
 <assembly>
-    <id>chunjun-dist</id>
+    <id>${project.version}</id>
     <formats>
         <format>tar.gz</format>
     </formats>
