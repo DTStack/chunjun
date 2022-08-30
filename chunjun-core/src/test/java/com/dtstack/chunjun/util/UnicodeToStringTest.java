@@ -35,7 +35,7 @@ public class UnicodeToStringTest {
         if (str.startsWith("UNISTR('") && str.endsWith("')")) {
             String substring = str.substring(8, str.length() - 2);
             String replace = substring.replace("\\", "\\u");
-            str= StringEscapeUtils.unescapeJava(replace);
+            str = StringEscapeUtils.unescapeJava(replace);
         }
         Assert.assertEquals(str, "大海");
     }
