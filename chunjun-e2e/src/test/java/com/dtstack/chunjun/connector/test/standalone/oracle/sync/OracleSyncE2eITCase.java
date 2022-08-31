@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.test.standalone.oracle.sync;
 
-import com.dtstack.chunjun.connector.containers.oracle.OracleContainer;
 import com.dtstack.chunjun.connector.entity.JobAccumulatorResult;
 import com.dtstack.chunjun.connector.test.utils.ChunjunFlinkStandaloneTestEnvironment;
 import com.dtstack.chunjun.connector.test.utils.JdbcProxy;
@@ -28,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.OracleContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.lifecycle.Startables;
 import org.testcontainers.shaded.org.apache.commons.lang.StringUtils;
@@ -49,10 +49,14 @@ public class OracleSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
 
     private static final Logger LOG = LoggerFactory.getLogger(OracleSyncE2eITCase.class);
 
-    private static final URL ORACLE_INIT_SQL_URL =
+    public static final URL ORACLE_INIT_SQL_URL =
             OracleSyncE2eITCase.class.getClassLoader().getResource("docker/oracle/init.sql");
 
-    protected static final String ORACLE_HOST = "chunjun-e2e-oracle";
+    private static final String ORACLE_TEST_USER = "dbzuser";
+    private static final String ORACLE_TEST_PASSWORD = "dbz";
+    private static final String ORACLE_DRIVER_CLASS = "oracle.jdbc.driver.OracleDriver";
+    private static final String INTER_CONTAINER_ORACLE_ALIAS = "chunjun-e2e-oracle";
+    private static final String ORACLE_IMAGE = "jark/oracle-xe-11g-r2-cdc:0.1";
 
     public OracleContainer oracle;
 
@@ -60,12 +64,12 @@ public class OracleSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
     public void before() throws Exception {
         super.before();
         LOG.info("Starting containers...");
-        oracle = new OracleContainer();
-        oracle.withNetwork(NETWORK);
-        oracle.withNetworkAliases(ORACLE_HOST);
-        oracle.withLogConsumer(new Slf4jLogConsumer(LOG));
+        oracle =
+                new OracleContainer(ORACLE_IMAGE)
+                        .withNetwork(NETWORK)
+                        .withNetworkAliases(INTER_CONTAINER_ORACLE_ALIAS)
+                        .withLogConsumer(new Slf4jLogConsumer(LOG));
         Startables.deepStart(Stream.of(oracle)).join();
-        Thread.sleep(5000);
         initOracle();
         LOG.info("Containers are started.");
     }
@@ -91,9 +95,9 @@ public class OracleSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
         JdbcProxy proxy =
                 new JdbcProxy(
                         oracle.getJdbcUrl(),
-                        oracle.getUsername(),
-                        oracle.getPassword(),
-                        oracle.getDriverClassName());
+                        ORACLE_TEST_USER,
+                        ORACLE_TEST_PASSWORD,
+                        ORACLE_DRIVER_CLASS);
         List<String> expectResult =
                 Arrays.asList(
                         "1,4086.104923538155,2095-02-04 15:59:22.0,2022-08-03 14:11:12.651,FdTY,Abc,Hello",
@@ -108,7 +112,7 @@ public class OracleSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
                         "11,9036.620205198631,2040-03-20 13:40:13.0,2022-08-03 14:11:12.671,l4bezLJ,Abc,Hello");
         proxy.checkResultWithTimeout(
                 expectResult,
-                "SYSTEM.TEST_SINK",
+                "debezium.TEST_SINK",
                 new String[] {
                     "INT_VAL",
                     "DOUBLE_VAL",
@@ -118,6 +122,33 @@ public class OracleSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
                     "NAME",
                     "MESSAGE"
                 },
+                150000L);
+    }
+
+    @Test
+    public void testLogminerToOracle() throws Exception {
+        submitSyncJobOnStandLone(
+                ChunjunFlinkStandaloneTestEnvironment.CHUNJUN_HOME
+                        + "/chunjun-examples/json/logminer/logminer_oracle_to_oracle.json");
+        waitUntilJobRunning(Duration.ofSeconds(30L));
+
+        JdbcProxy proxy =
+                new JdbcProxy(
+                        oracle.getJdbcUrl(),
+                        ORACLE_TEST_USER,
+                        ORACLE_TEST_PASSWORD,
+                        ORACLE_DRIVER_CLASS);
+        List<String> expectResult =
+                Arrays.asList(
+                        "1000010,大海,中国人",
+                        "1000011,大海,中国人",
+                        "1000012,大海,中国人",
+                        "1000013,大海,中国人",
+                        "1000014,大海,中国人");
+        proxy.checkResultWithTimeout(
+                expectResult,
+                "debezium.ORACLE_TEST_LOGMINER",
+                new String[] {"TEST_INT", "TEST_VARCHAR", "TEST_CHAR"},
                 150000L);
     }
 
@@ -140,7 +171,11 @@ public class OracleSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
     }
 
     private Connection getOracleJdbcConnection() throws SQLException {
+        // we need to set this property, otherwise Azure Pipeline will complain
+        // "ORA-01882: timezone region not found" error when building the Oracle JDBC connection
+        // see https://stackoverflow.com/a/9177263/4915129
+        System.setProperty("oracle.jdbc.timezoneAsRegion", "false");
         return DriverManager.getConnection(
-                oracle.getJdbcUrl(), oracle.getUsername(), oracle.getPassword());
+                oracle.getJdbcUrl(), ORACLE_TEST_USER, ORACLE_TEST_PASSWORD);
     }
 }

@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.test.utils;
 
-import com.dtstack.chunjun.client.Launcher;
 import com.dtstack.chunjun.connector.containers.flink.FlinkStandaloneContainer;
 import com.dtstack.chunjun.connector.entity.JobAccumulatorResult;
 import com.dtstack.chunjun.connector.entity.LaunchCommandBuilder;
@@ -35,7 +34,6 @@ import org.apache.flink.runtime.client.JobStatusMessage;
 import org.apache.flink.table.api.ValidationException;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -43,9 +41,11 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.Container;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.lifecycle.Startables;
+import org.testcontainers.utility.MountableFile;
 
 import javax.annotation.Nullable;
 
@@ -53,8 +53,6 @@ import java.io.File;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -73,7 +71,8 @@ public class ChunjunFlinkStandaloneTestEnvironment {
     private static final Logger LOG =
             LoggerFactory.getLogger(ChunjunFlinkStandaloneTestEnvironment.class);
 
-    public static final String CHUNJUN_HOME = System.getProperty("user.dir") + "/..";
+    public static final String CHUNJUN_HOME =
+            new File(System.getProperty("user.dir")).getParentFile().getAbsolutePath();
 
     public static final URL FLINK_CONF_DIR_URL =
             ChunjunFlinkStandaloneTestEnvironment.class
@@ -83,6 +82,16 @@ public class ChunjunFlinkStandaloneTestEnvironment {
     public static final String CHUNJUN_DIST =
             new File(System.getProperty("user.dir")).getParentFile().getAbsolutePath()
                     + "/chunjun-dist";
+
+    public static final String CHUNJUN_LIB =
+            new File(System.getProperty("user.dir")).getParentFile().getAbsolutePath() + "/lib";
+
+    public static final String CHUNJUN_BIN =
+            new File(System.getProperty("user.dir")).getParentFile().getAbsolutePath() + "/bin";
+
+    public static final String CHUNJUN_EXAMPLES =
+            new File(System.getProperty("user.dir")).getParentFile().getAbsolutePath()
+                    + "/chunjun-examples";
 
     private static final String FLINK_STANDALONE_HOST = "standalone";
 
@@ -108,9 +117,12 @@ public class ChunjunFlinkStandaloneTestEnvironment {
                         .withNetworkAliases(FLINK_STANDALONE_HOST)
                         .withExposedPorts(JOB_MANAGER_REST_PORT, JOB_MANAGER_RPC_PORT)
                         .withFileSystemBind(CHUNJUN_DIST, CHUNJUN_DIST)
+                        .withFileSystemBind(CHUNJUN_LIB, CHUNJUN_LIB)
+                        .withFileSystemBind(CHUNJUN_EXAMPLES, CHUNJUN_EXAMPLES)
                         .withLogConsumer(new Slf4jLogConsumer(LOG));
-
         Startables.deepStart(Stream.of(flinkStandaloneContainer)).join();
+        flinkStandaloneContainer.copyFileToContainer(
+                MountableFile.forHostPath(CHUNJUN_BIN + "/submit.sh"), CHUNJUN_BIN + "/submit.sh");
         LOG.info("Containers are started.");
     }
 
@@ -148,23 +160,28 @@ public class ChunjunFlinkStandaloneTestEnvironment {
     }
 
     protected void submitSyncJobOnStandLone(String syncConf) throws Exception {
-        HashMap<String, Object> customProperties = Maps.newHashMap();
-        customProperties.put(
-                "jobmanager.rpc.port",
-                flinkStandaloneContainer.getMappedPort(JOB_MANAGER_RPC_PORT));
-        customProperties.put(
-                "rest.port", flinkStandaloneContainer.getMappedPort(JOB_MANAGER_REST_PORT));
+        this.submitSyncJobOnStandLoneWithParameters(syncConf, null);
+    }
 
+    protected void submitSyncJobOnStandLoneWithParameters(
+            String syncConf, Map<String, String> parameters) throws Exception {
         String[] syncs =
                 new LaunchCommandBuilder("sync")
-                        .withFlinkConfDir(FLINK_CONF_DIR_URL.toURI().getPath())
+                        .withFlinkConfDir("/opt/flink/conf")
                         .withRunningMode(ClusterMode.standalone)
                         .withJobContentPath(syncConf)
                         .withChunJunDistDir(CHUNJUN_DIST)
-                        .withFlinkCustomConf(customProperties)
-                        .withAddJar(Collections.singletonList(CHUNJUN_DIST + "/chunjun-core.jar"))
+                        .withFlinkLibDir(CHUNJUN_LIB)
+                        .withParameters(parameters)
                         .builder();
-        Launcher.main(syncs);
+        Container.ExecResult execResult =
+                flinkStandaloneContainer.execInContainer(
+                        "bash", CHUNJUN_BIN + "/submit.sh", String.join(" ", syncs));
+        LOG.info(execResult.getStdout());
+        LOG.error(execResult.getStderr());
+        if (execResult.getExitCode() != 0) {
+            throw new AssertionError("Failed when submitting the SQL job.");
+        }
     }
 
     public JobAccumulatorResult waitUntilJobFinished(Duration timeout)
@@ -210,6 +227,34 @@ public class ChunjunFlinkStandaloneTestEnvironment {
             }
         }
         throw new RuntimeException("wait job finished timeout");
+    }
+
+    public void waitUntilJobRunning(Duration timeout) {
+        RestClusterClient<?> clusterClient = getRestClusterClient();
+        Deadline deadline = Deadline.fromNow(timeout);
+        while (deadline.hasTimeLeft()) {
+            Collection<JobStatusMessage> jobStatusMessages;
+            try {
+                jobStatusMessages = clusterClient.listJobs().get(10, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                LOG.warn("Error when fetching job status.", e);
+                continue;
+            }
+            if (jobStatusMessages != null && !jobStatusMessages.isEmpty()) {
+                JobStatusMessage message = jobStatusMessages.iterator().next();
+                JobStatus jobStatus = message.getJobState();
+                if (jobStatus.isTerminalState()) {
+                    throw new ValidationException(
+                            String.format(
+                                    "Job has been terminated! JobName: %s, JobID: %s, Status: %s",
+                                    message.getJobName(),
+                                    message.getJobId(),
+                                    message.getJobState()));
+                } else if (jobStatus == JobStatus.RUNNING) {
+                    return;
+                }
+            }
+        }
     }
 
     public JobAccumulatorResult printResult(Map<String, Object> result) {

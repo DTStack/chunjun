@@ -4,11 +4,11 @@
       {
         "reader": {
           "parameter": {
-            "username": "system",
-            "password": "oracle",
+            "username": "dbzuser",
+            "password": "dbz",
             "connection": [{
               "jdbcUrl": ["jdbc:oracle:thin:@chunjun-e2e-oracle:1521:xe"],
-              "table": ["SYSTEM.TEST_SOURCE"]
+              "table": ["DEBEZIUM.TEST_SOURCE"]
             }],
             "column": [{
               "name": "INT_VAL",
@@ -41,12 +41,12 @@
             "mode": "insert",
             "updateKey": [],
             "allReplace": true,
-            "username": "system",
-            "password": "oracle",
+            "username": "dbzuser",
+            "password": "dbz",
             "connection": [
               {
                 "jdbcUrl": "jdbc:oracle:thin:@chunjun-e2e-oracle:1521:xe",
-                "table": ["SYSTEM.TEST_SINK"]
+                "table": ["DEBEZIUM.TEST_SINK"]
               }
             ],
             "column": [{

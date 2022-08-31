@@ -21,7 +21,6 @@
 		<module>chunjun-restore</module>
 		<module>chunjun-sql</module>
 		<module>chunjun-assembly</module>
-		<module>chunjun-e2e</module>
 		<!--		<module>chunjun-local-test</module>-->
 	</modules>
 
@@ -407,4 +406,13 @@
 			</plugin>
 		</plugins>
 	</reporting>
+
+	<profiles>
+		<profile>
+			<id>e2e</id>
+			<modules>
+				<module>chunjun-e2e</module>
+			</modules>
+		</profile>
+	</profiles>
 </project>

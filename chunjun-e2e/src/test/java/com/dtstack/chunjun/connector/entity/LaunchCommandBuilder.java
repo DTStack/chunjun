@@ -19,13 +19,14 @@
 package com.dtstack.chunjun.connector.entity;
 
 import com.dtstack.chunjun.enums.ClusterMode;
-import com.dtstack.chunjun.util.GsonUtil;
 
+import com.google.gson.GsonBuilder;
 import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class LaunchCommandBuilder {
     private List<String> commands;
@@ -55,6 +56,12 @@ public class LaunchCommandBuilder {
         return this;
     }
 
+    public LaunchCommandBuilder withFlinkLibDir(String chunJunDistDir) {
+        commands.add("-flinkLibDir");
+        commands.add(chunJunDistDir);
+        return this;
+    }
+
     public LaunchCommandBuilder withFlinkConfDir(String flinkConfDir) {
         commands.add("-flinkConfDir");
         commands.add(flinkConfDir);
@@ -63,19 +70,31 @@ public class LaunchCommandBuilder {
 
     public LaunchCommandBuilder withFlinkCustomConf(Map<String, Object> properties) {
         commands.add("-confProp");
-        commands.add(GsonUtil.GSON.toJson(properties));
+        commands.add(new GsonBuilder().create().toJson(properties));
         return this;
     }
 
     public LaunchCommandBuilder withAddJar(List<String> path) {
         commands.add("-addjar");
-        commands.add(GsonUtil.GSON.toJson(path));
+        commands.add(new GsonBuilder().create().toJson(path));
         return this;
     }
 
     public LaunchCommandBuilder withShipFile(String path) {
         commands.add("-addShipfile");
         commands.add(path);
+        return this;
+    }
+
+    public LaunchCommandBuilder withParameters(Map<String, String> parameters) {
+        if (parameters != null && !parameters.isEmpty()) {
+            commands.add("-p");
+            String params =
+                    parameters.entrySet().stream()
+                            .map(entry -> entry.getKey() + "=" + entry.getValue())
+                            .collect(Collectors.joining(","));
+            commands.add(params);
+        }
         return this;
     }
 
