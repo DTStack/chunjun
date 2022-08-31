@@ -78,7 +78,7 @@ public class PostgreSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment 
     }
 
     @Test
-    public void testOracleToOracle() throws Exception {
+    public void testPostgreToPostgre() throws Exception {
         submitSyncJobOnStandLone(
                 ChunjunFlinkStandaloneTestEnvironment.CHUNJUN_HOME
                         + "/chunjun-examples/json/postgresql/postgre_postgre.json");
