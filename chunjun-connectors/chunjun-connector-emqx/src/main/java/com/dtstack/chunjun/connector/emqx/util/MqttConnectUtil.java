@@ -49,7 +49,7 @@ public class MqttConnectUtil {
      */
     public static MqttClient getMqttClient(EmqxConf emqxConf, String clientId) {
         MqttClient client = null;
-        for (int i = 0; i <= 2; i++) {
+        for (int i = 0; i <= emqxConf.getConnectRetryTimes(); i++) {
             try {
                 client = new MqttClient(emqxConf.getBroker(), clientId);
                 MqttConnectOptions options = new MqttConnectOptions();
@@ -73,7 +73,7 @@ public class MqttConnectUtil {
                 } catch (InterruptedException interruptedException) {
                     throw new RuntimeException(interruptedException);
                 }
-                if (i == 2) {
+                if (i == emqxConf.getConnectRetryTimes()) {
                     throw new RuntimeException(e);
                 }
             }

@@ -53,6 +53,7 @@ import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.PASSWORD;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.QOS;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.TOPIC;
 import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.USERNAME;
+import static com.dtstack.chunjun.connector.emqx.options.EmqxOptions.connectRetryTimes;
 
 /**
  * @author chuixue
@@ -127,6 +128,7 @@ public class EmqxDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         optionalOptions.add(USERNAME);
         optionalOptions.add(PASSWORD);
         optionalOptions.add(FORMAT);
+        optionalOptions.add(connectRetryTimes);
         return optionalOptions;
     }
 

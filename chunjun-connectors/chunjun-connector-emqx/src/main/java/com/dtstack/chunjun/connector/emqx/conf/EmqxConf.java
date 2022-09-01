@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.chunjun.connector.emqx.conf;
 
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
@@ -43,6 +42,9 @@ public class EmqxConf extends ChunJunCommonConf {
     private int qos = 2;
     /** emq codec */
     private String codec = "plain";
+    /** emqx reconnect times */
+    private int connectRetryTimes = 10;
+
     /**
      * Field mapping configuration. The data passed from the reader plug-in to the writer plug-in
      * only contains its value attribute. After configuring this parameter, it can be restored to a
@@ -114,6 +116,14 @@ public class EmqxConf extends ChunJunCommonConf {
         this.tableFields = tableFields;
     }
 
+    public void setConnectRetryTimes(int connectRetryTimes) {
+        this.connectRetryTimes = connectRetryTimes;
+    }
+
+    public int getConnectRetryTimes() {
+        return connectRetryTimes;
+    }
+
     @Override
     public String toString() {
         return "EmqxConf{"
@@ -135,6 +145,9 @@ public class EmqxConf extends ChunJunCommonConf {
                 + qos
                 + ", codec='"
                 + codec
+                + '\''
+                + ",connectRetryTimes='"
+                + connectRetryTimes
                 + '\''
                 + ", tableFields="
                 + tableFields
