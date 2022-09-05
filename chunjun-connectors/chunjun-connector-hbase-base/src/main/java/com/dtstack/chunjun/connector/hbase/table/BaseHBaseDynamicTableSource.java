@@ -21,9 +21,9 @@ package com.dtstack.chunjun.connector.hbase.table;
 import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.hbase.HBaseTableSchema;
 import com.dtstack.chunjun.connector.hbase.conf.HBaseConf;
-import com.dtstack.chunjun.connector.hbase.table.lookup.AbstractHBaseAllTableFunction;
 import com.dtstack.chunjun.connector.hbase.util.HBaseConfigUtils;
 import com.dtstack.chunjun.enums.CacheType;
+import com.dtstack.chunjun.lookup.AbstractAllTableFunction;
 import com.dtstack.chunjun.lookup.AbstractLruTableFunction;
 import com.dtstack.chunjun.lookup.conf.LookupConf;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
@@ -42,7 +42,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
-import org.apache.flink.util.Preconditions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +82,7 @@ public abstract class BaseHBaseDynamicTableSource
         }
         hBaseConf.setColumn(columnList);
 
-        BaseRichInputFormatBuilder builder = getBaseRichInputFormatBuilder();
+        BaseRichInputFormatBuilder<?> builder = getBaseRichInputFormatBuilder();
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInformation),
@@ -93,14 +92,9 @@ public abstract class BaseHBaseDynamicTableSource
 
     @Override
     public LookupRuntimeProvider getLookupRuntimeProvider(LookupContext context) {
-        String[] keyNames = new String[context.getKeys().length];
-        for (int i = 0; i < keyNames.length; i++) {
-            int[] innerKeyArr = context.getKeys()[i];
-            Preconditions.checkArgument(
-                    innerKeyArr.length == 1, "redis only support non-nested look up keys");
-            keyNames[i] = tableSchema.getFieldNames()[innerKeyArr[0]];
+        if (HBaseConfigUtils.isEnableKerberos(hBaseConf.getHbaseConfig())) {
+            HBaseConfigUtils.fillKerberosConfig(hBaseConf.getHbaseConfig());
         }
-        fillKerberosConf();
         hbaseSchema.setTableName(hBaseConf.getTable());
         if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
             return ParallelAsyncTableFunctionProvider.of(
@@ -128,15 +122,9 @@ public abstract class BaseHBaseDynamicTableSource
         this.hbaseSchema = HBaseTableSchema.fromTableSchema(projectSchema);
     }
 
-    protected abstract BaseRichInputFormatBuilder getBaseRichInputFormatBuilder();
+    protected abstract BaseRichInputFormatBuilder<?> getBaseRichInputFormatBuilder();
 
     protected abstract AbstractLruTableFunction getAbstractLruTableFunction();
 
-    protected abstract AbstractHBaseAllTableFunction getAbstractAllTableFunction();
-
-    private void fillKerberosConf() {
-        if (HBaseConfigUtils.isEnableKerberos(hBaseConf.getHbaseConfig())) {
-            HBaseConfigUtils.fillKerberosConfig(hBaseConf.getHbaseConfig());
-        }
-    }
+    protected abstract AbstractAllTableFunction getAbstractAllTableFunction();
 }

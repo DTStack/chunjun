@@ -142,9 +142,9 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
-        if (cassandraLookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return ParallelAsyncTableFunctionProvider.of(
-                    new CassandraLruTableFunction(
+        if (cassandraLookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+            return ParallelTableFunctionProvider.of(
+                    new CassandraAllTableFunction(
                             cassandraLookupConf,
                             new CassandraRowConverter(
                                     rowType, Arrays.asList(tableSchema.getFieldNames())),
@@ -152,8 +152,8 @@ public class CassandraDynamicTableSource implements ScanTableSource, LookupTable
                             keyNames),
                     cassandraLookupConf.getParallelism());
         }
-        return ParallelTableFunctionProvider.of(
-                new CassandraAllTableFunction(
+        return ParallelAsyncTableFunctionProvider.of(
+                new CassandraLruTableFunction(
                         cassandraLookupConf,
                         new CassandraRowConverter(
                                 rowType, Arrays.asList(tableSchema.getFieldNames())),

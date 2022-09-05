@@ -33,8 +33,6 @@
 		<module>chunjun-connector-sqlserver</module>
 		<module>chunjun-connector-db2</module>
 		<module>chunjun-connector-postgresql</module>
-		<module>chunjun-connector-gbase</module>
-<!--		<module>chunjun-connector-kingbase</module>-->
 		<module>chunjun-connector-greenplum</module>
 		<module>chunjun-connector-dm</module>
 		<module>chunjun-connector-clickhouse</module>
@@ -56,6 +54,7 @@
 		<!--NoSql-->
 		<module>chunjun-connector-hbase-base</module>
 		<module>chunjun-connector-hbase-1.4</module>
+		<module>chunjun-connector-hbase2</module>
 		<!--		<module>chunjun-connector-elasticsearch6</module>-->
 		<module>chunjun-connector-elasticsearch7</module>
 		<module>chunjun-connector-elasticsearch-base</module>
@@ -66,6 +65,7 @@
 
 		<!--CDC-->
 		<module>chunjun-connector-binlog</module>
+		<module>chunjun-connector-oceanbasecdc</module>
 		<module>chunjun-connector-oraclelogminer</module>
 		<module>chunjun-connector-sqlservercdc</module>
 		<module>chunjun-connector-pgwal</module>
@@ -76,7 +76,7 @@
 
 		<!--Distribute plugin, just for SYNC-->
 		<module>chunjun-connector-mysqld</module>
-	</modules>
+    </modules>
 
 
 	<dependencies>

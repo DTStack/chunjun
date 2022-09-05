@@ -16,10 +16,15 @@
 package com.dtstack.chunjun.connector.hbase.conf;
 
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.conf.FieldConf;
 
+import java.util.List;
 import java.util.Map;
 
 public class HBaseConf extends ChunJunCommonConf {
+
+    // 该字段与 column 不同，该字段储存的是 ":" 转化为 "." 后的字段名
+    private List<FieldConf> columnMetaInfos;
     private String encoding = "UTF-8";
     private Map<String, Object> hbaseConfig;
 
@@ -31,7 +36,7 @@ public class HBaseConf extends ChunJunCommonConf {
     private int scanCacheSize = 1000;
 
     // writer
-    private String nullMode;
+    private String nullMode = "SKIP";
     private String nullStringLiteral;
     private Boolean walFlag = false;
     private long writeBufferSize;
@@ -149,5 +154,13 @@ public class HBaseConf extends ChunJunCommonConf {
 
     public void setNullStringLiteral(String nullStringLiteral) {
         this.nullStringLiteral = nullStringLiteral;
+    }
+
+    public List<FieldConf> getColumnMetaInfos() {
+        return columnMetaInfos;
+    }
+
+    public void setColumnMetaInfos(List<FieldConf> columnMetaInfos) {
+        this.columnMetaInfos = columnMetaInfos;
     }
 }

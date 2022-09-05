@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class JobUtil {
 
@@ -34,15 +33,13 @@ public class JobUtil {
 
     public static String replaceJobParameter(String p, String job) {
         if (StringUtils.isNotBlank(p)) {
-            HashMap<String, String> parameters = CommandTransform(p);
-            for (Map.Entry<String, String> entry : parameters.entrySet()) {
-                job = job.replaceAll(Pattern.quote(entry.getKey()), entry.getValue());
-            }
+            Map<String, String> parameters = CommandTransform(p);
+            job = JsonValueReplace(job, parameters);
         }
         return job;
     }
 
-    public static String JsonValueReplace(String json, HashMap<String, String> parameter) {
+    public static String JsonValueReplace(String json, Map<String, String> parameter) {
         for (String item : parameter.keySet()) {
             if (json.contains("${" + item + "}")) {
                 json = json.replace("${" + item + "}", parameter.get(item));

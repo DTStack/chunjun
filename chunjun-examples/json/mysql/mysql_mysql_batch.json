@@ -1,236 +1,171 @@
 {
-    "job": {
-      "content": [
-        {
-          "reader": {
-            "name": "mysqlreader",
-            "parameter": {
-              "column": [
-                {
-                  "name": "id",
-                  "type": "int"
-                },
-                {
-                  "name": "name",
-                  "type": "string"
-                },
-                {
-                  "name": "money",
-                  "type": "decimal"
-                },
-                {
-                  "name": "aphone",
-                  "type": "bigint"
-                },
-                {
-                  "name": "aqq",
-                  "type": "varchar"
-                },
-                {
-                  "name": "awechat",
-                  "type": "varchar"
-                },
-                {
-                  "name": "aincome",
-                  "type": "decimal"
-                },
-                {
-                  "name": "abirthday",
-                  "type": "datetime"
-                },
-                {
-                  "name": "atoday",
-                  "type": "date"
-                },
-                {
-                  "name": "atimecurrent",
-                  "type": "time"
-                },
-                {
-                  "name": "bphone",
-                  "type": "bigint"
-                },
-                {
-                  "name": "bqq",
-                  "type": "varchar"
-                },
-                {
-                  "name": "bwechat",
-                  "type": "varchar"
-                },
-                {
-                  "name": "bincome",
-                  "type": "decimal"
-                },
-                {
-                  "name": "bbirthday",
-                  "type": "datetime"
-                },
-                {
-                  "name": "btoday",
-                  "type": "date"
-                },
-                {
-                  "name": "btimecurrent",
-                  "type": "time"
-                },
-                {
-                  "name": "raw_date",
-                  "type": "string",
-                  "value": "2014-12-12 14:24:16"
-                },
-                {
-                  "name": "aboolean",
-                  "type": "boolean"
-                },
-                {
-                  "name": "adouble",
-                  "type": "double"
-                },
-                {
-                  "name": "afloat",
-                  "type": "float"
-                },
-                {
-                  "name": "achar",
-                  "type": "char"
-                },
-                {
-                  "name": "atinyint",
-                  "type": "tinyint"
-                }
-              ],
-              "username": "root",
-              "password": "root",
-              "connection": [
-                {
-                  "jdbcUrl": [
-                    "jdbc:mysql://localhost:3306/test?useSSL=false"
-                  ],
-                  "table": [
-                    "baserow"
-                  ]
-                }
-              ]
-            }
-          },
-          "writer": {
-            "name": "mysqlwriter",
-            "parameter": {
-              "username": "root",
-              "password": "root",
-              "connection": [
-                {
-                  "jdbcUrl": "jdbc:mysql://localhost:3306/test?useSSL=false",
-                  "table": [
-                    "baserow_sync"
-                  ]
-                }
-              ],
-              "writeMode": "insert",
-              "column": [
-                {
-                  "name": "id",
-                  "type": "int"
-                },
-                {
-                  "name": "name",
-                  "type": "string"
-                },
-                {
-                  "name": "money",
-                  "type": "decimal"
-                },
-                {
-                  "name": "aphone",
-                  "type": "bigint"
-                },
-                {
-                  "name": "aqq",
-                  "type": "varchar"
-                },
-                {
-                  "name": "awechat",
-                  "type": "varchar"
-                },
-                {
-                  "name": "aincome",
-                  "type": "decimal"
-                },
-                {
-                  "name": "abirthday",
-                  "type": "datetime"
-                },
-                {
-                  "name": "atoday",
-                  "type": "date"
-                },
-                {
-                  "name": "atimecurrent",
-                  "type": "time"
-                },
-                {
-                  "name": "bphone",
-                  "type": "bigint"
-                },
-                {
-                  "name": "bqq",
-                  "type": "varchar"
-                },
-                {
-                  "name": "bwechat",
-                  "type": "varchar"
-                },
-                {
-                  "name": "bincome",
-                  "type": "decimal"
-                },
-                {
-                  "name": "bbirthday",
-                  "type": "datetime"
-                },
-                {
-                  "name": "btoday",
-                  "type": "date"
-                },
-                {
-                  "name": "btimecurrent",
-                  "type": "time"
-                },
-                {
-                  "name": "raw_date",
-                  "type": "string"
-                },
-                {
-                  "name": "aboolean",
-                  "type": "boolean"
-                },
-                {
-                  "name": "adouble",
-                  "type": "double"
-                },
-                {
-                  "name": "afloat",
-                  "type": "float"
-                },
-                {
-                  "name": "achar",
-                  "type": "char"
-                },
-                {
-                  "name": "atinyint",
-                  "type": "tinyint"
-                }
-              ]
-            }
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "mysqlreader",
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "idcard",
+                "type": "string"
+              },
+              {
+                "name": "birthday",
+                "type": "date"
+              },
+              {
+                "name": "mobile",
+                "type": "varchar"
+              },
+              {
+                "name": "email",
+                "type": "varchar"
+              },
+              {
+                "name": "gender",
+                "type": "tinyint"
+              },
+              {
+                "name": "create_time",
+                "type": "timestamp"
+              },
+              {
+                "name": "type_smallint",
+                "type": "smallint"
+              },
+              {
+                "name": "type_mediumint",
+                "type": "mediumint"
+              },
+              {
+                "name": "type_bigint",
+                "type": "bigint"
+              },
+              {
+                "name": "type_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "type_float",
+                "type": "float"
+              },
+              {
+                "name": "type_double",
+                "type": "double"
+              },
+              {
+                "name": "type_text",
+                "type": "text"
+              }
+            ],
+            "username": "root",
+            "password": "123456",
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:mysql://chunjun-e2e-mysql:3306/chunjun?useSSL=false&allowPublicKeyRetrieval=true"
+                ],
+                "table": [
+                  "test"
+                ]
+              }
+            ]
+          }
+        },
+        "writer": {
+          "name": "mysqlwriter",
+          "parameter": {
+            "username": "root",
+            "password": "123456",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:mysql://chunjun-e2e-mysql:3306/chunjun?useSSL=false&allowPublicKeyRetrieval=true",
+                "table": [
+                  "test_sink"
+                ]
+              }
+            ],
+            "writeMode": "insert",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "idcard",
+                "type": "string"
+              },
+              {
+                "name": "birthday",
+                "type": "date"
+              },
+              {
+                "name": "mobile",
+                "type": "varchar"
+              },
+              {
+                "name": "email",
+                "type": "varchar"
+              },
+              {
+                "name": "gender",
+                "type": "tinyint"
+              },
+              {
+                "name": "create_time",
+                "type": "timestamp"
+              },
+              {
+                "name": "type_smallint",
+                "type": "smallint"
+              },
+              {
+                "name": "type_mediumint",
+                "type": "mediumint"
+              },
+              {
+                "name": "type_bigint",
+                "type": "bigint"
+              },
+              {
+                "name": "type_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "type_float",
+                "type": "float"
+              },
+              {
+                "name": "type_double",
+                "type": "double"
+              },
+              {
+                "name": "type_text",
+                "type": "text"
+              }
+            ]
           }
         }
-      ],
-      "setting": {
-        "speed": {
-          "channel": 1,
-          "bytes": 0
-        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
       }
     }
   }
+}

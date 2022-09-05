@@ -273,7 +273,7 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<move file="${basedir}/target/${artifactId}-${project.version}.jar"
+								<copy file="${basedir}/target/${artifactId}-${project.version}.jar"
 									  tofile="${basedir}/target/${artifactId}.jar"/>
 								<copy todir="${basedir}/../lib/"
 									  file="${basedir}/target/${artifactId}.jar"/>

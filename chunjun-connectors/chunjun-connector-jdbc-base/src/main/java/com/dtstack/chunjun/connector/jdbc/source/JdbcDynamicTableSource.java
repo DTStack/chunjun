@@ -86,9 +86,9 @@ public class JdbcDynamicTableSource
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
 
-        if (lookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return ParallelAsyncTableFunctionProvider.of(
-                    new JdbcLruTableFunction(
+        if (lookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+            return ParallelTableFunctionProvider.of(
+                    new JdbcAllTableFunction(
                             jdbcConf,
                             jdbcDialect,
                             lookupConf,
@@ -97,8 +97,8 @@ public class JdbcDynamicTableSource
                             rowType),
                     lookupConf.getParallelism());
         }
-        return ParallelTableFunctionProvider.of(
-                new JdbcAllTableFunction(
+        return ParallelAsyncTableFunctionProvider.of(
+                new JdbcLruTableFunction(
                         jdbcConf,
                         jdbcDialect,
                         lookupConf,

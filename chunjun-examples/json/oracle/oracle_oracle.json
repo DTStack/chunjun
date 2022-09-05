@@ -4,101 +4,33 @@
       {
         "reader": {
           "parameter": {
-            "username": "oracle",
-            "password": "oracle",
+            "username": "dbzuser",
+            "password": "dbz",
             "connection": [{
-              "jdbcUrl": ["jdbc:oracle:thin:@localhost:1521:orcl"],
-              "table": ["oracle_all_type_source"]
+              "jdbcUrl": ["jdbc:oracle:thin:@chunjun-e2e-oracle:1521:xe"],
+              "table": ["DEBEZIUM.TEST_SOURCE"]
             }],
-            "increColumn": "t_timestamp",
-            "startLocation": "1530439980000",
             "column": [{
-              "name": "id",
-              "type": "decimal"
+              "name": "INT_VAL",
+              "type": "number"
             },{
-              "name": "t_binary_double",
-              "type": "decimal"
+              "name": "DOUBLE_VAL",
+              "type": "float"
             },{
-              "name": "t_binary_float",
-              "type": "decimal"
-            },{
-              "name": "t_char",
-              "type": "string"
-            },{
-              "name": "t_char_varying",
-              "type": "string"
-            },{
-              "name": "t_character",
-              "type": "string"
-            },{
-              "name": "t_character_varying",
-              "type": "string"
-            },{
-              "name": "t_date",
+              "name": "DATE_VAL",
               "type": "date"
             },{
-              "name": "t_decimal",
-              "type": "decimal"
-            },{
-              "name": "t_double_precision",
-              "type": "double"
-            },{
-              "name": "t_float",
-              "type": "double"
-            },{
-              "name": "t_int",
-              "type": "int"
-            },{
-              "name": "t_integer",
-              "type": "decimal"
-            },{
-              "name": "t_national_char",
-              "type": "string"
-            },{
-              "name": "t_national_char_varying",
-              "type": "string"
-            },{
-              "name": "t_national_character",
-              "type": "string"
-            },{
-              "name": "t_national_character_varying",
-              "type": "string"
-            },{
-              "name": "t_nchar",
-              "type": "string"
-            },{
-              "name": "t_nchar_varying",
-              "type": "string"
-            },{
-              "name": "t_number_1",
-              "type": "decimal"
-            },{
-              "name": "t_number_2",
-              "type": "decimal"
-            },{
-              "name": "t_number_3",
-              "type": "decimal"
-            },{
-              "name": "t_numeric",
-              "type": "decimal"
-            },{
-              "name": "t_nvarchar2",
-              "type": "string"
-            },{
-              "name": "t_raw",
-              "type": "bytes"
-            },{
-              "name": "t_real",
-              "type": "double"
-            },{
-              "name": "t_timestamp",
+              "name": "TIMESTAMP_VAL",
               "type": "timestamp"
             },{
-              "name": "t_varchar",
-              "type": "string"
+              "name": "VAR_VAL",
+              "type": "varchar"
             },{
-              "name": "t_varchar2",
-              "type": "string"
+              "name": "NAME",
+              "type": "varchar"
+            },{
+              "name": "MESSAGE",
+              "type": "varchar"
             }]
           },
           "name": "oraclereader"
@@ -107,103 +39,37 @@
           "name": "oraclewriter",
           "parameter": {
             "mode": "insert",
-            "updateKey": ["id"],
+            "updateKey": [],
             "allReplace": true,
-            "username": "oracle",
-            "password": "oracle",
+            "username": "dbzuser",
+            "password": "dbz",
             "connection": [
               {
-                "jdbcUrl": "jdbc:oracle:thin:@localhost:1521:orcl",
-                "table": ["oracle_all_type_sink"]
+                "jdbcUrl": "jdbc:oracle:thin:@chunjun-e2e-oracle:1521:xe",
+                "table": ["DEBEZIUM.TEST_SINK"]
               }
             ],
             "column": [{
-              "name": "id",
-              "type": "decimal"
+              "name": "INT_VAL",
+              "type": "number"
             },{
-              "name": "t_binary_double",
-              "type": "decimal"
+              "name": "DOUBLE_VAL",
+              "type": "float"
             },{
-              "name": "t_binary_float",
-              "type": "decimal"
+              "name": "DATE_VAL",
+              "type": "date"
             },{
-              "name": "t_char",
-              "type": "string"
-            },{
-              "name": "t_char_varying",
-              "type": "string"
-            },{
-              "name": "t_character",
-              "type": "string"
-            },{
-              "name": "t_character_varying",
-              "type": "string"
-            },{
-              "name": "t_date",
+              "name": "TIMESTAMP_VAL",
               "type": "timestamp"
             },{
-              "name": "t_decimal",
-              "type": "decimal"
+              "name": "VAR_VAL",
+              "type": "varchar"
             },{
-              "name": "t_double_precision",
-              "type": "double"
+              "name": "NAME",
+              "type": "varchar"
             },{
-              "name": "t_float",
-              "type": "double"
-            },{
-              "name": "t_int",
-              "type": "int"
-            },{
-              "name": "t_integer",
-              "type": "decimal"
-            },{
-              "name": "t_national_char",
-              "type": "string"
-            },{
-              "name": "t_national_char_varying",
-              "type": "string"
-            },{
-              "name": "t_national_character",
-              "type": "string"
-            },{
-              "name": "t_national_character_varying",
-              "type": "string"
-            },{
-              "name": "t_nchar",
-              "type": "string"
-            },{
-              "name": "t_nchar_varying",
-              "type": "string"
-            },{
-              "name": "t_number_1",
-              "type": "decimal"
-            },{
-              "name": "t_number_2",
-              "type": "decimal"
-            },{
-              "name": "t_number_3",
-              "type": "decimal"
-            },{
-              "name": "t_numeric",
-              "type": "decimal"
-            },{
-              "name": "t_nvarchar2",
-              "type": "string"
-            },{
-              "name": "t_raw",
-              "type": "bytes"
-            },{
-              "name": "t_real",
-              "type": "double"
-            },{
-              "name": "t_timestamp",
-              "type": "timestamp"
-            },{
-              "name": "t_varchar",
-              "type": "string"
-            },{
-              "name": "t_varchar2",
-              "type": "string"
+              "name": "MESSAGE",
+              "type": "varchar"
             }]
           }
         }

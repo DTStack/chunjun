@@ -266,4 +266,8 @@ public class OperatorConf implements Serializable {
                 + table
                 + '}';
     }
+
+    public void setFieldNameList(List<String> fieldNameList) {
+        this.fieldNameList = fieldNameList;
+    }
 }

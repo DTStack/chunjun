@@ -79,4 +79,11 @@ public class EmqxOptions {
                     .stringType()
                     .defaultValue("writer")
                     .withDescription("dclient.id.pre");
+
+    /** Number of reconnections * */
+    public static final ConfigOption<Integer> connectRetryTimes =
+            ConfigOptions.key("connectRetryTimes")
+                    .intType()
+                    .defaultValue(10)
+                    .withDescription(" connectRetryTimes ");
 }

@@ -56,6 +56,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-inline</artifactId>
+			<version>2.13.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
 			<version>${powermock.version}</version>
@@ -211,6 +217,22 @@
 	</dependencies>
 
 	<repositories>
+
+		<repository>
+			<id>central</id>
+			<url>https://repo1.maven.org/maven2/</url>
+		</repository>
+
+		<repository>
+			<id>sonatype</id>
+			<url>https://oss.sonatype.org/content/repositories/releases/</url>
+		</repository>
+
+		<repository>
+			<id>aliyun</id>
+			<url>https://maven.aliyun.com/repository/central</url>
+		</repository>
+
 		<!-- for greenplum -->
 		<repository>
 			<id>hand-china</id>
@@ -384,4 +406,13 @@
 			</plugin>
 		</plugins>
 	</reporting>
+
+	<profiles>
+		<profile>
+			<id>e2e</id>
+			<modules>
+				<module>chunjun-e2e</module>
+			</modules>
+		</profile>
+	</profiles>
 </project>
