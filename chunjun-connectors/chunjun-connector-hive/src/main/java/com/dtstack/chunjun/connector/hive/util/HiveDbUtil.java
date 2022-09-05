@@ -21,6 +21,7 @@ import com.dtstack.chunjun.connector.hive.entity.ConnectionInfo;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.security.KerberosUtil;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
+import com.dtstack.chunjun.util.ClassUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.FileSystemUtil;
 import com.dtstack.chunjun.util.RetryUtil;
@@ -47,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,7 +72,6 @@ public class HiveDbUtil {
             "hive.server2.authentication.kerberos.keytab";
     private static final Logger LOG = LoggerFactory.getLogger(HiveDbUtil.class);
     private static final String ERROR_MSG_NO_DB = "NoSuchDatabaseException";
-    private static final ReentrantLock lock = new ReentrantLock();
     public static Pattern HIVE_JDBC_PATTERN =
             Pattern.compile(
                     "(?i)jdbc:hive2://(?<host>[^:]+):(?<port>\\d+)/(?<db>[^;]+)(?<param>[\\?;#].*)*");
@@ -205,10 +204,10 @@ public class HiveDbUtil {
     }
 
     private static Connection connect(ConnectionInfo connectionInfo, Properties prop) {
-        lock.lock();
         try {
-            Class.forName("org.apache.hive.jdbc.HiveDriver");
-            DriverManager.setLoginTimeout(connectionInfo.getTimeout());
+            ClassUtil.forName(
+                    "org.apache.hive.jdbc.HiveDriver",
+                    Thread.currentThread().getContextClassLoader());
             return getHiveConnection(connectionInfo.getJdbcUrl(), prop);
         } catch (SQLException e) {
             if (SQLSTATE_USERNAME_PWD_ERROR.equals(e.getSQLState())) {
@@ -228,8 +227,6 @@ public class HiveDbUtil {
                             + connectionInfo.getJdbcUrl()
                             + " error message ："
                             + ExceptionUtil.getErrorMessage(e1));
-        } finally {
-            lock.unlock();
         }
     }
 
