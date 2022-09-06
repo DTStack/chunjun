@@ -8,7 +8,7 @@ ENV LANG=C.UTF-8
 RUN apk add --no-cache bash
 RUN apk add busybox-extras
 
-RUN wget https://mirrors.cloud.tencent.com/apache/flink/flink-1.12.7/flink-1.12.7-bin-scala_2.12.tgz && \
+RUN wget https://archive.apache.org/dist/flink/flink-1.12.7/flink-1.12.7-bin-scala_2.12.tgz && \
     tar -zxvf flink-1.12.7-bin-scala_2.12.tgz && \
     rm flink-1.12.7-bin-scala_2.12.tgz && \
     mv flink-1.12.7 /opt/flink
