@@ -27,9 +27,9 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
-import org.apache.flink.table.data.RowData;
-
 import org.apache.commons.lang.StringUtils;
+
+import org.apache.flink.table.data.RowData;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -52,9 +52,6 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     private static final int NEWLINE = 10;
 
     protected FtpConfig ftpConfig;
-    protected List<String> columnTypes;
-
-    protected List<String> columnNames;
 
     private transient IFtpHandler ftpHandler;
 
@@ -109,6 +106,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void writeSingleRecordToFile(RowData rowData) throws WriteRecordException {
         try {
             if (writer == null) {
@@ -241,7 +239,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
 
     @Override
     protected void writeMultipleRecordsInternal() {
-        notSupportBatchWrite("FtpWriter");
+        throw new UnsupportedOperationException("FtpWriter 不支持批量写入");
     }
 
     public FtpConfig getFtpConfig() {
@@ -252,15 +250,11 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         this.ftpConfig = ftpConfig;
     }
 
-    protected void notSupportBatchWrite(String writerName) {
-        throw new UnsupportedOperationException(writerName + "不支持批量写入");
-    }
-
     private String handleUserSpecificFileName(String tmpDataFileName, int fileNumber) {
         String fileName = ftpConfig.getFtpFileName();
         if (StringUtils.isNotBlank(fileName)) {
             if (fileNumber == 1) {
-                fileName = handlerSingleFile(tmpDataFileName);
+                fileName = handlerSingleFile();
             } else {
                 fileName = handlerMultiChannel(tmpDataFileName);
             }
@@ -270,7 +264,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         return fileName;
     }
 
-    private String handlerSingleFile(String tmpDataFileName) {
+    private String handlerSingleFile() {
         return ftpConfig.getFtpFileName();
     }
 
