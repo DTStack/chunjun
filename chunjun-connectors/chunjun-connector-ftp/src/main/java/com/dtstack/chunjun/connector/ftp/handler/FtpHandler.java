@@ -461,4 +461,9 @@ public class FtpHandler implements IFtpHandler {
     private String encodePath(String path) throws UnsupportedEncodingException {
         return new String(path.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING);
     }
+
+    @Override
+    public void close() throws Exception {
+        logoutFtpServer();
+    }
 }

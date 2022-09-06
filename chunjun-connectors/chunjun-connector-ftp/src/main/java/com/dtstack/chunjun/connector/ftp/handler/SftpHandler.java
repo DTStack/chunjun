@@ -433,4 +433,9 @@ public class SftpHandler implements IFtpHandler {
             throw new IOException(e);
         }
     }
+
+    @Override
+    public void close() throws Exception {
+        logoutFtpServer();
+    }
 }
