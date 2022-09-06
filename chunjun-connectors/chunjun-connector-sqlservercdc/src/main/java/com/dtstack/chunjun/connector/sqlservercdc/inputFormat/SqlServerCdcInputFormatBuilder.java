@@ -55,8 +55,6 @@ public class SqlServerCdcInputFormatBuilder
 
     protected String tableFormat = "%s.%s";
 
-    protected SqlServerCdcInputFormat format;
-
     public SqlServerCdcInputFormatBuilder() {
         super(new SqlServerCdcInputFormat());
     }
