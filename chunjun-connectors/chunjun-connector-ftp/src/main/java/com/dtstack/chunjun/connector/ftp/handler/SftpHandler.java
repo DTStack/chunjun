@@ -55,8 +55,8 @@ public class SftpHandler implements IFtpHandler {
     private static final String DOT_DOT = "..";
     private static final String SP = "/";
     private static final String SRC_MAIN = "src/main";
-    private static String PATH_NOT_EXIST_ERR = "no such file";
-    private static String MSG_AUTH_FAIL = "Auth fail";
+    private static final String PATH_NOT_EXIST_ERR = "no such file";
+    private static final String MSG_AUTH_FAIL = "Auth fail";
     private Session session = null;
     private ChannelSftp channelSftp = null;
 
@@ -162,7 +162,7 @@ public class SftpHandler implements IFtpHandler {
             SftpATTRS sftpAttrs = channelSftp.lstat(directoryPath);
             return sftpAttrs.isDir();
         } catch (SftpException e) {
-            if (e.getMessage().toLowerCase().equals(PATH_NOT_EXIST_ERR)) {
+            if (e.getMessage().equalsIgnoreCase(PATH_NOT_EXIST_ERR)) {
                 LOG.warn("{}", e.getMessage());
                 return false;
             }
@@ -174,14 +174,13 @@ public class SftpHandler implements IFtpHandler {
 
     @Override
     public boolean isFileExist(String filePath) {
-        boolean isExitFlag = false;
         try {
             SftpATTRS sftpAttrs = channelSftp.lstat(filePath);
             if (sftpAttrs.getSize() >= 0) {
-                isExitFlag = true;
+                return true;
             }
         } catch (SftpException e) {
-            if (e.getMessage().toLowerCase().equals(PATH_NOT_EXIST_ERR)) {
+            if (e.getMessage().equalsIgnoreCase(PATH_NOT_EXIST_ERR)) {
                 LOG.warn("{}", e.getMessage());
                 return false;
             } else {
@@ -190,7 +189,7 @@ public class SftpHandler implements IFtpHandler {
                 throw new RuntimeException(message, e);
             }
         }
-        return isExitFlag;
+        return false;
     }
 
     @Override
@@ -223,9 +222,9 @@ public class SftpHandler implements IFtpHandler {
             }
 
             try {
-                Vector vector = channelSftp.ls(path);
-                for (int i = 0; i < vector.size(); ++i) {
-                    ChannelSftp.LsEntry le = (ChannelSftp.LsEntry) vector.get(i);
+                Vector<?> vector = channelSftp.ls(path);
+                for (Object o : vector) {
+                    ChannelSftp.LsEntry le = (ChannelSftp.LsEntry) o;
                     String strName = le.getFilename();
                     if (!strName.equals(DOT)
                             && !strName.equals(SRC_MAIN)
@@ -256,9 +255,9 @@ public class SftpHandler implements IFtpHandler {
                 path = path + SP;
             }
             try {
-                Vector vector = channelSftp.ls(path);
-                for (int i = 0; i < vector.size(); ++i) {
-                    ChannelSftp.LsEntry le = (ChannelSftp.LsEntry) vector.get(i);
+                Vector<?> vector = channelSftp.ls(path);
+                for (Object o : vector) {
+                    ChannelSftp.LsEntry le = (ChannelSftp.LsEntry) o;
                     String strName = le.getFilename();
                     if (!strName.equals(DOT)
                             && !strName.equals(SRC_MAIN)
@@ -283,14 +282,13 @@ public class SftpHandler implements IFtpHandler {
     public void mkDirRecursive(String directoryPath) {
         boolean isDirExist = false;
         try {
-            this.printWorkingDirectory();
+            printWorkingDirectory();
             SftpATTRS sftpAttrs = this.channelSftp.lstat(directoryPath);
             isDirExist = sftpAttrs.isDir();
         } catch (SftpException e) {
-            if (e.getMessage().toLowerCase().equals(PATH_NOT_EXIST_ERR)) {
+            if (e.getMessage().equalsIgnoreCase(PATH_NOT_EXIST_ERR)) {
                 LOG.warn("{}", e.getMessage());
                 LOG.warn("Path [{}] does not exist and will be created.", directoryPath);
-                isDirExist = false;
             }
         }
         if (!isDirExist) {
@@ -352,9 +350,9 @@ public class SftpHandler implements IFtpHandler {
             }
 
             try {
-                Vector vector = channelSftp.ls(dir);
-                for (int i = 0; i < vector.size(); ++i) {
-                    ChannelSftp.LsEntry le = (ChannelSftp.LsEntry) vector.get(i);
+                Vector<?> vector = channelSftp.ls(dir);
+                for (Object o : vector) {
+                    ChannelSftp.LsEntry le = (ChannelSftp.LsEntry) o;
                     String strName = le.getFilename();
                     if (CollectionUtils.isNotEmpty(exclude) && exclude.contains(strName)) {
                         continue;
@@ -397,23 +395,20 @@ public class SftpHandler implements IFtpHandler {
         return true;
     }
 
-    public boolean mkDirSingleHierarchy(String directoryPath) throws SftpException {
-        boolean isDirExist = false;
+    public void mkDirSingleHierarchy(String directoryPath) throws SftpException {
+        boolean isDirExist;
         try {
             SftpATTRS sftpAttrs = this.channelSftp.lstat(directoryPath);
             isDirExist = sftpAttrs.isDir();
         } catch (SftpException e) {
-            if (!isDirExist) {
-                LOG.info("Creating a directory step by step [{}]", directoryPath);
-                this.channelSftp.mkdir(directoryPath);
-                return true;
-            }
+            LOG.info("Creating a directory step by step [{}]", directoryPath);
+            this.channelSftp.mkdir(directoryPath);
+            return;
         }
         if (!isDirExist) {
             LOG.info("Creating a directory step by step [{}]", directoryPath);
             this.channelSftp.mkdir(directoryPath);
         }
-        return true;
     }
 
     @Override
@@ -432,5 +427,10 @@ public class SftpHandler implements IFtpHandler {
         } catch (SftpException e) {
             throw new IOException(e);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        logoutFtpServer();
     }
 }

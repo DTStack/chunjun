@@ -45,7 +45,6 @@ import org.apache.commons.lang.StringUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -79,54 +78,53 @@ public class FtpInputFormat extends BaseRichInputFormat {
 
     @Override
     public InputSplit[] createInputSplitsInternal(int minNumSplits) throws Exception {
-        IFtpHandler ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol());
-        ftpHandler.loginFtpServer(ftpConfig);
+        try (IFtpHandler ftpHandler = FtpHandlerFactory.createFtpHandler(ftpConfig.getProtocol())) {
+            ftpHandler.loginFtpServer(ftpConfig);
 
-        List<String> files = new ArrayList<>();
+            List<String> files = new ArrayList<>();
 
-        String path = ftpConfig.getPath();
-        if (path != null && path.length() > 0) {
-            path = path.replace("\n", "").replace("\r", "");
-            String[] pathArray = path.split(",");
-            for (String p : pathArray) {
-                files.addAll(ftpHandler.getFiles(p.trim()));
-            }
-        }
-
-        List<File> fileList = new ArrayList<>();
-
-        if (CollectionUtils.isNotEmpty(files)) {
-            for (String filePath : files) {
-                if (StringUtils.isNotBlank(ftpConfig.getCompressType())) {
-                    FileUtil.addFile(ftpHandler, filePath, ftpConfig, fileList);
-                } else {
-                    fileList.add(
-                            new File(
-                                    null,
-                                    filePath,
-                                    filePath.substring(filePath.lastIndexOf("/") + 1),
-                                    null));
+            String path = ftpConfig.getPath();
+            if (path != null && path.length() > 0) {
+                path = path.replace("\n", "").replace("\r", "");
+                String[] pathArray = path.split(",");
+                for (String p : pathArray) {
+                    files.addAll(ftpHandler.getFiles(p.trim()));
                 }
             }
-        }
-        if (CollectionUtils.isEmpty(fileList)) {
-            throw new RuntimeException("There are no readable files  in directory " + path);
-        }
-        LOG.info("FTP files = {}", GsonUtil.GSON.toJson(fileList));
-        int numSplits = (Math.min(files.size(), minNumSplits));
-        FtpInputSplit[] ftpInputSplits = new FtpInputSplit[numSplits];
-        for (int index = 0; index < numSplits; ++index) {
-            ftpInputSplits[index] = new FtpInputSplit();
-        }
 
-        Collections.sort(fileList, Comparator.comparing(File::getFileAbsolutePath));
+            List<File> fileList = new ArrayList<>();
 
-        for (int i = 0; i < fileList.size(); ++i) {
-            ftpInputSplits[i % numSplits].getPaths().add(fileList.get(i));
+            if (CollectionUtils.isNotEmpty(files)) {
+                for (String filePath : files) {
+                    if (StringUtils.isNotBlank(ftpConfig.getCompressType())) {
+                        FileUtil.addFile(ftpHandler, filePath, ftpConfig, fileList);
+                    } else {
+                        fileList.add(
+                                new File(
+                                        null,
+                                        filePath,
+                                        filePath.substring(filePath.lastIndexOf("/") + 1),
+                                        null));
+                    }
+                }
+            }
+            if (CollectionUtils.isEmpty(fileList)) {
+                throw new RuntimeException("There are no readable files  in directory " + path);
+            }
+            LOG.info("FTP files = {}", GsonUtil.GSON.toJson(fileList));
+            int numSplits = (Math.min(files.size(), minNumSplits));
+            FtpInputSplit[] ftpInputSplits = new FtpInputSplit[numSplits];
+            for (int index = 0; index < numSplits; ++index) {
+                ftpInputSplits[index] = new FtpInputSplit();
+            }
+
+            fileList.sort(Comparator.comparing(File::getFileAbsolutePath));
+
+            for (int i = 0; i < fileList.size(); ++i) {
+                ftpInputSplits[i % numSplits].getPaths().add(fileList.get(i));
+            }
+            return ftpInputSplits;
         }
-
-        ftpHandler.logoutFtpServer();
-        return ftpInputSplits;
     }
 
     @Override
