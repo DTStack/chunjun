@@ -27,9 +27,9 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
 
-import org.apache.commons.lang.StringUtils;
-
 import org.apache.flink.table.data.RowData;
+
+import org.apache.commons.lang.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;

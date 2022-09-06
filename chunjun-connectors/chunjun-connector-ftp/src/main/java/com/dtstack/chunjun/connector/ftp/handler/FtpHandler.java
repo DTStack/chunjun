@@ -189,7 +189,7 @@ public class FtpHandler implements IFtpHandler {
                 // .和..是特殊文件
                 if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL)
                         || StringUtils.endsWith(
-                        ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
+                                ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                     continue;
                 }
                 sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
@@ -202,9 +202,7 @@ public class FtpHandler implements IFtpHandler {
      *
      * @param path path
      * @param file file
-     *
      * @return file list
-     *
      * @throws IOException io exception.
      */
     private List<String> getFiles(String path, FTPFile file) throws IOException {
@@ -319,7 +317,7 @@ public class FtpHandler implements IFtpHandler {
                         }
                         if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL)
                                 || StringUtils.endsWith(
-                                ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
+                                        ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                             continue;
                         }
                         deleteAllFilesInDir(dir + ftpFile.getName(), exclude);
@@ -382,7 +380,7 @@ public class FtpHandler implements IFtpHandler {
                     for (FTPFile ftpFile : ftpFiles) {
                         if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL)
                                 || StringUtils.endsWith(
-                                ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
+                                        ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
                             continue;
                         }
                         sources.add(path + ftpFile.getName());
@@ -428,7 +426,6 @@ public class FtpHandler implements IFtpHandler {
      * 判断路径是否存在
      *
      * @param path 判断的路径
-     *
      * @return true 存在 false 不存在
      */
     private boolean isExist(String path) {
