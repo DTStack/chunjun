@@ -23,7 +23,6 @@ import com.dtstack.chunjun.util.GsonUtil;
 
 import org.apache.flink.util.Preconditions;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -105,15 +104,6 @@ public class SyncConf implements Serializable {
         Preconditions.checkNotNull(
                 writerParameter,
                 "[parameter] under [writer] in the task script is empty, please check the configuration of the task script.");
-        boolean transformer =
-                config.getTransformer() != null
-                        && StringUtils.isNotBlank(config.getTransformer().getTransformSql());
-        if (transformer) {
-            if (CollectionUtils.isEmpty(writer.getFieldList())) {
-                throw new IllegalArgumentException(
-                        "[column] under [writer] can not be empty when [transformSql] is not empty.");
-            }
-        }
 
         List<FieldConf> readerFieldList = config.getReader().getFieldList();
         // 检查并设置restore

@@ -143,9 +143,9 @@ public class KuduDynamicTableSource
         // 通过该参数得到类型转换器，将数据库中的字段转成对应的类型
         final RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
 
-        if (kuduLookupConf.getCache().equalsIgnoreCase(CacheType.LRU.toString())) {
-            return ParallelAsyncTableFunctionProvider.of(
-                    new KuduLruTableFunction(
+        if (kuduLookupConf.getCache().equalsIgnoreCase(CacheType.ALL.toString())) {
+            return ParallelTableFunctionProvider.of(
+                    new KuduAllTableFunction(
                             kuduLookupConf,
                             new KuduRowConverter(
                                     rowType, Arrays.asList(tableSchema.getFieldNames())),
@@ -153,8 +153,8 @@ public class KuduDynamicTableSource
                             keyNames),
                     kuduLookupConf.getParallelism());
         }
-        return ParallelTableFunctionProvider.of(
-                new KuduAllTableFunction(
+        return ParallelAsyncTableFunctionProvider.of(
+                new KuduLruTableFunction(
                         kuduLookupConf,
                         new KuduRowConverter(rowType, Arrays.asList(tableSchema.getFieldNames())),
                         tableSchema.getFieldNames(),

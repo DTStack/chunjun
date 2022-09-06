@@ -1,0 +1,146 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "table" : {
+            "tableName": "test_source"
+          },
+          "name": "hbasereader",
+          "parameter": {
+            "hbaseConfig": {
+              "hbase.zookeeper.property.clientPort": "2181",
+              "hbase.rootdir": "hdfs://ns1/user/hbase/",
+              "hbase.cluster.distributed": "true",
+              "hbase.zookeeper.quorum": "172.16.85.111,172.16.85.210,172.16.85.218"
+            },
+            "encoding": "utf-8",
+            "column": [
+              {
+                "name": "info:_int_",
+                "type": "int"
+              },
+              {
+                "name": "info:_string_",
+                "type": "string"
+              },
+              {
+                "name": "detail:_double_",
+                "type": "double"
+              },
+              {
+                "name": "detail:_long_",
+                "type": "BIGINT"
+              },
+              {
+                "name": "detail:_boolean_",
+                "type": "boolean"
+              },
+              {
+                "name": "detail:_float_",
+                "type": "float"
+              },
+              {
+                "name": "detail:_timestamp_",
+                "type": "timestamp"
+              },
+              {
+                "name": "detail:_bytes_",
+                "type": "BINARY"
+              },
+              {
+                "name": "detail:_time_",
+                "type": "time"
+              }
+            ],
+            "startRowkey": "",
+            "endRowkey": "",
+            "isBinaryRowkey": true
+          }
+        },
+        "transformer": {
+          "transformSql": "select info._int_+2 ,info._string_,detail._double_,detail._long_,detail._boolean_,detail._float_,detail._timestamp_,detail._bytes_,detail._time_ from test_source"
+        },
+        "writer": {
+          "name": "hbasewriter",
+          "table" : {
+            "tableName": "test_sink"
+          },
+          "parameter": {
+            "hbaseConfig": {
+              "hbase.zookeeper.property.clientPort": "2181",
+              "hbase.rootdir": "hdfs://ns1/user/hbase/",
+              "hbase.cluster.distributed": "true",
+              "hbase.zookeeper.quorum": "172.16.85.111,172.16.85.210,172.16.85.218"
+            },
+            "nullMode" : "null",
+            "walFlag": false,
+            "writeBufferSize" : 1,
+            "rowkeyExpress" : "$(info:_int_)",
+            "versionColumnValue" : "1",
+            "column": [
+              {
+                "name": "info:_int_",
+                "type": "int"
+              },
+              {
+                "name": "info:_string_",
+                "type": "string"
+              },
+              {
+                "name": "detail:_double_",
+                "type": "double"
+              },
+              {
+                "name": "detail:_long_",
+                "type": "BIGINT"
+              },
+              {
+                "name": "detail:_boolean_",
+                "type": "boolean"
+              },
+              {
+                "name": "detail:_float_",
+                "type": "float"
+              },
+              {
+                "name": "detail:_timestamp_",
+                "type": "timestamp"
+              },
+              {
+                "name": "detail:_bytes_",
+                "type": "BINARY"
+              },
+              {
+                "name": "detail:_time_",
+                "type": "time"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      },
+      "errorLimit": {
+        "record": 100
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "isStream": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log": {
+        "isLogger": false,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

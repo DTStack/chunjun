@@ -258,7 +258,8 @@ public class ElasticsearchColumnConverter
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (val, index, output) -> {
                     AbstractBaseColumn field = ((ColumnRowData) val).getField(index);
-                    if (field instanceof StringColumn && ((StringColumn) field).isCustomFormat()) {
+                    if (field instanceof StringColumn && ((StringColumn) field).isCustomFormat()
+                            || null == dateFormatMap.get(index)) {
                         output.put(typeIndexList.get(index)._1(), field.asTimestampStr());
                     } else {
                         output.put(

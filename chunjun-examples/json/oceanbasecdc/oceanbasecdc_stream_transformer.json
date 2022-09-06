@@ -1,0 +1,75 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "oceanbasecdcreader",
+          "table": {
+            "tableName": "source"
+          },
+          "parameter": {
+            "logProxyHost": "localhost",
+            "logProxyPort": 2983,
+            "obReaderConfig": {
+              "clusterUrl": "",
+              "rsList": "127.0.0.1:2882:2881",
+              "username": "root",
+              "password": "pswd",
+              "tableWhiteList": "sys.test.users",
+              "startTimestamp": 0,
+              "timezone": "+08:00",
+              "workingMode": "memory"
+            },
+            "cat": "insert,delete,update",
+            "column": [
+              {
+                "name": "id",
+                "type": "BIGINT"
+              },
+              {
+                "name": "user_id",
+                "type": "BIGINT"
+              },
+              {
+                "name": "name",
+                "type": "VARCHAR"
+              }
+            ]
+          }
+        },
+        "writer": {
+          "name": "streamwriter",
+          "table": {
+            "tableName": "sink"
+          },
+          "parameter": {
+            "print": true,
+            "column": [
+              {
+                "name": "id",
+                "type": "BIGINT"
+              },
+              {
+                "name": "user_id",
+                "type": "BIGINT"
+              },
+              {
+                "name": "name",
+                "type": "VARCHAR"
+              }
+            ]
+          }
+        },
+        "transformer": {
+          "transformSql": "select id,user_id,name from source"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "bytes": 0,
+        "channel": 1
+      }
+    }
+  }
+}

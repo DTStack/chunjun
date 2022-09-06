@@ -40,6 +40,7 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -201,6 +202,7 @@ public class LogParser {
         if (value.startsWith("TO_TIMESTAMP_TZ('")) {
             return value.substring(17, value.length() - 2);
         }
+
         return value;
     }
 
@@ -228,6 +230,13 @@ public class LogParser {
         // INTERVAL DAY(2) TO SECOND(6)
         if (value.startsWith("TO_DSINTERVAL('") && value.endsWith("')")) {
             return value.substring(15, value.length() - 2);
+        }
+
+        // support nchar、nvarchar2 chinese value
+        if (value.startsWith("UNISTR('") && value.endsWith("')")) {
+            String substring = value.substring(8, value.length() - 2);
+            String replace = substring.replace("\\", "\\u");
+            return StringEscapeUtils.unescapeJava(replace);
         }
 
         return value;

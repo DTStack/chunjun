@@ -34,6 +34,7 @@ public class FunctionParser {
     private static final Pattern COL_PATTERN = Pattern.compile(COL_REGEX);
 
     private static final String LEFT_KUO = "(";
+    private static final String RIGHT_KUO = ")";
     private static final String DELIM = "_";
 
     public static List<String> parseRowKeyCol(String express) {
@@ -41,7 +42,6 @@ public class FunctionParser {
         Matcher matcher = COL_PATTERN.matcher(express);
         while (matcher.find()) {
             String colExpre = matcher.group();
-            String RIGHT_KUO = ")";
             String col =
                     colExpre.substring(colExpre.indexOf(LEFT_KUO) + 1, colExpre.indexOf(RIGHT_KUO));
             columnNames.add(col);
@@ -51,11 +51,7 @@ public class FunctionParser {
     }
 
     public static FunctionTree parse(String express) {
-        if (StringUtils.isEmpty(express)) {
-            throw new RuntimeException("Row key column express can not be null");
-        }
-
-        if (StringUtils.isEmpty(express.trim())) {
+        if (StringUtils.isEmpty(express) || StringUtils.isEmpty(express.trim())) {
             throw new RuntimeException("Row key column express can not be empty");
         }
 

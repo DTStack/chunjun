@@ -15,11 +15,7 @@ jobs:
       - name: Spotless Check
         run: |
           ./mvnw spotless:check
-      - name: Install Jars
-        run: |
-          cd bin
-          bash install_jars.sh
 
       - name: Build
         run: |
-          ./mvnw clean install -Dmaven.test.skip=true
+          ./mvnw clean package -Dmaven.test.skip=true

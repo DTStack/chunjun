@@ -38,7 +38,7 @@ public class FunctionTree implements Serializable {
 
     private IFunction function;
 
-    private List<FunctionTree> inputFunctions = Lists.newArrayList();
+    private final List<FunctionTree> inputFunctions = Lists.newArrayList();
 
     public String evaluate(Map<String, Object> nameValueMap) throws Exception {
         if (StringUtils.isNotEmpty(columnName) && MapUtils.isNotEmpty(nameValueMap)) {

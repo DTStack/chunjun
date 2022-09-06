@@ -358,6 +358,7 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<version>4.4.5</version>
 		</dependency>
+
 		<dependency>
 			<artifactId>httpclient</artifactId>
 			<exclusions>
@@ -369,6 +370,7 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<version>4.5.2</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.hive</groupId>
 			<artifactId>hive-metastore</artifactId>

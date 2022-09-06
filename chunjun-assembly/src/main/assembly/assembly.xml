@@ -1,5 +1,5 @@
 <assembly>
-    <id>chunjun-dist</id>
+    <id>${project.version}</id>
     <formats>
         <format>tar.gz</format>
     </formats>
@@ -23,7 +23,7 @@
 			<directory>
 				${project.parent.basedir}/chunjun-dist
 			</directory>
-			<outputDirectory>/</outputDirectory>
+			<outputDirectory>chunjun-dist</outputDirectory>
 			<includes>
 				<include>*/**</include>
 			</includes>
@@ -39,18 +39,6 @@
 				${project.parent.basedir}/lib
 			</directory>
 			<outputDirectory>lib</outputDirectory>
-		</fileSet>
-		<fileSet>
-			<directory>
-				${project.parent.basedir}/jars
-			</directory>
-			<outputDirectory>jars</outputDirectory>
-		</fileSet>
-		<fileSet>
-			<directory>
-				${project.parent.basedir}/docs
-			</directory>
-			<outputDirectory>docs</outputDirectory>
 		</fileSet>
     </fileSets>
 
