@@ -178,11 +178,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-gbase</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-greenplum</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -211,6 +206,11 @@
 			<artifactId>chunjun-connector-oceanbase</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!--		<dependency>-->
+		<!--			<groupId>com.dtstack.chunjun</groupId>-->
+		<!--			<artifactId>chunjun-connector-oceanbasecdc</artifactId>-->
+		<!--			<version>${project.version}</version>-->
+		<!--		</dependency>-->
 
 		<!--File-->
 		<dependency>

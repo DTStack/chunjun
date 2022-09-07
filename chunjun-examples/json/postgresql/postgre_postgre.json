@@ -1,0 +1,83 @@
+{
+    "job": {
+      "content": [
+        {
+          "reader": {
+            "name": "postgresqlreader",
+            "parameter": {
+              "column": [
+                {
+                  "name": "id",
+                  "type": "serial"
+                },
+                {
+                    "name": "name",
+                    "type": "varchar"
+                },
+                {
+                    "name": "description",
+                    "type": "varchar"
+                },
+                {
+                    "name": "weight",
+                    "type": "float"
+                }
+              ],
+              "username": "postgre",
+              "password": "postgre",
+              "connection": [
+                {
+                  "jdbcUrl": [
+                    "jdbc:postgresql://chunjun-e2e-postgre:5432/postgre?useSSL=false"
+                  ],
+                  "table": [
+                    "inventory.products"
+                  ]
+                }
+              ]
+            }
+          },
+          "writer": {
+            "name": "postgresqlwriter",
+            "parameter": {
+              "username": "postgre",
+              "password": "postgre",
+              "connection": [
+                {
+                  "jdbcUrl": "jdbc:postgresql://chunjun-e2e-postgre:5432/postgre?useSSL=false",
+                  "table": [
+                    "inventory.products_sink"
+                  ]
+                }
+              ],
+              "writeMode": "insert",
+              "column": [
+                {
+                  "name": "id",
+                  "type": "serial"
+                },
+                {
+                  "name": "name",
+                  "type": "varchar"
+                },
+                {
+                  "name": "description",
+                  "type": "varchar"
+                },
+                {
+                  "name": "weight",
+                  "type": "float"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "setting": {
+        "speed": {
+          "channel": 1,
+          "bytes": 0
+        }
+      }
+    }
+  }

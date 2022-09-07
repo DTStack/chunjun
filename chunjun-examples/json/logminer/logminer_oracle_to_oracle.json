@@ -1,0 +1,85 @@
+{
+  "job": {
+    "content": [
+      {
+        "nameMapping": {
+          "schemaMappings": {
+            "DEBEZIUM": "DEBEZIUM"
+          },
+          "tableMappings": {
+            "DEBEZIUM": {
+              "ORACLE_TEST": "ORACLE_TEST_LOGMINER"
+            }
+          },
+          "fieldMappings": {
+            "DEBEZIUM": {
+              "ORACLE_TEST": {
+                "TEST_INT": "TEST_INT",
+                "TEST_VARCHAR": "TEST_VARCHAR",
+                "TEST_CHAR": "TEST_CHAR"
+              }
+            }
+          }
+        },
+        "reader": {
+          "parameter": {
+            "jdbcUrl": "jdbc:oracle:thin:@chunjun-e2e-oracle:1521:xe",
+            "username": "dbzuser",
+            "password": "dbz",
+            "supportAutoAddLog": false,
+            "table": [
+              "DEBEZIUM.ORACLE_TEST"
+            ],
+            "pavingData": false,
+            "split": true,
+            "cat": "INSERT,UPDATE,DELETE",
+            "readPosition": "ALL",
+            "queryTimeout": 3000
+          },
+          "name": "oraclelogminerreader"
+        },
+        "writer": {
+          "parameter": {
+            "writeMode": "insert",
+            "uniqueKey": [
+            ],
+            "allReplace": true,
+            "username": "dbzuser",
+            "password": "dbz",
+            "connection": [
+              {
+                "schema": "DEBEZIUM",
+                "jdbcUrl": "jdbc:oracle:thin:@chunjun-e2e-oracle:1521:xe",
+                "table": [
+                  "*"
+                ]
+              }
+            ]
+          },
+          "name": "oraclewriter"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "bytes": 0,
+        "channel": 1
+      },
+      "errorLimit": {
+        "record": 1
+      },
+      "restore": {
+        "maxRowNumForCheckpoint": 0,
+        "isRestore": false,
+        "restoreColumnName": "",
+        "restoreColumnIndex": 0
+      },
+      "log": {
+        "isLogger": true,
+        "level": "debug",
+        "path": "",
+        "pattern": ""
+      }
+    }
+  }
+}

@@ -180,6 +180,10 @@ public class DorisConf extends JdbcConf {
         jdbcConf.setJdbcUrl(url);
         jdbcConf.setPassword(password);
         jdbcConf.setUsername(username);
+
+        jdbcConf.setBatchSize(this.getBatchSize());
+        jdbcConf.setFlushIntervalMills(this.getFlushIntervalMills());
+
         return jdbcConf;
     }
 }

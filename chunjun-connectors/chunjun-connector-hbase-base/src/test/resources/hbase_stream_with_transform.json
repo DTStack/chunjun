@@ -1,0 +1,67 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "rowkeyColumn": "${stu:id}",
+            "column": [
+              {
+                "name": "stu:id",
+                "type": "int"
+              },
+              {
+                "name": "stu:name",
+                "type": "string"
+              },
+              {
+                "name": "msg:message",
+                "type": "string"
+              },
+              {
+                "name": "var_1",
+                "type": "STRING",
+                "value": "test_data"
+              },
+              {
+                "name": "var_2",
+                "type": "DATE",
+                "value": "2021-01-21"
+              },
+              {
+                "name": "var_3",
+                "type": "TIMESTAMP",
+                "value": "2022-01-04 16:51:41"
+              }
+            ],
+            "table": "tiezhu_one",
+            "range": {
+              "startRowkey": "start_rowKey",
+              "endRowkey": "end_rowKey",
+              "isBinaryRowkey": false
+            },
+            "hbaseConfig": {
+              "hbase.zookeeper.quorum": "hadoop-cluster1-node1,hadoop-cluster1-node2,hadoop-cluster1-node3"
+            }
+          },
+          "name": "hbasereader",
+          "table": {
+            "tableName": "source"
+          }
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter",
+          "table": {
+            "tableName": "sink"
+          }
+        },
+        "transformer": {
+          "transformSql": "select stu.id as id, stu.name as name, msg.message as message from source "
+        }
+      }
+    ]
+  }
+}

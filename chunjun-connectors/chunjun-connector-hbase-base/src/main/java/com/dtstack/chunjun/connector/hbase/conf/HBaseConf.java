@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 public class HBaseConf extends ChunJunCommonConf {
-    // 该字段与 com.dtstack.chunjun.conf.FlinkxCommonConf.column 不同，该字段储存的是 ":" 转化为 "." 后的字段名
+
+    // 该字段与 column 不同，该字段储存的是 ":" 转化为 "." 后的字段名
     private List<FieldConf> columnMetaInfos;
     private String encoding = "UTF-8";
     private Map<String, Object> hbaseConfig;
@@ -35,7 +36,7 @@ public class HBaseConf extends ChunJunCommonConf {
     private int scanCacheSize = 1000;
 
     // writer
-    private String nullMode;
+    private String nullMode = "SKIP";
     private String nullStringLiteral;
     private Boolean walFlag = false;
     private long writeBufferSize;

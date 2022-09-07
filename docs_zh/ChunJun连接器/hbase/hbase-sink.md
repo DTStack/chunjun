@@ -161,7 +161,7 @@ hbase1.4
 
 |     是否支持     |                    类型名称                    |
 | :--------------: |:------------------------------------------:|
-|       支持       | INT、LONG、DOUBLE、FLOAT、SHORT、BOOLEAN、STRING |
+|       支持       | INT、DOUBLE、FLOAT、SHORT、BOOLEAN、STRING |
 |     暂不支持     |                  |
 | 仅在 Sync 中支持 |                         |
 

@@ -32,7 +32,7 @@ import java.util.List;
  *
  * @author huyifan.zju@163.com
  */
-public interface IFtpHandler {
+public interface IFtpHandler extends AutoCloseable {
 
     /**
      * 登录服务器

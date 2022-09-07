@@ -51,7 +51,6 @@ public class FtpHandler implements IFtpHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(FtpHandler.class);
 
-    private static final String DISCONNECT_FAIL_MESSAGE = "Failed to disconnect from ftp server";
     private static final String SP = "/";
     private FTPClient ftpClient = null;
     private String controlEncoding;
@@ -175,18 +174,7 @@ public class FtpHandler implements IFtpHandler {
             path = path + SP;
         }
         try {
-            FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(path));
-            if (ftpFiles != null) {
-                for (FTPFile ftpFile : ftpFiles) {
-                    // .和..是特殊文件
-                    if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL)
-                            || StringUtils.endsWith(
-                                    ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
-                        continue;
-                    }
-                    sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
-                }
-            }
+            listFiles(path, sources);
         } catch (IOException e) {
             LOG.error("", e);
             throw new RuntimeException(e);
@@ -194,13 +182,28 @@ public class FtpHandler implements IFtpHandler {
         return sources;
     }
 
+    private void listFiles(String path, List<String> sources) throws IOException {
+        FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(path));
+        if (ftpFiles != null) {
+            for (FTPFile ftpFile : ftpFiles) {
+                // .和..是特殊文件
+                if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL)
+                        || StringUtils.endsWith(
+                                ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
+                    continue;
+                }
+                sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
+            }
+        }
+    }
+
     /**
      * 递归获取指定路径下的所有文件(暂无过滤)
      *
-     * @param path
-     * @param file
-     * @return
-     * @throws IOException
+     * @param path path
+     * @param file file
+     * @return file list
+     * @throws IOException io exception.
      */
     private List<String> getFiles(String path, FTPFile file) throws IOException {
         List<String> sources = new ArrayList<>();
@@ -209,17 +212,7 @@ public class FtpHandler implements IFtpHandler {
                 path = path + SP;
             }
             ftpClient.enterLocalPassiveMode();
-            FTPFile[] ftpFiles = ftpClient.listFiles(encodePath(path));
-            if (ftpFiles != null) {
-                for (FTPFile ftpFile : ftpFiles) {
-                    if (StringUtils.endsWith(ftpFile.getName(), ConstantValue.POINT_SYMBOL)
-                            || StringUtils.endsWith(
-                                    ftpFile.getName(), ConstantValue.TWO_POINT_SYMBOL)) {
-                        continue;
-                    }
-                    sources.addAll(getFiles(path + ftpFile.getName(), ftpFile));
-                }
-            }
+            listFiles(path, sources);
         } else {
             sources.add(path);
         }
@@ -364,8 +357,7 @@ public class FtpHandler implements IFtpHandler {
     public InputStream getInputStream(String filePath) {
         try {
             ftpClient.enterLocalPassiveMode();
-            InputStream is = ftpClient.retrieveFileStream(encodePath(filePath));
-            return is;
+            return ftpClient.retrieveFileStream(encodePath(filePath));
         } catch (IOException e) {
             String message =
                     String.format("读取文件 : [%s] 时出错,请确认文件：[%s]存在且配置的用户有权限读取", filePath, filePath);
@@ -460,5 +452,10 @@ public class FtpHandler implements IFtpHandler {
 
     private String encodePath(String path) throws UnsupportedEncodingException {
         return new String(path.getBytes(controlEncoding), FTP.DEFAULT_CONTROL_ENCODING);
+    }
+
+    @Override
+    public void close() throws Exception {
+        logoutFtpServer();
     }
 }

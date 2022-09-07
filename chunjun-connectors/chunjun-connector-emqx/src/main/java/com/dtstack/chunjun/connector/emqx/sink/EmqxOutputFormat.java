@@ -60,6 +60,14 @@ public class EmqxOutputFormat extends BaseRichOutputFormat {
             message.setQos(emqxConf.getQos());
             client.publish(emqxConf.getTopic(), message);
         } catch (MqttException e) {
+            // When the mqtt client connection exception reports an error, re-establish the
+            // connection
+            if (this.client == null || !this.client.isConnected()) {
+                // If the mqtt connection is closed, the connection is reestablished
+                MqttConnectUtil.getMqttClient(
+                        emqxConf,
+                        CLIENT_ID_WRITER.defaultValue() + LocalTime.now().toSecondOfDay() + jobId);
+            }
             throw new RuntimeException(e);
         } catch (Exception e) {
             throw new WriteRecordException("", e, 0, rowData);
