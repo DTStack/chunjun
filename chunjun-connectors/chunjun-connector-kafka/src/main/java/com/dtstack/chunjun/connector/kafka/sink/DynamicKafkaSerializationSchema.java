@@ -24,6 +24,7 @@ import com.dtstack.chunjun.dirty.manager.DirtyManager;
 import com.dtstack.chunjun.dirty.utils.DirtyConfUtil;
 import com.dtstack.chunjun.metrics.AccumulatorCollector;
 import com.dtstack.chunjun.metrics.BaseMetric;
+import com.dtstack.chunjun.metrics.RowSizeCalculator;
 import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.util.JsonUtil;
 
@@ -41,7 +42,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.types.RowKind;
 import org.apache.flink.util.Preconditions;
 
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +97,9 @@ public class DynamicKafkaSerializationSchema
     protected FormatState formatState;
     /** 累加器收集器 */
     protected AccumulatorCollector accumulatorCollector;
+
+    /** 对象大小计算器 */
+    protected RowSizeCalculator rowSizeCalculator;
 
     protected LongCounter bytesWriteCounter;
     protected LongCounter durationCounter;
@@ -161,6 +164,7 @@ public class DynamicKafkaSerializationSchema
         initStatisticsAccumulator();
         initRestoreInfo();
         initAccumulatorCollector();
+        initRowSizeCalculator();
 
         checkpointMode =
                 context.getCheckpointMode() == null
@@ -201,7 +205,7 @@ public class DynamicKafkaSerializationSchema
     protected void beforeSerialize(long size, RowData rowData) {
         updateDuration();
         numWriteCounter.add(size);
-        bytesWriteCounter.add(ObjectSizeCalculator.getObjectSize(rowData));
+        bytesWriteCounter.add(rowSizeCalculator.getObjectSize(rowData));
         if (checkpointEnabled) {
             snapshotWriteCounter.add(size);
         }
@@ -378,6 +382,11 @@ public class DynamicKafkaSerializationSchema
                 new AccumulatorCollector(
                         (StreamingRuntimeContext) runtimeContext, Metrics.METRIC_SINK_LIST);
         accumulatorCollector.start();
+    }
+
+    /** 初始化对象大小计算器 */
+    private void initRowSizeCalculator() {
+        rowSizeCalculator = RowSizeCalculator.getRowSizeCalculator();
     }
 
     /** 从checkpoint状态缓存map中恢复上次任务的指标信息 */
