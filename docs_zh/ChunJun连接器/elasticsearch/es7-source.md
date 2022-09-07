@@ -250,10 +250,10 @@ Elasticsearch 7.x
 
 ## 五、数据类型
 
-|是否支持 | 类型名称 |
-| --- | --- |
-| 支持 |INTEGER,FLOAT,DOUBLE,LONG,DATE,TEXT,BYTE,BINARY,OBJECT,NESTED|
-| 不支持 | IP,GEO_POINT,GEO_SHAPE|
+|是否支持 | 类型名称                                                                        |
+| --- |-----------------------------------------------------------------------------|
+| 支持 | BOOLEAN,SHORT,INTEGER,FLOAT,DOUBLE,LONG,DATE,TEXT,BYTE,BINARY,OBJECT,NESTED |
+| 不支持 | IP,GEO_POINT,GEO_SHAPE                                                      |
 
 ## 六、脚本示例
 见项目内`chunjun-examples`文件夹。
