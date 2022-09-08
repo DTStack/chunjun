@@ -193,7 +193,7 @@ metrics.reporter.promgateway.deleteOnShutdown: false
 
 ```json
 "metricPluginConf" : {
-  "pluginName": "promethus"
+  "pluginName": "mysql"
   "pluginProp": {
     "jdbcUrl":"",
   	"database":"",
