@@ -492,7 +492,7 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         }
     }
 
-    private void checkTimerWriteException() {
+    protected void checkTimerWriteException() {
         if (null != timerWriteException) {
             if (timerWriteException instanceof NoRestartException) {
                 throw (NoRestartException) timerWriteException;

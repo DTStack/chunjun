@@ -12,56 +12,54 @@
 	<artifactId>chunjun-connector-starrocks</artifactId>
 	<name>ChunJun : Connectors : StarRocks</name>
 
+
+	<properties>
+		<maven.compiler.source>8</maven.compiler.source>
+		<maven.compiler.target>8</maven.compiler.target>
+		<arrow.version>5.0.0</arrow.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
-			<groupId>com.starrocks</groupId>
-			<artifactId>flink-connector-starrocks</artifactId>
-			<version>1.1.13_flink-1.12</version>
-			<scope>provided</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-table-common</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-table-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-table-api-java</artifactId>
-				</exclusion>
-				<exclusion>
-					<artifactId>flink-clients_2.11</artifactId>
-					<groupId>org.apache.flink</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>flink-table-api-java-bridge_2.11</artifactId>
-					<groupId>org.apache.flink</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>flink-table-api-scala-bridge_2.11</artifactId>
-					<groupId>org.apache.flink</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>flink-table-api-scala_2.11</artifactId>
-					<groupId>org.apache.flink</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>flink-table-planner-blink_2.11</artifactId>
-					<groupId>org.apache.flink</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>flink-table-planner_2.11</artifactId>
-					<groupId>org.apache.flink</groupId>
-				</exclusion>
-			</exclusions>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.49</version>
 		</dependency>
+
+		<!--		<dependency>-->
+		<!--			<groupId>io.vertx</groupId>-->
+		<!--			<artifactId>vertx-core</artifactId>-->
+		<!--			<version>3.4.2</version>-->
+		<!--		</dependency>-->
+
+		<!--		<dependency>-->
+		<!--			<groupId>io.vertx</groupId>-->
+		<!--			<artifactId>vertx-web-client</artifactId>-->
+		<!--			<version>3.4.2</version>-->
+		<!--		</dependency>-->
+
 		<dependency>
-			<groupId>com.dtstack.chunjun</groupId>
-			<artifactId>chunjun-connector-mysql</artifactId>
-			<version>${project.version}</version>
-			<scope>provided</scope>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.79</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.starrocks</groupId>
+			<artifactId>starrocks-thrift-sdk</artifactId>
+			<version>1.0.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.arrow</groupId>
+			<artifactId>arrow-vector</artifactId>
+			<version>${arrow.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.arrow</groupId>
+			<artifactId>arrow-memory-netty</artifactId>
+			<version>${arrow.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -96,6 +94,20 @@
 									</excludes>
 								</filter>
 							</filters>
+							<relocations>
+								<relocation>
+									<pattern>io.netty</pattern>
+									<shadedPattern>com.dtstack.chunjun.connector.starrocks.shaded.io.netty</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.apache.arrow</pattern>
+									<shadedPattern>com.dtstack.chunjun.connector.starrocks.shaded.org.apache.arrow</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>com.google.flatbuffers</pattern>
+									<shadedPattern>com.dtstack.chunjun.connector.starrocks.shaded.com.google.flatbuffers</shadedPattern>
+								</relocation>
+							</relocations>
 						</configuration>
 					</execution>
 				</executions>
