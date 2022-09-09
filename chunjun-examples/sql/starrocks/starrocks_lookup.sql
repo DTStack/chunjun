@@ -22,7 +22,7 @@ CREATE TABLE side
 ) with (
       'connector' = 'starrocks-x',
       'url' = 'jdbc:mysql://node1:9030',
-      'feNodes' = 'node1:8030;node2:8030;node3:8030',
+      'fe-nodes' = 'node1:8030;node2:8030;node3:8030',
       'schema-name' = 'test',
       'table-name' = 'side',
       'lookup.cache-type' = 'ALL',

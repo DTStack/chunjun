@@ -26,6 +26,9 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Optional;
 
+import static com.dtstack.chunjun.connector.starrocks.options.ConstantValue.CJ_DRIVER_CLASS_NAME;
+import static com.dtstack.chunjun.connector.starrocks.options.ConstantValue.DRIVER_CLASS_NAME;
+
 /** JDBC connection options. */
 @PublicEvolving
 public class StarRocksJdbcConnectionOptions implements Serializable {
@@ -33,15 +36,11 @@ public class StarRocksJdbcConnectionOptions implements Serializable {
     private static final long serialVersionUID = 1L;
 
     protected final String url;
-    protected final String driverName;
-    protected final String cjDriverName;
     @Nullable protected final String username;
     @Nullable protected final String password;
 
     public StarRocksJdbcConnectionOptions(String url, String username, String password) {
         this.url = Preconditions.checkNotNull(url, "jdbc url is empty");
-        this.driverName = "com.mysql.jdbc.Driver";
-        this.cjDriverName = "com.mysql.cj.jdbc.Driver";
         this.username = username;
         this.password = password;
     }
@@ -51,11 +50,11 @@ public class StarRocksJdbcConnectionOptions implements Serializable {
     }
 
     public String getCjDriverName() {
-        return cjDriverName;
+        return CJ_DRIVER_CLASS_NAME;
     }
 
     public String getDriverName() {
-        return driverName;
+        return DRIVER_CLASS_NAME;
     }
 
     public Optional<String> getUsername() {

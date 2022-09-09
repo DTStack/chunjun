@@ -127,7 +127,7 @@ public class StarRocksColumnConverter
             case NULL:
                 return val -> null;
             case BOOLEAN:
-                return val -> new BooleanColumn((Boolean) val);
+                return val -> new BooleanColumn((boolean) val);
             case TINYINT:
                 return val -> new ByteColumn((byte) val);
             case SMALLINT:

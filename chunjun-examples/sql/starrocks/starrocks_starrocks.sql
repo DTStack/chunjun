@@ -15,7 +15,7 @@ CREATE TABLE source
 ) with (
       'connector' = 'starrocks-x',
       'url' = 'jdbc:mysql://node1:9030',
-      'feNodes' = 'node1:8030;node2:8030;node3:8030',
+      'fe-nodes' = 'node1:8030;node2:8030;node3:8030',
       'schema-name' = 'test',
       'table-name' = 'source',
       'username' = 'root',
@@ -40,7 +40,7 @@ CREATE TABLE sink
 ) with (
       'connector' = 'starrocks-x',
       'url' = 'jdbc:mysql://node1:9030',
-      'feNodes' = 'node1:8030;node2:8030;node3:8030',
+      'fe-nodes' = 'node1:8030;node2:8030;node3:8030',
       'schema-name' = 'test',
       'table-name' = 'sink',
       'username' = 'root',

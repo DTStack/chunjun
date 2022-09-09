@@ -118,12 +118,12 @@ public class StarRocksDynamicTableSource
 
     @Override
     public DynamicTableSource copy() {
-        return null;
+        return new StarRocksDynamicTableSource(starRocksConf, lookupConf, tableSchema);
     }
 
     @Override
     public String asSummaryString() {
-        return null;
+        return "StarRocks Source";
     }
 
     @Override

@@ -24,15 +24,19 @@ public class ConstantValue {
     // sink
     public static final String FIELD_DELIMITER = "\t";
     public static String LINE_DELIMITER = "\n";
+
+    // driver class name
+    public static final String DRIVER_CLASS_NAME = "com.mysql.jdbc.Driver";
+    public static final String CJ_DRIVER_CLASS_NAME = "com.mysql.cj.jdbc.Driver";
+
     public static final Integer MAX_RETRIES_DEFAULT = 3;
     public static final String WRITE_MODE_DEFAULT = "APPEND";
-    public static final Integer BATCH_SIZE_DEFAULT = 10240;
-    public static final String SINK_PROPERTIES_PREFIX = "sink.properties.";
+    public static final Integer BATCH_SIZE_DEFAULT = 1024 * 10;
 
     // stream load
     public static final Integer HTTP_CHECK_TIMEOUT_DEFAULT = 10 * 1000;
     public static final Integer QUEUE_OFFER_TIMEOUT_DEFAULT = 60 * 1000;
     public static final Integer QUEUE_POLL_TIMEOUT_DEFAULT = 60 * 1000;
-    public static final Long SINK_BATCH_MAX_BYTES_DEFAULT = 2147483648L;
-    public static final Long SINK_BATCH_MAX_ROWS_DEFAULT = 200000L;
+    public static final Long SINK_BATCH_MAX_BYTES_DEFAULT = 2 * 1024 * 1024 * 1024L;
+    public static final Long SINK_BATCH_MAX_ROWS_DEFAULT = 2048 * 100L;
 }

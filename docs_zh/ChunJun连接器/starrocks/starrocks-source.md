@@ -136,7 +136,7 @@ StarRocks2.x
     - 描述：be批量读取的数据最大byte值
     - 必选：否
     - 参数类型：long
-    - 默认值：1073741824
+    - 默认值：1073741824 (1G)
       <br />
 - **beSocketProperties**
     - 描述：连接be的其他可配置参数
@@ -187,7 +187,7 @@ StarRocks2.x
 
 <br/>
 
-- **feNodes**
+- **fe-nodes**
     - 描述：StarRocks FrontendEngine地址
     - 必选：是
     - 参数类型：String
@@ -195,7 +195,7 @@ StarRocks2.x
 
 <br/>
 
-- **maxRetries**
+- **max-retries**
     - 描述：be获取连接、读取数据的重试次数
     - 必选：否
     - 字段类型：int
@@ -203,7 +203,7 @@ StarRocks2.x
 
 <br/>
 
-- **filterStatement**
+- **filter-statement**
     - 描述：简单的sql过滤语句，例如id>10
     - 必选：否
     - 参数类型：string
@@ -246,7 +246,7 @@ StarRocks2.x
     - 描述：be批量读取的数据最大byte值
     - 必选：否
     - 参数类型：long
-    - 默认值：1073741824
+    - 默认值：1073741824 (1G)
       <br />
 - **scan.be.param.properties**
     - 描述：连接be的其他可配置参数

@@ -57,7 +57,7 @@ StarRocks 2.x
 
 <br/>
 
-- **maxRetries**
+- **max-retries**
     - 描述：be获取连接、读取数据的重试次数
     - 必选：否
     - 字段类型：int
@@ -100,7 +100,7 @@ StarRocks 2.x
     - 描述：be批量读取的数据最大byte值
     - 必选：否
     - 参数类型：long
-    - 默认值：1073741824
+    - 默认值：1073741824 (1G)
       <br />
 
 - **scan.be.param.properties**

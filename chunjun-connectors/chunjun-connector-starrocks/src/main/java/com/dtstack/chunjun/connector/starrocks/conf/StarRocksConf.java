@@ -72,7 +72,7 @@ public class StarRocksConf extends ChunJunCommonConf {
 
     private int beFetchRows = 1024;
 
-    private long beFetchMaxBytes = 1073741824L;
+    private long beFetchMaxBytes = 1024 * 1024 * 1024;
 
     private Map<String, String> beSocketProperties = new HashMap<>();
 

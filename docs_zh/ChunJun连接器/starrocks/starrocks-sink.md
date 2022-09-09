@@ -149,7 +149,7 @@ StarRocks 2.x
 
 <br/>
 
-- **feNodes**
+- **fe-nodes**
     - 描述：StarRocks FrontendEngine地址
     - 必选：是
     - 参数类型：String
@@ -157,7 +157,7 @@ StarRocks 2.x
 
 <br/>
 
-- **nameMapped**
+- **name-mapped**
     - 描述：配置此选项为true后，schema-name和table-name配置失效。将从上游来的数据中获取这两项值，可利用此配置实现多表写入
     - 必选：否
     - 参数类型：boolean
@@ -165,7 +165,7 @@ StarRocks 2.x
 
 <br/>
 
-- **maxRetries**
+- **max-retries**
     - 描述：stream-load写数据失败次数
     - 必选：否
     - 参数类型：int
@@ -173,11 +173,27 @@ StarRocks 2.x
 
 <br/>
 
-- **batchSize**
+- **sink.buffer-flush.max-rows**
     - 描述：写入内部缓存的数据批大小，不代表一次写入StarRocks的数据量
     - 必选：否
     - 参数类型：
-    - 默认值：1024
+    - 默认值：10240
+
+<br/>
+
+- **sink.buffer-flush.max-rows**
+    - 描述：写入内部缓存的数据批大小，不代表一次写入StarRocks的数据量
+    - 必选：否
+    - 参数类型：
+    - 默认值：10240
+
+<br/>
+
+- **sink.buffer-flush.interval**
+    - 描述：批量写时间间隔，单位：毫秒
+    - 必选：否
+    - 参数类型：String
+    - 默认值：10000
 
 <br/>
 
@@ -185,7 +201,7 @@ StarRocks 2.x
     - 描述：以schema+table为单位的批量写入StarRocks的最大条数
     - 必选：否
     - 参数类型：long
-    - 默认值：200000L
+    - 默认值：204800L
 
 <br />
 
@@ -193,7 +209,7 @@ StarRocks 2.x
     - 描述：以schema+table为单位的批量写入StarRocks的最大byte
     - 必选：否
     - 参数类型：long
-    - 默认值：2147483648L
+    - 默认值：2147483648L (2G)
 
  <br />
 - **http.check.timeout**
@@ -235,6 +251,7 @@ StarRocks 2.x
     - 默认值：无
 
 ## 五、数据类型
+
 | **Flink type**                    | **StarRocks type** | **Flinkx Column** |
 | --------------------------------- | ------------------ | ----------------- |
 | BOOLEAN                           | BOOLEAN            | BooleanColumn     |

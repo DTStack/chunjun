@@ -90,6 +90,12 @@ public class StarRocksStreamLoadVisitor implements Serializable {
                         bufferEntity.getLabel(),
                         joinRows(bufferEntity.getBuffer(), (int) bufferEntity.getBatchSize()),
                         bufferEntity.getHttpHeadColumns());
+        dealStreamLoadResult(host, bufferEntity, loadResult);
+    }
+
+    private void dealStreamLoadResult(
+            String host, StarRocksSinkBufferEntity bufferEntity, Map<String, Object> loadResult)
+            throws IOException {
         final String keyStatus = "Status";
         if (null == loadResult || !loadResult.containsKey(keyStatus)) {
             throw new IOException(

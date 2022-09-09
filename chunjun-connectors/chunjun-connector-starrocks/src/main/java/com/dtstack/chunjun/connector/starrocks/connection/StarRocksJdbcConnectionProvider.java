@@ -18,6 +18,9 @@
 
 package com.dtstack.chunjun.connector.starrocks.connection;
 
+import com.dtstack.chunjun.util.ClassUtil;
+import com.dtstack.chunjun.util.RetryUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +28,7 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 /** Simple JDBC connection provider. */
 public class StarRocksJdbcConnectionProvider
@@ -44,7 +48,7 @@ public class StarRocksJdbcConnectionProvider
     }
 
     @Override
-    public Connection getConnection() throws SQLException, ClassNotFoundException {
+    public Connection getConnection() throws ClassNotFoundException {
         if (connection == null) {
             synchronized (this) {
                 if (connection == null) {
@@ -53,14 +57,24 @@ public class StarRocksJdbcConnectionProvider
                     } catch (ClassNotFoundException ex) {
                         Class.forName(jdbcOptions.getDriverName());
                     }
-                    if (jdbcOptions.getUsername().isPresent()) {
+                    Properties prop = new Properties();
+                    if (org.apache.commons.lang3.StringUtils.isNotBlank(
+                            jdbcOptions.getUsername().orElse(null))) {
+                        prop.put("user", jdbcOptions.getUsername().get());
+                    }
+                    if (org.apache.commons.lang3.StringUtils.isNotBlank(
+                            jdbcOptions.getPassword().orElse(null))) {
+                        prop.put("password", jdbcOptions.getPassword().get());
+                    }
+                    synchronized (ClassUtil.LOCK_STR) {
                         connection =
-                                DriverManager.getConnection(
-                                        jdbcOptions.getDbURL(),
-                                        jdbcOptions.getUsername().orElse(null),
-                                        jdbcOptions.getPassword().orElse(null));
-                    } else {
-                        connection = DriverManager.getConnection(jdbcOptions.getDbURL());
+                                RetryUtil.executeWithRetry(
+                                        () ->
+                                                DriverManager.getConnection(
+                                                        jdbcOptions.getDbURL(), prop),
+                                        3,
+                                        2000,
+                                        false);
                     }
                 }
             }
@@ -68,16 +82,10 @@ public class StarRocksJdbcConnectionProvider
         return connection;
     }
 
-    public void checkValid() {
-        try {
-            if (connection == null || !connection.isValid(10)) {
-                connection = null;
-                getConnection();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+    public void checkValid() throws SQLException, ClassNotFoundException {
+        if (connection == null || !connection.isValid(10)) {
+            connection = null;
+            getConnection();
         }
     }
 

@@ -27,7 +27,7 @@ public class StarRocksStreamLoadFailedException extends IOException {
 
     private final Map<String, Object> response;
     private boolean reCreateLabel;
-    private StarRocksSinkBufferEntity entity;
+    private final StarRocksSinkBufferEntity entity;
 
     public StarRocksStreamLoadFailedException(
             String message, Map<String, Object> response, StarRocksSinkBufferEntity entity) {

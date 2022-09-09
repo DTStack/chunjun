@@ -129,8 +129,8 @@ public class StarRocksSinkBufferEntity implements Serializable {
         label = initBatchLabel();
     }
 
-    public String reGenerateLabel() {
-        return label = initBatchLabel();
+    public void reGenerateLabel() {
+        label = initBatchLabel();
     }
 
     public String initBatchLabel() {

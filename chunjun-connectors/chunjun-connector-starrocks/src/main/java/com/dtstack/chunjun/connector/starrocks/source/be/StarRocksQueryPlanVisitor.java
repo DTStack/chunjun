@@ -22,6 +22,7 @@ import com.dtstack.chunjun.connector.starrocks.conf.StarRocksConf;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryBeXTablets;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryInfo;
 import com.dtstack.chunjun.connector.starrocks.source.be.entity.QueryPlan;
+import com.dtstack.chunjun.connector.starrocks.source.be.entity.Tablet;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.http.HttpEntity;
@@ -69,23 +70,8 @@ public class StarRocksQueryPlanVisitor implements Serializable {
         queryPlan
                 .getPartitions()
                 .forEach(
-                        (tabletId, tablet) -> {
-                            int tabletCount = Integer.MAX_VALUE;
-                            String currentBeNode = "";
-                            // Allocate tablets equally for all BeNodes
-                            for (String beNode : tablet.getRoutings()) {
-                                if (!beXTablets.containsKey(beNode)) {
-                                    beXTablets.put(beNode, new HashSet<>());
-                                    currentBeNode = beNode;
-                                    break;
-                                }
-                                if (beXTablets.get(beNode).size() < tabletCount) {
-                                    currentBeNode = beNode;
-                                    tabletCount = beXTablets.get(beNode).size();
-                                }
-                            }
-                            beXTablets.get(currentBeNode).add(Long.valueOf(tabletId));
-                        });
+                        (tabletId, tablet) -> allocateTabletsEqually(beXTablets, tabletId, tablet));
+
         return beXTablets.entrySet().stream()
                 .map(
                         entry ->
@@ -94,19 +80,31 @@ public class StarRocksQueryPlanVisitor implements Serializable {
                 .collect(Collectors.toList());
     }
 
-    public QueryPlan getQueryPlan(String querySql, String httpNode) throws IOException {
-        String url =
-                "http://"
-                        + httpNode
-                        + "/api/"
-                        + starRocksConf.getDatabase()
-                        + "/"
-                        + starRocksConf.getTable()
-                        + "/_query_plan";
+    private static void allocateTabletsEqually(
+            Map<String, Set<Long>> beXTablets, String tabletId, Tablet tablet) {
+        int tabletCount = Integer.MAX_VALUE;
+        String currentBeNode = "";
+        // Allocate tablets equally for all BeNodes
+        for (String beNode : tablet.getRoutings()) {
+            if (!beXTablets.containsKey(beNode)) {
+                beXTablets.put(beNode, new HashSet<>());
+                currentBeNode = beNode;
+                break;
+            }
+            if (beXTablets.get(beNode).size() < tabletCount) {
+                currentBeNode = beNode;
+                tabletCount = beXTablets.get(beNode).size();
+            }
+        }
+        beXTablets.get(currentBeNode).add(Long.valueOf(tabletId));
+    }
 
+    public QueryPlan getQueryPlan(String querySql, String httpNode) throws IOException {
+        String url = getRequestUrl(httpNode);
         Map<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("sql", querySql);
         String body = new JSONObject(bodyMap).toString();
+
         int requestCode = 0;
         String respString = "";
         for (int i = 0; i < starRocksConf.getMaxRetries(); i++) {
@@ -136,6 +134,10 @@ public class StarRocksQueryPlanVisitor implements Serializable {
                         "Unable to get query plan, interrupted while doing another attempt", ex);
             }
         }
+        return dealQueryPlanResult(requestCode, respString);
+    }
+
+    private QueryPlan dealQueryPlanResult(int requestCode, String respString) {
         if (200 != requestCode) {
             throw new RuntimeException(
                     "Request of get query plan failed with code " + requestCode + " " + respString);
@@ -146,5 +148,15 @@ public class StarRocksQueryPlanVisitor implements Serializable {
         }
         JSONObject jsonObject = JSONObject.parseObject(respString);
         return JSONObject.toJavaObject(jsonObject, QueryPlan.class);
+    }
+
+    private String getRequestUrl(String httpNode) {
+        return "http://"
+                + httpNode
+                + "/api/"
+                + starRocksConf.getDatabase()
+                + "/"
+                + starRocksConf.getTable()
+                + "/_query_plan";
     }
 }

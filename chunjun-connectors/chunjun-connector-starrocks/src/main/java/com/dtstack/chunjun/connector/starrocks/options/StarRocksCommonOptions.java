@@ -26,7 +26,7 @@ import java.util.List;
 /** @author liuliu 2022/7/12 */
 public class StarRocksCommonOptions {
     public static final ConfigOption<List<String>> FENODES =
-            ConfigOptions.key("feNodes")
+            ConfigOptions.key("fe-nodes")
                     .stringType()
                     .asList()
                     .noDefaultValue()
@@ -63,7 +63,7 @@ public class StarRocksCommonOptions {
                     .withDescription("StarRocks password");
 
     public static final ConfigOption<Integer> MAX_RETRIES =
-            ConfigOptions.key("maxRetries")
+            ConfigOptions.key("max-retries")
                     .intType()
                     .defaultValue(ConstantValue.MAX_RETRIES_DEFAULT)
                     .withDescription("request retry time");

@@ -118,7 +118,8 @@ public class StreamLoadManager {
         }
         if (!primaryKeyList.isEmpty()) {
             entity.setSupportDelete(
-                    entity.getColumnList().containsAll(primaryKeyList), __opAutoProjectionInJson);
+                    new HashSet<>(entity.getColumnList()).containsAll(primaryKeyList),
+                    __opAutoProjectionInJson);
         }
         if (containedColumnNameSet.size() != entity.getColumnList().size()) {
             throw new IllegalArgumentException(
@@ -257,7 +258,7 @@ public class StreamLoadManager {
                                     oldLabel, flushData.getLabel()));
                 }
                 try {
-                    Thread.sleep(1000l * Math.min(i + 1, 10));
+                    Thread.sleep(1000L * Math.min(i + 1, 10));
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                     throw new IOException(

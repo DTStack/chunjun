@@ -25,8 +25,8 @@ import org.apache.flink.core.io.GenericInputSplit;
 /** @author liuliu 2022/7/26 */
 public class StarRocksInputSplit extends GenericInputSplit {
 
-    private QueryBeXTablets queryBeXTablets;
-    private String opaquedQueryPlan;
+    private final QueryBeXTablets queryBeXTablets;
+    private final String opaquedQueryPlan;
 
     /**
      * Creates a generic input split with the given split number.

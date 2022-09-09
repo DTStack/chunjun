@@ -28,7 +28,7 @@ import java.util.Map;
 public class StarRocksSourceOptions {
 
     public static final ConfigOption<String> FILTER_STATEMENT =
-            ConfigOptions.key("filterStatement").stringType().defaultValue("").withDescription("");
+            ConfigOptions.key("filter-statement").stringType().defaultValue("").withDescription("");
 
     public static final ConfigOption<Integer> SCAN_BE_CLIENT_TIMEOUT =
             ConfigOptions.key("scan.be.client.timeout")
@@ -57,7 +57,7 @@ public class StarRocksSourceOptions {
     public static final ConfigOption<Long> SCAN_BE_FETCH_BYTES_LIMIT =
             ConfigOptions.key("scan.be.fetch-bytes-limit")
                     .longType()
-                    .defaultValue(1073741824L)
+                    .defaultValue(1024 * 1024 * 1014L)
                     .withDescription("");
 
     public static final ConfigOption<Map<String, String>> SCAN_BE_PARAM_PROPERTIES =

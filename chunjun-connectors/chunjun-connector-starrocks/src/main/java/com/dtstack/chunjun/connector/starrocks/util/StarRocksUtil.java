@@ -49,14 +49,14 @@ public class StarRocksUtil {
             curBeXTabletList.add(new ArrayList<>());
         }
         int beXTabletsListCount = queryInfo.getBeXTablets().size();
-        /** subTaskCount <= beXTabletsListCount */
+        /* subTaskCount <= beXTabletsListCount */
         if (subTaskCount <= beXTabletsListCount) {
             for (int i = 0; i < beXTabletsListCount; i++) {
                 curBeXTabletList.get(i % subTaskCount).add(queryInfo.getBeXTablets().get(i));
             }
             return curBeXTabletList;
         }
-        /** subTaskCount > beXTabletsListCount */
+        /* subTaskCount > beXTabletsListCount */
         // split to singleTabletList
         List<Tuple2<String, Long>> beXTabletTupleList = new ArrayList<>();
         for (QueryBeXTablets queryBeXTablets : queryInfo.getBeXTablets()) {

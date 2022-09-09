@@ -92,7 +92,11 @@ public class StarRocksInputFormat extends BaseRichInputFormat {
     }
 
     @Override
-    protected void closeInternal() {}
+    protected void closeInternal() {
+        if (reader != null) {
+            reader.close();
+        }
+    }
 
     @Override
     public boolean reachedEnd() {

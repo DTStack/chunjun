@@ -121,33 +121,37 @@ public class StarRocksArrowReader {
                 .parallelStream()
                 .forEach(
                         columnInfo -> {
-                            FieldVector fieldVector = fieldVectorMap.get(columnInfo.getFieldName());
-                            checkNotNull(
-                                    fieldVector,
-                                    String.format(
-                                            "Can not find StarRocks column data[%s]",
-                                            columnInfo.getFieldName()));
-                            HashMap<String, StarRocksToJavaTrans> typeTransMap =
-                                    StarRocksToJavaTrans.DataTypeRelationMap.get(
-                                            columnInfo.getLogicalTypeRoot());
-                            checkNotNull(
-                                    typeTransMap, "Unsupported type,columnInfo[%s]", columnInfo);
-                            StarRocksToJavaTrans starRocksToJavaTrans =
-                                    typeTransMap.get(columnInfo.getStarRocksType());
-                            checkNotNull(
-                                    starRocksToJavaTrans,
-                                    "Type corresponding error,Column[%s]'s StarRocksType should be %s;LogicalTypeRoot except %s but is %s",
-                                    columnInfo.getFieldName(),
-                                    columnInfo.getStarRocksType(),
-                                    StarRocksRawTypeConverter.apply(columnInfo.getStarRocksType())
-                                            .getLogicalType()
-                                            .getTypeRoot(),
-                                    columnInfo.getLogicalTypeRoot());
-                            starRocksToJavaTrans.transToJavaData(
-                                    fieldVector,
-                                    rowCountOfBatch,
-                                    columnInfo.getIndex(),
-                                    sourceJavaRows);
+                            FieldVector fieldVector = getFieldVector(columnInfo.getFieldName());
+                            getStarRocksToJavaTrans(columnInfo)
+                                    .transToJavaData(
+                                            fieldVector,
+                                            rowCountOfBatch,
+                                            columnInfo.getIndex(),
+                                            sourceJavaRows);
                         });
+    }
+
+    public FieldVector getFieldVector(String fieldName) {
+        FieldVector fieldVector = fieldVectorMap.get(fieldName);
+        checkNotNull(
+                fieldVector, String.format("Can not find StarRocks column data[%s]", fieldName));
+        return fieldVector;
+    }
+
+    public StarRocksToJavaTrans getStarRocksToJavaTrans(ColumnInfo columnInfo) {
+        HashMap<String, StarRocksToJavaTrans> typeTransMap =
+                StarRocksToJavaTrans.DataTypeRelationMap.get(columnInfo.getLogicalTypeRoot());
+        checkNotNull(typeTransMap, "Unsupported type,columnInfo[%s]", columnInfo);
+        StarRocksToJavaTrans starRocksToJavaTrans = typeTransMap.get(columnInfo.getStarRocksType());
+        checkNotNull(
+                starRocksToJavaTrans,
+                "Type corresponding error,Column[%s]'s StarRocksType should be %s;LogicalTypeRoot except %s but is %s",
+                columnInfo.getFieldName(),
+                columnInfo.getStarRocksType(),
+                StarRocksRawTypeConverter.apply(columnInfo.getStarRocksType())
+                        .getLogicalType()
+                        .getTypeRoot(),
+                columnInfo.getLogicalTypeRoot());
+        return starRocksToJavaTrans;
     }
 }

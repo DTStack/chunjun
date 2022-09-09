@@ -31,10 +31,10 @@ public class StarRocksSinkOptions {
                     .withDescription("exactly once/at least once");
 
     public static final ConfigOption<Boolean> NAME_MAPPED =
-            ConfigOptions.key("nameMapped").booleanType().defaultValue(false).withDescription("");
+            ConfigOptions.key("name-mapped").booleanType().defaultValue(false).withDescription("");
 
-    public static final ConfigOption<Integer> BATCH_SIZE =
-            ConfigOptions.key("batchSize")
+    public static final ConfigOption<Integer> SINK_BUFFER_FLUSH_MAX_ROWS =
+            ConfigOptions.key("sink.buffer-flush.max-rows")
                     .intType()
                     .defaultValue(ConstantValue.BATCH_SIZE_DEFAULT)
                     .withDescription("");

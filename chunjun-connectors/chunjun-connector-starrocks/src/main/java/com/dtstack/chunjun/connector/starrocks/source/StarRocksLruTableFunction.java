@@ -64,7 +64,7 @@ public class StarRocksLruTableFunction extends AbstractLruTableFunction {
 
     private StarRocksQueryPlanVisitor queryPlanVisitor;
 
-    private final String queryStatement;
+    private String queryStatement;
 
     public StarRocksLruTableFunction(
             StarRocksConf starRocksConf,
@@ -74,14 +74,13 @@ public class StarRocksLruTableFunction extends AbstractLruTableFunction {
         super(lookupConf, rowConverter);
         this.starRocksConf = starRocksConf;
         this.keyIndexes = keyIndexes;
-
-        queryStatement = buildQueryStatement();
     }
 
     @Override
     public void open(FunctionContext context) throws Exception {
         super.open(context);
         this.queryPlanVisitor = new StarRocksQueryPlanVisitor(starRocksConf);
+        this.queryStatement = buildQueryStatement();
     }
 
     @Override
@@ -101,40 +100,50 @@ public class StarRocksLruTableFunction extends AbstractLruTableFunction {
                                         queryBeXTablets.getTabletIds(),
                                         queryInfo.getQueryPlan().getOpaqued_query_plan());
                                 beReader.startToRead();
-
-                                List<RowData> rowDataList = new ArrayList<>();
-                                List<Object[]> cacheContent = new ArrayList<>();
-                                while (beReader.hasNext()) {
-                                    Object[] next = beReader.getNext();
-                                    cacheContent.add(next);
-                                    try {
-                                        GenericRowData rowData =
-                                                (GenericRowData)
-                                                        rowConverter.toInternalLookup(next);
-                                        rowDataList.add(rowData);
-                                    } catch (Exception e) {
-                                        parseErrorRecords.inc();
-                                        if (parseErrorRecords.getCount()
-                                                > lookupConf.getErrorLimit()) {
-                                            throw new NoRestartException(
-                                                    "lru parse error time exceeded", e);
-                                        }
-                                    }
-                                }
-                                beReader.close();
-                                if (rowDataList.size() > 0) {
-                                    dealCacheData(
-                                            cacheKey,
-                                            CacheObj.buildCacheObj(
-                                                    ECacheContentType.MultiLine, cacheContent));
-                                    future.complete(rowDataList);
-                                } else {
-                                    dealMissKey(future);
-                                    dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
-                                }
+                                readAndDealData(beReader, cacheKey, future);
                             });
         } catch (IOException e) {
             throw new ChunJunRuntimeException(e);
+        }
+    }
+
+    private void readAndDealData(
+            StarRocksSourceBeReader beReader,
+            String cacheKey,
+            CompletableFuture<Collection<RowData>> future) {
+        List<RowData> rowDataList = new ArrayList<>();
+        List<Object[]> cacheContent = new ArrayList<>();
+        try {
+            while (beReader.hasNext()) {
+                Object[] next = beReader.getNext();
+                cacheContent.add(next);
+
+                GenericRowData rowData = (GenericRowData) rowConverter.toInternalLookup(next);
+                rowDataList.add(rowData);
+            }
+        } catch (Exception e) {
+            parseErrorRecords.inc();
+            if (parseErrorRecords.getCount() > lookupConf.getErrorLimit()) {
+                throw new NoRestartException("lru parse error time exceeded", e);
+            }
+        } finally {
+            beReader.close();
+        }
+        dealResult(cacheKey, future, rowDataList, cacheContent);
+    }
+
+    private void dealResult(
+            String cacheKey,
+            CompletableFuture<Collection<RowData>> future,
+            List<RowData> rowDataList,
+            List<Object[]> cacheContent) {
+        if (rowDataList.size() > 0) {
+            dealCacheData(
+                    cacheKey, CacheObj.buildCacheObj(ECacheContentType.MultiLine, cacheContent));
+            future.complete(rowDataList);
+        } else {
+            dealMissKey(future);
+            dealCacheData(cacheKey, CacheMissVal.getMissKeyObj());
         }
     }
 

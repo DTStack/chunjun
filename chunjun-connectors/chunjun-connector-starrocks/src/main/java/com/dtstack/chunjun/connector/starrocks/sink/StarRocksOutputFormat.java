@@ -119,13 +119,15 @@ public class StarRocksOutputFormat extends BaseRichOutputFormat {
         String message = e.getMessage();
         Map<String, Object> failedResponse = e.getFailedResponse();
         return String.format(
-                "write to starRocks failed,errMsg:%s,failedResponse:%s",
+                "write to starRocks failed.\n errMsg:%s\n failedResponse:%s",
                 message, JSON.toJSONString(failedResponse));
     }
 
     @Override
     protected void closeInternal() {
-        streamLoadManager.close();
+        if (streamLoadManager != null) {
+            streamLoadManager.close();
+        }
     }
 
     public void setStarRocksConf(StarRocksConf starRocksConf) {
