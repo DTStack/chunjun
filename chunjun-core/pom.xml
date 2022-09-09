@@ -87,7 +87,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
+            <version>${flinkx.guava.version}</version>
         </dependency>
 
         <dependency>
@@ -281,6 +281,100 @@
             <version>3.2</version>
             <scope>test</scope>
         </dependency>
+
+		<!--	test	-->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-runtime_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-minikdc</artifactId>
+			<version>2.7.5</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.directory.server</groupId>
+					<artifactId>apacheds-jdbm-partition</artifactId>
+				</exclusion>
+				<exclusion>
+					<!-- exclude this from hadoop minikdc as the minikdc depends on
+					the apacheds-jdbm1 bundle, which is not available in maven central-->
+					<groupId>org.apache.directory.jdbm</groupId>
+					<artifactId>apacheds-jdbm1</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.directory.server</groupId>
+			<artifactId>apacheds-jdbm-partition</artifactId>
+			<version>2.0.0-M15</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<!-- exclude this from hadoop minikdc as the minikdc depends on
+					the apacheds-jdbm1 bundle, which is not available in maven central-->
+					<groupId>org.apache.directory.jdbm</groupId>
+					<artifactId>apacheds-jdbm1</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.directory.api</groupId>
+					<artifactId>api-ldap-schema-data</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<!-- add this to satisfy the dependency requirement of apacheds-jdbm1-->
+			<groupId>org.apache.directory.jdbm</groupId>
+			<artifactId>apacheds-jdbm1</artifactId>
+			<version>2.0.0-M2</version>
+			<scope>test</scope>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-common</artifactId>
+			<version>${hadoop.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-hdfs</artifactId>
+			<version>${hadoop.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
     </dependencies>
 
     <build>

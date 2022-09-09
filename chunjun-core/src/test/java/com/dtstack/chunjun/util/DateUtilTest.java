@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -61,39 +61,6 @@ public class DateUtilTest {
             DateUtil.columnToDate(true, null);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalArgumentException);
-        }
-    }
-
-    @Test
-    public void testColumnToTimestamp() {
-        Timestamp result = DateUtil.columnToTimestamp(null, null);
-        Assert.assertNull(result);
-
-        result = DateUtil.columnToTimestamp("", null);
-        Assert.assertNull(result);
-
-        result = DateUtil.columnToTimestamp("2020-03-18 10:56:00", null);
-        Assert.assertEquals(result, new Timestamp(1584500160000L));
-
-        result = DateUtil.columnToTimestamp(1584500160, null);
-        Assert.assertEquals(result, new Timestamp(1584500160000L));
-
-        result = DateUtil.columnToTimestamp(1584500160000L, null);
-        Assert.assertEquals(result, new Timestamp(1584500160000L));
-
-        result = DateUtil.columnToTimestamp(new Date(1584500160000L), null);
-        Assert.assertEquals(result, new Timestamp(1584500160000L));
-
-        result = DateUtil.columnToTimestamp(new Timestamp(1584500160000L), null);
-        Assert.assertEquals(result, new Timestamp(1584500160000L));
-
-        result = DateUtil.columnToTimestamp(new java.util.Date(1584500160000L), null);
-        Assert.assertEquals(result, new Timestamp(1584500160000L));
-
-        try {
-            DateUtil.columnToTimestamp(true, null);
-        } catch (Exception e) {
-            Assert.assertTrue(e instanceof UnsupportedOperationException);
         }
     }
 

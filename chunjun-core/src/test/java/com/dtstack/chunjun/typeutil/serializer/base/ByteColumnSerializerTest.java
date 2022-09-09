@@ -22,8 +22,8 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.ByteColumn;
 import com.dtstack.chunjun.element.column.NullColumn;
+import com.dtstack.chunjun.typeutil.SerializerTestBase;
 import com.dtstack.chunjun.typeutil.serializer.DeeplyEqualsChecker;
-import com.dtstack.chunjun.typeutil.serializer.SerializerTestBase;
 
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.java.tuple.Tuple2;
