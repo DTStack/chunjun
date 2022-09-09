@@ -23,6 +23,7 @@ import com.dtstack.chunjun.util.DateUtil;
 import com.dtstack.chunjun.util.FileSystemUtil;
 import com.dtstack.chunjun.util.RowUtil;
 
+import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.cache.DistributedCache;
 import org.apache.flink.table.data.RowData;
 
@@ -58,7 +59,8 @@ import static com.dtstack.chunjun.sink.WriteErrorTypes.ERR_PRIMARY_CONFLICT;
 public class DirtyDataManager {
 
     private static final List<String> PRIMARY_CONFLICT_KEYWORDS = new ArrayList<>();
-    private final String location;
+
+    @VisibleForTesting protected final String location;
     private final Map<String, Object> config;
     private final String[] fieldNames;
     private final String jobId;
