@@ -26,7 +26,12 @@ import com.dtstack.chunjun.converter.IDeserializationConverter;
 import com.dtstack.chunjun.converter.ISerializationConverter;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
-import com.dtstack.chunjun.element.column.*;
+import com.dtstack.chunjun.element.column.BigDecimalColumn;
+import com.dtstack.chunjun.element.column.BooleanColumn;
+import com.dtstack.chunjun.element.column.ByteColumn;
+import com.dtstack.chunjun.element.column.SqlDateColumn;
+import com.dtstack.chunjun.element.column.StringColumn;
+import com.dtstack.chunjun.element.column.TimestampColumn;
 
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.types.logical.LogicalType;

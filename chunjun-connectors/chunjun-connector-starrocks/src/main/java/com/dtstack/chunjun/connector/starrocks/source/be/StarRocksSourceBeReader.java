@@ -30,7 +30,14 @@ import com.starrocks.shade.org.apache.thrift.protocol.TBinaryProtocol;
 import com.starrocks.shade.org.apache.thrift.protocol.TProtocol;
 import com.starrocks.shade.org.apache.thrift.transport.TSocket;
 import com.starrocks.shade.org.apache.thrift.transport.TTransportException;
-import com.starrocks.thrift.*;
+import com.starrocks.thrift.TScanBatchResult;
+import com.starrocks.thrift.TScanCloseParams;
+import com.starrocks.thrift.TScanColumnDesc;
+import com.starrocks.thrift.TScanNextBatchParams;
+import com.starrocks.thrift.TScanOpenParams;
+import com.starrocks.thrift.TScanOpenResult;
+import com.starrocks.thrift.TStarrocksExternalService;
+import com.starrocks.thrift.TStatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
