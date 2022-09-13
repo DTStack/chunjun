@@ -1,0 +1,187 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "password": "********",
+            "column": [
+              {
+                "name": "field_id",
+                "type": "int"
+              },
+              {
+                "name": "field_bit",
+                "type": "bit"
+              },
+              {
+                "name": "field_tinyint",
+                "type": "tinyint"
+              },
+              {
+                "name": "field_smallint",
+                "type": "smallint"
+              },
+              {
+                "name": "field_unsigned_smallint",
+                "type": "unsigned smallint"
+              },
+              {
+                "name": "field_int",
+                "type": "int"
+              },
+              {
+                "name": "field_unsigned_int",
+                "type": "unsigned int"
+              },
+              {
+                "name": "field_bigint",
+                "type": "bigint"
+              },
+              {
+                "name": "field_unsigned_bigint",
+                "type": "unsigned bigint"
+              },
+              {
+                "name": "field_decimal",
+                "type": "decimal"
+              },
+              {
+                "name": "field_numeric",
+                "type": "numeric"
+              },
+              {
+                "name": "field_float",
+                "type": "float"
+              },
+              {
+                "name": "field_double_precision",
+                "type": "double"
+              },
+              {
+                "name": "field_real",
+                "type": "real"
+              },
+              {
+                "name": "field_smallmoney",
+                "type": "smallmoney"
+              },
+              {
+                "name": "field_money",
+                "type": "money"
+              },
+              {
+                "name": "field_date",
+                "type": "date"
+              },
+              {
+                "name": "field_time",
+                "type": "time"
+              },
+              {
+                "name": "field_bigtime",
+                "type": "bigtime"
+              },
+              {
+                "name": "field_smalldatetime",
+                "type": "smalldatetime"
+              },
+              {
+                "name": "field_datetime",
+                "type": "datetime"
+              },
+              {
+                "name": "field_bigdatetime",
+                "type": "bigdatetime"
+              },
+              {
+                "name": "field_timestamp",
+                "type": "timestamp"
+              },
+              {
+                "name": "field_char",
+                "type": "char"
+              },
+              {
+                "name": "field_nchar",
+                "type": "nchar"
+              },
+              {
+                "name": "field_unichar",
+                "type": "unichar"
+              },
+              {
+                "name": "field_varchar",
+                "type": "varchar"
+              },
+              {
+                "name": "field_nvarchar",
+                "type": "nvarchar"
+              },
+              {
+                "name": "field_univarchar",
+                "type": "univarchar"
+              },
+              {
+                "name": "field_text",
+                "type": "text"
+              },
+              {
+                "name": "field_unitext",
+                "type": "unitext"
+              },
+              {
+                "name": "field_longsysname",
+                "type": "longsysname"
+              },
+              {
+                "name": "field_binary",
+                "type": "binary"
+              },
+              {
+                "name": "field_varbinary",
+                "type": "varbinary"
+              },
+              {
+                "name": "field_image",
+                "type": "image"
+              }
+            ],
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:sybase:Tds:host:port/tempdb"
+                ],
+                "schema": "guest",
+                "table": [
+                  "test1"
+                ]
+              }
+            ],
+            "username": "**"
+          },
+          "name": "sybasereader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": false,
+        "isStream": false
+      },
+      "errorLimit": {
+        "record": 0
+      },
+      "speed": {
+        "bytes": -1048576,
+        "channel": 1
+      }
+    }
+  }
+}

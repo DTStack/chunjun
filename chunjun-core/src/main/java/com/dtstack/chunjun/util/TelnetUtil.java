@@ -36,8 +36,13 @@ public class TelnetUtil {
 
     private static final Pattern JDBC_PATTERN = Pattern.compile("(?<host>[^:@/]+):(?<port>\\d+).*");
     public static final String PHOENIX_PREFIX = "jdbc:phoenix";
+
+    private static final String SYBASE_PREFIX = "jdbc:sybase:Tds";
     private static final Pattern PHOENIX_PATTERN =
             Pattern.compile("jdbc:phoenix:(?<host>\\S+):(?<port>\\d+).*");
+
+    private static final Pattern SYBASE_PATTERN =
+            Pattern.compile("jdbc:sybase:Tds:(?<host>\\S+):(?<port>\\d+).*");
     private static final String HOST_KEY = "host";
     private static final String PORT_KEY = "port";
     private static final String SPLIT_KEY = ",";
@@ -85,6 +90,8 @@ public class TelnetUtil {
         Matcher matcher = null;
         if (StringUtils.startsWith(url, PHOENIX_PREFIX)) {
             matcher = PHOENIX_PATTERN.matcher(url);
+        } else if (StringUtils.startsWith(url, SYBASE_PREFIX)) {
+            matcher = SYBASE_PATTERN.matcher(url);
         } else {
             matcher = JDBC_PATTERN.matcher(url);
         }
