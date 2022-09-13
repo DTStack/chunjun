@@ -44,6 +44,7 @@
 		<module>chunjun-connector-oceanbase</module>
 		<module>chunjun-connector-cassandra</module>
 		<module>chunjun-connector-sybase</module>
+		<module>chunjun-connector-vertica11</module>
 
 		<!--File-->
 		<module>chunjun-connector-file</module>

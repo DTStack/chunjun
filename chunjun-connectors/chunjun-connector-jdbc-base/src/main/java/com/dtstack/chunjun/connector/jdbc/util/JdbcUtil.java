@@ -178,6 +178,25 @@ public class JdbcUtil {
     }
 
     /**
+     * get primarykey
+     *
+     * @param schema
+     * @param tableName
+     * @param dbConn
+     * @return
+     * @throws SQLException
+     */
+    public static List<String> getTablePrimaryKey(
+            String schema, String tableName, Connection dbConn) throws SQLException {
+        ResultSet rs = dbConn.getMetaData().getPrimaryKeys(null, schema, tableName);
+        List<String> indexList = new LinkedList<>();
+        while (rs.next()) {
+            String index = rs.getString(4);
+            if (StringUtils.isNotBlank(index)) indexList.add(index);
+        }
+        return indexList;
+    }
+    /**
      * 关闭连接资源
      *
      * @param rs ResultSet
