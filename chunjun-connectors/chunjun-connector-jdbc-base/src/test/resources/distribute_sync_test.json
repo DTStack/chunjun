@@ -1,0 +1,171 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "mysqlreader",
+          "parameter": {
+            "startLocation": "2",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "boolean_data",
+                "type": "boolean"
+              },
+              {
+                "name": "tinyint_data",
+                "type": "tinyint"
+              },
+              {
+                "name": "smallint_data",
+                "type": "smallint"
+              },
+              {
+                "name": "integer_data",
+                "type": "int"
+              },
+              {
+                "name": "bigint_data",
+                "type": "bigint"
+              },
+              {
+                "name": "float_data",
+                "type": "float"
+              },
+              {
+                "name": "double_data",
+                "type": "double"
+              },
+              {
+                "name": "decimal_data",
+                "type": "decimal"
+              },
+              {
+                "name": "string_data",
+                "type": "string"
+              },
+              {
+                "name": "date_data",
+                "type": "date"
+              },
+              {
+                "name": "datetime_data",
+                "type": "datetime"
+              }
+            ],
+            "username": "root",
+            "password": "root",
+            "polling": true,
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:mysql://localhost:3306/test?useSSL=false"
+                ],
+                "table": [
+                  "test_source"
+                ]
+              },
+              {
+                "jdbcUrl": [
+                  "jdbc:mysql://localhost:3307/test?useSSL=false"
+                ],
+                "table": [
+                  "test_source"
+                ]
+              }
+            ],
+            "table": {
+              "tableName": "sourceTable"
+            }
+          }
+        },
+        "writer": {
+          "name": "mysqlwriter",
+          "preSql": "truncate table test_sink;",
+          "postSql": "truncate table test_sink;",
+          "semantic": "update",
+          "updateKey": {
+            "test_sink": [
+              "id"
+            ]
+          },
+          "parameter": {
+            "username": "root",
+            "password": "root",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:mysql://localhost:3306/test?useSSL=false",
+                "table": [
+                  "test_sink"
+                ]
+              }
+            ],
+            "writeMode": "insert",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "boolean_data",
+                "type": "boolean"
+              },
+              {
+                "name": "tinyint_data",
+                "type": "tinyint"
+              },
+              {
+                "name": "smallint_data",
+                "type": "smallint"
+              },
+              {
+                "name": "integer_data",
+                "type": "int"
+              },
+              {
+                "name": "bigint_data",
+                "type": "bigint"
+              },
+              {
+                "name": "float_data",
+                "type": "float"
+              },
+              {
+                "name": "double_data",
+                "type": "double"
+              },
+              {
+                "name": "decimal_data",
+                "type": "decimal"
+              },
+              {
+                "name": "string_data",
+                "type": "string"
+              },
+              {
+                "name": "date_data",
+                "type": "date"
+              },
+              {
+                "name": "datetime_data",
+                "type": "datetime"
+              }
+            ]
+          }
+        },
+        "transformer": {
+          "transformSql": "select id from sourceTable where id < 10"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}
