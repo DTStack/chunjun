@@ -144,6 +144,11 @@
 			<artifactId>chunjun-connector-emqx</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.dtstack.flinkx</groupId>
+			<artifactId>flinkx-connector-rabbitmq</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!--RDB-->
 		<dependency>
