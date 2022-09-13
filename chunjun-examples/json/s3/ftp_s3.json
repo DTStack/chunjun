@@ -1,0 +1,115 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "path": "/root/ExportCSV.csv",
+            "protocol": "ftp",
+            "port": 21,
+            "isFirstLineHeader": false,
+            "host": "localhost",
+            "column": [
+              {
+                "index": 0,
+                "type": "string",
+                "name": "i1"
+              },
+              {
+                "index": 1,
+                "type": "string",
+                "name": "i2"
+              },
+              {
+                "index": 2,
+                "type": "string",
+                "name": "i3"
+              },
+              {
+                "index": 3,
+                "type": "string",
+                "name": "i4"
+              },
+              {
+                "index": 4,
+                "type": "string",
+                "name": "i5"
+              },
+              {
+                "index": 5,
+                "type": "string",
+                "name": "i6"
+              },
+              {
+                "index": 6,
+                "type": "string",
+                "name": "i7"
+              }
+            ],
+            "password":"123456",
+            "fieldDelimiter":",",
+            "encoding":"utf-8",
+            "username":"root"
+          },
+          "name": "ftpreader"
+        },
+        "writer": {
+          "parameter": {
+            "region":"",
+            "bucket": "",
+            "secretKey": "",
+            "accessKey": "",
+            "object": "qingxing.csv",
+            "isFirstLineHeader": false,
+            "column": [
+              {
+                "index": 0,
+                "type": "string",
+                "name": "i1"
+              },
+              {
+                "index": 1,
+                "type": "string",
+                "name": "i2"
+              },
+              {
+                "index": 2,
+                "type": "string",
+                "name": "i3"
+              },
+              {
+                "index": 3,
+                "type": "string",
+                "name": "i4"
+              },
+              {
+                "index": 4,
+                "type": "string",
+                "name": "i5"
+              },
+              {
+                "index": 5,
+                "type": "string",
+                "name": "i6"
+              },
+              {
+                "index": 6,
+                "type": "string",
+                "name": "i7"
+              }
+            ],
+            "encoding": "utf-8",
+            "fieldDelimiter": ","
+          },
+          "name": "s3writer"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "bytes": 0,
+        "channel": 1
+      }
+    }
+  }
+}

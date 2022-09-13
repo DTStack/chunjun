@@ -145,8 +145,8 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-rabbitmq</artifactId>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-rabbitmq</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -241,6 +241,11 @@
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-hive</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-s3</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

@@ -52,6 +52,7 @@
 		<module>chunjun-connector-hdfs</module>
 		<module>chunjun-connector-hive</module>
 		<module>chunjun-connector-hive3</module>
+		<module>chunjun-connector-s3</module>
 
 		<!--NoSql-->
 		<module>chunjun-connector-hbase-base</module>
