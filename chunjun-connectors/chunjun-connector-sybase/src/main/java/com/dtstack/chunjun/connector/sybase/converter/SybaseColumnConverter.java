@@ -35,8 +35,6 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.logical.YearMonthIntervalType;
 
-import com.sybase.jdbc4.tds.SybTimestamp;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
@@ -112,14 +110,7 @@ public class SybaseColumnConverter extends JdbcColumnConverter {
             case DATE:
                 return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:
-                return val -> {
-                    if (val instanceof SybTimestamp) {
-                        Time time =
-                                Time.valueOf(((SybTimestamp) val).toLocalDateTime().toLocalTime());
-                        return new TimeColumn(time);
-                    }
-                    return new TimeColumn((Time) val);
-                };
+                return val -> new TimeColumn((Time) val);
             case TIMESTAMP_WITH_TIME_ZONE:
             case TIMESTAMP_WITHOUT_TIME_ZONE:
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)

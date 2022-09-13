@@ -26,7 +26,7 @@ sybase 15.7
   - 默认值：无
     ```json
     "connection": [{
-     "jdbcUrl": ["jdbc:sybase:Tds:hostname:port/database"],
+     "jdbcUrl": ["jdbc:jtds:sybase://hostname:port/database"],
      "table": ["table"],
      "schema":"public"
     }]
@@ -251,7 +251,7 @@ sybase 15.7
 
 - **url**
 
-  - 描述：jdbc:sybase:Tds:hostname:port/database
+  - 描述：jdbc:jtds:sybase://hostname:port/database
   - 必选：是
   - 参数类型：String
   - 默认值：无

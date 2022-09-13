@@ -38,7 +38,7 @@ import java.util.Optional;
 /** @Author OT @Date 2022/6/16 13:54 @Version 1.0 */
 public class SybaseDialect implements JdbcDialect {
     private static final String DIALECT_NAME = "Sybase";
-    private static final String DRIVER_NAME = "com.sybase.jdbc4.jdbc.SybDriver";
+    private static final String DRIVER_NAME = "net.sourceforge.jtds.jdbc.Driver";
 
     @Override
     public String dialectName() {
@@ -47,7 +47,7 @@ public class SybaseDialect implements JdbcDialect {
 
     @Override
     public boolean canHandle(String url) {
-        return url.startsWith("jdbc:sybase:Tds:");
+        return url.startsWith("jdbc:jtds:sybase:");
     }
 
     @Override
