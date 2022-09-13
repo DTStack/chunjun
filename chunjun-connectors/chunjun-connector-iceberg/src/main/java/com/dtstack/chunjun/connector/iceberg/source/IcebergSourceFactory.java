@@ -36,11 +36,7 @@ import org.apache.iceberg.flink.TableLoader;
 import org.apache.iceberg.flink.source.FlinkInputFormat;
 import org.apache.iceberg.flink.source.FlinkSource;
 
-/**
- * @company: www.dtstack.com
- * @author: shifang
- * @create: 2019/7/4
- */
+
 public class IcebergSourceFactory extends SourceFactory {
 
     private final IcebergReaderConf icebergConf;
