@@ -223,8 +223,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.dtstack.flinkx</groupId>
-			<artifactId>flinkx-connector-vertica11</artifactId>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-vertica11</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
