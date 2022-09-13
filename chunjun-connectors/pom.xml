@@ -43,6 +43,7 @@
 		<module>chunjun-connector-starrocks</module>
 		<module>chunjun-connector-oceanbase</module>
 		<module>chunjun-connector-cassandra</module>
+		<module>chunjun-connector-sybase</module>
 
 		<!--File-->
 		<module>chunjun-connector-file</module>
