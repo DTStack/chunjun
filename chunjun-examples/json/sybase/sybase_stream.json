@@ -1,0 +1,55 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "password": "tester",
+            "column": [
+              {
+                "name": "i",
+                "type": "int"
+              },
+              {
+                "name": "n",
+                "type": "varchar"
+              }
+            ],
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:jtds:sybase://localhost/tester"
+                ],
+                "schema": "tester",
+                "table": [
+                  "tester"
+                ]
+              }
+            ],
+            "username": "tester"
+          },
+          "name": "sybasereader"
+        },
+        "writer": {
+          "parameter": {
+            "print": true
+          },
+          "name": "streamwriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": false,
+        "isStream": false
+      },
+      "errorLimit": {
+        "record": 0
+      },
+      "speed": {
+        "bytes": -1048576,
+        "channel": 1
+      }
+    }
+  }
+}

@@ -149,7 +149,7 @@ public class AccumulatorCollector {
     public long getAccumulatorValue(String name, boolean needWaited) {
         if (needWaited) {
             try {
-                TimeUnit.MILLISECONDS.wait(this.period);
+                TimeUnit.MILLISECONDS.sleep(this.period);
             } catch (InterruptedException e) {
                 LOG.warn(
                         "Interrupted when waiting for valueAccumulatorMap, e = {}",
