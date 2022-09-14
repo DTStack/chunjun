@@ -31,9 +31,15 @@ import com.dtstack.chunjun.element.column.TimestampColumn;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
+import com.ibm.db2.jcc.am.c9;
+
+import java.io.IOException;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Date;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 
@@ -75,7 +81,14 @@ public class Db2ColumnConverter extends JdbcColumnConverter {
                 return val -> new BigDecimalColumn((BigDecimal) val);
             case CHAR:
             case VARCHAR:
-                return val -> new StringColumn((String) val);
+                return val -> {
+                    // db2 clob type
+                    if (val instanceof c9) {
+                        Clob clob = (Clob) val;
+                        return new StringColumn(convertClob(clob));
+                    }
+                    return new StringColumn((String) val);
+                };
             case DATE:
                 return val -> new SqlDateColumn((Date) val);
             case TIME_WITHOUT_TIME_ZONE:
@@ -98,5 +111,17 @@ public class Db2ColumnConverter extends JdbcColumnConverter {
             default:
                 throw new UnsupportedOperationException("Unsupported type:" + type);
         }
+    }
+
+    public static String convertClob(Clob clob) throws SQLException, IOException {
+        StringBuffer buffer = new StringBuffer();
+        try (Reader r = clob.getCharacterStream()) {
+            int ch;
+            while ((ch = r.read()) != -1) {
+                buffer.append("" + (char) ch);
+            }
+        }
+        clob.free();
+        return buffer.toString();
     }
 }
