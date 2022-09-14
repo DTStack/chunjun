@@ -222,6 +222,12 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-vertica11</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!--File-->
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>

@@ -1,0 +1,132 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "password" : "oracle",
+          "customSql" : "",
+          "startLocation" : "",
+          "fetchSize" : 100,
+          "increColumn" : "ID",
+          "column" : [ {
+            "name" : "ID",
+            "isPart" : false,
+            "type" : "NUMBER(38,0)",
+            "key" : "ID"
+          }, {
+            "name" : "NAME",
+            "isPart" : false,
+            "type" : "VARCHAR2",
+            "key" : "NAME"
+          } ,
+          {
+            "name" : "DATE1",
+            "isPart" : false,
+            "type" : "DATE",
+            "key" : "DATE1"
+          },
+            {
+            "name" : "TIMESTAMP1",
+            "isPart" : false,
+            "type" : "TIMESTAMP",
+            "key" : "TIMESTAMP1"
+          },
+            {
+              "name" : "BLOB1",
+              "isPart" : false,
+              "type" : "BLOB",
+              "key" : "BLOB1"
+            }
+          ,
+            {
+              "name" : "FLOAT1",
+              "isPart" : false,
+              "type" : "FLOAT",
+              "key" : "FLOAT1"
+            }
+          ],
+          "where" : "",
+          "connection" : [ {
+            "schema" : "MENGHAN",
+            "password" : "oracle",
+            "jdbcUrl" : [ "jdbc:oracle:thin:@localhost:1521:orcl" ],
+            "table" : [ "MENGHANTEST" ],
+            "username" : "system"
+          } ],
+          "sourceIds" : [ 2659 ],
+          "username" : "system"
+        },
+        "name" : "oraclereader"
+      },
+      "writer" : {
+        "parameter" : {
+          "schema" : "MENGHAN",
+          "postSql" : [ ],
+          "password" : "",
+          "fetchSize" : 101,
+          "session" : [ ],
+          "column" : [ {
+            "name" : "VARCHAR1",
+            "isPart" : false,
+            "type" : "VARCHAR",
+            "key" : "ID"
+          }, {
+            "name" : "INTEGER1",
+            "isPart" : false,
+            "type" : "INTEGER",
+            "key" : "NAME"
+          },
+            {
+            "name" : "DATE1",
+            "isPart" : false,
+            "type" : "DATE",
+            "key" : "DATE1"
+          },
+            {
+            "name" : "TIMESTAMP1",
+            "isPart" : false,
+            "type" : "TIMESTAMP",
+            "key" : "TIMESTAMP1"
+          },
+            {
+              "name" : "BINARY1",
+              "isPart" : false,
+              "type" : "BINARY",
+              "key" : "BLOB1"
+            }
+          ,
+            {
+              "name" : "FLOAT1",
+              "isPart" : false,
+              "type" : "FLOAT",
+              "key" : "FLOAT1"
+            }
+          ],
+          "connection" : [ {
+            "jdbcUrl" : "jdbc:vertica://localhost:5433/",
+            "table" : [ "menghantest.test_type2" ]
+          } ],
+          "writeMode" : "update",
+          "username" : "dbadmin",
+          "preSql" : []
+        },
+        "name" : "vertica11writer"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "maxRowNumForCheckpoint" : 0,
+        "isRestore" : false,
+        "restoreColumnName" : "",
+        "restoreColumnIndex" : 0
+      },
+      "errorLimit" : {
+        "record" : 100
+      },
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}
