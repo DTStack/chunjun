@@ -21,11 +21,16 @@ package com.dtstack.chunjun.connector.oracle.dialect;
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
+import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
 import com.dtstack.chunjun.connector.oracle.converter.OracleColumnConverter;
 import com.dtstack.chunjun.connector.oracle.converter.OracleRawTypeConverter;
 import com.dtstack.chunjun.connector.oracle.converter.OracleRowConverter;
+import com.dtstack.chunjun.connector.oracle.util.increment.OracleTimestampTypeUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.enums.ColumnType;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -33,6 +38,7 @@ import org.apache.flink.table.types.logical.RowType;
 import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.List;
@@ -173,5 +179,23 @@ public class OracleDialect implements JdbcDialect {
     @Override
     public String getRowNumColumn(String orderBy) {
         return "rownum as " + getRowNumColumnAlias();
+    }
+
+    @Override
+    public KeyUtil<?, BigInteger> initKeyUtil(String incrementName, String incrementType) {
+        switch (ColumnType.getType(incrementType)) {
+            case TIMESTAMP:
+            case DATE:
+                return new OracleTimestampTypeUtil();
+            default:
+                if (ColumnType.isNumberType(incrementType)) {
+                    return new NumericTypeUtil();
+                } else {
+                    throw new ChunJunRuntimeException(
+                            String.format(
+                                    "Unsupported columnType [%s], columnName [%s]",
+                                    incrementType, incrementName));
+                }
+        }
     }
 }

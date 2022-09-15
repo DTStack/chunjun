@@ -23,13 +23,20 @@ import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.DateTypeUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.TimestampTypeUtil;
 import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverJtdsColumnConverter;
 import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverJtdsRawTypeConverter;
 import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftColumnConverter;
 import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftRawTypeConverter;
 import com.dtstack.chunjun.connector.sqlserver.converter.SqlserverMicroSoftRowConverter;
+import com.dtstack.chunjun.connector.sqlserver.util.increment.SqlserverTimestampTypeUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.enums.ColumnType;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
@@ -38,6 +45,7 @@ import io.vertx.core.json.JsonArray;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -286,5 +294,26 @@ public class SqlserverDialect implements JdbcDialect {
 
     public boolean isWithNoLock() {
         return withNoLock;
+    }
+
+    @Override
+    public KeyUtil<?, BigInteger> initKeyUtil(String incrementName, String incrementType) {
+        switch (ColumnType.getType(incrementType)) {
+            case TIMESTAMP:
+                return new SqlserverTimestampTypeUtil();
+            case DATE:
+                return new DateTypeUtil();
+            default:
+                if (ColumnType.isNumberType(incrementType)) {
+                    return new NumericTypeUtil();
+                } else if (ColumnType.isTimeType(incrementType)) {
+                    return new TimestampTypeUtil();
+                } else {
+                    throw new ChunJunRuntimeException(
+                            String.format(
+                                    "Unsupported columnType [%s], columnName [%s]",
+                                    incrementType, incrementName));
+                }
+        }
     }
 }

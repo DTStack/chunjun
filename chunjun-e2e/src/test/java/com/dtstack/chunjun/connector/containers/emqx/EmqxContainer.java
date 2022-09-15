@@ -31,9 +31,7 @@ import java.time.Duration;
 public class EmqxContainer extends GenericContainer<EmqxContainer> {
 
     private static final URL EMQX_DOCKERFILE =
-            EmqxContainer.class
-                    .getClassLoader()
-                    .getResource("docker/emqx/Dockerfile");
+            EmqxContainer.class.getClassLoader().getResource("docker/emqx/Dockerfile");
 
     public EmqxContainer(String imageName) throws URISyntaxException {
         super(
@@ -42,8 +40,7 @@ public class EmqxContainer extends GenericContainer<EmqxContainer> {
         waitingFor(
                 new WaitStrategy() {
                     @Override
-                    public void waitUntilReady(WaitStrategyTarget waitStrategyTarget) {
-                    }
+                    public void waitUntilReady(WaitStrategyTarget waitStrategyTarget) {}
 
                     @Override
                     public WaitStrategy withStartupTimeout(Duration startupTimeout) {
@@ -51,5 +48,4 @@ public class EmqxContainer extends GenericContainer<EmqxContainer> {
                     }
                 });
     }
-
 }

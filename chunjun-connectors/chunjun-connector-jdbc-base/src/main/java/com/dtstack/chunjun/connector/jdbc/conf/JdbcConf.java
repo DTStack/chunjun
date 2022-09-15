@@ -66,6 +66,8 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
     private boolean polling = false;
     /** 字段名称 */
     private String increColumn;
+    /** Whether an OrderBy sort is required,increment mode need set to true. */
+    private boolean isOrderBy = true;
     /** 字段索引 */
     private int increColumnIndex = -1;
     /** 字段类型 */
@@ -293,6 +295,14 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
 
     public void setIncreColumn(String increColumn) {
         this.increColumn = increColumn;
+    }
+
+    public boolean isOrderBy() {
+        return isOrderBy;
+    }
+
+    public void setOrderBy(boolean orderBy) {
+        isOrderBy = orderBy;
     }
 
     public int getIncreColumnIndex() {
