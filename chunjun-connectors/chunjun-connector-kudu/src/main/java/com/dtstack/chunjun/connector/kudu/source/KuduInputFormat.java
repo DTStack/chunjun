@@ -23,6 +23,7 @@ import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
 import com.dtstack.chunjun.connector.kudu.converter.KuduColumnConverter;
 import com.dtstack.chunjun.connector.kudu.converter.KuduRawTypeConverter;
 import com.dtstack.chunjun.connector.kudu.util.KuduUtil;
+import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ReadRecordException;
 import com.dtstack.chunjun.util.TableUtil;
@@ -86,15 +87,13 @@ public class KuduInputFormat extends BaseRichInputFormat {
         KuduInputSplit kuduTableSplit = (KuduInputSplit) inputSplit;
         scanner = KuduScanToken.deserializeIntoScanner(kuduTableSplit.getToken(), client);
 
-        List<String> columnNames = new ArrayList<>();
-        List<FieldConf> fieldConfList = sourceConf.getColumn();
-        fieldConfList.forEach(field -> columnNames.add(field.getName()));
-        RowType rowType = TableUtil.createRowType(fieldConfList, KuduRawTypeConverter::apply);
-
-        setRowConverter(
-                rowConverter == null
-                        ? new KuduColumnConverter(rowType, columnNames)
-                        : rowConverter);
+        if (rowConverter == null) {
+            List<String> columnNames = new ArrayList<>();
+            List<FieldConf> fieldConfList = sourceConf.getColumn();
+            fieldConfList.forEach(field -> columnNames.add(field.getName()));
+            RowType rowType = TableUtil.createRowType(fieldConfList, KuduRawTypeConverter::apply);
+            setRowConverter(new KuduColumnConverter(rowType, columnNames));
+        }
     }
 
     @Override
@@ -156,5 +155,9 @@ public class KuduInputFormat extends BaseRichInputFormat {
 
     public KuduSourceConf getSourceConf() {
         return sourceConf;
+    }
+
+    public AbstractRowConverter getRowConverter() {
+        return rowConverter;
     }
 }
