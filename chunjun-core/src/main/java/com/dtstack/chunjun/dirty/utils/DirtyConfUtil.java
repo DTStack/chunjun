@@ -38,7 +38,7 @@ import java.util.Properties;
  */
 public class DirtyConfUtil {
 
-    private static final String DEFAULT_TYPE = "log";
+    private static final String DEFAULT_TYPE = "default";
 
     public static final String DIRTY_CONF_PREFIX = "chunjun.dirty-data.";
 
