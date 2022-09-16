@@ -18,10 +18,8 @@
 
 package com.dtstack.chunjun.connector.kudu.table;
 
-import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.kudu.conf.KuduLookupConf;
 import com.dtstack.chunjun.connector.kudu.conf.KuduSourceConf;
-import com.dtstack.chunjun.connector.kudu.converter.KuduRawTypeConverter;
 import com.dtstack.chunjun.connector.kudu.converter.KuduRowConverter;
 import com.dtstack.chunjun.connector.kudu.source.KuduInputFormatBuilder;
 import com.dtstack.chunjun.connector.kudu.table.lookup.KuduAllTableFunction;
@@ -31,7 +29,6 @@ import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
 import com.dtstack.chunjun.table.connector.source.ParallelAsyncTableFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelSourceFunctionProvider;
 import com.dtstack.chunjun.table.connector.source.ParallelTableFunctionProvider;
-import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -41,16 +38,11 @@ import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
-import org.apache.flink.table.types.AtomicDataType;
-import org.apache.flink.table.types.logical.LogicalType;
-import org.apache.flink.table.types.logical.NullType;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author tiezhu
@@ -78,37 +70,12 @@ public class KuduDynamicTableSource
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext runtimeProviderContext) {
         KuduInputFormatBuilder builder = new KuduInputFormatBuilder();
 
-        LogicalType logicalType = tableSchema.toRowDataType().getLogicalType();
-        InternalTypeInfo<RowData> typeInfo = InternalTypeInfo.of(logicalType);
-
-        String[] fieldNames = tableSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        List<String> columnNameList = new ArrayList<>();
-
-        for (int index = 0; index < fieldNames.length; index++) {
-            String name = fieldNames[index];
-            columnNameList.add(name);
-
-            FieldConf field = new FieldConf();
-            field.setName(name);
-            field.setType(
-                    tableSchema
-                            .getFieldDataType(name)
-                            .orElse(new AtomicDataType(new NullType()))
-                            .getLogicalType()
-                            .getTypeRoot()
-                            .name());
-            field.setIndex(index);
-            columnList.add(field);
-        }
-
-        sourceConf.setColumn(columnList);
-
-        RowType rowType =
-                TableUtil.createRowType(sourceConf.getColumn(), KuduRawTypeConverter::apply);
+        RowType rowType = (RowType) tableSchema.toRowDataType().getLogicalType();
+        InternalTypeInfo<RowData> typeInfo = InternalTypeInfo.of(rowType);
 
         builder.setKuduSourceConf(sourceConf);
-        builder.setRowConverter(new KuduRowConverter(rowType, columnNameList));
+        builder.setRowConverter(
+                new KuduRowConverter(rowType, Arrays.asList(tableSchema.getFieldNames())));
 
         return ParallelSourceFunctionProvider.of(
                 new DtInputFormatSourceFunction<>(builder.finish(), typeInfo),
