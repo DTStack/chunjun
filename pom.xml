@@ -36,7 +36,6 @@
 		<!-- fix CVE-2021-45105 -->
 		<log4j2.version>2.17.0</log4j2.version>
 		<dist.dir>chunjun-dist</dist.dir>
-		<powermock.version>2.0.4</powermock.version>
 		<log4j.version>1.2.17</log4j.version>
 		<slf4j.version>1.7.36</slf4j.version>
 		<logback.version>1.2.11</logback.version>

@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRawTypeConverterTest;
@@ -42,7 +41,6 @@ import org.apache.flink.api.common.accumulators.LongCounter;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.table.data.RowData;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,9 +50,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -98,9 +93,6 @@ public class JdbcOutputFormatTest {
 
     Connection connection = mock(Connection.class);
     Statement statement = mock(Statement.class);
-    PreparedStatement ps = mock(PreparedStatement.class);
-    ResultSet resultSet = mock(ResultSet.class);
-    ResultSetMetaData resultSetMetaData = mock(ResultSetMetaData.class);
 
     @Before
     public void setup() {
@@ -108,8 +100,6 @@ public class JdbcOutputFormatTest {
         mockStatic(JdbcUtil.class);
         mockStatic(TableUtil.class);
         mockStatic(FieldNamedPreparedStatement.class);
-        //        mockStatic(ColumnBuildUtil.class);
-        //        mockStatic(TimeUnit.class);
 
         jdbcOutputFormat = mock(JdbcOutputFormat.class);
         jdbcDialect = mock(JdbcDialect.class);
@@ -130,13 +120,6 @@ public class JdbcOutputFormatTest {
         setInternalState(jdbcOutputFormat, "jdbcDialect", jdbcDialect);
         setInternalState(jdbcOutputFormat, "stmtProxy", stmtProxy);
         setInternalState(jdbcOutputFormat, "snapshotWriteCounter", snapshotWriteCounter);
-        //        setInternalState(jdbcOutputFormat, "customReporter", customReporter);
-        //        setInternalState(jdbcOutputFormat, "accumulatorCollector", accumulatorCollector);
-        //        setInternalState(jdbcOutputFormat, "endLocationAccumulator",
-        // endLocationAccumulator);
-        //        setInternalState(jdbcOutputFormat, "rowConverter", rowConverter);
-        //        when(jdbcOutputFormat.getRuntimeContext()).thenReturn(runtimeContext);
-        //        when(jdbcConf.getStartLocation()).thenReturn("10");
     }
 
     /** -------------------------------- openInternal test -------------------------------- */
@@ -167,38 +150,6 @@ public class JdbcOutputFormatTest {
         when(jdbcConf.getTable()).thenReturn("test_sink");
         when(jdbcDialect.getRawTypeConverter()).thenReturn(JdbcRawTypeConverterTest::apply);
         jdbcOutputFormat.buildStmtProxy();
-    }
-
-    @Test
-    public void initColumnList() {
-
-        doCallRealMethod().when(jdbcOutputFormat).initColumnList();
-        when(jdbcOutputFormat.getTableMetaData()).thenCallRealMethod();
-        List<String> nameList = new ArrayList<>();
-        List<String> typeList = new ArrayList<>();
-        nameList.add("id");
-        nameList.add("name");
-        typeList.add("int");
-        typeList.add("varchar");
-        when(jdbcConf.getSchema()).thenReturn("test_schema");
-        when(jdbcConf.getTable()).thenReturn("test_sink");
-        when(JdbcUtil.getTableMetaData(null, "test_schema", "test_sink", connection))
-                .thenAnswer(invocation -> Pair.of(nameList, typeList));
-
-        List<FieldConf> fieldConfList = new ArrayList<>();
-        FieldConf fieldConf1 = new FieldConf();
-        fieldConf1.setName("id");
-        fieldConf1.setType("int");
-        FieldConf fieldConf2 = new FieldConf();
-        fieldConf2.setName("name");
-        fieldConf2.setType("varchar");
-        fieldConfList.add(fieldConf1);
-        fieldConfList.add(fieldConf2);
-        when(jdbcConf.getColumn()).thenReturn(fieldConfList);
-        doCallRealMethod()
-                .when(jdbcOutputFormat)
-                .handleColumnList(fieldConfList, nameList, typeList);
-        jdbcOutputFormat.initColumnList();
     }
 
     /** -------------------------------- write test -------------------------------- */

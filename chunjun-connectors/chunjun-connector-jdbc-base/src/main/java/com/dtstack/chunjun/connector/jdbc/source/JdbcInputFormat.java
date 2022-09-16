@@ -32,14 +32,11 @@ import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.ReadRecordException;
-import com.dtstack.chunjun.util.ColumnBuildUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
-import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -54,7 +51,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +77,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected transient ResultSet resultSet;
     protected boolean hasNext;
 
-    protected int columnCount;
     protected boolean needUpdateEndLocation;
     protected Object state = null;
 
@@ -115,36 +110,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             dbConn = getConnection();
             dbConn.setAutoCommit(false);
 
-            Pair<List<String>, List<String>> pair = null;
-            List<String> fullColumnList = new LinkedList<>();
-            List<String> fullColumnTypeList = new LinkedList<>();
-            if (StringUtils.isBlank(jdbcConf.getCustomSql())) {
-                pair = getTableMetaData();
-                fullColumnList = pair.getLeft();
-                fullColumnTypeList = pair.getRight();
-            }
-            Pair<List<String>, List<String>> columnPair =
-                    ColumnBuildUtil.handleColumnList(
-                            jdbcConf.getColumn(), fullColumnList, fullColumnTypeList);
-            columnNameList = columnPair.getLeft();
-            columnTypeList = columnPair.getRight();
-
             querySQL = buildQuerySql(currentJdbcInputSplit);
             jdbcConf.setQuerySql(querySQL);
             executeQuery(currentJdbcInputSplit.getStartLocation());
-            if (!resultSet.isClosed()) {
-                columnCount = resultSet.getMetaData().getColumnCount();
-            }
             // 增量任务
             needUpdateEndLocation =
                     jdbcConf.isIncrement() && !jdbcConf.isPolling() && !jdbcConf.isUseMaxFunc();
-            RowType rowType =
-                    TableUtil.createRowType(
-                            columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
-            setRowConverter(
-                    rowConverter == null
-                            ? jdbcDialect.getColumnConverter(rowType, jdbcConf)
-                            : rowConverter);
         } catch (SQLException se) {
             String expMsg = se.getMessage();
             expMsg = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;
@@ -791,14 +762,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
     }
 
-    /**
-     * for override. because some databases have case-sensitive metadata。
-     *
-     * @return
-     */
-    protected Pair<List<String>, List<String>> getTableMetaData() {
-        return JdbcUtil.getTableMetaData(null, jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-    }
     /** init prepareStatement */
     public void initPrepareStatement(String querySql) throws SQLException {
         ps = dbConn.prepareStatement(querySql, resultSetType, resultSetConcurrency);
@@ -907,6 +870,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     public void setJdbcDialect(JdbcDialect jdbcDialect) {
         this.jdbcDialect = jdbcDialect;
+    }
+
+    public void setColumnNameList(List<String> columnNameList) {
+        this.columnNameList = columnNameList;
     }
 
     public void setIncrementKeyUtil(KeyUtil<?, BigInteger> incrementKeyUtil) {

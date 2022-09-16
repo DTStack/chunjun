@@ -50,6 +50,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /** A {@link DynamicTableSource} for JDBC. */
 public class JdbcDynamicTableSource
@@ -177,6 +178,7 @@ public class JdbcDynamicTableSource
             }
             jdbcConf.setIncreColumn(name);
             jdbcConf.setIncreColumnType(type);
+            jdbcConf.setIncreColumnIndex(index);
 
             jdbcConf.setRestoreColumn(name);
             jdbcConf.setRestoreColumnIndex(index);
@@ -192,6 +194,9 @@ public class JdbcDynamicTableSource
         builder.setRestoreKeyUtil(restoreKeyUtil);
         builder.setSplitKeyUtil(splitKeyUtil);
         builder.setIncrementKeyUtil(incrementKeyUtil);
+
+        builder.setColumnNameList(
+                jdbcConf.getColumn().stream().map(FieldConf::getName).collect(Collectors.toList()));
 
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConf);

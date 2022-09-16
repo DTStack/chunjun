@@ -19,6 +19,7 @@
 package com.dtstack.chunjun.connector.jdbc.dialect;
 
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRowConverter;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
@@ -33,6 +34,7 @@ import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -47,6 +49,7 @@ import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -395,5 +398,10 @@ public interface JdbcDialect extends Serializable {
                                     incrementType, incrementName));
                 }
         }
+    }
+
+    /** catalog/schema/table */
+    default Function<JdbcConf, Tuple3<String, String, String>> getTableIdentify() {
+        return conf -> Tuple3.of(null, conf.getSchema(), conf.getTable());
     }
 }

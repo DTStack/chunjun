@@ -35,7 +35,9 @@ public class StreamRawTypeConverter {
     public static DataType apply(String type) throws UnsupportedTypeException {
         switch (type.toUpperCase(Locale.ENGLISH)) {
             case "TINYINT":
+            case "YEAR":
                 return DataTypes.TINYINT();
+            case "SMALLINT":
             case "SHORT":
                 return DataTypes.SMALLINT();
             case "INT":
@@ -51,7 +53,6 @@ public class StreamRawTypeConverter {
                 return DataTypes.DOUBLE();
             case "DECIMAL":
                 return DataTypes.DECIMAL(38, 18);
-
             case "STRING":
             case "VARCHAR":
             case "CHAR":

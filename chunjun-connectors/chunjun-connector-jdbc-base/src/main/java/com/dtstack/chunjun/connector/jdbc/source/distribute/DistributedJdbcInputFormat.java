@@ -17,21 +17,16 @@
  */
 package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
-import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
-import com.dtstack.chunjun.util.ColumnBuildUtil;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.RangeSplitUtil;
-import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -57,22 +52,6 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
             noDataSource = true;
             return;
         }
-        for (FieldConf fieldConf : jdbcConf.getColumn()) {
-            this.columnNameList.add(fieldConf.getName());
-            this.columnTypeList.add(fieldConf.getType());
-        }
-        Pair<List<String>, List<String>> columnPair =
-                ColumnBuildUtil.handleColumnList(
-                        jdbcConf.getColumn(), this.columnNameList, this.columnTypeList);
-        this.columnNameList = columnPair.getLeft();
-        this.columnTypeList = columnPair.getRight();
-        RowType rowType =
-                TableUtil.createRowType(
-                        columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
-        setRowConverter(
-                this.rowConverter == null
-                        ? jdbcDialect.getColumnConverter(rowType, jdbcConf)
-                        : rowConverter);
         LOG.info("DistributedJdbcInputFormat[{}]open: end", inputSplit);
     }
 
@@ -143,7 +122,6 @@ public class DistributedJdbcInputFormat extends JdbcInputFormat {
         String querySql = buildQuerySql(inputSplit);
         jdbcConf.setQuerySql(querySql);
         resultSet = statement.executeQuery(querySql);
-        columnCount = resultSet.getMetaData().getColumnCount();
         hasNext = resultSet.next();
 
         LOG.info(
