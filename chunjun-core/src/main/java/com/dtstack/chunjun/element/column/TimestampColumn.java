@@ -20,8 +20,6 @@ package com.dtstack.chunjun.element.column;
 import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.throwable.CastException;
 
-import org.apache.commons.net.ntp.TimeStamp;
-
 import java.math.BigDecimal;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -140,7 +138,7 @@ public class TimestampColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return new BigDecimal(((TimeStamp) data).getTime());
+        return new BigDecimal(((Timestamp) data).getTime());
     }
 
     @Override
@@ -148,7 +146,7 @@ public class TimestampColumn extends AbstractBaseColumn {
         if (null == data) {
             return null;
         }
-        return ((TimeStamp) data).getTime();
+        return ((Timestamp) data).getTime();
     }
 
     @Override
