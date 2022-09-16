@@ -96,7 +96,7 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 List<String> updateKey = jdbcConf.getUniqueKey();
                 if (CollectionUtils.isEmpty(updateKey)) {
                     List<String> tableIndex =
-                            JdbcUtil.getTableIndex(
+                            JdbcUtil.getTableUniqueIndex(
                                     jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
                     jdbcConf.setUniqueKey(tableIndex);
                     LOG.info("updateKey = {}", JsonUtil.toJson(tableIndex));

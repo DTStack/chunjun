@@ -152,7 +152,8 @@ public class OracleRowConverter extends JdbcRowConverter {
                     }
                 };
             case CHAR:
-                if (((CharType) type).getLength() > CLOB_LENGTH) {
+                if (((CharType) type).getLength() > CLOB_LENGTH
+                        && ((VarCharType) type).getLength() != Integer.MAX_VALUE) {
                     return val -> {
                         oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
                         return StringData.fromString(ConvertUtil.convertClob(clob));
@@ -160,7 +161,8 @@ public class OracleRowConverter extends JdbcRowConverter {
                 }
                 return val -> StringData.fromString(val.toString());
             case VARCHAR:
-                if (((VarCharType) type).getLength() > CLOB_LENGTH) {
+                if (((VarCharType) type).getLength() > CLOB_LENGTH
+                        && ((VarCharType) type).getLength() != Integer.MAX_VALUE) {
                     return val -> {
                         oracle.sql.CLOB clob = (oracle.sql.CLOB) val;
                         return StringData.fromString(ConvertUtil.convertClob(clob));
@@ -200,7 +202,8 @@ public class OracleRowConverter extends JdbcRowConverter {
             case DOUBLE:
                 return (val, index, statement) -> statement.setDouble(index, val.getDouble(index));
             case CHAR:
-                if (((CharType) type).getLength() > CLOB_LENGTH) {
+                if (((CharType) type).getLength() > CLOB_LENGTH
+                        && ((VarCharType) type).getLength() != Integer.MAX_VALUE) {
                     return (val, index, statement) -> {
                         try (StringReader reader =
                                 new StringReader(val.getString(index).toString())) {
@@ -213,7 +216,8 @@ public class OracleRowConverter extends JdbcRowConverter {
                 };
             case VARCHAR:
                 // value is BinaryString
-                if (((VarCharType) type).getLength() > CLOB_LENGTH) {
+                if (((VarCharType) type).getLength() > CLOB_LENGTH
+                        && ((VarCharType) type).getLength() != Integer.MAX_VALUE) {
                     return (val, index, statement) -> {
                         try (StringReader reader =
                                 new StringReader(val.getString(index).toString())) {
