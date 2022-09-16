@@ -214,6 +214,42 @@ public class JdbcUtil {
         return indexList;
     }
     /**
+     * get primarykey
+     *
+     * @param schema
+     * @param tableName
+     * @param dbConn
+     * @return
+     * @throws SQLException
+     */
+    public static List<String> getTablePrimaryKey(
+            String schema, String tableName, Connection dbConn) throws SQLException {
+        ResultSet rs = dbConn.getMetaData().getPrimaryKeys(null, schema, tableName);
+        List<String> indexList = new LinkedList<>();
+        while (rs.next()) {
+            String index = rs.getString(4);
+            if (StringUtils.isNotBlank(index)) indexList.add(index);
+        }
+        return indexList;
+    }
+
+    public static List<String> getTableUniqueIndex(
+            String schema, String tableName, Connection dbConn) throws SQLException {
+        List<String> tablePrimaryKey = getTablePrimaryKey(schema, tableName, dbConn);
+        if (CollectionUtils.isNotEmpty(tablePrimaryKey)) {
+            return tablePrimaryKey;
+        }
+
+        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, tableName, true, false);
+        List<String> indexList = new LinkedList<>();
+        while (rs.next()) {
+            String index = rs.getString(9);
+            if (StringUtils.isNotBlank(index)) indexList.add(index);
+        }
+        return indexList;
+    }
+
+    /**
      * 关闭连接资源
      *
      * @param rs ResultSet
