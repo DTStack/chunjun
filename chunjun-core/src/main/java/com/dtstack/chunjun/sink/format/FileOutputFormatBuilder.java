@@ -24,10 +24,10 @@ import com.dtstack.chunjun.conf.BaseFileConf;
  *
  * @author tudou
  */
-public abstract class FileOutputFormatBuilder
-        extends BaseRichOutputFormatBuilder<BaseFileOutputFormat> {
+public abstract class FileOutputFormatBuilder<T extends BaseFileOutputFormat>
+        extends BaseRichOutputFormatBuilder<T> {
 
-    public FileOutputFormatBuilder(BaseFileOutputFormat format) {
+    public FileOutputFormatBuilder(T format) {
         super(format);
     }
 
