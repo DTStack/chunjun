@@ -211,6 +211,7 @@ public class Main {
         if (transformer) {
             dataStream = syncStreamToTable(tableEnv, config, dataStreamSource);
         } else {
+            env.disableOperatorChaining();
             dataStream = dataStreamSource;
         }
 
@@ -223,7 +224,7 @@ public class Main {
         if (speed.getWriterChannel() > 0) {
             dataStreamSink.setParallelism(speed.getWriterChannel());
         }
-        // env.disableOperatorChaining();
+
         JobExecutionResult result = env.execute(options.getJobName());
         if (env instanceof MyLocalStreamEnvironment) {
             PrintUtil.printResult(result.getAllAccumulatorResults());
