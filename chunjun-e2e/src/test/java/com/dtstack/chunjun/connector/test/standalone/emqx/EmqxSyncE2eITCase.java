@@ -52,7 +52,6 @@ public class EmqxSyncE2eITCase extends ChunjunFlinkStandaloneTestEnvironment {
                 .dependsOn(flinkStandaloneContainer);
     }
 
-
     @Before
     public void before() throws Exception {
         super.before();

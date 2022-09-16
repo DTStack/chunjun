@@ -23,6 +23,7 @@ import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcAllTableFunction;
 import com.dtstack.chunjun.connector.jdbc.lookup.JdbcLruTableFunction;
+import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.enums.CacheType;
 import com.dtstack.chunjun.lookup.conf.LookupConf;
 import com.dtstack.chunjun.source.DtInputFormatSourceFunction;
@@ -45,6 +46,7 @@ import org.apache.flink.util.Preconditions;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -127,22 +129,12 @@ public class JdbcDynamicTableSource
 
         // TODO sql任务使用增量同步或者间隔轮询时暂不支持增量指标写入外部存储，暂时设置为false
         jdbcConf.setInitReporter(false);
-        String increColumn = jdbcConf.getIncreColumn();
-        if (StringUtils.isNotBlank(increColumn)) {
-            FieldConf fieldConf =
-                    FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), increColumn);
-            if (fieldConf != null) {
-                jdbcConf.setIncreColumnIndex(fieldConf.getIndex());
-                jdbcConf.setIncreColumnType(fieldConf.getType());
 
-                jdbcConf.setRestoreColumn(increColumn);
-                jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
-                jdbcConf.setRestoreColumnType(fieldConf.getType());
-            } else {
-                throw new IllegalArgumentException("unknown incre column name: " + increColumn);
-            }
-        }
+        KeyUtil<?, BigInteger> restoreKeyUtil = null;
+        KeyUtil<?, BigInteger> splitKeyUtil = null;
+        KeyUtil<?, BigInteger> incrementKeyUtil = null;
 
+        // init restore info
         String restoreColumn = jdbcConf.getRestoreColumn();
         if (StringUtils.isNotBlank(restoreColumn)) {
             FieldConf fieldConf =
@@ -150,10 +142,56 @@ public class JdbcDynamicTableSource
             if (fieldConf != null) {
                 jdbcConf.setRestoreColumnIndex(fieldConf.getIndex());
                 jdbcConf.setRestoreColumnType(fieldConf.getType());
+                restoreKeyUtil = jdbcDialect.initKeyUtil(fieldConf.getName(), fieldConf.getType());
             } else {
                 throw new IllegalArgumentException("unknown restore column name: " + restoreColumn);
             }
         }
+
+        // init splitInfo
+        String splitPk = jdbcConf.getSplitPk();
+        if (StringUtils.isNotBlank(splitPk)) {
+            FieldConf fieldConf = FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), splitPk);
+            if (fieldConf != null) {
+                jdbcConf.setSplitPk(fieldConf.getType());
+                splitKeyUtil = jdbcDialect.initKeyUtil(fieldConf.getName(), fieldConf.getType());
+            }
+        }
+
+        // init incrementInfo
+        String incrementColumn = jdbcConf.getIncreColumn();
+        if (StringUtils.isNotBlank(incrementColumn)) {
+            FieldConf fieldConf =
+                    FieldConf.getSameNameMetaColumn(jdbcConf.getColumn(), incrementColumn);
+            int index;
+            String name;
+            String type;
+            if (fieldConf != null) {
+                index = fieldConf.getIndex();
+                name = fieldConf.getName();
+                type = fieldConf.getType();
+                incrementKeyUtil = jdbcDialect.initKeyUtil(name, type);
+            } else {
+                throw new IllegalArgumentException(
+                        "unknown increment column name: " + incrementColumn);
+            }
+            jdbcConf.setIncreColumn(name);
+            jdbcConf.setIncreColumnType(type);
+
+            jdbcConf.setRestoreColumn(name);
+            jdbcConf.setRestoreColumnIndex(index);
+            jdbcConf.setRestoreColumnType(type);
+            restoreKeyUtil = incrementKeyUtil;
+
+            if (StringUtils.isBlank(jdbcConf.getSplitPk())) {
+                splitKeyUtil = incrementKeyUtil;
+                jdbcConf.setSplitPk(name);
+            }
+        }
+
+        builder.setRestoreKeyUtil(restoreKeyUtil);
+        builder.setSplitKeyUtil(splitKeyUtil);
+        builder.setIncrementKeyUtil(incrementKeyUtil);
 
         builder.setJdbcDialect(jdbcDialect);
         builder.setJdbcConf(jdbcConf);

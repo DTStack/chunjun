@@ -44,7 +44,7 @@ public class SqlUtil {
         if (StringUtils.isNotEmpty(jdbcConf.getCustomSql())) {
             querySplitRangeSql =
                     String.format(
-                            "SELECT max(%s.%s) as max_value, min(%s.%s) as min_value FROM ( %s ) %s %s",
+                            "SELECT min(%s.%s) as min_value,max(%s.%s) as max_value, FROM ( %s ) %s %s",
                             JdbcUtil.TEMPORARY_TABLE_NAME,
                             jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()),
                             JdbcUtil.TEMPORARY_TABLE_NAME,
@@ -66,14 +66,14 @@ public class SqlUtil {
 
                 querySplitRangeSql =
                         String.format(
-                                "SELECT max(%s) as max_value, min(%s) as min_value FROM (%s)tmp",
+                                "SELECT min(%s) as min_value ,max(%s) as max_value FROM (%s)tmp",
                                 jdbcDialect.quoteIdentifier(jdbcDialect.getRowNumColumnAlias()),
                                 jdbcDialect.quoteIdentifier(jdbcDialect.getRowNumColumnAlias()),
                                 customTableBuilder);
             } else {
                 querySplitRangeSql =
                         String.format(
-                                "SELECT max(%s) as max_value, min(%s) as min_value FROM %s %s",
+                                "SELECT min(%s) as min_value,max(%s) as max_value FROM %s %s",
                                 jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()),
                                 jdbcDialect.quoteIdentifier(jdbcConf.getSplitPk()),
                                 jdbcDialect.buildTableInfoWithSchema(
@@ -201,15 +201,16 @@ public class SqlUtil {
             JdbcDialect jdbcDialect,
             JdbcInputSplit jdbcInputSplit,
             String splitColumn) {
-        String sql;
+        StringBuilder sql = new StringBuilder("(");
         if ("range".equalsIgnoreCase(splitStrategy)) {
-            sql = jdbcDialect.getSplitRangeFilter(jdbcInputSplit, splitColumn);
+            sql.append(jdbcDialect.getSplitRangeFilter(jdbcInputSplit, splitColumn));
         } else {
-            sql = jdbcDialect.getSplitModFilter(jdbcInputSplit, splitColumn);
+            sql.append(jdbcDialect.getSplitModFilter(jdbcInputSplit, splitColumn));
         }
         if (jdbcInputSplit.getSplitNumber() == 0) {
-            sql = "(" + sql + " OR " + jdbcDialect.quoteIdentifier(splitColumn) + " IS NULL)";
+            sql.append(" OR ").append(jdbcDialect.quoteIdentifier(splitColumn)).append(" IS NULL");
         }
-        return sql;
+        sql.append(")");
+        return sql.toString();
     }
 }

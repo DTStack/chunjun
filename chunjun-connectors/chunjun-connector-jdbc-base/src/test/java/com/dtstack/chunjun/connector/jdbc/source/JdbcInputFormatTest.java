@@ -22,6 +22,7 @@ import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.enums.ColumnType;
@@ -66,6 +67,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -199,6 +201,7 @@ public class JdbcInputFormatTest {
         when(jdbcConf.getParallelism()).thenReturn(3);
         when(jdbcConf.getSplitStrategy()).thenReturn("range");
         when(jdbcConf.getStartLocation()).thenReturn("20");
+        setInternalState(jdbcInputFormat, "splitKeyUtil", new NumericTypeUtil());
 
         Method getSplitRangeFromDb =
                 PowerMockito.method(JdbcInputFormat.class, "getSplitRangeFromDb");
@@ -324,7 +327,7 @@ public class JdbcInputFormatTest {
         when(jdbcConf.getStartLocation()).thenReturn("10");
         when(jdbcConf.isUseMaxFunc()).thenReturn(true);
         when(jdbcConf.isPolling()).thenReturn(true);
-        when(jdbcInputFormat.buildStartLocationSql("int", "\"id\"", "10", true, true))
+        when(jdbcInputFormat.buildStartLocationSql("\"id\"", "10", true, true))
                 .thenReturn("id >= 10");
 
         when(jdbcInputFormat.getConnection()).thenReturn(connection);
@@ -335,6 +338,7 @@ public class JdbcInputFormatTest {
         when(resultSet.getObject("max_value")).thenReturn("100");
         when(resultSet.getString("max_value")).thenReturn("100");
 
+        setInternalState(jdbcInputFormat, "incrementKeyUtil", new NumericTypeUtil());
         jdbcConf.setCustomSql("");
         setInternalState(jdbcInputFormat, "type", ColumnType.INTEGER);
         when(jdbcConf.getCustomSql()).thenCallRealMethod();
@@ -350,15 +354,16 @@ public class JdbcInputFormatTest {
     @Test
     public void buildStartLocationSqlTest() {
         when(jdbcInputFormat.buildStartLocationSql(
-                        anyString(), anyString(), anyString(), anyBoolean(), anyBoolean()))
+                        anyString(), anyString(), anyBoolean(), anyBoolean()))
                 .thenCallRealMethod();
-        Assert.assertNull(jdbcInputFormat.buildStartLocationSql("int", "id", "", true, true));
+        Assert.assertNull(jdbcInputFormat.buildStartLocationSql("id", "", true, true));
         Assert.assertEquals(
-                "id >= ?", jdbcInputFormat.buildStartLocationSql("int", "id", "10", true, true));
+                "id >= ?", jdbcInputFormat.buildStartLocationSql("id", "10", true, true));
 
-        when(jdbcInputFormat.getLocationSql("int", "id", "10", " >= ")).thenCallRealMethod();
+        when(jdbcInputFormat.getLocationSql("id", "10", " >= ")).thenCallRealMethod();
+        setInternalState(jdbcInputFormat, "incrementKeyUtil", new NumericTypeUtil());
         Assert.assertEquals(
-                "id >= 10", jdbcInputFormat.buildStartLocationSql("int", "id", "10", true, false));
+                "id >= 10", jdbcInputFormat.buildStartLocationSql("id", "10", true, false));
     }
 
     @Test
@@ -379,36 +384,34 @@ public class JdbcInputFormatTest {
 
     @Test
     public void buildLocationFilterTest() {
-
         JdbcInputSplit inputSplit =
                 new JdbcInputSplit(0, 1, 0, "10", "100", null, null, "mod", false);
         List<String> whereList = new ArrayList<>();
-        doCallRealMethod()
-                .when(jdbcInputFormat)
-                .buildLocationFilter(any(JdbcInputSplit.class), anyList());
-        doCallRealMethod().when(jdbcInputFormat).buildLocation(anyString(), anyString(), any());
+        doCallRealMethod().when(jdbcInputFormat).buildLocationFilter(inputSplit, whereList);
+        setInternalState(jdbcInputFormat, "jdbcConf", jdbcConf);
 
+        setInternalState(jdbcInputFormat, "incrementKeyUtil", new NumericTypeUtil());
+        setInternalState(jdbcInputFormat, "restoreKeyUtil", new NumericTypeUtil());
+
+        doAnswer(invocation -> true).when(jdbcConf).isIncrement();
+        jdbcInputFormat.buildLocationFilter(inputSplit, whereList);
         when(jdbcInputFormat.buildFilterSql(
-                        anyString(),
-                        anyString(),
-                        anyString(),
-                        anyString(),
-                        anyString(),
-                        anyBoolean(),
-                        any()))
+                        anyString(), anyString(), anyString(), anyBoolean(), anyString()))
                 .thenCallRealMethod();
 
-        when(jdbcConf.isIncrement()).thenReturn(true);
         when(jdbcConf.isUseMaxFunc()).thenReturn(true);
         when(jdbcDialect.quoteIdentifier(anyString())).thenCallRealMethod();
+
         // from state
         when(jdbcConf.getCustomSql()).thenReturn("");
         when(formatState.getState()).thenReturn(20);
         when(jdbcConf.getRestoreColumn()).thenReturn("id");
-        when(jdbcConf.getRestoreColumnType()).thenReturn("int");
+
+        when(jdbcConf.isIncrement()).thenReturn(true);
         jdbcInputFormat.buildLocationFilter(inputSplit, whereList);
         Assert.assertEquals(inputSplit.getStartLocation(), "20");
         // increment
+
         when(jdbcConf.getCustomSql()).thenReturn("select id from table");
         when(jdbcConf.getIncreColumn()).thenReturn("id");
         when(jdbcConf.getIncreColumnType()).thenReturn("int");
@@ -421,6 +424,7 @@ public class JdbcInputFormatTest {
     @Test
     public void executeQueryTest() throws SQLException {
         JdbcInputSplit split = mock(JdbcInputSplit.class);
+        setInternalState(jdbcInputFormat, "restoreKeyUtil", new NumericTypeUtil());
         setInternalState(jdbcInputFormat, "currentJdbcInputSplit", split);
         setInternalState(jdbcInputFormat, "dbConn", connection);
         when(connection.prepareStatement(anyString(), anyInt(), anyInt())).thenReturn(ps);
@@ -434,8 +438,8 @@ public class JdbcInputFormatTest {
 
         when(split.isPolling()).thenReturn(true, true, false);
         // polling
-        jdbcInputFormat.executeQuery("");
         jdbcInputFormat.executeQuery("20");
+        jdbcInputFormat.executeQuery("");
         // increment
         jdbcInputFormat.executeQuery("");
     }
