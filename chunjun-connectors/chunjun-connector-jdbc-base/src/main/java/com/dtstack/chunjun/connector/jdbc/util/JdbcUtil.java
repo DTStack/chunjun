@@ -32,6 +32,7 @@ import com.dtstack.chunjun.util.TelnetUtil;
 
 import org.apache.flink.table.types.logical.LogicalType;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -168,6 +169,22 @@ public class JdbcUtil {
      */
     public static List<String> getTableIndex(String schema, String tableName, Connection dbConn)
             throws SQLException {
+        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, tableName, true, false);
+        List<String> indexList = new LinkedList<>();
+        while (rs.next()) {
+            String index = rs.getString(9);
+            if (StringUtils.isNotBlank(index)) indexList.add(index);
+        }
+        return indexList;
+    }
+
+    public static List<String> getTableUniqueIndex(
+            String schema, String tableName, Connection dbConn) throws SQLException {
+        List<String> tablePrimaryKey = getTablePrimaryKey(schema, tableName, dbConn);
+        if (CollectionUtils.isNotEmpty(tablePrimaryKey)) {
+            return tablePrimaryKey;
+        }
+
         ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, tableName, true, false);
         List<String> indexList = new LinkedList<>();
         while (rs.next()) {
