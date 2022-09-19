@@ -49,6 +49,7 @@ import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /** Base class for all converters that convert between JDBC object and Flink internal object. */
@@ -173,8 +174,8 @@ public class JdbcColumnConverter
                 return (IDeserializationConverter<Object, AbstractBaseColumn>)
                         val ->
                                 new TimestampColumn(
-                                        (Timestamp) val, ((TimestampType) (type)).getPrecision());
-
+                                        Timestamp.valueOf((LocalDateTime) val),
+                                        ((TimestampType) (type)).getPrecision());
             case BINARY:
             case VARBINARY:
                 return val -> new BytesColumn((byte[]) val);
