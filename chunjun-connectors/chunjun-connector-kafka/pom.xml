@@ -42,6 +42,14 @@
 			<artifactId>avro</artifactId>
 			<version>1.10.0</version>
 		</dependency>
+
+		<!--flink formats-->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-json</artifactId>
+			<version>${flink.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

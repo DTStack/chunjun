@@ -31,6 +31,8 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQueries;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -380,6 +382,24 @@ public class DateUtil {
             Instant instant = Instant.from(ISO_INSTANT.parse(timeStr));
             return new Timestamp(instant.getEpochSecond() * MILLIS_PER_SECOND);
         }
+
+        TemporalAccessor parsedTimestamp = null;
+
+        try {
+            parsedTimestamp = DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(timeStr);
+        } catch (Exception e) {
+        }
+        try {
+            parsedTimestamp = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(timeStr);
+        } catch (Exception e) {
+        }
+
+        if (parsedTimestamp != null) {
+            LocalTime localTime = parsedTimestamp.query(TemporalQueries.localTime());
+            LocalDate localDate = parsedTimestamp.query(TemporalQueries.localDate());
+            return Timestamp.valueOf(LocalDateTime.of(localDate, localTime));
+        }
+
         Date date = stringToDate(timeStr, null);
         return null == date ? null : new Timestamp(date.getTime());
     }
