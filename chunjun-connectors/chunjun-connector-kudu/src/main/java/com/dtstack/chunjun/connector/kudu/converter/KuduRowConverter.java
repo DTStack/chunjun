@@ -213,8 +213,11 @@ public class KuduRowConverter
                                 .getRow()
                                 .addTimestamp(
                                         columnName.get(index),
-                                        Timestamp.valueOf(
-                                                ((GenericRowData) val).getField(index).toString()));
+                                        new Timestamp(
+                                                ((TimestampData)
+                                                                ((GenericRowData) val)
+                                                                        .getField(index))
+                                                        .getMillisecond()));
             default:
                 throw new UnsupportedTypeException(type);
         }
