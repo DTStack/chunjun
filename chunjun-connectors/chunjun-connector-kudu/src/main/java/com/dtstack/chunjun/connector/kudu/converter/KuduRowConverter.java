@@ -40,6 +40,7 @@ import org.apache.kudu.client.RowResult;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -212,7 +213,8 @@ public class KuduRowConverter
                                 .getRow()
                                 .addTimestamp(
                                         columnName.get(index),
-                                        ((ColumnRowData) val).getField(index).asTimestamp());
+                                        Timestamp.valueOf(
+                                                ((GenericRowData) val).getField(index).toString()));
             default:
                 throw new UnsupportedTypeException(type);
         }
