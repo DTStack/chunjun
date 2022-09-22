@@ -192,7 +192,6 @@ public class KuduRowConverter
                                         index,
                                         val.getDecimal(index, decimalPrecision, decimalScale)
                                                 .toBigDecimal());
-                ;
             case "VARCHAR":
                 return (val, index, operation) ->
                         operation
