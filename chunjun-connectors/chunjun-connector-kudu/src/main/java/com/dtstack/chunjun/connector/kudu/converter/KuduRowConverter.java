@@ -183,12 +183,16 @@ public class KuduRowConverter
                 return (val, index, operation) ->
                         operation.getRow().addBinary(columnName.get(index), val.getBinary(index));
             case "DECIMAL":
+                final int decimalPrecision = ((DecimalType) type).getPrecision();
+                final int decimalScale = ((DecimalType) type).getScale();
                 return (val, index, operation) ->
                         operation
                                 .getRow()
                                 .addDecimal(
-                                        columnName.get(index),
-                                        ((ColumnRowData) val).getField(index).asBigDecimal());
+                                        index,
+                                        val.getDecimal(index, decimalPrecision, decimalScale)
+                                                .toBigDecimal());
+                ;
             case "VARCHAR":
                 return (val, index, operation) ->
                         operation
