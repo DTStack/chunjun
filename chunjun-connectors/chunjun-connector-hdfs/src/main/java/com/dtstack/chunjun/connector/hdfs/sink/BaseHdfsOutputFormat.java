@@ -83,6 +83,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                     hdfsConf.getColumn().stream()
                             .map(FieldConf::getName)
                             .collect(Collectors.toList());
+            hdfsConf.setFullColumnName(fullColumnNameList);
         }
 
         if (CollectionUtils.isNotEmpty(hdfsConf.getFullColumnType())) {
@@ -92,6 +93,7 @@ public abstract class BaseHdfsOutputFormat extends BaseFileOutputFormat {
                     hdfsConf.getColumn().stream()
                             .map(FieldConf::getType)
                             .collect(Collectors.toList());
+            hdfsConf.setFullColumnName(fullColumnNameList);
         }
         compressType = getCompressType();
         super.initVariableFields();
