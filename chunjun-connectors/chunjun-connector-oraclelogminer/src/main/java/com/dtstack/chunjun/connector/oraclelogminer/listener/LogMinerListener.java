@@ -94,7 +94,7 @@ public class LogMinerListener implements Runnable {
                         namedThreadFactory,
                         new ThreadPoolExecutor.AbortPolicy());
 
-        logParser = new LogParser(logMinerConf);
+        logParser = new LogParser();
     }
 
     public void start() {

@@ -16,6 +16,10 @@ jobs:
         run: |
           ./mvnw spotless:check
 
+      - name: Execute Unit Test
+        run: |
+          ./mvnw test
+
       - name: Build
         run: |
           ./mvnw clean package -Dmaven.test.skip=true
