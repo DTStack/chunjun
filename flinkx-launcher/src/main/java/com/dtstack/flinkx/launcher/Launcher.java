@@ -124,13 +124,14 @@ public class Launcher {
         }
         PackagedProgram program = PackagedProgram.newBuilder()
                 .setJarFile(jarFile)
-                .setUserClassPaths(urlList)
                 .setEntryPointClassName(MAIN_CLASS)
                 .setConfiguration(launcherOptions.loadFlinkConfiguration())
                 .setSavepointRestoreSettings(savepointRestoreSettings)
                 .setArguments(remoteArgs)
                 .build();
-        return PackagedProgramUtils.createJobGraph(program, launcherOptions.loadFlinkConfiguration(), Integer.parseInt(launcherOptions.getParallelism()), false);
+        JobGraph jobGraph = PackagedProgramUtils.createJobGraph(program, launcherOptions.loadFlinkConfiguration(), Integer.parseInt(launcherOptions.getParallelism()), false);
+        jobGraph.addJars(urlList);
+        return jobGraph;
     }
 
     public static List<URL> analyzeUserClasspath(String content, String pluginRoot) {
