@@ -205,7 +205,24 @@ public class LogParser {
 
         return value;
     }
-
+    public static String decodeUnicode(String dataStr) {
+        int start = dataStr.indexOf("\\");
+        int end = 0;
+        final StringBuffer buffer = new StringBuffer(dataStr.substring(0, start));
+        while (start > -1) {
+            end = dataStr.indexOf("\\", start + 1);
+            String charStr = "";
+            if (end == -1) {
+                charStr = dataStr.substring(start + 1, dataStr.length());
+            } else {
+                charStr = dataStr.substring(start + 1, end);
+            }
+            char letter = (char) Integer.parseInt(charStr, 16); // 16进制parse整形字符串。
+            buffer.append(new Character(letter).toString());
+            start = end;
+        }
+        return new String(buffer.toString().getBytes(), StandardCharsets.UTF_8);
+    }
     public static String parseString(String value) {
         if (!value.endsWith("')")) {
             return value;
@@ -217,6 +234,18 @@ public class LogParser {
                 return new String(
                         Hex.decodeHex(value.substring(10, value.length() - 2).toCharArray()),
                         StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                throw new RuntimeException("parse value [" + value + " ] failed ", e);
+            }
+        } else if (value.startsWith("UNISTR('")) {
+            try {
+                String valueSub = value.substring(8, value.length() - 2);
+                if (StringUtils.isNotEmpty(valueSub)) {
+                    return decodeUnicode(valueSub);
+                } else {
+                    return "";
+                }
+
             } catch (Exception e) {
                 throw new RuntimeException("parse value [" + value + " ] failed ", e);
             }
