@@ -19,6 +19,7 @@ package com.dtstack.chunjun.connector.db2.source;
 
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.connector.db2.dialect.Db2Dialect;
+import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
 
@@ -45,6 +46,6 @@ public class Db2SourceFactory extends JdbcSourceFactory {
 
     @Override
     protected JdbcInputFormatBuilder getBuilder() {
-        return new JdbcInputFormatBuilder(new Db2InputFormat());
+        return new JdbcInputFormatBuilder(new JdbcInputFormat());
     }
 }

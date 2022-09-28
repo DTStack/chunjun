@@ -25,7 +25,7 @@ import com.dtstack.chunjun.converter.RawTypeConverter;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -40,8 +40,8 @@ public class SourceFactoryTest {
     private static StreamExecutionEnvironment env;
     private static String json;
 
-    @BeforeClass
-    public static void setup() throws IOException {
+    @Before
+    public void setup() throws IOException {
         env = mock(StreamExecutionEnvironment.class);
         json = readFile("distribute_sync_test.json");
     }

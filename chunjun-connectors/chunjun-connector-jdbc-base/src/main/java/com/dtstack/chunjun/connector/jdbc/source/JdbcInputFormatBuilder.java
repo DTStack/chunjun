@@ -31,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * The builder of JdbcInputFormat
@@ -52,6 +53,10 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
 
     public void setJdbcDialect(JdbcDialect jdbcDialect) {
         format.setJdbcDialect(jdbcDialect);
+    }
+
+    public void setColumnNameList(List<String> columnNameList) {
+        format.setColumnNameList(columnNameList);
     }
 
     @Override

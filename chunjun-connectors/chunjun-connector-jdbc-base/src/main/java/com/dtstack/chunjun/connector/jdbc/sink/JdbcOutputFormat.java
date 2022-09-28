@@ -19,7 +19,6 @@ package com.dtstack.chunjun.connector.jdbc.sink;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
 import com.dtstack.chunjun.cdc.DdlRowDataConvented;
-import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -33,25 +32,20 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.JsonUtil;
-import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.util.FlinkRuntimeException;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * OutputFormat for writing data to relational database.
@@ -93,7 +87,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                 autoCommit = false;
                 dbConn.setAutoCommit(autoCommit);
             }
-            initColumnList();
             if (!EWriteMode.INSERT.name().equalsIgnoreCase(jdbcConf.getMode())) {
                 List<String> updateKey = jdbcConf.getUniqueKey();
                 if (CollectionUtils.isEmpty(updateKey)) {
@@ -123,13 +116,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             FieldNamedPreparedStatement fieldNamedPreparedStatement =
                     FieldNamedPreparedStatement.prepareStatement(
                             dbConn, prepareTemplates(), this.columnNameList.toArray(new String[0]));
-            RowType rowType =
-                    TableUtil.createRowType(
-                            columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
-            setRowConverter(
-                    rowConverter == null
-                            ? jdbcDialect.getColumnConverter(rowType, jdbcConf)
-                            : rowConverter);
             stmtProxy =
                     new PreparedStmtProxy(
                             fieldNamedPreparedStatement,
@@ -137,55 +123,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
                             dbConn,
                             jdbcConf,
                             jdbcDialect);
-        }
-    }
-
-    /** init columnNameList、 columnTypeList and hasConstantField */
-    protected void initColumnList() {
-        Pair<List<String>, List<String>> pair = getTableMetaData();
-
-        List<FieldConf> fieldList = jdbcConf.getColumn();
-        List<String> fullColumnList = pair.getLeft();
-        List<String> fullColumnTypeList = pair.getRight();
-        handleColumnList(fieldList, fullColumnList, fullColumnTypeList);
-    }
-
-    /**
-     * for override. because some databases have case-sensitive metadata。
-     *
-     * @return
-     */
-    protected Pair<List<String>, List<String>> getTableMetaData() {
-        return JdbcUtil.getTableMetaData(null, jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-    }
-
-    /**
-     * detailed logic for handling column
-     *
-     * @param fieldList
-     * @param fullColumnList
-     * @param fullColumnTypeList
-     */
-    protected void handleColumnList(
-            List<FieldConf> fieldList,
-            List<String> fullColumnList,
-            List<String> fullColumnTypeList) {
-        if (fieldList.size() == 1 && Objects.equals(fieldList.get(0).getName(), "*")) {
-            columnNameList = fullColumnList;
-            columnTypeList = fullColumnTypeList;
-            return;
-        }
-
-        columnNameList = new ArrayList<>(fieldList.size());
-        columnTypeList = new ArrayList<>(fieldList.size());
-        for (FieldConf fieldConf : fieldList) {
-            columnNameList.add(fieldConf.getName());
-            for (int i = 0; i < fullColumnList.size(); i++) {
-                if (fieldConf.getName().equalsIgnoreCase(fullColumnList.get(i))) {
-                    columnTypeList.add(fullColumnTypeList.get(i));
-                    break;
-                }
-            }
         }
     }
 
@@ -442,5 +379,13 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
 
     public void setJdbcDialect(JdbcDialect jdbcDialect) {
         this.jdbcDialect = jdbcDialect;
+    }
+
+    public void setColumnNameList(List<String> columnNameList) {
+        this.columnNameList = columnNameList;
+    }
+
+    public void setColumnTypeList(List<String> columnTypeList) {
+        this.columnTypeList = columnTypeList;
     }
 }

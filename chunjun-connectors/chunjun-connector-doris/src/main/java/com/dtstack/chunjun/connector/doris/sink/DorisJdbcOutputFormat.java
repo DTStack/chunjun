@@ -17,6 +17,6 @@
 
 package com.dtstack.chunjun.connector.doris.sink;
 
-import com.dtstack.chunjun.connector.mysql.sink.MysqlOutputFormat;
+import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 
-public class DorisJdbcOutputFormat extends MysqlOutputFormat {}
+public class DorisJdbcOutputFormat extends JdbcOutputFormat {}

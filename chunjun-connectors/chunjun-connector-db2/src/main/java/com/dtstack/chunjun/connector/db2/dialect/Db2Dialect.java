@@ -21,11 +21,13 @@ import com.dtstack.chunjun.conf.ChunJunCommonConf;
 import com.dtstack.chunjun.connector.db2.converter.Db2ColumnConverter;
 import com.dtstack.chunjun.connector.db2.converter.Db2RawTypeConverter;
 import com.dtstack.chunjun.connector.db2.converter.Db2RowConverter;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
 
@@ -37,6 +39,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -175,5 +178,14 @@ public class Db2Dialect implements JdbcDialect {
         return Arrays.stream(uniqueKeyFields)
                 .map(col -> "T1." + quoteIdentifier(col) + " = T2." + quoteIdentifier(col))
                 .collect(Collectors.joining(" and "));
+    }
+
+    @Override
+    public Function<JdbcConf, Tuple3<String, String, String>> getTableIdentify() {
+        return conf ->
+                Tuple3.of(
+                        null,
+                        StringUtils.upperCase(conf.getSchema()),
+                        StringUtils.upperCase(conf.getTable()));
     }
 }

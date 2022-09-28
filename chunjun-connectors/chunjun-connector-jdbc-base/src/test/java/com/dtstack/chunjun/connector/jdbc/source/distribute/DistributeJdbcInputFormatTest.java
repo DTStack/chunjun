@@ -218,7 +218,8 @@ public class DistributeJdbcInputFormatTest {
         Assert.assertFalse(inputFormat.reachedEnd());
 
         setInternalState(inputFormat, "dbConn", (Object) null);
-        when(resultSet.getMetaData()).thenThrow(new SQLException(""));
+        when(connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY))
+                .thenThrow(new SQLException(""));
         Assert.assertThrows(ChunJunRuntimeException.class, () -> inputFormat.reachedEnd());
     }
 }

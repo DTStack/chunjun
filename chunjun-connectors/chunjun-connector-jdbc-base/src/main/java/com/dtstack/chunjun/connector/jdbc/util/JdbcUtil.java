@@ -21,6 +21,7 @@ import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.jdbc.JdbcDialectWrapper;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.ClassUtil;
@@ -496,5 +497,100 @@ public class JdbcUtil {
                     jdbcConf.getSchema(),
                     jdbcConf.getTable());
         }
+    }
+
+    public static Pair<List<String>, List<String>> buildCustomColumnInfo(
+            List<FieldConf> column, String constantType) {
+        List<String> columnNameList = new ArrayList<>(column.size());
+        List<String> columnTypeList = new ArrayList<>(column.size());
+        int index = 0;
+        for (FieldConf fieldConf : column) {
+            if (StringUtils.isNotBlank(fieldConf.getValue())) {
+                fieldConf.setType(constantType);
+                fieldConf.setIndex(-1);
+            } else {
+                columnNameList.add(fieldConf.getName());
+                columnTypeList.add(fieldConf.getType());
+                fieldConf.setIndex(index++);
+            }
+        }
+        return Pair.of(columnNameList, columnTypeList);
+    }
+
+    public static Pair<List<String>, List<String>> buildColumnWithMeta(
+            JdbcConf jdbcConf,
+            Pair<List<String>, List<String>> tableMetaData,
+            String constantType) {
+        List<String> metaColumnName = tableMetaData.getLeft();
+        List<String> metaColumnType = tableMetaData.getRight();
+
+        List<FieldConf> column = jdbcConf.getColumn();
+        int size = column.size();
+        List<String> columnNameList = new ArrayList<>(size);
+        List<String> columnTypeList = new ArrayList<>(size);
+        if (column.size() == 1 && ConstantValue.STAR_SYMBOL.equals(column.get(0).getName())) {
+            List<FieldConf> metaColumn = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                FieldConf fieldConf = new FieldConf();
+                fieldConf.setName(metaColumnName.get(i));
+                columnNameList.add(metaColumnName.get(i));
+                fieldConf.setType(metaColumnType.get(i));
+                columnTypeList.add(metaColumnType.get(i));
+                fieldConf.setIndex(i);
+                metaColumn.add(fieldConf);
+            }
+            jdbcConf.setColumn(metaColumn);
+            return Pair.of(columnNameList, columnTypeList);
+        } else {
+            return checkAndModifyColumnWithMeta(
+                    jdbcConf.getTable(),
+                    jdbcConf.getColumn(),
+                    metaColumnName,
+                    metaColumnType,
+                    constantType);
+        }
+    }
+
+    private static Pair<List<String>, List<String>> checkAndModifyColumnWithMeta(
+            String tableName,
+            List<FieldConf> column,
+            List<String> metaColumnName,
+            List<String> metaColumnType,
+            String constantType) {
+        // check columnName and modify columnType
+        int size = column.size();
+        List<String> columnNameList = new ArrayList<>(size);
+        List<String> columnTypeList = new ArrayList<>(size);
+        int index = 0;
+        for (FieldConf fieldConf : column) {
+            if (StringUtils.isNotBlank(fieldConf.getValue())) {
+                fieldConf.setType(constantType);
+                fieldConf.setIndex(-1);
+            } else {
+                String name = fieldConf.getName();
+                String metaType = null;
+                int i = 0;
+                for (; i < size; i++) {
+                    // todo get precision and scale
+                    if (metaColumnName.get(i).equalsIgnoreCase(name)) {
+                        metaType = metaColumnType.get(i);
+                        columnNameList.add(name);
+                        columnTypeList.add(metaType);
+                        fieldConf.setIndex(index++);
+                        fieldConf.setType(metaColumnType.get(i));
+                        break;
+                    }
+                }
+                if (i == size) {
+                    throw new ChunJunRuntimeException(
+                            String.format(
+                                    "The column[%s] does not exist in the table[%s]",
+                                    name, tableName));
+                }
+                assert metaType != null
+                        : String.format("failed to get column type from db,column name= %s ", name);
+            }
+        }
+        return Pair.of(columnNameList, columnTypeList);
     }
 }

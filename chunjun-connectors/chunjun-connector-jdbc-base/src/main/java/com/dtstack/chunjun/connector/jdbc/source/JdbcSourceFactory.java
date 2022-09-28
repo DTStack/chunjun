@@ -36,17 +36,19 @@ import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.GsonUtil;
 import com.dtstack.chunjun.util.TableUtil;
 
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.math.BigInteger;
+import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -71,6 +73,8 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     protected KeyUtil<?, BigInteger> incrementKeyUtil = new NumericTypeUtil();
     protected KeyUtil<?, BigInteger> splitKeyUtil = new NumericTypeUtil();
     protected KeyUtil<?, BigInteger> restoreKeyUtil = new NumericTypeUtil();
+    protected List<String> columnNameList;
+    protected List<String> columnTypeList;
 
     public JdbcSourceFactory(
             SyncConf syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
@@ -104,7 +108,7 @@ public abstract class JdbcSourceFactory extends SourceFactory {
 
     @Override
     public DataStream<RowData> createSource() {
-
+        initColumnInfo();
         initRestoreConfig();
         initPollingConfig();
         initSplitConfig();
@@ -127,12 +131,20 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         builder.setIncrementKeyUtil(incrementKeyUtil);
         builder.setSplitKeyUtil(splitKeyUtil);
 
-        AbstractRowConverter rowConverter = null;
+        builder.setColumnNameList(columnNameList);
+
+        AbstractRowConverter rowConverter;
         if (!useAbstractBaseColumn) {
             checkConstant(jdbcConf);
-            final RowType rowType =
-                    TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter());
-            rowConverter = jdbcDialect.getRowConverter(rowType);
+            rowConverter =
+                    jdbcDialect.getRowConverter(
+                            TableUtil.createRowType(jdbcConf.getColumn(), getRawTypeConverter()));
+        } else {
+            rowConverter =
+                    jdbcDialect.getColumnConverter(
+                            TableUtil.createRowType(
+                                    columnNameList, columnTypeList, getRawTypeConverter()),
+                            jdbcConf);
         }
         builder.setRowConverter(rowConverter, useAbstractBaseColumn);
 
@@ -157,6 +169,38 @@ public abstract class JdbcSourceFactory extends SourceFactory {
                 jdbcConf.setSplitStrategy("range");
             }
         }
+    }
+
+    protected void initColumnInfo() {
+        Pair<List<String>, List<String>> selectedColumnInfo;
+        if (StringUtils.isNotBlank(jdbcConf.getCustomSql())) {
+            selectedColumnInfo =
+                    JdbcUtil.buildCustomColumnInfo(jdbcConf.getColumn(), getConstantType());
+        } else {
+            Connection conn = getConn();
+            Pair<List<String>, List<String>> tableMetaData = getTableMetaData(conn);
+            selectedColumnInfo =
+                    JdbcUtil.buildColumnWithMeta(jdbcConf, tableMetaData, getConstantType());
+            JdbcUtil.closeDbResources(null, null, conn, false);
+        }
+        columnNameList = selectedColumnInfo.getLeft();
+        columnTypeList = selectedColumnInfo.getRight();
+        this.fieldList = jdbcConf.getColumn();
+    }
+
+    protected Connection getConn() {
+        return JdbcUtil.getConnection(jdbcConf, jdbcDialect);
+    }
+
+    protected Pair<List<String>, List<String>> getTableMetaData(Connection dbConn) {
+        Tuple3<String, String, String> tableIdentify =
+                jdbcDialect.getTableIdentify().apply(jdbcConf);
+        return JdbcUtil.getTableMetaData(
+                tableIdentify.f0, tableIdentify.f1, tableIdentify.f2, dbConn);
+    }
+
+    protected String getConstantType() {
+        return "VARCHAR";
     }
 
     /** init restore info */

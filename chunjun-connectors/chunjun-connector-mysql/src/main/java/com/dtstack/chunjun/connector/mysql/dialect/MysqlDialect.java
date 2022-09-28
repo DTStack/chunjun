@@ -18,12 +18,18 @@
 
 package com.dtstack.chunjun.connector.mysql.dialect;
 
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.mysql.converter.MysqlRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 
+import org.apache.flink.api.java.tuple.Tuple3;
+
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -116,5 +122,14 @@ public class MysqlDialect implements JdbcDialect {
                         + " VALUES ("
                         + placeholders
                         + ")");
+    }
+
+    @Override
+    public Function<JdbcConf, Tuple3<String, String, String>> getTableIdentify() {
+        return conf ->
+                Tuple3.of(
+                        null,
+                        StringUtils.upperCase(conf.getSchema()),
+                        StringUtils.upperCase(conf.getTable()));
     }
 }

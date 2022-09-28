@@ -230,8 +230,6 @@ public class JdbcInputFormatTest {
         when(jdbcConf.getIncreColumnType()).thenReturn("int");
 
         when(jdbcInputFormat.getConnection()).thenReturn(connection);
-        when(jdbcInputFormat.getTableMetaData())
-                .thenReturn(Pair.of(new ArrayList<>(), new ArrayList<>()));
         when(ColumnBuildUtil.handleColumnList(anyList(), anyList(), anyList()))
                 .thenAnswer(invocation -> Pair.of(new ArrayList<>(), new ArrayList<>()));
         when(jdbcConf.getColumn()).thenReturn(new ArrayList<>());
