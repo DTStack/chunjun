@@ -31,9 +31,7 @@ import org.apache.commons.lang.StringUtils;
  *
  * @author huyifan.zju@163.com
  */
-public class FtpOutputFormatBuilder extends FileOutputFormatBuilder {
-
-    private FtpOutputFormat format;
+public class FtpOutputFormatBuilder extends FileOutputFormatBuilder<FtpOutputFormat> {
 
     public FtpOutputFormatBuilder() {
         super(new FtpOutputFormat());

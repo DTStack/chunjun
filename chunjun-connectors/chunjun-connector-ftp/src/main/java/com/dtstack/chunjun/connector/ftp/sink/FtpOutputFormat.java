@@ -135,7 +135,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
                 os = null;
             }
             // avoid Failure of FtpClient operating
-            this.ftpHandler.completePendingCommand();
+            this.ftpHandler.logoutFtpServer();
         } catch (Exception e) {
             throw new ChunJunRuntimeException("can't close source.", e);
         }
