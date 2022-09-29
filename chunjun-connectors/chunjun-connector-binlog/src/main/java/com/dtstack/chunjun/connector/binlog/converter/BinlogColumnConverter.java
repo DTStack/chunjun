@@ -58,6 +58,8 @@ import static com.dtstack.chunjun.constants.CDCConstantValue.AFTER;
 import static com.dtstack.chunjun.constants.CDCConstantValue.AFTER_;
 import static com.dtstack.chunjun.constants.CDCConstantValue.BEFORE;
 import static com.dtstack.chunjun.constants.CDCConstantValue.BEFORE_;
+import static com.dtstack.chunjun.constants.CDCConstantValue.DATABASE;
+import static com.dtstack.chunjun.constants.CDCConstantValue.LSN;
 import static com.dtstack.chunjun.constants.CDCConstantValue.OP_TIME;
 import static com.dtstack.chunjun.constants.CDCConstantValue.SCHEMA;
 import static com.dtstack.chunjun.constants.CDCConstantValue.TABLE;
@@ -174,25 +176,32 @@ public class BinlogColumnConverter extends AbstractCDCRowConverter<BinlogEventRo
             if (pavingData) {
                 // 5: schema, table, ts, opTime，type
                 size =
-                        5
+                        7
                                 + rowData.getAfterColumnsList().size()
                                 + rowData.getBeforeColumnsList().size();
             } else {
                 // 7: schema, table, ts, opTime，type, before, after
-                size = 7;
+                size = 9;
             }
 
             ColumnRowData columnRowData = new ColumnRowData(size);
+            columnRowData.addField(new NullColumn());
+            columnRowData.addHeader(DATABASE);
+            columnRowData.addExtHeader(DATABASE);
             columnRowData.addField(new StringColumn(schema));
             columnRowData.addHeader(SCHEMA);
-            columnRowData.addExtHeader(CDCConstantValue.SCHEMA);
+            columnRowData.addExtHeader(SCHEMA);
             columnRowData.addField(new StringColumn(table));
             columnRowData.addHeader(TABLE);
             columnRowData.addExtHeader(CDCConstantValue.TABLE);
             columnRowData.addField(new BigDecimalColumn(super.idWorker.nextId()));
             columnRowData.addHeader(TS);
             columnRowData.addExtHeader(TS);
-            columnRowData.addField(new TimestampColumn(binlogEventRow.getExecuteTime()));
+            columnRowData.addField(new StringColumn(binlogEventRow.getLsn()));
+            columnRowData.addHeader(LSN);
+            columnRowData.addExtHeader(LSN);
+            columnRowData.addField(
+                    new StringColumn(String.valueOf(binlogEventRow.getExecuteTime())));
             columnRowData.addHeader(OP_TIME);
             columnRowData.addExtHeader(CDCConstantValue.OP_TIME);
 

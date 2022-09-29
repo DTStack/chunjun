@@ -18,6 +18,12 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>19.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.alibaba.otter</groupId>
 			<artifactId>canal.parse</artifactId>
 			<version>${canal.version}</version>
@@ -136,11 +142,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${flinkx.guava.version}</version>
-		</dependency>
 
 	</dependencies>
 
@@ -172,7 +173,7 @@
 							<relocations>
 								<relocation>
 									<pattern>com.google.common</pattern>
-									<shadedPattern>shade.core.com.google.common</shadedPattern>
+									<shadedPattern>shade.binlog.com.google.common</shadedPattern>
 								</relocation>
 							</relocations>
 						</configuration>

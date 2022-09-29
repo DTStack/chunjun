@@ -17,8 +17,6 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink;
 
-import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.cdc.DdlRowDataConvented;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -334,30 +332,6 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
             LOG.error(ExceptionUtil.getErrorMessage(e));
         }
         JdbcUtil.closeDbResources(null, null, dbConn, true);
-    }
-
-    @Override
-    protected void executeDdlRwoData(DdlRowData ddlRowData) throws Exception {
-        if (ddlRowData instanceof DdlRowDataConvented
-                && !((DdlRowDataConvented) ddlRowData).conventSuccessful()) {
-            return;
-        }
-        Statement statement = dbConn.createStatement();
-        statement.execute(ddlRowData.getSql());
-    }
-
-    /**
-     * write all data and commit transaction before execute ddl sql
-     *
-     * @param ddlRowData
-     * @throws Exception
-     */
-    @Override
-    protected void preExecuteDdlRwoData(DdlRowData ddlRowData) throws Exception {
-        while (this.rows.size() > 0) {
-            this.writeRecordInternal();
-        }
-        doCommit();
     }
 
     /**
