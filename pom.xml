@@ -19,7 +19,7 @@
 		<module>chunjun-metrics</module>
 		<module>chunjun-dirty</module>
 		<module>chunjun-restore</module>
-		<module>chunjun-sql</module>
+		<module>chunjun-ddl</module>
 		<module>chunjun-assembly</module>
 		<!--		<module>chunjun-local-test</module>-->
 	</modules>
@@ -32,7 +32,7 @@
 		<prometheus.version>0.8.1</prometheus.version>
 		<hadoop.version>3.1.4</hadoop.version>
 		<http.version>4.5.3</http.version>
-		<flinkx.guava.version>27.0-jre</flinkx.guava.version>
+		<chunjun.guava.version>27.0-jre</chunjun.guava.version>
 		<!-- fix CVE-2021-45105 -->
 		<log4j2.version>2.17.0</log4j2.version>
 		<dist.dir>chunjun-dist</dist.dir>
@@ -340,7 +340,7 @@
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>${flinkx.guava.version}</version>
+				<version>${chunjun.guava.version}</version>
 			</dependency>
 
 			<!-- For dependency convergence -->

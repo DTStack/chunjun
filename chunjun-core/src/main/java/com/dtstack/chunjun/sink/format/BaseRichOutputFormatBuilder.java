@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.sink.format;
 
-import com.dtstack.chunjun.cdc.monitor.MonitorConf;
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -45,10 +44,6 @@ public abstract class BaseRichOutputFormatBuilder<T extends BaseRichOutputFormat
 
     public void setConfig(ChunJunCommonConf config) {
         format.setConfig(config);
-    }
-
-    public void setMonitorConfig(MonitorConf config) {
-        format.setMonitorConf(config);
     }
 
     public void setInitAccumulatorAndDirty(boolean initAccumulatorAndDirty) {

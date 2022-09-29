@@ -19,10 +19,10 @@
 package com.dtstack.chunjun.sink.format;
 
 import com.dtstack.chunjun.cdc.DdlRowData;
-import com.dtstack.chunjun.cdc.DdlRowDataConvented;
-import com.dtstack.chunjun.cdc.monitor.MonitorConf;
-import com.dtstack.chunjun.cdc.monitor.fetch.DdlObserver;
-import com.dtstack.chunjun.cdc.monitor.fetch.Event;
+import com.dtstack.chunjun.cdc.conf.DDLConf;
+import com.dtstack.chunjun.cdc.exception.LogExceptionHandler;
+import com.dtstack.chunjun.cdc.handler.DDLHandler;
+import com.dtstack.chunjun.cdc.utils.ExecutorUtils;
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -42,7 +42,6 @@ import com.dtstack.chunjun.throwable.WriteRecordException;
 import com.dtstack.chunjun.util.DataSyncFactoryUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.JsonUtil;
-import com.dtstack.chunjun.util.event.EventCenter;
 
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.ExecutionConfig;
@@ -64,6 +63,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -72,8 +72,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Abstract Specification for all the OutputFormat defined in chunjun plugins
- *
- * <p>Company: www.dtstack.com
  *
  * <p>NOTE Four situations for checkpoint(cp): 1).Turn off cp, batch and timing directly submitted
  * to the database
@@ -87,8 +85,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>4).Turn on cp and in EXACTLY_ONCE model, when cp time out
  * snapshotState、notifyCheckpointComplete may never call, Only call notifyCheckpointAborted.this
  * maybe a problem ,should make users perceive
- *
- * @author huyifan.zju@163.com
  */
 public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         implements CleanupWhenUnsuccessful, InitializeOnMaster, FinalizeOnMaster {
@@ -174,9 +170,14 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
     /** the manager of dirty data. */
     protected DirtyManager dirtyManager;
 
+    /** 是否执行ddl语句 * */
     protected boolean executeDdlAble;
-    protected EventCenter eventCenter;
-    protected MonitorConf monitorConf;
+
+    protected DDLConf ddlConf;
+
+    protected DDLHandler ddlHandler;
+
+    protected ExecutorService executorService;
 
     @VisibleForTesting protected boolean useAbstractColumn;
 
@@ -214,10 +215,21 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
         this.rows = new ArrayList<>(batchSize);
         this.executeDdlAble = config.isExecuteDdlAble();
         if (executeDdlAble) {
-            this.eventCenter = new EventCenter("ddl");
-            DdlObserver ddlObserver =
-                    new DdlObserver(DataSyncFactoryUtil.discoverFetchBase(monitorConf));
-            eventCenter.register(ddlObserver);
+            ddlHandler = DataSyncFactoryUtil.discoverDdlHandler(ddlConf);
+            try {
+                ddlHandler.init(ddlConf.getProperties());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            executorService =
+                    ExecutorUtils.threadPoolExecutor(
+                            2,
+                            10,
+                            0,
+                            Integer.MAX_VALUE,
+                            "ddl-executor-pool-%d",
+                            true,
+                            new LogExceptionHandler());
         }
         this.flushIntervalMills = config.getFlushIntervalMills();
         this.flushEnable = new AtomicBoolean(true);
@@ -556,15 +568,20 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     private void executeDdlRowDataTemplate(DdlRowData ddlRowData) {
         try {
-            preExecuteDdlRwoData(ddlRowData);
+            preExecuteDdlRowData(ddlRowData);
             if (executeDdlAble) {
-                executeDdlRwoData(ddlRowData);
-                postExecuteDdlRwoData(ddlRowData);
+                executeDdlRowData(ddlRowData);
             }
         } catch (Exception e) {
             LOG.error("execute ddl {} error", ddlRowData);
             throw new RuntimeException(e);
         }
+    }
+
+    protected void preExecuteDdlRowData(DdlRowData rowData) throws Exception {}
+
+    protected void executeDdlRowData(DdlRowData ddlRowData) throws Exception {
+        throw new UnsupportedOperationException("not support execute ddlRowData");
     }
 
     /**
@@ -621,24 +638,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
                 flushEnable.compareAndSet(false, true);
             }
         }
-    }
-
-    protected void preExecuteDdlRwoData(DdlRowData rowData) throws Exception {}
-
-    protected void executeDdlRwoData(DdlRowData ddlRowData) throws Exception {
-        throw new UnsupportedOperationException("not support execute ddlRowData");
-    }
-
-    protected void postExecuteDdlRwoData(DdlRowData ddlRowData) throws Exception {
-        if (ddlRowData instanceof DdlRowDataConvented
-                && !((DdlRowDataConvented) ddlRowData).conventSuccessful()) {
-            return;
-        }
-
-        String tableIdentifier = ddlRowData.getTableIdentifier();
-        String[] split = tableIdentifier.split("\\.");
-        eventCenter.postMessage(
-                new Event(split[0], split[1], ddlRowData.getLsn(), ddlRowData.getSql(), 2));
     }
 
     /**
@@ -710,10 +709,6 @@ public abstract class BaseRichOutputFormat extends RichOutputFormat<RowData>
 
     public void setExecuteDdlAble(boolean executeDdlAble) {
         this.executeDdlAble = executeDdlAble;
-    }
-
-    public void setMonitorConf(MonitorConf monitorConf) {
-        this.monitorConf = monitorConf;
     }
 
     public void setUseAbstractColumn(boolean useAbstractColumn) {

@@ -56,11 +56,16 @@ import java.util.UUID;
 import java.util.concurrent.Future;
 
 import static com.dtstack.chunjun.security.KerberosUtil.KEY_USE_LOCAL_FILE;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KerberosUtilTest {
 
-    private static final String TEST_PRINCIPAL = "hdfs@FLINKX.COM";
+    private static final String TEST_PRINCIPAL = "hdfs@CHUNJUN.COM";
 
     @TempDir static File kdcDir;
 
@@ -88,7 +93,7 @@ class KerberosUtilTest {
 
     private static void setUpMiniKdc() throws Exception {
         Properties kdcConf = MiniKdc.createConf();
-        kdcConf.put("org.name", "FLINKX");
+        kdcConf.put("org.name", "CHUNJUN");
         setUpMiniKdc(kdcConf);
     }
 
@@ -103,7 +108,7 @@ class KerberosUtilTest {
         }
         principals.add("CREATE_MATERIAL");
         principals.add("ROLLOVER_MATERIAL");
-        kdc.createPrincipal(keytab, principals.toArray(new String[principals.size()]));
+        kdc.createPrincipal(keytab, principals.toArray(new String[0]));
     }
 
     public enum Type {
@@ -140,7 +145,7 @@ class KerberosUtilTest {
             IOUtils.closeQuietly(is2);
         }
         String errorRealm =
-                "FLINKX1".toUpperCase(Locale.ENGLISH) + "." + "COM".toUpperCase(Locale.ENGLISH);
+                "CHUNJUN1".toUpperCase(Locale.ENGLISH) + "." + "COM".toUpperCase(Locale.ENGLISH);
         File errorKrb5file = new File(kdcDir.toString() + "/errorKrb5.conf");
         FileUtils.writeStringToFile(
                 errorKrb5file,
@@ -176,7 +181,7 @@ class KerberosUtilTest {
         refreshMethod.invoke(classRef);
         KerberosUtil.refreshConfig();
 
-        assertEquals("FLINKX.COM", kerberosName.getDefaultRealm());
+        assertEquals("CHUNJUN.COM", KerberosName.getDefaultRealm());
     }
 
     @Test
@@ -201,7 +206,7 @@ class KerberosUtilTest {
             IOUtils.closeQuietly(is2);
         }
         String errorRealm =
-                "FLINKX1".toUpperCase(Locale.ENGLISH) + "." + "COM".toUpperCase(Locale.ENGLISH);
+                "CHUNJUN1".toUpperCase(Locale.ENGLISH) + "." + "COM".toUpperCase(Locale.ENGLISH);
         File errorKrb5file = new File(kdcDir.toString() + "/errorKrb5.conf");
         FileUtils.writeStringToFile(
                 errorKrb5file,
@@ -214,15 +219,15 @@ class KerberosUtilTest {
 
         KerberosName kerberosName = new KerberosName(TEST_PRINCIPAL);
 
-        assertNotEquals(errorRealm, kerberosName.getDefaultRealm());
+        assertNotEquals(errorRealm, KerberosName.getDefaultRealm());
 
         KerberosUtil.reloadKrb5conf(errorKrb5file.getPath());
 
-        assertEquals(errorRealm, kerberosName.getDefaultRealm());
+        assertEquals(errorRealm, KerberosName.getDefaultRealm());
 
         KerberosUtil.reloadKrb5conf(kdc.getKrb5conf().getPath());
 
-        assertEquals("FLINKX.COM", kerberosName.getDefaultRealm());
+        assertEquals("CHUNJUN.COM", KerberosName.getDefaultRealm());
     }
 
     @Test
@@ -345,7 +350,7 @@ class KerberosUtilTest {
                 assertThrows(
                         ChunJunRuntimeException.class,
                         () -> KerberosUtil.loadFile(kerberosConfig, filePath, distributedCache),
-                        "It should load from sftp and throw a FlinkxRuntimeException when remote dir is empty");
+                        "It should load from sftp and throw a ChunJunRuntimeException when remote dir is empty");
         assertTrue(thrown.getMessage().contains("can't find [remoteDir] in config"));
     }
 
@@ -372,7 +377,7 @@ class KerberosUtilTest {
                 assertThrows(
                         RuntimeException.class,
                         () -> KerberosUtil.checkFileExists("/0xCOFFEEBABY"),
-                        "It should load from sftp and throw a FlinkxRuntimeException when remote dir is empty");
+                        "It should load from sftp and throw a ChunJunRuntimeException when remote dir is empty");
         assertTrue(thrown.getMessage().contains("keytab file not exists"));
     }
 
@@ -383,7 +388,7 @@ class KerberosUtilTest {
                 assertThrows(
                         RuntimeException.class,
                         () -> KerberosUtil.checkFileExists(directory),
-                        "It should load from sftp and throw a FlinkxRuntimeException when remote dir is empty");
+                        "It should load from sftp and throw a ChunJunRuntimeException when remote dir is empty");
         assertTrue(thrown.getMessage().contains("keytab is a directory"));
     }
 

@@ -258,27 +258,27 @@ StarRocks2.x
 
 
 ## 五、数据类型
-| **Flink type**                    | **StarRocks type** | **Flinkx Column** |
-| --------------------------------- | ------------------ | ----------------- |
-| BOOLEAN                           | BOOLEAN            | BooleanColumn     |
-| TINYINT                           | TINYINT            | ByteColumn        |
-| SMALLINT                          | SMALLINT           | BigDecimalColumn  |
-| INTEGER                           | INTEGER            | BigDecimalColumn  |
-| BIGINT                            | BIGINT             | BigDecimalColumn  |
-| FLOAT                             | FLOAT              | BigDecimalColumn  |
-| DOUBLE                            | DOUBLE             | BigDecimalColumn  |
-| DECIMAL                           | DECIMAL            | BigDecimalColumn  |
-| BINARY                            | INTEGER            | BigDecimalColumn  |
-| CHAR                              | STRING             | StringColumn      |
-| VARCHAR                           | STRING             | StringColumn      |
-| STRING                            | STRING             | StringColumn      |
-| STRING                            | LARGEINT           | StringColumn      |
-| DATE                              | DATE               | SqlDateColumn     |
-| TIMESTAMP_WITHOUT_TIME_ZONE(N)    | DATETIME           | TimestampColumn   |
-| TIMESTAMP_WITH_LOCAL_TIME_ZONE(N) | DATETIME           | TimestampColumn   |
-| ARRAY<T>                          | ARRAY<T>           | 暂不支持          |
-| MAP<KT,VT>                        | JSON STRING        | 暂不支持          |
-| ROW<arg T...>                     | JSON STRING        | 暂不支持          |
+| **Flink type**                    | **StarRocks type** | **ChunJun Column** |
+| --------------------------------- | ------------------ |--------------------|
+| BOOLEAN                           | BOOLEAN            | BooleanColumn      |
+| TINYINT                           | TINYINT            | ByteColumn         |
+| SMALLINT                          | SMALLINT           | BigDecimalColumn   |
+| INTEGER                           | INTEGER            | BigDecimalColumn   |
+| BIGINT                            | BIGINT             | BigDecimalColumn   |
+| FLOAT                             | FLOAT              | BigDecimalColumn   |
+| DOUBLE                            | DOUBLE             | BigDecimalColumn   |
+| DECIMAL                           | DECIMAL            | BigDecimalColumn   |
+| BINARY                            | INTEGER            | BigDecimalColumn   |
+| CHAR                              | STRING             | StringColumn       |
+| VARCHAR                           | STRING             | StringColumn       |
+| STRING                            | STRING             | StringColumn       |
+| STRING                            | LARGEINT           | StringColumn       |
+| DATE                              | DATE               | SqlDateColumn      |
+| TIMESTAMP_WITHOUT_TIME_ZONE(N)    | DATETIME           | TimestampColumn    |
+| TIMESTAMP_WITH_LOCAL_TIME_ZONE(N) | DATETIME           | TimestampColumn    |
+| ARRAY<T>                          | ARRAY<T>           | 暂不支持               |
+| MAP<KT,VT>                        | JSON STRING        | 暂不支持               |
+| ROW<arg T...>                     | JSON STRING        | 暂不支持               |
 
 # 六、脚本示例
 

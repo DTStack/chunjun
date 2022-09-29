@@ -20,7 +20,10 @@ package com.dtstack.chunjun.cdc;
 
 import org.apache.flink.util.Collector;
 
-public class WrapCollector<T> {
+import java.io.Serializable;
+
+public class WrapCollector<T> implements Serializable {
+
     private static final Object LOCK = new Object();
     private final Collector<T> collector;
 

@@ -39,6 +39,6 @@ public class Vertica11LookupOptions extends JdbcLookupOptions {
             ConfigOptions.key("DT_PROVIDER_CLASS")
                     .stringType()
                     .defaultValue(
-                            "com.dtstack.flinkx.connector.vertica11.lookup.provider.Vertica11DataSourceProvider")
+                            "com.dtstack.chunjun.connector.vertica11.lookup.provider.Vertica11DataSourceProvider")
                     .withDescription(" lookup ");
 }

@@ -18,6 +18,9 @@
 
 package com.dtstack.chunjun.cdc;
 
+import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
+import com.dtstack.chunjun.util.ExceptionUtil;
+
 import org.apache.flink.table.data.ArrayData;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.MapData;
@@ -27,16 +30,22 @@ import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.types.RowKind;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class DdlRowDataConvented extends DdlRowData {
 
     private final DdlRowData rowData;
     private final Throwable e;
 
-    public DdlRowDataConvented(DdlRowData rowData, Throwable e) {
+    public DdlRowDataConvented(DdlRowData rowData, Throwable e, String content) {
         super(rowData.getHeaders());
-        String[] infos = rowData.getInfos();
-        for (int i = 0; i < infos.length; i++) {
-            setDdlInfo(i, infos[i]);
+        String[] headers = rowData.getHeaders();
+        for (int i = 0; i < headers.length; i++) {
+            if (headers[i].equals("content") && e == null && StringUtils.isNotBlank(content)) {
+                this.setDdlInfo(i, content);
+            } else {
+                this.setDdlInfo(i, rowData.getInfo(i));
+            }
         }
         this.rowData = rowData;
         this.e = e;
@@ -137,7 +146,86 @@ public class DdlRowDataConvented extends DdlRowData {
         return rowData.getRow(pos, numFields);
     }
 
+    public String getSqlConvented() {
+        String[] headers = this.getHeaders();
+        for (int i = 0; i < headers.length; i++) {
+            if ("content".equalsIgnoreCase(headers[i])) {
+                return this.getInfo(i);
+            }
+        }
+        throw new IllegalArgumentException("Can not find content from DDL RowData!");
+    }
+
+    public String getSql() {
+        return rowData.getSql();
+    }
+
+    public TableIdentifier getTableIdentifier() {
+        return rowData.getTableIdentifier();
+    }
+
+    public EventType getType() {
+        return rowData.getType();
+    }
+
+    public boolean isSnapShot() {
+        return rowData.isSnapShot();
+    }
+
+    public String getLsn() {
+        return rowData.getLsn();
+    }
+
+    public Integer getLsnSequence() {
+        return rowData.getLsnSequence();
+    }
+
+    public String[] getHeaders() {
+        return rowData.getHeaders();
+    }
+
+    public EventType getTypeConvented() {
+        String[] headers = this.getHeaders();
+        for (int i = 0; i < headers.length; i++) {
+            if ("type".equalsIgnoreCase(headers[i])) {
+                return EventType.valueOf(this.getInfo(i));
+            }
+        }
+        throw new IllegalArgumentException("Can not find type from DDL RowData!");
+    }
+
+    public String getLsnConvented() {
+        String[] headers = this.getHeaders();
+        for (int i = 0; i < headers.length; i++) {
+            if ("lsn".equalsIgnoreCase(headers[i])) {
+                return this.getInfo(i);
+            }
+        }
+        throw new IllegalArgumentException("Can not find lsn from DDL RowData!");
+    }
+
+    public Integer getLsnSequenceConvented() {
+        String[] headers = this.getHeaders();
+        for (int i = 0; i < headers.length; i++) {
+            if ("lsn_sequence".equalsIgnoreCase(headers[i])) {
+                return Integer.valueOf(this.getInfo(i));
+            }
+        }
+        throw new IllegalArgumentException("Can not find lsn_sequence from DDL RowData!");
+    }
+
+    public String[] getHeadersConvented() {
+        return this.getHeaders();
+    }
+
     public boolean conventSuccessful() {
         return e == null;
+    }
+
+    public String getConventInfo() {
+        if (!conventSuccessful()) {
+            return ExceptionUtil.getErrorMessage(e);
+        }
+        return this.getSqlConvented();
     }
 }
