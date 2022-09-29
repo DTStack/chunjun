@@ -1,5 +1,7 @@
 package com.dtstack.chunjun.cdc;
 
+import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
+
 import org.apache.flink.table.data.ArrayData;
 import org.apache.flink.table.data.DecimalData;
 import org.apache.flink.table.data.GenericArrayData;
@@ -17,26 +19,42 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author tiezhu@dtstack.com
- * @since 19/11/2021 Friday
- *     <p>ChunJun DDL row data
- */
+import static com.dtstack.chunjun.element.ClassSizeUtil.getStringSize;
+
 public class DdlRowData implements RowData, Serializable {
 
-    private RowKind rowKind;
-
     private final String[] headers;
-
     private final String[] ddlInfos;
+    private RowKind rowKind;
+    private int byteSize = 0;
 
     public DdlRowData(String[] headers) {
         this.headers = headers;
         this.ddlInfos = new String[headers.length];
+        for (int i = 0; i < headers.length; i++) {
+            byteSize += getStringSize(headers[i]);
+        }
+    }
+
+    public DdlRowData(String[] headers, String[] ddlInfos, int byteSize) {
+        this.headers = headers;
+        this.ddlInfos = ddlInfos;
+        this.byteSize = byteSize;
     }
 
     public void setDdlInfo(int index, String info) {
         ddlInfos[index] = info;
+        byteSize += getStringSize(info);
+    }
+
+    public void setDdlInfo(String headerName, String info) {
+        for (int index = 0; index < headers.length; index++) {
+            if (headers[index].equals(headerName)) {
+                ddlInfos[index] = info;
+                byteSize += getStringSize(info);
+                break;
+            }
+        }
     }
 
     public String getInfo(int pos) {
@@ -100,7 +118,7 @@ public class DdlRowData implements RowData, Serializable {
 
     @Override
     public StringData getString(int i) {
-        return new BinaryStringData(ddlInfos[i]);
+        return BinaryStringData.fromString(ddlInfos[i]);
     }
 
     @Override
@@ -151,19 +169,46 @@ public class DdlRowData implements RowData, Serializable {
         throw new IllegalArgumentException("Can not find content from DDL RowData!");
     }
 
-    public String getTableIdentifier() {
+    public TableIdentifier getTableIdentifier() {
+        String dataBase = null;
+        String schema = null;
+        String table = null;
         for (int i = 0; i < headers.length; i++) {
-            if ("tableIdentifier".equalsIgnoreCase(headers[i])) {
-                return ddlInfos[i];
+
+            if ("database".equalsIgnoreCase(headers[i])) {
+                dataBase = ddlInfos[i];
+                continue;
+            }
+
+            if ("schema".equalsIgnoreCase(headers[i])) {
+                schema = ddlInfos[i];
+                continue;
+            }
+
+            if ("table".equalsIgnoreCase(headers[i])) {
+                table = ddlInfos[i];
             }
         }
-        throw new IllegalArgumentException("Can not find tableIdentifier from DDL RowData!");
+        return new TableIdentifier(dataBase, schema, table);
     }
 
     public EventType getType() {
         for (int i = 0; i < headers.length; i++) {
             if ("type".equalsIgnoreCase(headers[i])) {
-                return EventType.valueOf(ddlInfos[i]);
+                if (EventType.contains(ddlInfos[i])) {
+                    return EventType.valueOf(ddlInfos[i]);
+                } else {
+                    return EventType.UNKNOWN;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Can not find type from DDL RowData!");
+    }
+
+    public boolean isSnapShot() {
+        for (int i = 0; i < headers.length; i++) {
+            if ("snapshot".equalsIgnoreCase(headers[i])) {
+                return "true".equalsIgnoreCase(ddlInfos[i]);
             }
         }
         throw new IllegalArgumentException("Can not find type from DDL RowData!");
@@ -178,27 +223,36 @@ public class DdlRowData implements RowData, Serializable {
         throw new IllegalArgumentException("Can not find lsn from DDL RowData!");
     }
 
+    public Integer getLsnSequence() {
+        for (int i = 0; i < headers.length; i++) {
+            if ("lsn_sequence".equalsIgnoreCase(headers[i])) {
+                return Integer.valueOf(ddlInfos[i]);
+            }
+        }
+        return 0;
+    }
+
+    public DdlRowData copy() {
+        String[] strings = new String[headers.length];
+        for (int i = 0; i < headers.length; i++) {
+            strings[i] = headers[i];
+        }
+
+        DdlRowData ddlRowData = new DdlRowData(headers);
+        for (int i = 0; i < headers.length; i++) {
+            ddlRowData.setDdlInfo(i, this.getInfo(i));
+        }
+
+        ddlRowData.setRowKind(rowKind);
+
+        return ddlRowData;
+    }
+
     public String[] getHeaders() {
         return headers;
     }
 
-    public String[] getInfos() {
-        return ddlInfos;
-    }
-
-    public void replaceData(String original, String another) {
-        int index = getIndex(original);
-        if (index != -1) {
-            this.ddlInfos[index] = another;
-        }
-    }
-
-    public int getIndex(String header) {
-        for (int i = 0; i < headers.length; i++) {
-            if (headers[i].equals(header)) {
-                return i;
-            }
-        }
-        return -1;
+    public int getByteSize() {
+        return byteSize;
     }
 }

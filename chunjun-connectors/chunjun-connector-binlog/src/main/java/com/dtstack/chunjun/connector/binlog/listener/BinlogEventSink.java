@@ -49,10 +49,13 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
     private final LinkedBlockingDeque<RowData> queue;
     private final AbstractCDCRowConverter rowConverter;
 
+    private final String OFFSET_LENGTH;
+
     public BinlogEventSink(BinlogInputFormat format) {
         this.format = format;
         this.queue = new LinkedBlockingDeque<>();
         this.rowConverter = format.getRowConverter();
+        this.OFFSET_LENGTH = "%0" + this.format.getBinlogConf().getOffsetLength() + "d";
     }
 
     @Override
@@ -79,8 +82,9 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
             String schema = header.getSchemaName();
             String table = header.getTableName();
             long executeTime = header.getExecuteTime();
+            String lsn = buildLastPosition(entry);
             try {
-                processRowChange(rowChange, schema, table, executeTime);
+                processRowChange(rowChange, schema, table, executeTime, lsn);
             } catch (WriteRecordException e) {
                 // todo 脏数据记录
                 if (LOG.isDebugEnabled()) {
@@ -104,14 +108,19 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
      */
     @SuppressWarnings("unchecked")
     private void processRowChange(
-            CanalEntry.RowChange rowChange, String schema, String table, long executeTime)
+            CanalEntry.RowChange rowChange,
+            String schema,
+            String table,
+            long executeTime,
+            String lsn)
             throws WriteRecordException {
         String eventType = rowChange.getEventType().toString();
         List<String> categories = format.getCategories();
         if (CollectionUtils.isNotEmpty(categories) && !categories.contains(eventType)) {
             return;
         }
-        BinlogEventRow binlogEventRow = new BinlogEventRow(rowChange, schema, table, executeTime);
+        BinlogEventRow binlogEventRow =
+                new BinlogEventRow(rowChange, schema, table, executeTime, lsn);
         LinkedList<RowData> rowDatalist = null;
         try {
             rowDatalist = rowConverter.toInternal(binlogEventRow);
@@ -165,6 +174,11 @@ public class BinlogEventSink extends AbstractCanalLifeCycle
                     rowData,
                     ExceptionUtil.getErrorMessage(e));
         }
+    }
+
+    protected String buildLastPosition(CanalEntry.Entry entry) {
+        String pos = String.format(OFFSET_LENGTH, entry.getHeader().getLogfileOffset());
+        return entry.getHeader().getLogfileName() + "/" + pos;
     }
 
     @Override

@@ -18,10 +18,6 @@
 
 package com.dtstack.chunjun.constants;
 
-/**
- * @author jiangbo
- * @date 2020/2/12
- */
 public class ConstantValue {
 
     public static final String STAR_SYMBOL = "*";
@@ -80,4 +76,6 @@ public class ConstantValue {
     public static final String RESTORE_DIR_NAME = "restore-plugins";
 
     public static final String DDL_DIR_NAME = "ddl";
+
+    public static final String DDL_CONVENT_DIR_NAME = "ddl-plugins";
 }

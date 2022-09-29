@@ -48,6 +48,16 @@ public class BytesColumn extends AbstractBaseColumn {
         super(data, byteSize);
     }
 
+    public BytesColumn(byte[] data, int byteSize, String encoding) {
+        super(data, byteSize);
+        this.encoding = encoding;
+    }
+
+    public BytesColumn(Object[] data, int byteSize, String encoding) {
+        super(data, byteSize);
+        this.encoding = encoding;
+    }
+
     public static BytesColumn from(byte[] data) {
         return new BytesColumn(data, 0);
     }

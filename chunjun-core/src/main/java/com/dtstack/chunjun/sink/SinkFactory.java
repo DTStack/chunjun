@@ -19,7 +19,7 @@
 package com.dtstack.chunjun.sink;
 
 import com.dtstack.chunjun.cdc.CdcConf;
-import com.dtstack.chunjun.cdc.monitor.MonitorConf;
+import com.dtstack.chunjun.cdc.conf.DDLConf;
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
 import com.dtstack.chunjun.conf.SpeedConf;
 import com.dtstack.chunjun.conf.SyncConf;
@@ -34,18 +34,12 @@ import org.apache.flink.util.Preconditions;
 
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * Abstract specification of Writer Plugin
- *
- * <p>Company: www.dtstack.com
- *
- * @author huyifan.zju@163.com
- */
+/** Abstract specification of Writer Plugin */
 public abstract class SinkFactory implements RawTypeConvertible {
 
     protected SyncConf syncConf;
+    protected DDLConf ddlConf;
     protected boolean useAbstractBaseColumn = true;
-    protected MonitorConf monitor;
 
     public SinkFactory(SyncConf syncConf) {
         this.syncConf = syncConf;
@@ -54,10 +48,9 @@ public abstract class SinkFactory implements RawTypeConvertible {
                 && StringUtils.isNotBlank(syncConf.getTransformer().getTransformSql())) {
             useAbstractBaseColumn = false;
         }
-
         CdcConf cdcConf = syncConf.getCdcConf();
         if (cdcConf != null) {
-            monitor = cdcConf.getMonitor();
+            ddlConf = cdcConf.getDdl();
         }
     }
 

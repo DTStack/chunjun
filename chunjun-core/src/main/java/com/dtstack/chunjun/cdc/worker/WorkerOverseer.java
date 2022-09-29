@@ -21,9 +21,10 @@
 package com.dtstack.chunjun.cdc.worker;
 
 import com.dtstack.chunjun.cdc.QueuesChamberlain;
-import com.dtstack.chunjun.cdc.WrapCollector;
+import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.Collector;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -48,7 +49,7 @@ public class WorkerOverseer implements Runnable, Serializable {
 
     private final QueuesChamberlain chamberlain;
 
-    private final WrapCollector<RowData> collector;
+    private final Collector<RowData> collector;
 
     /** 记录已经被worker线程获得的chunk */
     private final Set<Integer> chunkSet = new HashSet<>();
@@ -59,10 +60,12 @@ public class WorkerOverseer implements Runnable, Serializable {
     /** worker遍历队列时的步长 */
     private final int workerSize;
 
+    private Exception exception;
+
     public WorkerOverseer(
             ThreadPoolExecutor workerExecutor,
             QueuesChamberlain chamberlain,
-            WrapCollector<RowData> collector,
+            Collector<RowData> collector,
             int workerSize) {
         this.workerExecutor = workerExecutor;
         this.chamberlain = chamberlain;
@@ -89,7 +92,7 @@ public class WorkerOverseer implements Runnable, Serializable {
     private void wakeUp() {
         // 创建worker
         final int workerNum = workerExecutor.getMaximumPoolSize();
-        Set<String> tableIdentities = chamberlain.unblockTableIdentities();
+        Set<TableIdentifier> tableIdentities = chamberlain.unblockTableIdentities();
         if (!tableIdentities.isEmpty()) {
             // 创建任务分片
             Chunk[] chunks = ChunkSplitter.createChunk(tableIdentities, workerNum);
@@ -113,9 +116,18 @@ public class WorkerOverseer implements Runnable, Serializable {
                 Integer chunkNum = future.get();
                 chunkSet.remove(chunkNum);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                closed.compareAndSet(false, true);
+                this.exception = e;
             }
         }
         futureSet.clear();
+    }
+
+    public boolean isAlive() {
+        return null == exception;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

@@ -15,24 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dtstack.chunjun.enums;
 
-/**
- * Date: 2021/04/07 Company: www.dtstack.com
- *
- * @author tudou
- */
 public enum OperatorType {
     source,
     sink,
     metric,
     /** dirty plugins. */
     dirty,
-    /** cdc store plugins */
-    store,
-    /** cdc fetcher plugins */
-    fetcher,
-    /** cdc sql conevnt plugins */
-    ddlConevnt,
+    /** cdc ddl plugins */
+    ddl,
+    /** cdc cache plugins */
+    cache,
+
+    ddlConvent,
     ;
 }
