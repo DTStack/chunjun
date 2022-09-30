@@ -525,7 +525,7 @@ public class JdbcUtil {
         List<String> metaColumnType = tableMetaData.getRight();
 
         List<FieldConf> column = jdbcConf.getColumn();
-        int size = column.size();
+        int size = metaColumnName.size();
         List<String> columnNameList = new ArrayList<>(size);
         List<String> columnTypeList = new ArrayList<>(size);
         if (column.size() == 1 && ConstantValue.STAR_SYMBOL.equals(column.get(0).getName())) {
@@ -559,6 +559,7 @@ public class JdbcUtil {
             String constantType) {
         // check columnName and modify columnType
         int size = column.size();
+        int metaColumnSize = metaColumnName.size();
         List<String> columnNameList = new ArrayList<>(size);
         List<String> columnTypeList = new ArrayList<>(size);
         int index = 0;
@@ -570,7 +571,7 @@ public class JdbcUtil {
                 String name = fieldConf.getName();
                 String metaType = null;
                 int i = 0;
-                for (; i < size; i++) {
+                for (; i < metaColumnSize; i++) {
                     // todo get precision and scale
                     if (metaColumnName.get(i).equalsIgnoreCase(name)) {
                         metaType = metaColumnType.get(i);
@@ -581,7 +582,7 @@ public class JdbcUtil {
                         break;
                     }
                 }
-                if (i == size) {
+                if (i == metaColumnSize) {
                     throw new ChunJunRuntimeException(
                             String.format(
                                     "The column[%s] does not exist in the table[%s]",
