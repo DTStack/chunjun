@@ -133,28 +133,55 @@ public class JdbcUtil {
      */
     public static Pair<List<String>, List<String>> getTableMetaData(
             String cataLog, String schema, String tableName, Connection dbConn) {
+        return getTableMetaData(cataLog, schema, tableName, dbConn, null);
+    }
+
+    public static Pair<List<String>, List<String>> getTableMetaData(
+            String cataLog, String schema, String tableName, Connection dbConn, String querySql) {
         try {
-            // check table exists
-            if (ALL_TABLE.equalsIgnoreCase(tableName.trim())) {
-                return Pair.of(new LinkedList<>(), new LinkedList<>());
+            if (StringUtils.isBlank(querySql)) {
+                // check table exists
+                if (ALL_TABLE.equalsIgnoreCase(tableName.trim())) {
+                    return Pair.of(new LinkedList<>(), new LinkedList<>());
+                }
+                ResultSet tableRs =
+                        dbConn.getMetaData().getTables(cataLog, schema, tableName, null);
+                if (!tableRs.next()) {
+                    String tableInfo = schema == null ? tableName : schema + "." + tableName;
+                    throw new ChunJunRuntimeException(
+                            String.format("table %s not found.", tableInfo));
+                }
+                tableRs.close();
+
+                String tableInfo;
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(schema)) {
+                    tableInfo = String.format("%s.%s", schema, tableName);
+                } else {
+                    // schema is null, use default schema to get metadata
+                    tableInfo = tableName;
+                }
+                querySql = String.format("select * from %s where 1=2", tableInfo);
+            } else {
+                querySql = String.format("select * from ((%s) custom) where 1=2", querySql);
             }
 
-            ResultSet tableRs = dbConn.getMetaData().getTables(cataLog, schema, tableName, null);
-            if (!tableRs.next()) {
-                String tableInfo = schema == null ? tableName : schema + "." + tableName;
-                throw new ChunJunRuntimeException(String.format("table %s not found.", tableInfo));
+            Statement statement = dbConn.createStatement();
+            statement.setQueryTimeout(30);
+            ResultSet resultSet = dbConn.createStatement().executeQuery(querySql);
+            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+            List<String> fullColumnList = new ArrayList<>(resultSetMetaData.getColumnCount());
+            List<String> fullColumnTypeList = new ArrayList<>(resultSetMetaData.getColumnCount());
+            String columnName;
+            String columnTypeName;
+            for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
+                columnName = resultSetMetaData.getColumnName(i + 1);
+                columnTypeName = resultSetMetaData.getColumnTypeName(i + 1);
+                // compatible with sqlserver, bigint identity  -> bigint
+                columnTypeName = columnTypeName.replace("identity", "").trim();
+                fullColumnList.add(columnName);
+                fullColumnTypeList.add(columnTypeName);
             }
-
-            ResultSet rs = dbConn.getMetaData().getColumns(cataLog, schema, tableName, null);
-            List<String> fullColumnList = new LinkedList<>();
-            List<String> fullColumnTypeList = new LinkedList<>();
-            while (rs.next()) {
-                // COLUMN_NAME
-                fullColumnList.add(rs.getString(4));
-                // TYPE_NAME
-                fullColumnTypeList.add(rs.getString(6));
-            }
-            rs.close();
+            resultSet.close();
             return Pair.of(fullColumnList, fullColumnTypeList);
         } catch (SQLException e) {
             throw new ChunJunRuntimeException(
@@ -558,10 +585,9 @@ public class JdbcUtil {
             List<String> metaColumnType,
             String constantType) {
         // check columnName and modify columnType
-        int size = column.size();
         int metaColumnSize = metaColumnName.size();
-        List<String> columnNameList = new ArrayList<>(size);
-        List<String> columnTypeList = new ArrayList<>(size);
+        List<String> columnNameList = new ArrayList<>(column.size());
+        List<String> columnTypeList = new ArrayList<>(column.size());
         int index = 0;
         for (FieldConf fieldConf : column) {
             if (StringUtils.isNotBlank(fieldConf.getValue())) {
