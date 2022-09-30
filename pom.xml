@@ -32,7 +32,7 @@
 		<prometheus.version>0.8.1</prometheus.version>
 		<hadoop.version>3.1.4</hadoop.version>
 		<http.version>4.5.3</http.version>
-		<flinkx.guava.version>27.0-jre</flinkx.guava.version>
+		<chunjun.guava.version>27.0-jre</chunjun.guava.version>
 		<!-- fix CVE-2021-45105 -->
 		<log4j2.version>2.17.0</log4j2.version>
 		<dist.dir>chunjun-dist</dist.dir>
@@ -240,6 +240,12 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.2</version>
+		</dependency>
+
 		<!-- test dependencies -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
@@ -340,7 +346,7 @@
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>${flinkx.guava.version}</version>
+				<version>${chunjun.guava.version}</version>
 			</dependency>
 
 			<!-- For dependency convergence -->
