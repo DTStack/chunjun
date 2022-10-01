@@ -57,7 +57,10 @@ public class DmColumnConverter extends JdbcColumnConverter {
                 return val -> new BooleanColumn(Boolean.parseBoolean(val.toString()));
             case TINYINT:
                 return val -> {
-                    if (val instanceof Integer) {
+                    if (val instanceof Boolean) {
+                        return new BigDecimalColumn(
+                                (Boolean) val ? BigDecimal.ONE : BigDecimal.ZERO);
+                    } else if (val instanceof Integer) {
                         return new BigDecimalColumn(((Integer) val).byteValue());
                     } else if (val instanceof Short) {
                         return new BigDecimalColumn(((Short) val).byteValue());

@@ -172,17 +172,11 @@ public abstract class JdbcSourceFactory extends SourceFactory {
     }
 
     protected void initColumnInfo() {
-        Pair<List<String>, List<String>> selectedColumnInfo;
-        if (StringUtils.isNotBlank(jdbcConf.getCustomSql())) {
-            selectedColumnInfo =
-                    JdbcUtil.buildCustomColumnInfo(jdbcConf.getColumn(), getConstantType());
-        } else {
-            Connection conn = getConn();
-            Pair<List<String>, List<String>> tableMetaData = getTableMetaData(conn);
-            selectedColumnInfo =
-                    JdbcUtil.buildColumnWithMeta(jdbcConf, tableMetaData, getConstantType());
-            JdbcUtil.closeDbResources(null, null, conn, false);
-        }
+        Connection conn = getConn();
+        Pair<List<String>, List<String>> tableMetaData = getTableMetaData(conn);
+        Pair<List<String>, List<String>> selectedColumnInfo =
+                JdbcUtil.buildColumnWithMeta(jdbcConf, tableMetaData, getConstantType());
+        JdbcUtil.closeDbResources(null, null, conn, false);
         columnNameList = selectedColumnInfo.getLeft();
         columnTypeList = selectedColumnInfo.getRight();
         this.fieldList = jdbcConf.getColumn();
@@ -196,7 +190,11 @@ public abstract class JdbcSourceFactory extends SourceFactory {
         Tuple3<String, String, String> tableIdentify =
                 jdbcDialect.getTableIdentify().apply(jdbcConf);
         return JdbcUtil.getTableMetaData(
-                tableIdentify.f0, tableIdentify.f1, tableIdentify.f2, dbConn);
+                tableIdentify.f0,
+                tableIdentify.f1,
+                tableIdentify.f2,
+                dbConn,
+                jdbcConf.getCustomSql());
     }
 
     protected String getConstantType() {
