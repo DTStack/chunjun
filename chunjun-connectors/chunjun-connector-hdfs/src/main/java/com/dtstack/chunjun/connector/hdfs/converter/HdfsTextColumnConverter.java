@@ -51,8 +51,11 @@ import java.util.Locale;
 public class HdfsTextColumnConverter
         extends AbstractRowConverter<RowData, RowData, String[], String> {
 
+    private final List<FieldConf> hdfsFieldConfList;
+
     public HdfsTextColumnConverter(List<FieldConf> fieldConfList) {
         super(fieldConfList.size());
+        hdfsFieldConfList = fieldConfList;
         for (int i = 0; i < fieldConfList.size(); i++) {
             String type = fieldConfList.get(i).getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
@@ -74,11 +77,14 @@ public class HdfsTextColumnConverter
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
             for (int i = 0; i < input.getArity(); i++) {
+                FieldConf fieldConf = hdfsFieldConfList.get(i);
                 row.addField(
-                        (AbstractBaseColumn)
-                                toInternalConverters
-                                        .get(i)
-                                        .deserialize(genericRowData.getField(i)));
+                        assembleFieldProps(
+                                fieldConf,
+                                (AbstractBaseColumn)
+                                        toInternalConverters
+                                                .get(i)
+                                                .deserialize(genericRowData.getField(i))));
             }
         } else {
             throw new ChunJunRuntimeException(
