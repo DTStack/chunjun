@@ -18,6 +18,7 @@
 package com.dtstack.chunjun.connector.hdfs.converter;
 
 import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.IDeserializationConverter;
@@ -51,11 +52,8 @@ import java.util.Locale;
 public class HdfsTextColumnConverter
         extends AbstractRowConverter<RowData, RowData, String[], String> {
 
-    private final List<FieldConf> hdfsFieldConfList;
-
-    public HdfsTextColumnConverter(List<FieldConf> fieldConfList) {
-        super(fieldConfList.size());
-        hdfsFieldConfList = fieldConfList;
+    public HdfsTextColumnConverter(List<FieldConf> fieldConfList, HdfsConf hdfsConf) {
+        super(fieldConfList.size(), hdfsConf);
         for (int i = 0; i < fieldConfList.size(); i++) {
             String type = fieldConfList.get(i).getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
@@ -76,11 +74,11 @@ public class HdfsTextColumnConverter
         ColumnRowData row = new ColumnRowData(input.getArity());
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
+            List<FieldConf> fieldConfList = commonConf.getColumn();
             for (int i = 0; i < input.getArity(); i++) {
-                FieldConf fieldConf = hdfsFieldConfList.get(i);
                 row.addField(
                         assembleFieldProps(
-                                fieldConf,
+                                fieldConfList.get(i),
                                 (AbstractBaseColumn)
                                         toInternalConverters
                                                 .get(i)
