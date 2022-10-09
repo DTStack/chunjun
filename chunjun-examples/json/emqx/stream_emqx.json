@@ -1,0 +1,47 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "raw_date",
+                "type": "string"
+              }
+            ],
+            "sliceRecordCount": ["30"],
+            "permitsPerSecond": 1
+          },
+          "table": {
+            "tableName": "sourceTable"
+          },
+          "name": "streamreader"
+        },
+        "writer": {
+          "parameter": {
+            "tableFields": [
+              "id",
+              "raw_date"
+            ],
+            "broker": "tcp://emqx-e2e-stream:1883",
+            "topic": "test",
+            "isCleanSession": true,
+            "qos": 2
+          },
+          "name": "emqxwriter"
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1,
+        "bytes": 0
+      }
+    }
+  }
+}

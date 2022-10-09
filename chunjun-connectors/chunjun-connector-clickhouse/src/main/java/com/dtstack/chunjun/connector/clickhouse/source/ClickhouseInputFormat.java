@@ -21,19 +21,11 @@ package com.dtstack.chunjun.connector.clickhouse.source;
 import com.dtstack.chunjun.connector.clickhouse.util.ClickhouseUtil;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
-import com.dtstack.chunjun.util.ColumnBuildUtil;
-import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.core.io.InputSplit;
-import org.apache.flink.table.types.logical.RowType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * @program chunjun
@@ -58,37 +50,12 @@ public class ClickhouseInputFormat extends JdbcInputFormat {
         String querySQL = null;
         try {
             dbConn = getConnection();
-
-            Pair<List<String>, List<String>> pair = null;
-            List<String> fullColumnList = new LinkedList<>();
-            List<String> fullColumnTypeList = new LinkedList<>();
-            if (StringUtils.isBlank(jdbcConf.getCustomSql())) {
-                pair = getTableMetaData();
-                fullColumnList = pair.getLeft();
-                fullColumnTypeList = pair.getRight();
-            }
-            Pair<List<String>, List<String>> columnPair =
-                    ColumnBuildUtil.handleColumnList(
-                            jdbcConf.getColumn(), fullColumnList, fullColumnTypeList);
-            columnNameList = columnPair.getLeft();
-            columnTypeList = columnPair.getRight();
-
             querySQL = buildQuerySql(jdbcInputSplit);
             jdbcConf.setQuerySql(querySQL);
             executeQuery(jdbcInputSplit.getStartLocation());
-            if (!resultSet.isClosed()) {
-                columnCount = resultSet.getMetaData().getColumnCount();
-            }
             // 增量任务
             needUpdateEndLocation =
                     jdbcConf.isIncrement() && !jdbcConf.isPolling() && !jdbcConf.isUseMaxFunc();
-            RowType rowType =
-                    TableUtil.createRowType(
-                            columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
-            setRowConverter(
-                    rowConverter == null
-                            ? jdbcDialect.getColumnConverter(rowType, jdbcConf)
-                            : rowConverter);
         } catch (SQLException se) {
             String expMsg = se.getMessage();
             expMsg = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;

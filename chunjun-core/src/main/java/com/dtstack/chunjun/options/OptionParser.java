@@ -19,6 +19,8 @@ package com.dtstack.chunjun.options;
 
 import com.dtstack.chunjun.util.MapUtil;
 
+import org.apache.flink.annotation.VisibleForTesting;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.lang.StringUtils;
@@ -39,7 +41,7 @@ import java.util.Map;
  */
 public class OptionParser {
 
-    private static final String OPTION_JOB = "job";
+    @VisibleForTesting protected static final String OPTION_JOB = "job";
 
     private final org.apache.commons.cli.Options options = new org.apache.commons.cli.Options();
 

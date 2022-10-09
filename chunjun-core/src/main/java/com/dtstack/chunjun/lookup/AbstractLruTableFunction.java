@@ -28,6 +28,7 @@ import com.dtstack.chunjun.lookup.cache.LRUSideCache;
 import com.dtstack.chunjun.lookup.conf.LookupConf;
 import com.dtstack.chunjun.util.ReflectionUtils;
 
+import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.runtime.execution.SuppressRestartsException;
@@ -94,7 +95,8 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
     }
 
     /** 初始化缓存 */
-    private void initCache() {
+    @VisibleForTesting
+    protected void initCache() {
         if (CacheType.NONE.name().equalsIgnoreCase(lookupConf.getCache())) {
             return;
         }
@@ -113,7 +115,8 @@ public abstract class AbstractLruTableFunction extends AsyncTableFunction<RowDat
      *
      * @param context 上下文
      */
-    private void initMetric(FunctionContext context) {
+    @VisibleForTesting
+    protected void initMetric(FunctionContext context) {
         parseErrorRecords = context.getMetricGroup().counter(Metrics.NUM_SIDE_PARSE_ERROR_RECORDS);
     }
 

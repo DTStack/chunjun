@@ -21,6 +21,7 @@ package com.dtstack.chunjun.metrics;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.ReflectionUtils;
 
+import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.accumulators.StringifiedAccumulatorResult;
 import org.apache.flink.runtime.executiongraph.ArchivedExecutionGraph;
@@ -54,13 +55,14 @@ public class AccumulatorCollector {
 
     private static final String THREAD_NAME = "accumulator-collector-thread";
 
-    private static final int MAX_COLLECT_ERROR_TIMES = 100;
+    @VisibleForTesting protected static final int MAX_COLLECT_ERROR_TIMES = 100;
     private long collectErrorTimes = 0;
 
     private JobMasterGateway gateway;
 
     private final long period;
-    private final ScheduledExecutorService scheduledExecutorService;
+
+    @VisibleForTesting protected final ScheduledExecutorService scheduledExecutorService;
     private final Map<String, ValueAccumulator> valueAccumulatorMap;
 
     public AccumulatorCollector(StreamingRuntimeContext context, List<String> metricNames) {
@@ -147,7 +149,7 @@ public class AccumulatorCollector {
     public long getAccumulatorValue(String name, boolean needWaited) {
         if (needWaited) {
             try {
-                TimeUnit.MILLISECONDS.wait(this.period);
+                TimeUnit.MILLISECONDS.sleep(this.period);
             } catch (InterruptedException e) {
                 LOG.warn(
                         "Interrupted when waiting for valueAccumulatorMap, e = {}",

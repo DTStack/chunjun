@@ -46,7 +46,7 @@ git clone https://github.com/DTStack/chunjun.git
 Execute the command in the project directory.
 
 ```shell
-./mvnw clean package -DskipTests
+./mvnw clean package
 ```
 
 Or execute
@@ -55,30 +55,9 @@ Or execute
 sh build/build.sh
 ```
 
-### Multi-platform compatible
-
-Chunjun currently supports tdh and open-source hadoop platforms, and different platforms need to be packaged with different maven commands.
-
-| Hadoop Platformas |                                              | Comment                                                      |
-|-------------------| -------------------------------------------- |--------------------------------------------------------------|
-| tdh               | mvn clean package -DskipTests -P default,tdh | Package the inceport plugin and plugins supported by default |
-| default           | mvn clean package -DskipTests -P default     | Package the all plugins except the inceptor plugin.          |
-
 ### Common problem
 
-#### 1.Can not find dependencies
-
-Solution: There are some driver packages in the directory '$ChunJun_HOME/jars', and you can install these dependencies manually or execute the command below:
-
-```bash
-## windows
-./$CHUNJUN_HOME/bin/install_jars.bat
-
-## unix
-./$CHUNJUN_HOME/bin/install_jars.sh
-```
-
-#### 2. Compiling module 'ChunJun-core' then throws 'Failed to read artifact descriptor for com.google.errorprone:javac-shaded'
+#### Compiling module 'ChunJun-core' then throws 'Failed to read artifact descriptor for com.google.errorprone:javac-shaded'
 
 Error message：
 

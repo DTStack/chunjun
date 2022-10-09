@@ -22,6 +22,7 @@ import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.enums.ColumnType;
@@ -31,15 +32,11 @@ import com.dtstack.chunjun.restore.FormatState;
 import com.dtstack.chunjun.source.format.BaseRichInputFormat;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.ReadRecordException;
-import com.dtstack.chunjun.util.ColumnBuildUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.GsonUtil;
-import com.dtstack.chunjun.util.StringUtil;
-import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.types.logical.RowType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -47,22 +44,16 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-
-import static com.dtstack.chunjun.enums.ColumnType.TIMESTAMPTZ;
 
 /**
  * InputFormat for reading data from a database and generate Rows.
@@ -86,7 +77,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected transient ResultSet resultSet;
     protected boolean hasNext;
 
-    protected int columnCount;
     protected boolean needUpdateEndLocation;
     protected Object state = null;
 
@@ -98,6 +88,9 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected ColumnType type;
 
     protected JdbcInputSplit currentJdbcInputSplit;
+    protected KeyUtil<?, BigInteger> incrementKeyUtil;
+    protected KeyUtil<?, BigInteger> splitKeyUtil;
+    private KeyUtil<?, BigInteger> restoreKeyUtil;
 
     @Override
     public void openInternal(InputSplit inputSplit) {
@@ -117,36 +110,12 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             dbConn = getConnection();
             dbConn.setAutoCommit(false);
 
-            Pair<List<String>, List<String>> pair = null;
-            List<String> fullColumnList = new LinkedList<>();
-            List<String> fullColumnTypeList = new LinkedList<>();
-            if (StringUtils.isBlank(jdbcConf.getCustomSql())) {
-                pair = getTableMetaData();
-                fullColumnList = pair.getLeft();
-                fullColumnTypeList = pair.getRight();
-            }
-            Pair<List<String>, List<String>> columnPair =
-                    ColumnBuildUtil.handleColumnList(
-                            jdbcConf.getColumn(), fullColumnList, fullColumnTypeList);
-            columnNameList = columnPair.getLeft();
-            columnTypeList = columnPair.getRight();
-
             querySQL = buildQuerySql(currentJdbcInputSplit);
             jdbcConf.setQuerySql(querySQL);
             executeQuery(currentJdbcInputSplit.getStartLocation());
-            if (!resultSet.isClosed()) {
-                columnCount = resultSet.getMetaData().getColumnCount();
-            }
             // 增量任务
             needUpdateEndLocation =
                     jdbcConf.isIncrement() && !jdbcConf.isPolling() && !jdbcConf.isUseMaxFunc();
-            RowType rowType =
-                    TableUtil.createRowType(
-                            columnNameList, columnTypeList, jdbcDialect.getRawTypeConverter());
-            setRowConverter(
-                    rowConverter == null
-                            ? jdbcDialect.getColumnConverter(rowType, jdbcConf)
-                            : rowConverter);
         } catch (SQLException se) {
             String expMsg = se.getMessage();
             expMsg = querySQL == null ? expMsg : expMsg + "\n querySQL: " + querySQL;
@@ -256,7 +225,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                     }
                     dbConn.setAutoCommit(true);
                     JdbcUtil.closeDbResources(resultSet, null, null, false);
-                    queryForPolling(String.valueOf(state));
+                    queryForPolling(restoreKeyUtil.transToLocationValue(state).toString());
                     return false;
                 } catch (InterruptedException e) {
                     LOG.warn(
@@ -286,19 +255,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             @SuppressWarnings("unchecked")
             RowData finalRowData = rowConverter.toInternal(resultSet);
             if (needUpdateEndLocation) {
-                Object obj;
-                switch (type) {
-                    case DATETIME:
-                    case TIMESTAMP:
-                    case TIMESTAMPTZ:
-                    case DATE:
-                        obj = resultSet.getTimestamp(jdbcConf.getIncreColumn()).getTime();
-                        break;
-                    default:
-                        obj = resultSet.getObject(jdbcConf.getIncreColumn());
-                }
-                String location = String.valueOf(obj);
-                endLocationAccumulator.add(new BigInteger(location));
+                BigInteger location =
+                        incrementKeyUtil.getLocationValueFromRs(
+                                resultSet, jdbcConf.getIncreColumnIndex() + 1);
+                endLocationAccumulator.add(location);
                 LOG.debug("update endLocationAccumulator, current Location = {}", location);
             }
             if (jdbcConf.getRestoreColumnIndex() > -1) {
@@ -343,8 +303,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         startLocationAccumulator = new BigIntegerAccumulator();
         endLocationAccumulator = new BigIntegerAccumulator();
         JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
-        String startLocation =
-                StringUtil.stringToTimestampStr(jdbcInputSplit.getStartLocation(), type);
+        String startLocation = jdbcInputSplit.getStartLocation();
 
         if (StringUtils.isNotBlank(startLocation)) {
             startLocationAccumulator.add(new BigInteger(startLocation));
@@ -355,10 +314,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             // 若useMaxFunc设置为true，endLocation设置为数据库中查询的最大值
             if (jdbcConf.isUseMaxFunc()) {
                 getMaxValue(inputSplit);
-                endLocationAccumulator.add(
-                        new BigInteger(
-                                StringUtil.stringToTimestampStr(
-                                        jdbcInputSplit.getEndLocation(), type)));
+                endLocationAccumulator.add(new BigInteger(jdbcInputSplit.getEndLocation()));
             } else {
                 // useMaxFunc设置为false，如果startLocation不为空，则将endLocation初始值设置为startLocation的值，防止数据库无增量数据时下次获取到的startLocation为空
                 if (StringUtils.isNotEmpty(startLocation)) {
@@ -442,7 +398,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
             String startSql =
                     buildStartLocationSql(
-                            jdbcConf.getIncreColumnType(),
                             jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
                             jdbcConf.getStartLocation(),
                             jdbcConf.isUseMaxFunc(),
@@ -458,18 +413,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             st.setQueryTimeout(jdbcConf.getQueryTimeOut());
             rs = st.executeQuery(queryMaxValueSql);
             if (rs.next()) {
-                switch (type) {
-                    case TIMESTAMP:
-                        maxValue = String.valueOf(rs.getTimestamp("max_value").getTime());
-                        break;
-                    case DATE:
-                        maxValue = String.valueOf(rs.getDate("max_value").getTime());
-                        break;
-                    default:
-                        maxValue =
-                                StringUtil.stringToTimestampStr(
-                                        String.valueOf(rs.getObject("max_value")), type);
-                }
+                maxValue = incrementKeyUtil.getLocationValueFromRs(rs, "max_value").toString();
             }
 
             LOG.info(
@@ -575,18 +519,13 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     /**
      * 构建起始位置sql
      *
-     * @param incrementColType 增量字段类型
      * @param incrementCol 增量字段名称
      * @param startLocation 开始位置
      * @param useMaxFunc 是否保存结束位置数据
      * @return
      */
     public String buildStartLocationSql(
-            String incrementColType,
-            String incrementCol,
-            String startLocation,
-            boolean useMaxFunc,
-            boolean isPolling) {
+            String incrementCol, String startLocation, boolean useMaxFunc, boolean isPolling) {
         if (org.apache.commons.lang.StringUtils.isEmpty(startLocation)
                 || JdbcUtil.NULL_STRING.equalsIgnoreCase(startLocation)) {
             return null;
@@ -599,54 +538,26 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             return incrementCol + operator + "?";
         }
 
-        return getLocationSql(incrementColType, incrementCol, startLocation, operator);
+        return getLocationSql(incrementCol, startLocation, operator);
     }
 
     /**
      * 构建边界位置sql
      *
-     * @param incrementColType 增量字段类型
      * @param incrementCol 增量字段名称
      * @param location 边界位置(起始/结束)
      * @param operator 判断符( >, >=, <)
      * @return
      */
-    protected String getLocationSql(
-            String incrementColType, String incrementCol, String location, String operator) {
-        String endTimeStr;
+    protected String getLocationSql(String incrementCol, String location, String operator) {
         String endLocationSql;
-        ColumnType type = ColumnType.fromString(incrementColType);
-        if (type == TIMESTAMPTZ) {
-            return String.valueOf(Timestamp.valueOf(location).getTime());
-        }
-        if (ColumnType.isTimeType(incrementColType)) {
-            endTimeStr = getTimeStr(Long.parseLong(location));
-            endLocationSql = incrementCol + operator + endTimeStr;
-        } else if (ColumnType.isNumberType(incrementColType)) {
-            endLocationSql = incrementCol + operator + location;
-        } else {
-            endTimeStr = String.format("'%s'", location);
-            endLocationSql = incrementCol + operator + endTimeStr;
-        }
+
+        endLocationSql =
+                incrementCol
+                        + operator
+                        + incrementKeyUtil.transLocationStrToStatementValue(location);
 
         return endLocationSql;
-    }
-
-    /**
-     * 构建时间边界字符串
-     *
-     * @param location 边界位置(起始/结束)
-     * @return
-     */
-    protected String getTimeStr(Long location) {
-        String timeStr;
-        Timestamp ts = new Timestamp(JdbcUtil.getMillis(location));
-        ts.setNanos(JdbcUtil.getNanos(location));
-        timeStr = JdbcUtil.getNanosTimeStr(ts.toString());
-        timeStr = timeStr.substring(0, 26);
-        timeStr = String.format("'%s'", timeStr);
-
-        return timeStr;
     }
 
     /**
@@ -663,79 +574,52 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             LOG.debug("polling startLocation = {}", startLocation);
         }
 
-        boolean isNumber = StringUtils.isNumeric(startLocation);
-        switch (type) {
-            case TIMESTAMP:
-            case TIMESTAMPTZ:
-            case DATETIME:
-                Timestamp ts =
-                        isNumber
-                                ? new Timestamp(Long.parseLong(startLocation))
-                                : Timestamp.valueOf(startLocation);
-                ps.setTimestamp(1, ts);
-                break;
-            case DATE:
-                Date date =
-                        isNumber
-                                ? new Date(Long.parseLong(startLocation))
-                                : Date.valueOf(startLocation);
-                ps.setDate(1, date);
-                break;
-            default:
-                if (isNumber) {
-                    ps.setLong(1, Long.parseLong(startLocation));
-                } else {
-                    ps.setString(1, startLocation);
-                }
-        }
+        incrementKeyUtil.setPsWithLocationStr(ps, 1, startLocation);
         resultSet = ps.executeQuery();
         hasNext = resultSet.next();
     }
 
     /** 构建基于startLocation&endLocation的过滤条件 * */
     protected void buildLocationFilter(JdbcInputSplit jdbcInputSplit, List<String> whereList) {
-        String startLocation = jdbcInputSplit.getStartLocation();
         if (formatState.getState() != null && StringUtils.isNotBlank(jdbcConf.getRestoreColumn())) {
-            startLocation = String.valueOf(formatState.getState());
-            if (StringUtils.isNotBlank(startLocation)) {
-                LOG.info(
-                        "restore from checkpoint, update startLocation, before = {}, after = {}",
-                        jdbcInputSplit.getStartLocation(),
-                        startLocation);
-                jdbcInputSplit.setStartLocation(startLocation);
+            if (StringUtils.isNotBlank(String.valueOf(formatState.getState()))) {
+                LOG.info("restore from checkpoint with state{}", formatState.getState());
+                if (jdbcConf.isIncrement()) {
+                    jdbcInputSplit.setStartLocation(
+                            incrementKeyUtil
+                                    .transToLocationValue(formatState.getState())
+                                    .toString());
+                }
                 whereList.add(
                         buildFilterSql(
                                 jdbcConf.getCustomSql(),
                                 ">",
-                                startLocation,
                                 jdbcDialect.quoteIdentifier(jdbcConf.getRestoreColumn()),
-                                jdbcConf.getRestoreColumnType(),
                                 jdbcInputSplit.isPolling(),
-                                this::getTimeStr));
+                                restoreKeyUtil.transToStatementValue(formatState.getState())));
             }
         } else if (jdbcConf.isIncrement()) {
+            String startLocation = jdbcInputSplit.getStartLocation();
             if (StringUtils.isNotBlank(startLocation)) {
                 String operator = jdbcConf.isUseMaxFunc() ? " >= " : " > ";
                 whereList.add(
                         buildFilterSql(
                                 jdbcConf.getCustomSql(),
                                 operator,
-                                startLocation,
                                 jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                                jdbcConf.getIncreColumnType(),
                                 jdbcInputSplit.isPolling(),
-                                this::getTimeStr));
+                                incrementKeyUtil.transLocationStrToStatementValue(
+                                        jdbcInputSplit.getStartLocation())));
             }
             if (StringUtils.isNotBlank(jdbcInputSplit.getEndLocation())) {
                 whereList.add(
                         buildFilterSql(
                                 jdbcConf.getCustomSql(),
                                 "<",
-                                jdbcInputSplit.getEndLocation(),
                                 jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
-                                jdbcConf.getIncreColumnType(),
                                 false,
-                                this::getTimeStr));
+                                incrementKeyUtil.transLocationStrToStatementValue(
+                                        jdbcInputSplit.getEndLocation())));
             }
         }
     }
@@ -753,8 +637,8 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         BigDecimal left, right = null;
         if (StringUtils.isNotBlank(splitRangeFromDb.getLeft())
                 && !"null".equalsIgnoreCase(splitRangeFromDb.getLeft())) {
-            left = new BigDecimal(splitRangeFromDb.getLeft());
-            right = new BigDecimal(splitRangeFromDb.getRight());
+            left = new BigDecimal(splitKeyUtil.transToLocationValue(splitRangeFromDb.getLeft()));
+            right = new BigDecimal(splitKeyUtil.transToLocationValue(splitRangeFromDb.getRight()));
             splits.addAll(createRangeSplits(left, right, minNumSplits));
             if (jdbcConf.isPolling()) {
                 // rangeSplit in polling mode,range first then mod.we need to change the last range
@@ -823,8 +707,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                             i,
                             jdbcConf.getStartLocation(),
                             null,
-                            start.toString(),
-                            Objects.isNull(end) ? null : end.toString(),
+                            splitKeyUtil.transLocationStrToStatementValue(start.toString()),
+                            Objects.isNull(end)
+                                    ? null
+                                    : splitKeyUtil.transLocationStrToStatementValue(end.toString()),
                             "range",
                             false);
         }
@@ -841,6 +727,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     protected void executeQuery(String startLocation) throws SQLException {
         if (currentJdbcInputSplit.isPolling()) {
             if (StringUtils.isBlank(startLocation)) {
+                // avoid startLocation is null
                 queryPollingWithOutStartLocation();
                 // Concatenated sql statement for next polling query
                 StringBuilder builder = new StringBuilder(128);
@@ -864,7 +751,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                                 + SqlUtil.buildOrderSql(jdbcConf, jdbcDialect, "ASC"));
                 initPrepareStatement(jdbcConf.getQuerySql());
                 queryForPolling(startLocation);
-                state = startLocation;
+                state = restoreKeyUtil.transLocationStrToSqlValue(startLocation);
             }
         } else {
             statement = dbConn.createStatement(resultSetType, resultSetConcurrency);
@@ -875,14 +762,6 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         }
     }
 
-    /**
-     * for override. because some databases have case-sensitive metadata。
-     *
-     * @return
-     */
-    protected Pair<List<String>, List<String>> getTableMetaData() {
-        return JdbcUtil.getTableMetaData(null, jdbcConf.getSchema(), jdbcConf.getTable(), dbConn);
-    }
     /** init prepareStatement */
     public void initPrepareStatement(String querySql) throws SQLException {
         ps = dbConn.prepareStatement(querySql, resultSetType, resultSetConcurrency);
@@ -932,18 +811,15 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      * @param operator 比较符
      * @param location 比较的值
      * @param columnName 字段名称
-     * @param columnType 字段类型
      * @param isPolling 是否是轮询任务
      * @return
      */
     public String buildFilterSql(
             String customSql,
             String operator,
-            String location,
             String columnName,
-            String columnType,
             boolean isPolling,
-            Function<Long, String> function) {
+            String location) {
         StringBuilder sql = new StringBuilder(64);
         if (StringUtils.isNotEmpty(customSql)) {
             sql.append(JdbcUtil.TEMPORARY_TABLE_NAME).append(".");
@@ -953,28 +829,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
             // 轮询任务使用占位符
             sql.append("?");
         } else {
-            sql.append(buildLocation(columnType, location, function));
+            sql.append(location);
         }
 
         return sql.toString();
-    }
-
-    /**
-     * buildLocation
-     *
-     * @param columnType
-     * @param location
-     * @return
-     */
-    public String buildLocation(
-            String columnType, String location, Function<Long, String> function) {
-        if (ColumnType.isTimeType(columnType)) {
-            return function.apply(Long.parseLong(location));
-        } else if (ColumnType.isNumberType(columnType)) {
-            return location;
-        } else {
-            return "'" + location + "'";
-        }
     }
 
     /**
@@ -1012,5 +870,21 @@ public class JdbcInputFormat extends BaseRichInputFormat {
 
     public void setJdbcDialect(JdbcDialect jdbcDialect) {
         this.jdbcDialect = jdbcDialect;
+    }
+
+    public void setColumnNameList(List<String> columnNameList) {
+        this.columnNameList = columnNameList;
+    }
+
+    public void setIncrementKeyUtil(KeyUtil<?, BigInteger> incrementKeyUtil) {
+        this.incrementKeyUtil = incrementKeyUtil;
+    }
+
+    public void setSplitKeyUtil(KeyUtil<?, BigInteger> splitKeyUtil) {
+        this.splitKeyUtil = splitKeyUtil;
+    }
+
+    public void setRestoreKeyUtil(KeyUtil<?, BigInteger> splitKeyUtil) {
+        this.restoreKeyUtil = splitKeyUtil;
     }
 }

@@ -90,6 +90,8 @@ public class StreamColumnConverter
             case "INT":
             case "INTEGER":
                 return val -> new BigDecimalColumn(JMockData.mock(int.class));
+            case "YEAR":
+                return val -> new BigDecimalColumn(1997);
             case "BOOLEAN":
                 return val -> new BooleanColumn(JMockData.mock(boolean.class));
             case "TINYINT":

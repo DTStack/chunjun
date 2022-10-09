@@ -139,7 +139,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
+			<version>${chunjun.guava.version}</version>
 		</dependency>
 
 	</dependencies>

@@ -144,6 +144,11 @@
 			<artifactId>chunjun-connector-emqx</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-rabbitmq</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!--RDB-->
 		<dependency>
@@ -211,6 +216,17 @@
 		<!--			<artifactId>chunjun-connector-oceanbasecdc</artifactId>-->
 		<!--			<version>${project.version}</version>-->
 		<!--		</dependency>-->
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-sybase</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-vertica11</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!--File-->
 		<dependency>
@@ -231,6 +247,11 @@
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-hive</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-s3</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

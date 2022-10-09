@@ -1,0 +1,131 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "url": "jdbc:mysql://node01:9030",
+            "feNodes": [
+              "node01:8030",
+              "node02:8030",
+              "node03:8030"
+            ],
+            "database": "test",
+            "table": "source",
+            "username": "root",
+            "password": "",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "boolean_data",
+                "type": "boolean"
+              },
+              {
+                "name": "tinyint_data",
+                "type": "tinyint"
+              },
+              {
+                "name": "smallint_data",
+                "type": "smallint"
+              },
+              {
+                "name": "integer_data",
+                "type": "int"
+              },
+              {
+                "name": "float_data",
+                "type": "float"
+              },
+              {
+                "name": "double_data",
+                "type": "double"
+              },
+              {
+                "name": "decimal_data",
+                "type": "decimal"
+              },
+              {
+                "name": "date_data",
+                "type": "date"
+              },
+              {
+                "name": "datetime_data",
+                "type": "datetime"
+              }
+            ]
+          },
+          "name": "starrocksreader"
+        },
+        "writer": {
+          "parameter": {
+            "url": "jdbc:mysql://node01:9030",
+            "feNodes": [
+              "node01:8030",
+              "node02:8030",
+              "node03:8030"
+            ],
+            "database": "test",
+            "table": "sink",
+            "username": "root",
+            "password": "",
+            "column": [
+              {
+                "name": "id",
+                "type": "int"
+              },
+              {
+                "name": "boolean_data",
+                "type": "boolean"
+              },
+              {
+                "name": "tinyint_data",
+                "type": "tinyint"
+              },
+              {
+                "name": "smallint_data",
+                "type": "smallint"
+              },
+              {
+                "name": "integer_data",
+                "type": "int"
+              },
+              {
+                "name": "float_data",
+                "type": "float"
+              },
+              {
+                "name": "double_data",
+                "type": "double"
+              },
+              {
+                "name": "decimal_data",
+                "type": "decimal"
+              },
+              {
+                "name": "date_data",
+                "type": "date"
+              },
+              {
+                "name": "datetime_data",
+                "type": "datetime"
+              }
+            ]
+          },
+          "name": "starrockswriter"
+        }
+      }
+    ],
+    "setting": {
+      "restore": {
+        "isRestore": false,
+        "isStream": true
+      },
+      "speed": {
+        "channel": 1
+      }
+    }
+  }
+}

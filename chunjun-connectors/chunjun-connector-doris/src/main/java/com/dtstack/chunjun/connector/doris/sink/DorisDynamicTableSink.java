@@ -96,11 +96,17 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
                 new DorisJdbcOutputFormatBuilder(new DorisJdbcOutputFormat());
 
         String[] fieldNames = tableSchema.getFieldNames();
+        List<String> columnNameList = new ArrayList<>(fieldNames.length);
+        List<String> columnTypeList = new ArrayList<>(fieldNames.length);
         List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
         for (int i = 0; i < fieldNames.length; i++) {
+            String name = fieldNames[i];
+            String type = rowType.getTypeAt(i).asSummaryString();
             FieldConf field = new FieldConf();
-            field.setName(fieldNames[i]);
-            field.setType(rowType.getTypeAt(i).asSummaryString());
+            columnNameList.add(name);
+            columnTypeList.add(type);
+            field.setName(name);
+            field.setType(type);
             field.setIndex(i);
             columnList.add(field);
         }
@@ -109,6 +115,9 @@ public class DorisDynamicTableSink extends JdbcDynamicTableSink {
                 (CollectionUtil.isNullOrEmpty(jdbcConf.getUniqueKey()))
                         ? EWriteMode.INSERT.name()
                         : EWriteMode.UPDATE.name());
+
+        builder.setColumnNameList(columnNameList);
+        builder.setColumnTypeList(columnTypeList);
 
         builder.setConfig(dorisConf);
         builder.setJdbcDialect(jdbcDialect);

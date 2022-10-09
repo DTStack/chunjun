@@ -1,0 +1,90 @@
+{
+  "job" : {
+    "content" : [ {
+      "reader" : {
+        "parameter" : {
+          "schema" : "test",
+          "path" : "hdfs://ns1/user/hive/warehouse/test.db/shop_info",
+          "hadoopConfig" : {
+            "dfs.ha.namenodes.ns1" : "nn1,nn2",
+            "dfs.client.failover.proxy.provider.ns1" : "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+            "dfs.namenode.rpc-address.ns1.nn2" : "hostname:9000",
+            "dfs.namenode.rpc-address.ns1.nn1" : "hostname:9000",
+            "dfs.nameservices" : "ns1"
+          },
+          "column" : [ {
+            "customConverterType" : "int",
+            "name" : "shop_id",
+            "index" : 0,
+            "isPart" : false,
+            "type" : "int",
+            "key" : "shop_id"
+          }, {
+            "customConverterType" : "string",
+            "name" : "shop_type",
+            "index" : 1,
+            "isPart" : false,
+            "type" : "string",
+            "key" : "shop_type"
+          } ],
+          "defaultFS" : "hdfs://ns1",
+          "connection" : [ {
+            "jdbcUrl" : "jdbc:hive2://localhost:8191/product_show",
+            "table" : [ "shop_info" ]
+          } ],
+          "fieldDelimiter" : ",",
+          "encoding" : "utf-8",
+          "fileType" : "text",
+          "sourceIds" : [ 2780 ],
+          "table" : "shop_info",
+          "username" : "dtstack_test"
+        },
+        "name" : "hdfsreader"
+      },
+      "writer" : {
+        "parameter" : {
+          "schema" : "MENGHAN",
+          "postSql" : [ ],
+          "password" : "",
+          "fetchSize" : 101,
+          "session" : [ ],
+          "column" : [ {
+            "name" : "INTEGER1",
+            "isPart" : false,
+            "type" : "INTEGER",
+            "key" : "shop_id"
+          },{
+            "name" : "VARCHAR1",
+            "isPart" : false,
+            "type" : "VARCHAR",
+            "key" : "shop_type"
+          }
+          ],
+          "connection" : [ {
+            "jdbcUrl" : "jdbc:vertica://localhost:5433/",
+            "table" : [ "menghantest.test_type2" ]
+          } ],
+          "writeMode" : "insert",
+          "username" : "dbadmin",
+          "preSql" : []
+        },
+        "name" : "vertica11writer"
+      }
+    } ],
+    "setting" : {
+      "restore" : {
+        "maxRowNumForCheckpoint" : 0,
+        "isRestore" : false,
+        "restoreColumnName" : "",
+        "restoreColumnIndex" : 0
+      },
+      "errorLimit" : {
+        "record" : 100
+      },
+      "speed" : {
+        "bytes" : 0,
+        "channel" : 1
+      }
+    }
+  }
+}
