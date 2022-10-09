@@ -18,6 +18,7 @@
 package com.dtstack.chunjun.connector.hdfs.converter;
 
 import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
 import com.dtstack.chunjun.connector.hdfs.util.HdfsUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
@@ -64,8 +65,8 @@ public class HdfsParquetColumnConverter
     private List<String> columnNameList;
     private transient Map<String, ColumnTypeUtil.DecimalInfo> decimalColInfo;
 
-    public HdfsParquetColumnConverter(List<FieldConf> fieldConfList) {
-        super(fieldConfList.size());
+    public HdfsParquetColumnConverter(List<FieldConf> fieldConfList, HdfsConf hdfsConf) {
+        super(fieldConfList.size(), hdfsConf);
         for (int i = 0; i < fieldConfList.size(); i++) {
             String type = fieldConfList.get(i).getType();
             int left = type.indexOf(ConstantValue.LEFT_PARENTHESIS_SYMBOL);
@@ -86,12 +87,15 @@ public class HdfsParquetColumnConverter
         ColumnRowData row = new ColumnRowData(input.getArity());
         if (input instanceof GenericRowData) {
             GenericRowData genericRowData = (GenericRowData) input;
+            List<FieldConf> fieldConfList = commonConf.getColumn();
             for (int i = 0; i < input.getArity(); i++) {
                 row.addField(
-                        (AbstractBaseColumn)
-                                toInternalConverters
-                                        .get(i)
-                                        .deserialize(genericRowData.getField(i)));
+                        assembleFieldProps(
+                                fieldConfList.get(i),
+                                (AbstractBaseColumn)
+                                        toInternalConverters
+                                                .get(i)
+                                                .deserialize(genericRowData.getField(i))));
             }
         } else {
             throw new ChunJunRuntimeException(
