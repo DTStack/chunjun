@@ -23,7 +23,6 @@ import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.jdbc.util.SqlUtil;
 import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
-import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.metrics.BigIntegerAccumulator;
@@ -145,58 +144,10 @@ public class JdbcInputFormat extends BaseRichInputFormat {
     /** Create split for modSplitStrategy */
     public JdbcInputSplit[] createSplitsInternalBySplitMod(int minNumSplits, String startLocation) {
         JdbcInputSplit[] splits = new JdbcInputSplit[minNumSplits];
-        if (StringUtils.isNotBlank(startLocation)) {
-            String[] startLocations = startLocation.split(ConstantValue.COMMA_SYMBOL);
-            if (startLocations.length == 1) {
-                for (int i = 0; i < minNumSplits; i++) {
-                    splits[i] =
-                            new JdbcInputSplit(
-                                    i,
-                                    minNumSplits,
-                                    i,
-                                    startLocations[0],
-                                    null,
-                                    null,
-                                    null,
-                                    "mod",
-                                    jdbcConf.isPolling());
-                }
-            } else if (startLocations.length != jdbcConf.getParallelism()) {
-                throw new ChunJunRuntimeException(
-                        String.format(
-                                "startLocations is %s, but parallelism in jdbcConf is [%s]",
-                                Arrays.toString(startLocations), jdbcConf.getParallelism()));
-            } else {
-                for (int i = 0; i < minNumSplits; i++) {
-                    splits[i] =
-                            new JdbcInputSplit(
-                                    i,
-                                    minNumSplits,
-                                    i,
-                                    startLocations[i],
-                                    null,
-                                    null,
-                                    null,
-                                    "mod",
-                                    jdbcConf.isPolling());
-                }
-            }
-        } else {
-            for (int i = 0; i < minNumSplits; i++) {
-                splits[i] =
-                        new JdbcInputSplit(
-                                i,
-                                minNumSplits,
-                                i,
-                                null,
-                                null,
-                                null,
-                                null,
-                                "mod",
-                                jdbcConf.isPolling());
-            }
+        for (int i = 0; i < minNumSplits; i++) {
+            splits[i] = new JdbcInputSplit(i, minNumSplits, i, "mod", jdbcConf.isPolling());
         }
-
+        JdbcUtil.setStarLocationForSplits(splits, startLocation);
         LOG.info("createInputSplitsInternal success, splits is {}", GsonUtil.GSON.toJson(splits));
         return splits;
     }
@@ -303,32 +254,26 @@ public class JdbcInputFormat extends BaseRichInputFormat {
         startLocationAccumulator = new BigIntegerAccumulator();
         endLocationAccumulator = new BigIntegerAccumulator();
         JdbcInputSplit jdbcInputSplit = (JdbcInputSplit) inputSplit;
-        String startLocation = jdbcInputSplit.getStartLocation();
 
-        if (StringUtils.isNotBlank(startLocation)) {
-            startLocationAccumulator.add(new BigInteger(startLocation));
-        }
-
-        // 如果是增量同步
-        if (!jdbcConf.isPolling()) {
-            // 若useMaxFunc设置为true，endLocation设置为数据库中查询的最大值
-            if (jdbcConf.isUseMaxFunc()) {
-                getMaxValue(inputSplit);
-                endLocationAccumulator.add(new BigInteger(jdbcInputSplit.getEndLocation()));
+        // get maxValue in task to avoid timeout in SourceFactory
+        if ((jdbcConf.isPolling() && jdbcConf.isPollingFromMax())
+                || (!jdbcConf.isPolling() && jdbcConf.isUseMaxFunc())) {
+            String maxValue = getMaxValue(inputSplit);
+            if (jdbcConf.isPolling()) {
+                ((JdbcInputSplit) inputSplit).setStartLocation(maxValue);
             } else {
-                // useMaxFunc设置为false，如果startLocation不为空，则将endLocation初始值设置为startLocation的值，防止数据库无增量数据时下次获取到的startLocation为空
-                if (StringUtils.isNotEmpty(startLocation)) {
-                    endLocationAccumulator.add(new BigInteger(startLocation));
-                }
+                ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
+                endLocationAccumulator.add(new BigInteger(maxValue));
             }
         }
 
-        // 将累加器信息添加至prometheus
-        String start = Metrics.START_LOCATION;
-        String end = Metrics.END_LOCATION;
-        if (jdbcConf.getParallelism() > 1) {
-            start = Metrics.START_LOCATION + "_" + inputSplit.getSplitNumber();
-            end = Metrics.END_LOCATION + "_" + inputSplit.getSplitNumber();
+        String startLocation = jdbcInputSplit.getStartLocation();
+        if (StringUtils.isNotBlank(startLocation)) {
+            startLocationAccumulator.add(new BigInteger(startLocation));
+            // 防止数据库无增量数据时下次从prometheus获取到的startLocation为空
+            if (endLocationAccumulator.getLocalValue().longValue() == Long.MIN_VALUE) {
+                endLocationAccumulator.add(new BigInteger(startLocation));
+            }
         }
 
         // 将累加器信息添加至prometheus
@@ -349,21 +294,27 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      *
      * @param inputSplit 数据分片
      */
-    protected void getMaxValue(InputSplit inputSplit) {
+    protected String getMaxValue(InputSplit inputSplit) {
         String maxValue;
         if (inputSplit.getSplitNumber() == 0) {
-            maxValue = getMaxValueFromDb();
+            maxValue = incrementKeyUtil.transToLocationValue(getMaxValueFromDb()).toString();
             // 将累加器信息上传至flink，供其他通道通过flink rest api获取该最大值
             maxValueAccumulator = new StringAccumulator();
             maxValueAccumulator.add(maxValue);
             getRuntimeContext().addAccumulator(Metrics.MAX_VALUE, maxValueAccumulator);
         } else {
-            maxValue =
-                    String.valueOf(
-                            accumulatorCollector.getAccumulatorValue(Metrics.MAX_VALUE, true));
+            int times = 0;
+            do {
+                maxValue = accumulatorCollector.getRdbMaxFuncValue();
+            } while (maxValue.equals(Metrics.MAX_VALUE_NONE) && times++ < 6);
+            if (maxValue.equals(Metrics.MAX_VALUE_NONE)) {
+                throw new ChunJunRuntimeException(
+                        String.format(
+                                "failed to get maxValue by accumulator,splitNumber[%s]",
+                                inputSplit.getSplitNumber()));
+            }
         }
-
-        ((JdbcInputSplit) inputSplit).setEndLocation(maxValue);
+        return maxValue;
     }
 
     /**
@@ -612,10 +563,11 @@ public class JdbcInputFormat extends BaseRichInputFormat {
                                         jdbcInputSplit.getStartLocation())));
             }
             if (StringUtils.isNotBlank(jdbcInputSplit.getEndLocation())) {
+                String operator = jdbcConf.isUseMaxFunc() ? " < " : " <= ";
                 whereList.add(
                         buildFilterSql(
                                 jdbcConf.getCustomSql(),
-                                "<",
+                                operator,
                                 jdbcDialect.quoteIdentifier(jdbcConf.getIncreColumn()),
                                 false,
                                 incrementKeyUtil.transLocationStrToStatementValue(

@@ -102,6 +102,11 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
                         .append("];\n");
             }
         }
+
+        if (conf.isPolling() && conf.isUseMaxFunc()) {
+            sb.append("polling and useMaxFunc can't be true at the same time;\n");
+        }
+
         try {
             Semantic.getByName(conf.getSemantic());
         } catch (Exception e) {

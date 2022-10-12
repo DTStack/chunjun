@@ -18,6 +18,7 @@
 
 package com.dtstack.chunjun.metrics;
 
+import com.dtstack.chunjun.constants.Metrics;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.ReflectionUtils;
 
@@ -64,6 +65,8 @@ public class AccumulatorCollector {
 
     @VisibleForTesting protected final ScheduledExecutorService scheduledExecutorService;
     private final Map<String, ValueAccumulator> valueAccumulatorMap;
+
+    private String rdbMaxFuncValue = Metrics.MAX_VALUE_NONE;
 
     public AccumulatorCollector(StreamingRuntimeContext context, List<String> metricNames) {
         Preconditions.checkArgument(metricNames != null && metricNames.size() > 0);
@@ -135,8 +138,15 @@ public class AccumulatorCollector {
             ValueAccumulator valueAccumulator = valueAccumulatorMap.get(result.getName());
             if (valueAccumulator != null) {
                 valueAccumulator.setGlobal(Long.parseLong(result.getValue()));
+            } else if (result.getName().equals(Metrics.MAX_VALUE)) {
+                rdbMaxFuncValue = result.getValue();
             }
         }
+    }
+
+    public String getRdbMaxFuncValue() {
+        waited();
+        return rdbMaxFuncValue;
     }
 
     /**
@@ -148,19 +158,23 @@ public class AccumulatorCollector {
      */
     public long getAccumulatorValue(String name, boolean needWaited) {
         if (needWaited) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(this.period);
-            } catch (InterruptedException e) {
-                LOG.warn(
-                        "Interrupted when waiting for valueAccumulatorMap, e = {}",
-                        ExceptionUtil.getErrorMessage(e));
-            }
+            waited();
         }
         ValueAccumulator valueAccumulator = valueAccumulatorMap.get(name);
         if (valueAccumulator == null) {
             return 0;
         }
         return valueAccumulator.getGlobal();
+    }
+
+    private void waited() {
+        try {
+            TimeUnit.MILLISECONDS.sleep(this.period);
+        } catch (InterruptedException e) {
+            LOG.warn(
+                    "Interrupted when waiting for valueAccumulatorMap, e = {}",
+                    ExceptionUtil.getErrorMessage(e));
+        }
     }
 
     /**
