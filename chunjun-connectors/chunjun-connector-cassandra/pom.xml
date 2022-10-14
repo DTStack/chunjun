@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>19.0</version>
+			<version>30.0-jre</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.datastax.cassandra/cassandra-driver-core -->
