@@ -190,3 +190,8 @@ Thanks to all contributors! We are very happy that you can contribute Chunjun.
 ## License
 
 ChunJun is under the Apache 2.0 license. Please visit [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) for details.
+
+## Contact Us
+
+Join ChunJun Slack.
+https://join.slack.com/t/chunjun/shared_invite/zt-1hzmvh0o3-qZ726NXmhClmLFRMpEDHYw
