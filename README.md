@@ -12,7 +12,7 @@
 
 ## Introduce
 
-ChunJun(formerly known as FlinkX), is a data integration tool based on Flink, which is **stable**, **easy to use**, **efficient**, and **integrated with DataStream/DataSet API**. It can realize data synchronization and calculation between various heterogeneous data sources. ChunJun has been deployed and running stably in thousands of companies so far.
+ChunJun is a distributed integration framework, and currently is based on Apache Flink. It was initially known as FlinkX and renamed ChunJun on February 22, 2022. It can realize data synchronization and calculation between various heterogeneous data sources. ChunJun has been deployed and running stably in thousands of companies so far.
 
 Official website of ChunJun: https://dtstack.github.io/chunjun/
 
@@ -190,3 +190,8 @@ Thanks to all contributors! We are very happy that you can contribute Chunjun.
 ## License
 
 ChunJun is under the Apache 2.0 license. Please visit [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) for details.
+
+## Contact Us
+
+Join ChunJun Slack.
+https://join.slack.com/t/chunjun/shared_invite/zt-1hzmvh0o3-qZ726NXmhClmLFRMpEDHYw
