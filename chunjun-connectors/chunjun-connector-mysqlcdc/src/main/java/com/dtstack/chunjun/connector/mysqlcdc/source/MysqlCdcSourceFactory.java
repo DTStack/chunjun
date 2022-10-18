@@ -23,6 +23,7 @@ import com.dtstack.chunjun.connector.jdbc.adapter.ConnectionAdapter;
 import com.dtstack.chunjun.connector.jdbc.conf.CdcConf;
 import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.chunjun.connector.jdbc.exclusion.FieldNameExclusionStrategy;
+import com.dtstack.chunjun.connector.mysqlcdc.converter.MysqlCdcRawTypeConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
@@ -45,6 +46,9 @@ import com.ververica.cdc.connectors.mysql.source.MySqlSourceBuilder;
 import com.ververica.cdc.debezium.DebeziumDeserializationSchema;
 import com.ververica.cdc.debezium.table.RowDataDebeziumDeserializeSchema;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MysqlCdcSourceFactory extends SourceFactory {
 
     protected CdcConf cdcConf;
@@ -64,22 +68,24 @@ public class MysqlCdcSourceFactory extends SourceFactory {
 
     @Override
     public RawTypeConverter getRawTypeConverter() {
-        return null;
+        return MysqlCdcRawTypeConverter::apply;
     }
 
     @Override
     public DataStream<RowData> createSource() {
+
+        List<DataTypes.Field> dataTypes = new ArrayList<>(syncConf.getReader().getFieldList().size());
+
+        syncConf.getReader().getFieldList().forEach(fieldConf -> {
+            dataTypes.add(DataTypes.FIELD(fieldConf.getName(), getRawTypeConverter().apply(fieldConf.getType())));
+        });
         final DataType dataType =
-                DataTypes.ROW(
-                        DataTypes.FIELD("id", DataTypes.BIGINT()),
-                        DataTypes.FIELD("name", DataTypes.STRING()),
-                        DataTypes.FIELD("description", DataTypes.STRING()),
-                        DataTypes.FIELD("weight", DataTypes.FLOAT()));
+                DataTypes.ROW(dataTypes.toArray(new DataTypes.Field[0]));
 
         MySqlSource<RowData> mySqlSource = new MySqlSourceBuilder<RowData>()
                 .hostname(cdcConf.getHost())
                 .port(cdcConf.getPort())
-                .databaseList(cdcConf.getDatabaseList().toArray(new String[cdcConf.getDatabaseList().size()]))
+                .databaseList(cdcConf.getDatabaseList().toArray(new String[0]))
                 .tableList(cdcConf.getTableList().toArray(new String[cdcConf.getDatabaseList().size()]))
                 .username(cdcConf.getUserName())
                 .password(cdcConf.getPassword())
