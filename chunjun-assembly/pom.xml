@@ -55,6 +55,7 @@
 							<descriptors>
 								<descriptor>src/main/assembly/assembly.xml</descriptor>
 							</descriptors>
+							<outputDirectory>../output</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
