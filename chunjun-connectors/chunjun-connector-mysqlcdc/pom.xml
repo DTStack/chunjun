@@ -29,14 +29,9 @@
 			<version>5.1.46</version>
 		</dependency>
 		<dependency>
-			<groupId>com.ververica</groupId>
+			<groupId>com.alibaba.ververica</groupId>
 			<artifactId>flink-connector-mysql-cdc</artifactId>
-			<version>2.2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.ververica</groupId>
-			<artifactId>flink-cdc-base</artifactId>
-			<version>2.2.0</version>
+			<version>${flinkcdc.version}</version>
 		</dependency>
 	</dependencies>
 

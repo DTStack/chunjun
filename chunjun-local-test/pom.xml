@@ -158,6 +158,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-connector-mysqlcdc</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-connector-mysqld</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -354,6 +359,11 @@
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-ddl-mysql</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.30</version>
 		</dependency>
 	</dependencies>
 </project>

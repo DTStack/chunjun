@@ -31,11 +31,11 @@ public class CdcConf extends ChunJunCommonConf implements Serializable {
     protected List<String> databaseList;
     protected List<String> tableList;
 
-    protected String userName;
+    protected String username;
 
     protected String password;
 
-    protected String serverId;
+    protected int serverId;
 
     public String getHost() {
         return host;
@@ -69,12 +69,12 @@ public class CdcConf extends ChunJunCommonConf implements Serializable {
         this.tableList = tableList;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -85,11 +85,11 @@ public class CdcConf extends ChunJunCommonConf implements Serializable {
         this.password = password;
     }
 
-    public String getServerId() {
+    public int getServerId() {
         return serverId;
     }
 
-    public void setServerId(String serverId) {
+    public void setServerId(int serverId) {
         this.serverId = serverId;
     }
 }

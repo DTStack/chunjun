@@ -28,32 +28,30 @@ import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.source.SourceFactory;
 import com.dtstack.chunjun.util.GsonUtil;
 
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.data.RowData;
-import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.DataType;
-import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.types.utils.TypeConversions;
+import org.apache.flink.types.RowKind;
 
+import com.alibaba.ververica.cdc.connectors.mysql.MySQLSource;
+import com.alibaba.ververica.cdc.debezium.DebeziumDeserializationSchema;
+import com.alibaba.ververica.cdc.debezium.DebeziumSourceFunction;
+import com.alibaba.ververica.cdc.debezium.table.RowDataDebeziumDeserializeSchema;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.ververica.cdc.connectors.mysql.source.MySqlSource;
-import com.ververica.cdc.connectors.mysql.source.MySqlSourceBuilder;
-import com.ververica.cdc.debezium.DebeziumDeserializationSchema;
-import com.ververica.cdc.debezium.table.RowDataDebeziumDeserializeSchema;
 
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MysqlCdcSourceFactory extends SourceFactory {
+public class MysqlcdcSourceFactory extends SourceFactory {
 
     protected CdcConf cdcConf;
 
-    protected MysqlCdcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
+    public MysqlcdcSourceFactory(SyncConf syncConf, StreamExecutionEnvironment env) {
         super(syncConf, env);
         Gson gson =
                 new GsonBuilder()
@@ -74,44 +72,51 @@ public class MysqlCdcSourceFactory extends SourceFactory {
     @Override
     public DataStream<RowData> createSource() {
 
-        List<DataTypes.Field> dataTypes = new ArrayList<>(syncConf.getReader().getFieldList().size());
+        List<DataTypes.Field> dataTypes =
+                new ArrayList<>(syncConf.getReader().getFieldList().size());
 
-        syncConf.getReader().getFieldList().forEach(fieldConf -> {
-            dataTypes.add(DataTypes.FIELD(fieldConf.getName(), getRawTypeConverter().apply(fieldConf.getType())));
-        });
-        final DataType dataType =
-                DataTypes.ROW(dataTypes.toArray(new DataTypes.Field[0]));
+        syncConf.getReader()
+                .getFieldList()
+                .forEach(
+                        fieldConf -> {
+                            dataTypes.add(
+                                    DataTypes.FIELD(
+                                            fieldConf.getName(),
+                                            getRawTypeConverter().apply(fieldConf.getType())));
+                        });
+        final DataType dataType = DataTypes.ROW(dataTypes.toArray(new DataTypes.Field[0]));
 
-        MySqlSource<RowData> mySqlSource = new MySqlSourceBuilder<RowData>()
+        DebeziumSourceFunction<RowData> mySqlSource = new MySQLSource.Builder<RowData>()
                 .hostname(cdcConf.getHost())
                 .port(cdcConf.getPort())
                 .databaseList(cdcConf.getDatabaseList().toArray(new String[0]))
-                .tableList(cdcConf.getTableList().toArray(new String[cdcConf.getDatabaseList().size()]))
-                .username(cdcConf.getUserName())
+                .tableList(
+                        cdcConf.getTableList()
+                                .toArray(new String[cdcConf.getDatabaseList().size()]))
+                .username(cdcConf.getUsername())
                 .password(cdcConf.getPassword())
                 .serverId(cdcConf.getServerId())
                 .deserializer(buildRowDataDebeziumDeserializeSchema(dataType))
-                .includeSchemaChanges(true) // output the schema changes as well
-                .splitSize(2)
                 .build();
 
-        return env.fromSource(
-                mySqlSource,
-                WatermarkStrategy.noWatermarks(),
-                "MySqlParallelSource");
+        return env.addSource(mySqlSource, "MysqlCdcSource", getTypeInformation());
     }
 
     private DebeziumDeserializationSchema<RowData> buildRowDataDebeziumDeserializeSchema(
             DataType dataType) {
-        LogicalType logicalType = TypeConversions.fromDataToLogicalType(dataType);
-        InternalTypeInfo<RowData> typeInfo = InternalTypeInfo.of(logicalType);
-        return RowDataDebeziumDeserializeSchema.newBuilder()
-                .setPhysicalRowType((RowType) dataType.getLogicalType())
-                .setResultTypeInfo(typeInfo)
-                .build();
+        return new RowDataDebeziumDeserializeSchema((RowType) dataType.getLogicalType()
+                , typeInformation, new DemoValueValidator(), ZoneOffset.UTC);
     }
 
     protected Class<? extends CdcConf> getConfClass() {
         return CdcConf.class;
+    }
+
+    public static final class DemoValueValidator implements RowDataDebeziumDeserializeSchema.ValueValidator {
+
+        @Override
+        public void validate(RowData rowData, RowKind rowKind) {
+            //do nothing
+        }
     }
 }
