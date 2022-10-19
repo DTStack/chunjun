@@ -89,14 +89,14 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/mysql/"
+								<copy todir="${basedir}/../../${dist.dir}/connector/mysqlcdc/"
 									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
 								<!--suppress UnresolvedMavenProperty -->
-								<move file="${basedir}/../../${dist.dir}/connector/mysql/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/mysql/${project.artifactId}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/connector/mysqlcdc/${project.artifactId}-${project.version}.jar"
+									  tofile="${basedir}/../../${dist.dir}/connector/mysqlcdc/${project.artifactId}.jar"/>
 								<delete>
 									<!--suppress UnresolvedMavenProperty -->
-									<fileset dir="${basedir}/../../${dist.dir}/connector/mysql/"
+									<fileset dir="${basedir}/../../${dist.dir}/connector/mysqlcdc/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}.jar"/>
 								</delete>
