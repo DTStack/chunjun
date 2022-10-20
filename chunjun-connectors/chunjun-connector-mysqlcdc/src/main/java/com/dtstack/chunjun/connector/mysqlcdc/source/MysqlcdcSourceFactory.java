@@ -107,7 +107,7 @@ public class MysqlcdcSourceFactory extends SourceFactory {
             DataType dataType) {
         return new RowDataDebeziumDeserializeSchema(
                 (RowType) dataType.getLogicalType(),
-                typeInformation,
+                getTypeInformation(),
                 new DemoValueValidator(),
                 ZoneOffset.UTC);
     }
