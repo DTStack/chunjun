@@ -86,37 +86,42 @@ public class MysqlcdcSourceFactory extends SourceFactory {
                         });
         final DataType dataType = DataTypes.ROW(dataTypes.toArray(new DataTypes.Field[0]));
 
-        DebeziumSourceFunction<RowData> mySqlSource = new MySQLSource.Builder<RowData>()
-                .hostname(cdcConf.getHost())
-                .port(cdcConf.getPort())
-                .databaseList(cdcConf.getDatabaseList().toArray(new String[0]))
-                .tableList(
-                        cdcConf.getTableList()
-                                .toArray(new String[cdcConf.getDatabaseList().size()]))
-                .username(cdcConf.getUsername())
-                .password(cdcConf.getPassword())
-                .serverId(cdcConf.getServerId())
-                .deserializer(buildRowDataDebeziumDeserializeSchema(dataType))
-                .build();
+        DebeziumSourceFunction<RowData> mySqlSource =
+                new MySQLSource.Builder<RowData>()
+                        .hostname(cdcConf.getHost())
+                        .port(cdcConf.getPort())
+                        .databaseList(cdcConf.getDatabaseList().toArray(new String[0]))
+                        .tableList(
+                                cdcConf.getTableList()
+                                        .toArray(new String[cdcConf.getDatabaseList().size()]))
+                        .username(cdcConf.getUsername())
+                        .password(cdcConf.getPassword())
+                        .serverId(cdcConf.getServerId())
+                        .deserializer(buildRowDataDebeziumDeserializeSchema(dataType))
+                        .build();
 
         return env.addSource(mySqlSource, "MysqlCdcSource", getTypeInformation());
     }
 
     private DebeziumDeserializationSchema<RowData> buildRowDataDebeziumDeserializeSchema(
             DataType dataType) {
-        return new RowDataDebeziumDeserializeSchema((RowType) dataType.getLogicalType()
-                , typeInformation, new DemoValueValidator(), ZoneOffset.UTC);
+        return new RowDataDebeziumDeserializeSchema(
+                (RowType) dataType.getLogicalType(),
+                typeInformation,
+                new DemoValueValidator(),
+                ZoneOffset.UTC);
     }
 
     protected Class<? extends CdcConf> getConfClass() {
         return CdcConf.class;
     }
 
-    public static final class DemoValueValidator implements RowDataDebeziumDeserializeSchema.ValueValidator {
+    public static final class DemoValueValidator
+            implements RowDataDebeziumDeserializeSchema.ValueValidator {
 
         @Override
         public void validate(RowData rowData, RowKind rowKind) {
-            //do nothing
+            // do nothing
         }
     }
 }
