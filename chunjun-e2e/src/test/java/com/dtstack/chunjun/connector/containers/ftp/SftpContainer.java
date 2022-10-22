@@ -18,7 +18,6 @@
 
 package com.dtstack.chunjun.connector.containers.ftp;
 
-
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitStrategyTarget;
@@ -32,21 +31,17 @@ import java.time.Duration;
 public class SftpContainer extends GenericContainer<SftpContainer> {
 
     private static final URL SFTP_DOCKERFILE =
-            SftpContainer.class
-                    .getClassLoader()
-                    .getResource("docker/ftp/Dockerfile");
+            SftpContainer.class.getClassLoader().getResource("docker/ftp/Dockerfile");
 
     public SftpContainer(String imageName) throws URISyntaxException {
         super(
                 new ImageFromDockerfile(imageName, true)
-                        .withDockerfile(Paths.get(SFTP_DOCKERFILE.toURI()))
-        );
+                        .withDockerfile(Paths.get(SFTP_DOCKERFILE.toURI())));
 
         waitingFor(
                 new WaitStrategy() {
                     @Override
-                    public void waitUntilReady(WaitStrategyTarget waitStrategyTarget) {
-                    }
+                    public void waitUntilReady(WaitStrategyTarget waitStrategyTarget) {}
 
                     @Override
                     public WaitStrategy withStartupTimeout(Duration startupTimeout) {
@@ -54,5 +49,4 @@ public class SftpContainer extends GenericContainer<SftpContainer> {
                     }
                 });
     }
-
 }
