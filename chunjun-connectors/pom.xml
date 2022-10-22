@@ -74,6 +74,7 @@
 		<module>chunjun-connector-oraclelogminer</module>
 		<module>chunjun-connector-sqlservercdc</module>
 		<module>chunjun-connector-pgwal</module>
+		<module>chunjun-connector-mysqlcdc</module>
 
 		<!--Network-->
 		<module>chunjun-connector-http</module>
