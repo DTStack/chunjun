@@ -28,7 +28,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.table.data.RowData;
 
-import com.sun.tools.javac.util.Assert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,6 +107,6 @@ public class KafkaSinkFactoryTest {
         DataStream<RowData> source = new KafkaSourceFactory(config, env).createSource();
         factory = new KafkaSinkFactory(config);
 
-        Assert.checkNonNull(factory.createSink(source));
+        Assert.assertNotNull(factory.createSink(source));
     }
 }

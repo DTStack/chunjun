@@ -18,9 +18,10 @@
 
 package com.dtstack.chunjun.conf;
 
-import com.sun.tools.javac.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,7 +36,7 @@ class SyncConfTest {
         syncConf.setPluginRoot("pluginRoot");
         syncConf.setRemotePluginPath("remotePluginPath");
         syncConf.setSavePointPath("savePointPath");
-        syncConf.setSyncJarList(List.of("syncJarList"));
+        syncConf.setSyncJarList(Arrays.asList("syncJarList"));
 
         String expected =
                 "SyncConf{job=null, pluginRoot='pluginRoot', remotePluginPath='remotePluginPath', savePointPath='savePointPath', syncJarList=syncJarList}";

@@ -15,7 +15,7 @@
 	<properties>
 		<!-- TODO 升级4.0？-->
 		<vertx.version>3.9.7</vertx.version>
-		<druid.version>1.2.6</druid.version>
+		<druid.version>1.2.11</druid.version>
 	</properties>
 
 	<dependencies>
@@ -43,6 +43,16 @@
 			<groupId>com.alibaba</groupId>
 			<artifactId>druid</artifactId>
 			<version>${druid.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jconsole</artifactId>
+					<groupId>com.sun</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>tools</artifactId>
+					<groupId>com.sun</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 </project>
