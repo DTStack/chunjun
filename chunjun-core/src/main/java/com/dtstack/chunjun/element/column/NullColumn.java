@@ -56,6 +56,11 @@ public class NullColumn extends AbstractBaseColumn {
     }
 
     @Override
+    public String type() {
+        return "BIGDECIMAL";
+    }
+
+    @Override
     public BigDecimal asBigDecimal() {
         return null;
     }

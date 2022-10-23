@@ -18,9 +18,12 @@
 
 package com.dtstack.chunjun.metrics;
 
+import com.dtstack.chunjun.cdc.DdlRowData;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.throwable.UnsupportedTypeException;
+
+import org.apache.flink.table.data.RowData;
 
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 
@@ -88,10 +91,16 @@ public abstract class RowSizeCalculator<T> {
         }
     }
 
-    static class SyncCalculator extends RowSizeCalculator<ColumnRowData> {
+    static class SyncCalculator extends RowSizeCalculator<RowData> {
         @Override
-        public long getObjectSize(ColumnRowData object) {
-            return object.getByteSize();
+        public long getObjectSize(RowData rowData) {
+            if (rowData instanceof ColumnRowData) {
+                return ((ColumnRowData) rowData).getByteSize();
+            } else if (rowData instanceof DdlRowData) {
+                return ((DdlRowData) rowData).getByteSize();
+            }
+            throw new RuntimeException(
+                    "not support get rowSize for " + rowData.getClass().getName());
         }
     }
 

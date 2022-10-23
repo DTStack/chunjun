@@ -352,7 +352,20 @@
 		<!-- ddlconvent plugin -->
 		<dependency>
 			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-ddl-base</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-ddl-mysql</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.dtstack.chunjun</groupId>
+			<artifactId>chunjun-ddl-oracle</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

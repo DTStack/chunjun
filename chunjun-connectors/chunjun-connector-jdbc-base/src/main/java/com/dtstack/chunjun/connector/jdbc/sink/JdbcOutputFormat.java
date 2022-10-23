@@ -17,6 +17,10 @@
  */
 package com.dtstack.chunjun.connector.jdbc.sink;
 
+import com.dtstack.chunjun.cdc.DdlRowData;
+import com.dtstack.chunjun.cdc.EventType;
+import com.dtstack.chunjun.cdc.ddl.DdlRowDataConvented;
+import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
@@ -43,7 +47,9 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * OutputFormat for writing data to relational database.
@@ -65,6 +71,8 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     protected boolean autoCommit = true;
 
     protected transient PreparedStmtProxy stmtProxy;
+
+    protected Set<TableIdentifier> createTableOnSnapShot = new HashSet<>();
 
     @Override
     public void initializeGlobal(int parallelism) {
@@ -322,6 +330,91 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
     }
 
     @Override
+    protected void preExecuteDdlRowData(DdlRowData rowData) throws Exception {
+        while (this.rows.size() > 0) {
+            super.writeRecordInternal();
+        }
+        doCommit();
+    }
+
+    @Override
+    protected void executeDdlRowData(DdlRowData ddlRowData) throws Exception {
+        if (ddlRowData.isSnapShot()) {
+            TableIdentifier tableIdentifier = ddlRowData.getTableIdentifier();
+            // 表已存在 且 createTableOnSnapShot 不包含 直接跳过改为已执行
+            // 因为上游的一个create语句可能会被拆分为多条，所以不能仅仅判断数据库是否存在这个表
+            if (!createTableOnSnapShot.contains(tableIdentifier)
+                    && tableExist(
+                            tableIdentifier.getDataBase(),
+                            tableIdentifier.getSchema(),
+                            tableIdentifier.getTable())) {
+                executorService.execute(
+                        () ->
+                                ddlHandler.updateDDLChange(
+                                        ddlRowData.getTableIdentifier(),
+                                        ddlRowData.getLsn(),
+                                        ddlRowData.getLsnSequence(),
+                                        2,
+                                        "table has exists so skip this snapshot data"));
+                return;
+            }
+        }
+
+        if (ddlRowData instanceof DdlRowDataConvented
+                && !((DdlRowDataConvented) ddlRowData).conventSuccessful()) {
+            return;
+        }
+
+        String sql = ddlRowData.getSql();
+        String schema = ddlRowData.getTableIdentifier().getSchema();
+        if (ddlRowData instanceof DdlRowDataConvented) {
+            sql = ((DdlRowDataConvented) ddlRowData).getConventInfo();
+            LOG.info(
+                    "receive a convented ddlSql {} for table:{} and origin sql is {}",
+                    ((DdlRowDataConvented) ddlRowData).getConventInfo(),
+                    ddlRowData.getTableIdentifier().toString(),
+                    ddlRowData.getSql());
+        } else {
+            LOG.info(
+                    "receive a ddlSql {}  for table:{}",
+                    ddlRowData.getSql(),
+                    ddlRowData.getTableIdentifier().toString());
+        }
+
+        String finalSql = sql;
+        executorService.execute(
+                () -> {
+                    try {
+                        Statement statement = dbConn.createStatement();
+                        if (StringUtils.isNotBlank(schema)
+                                && !EventType.CREATE_SCHEMA.equals(ddlRowData.getType())) {
+                            switchSchema(schema, statement);
+                        }
+                        statement.execute(finalSql);
+
+                        if (ddlRowData.isSnapShot()) {
+                            createTableOnSnapShot.add(ddlRowData.getTableIdentifier());
+                        }
+
+                        ddlHandler.updateDDLChange(
+                                ddlRowData.getTableIdentifier(),
+                                ddlRowData.getLsn(),
+                                ddlRowData.getLsnSequence(),
+                                2,
+                                null);
+                    } catch (Throwable e) {
+                        LOG.warn("execute sql {} error", finalSql, e);
+                        ddlHandler.updateDDLChange(
+                                ddlRowData.getTableIdentifier(),
+                                ddlRowData.getLsn(),
+                                ddlRowData.getLsnSequence(),
+                                -1,
+                                ExceptionUtil.getErrorMessage(e));
+                    }
+                });
+    }
+
+    @Override
     public void closeInternal() {
         snapshotWriteCounter.add(rowsOfCurrentTransaction);
         try {
@@ -341,6 +434,15 @@ public class JdbcOutputFormat extends BaseRichOutputFormat {
      */
     protected Connection getConnection() throws SQLException {
         return JdbcUtil.getConnection(jdbcConf, jdbcDialect);
+    }
+
+    protected void switchSchema(String schema, Statement statement) throws Exception {}
+
+    public boolean tableExist(String catalogName, String schemaName, String tableName)
+            throws SQLException {
+        return dbConn.getMetaData()
+                .getTables(catalogName, schemaName, tableName, new String[] {"TABLE"})
+                .next();
     }
 
     public JdbcConf getJdbcConf() {

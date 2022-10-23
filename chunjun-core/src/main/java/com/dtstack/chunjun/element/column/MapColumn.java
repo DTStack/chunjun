@@ -83,6 +83,11 @@ public class MapColumn extends AbstractBaseColumn {
     }
 
     @Override
+    public String type() {
+        return "BIGDECIMAL";
+    }
+
+    @Override
     public BigDecimal asBigDecimal() {
         if (null == data) {
             return null;

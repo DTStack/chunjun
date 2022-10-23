@@ -34,6 +34,7 @@ import com.alibaba.fastsql.sql.dialect.mysql.ast.statement.MySqlRenameTableState
 import com.alibaba.fastsql.sql.parser.ParserException;
 import com.alibaba.fastsql.util.JdbcConstants;
 import com.alibaba.otter.canal.protocol.CanalEntry.EventType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -67,6 +68,16 @@ public class DruidDdlParser {
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLAlterTableStatement) {
                 SQLAlterTableStatement alterTable = (SQLAlterTableStatement) statement;
+                if (CollectionUtils.isEmpty(alterTable.getItems())
+                        && CollectionUtils.isNotEmpty(alterTable.getTableOptions())) {
+                    DdlResultExtend ddlResult = new DdlResultExtend();
+                    processName(ddlResult, schmeaName, alterTable.getName(), false);
+                    ddlResult.setType(EventType.QUERY);
+                    ddlResult.setChunjunEventType(
+                            com.dtstack.chunjun.cdc.EventType.ALTER_TABLE_COMMENT);
+                    ddlResults.add(ddlResult);
+                }
+
                 for (SQLAlterTableItem item : alterTable.getItems()) {
                     if (item instanceof SQLAlterTableRename) {
                         DdlResult ddlResult = new DdlResult();
@@ -172,14 +183,16 @@ public class DruidDdlParser {
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLCreateDatabaseStatement) {
                 SQLCreateDatabaseStatement create = (SQLCreateDatabaseStatement) statement;
-                DdlResult ddlResult = new DdlResult();
+                DdlResultExtend ddlResult = new DdlResultExtend();
                 ddlResult.setType(EventType.QUERY);
+                ddlResult.setChunjunEventType(com.dtstack.chunjun.cdc.EventType.CREATE_SCHEMA);
                 processName(ddlResult, create.getDatabaseName(), null, false);
                 ddlResults.add(ddlResult);
             } else if (statement instanceof SQLDropDatabaseStatement) {
                 SQLDropDatabaseStatement drop = (SQLDropDatabaseStatement) statement;
-                DdlResult ddlResult = new DdlResult();
+                DdlResultExtend ddlResult = new DdlResultExtend();
                 ddlResult.setType(EventType.QUERY);
+                ddlResult.setChunjunEventType(com.dtstack.chunjun.cdc.EventType.DROP_SCHEMA);
                 processName(ddlResult, drop.getDatabaseName(), null, false);
                 ddlResults.add(ddlResult);
             }

@@ -17,6 +17,7 @@
  */
 package com.dtstack.chunjun.connector.oraclelogminer.util;
 
+import com.dtstack.chunjun.connector.oraclelogminer.entity.ColumnInfo;
 import com.dtstack.chunjun.constants.ConstantValue;
 
 import org.apache.commons.lang.StringUtils;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author jiangbo
@@ -280,6 +282,30 @@ public class SqlUtil {
                     + "  SYS.DBMS_LOGMNR.start_logmnr(       options =>          SYS.DBMS_LOGMNR.skip_corruption        + SYS.DBMS_LOGMNR.no_sql_delimiter        + SYS.DBMS_LOGMNR.no_rowid_in_stmt\n"
                     + "  + SYS.DBMS_LOGMNR.dict_from_online_catalog    );\n"
                     + "   end;";
+
+    public static final String SQL_QUERY_TABLE_COLUMN_INFO_TEMPLATE =
+            ""
+                    + "SELECT a.OWNER          schema        --schema\n"
+                    + "     , a.TABLE_NAME     tableName     --table\n"
+                    + "     , b.column_name    columnName    --字段名\n"
+                    + "     , b.data_type      dataType      --字段类型\n"
+                    + "     , b.data_precision dataPrecision --字段长度\n"
+                    + "     , b.CHAR_LENGTH    charLength    --字段长度\n"
+                    + "     , b.DATA_LENGTH     dataLength    --字段长度\n"
+                    + "     , b.DATA_SCALE     dataScale     --字段精度\n"
+                    + "     , b.DATA_DEFAULT   defaultValue  --默认值\n"
+                    + "     , b.NULLABLE       nullable      --是否可为空\n"
+                    + "     , a.comments       columnComment --字段注释\n"
+                    + "     , c.comments       tableComment --表注释\n"
+                    + "FROM all_col_comments a --字段注释表\n"
+                    + "   , all_tab_columns b  --字段列表\n"
+                    + "   , all_tab_comments c  --表注释表\n"
+                    + "WHERE a.TABLE_NAME = b.TABLE_NAME\n"
+                    + "  and a.OWNER = b.OWNER\n"
+                    + "  and a.OWNER = c.OWNER\n"
+                    + "  and a.TABLE_NAME = c.TABLE_NAME\n"
+                    + "  and a.COLUMN_NAME = b.COLUMN_NAME\n"
+                    + "%s";
     // 查找加载到logminer的日志文件
     public static final String SQL_QUERY_ADDED_LOG =
             "select filename ,thread_id ,low_scn,next_scn,type,filesize,status,type from  V$LOGMNR_LOGS ";
@@ -365,21 +391,23 @@ public class SqlUtil {
      * @return
      */
     public static String buildSelectSql(
-            String listenerOptions, String listenerTables, boolean isCdb) {
+            String listenerOptions, boolean ddlSkip, String listenerTables, boolean isCdb) {
         StringBuilder sqlBuilder = new StringBuilder(SQL_SELECT_DATA);
 
+        sqlBuilder.append(" and ( ");
         if (StringUtils.isNotEmpty(listenerTables)) {
-            sqlBuilder.append(" and ( ").append(buildSchemaTableFilter(listenerTables, isCdb));
+            sqlBuilder.append(buildSchemaTableFilter(listenerTables, isCdb));
         } else {
-            sqlBuilder.append(" and ( ").append(buildExcludeSchemaFilter());
+            sqlBuilder.append(buildExcludeSchemaFilter());
         }
 
-        if (StringUtils.isNotEmpty(listenerOptions)) {
-            sqlBuilder.append(" and ").append(buildOperationFilter(listenerOptions));
-        }
+        sqlBuilder.append(" and ").append(buildOperationFilter(listenerOptions, ddlSkip));
 
-        // 包含commit
-        sqlBuilder.append(" or OPERATION_CODE = 7 )");
+        // 包含commit 以及 rollback
+        sqlBuilder.append(" or  OPERATION_CODE in (7, 36)");
+
+        sqlBuilder.append(")");
+
         String sql = sqlBuilder.toString();
         LOG.info("SelectSql = {}", sql);
         return sql;
@@ -391,30 +419,38 @@ public class SqlUtil {
      * @param listenerOptions 需要采集操作类型字符串 delete,insert,update
      * @return
      */
-    private static String buildOperationFilter(String listenerOptions) {
-        List<String> standardOperations = new ArrayList<>();
+    private static String buildOperationFilter(String listenerOptions, boolean ddlSkip) {
+        List<Integer> standardOperations = new ArrayList<>();
 
-        String[] operations = listenerOptions.split(ConstantValue.COMMA_SYMBOL);
-        for (String operation : operations) {
-
-            int operationCode;
-            switch (operation.toUpperCase()) {
-                case "INSERT":
-                    operationCode = 1;
-                    break;
-                case "DELETE":
-                    operationCode = 2;
-                    break;
-                case "UPDATE":
-                    operationCode = 3;
-                    break;
-                default:
-                    throw new RuntimeException("Unsupported operation type:" + operation);
-            }
-
-            standardOperations.add(String.format("'%s'", operationCode));
+        if (!ddlSkip) {
+            standardOperations.add(5);
         }
+        if (StringUtils.isNotEmpty(listenerOptions)) {
+            String[] operations = listenerOptions.split(ConstantValue.COMMA_SYMBOL);
+            for (String operation : operations) {
 
+                int operationCode;
+                switch (operation.toUpperCase()) {
+                    case "INSERT":
+                        operationCode = 1;
+                        break;
+                    case "DELETE":
+                        operationCode = 2;
+                        break;
+                    case "UPDATE":
+                        operationCode = 3;
+                        break;
+                    default:
+                        throw new RuntimeException("Unsupported operation type:" + operation);
+                }
+
+                standardOperations.add(operationCode);
+            }
+        } else {
+            standardOperations.add(1);
+            standardOperations.add(2);
+            standardOperations.add(3);
+        }
         return String.format(
                 "OPERATION_CODE in (%s) ",
                 StringUtils.join(standardOperations, ConstantValue.COMMA_SYMBOL));
@@ -487,5 +523,51 @@ public class SqlUtil {
      */
     public static boolean isCreateTemporaryTableSql(String sql) {
         return sql.contains("temporary tables");
+    }
+
+    public static String quote(String data, String quote) {
+        return quote + data + quote;
+    }
+
+    public static String getSql(String schema, String table, List<ColumnInfo> columnInfos) {
+        String collect =
+                columnInfos.stream().map(ColumnInfo::conventToSql).collect(Collectors.joining(","));
+        return "CREATE TABLE "
+                + quote(schema, "\"")
+                + "."
+                + quote(table, "\"")
+                + " ("
+                + collect
+                + " )";
+    }
+
+    public static String getTableCommentSql(String schema, String table, String comment) {
+        return "comment on table "
+                + quote(schema, "\"")
+                + "."
+                + quote(table, "\"")
+                + " IS "
+                + quote(comment, "'");
+    }
+
+    public static String formatGetTableInfoSql(
+            List<org.apache.commons.lang3.tuple.Pair<String, String>> tables) {
+        String where = " and ";
+        if (tables.size() == 1) {
+            where += " a.OWNER = ?\n" + " and a.TABLE_NAME = ?";
+        } else {
+            StringBuilder append = new StringBuilder().append(where).append("(");
+            append.append(
+                            tables.stream()
+                                    .map(
+                                            i ->
+                                                    String.format(
+                                                            "(a.OWNER = '%s' and a.TABLE_NAME = '%s')",
+                                                            i.getLeft(), i.getRight()))
+                                    .collect(Collectors.joining("OR")))
+                    .append(")");
+            where = append.toString();
+        }
+        return String.format(SQL_QUERY_TABLE_COLUMN_INFO_TEMPLATE, where);
     }
 }
