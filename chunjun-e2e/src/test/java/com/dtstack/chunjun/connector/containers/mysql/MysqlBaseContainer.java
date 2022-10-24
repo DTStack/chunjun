@@ -18,6 +18,7 @@
 
 package com.dtstack.chunjun.connector.containers.mysql;
 
+import com.github.dockerjava.api.command.CreateContainerCmd;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitStrategyTarget;
@@ -26,6 +27,7 @@ import org.testcontainers.images.builder.ImageFromDockerfile;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.function.Consumer;
 
 public class MysqlBaseContainer extends JdbcDatabaseContainer {
 
@@ -40,6 +42,8 @@ public class MysqlBaseContainer extends JdbcDatabaseContainer {
         withEnv("MYSQL_USER", "admin");
         withEnv("MYSQL_PASSWORD", password);
         withEnv("MYSQL_ROOT_PASSWORD", password);
+        withCreateContainerCmdModifier(
+                (Consumer<CreateContainerCmd>) cmd -> cmd.withCmd("--lower_case_table_names=1"));
         withExposedPorts(MYSQL_PORT);
         waitingFor(
                 new WaitStrategy() {

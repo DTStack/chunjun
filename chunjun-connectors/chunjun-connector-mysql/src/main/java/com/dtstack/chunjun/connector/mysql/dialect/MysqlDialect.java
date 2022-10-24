@@ -25,8 +25,6 @@ import com.dtstack.chunjun.converter.RawTypeConverter;
 
 import org.apache.flink.api.java.tuple.Tuple3;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
@@ -126,10 +124,6 @@ public class MysqlDialect implements JdbcDialect {
 
     @Override
     public Function<JdbcConf, Tuple3<String, String, String>> getTableIdentify() {
-        return conf ->
-                Tuple3.of(
-                        null,
-                        StringUtils.upperCase(conf.getSchema()),
-                        StringUtils.upperCase(conf.getTable()));
+        return conf -> Tuple3.of(conf.getSchema(), null, conf.getTable());
     }
 }
