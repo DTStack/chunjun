@@ -16,7 +16,6 @@
 			<groupId>com.dtstack.chunjun</groupId>
 			<artifactId>chunjun-ddl-base</artifactId>
 			<version>${project.version}</version>
-			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
