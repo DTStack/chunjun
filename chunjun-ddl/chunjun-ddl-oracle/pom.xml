@@ -107,7 +107,7 @@
 								<move file="${basedir}/../../${dist.dir}/ddl-plugins/oracle/${project.artifactId}-${project.version}.jar"
 									  tofile="${basedir}/../../${dist.dir}/ddl-plugins/oracle/${project.artifactId}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../${dist.dir}/ddl-plugins/mysql/"
+									<fileset dir="${basedir}/../../${dist.dir}/ddl-plugins/oracle/"
 											 includes="${project.artifactId}-*.jar"
 											 excludes="${project.artifactId}.jar"/>
 								</delete>
