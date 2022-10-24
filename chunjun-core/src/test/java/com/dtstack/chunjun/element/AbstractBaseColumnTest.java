@@ -40,6 +40,11 @@ class AbstractBaseColumnTest {
         abstractBaseColumn =
                 new AbstractBaseColumn(null, 0) {
                     @Override
+                    public String type() {
+                        return null;
+                    }
+
+                    @Override
                     public Boolean asBoolean() {
                         return null;
                     }

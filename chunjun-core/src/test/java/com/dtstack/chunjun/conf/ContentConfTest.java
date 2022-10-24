@@ -19,7 +19,6 @@
 package com.dtstack.chunjun.conf;
 
 import com.dtstack.chunjun.cdc.CdcConf;
-import com.dtstack.chunjun.mapping.NameMappingConf;
 
 import org.junit.Test;
 
@@ -36,7 +35,6 @@ public class ContentConfTest {
         contentConf.setReader(new OperatorConf());
         contentConf.setWriter(new OperatorConf());
         contentConf.setTransformer(new TransformerConf());
-        contentConf.setNameMapping(new NameMappingConf());
         contentConf.setRestoration(new CdcConf());
 
         String toString = contentConf.toString();
@@ -44,17 +42,7 @@ public class ContentConfTest {
         assertTrue(toString.contains("reader"));
         assertTrue(toString.contains("writer"));
         assertTrue(toString.contains("transformer"));
-        assertTrue(toString.contains("nameMapping"));
         assertTrue(toString.contains("restoration"));
-    }
-
-    /** Should return the nameMapping when the nameMapping is not null */
-    @Test
-    public void getNameMappingWhenNameMappingIsNotNull() {
-        ContentConf contentConf = new ContentConf();
-        NameMappingConf nameMappingConf = new NameMappingConf();
-        contentConf.setNameMapping(nameMappingConf);
-        assertEquals(nameMappingConf, contentConf.getNameMapping());
     }
 
     /** Should return null when the nameMapping is null */

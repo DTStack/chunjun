@@ -18,10 +18,15 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.listener;
 
+import com.dtstack.chunjun.cdc.DdlRowData;
+import com.dtstack.chunjun.cdc.DdlRowDataBuilder;
+import com.dtstack.chunjun.cdc.EventType;
 import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.chunjun.connector.oraclelogminer.converter.LogMinerColumnConverter;
+import com.dtstack.chunjun.connector.oraclelogminer.entity.ColumnInfo;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
 import com.dtstack.chunjun.connector.oraclelogminer.util.OraUtil;
+import com.dtstack.chunjun.connector.oraclelogminer.util.SqlUtil;
 import com.dtstack.chunjun.converter.AbstractCDCRowConverter;
 import com.dtstack.chunjun.element.ErrorMsgRowData;
 import com.dtstack.chunjun.util.ExceptionUtil;
@@ -29,15 +34,29 @@ import com.dtstack.chunjun.util.RetryUtil;
 
 import org.apache.flink.table.data.RowData;
 
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -45,6 +64,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConnection.RETRY_TIMES;
 import static com.dtstack.chunjun.connector.oraclelogminer.listener.LogMinerConnection.SLEEP_TIME;
@@ -104,19 +125,24 @@ public class LogMinerListener implements Runnable {
         logMinerHelper.setStartScn(startScn);
         logMinerHelper.init();
 
+        Connection connection =
+                RetryUtil.executeWithRetry(
+                        () ->
+                                DriverManager.getConnection(
+                                        logMinerConf.getJdbcUrl(),
+                                        logMinerConf.getUsername(),
+                                        logMinerConf.getPassword()),
+                        RETRY_TIMES,
+                        SLEEP_TIME,
+                        false);
         // LogMinerColumnConverter 需要connection获取元数据
         if (rowConverter instanceof LogMinerColumnConverter) {
-            ((LogMinerColumnConverter) rowConverter)
-                    .setConnection(
-                            RetryUtil.executeWithRetry(
-                                    () ->
-                                            DriverManager.getConnection(
-                                                    logMinerConf.getJdbcUrl(),
-                                                    logMinerConf.getUsername(),
-                                                    logMinerConf.getPassword()),
-                                    RETRY_TIMES,
-                                    SLEEP_TIME,
-                                    false));
+            ((LogMinerColumnConverter) rowConverter).setConnection(connection);
+        }
+
+        // 初始化
+        if (logMinerConf.isInitialTableStructure()) {
+            initialTableStruct(connection);
         }
 
         executor.execute(this);
@@ -235,5 +261,202 @@ public class LogMinerListener implements Runnable {
 
     public BigInteger getCurrentPosition() {
         return positionManager.getPosition();
+    }
+
+    private void initialTableStruct(Connection connection) {
+        if (CollectionUtils.isNotEmpty(logMinerConf.getTable())) {
+            Set<String> schemas = new HashSet<>();
+            logMinerConf
+                    .getTable()
+                    .forEach(
+                            i -> {
+                                String[] split = i.split("\\.");
+                                if (split.length == 2) {
+                                    schemas.add(split[0]);
+                                }
+                            });
+
+            List<Pattern> patterns =
+                    logMinerConf.getTable().stream()
+                            .map(Pattern::compile)
+                            .collect(Collectors.toList());
+
+            ArrayList<Pair<String, String>> tables = new ArrayList<>();
+            HashMap<Pair<String, String>, List<String>> pkMap = new HashMap<>();
+            schemas.forEach(
+                    i -> {
+                        try (final ResultSet rs =
+                                connection
+                                        .getMetaData()
+                                        .getTables(null, i, null, new String[] {"TABLE"})) {
+                            while (rs.next()) {
+
+                                final String schemaName = rs.getString(2);
+                                final String tableName = rs.getString(3);
+                                if (patterns.stream()
+                                        .anyMatch(
+                                                f ->
+                                                        f.matcher(schemaName + "." + tableName)
+                                                                .matches())) {
+                                    tables.add(Pair.of(schemaName, tableName));
+
+                                    List<String> pks =
+                                            readPrimaryKeyNames(
+                                                    connection.getMetaData(),
+                                                    schemaName,
+                                                    tableName);
+                                    pkMap.put(Pair.of(schemaName, tableName), pks);
+                                }
+                            }
+                        } catch (SQLException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+            if (CollectionUtils.isNotEmpty(tables)) {
+                List<List<Pair<String, String>>> partition =
+                        Lists.partition(tables, tables.size() / 50 == 0 ? 1 : tables.size() / 50);
+                for (List<Pair<String, String>> pairs : partition) {
+                    try {
+                        PreparedStatement preparedStatement =
+                                connection.prepareStatement(SqlUtil.formatGetTableInfoSql(pairs));
+                        int index = 0;
+                        for (Pair<String, String> pair : pairs) {
+                            preparedStatement.setString(++index, pair.getLeft());
+                            preparedStatement.setString(++index, pair.getRight());
+                        }
+
+                        ResultSet resultSet = preparedStatement.executeQuery();
+                        HashMap<Pair<String, String>, List<ColumnInfo>> tableMap = new HashMap<>();
+                        HashMap<Pair<String, String>, String> commentMap = new HashMap<>();
+
+                        while (resultSet.next()) {
+                            String schema = resultSet.getString(1);
+                            String tableName = resultSet.getString(2);
+                            String columnName = resultSet.getString(3);
+                            String dataType = resultSet.getString(4);
+                            Object dataPrecision = resultSet.getObject(5);
+                            Object charLength = resultSet.getObject(6);
+                            Object dataLength = resultSet.getObject(7);
+                            Object dataScale = resultSet.getObject(8);
+                            Object defaultValue = resultSet.getObject(9);
+                            String nullable = resultSet.getString(10);
+                            String comment = resultSet.getString(11);
+                            String tableComment = resultSet.getString(12);
+
+                            Pair<String, String> key = Pair.of(schema, tableName);
+                            List<String> pks = pkMap.get(key);
+                            boolean isPk = false;
+                            if (CollectionUtils.isNotEmpty(pks)) {
+                                isPk = pks.contains(columnName);
+                            }
+
+                            ColumnInfo columnInfo =
+                                    new ColumnInfo(
+                                            columnName,
+                                            dataType,
+                                            Objects.isNull(dataPrecision)
+                                                    ? null
+                                                    : Integer.valueOf(dataPrecision.toString()),
+                                            Objects.isNull(charLength)
+                                                    ? null
+                                                    : Integer.valueOf(charLength.toString()),
+                                            Objects.isNull(dataLength)
+                                                    ? null
+                                                    : Integer.valueOf(dataLength.toString()),
+                                            Objects.isNull(dataScale)
+                                                    ? null
+                                                    : Integer.valueOf(dataScale.toString()),
+                                            Objects.isNull(defaultValue)
+                                                    ? null
+                                                    : defaultValue.toString(),
+                                            "Y".equalsIgnoreCase(nullable),
+                                            comment,
+                                            isPk);
+
+                            commentMap.putIfAbsent(key, tableComment);
+                            if (tableMap.containsKey(key)) {
+                                tableMap.get(key).add(columnInfo);
+                            } else {
+                                tableMap.put(key, Lists.newArrayList(columnInfo));
+                            }
+                        }
+
+                        for (Map.Entry<Pair<String, String>, List<ColumnInfo>> entry :
+                                tableMap.entrySet()) {
+                            DdlRowData ddlData =
+                                    DdlRowDataBuilder.builder()
+                                            .setDatabaseName(null)
+                                            .setSchemaName(entry.getKey().getLeft())
+                                            .setTableName(entry.getKey().getRight())
+                                            .setContent(
+                                                    SqlUtil.getSql(
+                                                            entry.getKey().getLeft(),
+                                                            entry.getKey().getRight(),
+                                                            entry.getValue()))
+                                            .setType(EventType.CREATE_TABLE.name())
+                                            .setLsn("")
+                                            .setLsnSequence("0")
+                                            .setSnapShot(true)
+                                            .build();
+                            queue.put(new QueueData(new BigInteger("-1"), ddlData));
+
+                            List<String> comments =
+                                    entry.getValue().stream()
+                                            .filter(c -> StringUtils.isNotBlank(c.getComment()))
+                                            .map(ColumnInfo::getCommentSql)
+                                            .collect(Collectors.toList());
+                            int lsn_sequencee = 1;
+                            for (int j = 0; j < comments.size(); j++) {
+                                DdlRowData commentDdlData =
+                                        DdlRowDataBuilder.builder()
+                                                .setDatabaseName(null)
+                                                .setSchemaName(entry.getKey().getLeft())
+                                                .setTableName(entry.getKey().getRight())
+                                                .setContent(comments.get(j))
+                                                .setType(EventType.ALTER_COLUMN.name())
+                                                .setLsn("")
+                                                .setLsnSequence(String.valueOf(lsn_sequencee++))
+                                                .setSnapShot(true)
+                                                .build();
+                                queue.put(new QueueData(new BigInteger("-1"), commentDdlData));
+                            }
+
+                            if (commentMap.get(entry.getKey()) != null) {
+                                DdlRowData commentDdlData =
+                                        DdlRowDataBuilder.builder()
+                                                .setDatabaseName(null)
+                                                .setSchemaName(entry.getKey().getLeft())
+                                                .setTableName(entry.getKey().getRight())
+                                                .setContent(
+                                                        SqlUtil.getTableCommentSql(
+                                                                entry.getKey().getLeft(),
+                                                                entry.getKey().getRight(),
+                                                                commentMap.get(entry.getKey())))
+                                                .setType(EventType.ALTER_TABLE_COMMENT.name())
+                                                .setLsn("")
+                                                .setLsnSequence(String.valueOf(lsn_sequencee++))
+                                                .setSnapShot(true)
+                                                .build();
+                                queue.put(new QueueData(new BigInteger("-1"), commentDdlData));
+                            }
+                        }
+                    } catch (SQLException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+    }
+
+    private List<String> readPrimaryKeyNames(DatabaseMetaData metadata, String schema, String table)
+            throws SQLException {
+        final List<String> pkColumnNames = new ArrayList<>();
+        try (ResultSet rs = metadata.getPrimaryKeys(null, schema, table)) {
+            while (rs.next()) {
+                String columnName = rs.getString(4);
+                pkColumnNames.add(columnName);
+            }
+        }
+        return pkColumnNames;
     }
 }

@@ -18,6 +18,12 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>19.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.alibaba.otter</groupId>
 			<artifactId>canal.parse</artifactId>
 			<version>${canal.version}</version>
@@ -136,17 +142,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>19.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.google.protobuf</groupId>
-			<artifactId>protobuf-java</artifactId>
-			<version>2.5.0</version>
-		</dependency>
 
 	</dependencies>
 
@@ -178,15 +173,7 @@
 							<relocations>
 								<relocation>
 									<pattern>com.google.common</pattern>
-									<shadedPattern>com.dtstack.chunjun.connector.binlog.shaded.com.google.common</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>com.google.thirdparty.publicsuffix</pattern>
-									<shadedPattern>com.dtstack.chunjun.connector.binlog.shaded.com.google.thirdparty.publicsuffix</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>com.google.protobuf</pattern>
-									<shadedPattern>com.dtstack.chunjun.connector.binlog.shaded.com.google.protobuf</shadedPattern>
+									<shadedPattern>shade.binlog.com.google.common</shadedPattern>
 								</relocation>
 							</relocations>
 						</configuration>

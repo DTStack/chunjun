@@ -21,13 +21,13 @@
 package com.dtstack.chunjun.cdc.worker;
 
 import com.dtstack.chunjun.cdc.QueuesChamberlain;
-import com.dtstack.chunjun.cdc.WrapCollector;
+import com.dtstack.chunjun.cdc.ddl.definition.TableIdentifier;
 import com.dtstack.chunjun.element.ColumnRowData;
 
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.util.Collector;
 
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 
@@ -39,8 +39,9 @@ import java.util.concurrent.Callable;
  */
 public class Worker implements Callable<Integer> {
 
+    private static final Object LOCK = new Object();
     private final QueuesChamberlain queuesChamberlain;
-    private final WrapCollector<RowData> collector;
+    private final Collector<RowData> collector;
     /** 任务分片 */
     private final Chunk chunk;
     /** 队列遍历深度，避免某队列长时间占用线程 */
@@ -48,7 +49,7 @@ public class Worker implements Callable<Integer> {
 
     public Worker(
             QueuesChamberlain queuesChamberlain,
-            WrapCollector<RowData> collector,
+            Collector<RowData> collector,
             Chunk chunk,
             int size) {
         this.queuesChamberlain = queuesChamberlain;
@@ -59,32 +60,30 @@ public class Worker implements Callable<Integer> {
 
     /** 发送数据 */
     private void send() {
-        Iterator<String> iterator = Arrays.stream(chunk.getTableIdentities()).iterator();
+        Iterator<TableIdentifier> iterator = Arrays.stream(chunk.getTableIdentities()).iterator();
         while (iterator.hasNext()) {
-            String tableIdentity = iterator.next();
-            Deque<RowData> queue = queuesChamberlain.fromUnblock(tableIdentity);
+            TableIdentifier tableIdentity = iterator.next();
             for (int i = 0; i < size; i++) {
-                RowData data = queue.peek();
+                RowData data = queuesChamberlain.dataFromCache(tableIdentity);
                 if (data == null) {
-                    // if queue is empty, remove this queue.
-                    queuesChamberlain.removeEmptyQueue(tableIdentity);
                     break;
                 }
 
                 if (data instanceof ColumnRowData) {
-                    dealDmL(queue);
+                    dealDmL(data);
+                    queuesChamberlain.remove(tableIdentity, data);
                 } else {
-                    queuesChamberlain.block(tableIdentity, queue);
+                    queuesChamberlain.block(tableIdentity);
                     break;
                 }
             }
         }
     }
 
-    private void dealDmL(Deque<RowData> queue) {
-        // 队列头节点是dml, 将该dml数据发送到sink
-        RowData rowData = queue.poll();
-        collector.collect(rowData);
+    private void dealDmL(RowData data) {
+        synchronized (LOCK) {
+            collector.collect(data);
+        }
     }
 
     @Override

@@ -53,6 +53,11 @@ public class ByteColumn extends AbstractBaseColumn {
     }
 
     @Override
+    public String type() {
+        return "BIGDECIMAL";
+    }
+
+    @Override
     public byte[] asBytes() {
         return new byte[] {(byte) data};
     }

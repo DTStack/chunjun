@@ -18,6 +18,8 @@
 
 package com.dtstack.chunjun.connector.oraclelogminer.listener;
 
+import com.dtstack.chunjun.cdc.DdlRowDataBuilder;
+import com.dtstack.chunjun.cdc.EventType;
 import com.dtstack.chunjun.connector.oraclelogminer.conf.LogMinerConf;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.OracleInfo;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.QueueData;
@@ -712,6 +714,22 @@ public class LogMinerConnection {
                     sqlUndo.append(sqlUndoValue);
                 }
                 isSqlNotEnd = logMinerData.getBoolean(KEY_CSF);
+            }
+
+            if (operationCode == 5) {
+                result =
+                        new QueueData(
+                                scn,
+                                DdlRowDataBuilder.builder()
+                                        .setDatabaseName(null)
+                                        .setSchemaName(logMinerData.getString(KEY_SEG_OWNER))
+                                        .setTableName(tableName)
+                                        .setContent(sqlRedo.toString())
+                                        .setType(EventType.UNKNOWN.name())
+                                        .setLsn(String.valueOf(scn))
+                                        .setLsnSequence("0")
+                                        .build());
+                return true;
             }
 
             // delete from "table"."ID" where ROWID = 'AAADcjAAFAAAABoAAC' delete语句需要rowid条件需要替换

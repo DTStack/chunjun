@@ -51,7 +51,6 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -163,7 +162,7 @@ public class HdfsOrcOutputFormat extends BaseHdfsOutputFormat {
         }
 
         try {
-            String currentBlockTmpPath = tmpPath + File.separatorChar + currentFileName;
+            String currentBlockTmpPath = tmpPath + getHdfsPathChar() + currentFileName;
             recordWriter =
                     outputFormat.getRecordWriter(null, jobConf, currentBlockTmpPath, Reporter.NULL);
             currentFileIndex++;

@@ -136,6 +136,11 @@ public class StringColumn extends AbstractBaseColumn {
     }
 
     @Override
+    public String type() {
+        return "STRING";
+    }
+
+    @Override
     public Boolean asBoolean() {
         if (null == data) {
             return null;

@@ -21,7 +21,6 @@
 			<groupId>org.apache.parquet</groupId>
 			<artifactId>parquet-hadoop</artifactId>
 			<version>1.11.1</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<artifactId>groovy-all</artifactId>

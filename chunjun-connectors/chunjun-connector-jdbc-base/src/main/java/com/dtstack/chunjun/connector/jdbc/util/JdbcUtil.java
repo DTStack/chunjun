@@ -35,7 +35,7 @@ import com.dtstack.chunjun.util.TelnetUtil;
 import org.apache.flink.table.types.logical.LogicalType;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,10 +102,10 @@ public class JdbcUtil {
         if (prop == null) {
             prop = new Properties();
         }
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getUsername())) {
+        if (StringUtils.isNotBlank(jdbcConf.getUsername())) {
             prop.put("user", jdbcConf.getUsername());
         }
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getPassword())) {
+        if (StringUtils.isNotBlank(jdbcConf.getPassword())) {
             prop.put("password", jdbcConf.getPassword());
         }
         Properties finalProp = prop;

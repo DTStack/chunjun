@@ -49,6 +49,12 @@ public class LogMinerConf extends ChunJunCommonConf {
 
     private String cat = "UPDATE,INSERT,DELETE";
 
+    /** 是否支持采集ddl* */
+    private boolean ddlSkip = true;
+
+    /** 任务启动时是否初始化表结构* */
+    private boolean initialTableStructure = false;
+
     /** 读取位置: all, current, time, scn */
     private String readPosition = "current";
 
@@ -271,6 +277,22 @@ public class LogMinerConf extends ChunJunCommonConf {
         this.properties = properties;
     }
 
+    public boolean isDdlSkip() {
+        return ddlSkip;
+    }
+
+    public void setDdlSkip(boolean ddlSkip) {
+        this.ddlSkip = ddlSkip;
+    }
+
+    public boolean isInitialTableStructure() {
+        return initialTableStructure;
+    }
+
+    public void setInitialTableStructure(boolean initialTableStructure) {
+        this.initialTableStructure = initialTableStructure;
+    }
+
     @Override
     public String toString() {
         return "LogMinerConf{"
@@ -296,6 +318,12 @@ public class LogMinerConf extends ChunJunCommonConf {
                 + '\''
                 + ", cat='"
                 + cat
+                + '\''
+                + ", ddlSkip='"
+                + ddlSkip
+                + '\''
+                + ", initialTableStructure='"
+                + initialTableStructure
                 + '\''
                 + ", readPosition='"
                 + readPosition

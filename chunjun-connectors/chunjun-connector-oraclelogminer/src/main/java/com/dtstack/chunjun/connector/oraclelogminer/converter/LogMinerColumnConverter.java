@@ -30,6 +30,7 @@ import com.dtstack.chunjun.element.AbstractBaseColumn;
 import com.dtstack.chunjun.element.ColumnRowData;
 import com.dtstack.chunjun.element.column.BigDecimalColumn;
 import com.dtstack.chunjun.element.column.MapColumn;
+import com.dtstack.chunjun.element.column.NullColumn;
 import com.dtstack.chunjun.element.column.StringColumn;
 import com.dtstack.chunjun.element.column.TimestampColumn;
 import com.dtstack.chunjun.util.DateUtil;
@@ -101,11 +102,11 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
 
         int size;
         if (pavingData) {
-            // 6: scn, type, schema, table, ts, opTime
-            size = 6 + eventRow.getBeforeColumnList().size() + eventRow.getAfterColumnList().size();
+            // 7: scn, type, database, schema, table, ts, opTime
+            size = 7 + eventRow.getBeforeColumnList().size() + eventRow.getAfterColumnList().size();
         } else {
-            // 7: scn, type, schema, table, ts, opTime, before, after
-            size = 8;
+            // 9: scn, type, schema, database, table, ts, opTime, before, after, lsn
+            size = 9;
         }
 
         ColumnRowData columnRowData = new ColumnRowData(size);
@@ -119,31 +120,31 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         List<AbstractBaseColumn> afterFieldList = new ArrayList<>(afterList.size());
         List<String> afterHeaderList = new ArrayList<>(afterList.size());
 
-        if (pavingData) {
-            parseColumnList(
-                    converters,
-                    metadata.getFieldList(),
-                    beforeList,
-                    beforeFieldList,
-                    beforeHeaderList,
-                    CDCConstantValue.BEFORE_);
-            parseColumnList(
-                    converters,
-                    metadata.getFieldList(),
-                    afterList,
-                    afterFieldList,
-                    afterHeaderList,
-                    CDCConstantValue.AFTER_);
-        } else {
-            beforeFieldList.add(new MapColumn(processColumnList(beforeList)));
-            beforeHeaderList.add(CDCConstantValue.BEFORE);
-            afterFieldList.add(new MapColumn(processColumnList(afterList)));
-            afterHeaderList.add(CDCConstantValue.AFTER);
-        }
-
         if (split) {
             dealEventRowSplit(columnRowData, metadata, eventRow, result);
         } else {
+            if (pavingData) {
+                parseColumnList(
+                        converters,
+                        metadata.getFieldList(),
+                        beforeList,
+                        beforeFieldList,
+                        beforeHeaderList,
+                        CDCConstantValue.BEFORE_);
+                parseColumnList(
+                        converters,
+                        metadata.getFieldList(),
+                        afterList,
+                        afterFieldList,
+                        afterHeaderList,
+                        CDCConstantValue.AFTER_);
+            } else {
+                beforeFieldList.add(new MapColumn(processColumnList(beforeList)));
+                beforeHeaderList.add(CDCConstantValue.BEFORE);
+                afterFieldList.add(new MapColumn(processColumnList(afterList)));
+                afterHeaderList.add(CDCConstantValue.AFTER);
+            }
+
             columnRowData.setRowKind(getRowKindByType(eventType));
             columnRowData.addField(new StringColumn(eventType));
             columnRowData.addHeader(CDCConstantValue.TYPE);
@@ -274,6 +275,12 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
         columnRowData.addField(new BigDecimalColumn(eventRow.getScn()));
         columnRowData.addHeader(CDCConstantValue.SCN);
         columnRowData.addExtHeader(CDCConstantValue.SCN);
+        columnRowData.addField(new BigDecimalColumn(eventRow.getScn()));
+        columnRowData.addHeader(CDCConstantValue.LSN);
+        columnRowData.addExtHeader(CDCConstantValue.LSN);
+        columnRowData.addField(new NullColumn());
+        columnRowData.addHeader(CDCConstantValue.DATABASE);
+        columnRowData.addExtHeader(CDCConstantValue.DATABASE);
         columnRowData.addField(new StringColumn(schema));
         columnRowData.addHeader(CDCConstantValue.SCHEMA);
         columnRowData.addExtHeader(CDCConstantValue.SCHEMA);
@@ -318,9 +325,14 @@ public class LogMinerColumnConverter extends AbstractCDCRowConverter<EventRow, S
                                 + GsonUtil.GSON.toJson(fieldList));
             }
 
-            AbstractBaseColumn column =
-                    (AbstractBaseColumn) converters.get(index).deserialize(entryColumn.getData());
-            columnList.add(column);
+            if (!entryColumn.isNull()) {
+                AbstractBaseColumn column =
+                        (AbstractBaseColumn)
+                                converters.get(index).deserialize(entryColumn.getData());
+                columnList.add(column);
+            } else {
+                columnList.add(new NullColumn());
+            }
             headerList.add(prefix + entryColumn.getName());
         }
     }

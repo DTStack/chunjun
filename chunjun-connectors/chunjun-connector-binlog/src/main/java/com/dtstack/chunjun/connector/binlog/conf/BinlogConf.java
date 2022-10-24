@@ -44,6 +44,14 @@ public class BinlogConf extends ChunJunCommonConf {
 
     public String cat;
 
+    /** 是否支持采集ddl* */
+    private boolean ddlSkip = true;
+
+    /** 任务启动时是否初始化表结构* */
+    private boolean initialTableStructure = false;
+
+    private long offsetLength = 18;
+
     public String filter;
 
     public long period = 1000L;
@@ -314,6 +322,30 @@ public class BinlogConf extends ChunJunCommonConf {
 
     public int getTransactionSize() {
         return transactionSize;
+    }
+
+    public boolean isDdlSkip() {
+        return ddlSkip;
+    }
+
+    public void setDdlSkip(boolean ddlSkip) {
+        this.ddlSkip = ddlSkip;
+    }
+
+    public boolean isInitialTableStructure() {
+        return initialTableStructure;
+    }
+
+    public long getOffsetLength() {
+        return offsetLength;
+    }
+
+    public void setOffsetLength(long offsetLength) {
+        this.offsetLength = offsetLength;
+    }
+
+    public void setInitialTableStructure(boolean initialTableStructure) {
+        this.initialTableStructure = initialTableStructure;
     }
 
     @Override
