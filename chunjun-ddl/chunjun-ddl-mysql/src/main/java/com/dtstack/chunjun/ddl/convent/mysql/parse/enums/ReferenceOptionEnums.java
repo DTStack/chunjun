@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+<<<<<<< HEAD:chunjun-ddl/chunjun-ddl-mysql/src/main/java/com/dtstack/chunjun/ddl/convent/mysql/parse/enums/ReferenceOptionEnums.java
 package com.dtstack.chunjun.ddl.convent.mysql.parse.enums;
 
 import org.apache.calcite.sql.SqlLiteral;
@@ -44,5 +45,26 @@ public enum ReferenceOptionEnums {
      */
     public SqlLiteral symbol(SqlParserPos pos) {
         return SqlLiteral.createSymbol(this, pos);
+=======
+package com.dtstack.chunjun.util;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class RealTimeDataSourceNameUtil {
+    // key is readerName or writerName, value is dataSourceName
+    private static final Map<String, String> connectorNameMap = new HashMap<>();
+
+    static {
+        connectorNameMap.put("oraclelogminer", "oracle");
+        connectorNameMap.put("binlog", "mysql");
+        connectorNameMap.put("sqlservercdc", "sqlserver");
+        connectorNameMap.put("pgwal", "postgresql");
+    }
+
+    public static String getDataSourceName(String pluginName) {
+        String extraPluginName = PluginUtil.replaceReaderAndWriterSuffix(pluginName);
+        return connectorNameMap.getOrDefault(extraPluginName, extraPluginName);
+>>>>>>> origin/feat_ddl:chunjun-core/src/main/java/com/dtstack/chunjun/util/RealTimeDataSourceNameUtil.java
     }
 }
