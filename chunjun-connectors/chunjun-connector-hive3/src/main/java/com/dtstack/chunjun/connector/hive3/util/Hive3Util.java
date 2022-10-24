@@ -484,7 +484,7 @@ public class Hive3Util {
 
     public static void setHadoopUserName(Configuration conf) {
         String hadoopUserName = conf.get(KEY_HADOOP_USER_NAME);
-        if (org.apache.commons.lang.StringUtils.isEmpty(hadoopUserName)) {
+        if (org.apache.commons.lang3.StringUtils.isEmpty(hadoopUserName)) {
             return;
         }
 
@@ -503,7 +503,7 @@ public class Hive3Util {
 
     private static FileSystem getFsWithUser(
             Map<String, Object> hadoopConfig, String defaultFs, String user) throws Exception {
-        if (org.apache.commons.lang.StringUtils.isEmpty(user)) {
+        if (org.apache.commons.lang3.StringUtils.isEmpty(user)) {
             return FileSystem.get(getConfiguration(hadoopConfig, defaultFs));
         }
         UserGroupInformation ugi = UserGroupInformation.createRemoteUser(user);
@@ -595,7 +595,7 @@ public class Hive3Util {
     }
 
     private static boolean isHaMode(Map<String, Object> confMap) {
-        return org.apache.commons.lang.StringUtils.isNotEmpty(
+        return org.apache.commons.lang3.StringUtils.isNotEmpty(
                 MapUtils.getString(confMap, KEY_DFS_NAME_SERVICES));
     }
 }

@@ -46,7 +46,7 @@ import org.apache.flink.util.Preconditions;
 import org.apache.flink.shaded.curator4.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import org.apache.commons.collections.map.LinkedMap;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.rocketmq.client.consumer.DefaultMQPullConsumer;
 import org.apache.rocketmq.client.consumer.PullResult;
 import org.apache.rocketmq.client.exception.MQClientException;

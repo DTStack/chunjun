@@ -477,7 +477,7 @@ public class JdbcInputFormat extends BaseRichInputFormat {
      */
     public String buildStartLocationSql(
             String incrementCol, String startLocation, boolean useMaxFunc, boolean isPolling) {
-        if (org.apache.commons.lang.StringUtils.isEmpty(startLocation)
+        if (StringUtils.isEmpty(startLocation)
                 || JdbcUtil.NULL_STRING.equalsIgnoreCase(startLocation)) {
             return null;
         }

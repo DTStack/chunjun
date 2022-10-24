@@ -19,8 +19,8 @@ package com.dtstack.chunjun.connector.rocketmq.utils;
 
 import com.dtstack.chunjun.connector.rocketmq.conf.RocketMQConf;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.rocketmq.acl.common.AclClientRPCHook;
 import org.apache.rocketmq.acl.common.SessionCredentials;
 import org.apache.rocketmq.client.AccessChannel;

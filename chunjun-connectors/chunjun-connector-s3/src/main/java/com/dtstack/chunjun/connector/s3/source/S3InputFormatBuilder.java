@@ -24,7 +24,7 @@ import com.dtstack.chunjun.connector.s3.conf.S3Conf;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * build S3InputFormat{@link S3InputFormat} and check S3Config{@link S3Conf}

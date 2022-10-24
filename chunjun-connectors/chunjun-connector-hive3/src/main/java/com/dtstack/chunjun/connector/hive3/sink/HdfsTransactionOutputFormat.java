@@ -68,8 +68,7 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
                 }
                 Object hadoopUser = hdfsConf.getHadoopConfig().get(HADOOP_USER_NAME);
                 // 如果配置的 hadoop 用户不为空，那么设置配置中的用户。
-                if (hadoopUser != null
-                        && org.apache.commons.lang.StringUtils.isNotEmpty(hadoopUser.toString())) {
+                if (hadoopUser != null && StringUtils.isNotEmpty(hadoopUser.toString())) {
                     currentUser = hadoopUser.toString();
                 }
                 conf =
@@ -118,7 +117,7 @@ public class HdfsTransactionOutputFormat extends HdfsOrcOutputFormat {
         String currentUser = UserGroupInformation.getCurrentUser().getUserName();
         Object hadoopUser = hdfsConf.getHadoopConfig().get(HADOOP_USER_NAME);
         if (hadoopUser != null
-                && org.apache.commons.lang.StringUtils.isNotEmpty(hadoopUser.toString())) {
+                && org.apache.commons.lang3.StringUtils.isNotEmpty(hadoopUser.toString())) {
             currentUser = hadoopUser.toString();
         }
         if (openKerberos) {

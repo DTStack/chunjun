@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.ftp.client;
 
 import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
