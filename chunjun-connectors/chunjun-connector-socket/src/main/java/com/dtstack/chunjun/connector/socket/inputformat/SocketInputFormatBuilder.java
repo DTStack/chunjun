@@ -55,8 +55,7 @@ public class SocketInputFormatBuilder extends BaseRichInputFormatBuilder<SocketI
             sb.append("config error:[address] cannot be blank \n");
         }
         String[] hostPort =
-                org.apache.commons.lang3.StringUtils.split(
-                        socketConfig.getAddress(), ConstantValue.COLON_SYMBOL);
+                StringUtils.split(socketConfig.getAddress(), ConstantValue.COLON_SYMBOL);
         if (hostPort.length != ADDRESS_SPLITS) {
             sb.append("please check your host format \n");
         }

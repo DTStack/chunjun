@@ -50,8 +50,7 @@ public class SocketInputFormat extends BaseRichInputFormat {
 
     public void setSocketConfig(SocketConfig socketConfig) {
         String[] hostPort =
-                org.apache.commons.lang3.StringUtils.split(
-                        socketConfig.getAddress(), ConstantValue.COLON_SYMBOL);
+                StringUtils.split(socketConfig.getAddress(), ConstantValue.COLON_SYMBOL);
         socketConfig.setHost(hostPort[0]);
         socketConfig.setPort(Integer.parseInt(hostPort[1]));
         this.socketConfig = socketConfig;

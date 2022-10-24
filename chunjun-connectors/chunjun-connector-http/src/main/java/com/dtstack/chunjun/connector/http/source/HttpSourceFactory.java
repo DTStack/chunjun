@@ -88,8 +88,7 @@ public class HttpSourceFactory extends SourceFactory {
             }
         }
         if (syncConf.getTransformer() == null
-                || org.apache.commons.lang3.StringUtils.isBlank(
-                        syncConf.getTransformer().getTransformSql())) {
+                || StringUtils.isBlank(syncConf.getTransformer().getTransformSql())) {
             typeInformation =
                     TableUtil.getTypeInformation(
                             Collections.emptyList(), getRawTypeConverter(), true);

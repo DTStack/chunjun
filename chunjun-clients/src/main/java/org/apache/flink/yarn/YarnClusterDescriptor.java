@@ -59,7 +59,6 @@ import org.apache.flink.runtime.util.HadoopUtils;
 import org.apache.flink.util.FlinkException;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.ShutdownHookUtil;
-import org.apache.flink.util.StringUtils;
 import org.apache.flink.yarn.configuration.YarnConfigOptions;
 import org.apache.flink.yarn.configuration.YarnConfigOptionsInternal;
 import org.apache.flink.yarn.configuration.YarnDeploymentTarget;
@@ -69,6 +68,7 @@ import org.apache.flink.yarn.entrypoint.YarnJobClusterEntrypoint;
 import org.apache.flink.yarn.entrypoint.YarnSessionClusterEntrypoint;
 
 import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
@@ -575,7 +575,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
                     clusterSpecification
                             .getConfiguration()
                             .getString(ConfigConstant.FLINK_PLUGIN_LOAD_MODE_KEY);
-            if (org.apache.commons.lang3.StringUtils.equalsIgnoreCase(
+            if (StringUtils.equalsIgnoreCase(
                     pluginLoadMode, ConstantValue.SHIP_FILE_PLUGIN_LOAD_MODE)) {
                 List<File> fileList =
                         jobGraph.getUserArtifacts().entrySet().stream()
@@ -1074,7 +1074,7 @@ public class YarnClusterDescriptor implements ClusterDescriptor<ApplicationId> {
         Path remoteKrb5Path = null;
         boolean hasKrb5 = false;
         String krb5Config = configuration.get(SecurityOptions.KERBEROS_KRB5_PATH);
-        if (!StringUtils.isNullOrWhitespaceOnly(krb5Config)) {
+        if (!StringUtils.isBlank(krb5Config)) {
             final File krb5 = new File(krb5Config);
             LOG.info(
                     "Adding KRB5 configuration {} to the AM container local resource bucket",

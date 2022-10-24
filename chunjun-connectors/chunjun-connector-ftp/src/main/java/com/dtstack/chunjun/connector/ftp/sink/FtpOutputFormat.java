@@ -182,7 +182,7 @@ public class FtpOutputFormat extends BaseFileOutputFormat {
         String currentFilePath = "";
         try {
             for (String filePath : this.preCommitFilePathList) {
-                if (org.apache.commons.lang3.StringUtils.equals(path, outputFilePath)) {
+                if (StringUtils.equals(path, outputFilePath)) {
                     ftpHandler.deleteFile(filePath);
                     LOG.info("delete file:{}", currentFilePath);
                 }

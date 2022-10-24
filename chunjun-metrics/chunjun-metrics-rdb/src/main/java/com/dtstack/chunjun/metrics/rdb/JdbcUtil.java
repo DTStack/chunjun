@@ -61,10 +61,10 @@ public class JdbcUtil {
                 prop.setProperty(entry.getKey(), entry.getValue());
             }
         }
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getUsername())) {
+        if (StringUtils.isNotBlank(jdbcConf.getUsername())) {
             prop.put("user", jdbcConf.getUsername());
         }
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(jdbcConf.getPassword())) {
+        if (StringUtils.isNotBlank(jdbcConf.getPassword())) {
             prop.put("password", jdbcConf.getPassword());
         }
         Properties finalProp = prop;
