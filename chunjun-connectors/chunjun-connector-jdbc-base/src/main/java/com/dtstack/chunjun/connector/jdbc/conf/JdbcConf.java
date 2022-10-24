@@ -20,7 +20,7 @@ package com.dtstack.chunjun.connector.jdbc.conf;
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
 
 import com.google.gson.annotations.SerializedName;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;

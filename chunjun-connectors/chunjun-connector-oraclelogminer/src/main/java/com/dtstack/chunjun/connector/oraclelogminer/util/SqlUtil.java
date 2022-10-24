@@ -20,7 +20,8 @@ package com.dtstack.chunjun.connector.oraclelogminer.util;
 import com.dtstack.chunjun.connector.oraclelogminer.entity.ColumnInfo;
 import com.dtstack.chunjun.constants.ConstantValue;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -550,8 +551,7 @@ public class SqlUtil {
                 + quote(comment, "'");
     }
 
-    public static String formatGetTableInfoSql(
-            List<org.apache.commons.lang3.tuple.Pair<String, String>> tables) {
+    public static String formatGetTableInfoSql(List<Pair<String, String>> tables) {
         String where = " and ";
         if (tables.size() == 1) {
             where += " a.OWNER = ?\n" + " and a.TABLE_NAME = ?";

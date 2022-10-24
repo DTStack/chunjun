@@ -20,7 +20,7 @@ package com.dtstack.chunjun.local.test;
 import com.dtstack.chunjun.Main;
 import com.dtstack.chunjun.util.GsonUtil;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

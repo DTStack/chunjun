@@ -24,7 +24,7 @@ import com.dtstack.chunjun.util.ExceptionUtil;
 
 import org.apache.flink.core.io.InputSplit;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;

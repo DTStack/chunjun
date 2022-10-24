@@ -25,7 +25,7 @@ import com.dtstack.chunjun.connector.mongodb.datasync.MongodbDataSyncConf;
 import com.dtstack.chunjun.sink.WriteMode;
 import com.dtstack.chunjun.sink.format.BaseRichOutputFormatBuilder;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 

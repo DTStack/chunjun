@@ -272,7 +272,7 @@ public class DatabaseBaseRichInputFormat<T, OUT extends RowData> extends BaseRic
             String incrementCol,
             String startLocation,
             boolean useMaxFunc) {
-        if (org.apache.commons.lang.StringUtils.isEmpty(startLocation)
+        if (StringUtils.isEmpty(startLocation)
                 || JdbcUtil.NULL_STRING.equalsIgnoreCase(startLocation)) {
             return null;
         }

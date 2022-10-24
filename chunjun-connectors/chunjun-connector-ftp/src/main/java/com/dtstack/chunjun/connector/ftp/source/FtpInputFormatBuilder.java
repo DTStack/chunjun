@@ -22,7 +22,7 @@ import com.dtstack.chunjun.connector.ftp.conf.FtpConfig;
 import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /** @author jiangbo */
 public class FtpInputFormatBuilder extends BaseRichInputFormatBuilder<FtpInputFormat> {
