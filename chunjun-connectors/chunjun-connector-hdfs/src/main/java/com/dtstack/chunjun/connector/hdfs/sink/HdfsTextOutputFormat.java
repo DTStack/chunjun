@@ -32,7 +32,6 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.hadoop.fs.Path;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -55,7 +54,7 @@ public class HdfsTextOutputFormat extends BaseHdfsOutputFormat {
         }
 
         try {
-            String currentBlockTmpPath = tmpPath + File.separatorChar + currentFileName;
+            String currentBlockTmpPath = tmpPath + getHdfsPathChar() + currentFileName;
             Path p = new Path(currentBlockTmpPath);
 
             if (CompressType.TEXT_NONE.equals(compressType)) {
