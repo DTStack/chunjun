@@ -21,6 +21,8 @@ import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.jdbc.JdbcDialectWrapper;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
+import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.converter.RawTypeConverter;
 import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 import com.dtstack.chunjun.util.ClassUtil;
@@ -32,6 +34,7 @@ import com.dtstack.chunjun.util.TelnetUtil;
 
 import org.apache.flink.table.types.logical.LogicalType;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -131,28 +134,55 @@ public class JdbcUtil {
      */
     public static Pair<List<String>, List<String>> getTableMetaData(
             String cataLog, String schema, String tableName, Connection dbConn) {
+        return getTableMetaData(cataLog, schema, tableName, dbConn, null);
+    }
+
+    public static Pair<List<String>, List<String>> getTableMetaData(
+            String cataLog, String schema, String tableName, Connection dbConn, String querySql) {
         try {
-            // check table exists
-            if (ALL_TABLE.equalsIgnoreCase(tableName.trim())) {
-                return Pair.of(new LinkedList<>(), new LinkedList<>());
+            if (StringUtils.isBlank(querySql)) {
+                // check table exists
+                if (ALL_TABLE.equalsIgnoreCase(tableName.trim())) {
+                    return Pair.of(new LinkedList<>(), new LinkedList<>());
+                }
+                ResultSet tableRs =
+                        dbConn.getMetaData().getTables(cataLog, schema, tableName, null);
+                if (!tableRs.next()) {
+                    String tableInfo = schema == null ? tableName : schema + "." + tableName;
+                    throw new ChunJunRuntimeException(
+                            String.format("table %s not found.", tableInfo));
+                }
+                tableRs.close();
+
+                String tableInfo;
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(schema)) {
+                    tableInfo = String.format("%s.%s", schema, tableName);
+                } else {
+                    // schema is null, use default schema to get metadata
+                    tableInfo = tableName;
+                }
+                querySql = String.format("select * from %s where 1=2", tableInfo);
+            } else {
+                querySql = String.format("select * from ((%s) custom) where 1=2", querySql);
             }
 
-            ResultSet tableRs = dbConn.getMetaData().getTables(cataLog, schema, tableName, null);
-            if (!tableRs.next()) {
-                String tableInfo = schema == null ? tableName : schema + "." + tableName;
-                throw new ChunJunRuntimeException(String.format("table %s not found.", tableInfo));
+            Statement statement = dbConn.createStatement();
+            statement.setQueryTimeout(30);
+            ResultSet resultSet = dbConn.createStatement().executeQuery(querySql);
+            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+            List<String> fullColumnList = new ArrayList<>(resultSetMetaData.getColumnCount());
+            List<String> fullColumnTypeList = new ArrayList<>(resultSetMetaData.getColumnCount());
+            String columnName;
+            String columnTypeName;
+            for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
+                columnName = resultSetMetaData.getColumnName(i + 1);
+                columnTypeName = resultSetMetaData.getColumnTypeName(i + 1);
+                // compatible with sqlserver, bigint identity  -> bigint
+                columnTypeName = columnTypeName.replace("identity", "").trim();
+                fullColumnList.add(columnName);
+                fullColumnTypeList.add(columnTypeName);
             }
-
-            ResultSet rs = dbConn.getMetaData().getColumns(cataLog, schema, tableName, null);
-            List<String> fullColumnList = new LinkedList<>();
-            List<String> fullColumnTypeList = new LinkedList<>();
-            while (rs.next()) {
-                // COLUMN_NAME
-                fullColumnList.add(rs.getString(4));
-                // TYPE_NAME
-                fullColumnTypeList.add(rs.getString(6));
-            }
-            rs.close();
+            resultSet.close();
             return Pair.of(fullColumnList, fullColumnTypeList);
         } catch (SQLException e) {
             throw new ChunJunRuntimeException(
@@ -177,6 +207,41 @@ public class JdbcUtil {
         return indexList;
     }
 
+    public static List<String> getTableUniqueIndex(
+            String schema, String tableName, Connection dbConn) throws SQLException {
+        List<String> tablePrimaryKey = getTablePrimaryKey(schema, tableName, dbConn);
+        if (CollectionUtils.isNotEmpty(tablePrimaryKey)) {
+            return tablePrimaryKey;
+        }
+
+        ResultSet rs = dbConn.getMetaData().getIndexInfo(null, schema, tableName, true, false);
+        List<String> indexList = new LinkedList<>();
+        while (rs.next()) {
+            String index = rs.getString(9);
+            if (StringUtils.isNotBlank(index)) indexList.add(index);
+        }
+        return indexList;
+    }
+
+    /**
+     * get primarykey
+     *
+     * @param schema
+     * @param tableName
+     * @param dbConn
+     * @return
+     * @throws SQLException
+     */
+    public static List<String> getTablePrimaryKey(
+            String schema, String tableName, Connection dbConn) throws SQLException {
+        ResultSet rs = dbConn.getMetaData().getPrimaryKeys(null, schema, tableName);
+        List<String> indexList = new LinkedList<>();
+        while (rs.next()) {
+            String index = rs.getString(4);
+            if (StringUtils.isNotBlank(index)) indexList.add(index);
+        }
+        return indexList;
+    }
     /**
      * 关闭连接资源
      *
@@ -459,6 +524,120 @@ public class JdbcUtil {
                     "after reset table info,schema: {},table: {}",
                     jdbcConf.getSchema(),
                     jdbcConf.getTable());
+        }
+    }
+
+    public static Pair<List<String>, List<String>> buildCustomColumnInfo(
+            List<FieldConf> column, String constantType) {
+        List<String> columnNameList = new ArrayList<>(column.size());
+        List<String> columnTypeList = new ArrayList<>(column.size());
+        int index = 0;
+        for (FieldConf fieldConf : column) {
+            if (StringUtils.isNotBlank(fieldConf.getValue())) {
+                fieldConf.setType(constantType);
+                fieldConf.setIndex(-1);
+            } else {
+                columnNameList.add(fieldConf.getName());
+                columnTypeList.add(fieldConf.getType());
+                fieldConf.setIndex(index++);
+            }
+        }
+        return Pair.of(columnNameList, columnTypeList);
+    }
+
+    public static Pair<List<String>, List<String>> buildColumnWithMeta(
+            JdbcConf jdbcConf,
+            Pair<List<String>, List<String>> tableMetaData,
+            String constantType) {
+        List<String> metaColumnName = tableMetaData.getLeft();
+        List<String> metaColumnType = tableMetaData.getRight();
+
+        List<FieldConf> column = jdbcConf.getColumn();
+        int size = metaColumnName.size();
+        List<String> columnNameList = new ArrayList<>(size);
+        List<String> columnTypeList = new ArrayList<>(size);
+        if (column.size() == 1 && ConstantValue.STAR_SYMBOL.equals(column.get(0).getName())) {
+            List<FieldConf> metaColumn = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                FieldConf fieldConf = new FieldConf();
+                fieldConf.setName(metaColumnName.get(i));
+                columnNameList.add(metaColumnName.get(i));
+                fieldConf.setType(metaColumnType.get(i));
+                columnTypeList.add(metaColumnType.get(i));
+                fieldConf.setIndex(i);
+                metaColumn.add(fieldConf);
+            }
+            jdbcConf.setColumn(metaColumn);
+            return Pair.of(columnNameList, columnTypeList);
+        } else {
+            return checkAndModifyColumnWithMeta(
+                    jdbcConf.getTable(),
+                    jdbcConf.getColumn(),
+                    metaColumnName,
+                    metaColumnType,
+                    constantType);
+        }
+    }
+
+    private static Pair<List<String>, List<String>> checkAndModifyColumnWithMeta(
+            String tableName,
+            List<FieldConf> column,
+            List<String> metaColumnName,
+            List<String> metaColumnType,
+            String constantType) {
+        // check columnName and modify columnType
+        int metaColumnSize = metaColumnName.size();
+        List<String> columnNameList = new ArrayList<>(column.size());
+        List<String> columnTypeList = new ArrayList<>(column.size());
+        int index = 0;
+        for (FieldConf fieldConf : column) {
+            if (StringUtils.isNotBlank(fieldConf.getValue())) {
+                fieldConf.setType(constantType);
+                fieldConf.setIndex(-1);
+            } else {
+                String name = fieldConf.getName();
+                String metaType = null;
+                int i = 0;
+                for (; i < metaColumnSize; i++) {
+                    // todo get precision and scale
+                    if (metaColumnName.get(i).equalsIgnoreCase(name)) {
+                        metaType = metaColumnType.get(i);
+                        columnNameList.add(name);
+                        columnTypeList.add(metaType);
+                        fieldConf.setIndex(index++);
+                        fieldConf.setType(metaColumnType.get(i));
+                        break;
+                    }
+                }
+                if (i == metaColumnSize) {
+                    throw new ChunJunRuntimeException(
+                            String.format(
+                                    "The column[%s] does not exist in the table[%s]",
+                                    name, tableName));
+                }
+                assert metaType != null
+                        : String.format("failed to get column type from db,column name= %s ", name);
+            }
+        }
+        return Pair.of(columnNameList, columnTypeList);
+    }
+
+    public static void setStarLocationForSplits(JdbcInputSplit[] splits, String startLocation) {
+        if (StringUtils.isNotBlank(startLocation)) {
+            String[] locations = startLocation.split(ConstantValue.COMMA_SYMBOL);
+            if (locations.length != 1 && splits.length != locations.length) {
+                throw new IllegalArgumentException(
+                        "The number of startLocations is not equal to the number of channels");
+            }
+            if (locations.length == 1) {
+                for (JdbcInputSplit split : splits) {
+                    split.setStartLocation(locations[0]);
+                }
+            } else {
+                for (int i = 0; i < splits.length; i++) {
+                    splits[i].setStartLocation(locations[i]);
+                }
+            }
         }
     }
 }

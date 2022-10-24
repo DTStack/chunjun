@@ -18,24 +18,18 @@
 
 package com.dtstack.chunjun.connector.kudu.table;
 
-import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.kudu.conf.KuduSinkConf;
-import com.dtstack.chunjun.connector.kudu.converter.KuduRawTypeConverter;
 import com.dtstack.chunjun.connector.kudu.converter.KuduRowConverter;
 import com.dtstack.chunjun.connector.kudu.sink.KuduOutputFormatBuilder;
 import com.dtstack.chunjun.sink.DtOutputFormatSinkFunction;
-import com.dtstack.chunjun.util.TableUtil;
 
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
-import org.apache.flink.table.types.AtomicDataType;
-import org.apache.flink.table.types.logical.NullType;
 import org.apache.flink.table.types.logical.RowType;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 /**
  * @author tiezhu
@@ -64,33 +58,11 @@ public class KuduDynamicTableSink implements DynamicTableSink {
     public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
         KuduOutputFormatBuilder builder = new KuduOutputFormatBuilder();
 
-        String[] fieldNames = tableSchema.getFieldNames();
-        List<FieldConf> columnList = new ArrayList<>(fieldNames.length);
-        List<String> columnNameList = new ArrayList<>();
-
-        for (int index = 0; index < fieldNames.length; index++) {
-            String name = fieldNames[index];
-            columnNameList.add(name);
-
-            FieldConf field = new FieldConf();
-            field.setName(name);
-            field.setType(
-                    tableSchema
-                            .getFieldDataType(name)
-                            .orElse(new AtomicDataType(new NullType()))
-                            .getLogicalType()
-                            .getTypeRoot()
-                            .name());
-            field.setIndex(index);
-            columnList.add(field);
-        }
-        sinkConf.setColumn(columnList);
-
-        final RowType rowType =
-                TableUtil.createRowType(sinkConf.getColumn(), KuduRawTypeConverter::apply);
-
         builder.setSinkConf(sinkConf);
-        builder.setRowConverter(new KuduRowConverter(rowType, columnNameList));
+        builder.setRowConverter(
+                new KuduRowConverter(
+                        (RowType) tableSchema.toRowDataType().getLogicalType(),
+                        Arrays.asList(tableSchema.getFieldNames())));
 
         return SinkFunctionProvider.of(
                 new DtOutputFormatSinkFunction(builder.finish()), sinkConf.getParallelism());

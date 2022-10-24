@@ -19,14 +19,22 @@
 package com.dtstack.chunjun.connector.jdbc.dialect;
 
 import com.dtstack.chunjun.conf.ChunJunCommonConf;
+import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcColumnConverter;
 import com.dtstack.chunjun.connector.jdbc.converter.JdbcRowConverter;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputSplit;
 import com.dtstack.chunjun.connector.jdbc.statement.FieldNamedPreparedStatement;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.DateTypeUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.NumericTypeUtil;
+import com.dtstack.chunjun.connector.jdbc.util.key.TimestampTypeUtil;
 import com.dtstack.chunjun.converter.AbstractRowConverter;
 import com.dtstack.chunjun.converter.RawTypeConverter;
+import com.dtstack.chunjun.enums.ColumnType;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
 
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -36,10 +44,12 @@ import io.vertx.core.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -369,5 +379,29 @@ public interface JdbcDialect extends Serializable {
         return String.format(
                 " mod(%s, %s) = %s",
                 quoteIdentifier(splitPkName), split.getTotalNumberOfSplits(), split.getMod());
+    }
+
+    default KeyUtil<?, BigInteger> initKeyUtil(String incrementName, String incrementType) {
+        switch (ColumnType.getType(incrementType)) {
+            case TIMESTAMP:
+            case DATETIME:
+                return new TimestampTypeUtil();
+            case DATE:
+                return new DateTypeUtil();
+            default:
+                if (ColumnType.isNumberType(incrementType)) {
+                    return new NumericTypeUtil();
+                } else {
+                    throw new ChunJunRuntimeException(
+                            String.format(
+                                    "Unsupported columnType [%s], columnName [%s]",
+                                    incrementType, incrementName));
+                }
+        }
+    }
+
+    /** catalog/schema/table */
+    default Function<JdbcConf, Tuple3<String, String, String>> getTableIdentify() {
+        return conf -> Tuple3.of(null, conf.getSchema(), conf.getTable());
     }
 }

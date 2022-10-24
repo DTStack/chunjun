@@ -66,6 +66,8 @@ public class Metrics {
 
     public static final String MAX_VALUE = "maxValue";
 
+    public static final String MAX_VALUE_NONE = "CHUNJUN_MAX_VALUE_NONE";
+
     public static final String METRIC_GROUP_KEY_CHUNJUN = "chunjun";
 
     public static final String METRIC_GROUP_VALUE_OUTPUT = "output";

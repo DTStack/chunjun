@@ -57,6 +57,11 @@ public class DataSyncFactoryUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataSyncFactoryUtil.class);
 
+    private static final String DEFAULT_DIRTY_TYPE = "default";
+
+    private static final String DEFAULT_DIRTY_CLASS =
+            "com.dtstack.chunjun.dirty.consumer.DefaultDirtyDataCollector";
+
     public static SourceFactory discoverSource(SyncConf config, StreamExecutionEnvironment env) {
         try {
             String pluginName = config.getJob().getReader().getName();
@@ -116,6 +121,10 @@ public class DataSyncFactoryUtil {
         try {
             String pluginName = conf.getType();
             String pluginClassName = PluginUtil.getPluginClassName(pluginName, OperatorType.dirty);
+
+            if (pluginName.equals(DEFAULT_DIRTY_TYPE)) {
+                pluginClassName = DEFAULT_DIRTY_CLASS;
+            }
 
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             Class<?> clazz = classLoader.loadClass(pluginClassName);

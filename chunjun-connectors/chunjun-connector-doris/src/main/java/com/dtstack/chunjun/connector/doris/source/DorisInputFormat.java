@@ -19,9 +19,9 @@
 package com.dtstack.chunjun.connector.doris.source;
 
 import com.dtstack.chunjun.connector.doris.options.DorisConf;
-import com.dtstack.chunjun.connector.mysql.source.MysqlInputFormat;
+import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 
-public class DorisInputFormat extends MysqlInputFormat {
+public class DorisInputFormat extends JdbcInputFormat {
 
     private DorisConf dorisConf;
 

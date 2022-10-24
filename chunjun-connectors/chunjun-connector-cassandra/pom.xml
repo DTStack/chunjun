@@ -17,6 +17,11 @@
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>19.0</version>
+		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.datastax.cassandra/cassandra-driver-core -->
 		<dependency>
@@ -47,6 +52,44 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>3.2.4</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<artifactSet>
+								<excludes>
+									<exclude>org.slf4j:slf4j-api</exclude>
+									<exclude>log4j:log4j</exclude>
+									<exclude>ch.qos.logback:*</exclude>
+								</excludes>
+							</artifactSet>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<relocations>
+								<relocation>
+									<pattern>com.google.common</pattern>
+									<shadedPattern>shade.cassandra.com.google.common</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>com.google.thirdparty</pattern>
+									<shadedPattern>shade.cassandra.com.google.thirdparty</shadedPattern>
+								</relocation>
+							</relocations>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>

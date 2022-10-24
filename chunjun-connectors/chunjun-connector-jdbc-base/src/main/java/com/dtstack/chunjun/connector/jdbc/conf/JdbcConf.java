@@ -64,8 +64,16 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
     private boolean increment = false;
     /** 是否为增量轮询 */
     private boolean polling = false;
+
+    /**
+     * Whether to take the maximum value of incrementColumn in db as startLocation in polling mode
+     */
+    private boolean pollingFromMax = false;
+
     /** 字段名称 */
     private String increColumn;
+    /** Whether an OrderBy sort is required,increment mode need set to true. */
+    private boolean isOrderBy = true;
     /** 字段索引 */
     private int increColumnIndex = -1;
     /** 字段类型 */
@@ -287,12 +295,24 @@ public class JdbcConf extends ChunJunCommonConf implements Serializable {
         this.polling = polling;
     }
 
+    public boolean isPollingFromMax() {
+        return pollingFromMax;
+    }
+
     public String getIncreColumn() {
         return increColumn;
     }
 
     public void setIncreColumn(String increColumn) {
         this.increColumn = increColumn;
+    }
+
+    public boolean isOrderBy() {
+        return isOrderBy;
+    }
+
+    public void setOrderBy(boolean orderBy) {
+        isOrderBy = orderBy;
     }
 
     public int getIncreColumnIndex() {

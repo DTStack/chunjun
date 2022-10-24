@@ -19,6 +19,7 @@ package com.dtstack.chunjun.connector.pgwal.util;
 
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.util.ClassUtil;
+import com.dtstack.chunjun.util.DtStringUtil;
 import com.dtstack.chunjun.util.ExceptionUtil;
 import com.dtstack.chunjun.util.TelnetUtil;
 
@@ -178,8 +179,13 @@ public class PGUtil {
                                 String.format(QUERY_TABLE_REPLICA_IDENTITY, tables[0], tables[1]));
                 resultSet.next();
                 if (!"f".equals(resultSet.getString(1))) {
+                    String quoteTable =
+                            DtStringUtil.addQuoteForStr(tables[0])
+                                    + "."
+                                    + DtStringUtil.addQuoteForStr(tables[1]);
                     LOG.warn("update {} replica identity, set to full", table);
-                    conn.createStatement().execute(String.format(UPDATE_REPLICA_IDENTITY, table));
+                    conn.createStatement()
+                            .execute(String.format(UPDATE_REPLICA_IDENTITY, quoteTable));
                 }
             }
 

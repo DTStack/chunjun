@@ -87,6 +87,12 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
         this.toExternalConverters = new ArrayList<>(converterSize);
     }
 
+    public AbstractRowConverter(int converterSize, ChunJunCommonConf commonConf) {
+        this.toInternalConverters = new ArrayList<>(converterSize);
+        this.toExternalConverters = new ArrayList<>(converterSize);
+        this.commonConf = commonConf;
+    }
+
     protected IDeserializationConverter wrapIntoNullableInternalConverter(
             IDeserializationConverter IDeserializationConverter) {
         return val -> {
@@ -187,6 +193,7 @@ public abstract class AbstractRowConverter<SourceT, LookupT, SinkT, T> implement
     public RowData toInternalLookup(LookupT input) throws Exception {
         throw new RuntimeException("Subclass need rewriting");
     }
+
     /**
      * BinaryRowData
      *

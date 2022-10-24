@@ -20,8 +20,13 @@ package com.dtstack.chunjun.connector.clickhouse.sink;
 
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.connector.clickhouse.dialect.ClickhouseDialect;
+import com.dtstack.chunjun.connector.clickhouse.util.ClickhouseUtil;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcSinkFactory;
+import com.dtstack.chunjun.throwable.ChunJunRuntimeException;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * @program chunjun
@@ -37,5 +42,19 @@ public class ClickhouseSinkFactory extends JdbcSinkFactory {
     @Override
     protected JdbcOutputFormatBuilder getBuilder() {
         return new ClickhouseOutputFormatBuilder(new ClickhouseOutputFormat());
+    }
+
+    @Override
+    protected Connection getConn() {
+        try {
+            return ClickhouseUtil.getConnection(
+                    jdbcConf.getJdbcUrl(), jdbcConf.getUsername(), jdbcConf.getPassword());
+        } catch (SQLException e) {
+            throw new ChunJunRuntimeException(
+                    String.format(
+                            "failed to get clickhouse jdbc connection,jdbcUrl=%s",
+                            jdbcConf.getJdbcUrl()),
+                    e);
+        }
     }
 }

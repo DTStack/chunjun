@@ -17,16 +17,19 @@
  */
 package com.dtstack.chunjun.connector.jdbc.source.distribute;
 
+import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.conf.SyncConf;
 import com.dtstack.chunjun.connector.jdbc.conf.ConnectionConf;
 import com.dtstack.chunjun.connector.jdbc.conf.DataSourceConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcSourceFactory;
+import com.dtstack.chunjun.util.ColumnBuildUtil;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +41,8 @@ import java.util.List;
  */
 public abstract class DistributedJdbcSourceFactory extends JdbcSourceFactory {
 
+    private List<DataSourceConf> dataSourceConfList;
+
     protected DistributedJdbcSourceFactory(
             SyncConf syncConf, StreamExecutionEnvironment env, JdbcDialect jdbcDialect) {
         super(syncConf, env, jdbcDialect);
@@ -47,7 +52,7 @@ public abstract class DistributedJdbcSourceFactory extends JdbcSourceFactory {
         DistributedJdbcInputFormatBuilder builder =
                 new DistributedJdbcInputFormatBuilder(new DistributedJdbcInputFormat());
         List<ConnectionConf> connectionConfList = jdbcConf.getConnection();
-        List<DataSourceConf> dataSourceConfList = new ArrayList<>(connectionConfList.size());
+        dataSourceConfList = new ArrayList<>(connectionConfList.size());
         for (ConnectionConf connectionConf : connectionConfList) {
             String currentUsername =
                     (StringUtils.isNotBlank(connectionConf.getUsername()))
@@ -72,5 +77,20 @@ public abstract class DistributedJdbcSourceFactory extends JdbcSourceFactory {
         }
         builder.setSourceList(dataSourceConfList);
         return builder;
+    }
+
+    @Override
+    protected void initColumnInfo() {
+        columnNameList = new ArrayList<>();
+        columnTypeList = new ArrayList<>();
+        for (FieldConf fieldConf : jdbcConf.getColumn()) {
+            this.columnNameList.add(fieldConf.getName());
+            this.columnTypeList.add(fieldConf.getType());
+        }
+        Pair<List<String>, List<String>> columnPair =
+                ColumnBuildUtil.handleColumnList(
+                        jdbcConf.getColumn(), this.columnNameList, this.columnTypeList);
+        this.columnNameList = columnPair.getLeft();
+        this.columnTypeList = columnPair.getRight();
     }
 }

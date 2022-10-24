@@ -12,7 +12,7 @@
 
 ## Introduce
 
-ChunJun(formerly known as FlinkX), is a data integration tool based on Flink, which is **stable**, **easy to use**, **efficient**, and **integrated with DataStream/DataSet API**. It can realize data synchronization and calculation between various heterogeneous data sources. ChunJun has been deployed and running stably in thousands of companies so far.
+ChunJun is a distributed integration framework, and currently is based on Apache Flink. It was initially known as FlinkX and renamed ChunJun on February 22, 2022. It can realize data synchronization and calculation between various heterogeneous data sources. ChunJun has been deployed and running stably in thousands of companies so far.
 
 Official website of ChunJun: https://dtstack.github.io/chunjun/
 
@@ -46,7 +46,7 @@ git clone https://github.com/DTStack/chunjun.git
 Execute the command in the project directory.
 
 ```shell
-./mvnw clean package -DskipTests
+./mvnw clean package
 ```
 
 Or execute
@@ -55,30 +55,9 @@ Or execute
 sh build/build.sh
 ```
 
-### Multi-platform compatible
-
-Chunjun currently supports tdh and open-source hadoop platforms, and different platforms need to be packaged with different maven commands.
-
-| Hadoop Platformas |                                              | Comment                                                      |
-|-------------------| -------------------------------------------- |--------------------------------------------------------------|
-| tdh               | mvn clean package -DskipTests -P default,tdh | Package the inceport plugin and plugins supported by default |
-| default           | mvn clean package -DskipTests -P default     | Package the all plugins except the inceptor plugin.          |
-
 ### Common problem
 
-#### 1.Can not find dependencies
-
-Solution: There are some driver packages in the directory '$ChunJun_HOME/jars', and you can install these dependencies manually or execute the command below:
-
-```bash
-## windows
-./$CHUNJUN_HOME/bin/install_jars.bat
-
-## unix
-./$CHUNJUN_HOME/bin/install_jars.sh
-```
-
-#### 2. Compiling module 'ChunJun-core' then throws 'Failed to read artifact descriptor for com.google.errorprone:javac-shaded'
+#### Compiling module 'ChunJun-core' then throws 'Failed to read artifact descriptor for com.google.errorprone:javac-shaded'
 
 Error message：
 
@@ -211,3 +190,8 @@ Thanks to all contributors! We are very happy that you can contribute Chunjun.
 ## License
 
 ChunJun is under the Apache 2.0 license. Please visit [LICENSE](http://www.apache.org/licenses/LICENSE-2.0) for details.
+
+## Contact Us
+
+Join ChunJun Slack.
+https://join.slack.com/t/chunjun/shared_invite/zt-1hzmvh0o3-qZ726NXmhClmLFRMpEDHYw

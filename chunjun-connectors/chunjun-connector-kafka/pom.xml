@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
 		<artifactId>chunjun-connectors</artifactId>
 		<groupId>com.dtstack.chunjun</groupId>
@@ -41,6 +39,14 @@
 			<groupId>org.apache.avro</groupId>
 			<artifactId>avro</artifactId>
 			<version>1.10.0</version>
+		</dependency>
+
+		<!--flink formats-->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-json</artifactId>
+			<version>${flink.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -148,24 +154,16 @@
 						</goals>
 						<configuration>
 							<tasks>
-								<copy todir="${basedir}/../../${dist.dir}/connector/kafka"
-									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/kafka/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/kafka/${project.artifactId}.jar"/>
+								<copy todir="${basedir}/../../${dist.dir}/connector/kafka" file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/connector/kafka/${project.artifactId}-${project.version}.jar" tofile="${basedir}/../../${dist.dir}/connector/kafka/${project.artifactId}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../${dist.dir}/connector/kafka/"
-											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}.jar"/>
+									<fileset dir="${basedir}/../../${dist.dir}/connector/kafka/" includes="${project.artifactId}-*.jar" excludes="${project.artifactId}.jar"/>
 								</delete>
 
-								<copy todir="${basedir}/../../${dist.dir}/connector/upsert-kafka"
-									  file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
-								<move file="${basedir}/../../${dist.dir}/connector/upsert-kafka/${project.artifactId}-${project.version}.jar"
-									  tofile="${basedir}/../../${dist.dir}/connector/upsert-kafka/${project.artifactId}.jar"/>
+								<copy todir="${basedir}/../../${dist.dir}/connector/upsert-kafka" file="${basedir}/target/${project.artifactId}-${project.version}.jar"/>
+								<move file="${basedir}/../../${dist.dir}/connector/upsert-kafka/${project.artifactId}-${project.version}.jar" tofile="${basedir}/../../${dist.dir}/connector/upsert-kafka/${project.artifactId}.jar"/>
 								<delete>
-									<fileset dir="${basedir}/../../${dist.dir}/connector/upsert-kafka/"
-											 includes="${project.artifactId}-*.jar"
-											 excludes="${project.artifactId}.jar"/>
+									<fileset dir="${basedir}/../../${dist.dir}/connector/upsert-kafka/" includes="${project.artifactId}-*.jar" excludes="${project.artifactId}.jar"/>
 								</delete>
 							</tasks>
 						</configuration>

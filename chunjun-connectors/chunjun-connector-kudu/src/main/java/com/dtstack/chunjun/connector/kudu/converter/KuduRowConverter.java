@@ -40,6 +40,7 @@ import org.apache.kudu.client.RowResult;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -182,12 +183,15 @@ public class KuduRowConverter
                 return (val, index, operation) ->
                         operation.getRow().addBinary(columnName.get(index), val.getBinary(index));
             case "DECIMAL":
+                final int decimalPrecision = ((DecimalType) type).getPrecision();
+                final int decimalScale = ((DecimalType) type).getScale();
                 return (val, index, operation) ->
                         operation
                                 .getRow()
                                 .addDecimal(
-                                        columnName.get(index),
-                                        ((ColumnRowData) val).getField(index).asBigDecimal());
+                                        index,
+                                        val.getDecimal(index, decimalPrecision, decimalScale)
+                                                .toBigDecimal());
             case "VARCHAR":
                 return (val, index, operation) ->
                         operation
@@ -212,7 +216,11 @@ public class KuduRowConverter
                                 .getRow()
                                 .addTimestamp(
                                         columnName.get(index),
-                                        ((ColumnRowData) val).getField(index).asTimestamp());
+                                        new Timestamp(
+                                                ((TimestampData)
+                                                                ((GenericRowData) val)
+                                                                        .getField(index))
+                                                        .getMillisecond()));
             default:
                 throw new UnsupportedTypeException(type);
         }

@@ -70,25 +70,36 @@ echo "
   #####   #     #   #### #  #     #       #    #### #  #     #
                                           #
                                       ####
-"
-echo "CHUNJUN_HOME is auto set  $CHUNJUN_HOME"
-echo "FLINK_HOME is $FLINK_HOME"
-echo "HADOOP_HOME is $HADOOP_HOME"
-echo "ChunJun starting ..."
+
+Reference site: https://dtstack.github.io/chunjun
+
+chunjun is starting ...
+CHUNJUN_HOME is auto set $CHUNJUN_HOME"
 
 # basic parameters for all jobs
 PARAMS="$ARGS -mode $MODE -jobType $JOBTYPE -chunjunDistDir $CHUNJUN_HOME"
 
 # if FLINK_HOME is not set or not a directory, ignore flinkConfDir parameter
-if [ ! -z $FLINK_HOME ] && [ -d $FLINK_HOME ];then
+if [ ! -z $FLINK_HOME ] && [ -d $FLINK_HOME ];
+  then
+    echo "FLINK_HOME is $FLINK_HOME"
     PARAMS="$PARAMS -flinkConfDir $FLINK_HOME/conf -flinkLibDir $FLINK_HOME/lib"
+  else
+    echo "FLINK_HOME is empty!"
 fi
 
 # if HADOOP_HOME is not set or not a directory, ignore hadoopConfDir parameter
-if [ ! -z $HADOOP_HOME ] && [ -d $HADOOP_HOME ];then
+if [ ! -z $HADOOP_HOME ] && [ -d $HADOOP_HOME ];
+  then
+    echo "HADOOP_HOME is $HADOOP_HOME"
     PARAMS="$PARAMS -hadoopConfDir $HADOOP_HOME/etc/hadoop"
+  else
+    echo "HADOOP_HOME is empty!"
 fi
 
+# add a new line to separate from the log
+echo ""
 echo "start command: $JAVA_RUN -cp $JAR_DIR $CLASS_NAME $PARAMS"
+echo ""
 
 $JAVA_RUN -cp $JAR_DIR $CLASS_NAME $PARAMS

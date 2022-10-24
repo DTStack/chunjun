@@ -25,6 +25,7 @@
 		<module>chunjun-connector-kafka</module>
 		<module>chunjun-connector-emqx</module>
 		<module>chunjun-connector-rocketmq</module>
+		<module>chunjun-connector-rabbitmq</module>
 
 		<!--RDB-->
 		<module>chunjun-connector-jdbc-base</module>
@@ -42,6 +43,8 @@
 		<module>chunjun-connector-starrocks</module>
 		<module>chunjun-connector-oceanbase</module>
 		<module>chunjun-connector-cassandra</module>
+		<module>chunjun-connector-sybase</module>
+		<module>chunjun-connector-vertica11</module>
 
 		<!--File-->
 		<module>chunjun-connector-file</module>
@@ -50,6 +53,8 @@
 		<module>chunjun-connector-hdfs</module>
 		<module>chunjun-connector-hive</module>
 		<module>chunjun-connector-hive3</module>
+		<module>chunjun-connector-iceberg</module>
+		<module>chunjun-connector-s3</module>
 
 		<!--NoSql-->
 		<module>chunjun-connector-hbase-base</module>
@@ -69,6 +74,7 @@
 		<module>chunjun-connector-oraclelogminer</module>
 		<module>chunjun-connector-sqlservercdc</module>
 		<module>chunjun-connector-pgwal</module>
+		<module>chunjun-connector-mysqlcdc</module>
 
 		<!--Network-->
 		<module>chunjun-connector-http</module>
@@ -76,7 +82,7 @@
 
 		<!--Distribute plugin, just for SYNC-->
 		<module>chunjun-connector-mysqld</module>
-    </modules>
+	</modules>
 
 
 	<dependencies>

@@ -24,6 +24,7 @@ import com.dtstack.chunjun.util.FileSystemUtil;
 import com.dtstack.chunjun.util.JsonUtil;
 import com.dtstack.chunjun.util.Md5Util;
 
+import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.cache.DistributedCache;
 
 import org.apache.commons.collections.MapUtils;
@@ -54,9 +55,9 @@ public class KerberosUtil {
     private static final String SP = "/";
 
     private static final String KEY_SFTP_CONF = "sftpConf";
-    private static final String KEY_PRINCIPAL = "principal";
-    private static final String KEY_REMOTE_DIR = "remoteDir";
-    private static final String KEY_USE_LOCAL_FILE = "useLocalFile";
+    public static final String KEY_PRINCIPAL = "principal";
+    public static final String KEY_REMOTE_DIR = "remoteDir";
+    public static final String KEY_USE_LOCAL_FILE = "useLocalFile";
     public static final String KEY_PRINCIPAL_FILE = "principalFile";
     private static final String KEY_JAVA_SECURITY_KRB5_CONF = "java.security.krb5.conf";
     public static final String KRB_STR = "Kerberos";
@@ -279,7 +280,8 @@ public class KerberosUtil {
         throw new RuntimeException("File[" + filePathOnSftp + "] not exist on sftp");
     }
 
-    private static String findPrincipalFromKeytab(String keytabFile) {
+    @VisibleForTesting
+    protected static String findPrincipalFromKeytab(String keytabFile) {
         KeyTab keyTab = KeyTab.getInstance(keytabFile);
         for (KeyTabEntry entry : keyTab.getEntries()) {
             String principal = entry.getService().getName();
@@ -302,12 +304,14 @@ public class KerberosUtil {
         }
     }
 
-    private static boolean fileExists(String filePath) {
+    @VisibleForTesting
+    protected static boolean fileExists(String filePath) {
         File file = new File(filePath);
         return file.exists() && file.isFile();
     }
 
-    private static String createDir(String dir) {
+    @VisibleForTesting
+    protected static String createDir(String dir) {
         File file = new File(dir);
         if (file.exists()) {
             return dir;

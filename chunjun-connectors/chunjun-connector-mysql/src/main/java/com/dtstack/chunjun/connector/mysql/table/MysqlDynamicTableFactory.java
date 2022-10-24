@@ -20,13 +20,13 @@ package com.dtstack.chunjun.connector.mysql.table;
 
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormat;
 import com.dtstack.chunjun.connector.jdbc.sink.JdbcOutputFormatBuilder;
+import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormat;
 import com.dtstack.chunjun.connector.jdbc.source.JdbcInputFormatBuilder;
 import com.dtstack.chunjun.connector.jdbc.table.JdbcDynamicTableFactory;
 import com.dtstack.chunjun.connector.jdbc.util.JdbcUtil;
 import com.dtstack.chunjun.connector.mysql.dialect.MysqlDialect;
-import com.dtstack.chunjun.connector.mysql.sink.MysqlOutputFormat;
-import com.dtstack.chunjun.connector.mysql.source.MysqlInputFormat;
 
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.api.TableSchema;
@@ -80,7 +80,7 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
      */
     @Override
     protected JdbcInputFormatBuilder getInputFormatBuilder() {
-        return new JdbcInputFormatBuilder(new MysqlInputFormat());
+        return new JdbcInputFormatBuilder(new JdbcInputFormat());
     }
 
     /**
@@ -90,6 +90,6 @@ public class MysqlDynamicTableFactory extends JdbcDynamicTableFactory {
      */
     @Override
     protected JdbcOutputFormatBuilder getOutputFormatBuilder() {
-        return new JdbcOutputFormatBuilder(new MysqlOutputFormat());
+        return new JdbcOutputFormatBuilder(new JdbcOutputFormat());
     }
 }

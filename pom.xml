@@ -21,26 +21,60 @@
 		<module>chunjun-restore</module>
 		<module>chunjun-sql</module>
 		<module>chunjun-assembly</module>
-		<!--		<module>chunjun-local-test</module>-->
+        <!--		<module>chunjun-local-test</module>-->
 	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<target.java.version>1.8</target.java.version>
 		<flink.version>1.12.7</flink.version>
+		<flinkcdc.version>1.3.0</flinkcdc.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<prometheus.version>0.8.1</prometheus.version>
 		<hadoop.version>3.1.4</hadoop.version>
 		<http.version>4.5.3</http.version>
-		<guava.version>27.0-jre</guava.version>
+		<chunjun.guava.version>27.0-jre</chunjun.guava.version>
 		<!-- fix CVE-2021-45105 -->
 		<log4j2.version>2.17.0</log4j2.version>
 		<dist.dir>chunjun-dist</dist.dir>
-		<powermock.version>2.0.4</powermock.version>
 		<log4j.version>1.2.17</log4j.version>
 		<slf4j.version>1.7.36</slf4j.version>
 		<logback.version>1.2.11</logback.version>
+
+		<!-- Unit Test Start -->
+		<junit4.version>4.13.2</junit4.version>
+		<junit5.version>5.8.1</junit5.version>
+		<archunit.version>0.22.0</archunit.version>
+		<mockito.version>3.4.6</mockito.version>
+		<powermock.version>2.0.9</powermock.version>
+		<hamcrest.version>1.3</hamcrest.version>
+		<assertj.version>3.21.0</assertj.version>
+		<testcontainers.version>1.17.2</testcontainers.version>
+		<!-- Unit Test End -->
+		<flink.XmxMax>3072m</flink.XmxMax>
+		<!-- XmxMax / forkCountITCase -->
+		<flink.XmxITCase>1536m</flink.XmxITCase>
+		<!-- XmxMax / forkCountUnitTest -->
+		<flink.XmxUnitTest>768m</flink.XmxUnitTest>
+		<!-- Need to use a user property here because the surefire
+			 forkCount is not exposed as a property. With this we can set
+			 it on the "mvn" commandline in travis. -->
+		<!-- Number of forkCounts for ITCase and UnitTest should take into account allocated memory
+			 to the jvm (-Xmx) and the available memory on the machine running the test -->
+		<flink.forkCountITCase>2</flink.forkCountITCase>
+		<flink.forkCountUnitTest>4</flink.forkCountUnitTest>
+		<flink.reuseForks>true</flink.reuseForks>
+		<flink.surefire.baseArgLine>-XX:+UseG1GC -Xms256m</flink.surefire.baseArgLine>
+		<test.unit.pattern>**/*Test.*</test.unit.pattern>
 	</properties>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<dependencies>
 		<dependency>
@@ -214,6 +248,76 @@
 			<version>1.8.2</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.2</version>
+		</dependency>
+
+		<!-- test dependencies -->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-annotations</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>${hamcrest.version}</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- tests will have log4j as the default logging framework available -->
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<!-- API bridge between log4j 1 and 2 -->
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-1.2-api</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<repositories>
@@ -245,6 +349,71 @@
 			<url>https://packages.confluent.io/maven/</url>
 		</repository>
 	</repositories>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${chunjun.guava.version}</version>
+			</dependency>
+
+			<!-- For dependency convergence -->
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>${junit5.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit4.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.assertj</groupId>
+				<artifactId>assertj-core</artifactId>
+				<version>${assertj.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>${testcontainers.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-slf4j-impl</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-api</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-core</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+
+			<dependency>
+				<!-- API bridge between log4j 1 and 2 -->
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-1.2-api</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>

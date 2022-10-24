@@ -18,6 +18,7 @@
 package com.dtstack.chunjun.connector.hdfs.util;
 
 import com.dtstack.chunjun.conf.FieldConf;
+import com.dtstack.chunjun.connector.hdfs.conf.HdfsConf;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcColumnConverter;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsOrcRowConverter;
 import com.dtstack.chunjun.connector.hdfs.converter.HdfsParquetColumnConverter;
@@ -331,18 +332,19 @@ public class HdfsUtil {
             boolean useAbstractBaseColumn,
             String fileType,
             List<FieldConf> fieldConfList,
-            RawTypeConverter converter) {
+            RawTypeConverter converter,
+            HdfsConf hdfsConf) {
         AbstractRowConverter rowConverter;
         if (useAbstractBaseColumn) {
             switch (FileType.getByName(fileType)) {
                 case ORC:
-                    rowConverter = new HdfsOrcColumnConverter(fieldConfList);
+                    rowConverter = new HdfsOrcColumnConverter(fieldConfList, hdfsConf);
                     break;
                 case PARQUET:
-                    rowConverter = new HdfsParquetColumnConverter(fieldConfList);
+                    rowConverter = new HdfsParquetColumnConverter(fieldConfList, hdfsConf);
                     break;
                 default:
-                    rowConverter = new HdfsTextColumnConverter(fieldConfList);
+                    rowConverter = new HdfsTextColumnConverter(fieldConfList, hdfsConf);
             }
         } else {
             RowType rowType = TableUtil.createRowType(fieldConfList, converter);

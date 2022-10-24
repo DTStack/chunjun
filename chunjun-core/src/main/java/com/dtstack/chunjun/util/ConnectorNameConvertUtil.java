@@ -41,6 +41,7 @@ public class ConnectorNameConvertUtil {
         connectorNameMap.put("dorisbatch", new Tuple2<>("doris", "doris"));
         connectorNameMap.put("gbase", new Tuple2<>("gBase", "gBase"));
         connectorNameMap.put("protobuf", new Tuple2<>("pbformat", "pbformat"));
+        connectorNameMap.put("starrocks", new Tuple2<>("starrocks", "starRocks"));
     }
 
     public static String convertClassPrefix(String originName) {

@@ -174,4 +174,8 @@ public class DirtyManager implements Serializable {
     public void setConsumer(DirtyDataCollector consumer) {
         this.consumer = consumer;
     }
+
+    public boolean isAlive() {
+        return isAlive.get();
+    }
 }

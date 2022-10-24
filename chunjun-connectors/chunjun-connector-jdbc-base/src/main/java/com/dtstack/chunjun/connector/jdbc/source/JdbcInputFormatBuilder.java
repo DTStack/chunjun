@@ -21,6 +21,7 @@ package com.dtstack.chunjun.connector.jdbc.source;
 import com.dtstack.chunjun.conf.FieldConf;
 import com.dtstack.chunjun.connector.jdbc.conf.JdbcConf;
 import com.dtstack.chunjun.connector.jdbc.dialect.JdbcDialect;
+import com.dtstack.chunjun.connector.jdbc.util.key.KeyUtil;
 import com.dtstack.chunjun.constants.ConstantValue;
 import com.dtstack.chunjun.enums.ColumnType;
 import com.dtstack.chunjun.enums.Semantic;
@@ -28,7 +29,9 @@ import com.dtstack.chunjun.source.format.BaseRichInputFormatBuilder;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * The builder of JdbcInputFormat
@@ -52,6 +55,10 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
         format.setJdbcDialect(jdbcDialect);
     }
 
+    public void setColumnNameList(List<String> columnNameList) {
+        format.setColumnNameList(columnNameList);
+    }
+
     @Override
     protected void checkFormat() {
         JdbcConf conf = format.getJdbcConf();
@@ -67,7 +74,6 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
             if (StringUtils.isBlank(conf.getIncreColumn())) {
                 sb.append("increColumn can't be empty when increment is true;\n");
             }
-            conf.setSplitPk(conf.getIncreColumn());
         }
 
         if (conf.getParallelism() > 1) {
@@ -96,6 +102,11 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
                         .append("];\n");
             }
         }
+
+        if (conf.isPolling() && conf.isUseMaxFunc()) {
+            sb.append("polling and useMaxFunc can't be true at the same time;\n");
+        }
+
         try {
             Semantic.getByName(conf.getSemantic());
         } catch (Exception e) {
@@ -105,5 +116,17 @@ public class JdbcInputFormatBuilder extends BaseRichInputFormatBuilder<JdbcInput
         if (sb.length() > 0) {
             throw new IllegalArgumentException(sb.toString());
         }
+    }
+
+    public void setIncrementKeyUtil(KeyUtil<?, BigInteger> incrementKeyUtil) {
+        format.setIncrementKeyUtil(incrementKeyUtil);
+    }
+
+    public void setSplitKeyUtil(KeyUtil<?, BigInteger> splitKeyUtil) {
+        format.setSplitKeyUtil(splitKeyUtil);
+    }
+
+    public void setRestoreKeyUtil(KeyUtil<?, BigInteger> splitKeyUtil) {
+        format.setRestoreKeyUtil(splitKeyUtil);
     }
 }
